@@ -20,6 +20,8 @@ describe('@customAttribute', () => {
     return { Type, sut };
   }
 
+  const descriptionKeys = ['name', 'aliases', 'defaultBindingMode', 'isTemplateController', 'bindables'];
+
   it('creates the default attribute description', () => {
     const { Type } = createCustomAttribute('foo');
     expect(Type.description).to.be.a('object', 'description');
@@ -28,6 +30,7 @@ describe('@customAttribute', () => {
     expect(Type.description.defaultBindingMode).to.equal(BindingMode.toView, 'defaultBindingMode');
     expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
     expect(Type.description.bindables).to.deep.equal({}, 'bindables');
+    expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
   });
 
   const aliasesSpecs = [
@@ -72,6 +75,29 @@ describe('@customAttribute', () => {
       }
     }
   ];
+
+  eachCartesianJoin([aliasesSpecs], (aliasesSpec) => {
+    it(`${aliasesSpec.expectation} if ${aliasesSpec.description}`, () => {
+      // Arrange
+      const def = {
+        name: 'foo',
+        aliases: aliasesSpec.getAliases(),
+      };
+
+      // Act
+      const Type = customAttribute(def)(class {});
+
+      // Assert
+      const expectedAliases = aliasesSpec.getExpectedAliases(def);
+      const description = Type.description;
+      expect(description.name).to.equal('foo', 'name');
+      expect(description.aliases).to.deep.equal(expectedAliases, 'aliases');
+      expect(Type.description.defaultBindingMode).to.equal(BindingMode.toView, 'defaultBindingMode');
+      expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
+      expect(Type.description.bindables).to.deep.equal({}, 'bindables');
+      expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
+    });
+  });
 
   const bindingModeSpecs = [
     {
@@ -132,40 +158,28 @@ describe('@customAttribute', () => {
     }
   ];
 
-  const templateControllerSpecs = [
-    {
-      description: 'isTemplateController is null',
-      expectation: 'uses false',
-      getIsTemplateController() { null },
-      getExpectedIsTemplateController(def: IAttributeDefinition) {
-        return false;
-      }
-    },
-    {
-      description: 'isTemplateController is undefined',
-      expectation: 'uses false',
-      getIsTemplateController() { undefined },
-      getExpectedIsTemplateController(def: IAttributeDefinition) {
-        return false;
-      }
-    },
-    {
-      description: 'isTemplateController is false',
-      expectation: 'uses false',
-      getIsTemplateController() { false },
-      getExpectedIsTemplateController(def: IAttributeDefinition) {
-        return false;
-      }
-    },
-    {
-      description: 'isTemplateController is true',
-      expectation: 'uses the provided isTemplateController',
-      getIsTemplateController() { true },
-      getExpectedIsTemplateController(def: IAttributeDefinition) {
-        return def.isTemplateController;
-      }
-    },
-  ];
+  eachCartesianJoin([bindingModeSpecs], (bindingModeSpec) => {
+    it(`${bindingModeSpec.expectation} if ${bindingModeSpec.description}`, () => {
+      // Arrange
+      const def = {
+        name: 'foo',
+        defaultBindingMode: bindingModeSpec.getBindingMode(),
+      };
+
+      // Act
+      const Type = customAttribute(def)(class {});
+
+      // Assert
+      const expectedBindingMode = bindingModeSpec.getExpectedBindingMode(def);
+      const description = Type.description;
+      expect(Type.description.aliases).to.equal(PLATFORM.emptyArray, 'aliases');
+      expect(description.name).to.equal('foo', 'name');
+      expect(description.defaultBindingMode).to.equal(expectedBindingMode, 'defaultBindingMode');
+      expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
+      expect(Type.description.bindables).to.deep.equal({}, 'bindables');
+      expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
+    });
+  });
 
   const bindablesSpecs = [
     {
@@ -219,15 +233,11 @@ describe('@customAttribute', () => {
     }
   ];
 
-  eachCartesianJoin([aliasesSpecs, bindingModeSpecs, templateControllerSpecs, bindablesSpecs],
-    (aliasesSpec, bindingModeSpec, templateControllerSpec, bindablesSpec) => {
-
-    it(`${aliasesSpec.expectation} if ${aliasesSpec.description} AND ${bindingModeSpec.expectation} if ${bindingModeSpec.description} AND ${templateControllerSpec.expectation} if ${templateControllerSpec.description} AND ${bindablesSpec.expectation} if ${bindablesSpec.description}`, () => {
+  eachCartesianJoin([bindablesSpecs], (bindablesSpec) => {
+    it(`${bindablesSpec.expectation} if ${bindablesSpec.description}`, () => {
       // Arrange
       const def = {
         name: 'foo',
-        aliases: aliasesSpec.getAliases(),
-        defaultBindingMode: bindingModeSpec.getBindingMode(),
         bindables: bindablesSpec.getDefBindables(),
       };
       class Foo {
@@ -238,14 +248,14 @@ describe('@customAttribute', () => {
       const Type = customAttribute(def)(Foo);
 
       // Assert
-      const expectedAliases = aliasesSpec.getExpectedAliases(def);
-      const expectedBindingMode = bindingModeSpec.getExpectedBindingMode(def);
       const expectedBindables = bindablesSpec.getExpectedBindables();
       const description = Type.description;
-      expect(description.name).to.equal('foo', 'name');
-      expect(description.aliases).to.deep.equal(expectedAliases, 'aliases');
-      expect(description.defaultBindingMode).to.equal(expectedBindingMode, 'defaultBindingMode');
+      expect(Type.description.name).to.equal('foo', 'name');
+      expect(Type.description.aliases).to.equal(PLATFORM.emptyArray, 'aliases');
+      expect(Type.description.defaultBindingMode).to.equal(BindingMode.toView, 'defaultBindingMode');
+      expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
       expect(description.bindables).to.deep.equal(expectedBindables, 'bindables');
+      expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
 

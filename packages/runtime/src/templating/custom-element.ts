@@ -310,7 +310,7 @@ export function createCustomElementDescription(def: ITemplateDefinition, Type: I
   return {
     name: def.name || 'unnamed',
     template: def.template || null,
-    cache: 0,
+    cache: def.cache || 0,
     build: def.build || {
       required: false,
       compiler: 'default'

@@ -122,6 +122,9 @@ export const CustomElementResource: ICustomElementResource = {
   },
 
   define<T extends Constructable>(nameOrSource: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
+    if (!nameOrSource) {
+      throw Reporter.error(70);
+    }
     const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
     const description = createCustomElementDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, <ICustomElementType & T>Type);
     const proto: Writable<ICustomElement> = Type.prototype;

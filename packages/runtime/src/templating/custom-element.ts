@@ -159,7 +159,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   this.$attachables = [];
   this.$isAttached = false;
   this.$isBound = false;
-  this.$scope = Scope.create(this, null); // TODO: get the parent from somewhere?
+  this.$scope = Scope.create(this, null);
   this.$projector = determineProjector(this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
@@ -302,7 +302,7 @@ function addNodes(this: IInternalCustomElementImplementation): void {
 }
 
 function removeNodes(this: IInternalCustomElementImplementation): void {
-  this.$projector.onElementRemoved();
+  this.$projector.take(this.$nodes);
 }
 
 /*@internal*/
@@ -331,11 +331,9 @@ export interface IElementProjector {
 
   provideEncapsulationSource(parentEncapsulationSource: ICustomElementHost): ICustomElementHost;
   project(nodes: INodeSequence): void;
+  take(nodes: INodeSequence): void;
 
   subscribeToChildrenChange(callback: () => void): void;
-
-  /*@internal*/
-  onElementRemoved(): void;
 }
 
 function determineProjector(
@@ -390,7 +388,7 @@ export class ShadowDOMProjector implements IElementProjector {
     this.project = PLATFORM.noop;
   }
 
-  public onElementRemoved(): void {
+  public take(nodes: INodeSequence): void {
     // No special behavior is required because the host element removal
     // will result in the projected nodes being removed, since they are in
     // the ShadowDOM.
@@ -436,9 +434,9 @@ export class ContainerlessProjector implements IElementProjector {
     }
   }
 
-  public onElementRemoved(): void {
+  public take(nodes: INodeSequence): void {
     this.requiresMount = true;
-    this.$customElement.$nodes.remove();
+    nodes.remove();
   }
 }
 
@@ -464,7 +462,7 @@ export class HostProjector implements IElementProjector {
     this.project = PLATFORM.noop;
   }
 
-  public onElementRemoved(): void {
+  public take(nodes: INodeSequence): void {
     // No special behavior is required because the host element removal
     // will result in the projected nodes being removed, since they are children.
   }

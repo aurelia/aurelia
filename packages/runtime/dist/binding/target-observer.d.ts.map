@@ -1,0 +1,1 @@
+{"version":3,"file":"target-observer.d.ts","sourceRoot":"","sources":["../packages/runtime/src/binding/target-observer.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,SAAS,EAAE,MAAM,iBAAiB,CAAC;AAqDxD,wBAAgB,cAAc,CAAC,YAAY,GAAE,SAAS,GAAG,UAAiB,GAAG,cAAc,CAiB1F"}

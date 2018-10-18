@@ -47,7 +47,7 @@ export interface IInternalCustomAttributeImplementation extends Writable<ICustom
   $behavior: IRuntimeBehavior;
 }
 
-type CustomAttributeDecorator = <T extends Constructable>(target: Decoratable<ICustomAttribute, T>) => Decorated<ICustomAttribute, T>;
+type CustomAttributeDecorator = <T extends Constructable>(target: Decoratable<ICustomAttribute, T>) => Decorated<ICustomAttribute, T> & ICustomAttributeType;
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
  */

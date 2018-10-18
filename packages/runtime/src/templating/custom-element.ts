@@ -48,7 +48,7 @@ export interface IInternalCustomElementImplementation extends Writable<ICustomEl
   $behavior: IRuntimeBehavior;
 }
 
-type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T>;
+type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T> & ICustomElementType;
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */

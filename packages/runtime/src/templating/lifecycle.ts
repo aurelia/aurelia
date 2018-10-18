@@ -23,7 +23,7 @@ export interface IElementTemplateProvider {
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface ILifecycleHooks extends Partial<Omit<IRenderable, '$addNodes' | '$removeNodes'>> {
+export interface ILifecycleHooks extends Partial<Omit<IRenderable, '$mount' | '$unmount'>> {
   /**
    * Only applies to `@customElement`. This hook is not invoked for `@customAttribute`s
    *
@@ -152,7 +152,7 @@ export interface ILifecycleHooks extends Partial<Omit<IRenderable, '$addNodes' |
   detaching?(lifecycle: IDetachLifecycle): void;
 
   /**
-   * Called during `$removeNodes` (which happens during `$detach`), specifically after the
+   * Called during `$unmount` (which happens during `$detach`), specifically after the
    * `$nodes` are removed from the DOM, but before the view is actually added to the cache.
    *
    * @description
@@ -239,7 +239,7 @@ type LifecycleAttachable = {
   attached(): void;
 };
 
-type LifecycleNodeAddable = Pick<IRenderable, '$addNodes'> & {
+type LifecycleNodeAddable = Pick<IRenderable, '$mount'> & {
   /*@internal*/
   $nextAddNodes?: LifecycleNodeAddable;
 };
@@ -263,7 +263,7 @@ type LifecycleDetachable = {
   detached(): void;
 };
 
-type LifecycleNodeRemovable = Pick<IRenderable, '$removeNodes'> & {
+type LifecycleNodeRemovable = Pick<IRenderable, '$unmount'> & {
   /*@internal*/
   $nextRemoveNodes?: LifecycleNodeRemovable;
 };
@@ -420,7 +420,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
   }
 
   /*@internal*/
-  public $addNodes(): void {
+  public $mount(): void {
     if (this.parent !== null) {
       this.processAddNodes();
     }
@@ -438,7 +438,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
     let nextAddNodes;
 
     while (currentAddNodes) {
-      currentAddNodes.$addNodes();
+      currentAddNodes.$mount();
       nextAddNodes = currentAddNodes.$nextAddNodes;
       currentAddNodes.$nextAddNodes = null;
       currentAddNodes = nextAddNodes;
@@ -539,7 +539,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
   }
 
   /*@internal*/
-  public $removeNodes(): void {
+  public $unmount(): void {
     if (this.parent !== null) {
       this.processRemoveNodes();
     }
@@ -564,14 +564,14 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
 
     if (this.flags & LifecycleFlags.unbindAfterDetached) {
       while (currentRemoveNodes) {
-        currentRemoveNodes.$removeNodes();
+        currentRemoveNodes.$unmount();
         currentRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
       }
     } else {
       let nextRemoveNodes;
 
       while (currentRemoveNodes) {
-        currentRemoveNodes.$removeNodes();
+        currentRemoveNodes.$unmount();
         nextRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
         currentRemoveNodes.$nextRemoveNodes = null;
         currentRemoveNodes = nextRemoveNodes;
@@ -608,7 +608,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
 }
 
 function isNodeRemovable(requestor: object): requestor is LifecycleNodeRemovable {
-  return '$removeNodes' in requestor;
+  return '$unmount' in requestor;
 }
 
 function isUnbindable(requestor: object): requestor is IBindScope {

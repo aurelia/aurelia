@@ -47,7 +47,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     const { views, location } = this;
     for (let i = 0, ii = views.length; i < ii; ++i) {
       const view = views[i];
-      view.mount(location);
+      view.hold(location);
       view.$attach(encapsulationSource, lifecycle);
     }
   }
@@ -136,14 +136,14 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
       if (indexMap === null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           const view = views[i];
-          view.mount(location);
+          view.hold(location);
           lifecycle.attach(view);
         }
       } else {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           if (indexMap[i] !== i) {
             const view = views[i];
-            view.mount(location);
+            view.hold(location);
             lifecycle.attach(view);
           }
         }

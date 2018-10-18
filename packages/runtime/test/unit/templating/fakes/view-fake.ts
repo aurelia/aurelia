@@ -28,18 +28,18 @@ export class ViewFake implements IView {
   $removeChild(child: IBindScope | IAttach): void {
   }
 
-  $addNodes() {
+  $mount() {
     this.$nodes.insertBefore(this.location);
   }
 
-  $removeNodes() {
+  $unmount() {
     this.mountRequired = true;
     this.$nodes.remove();
   }
 
   $cache() {}
 
-  mount(location: IRenderLocation): void {
+  hold(location: IRenderLocation): void {
     this.mountRequired = true;
     this.location = location;
   }

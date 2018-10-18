@@ -35,7 +35,7 @@ export interface ICustomAttributeType extends
   IResourceType<IAttributeDefinition, ICustomAttribute>,
   Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
 
-type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$addNodes' | '$removeNodes'>>;
+type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
 type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$isAttached' | '$isBound' | '$scope'>>;
 
 export interface ICustomAttribute extends IBindScope, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {

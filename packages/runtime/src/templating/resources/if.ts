@@ -90,7 +90,7 @@ export class If {
       view = factory.create();
     }
 
-    view.mount(this.location);
+    view.hold(this.location);
 
     return view;
   }

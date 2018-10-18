@@ -266,9 +266,9 @@ describe(`View`, () => {
         () => [` noop`, PLATFORM.noop],
         ($1, $2, $3, [$41, location]) => [`mount`, (sut) => {
           if (!location.parentNode) {
-            expect(() => sut.mount(location)).to.throw(/60/);
+            expect(() => sut.hold(location)).to.throw(/60/);
           } else {
-            sut.mount(location);
+            sut.hold(location);
 
             expect(sut['location']).to.equal(location);
             if (sut.$nodes === NodeSequence.empty) {

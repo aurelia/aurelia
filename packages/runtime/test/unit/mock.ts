@@ -143,12 +143,12 @@ export class MockCustomElement implements ICustomElement {
     }
   }
 
-  public $addNodes(): void {
+  public $mount(): void {
     this.$nodes.appendTo(this.$host);
-    this.$addNodes = PLATFORM.noop;
+    this.$mount = PLATFORM.noop;
   }
 
-  public $removeNodes(): void { }
+  public $unmount(): void { }
 }
 
 export function createMockRenderContext(
@@ -530,8 +530,8 @@ export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
     lifecycle.queueAttachedCallback(this);
   }
 
-  public $addNodes(): void {
-    this.trace('$addNodes');
+  public $mount(): void {
+    this.trace('$mount');
   }
 
   public $detach(lifecycle: IDetachLifecycle): void {
@@ -546,8 +546,8 @@ export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
     lifecycle.queueDetachedCallback(this);
   }
 
-  public $removeNodes(): void {
-    this.trace('$removeNodes');
+  public $unmount(): void {
+    this.trace('$unmount');
   }
 
   public $cache(): void {

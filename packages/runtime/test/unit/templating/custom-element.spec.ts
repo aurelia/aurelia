@@ -1072,11 +1072,11 @@ describe('@customElement', () => {
           queueAddNodes(requestor: CustomElement) {
             queueAddNodesCalled = true;
             queueAddNodesRequestor = requestor;
-            requestor.$addNodes();
+            requestor.$mount();
           }
         };
         let addNodesCalled = false;
-        sut.$addNodes = () => {
+        sut.$mount = () => {
           addNodesCalled = true;
         };
 
@@ -1173,11 +1173,11 @@ describe('@customElement', () => {
           queueRemoveNodes(requestor: CustomElement) {
             queueRemoveNodesCalled = true;
             queueRemoveNodesRequestor = requestor;
-            requestor.$removeNodes();
+            requestor.$unmount();
           }
         };
         let removeNodesCalled = false;
-        sut.$removeNodes = () => {
+        sut.$unmount = () => {
           removeNodesCalled = true;
         };
 
@@ -1242,7 +1242,7 @@ describe('@customElement', () => {
     });
   });
 
-  describe('$addNodes', () => {
+  describe('$mount', () => {
     it('calls $projector.project()', () => {
       const { sut } = createCustomElement('foo');
 
@@ -1256,14 +1256,14 @@ describe('@customElement', () => {
         }
       };
 
-      sut.$addNodes();
+      sut.$mount();
 
       expect(projectCalled).to.equal(true, 'projectCalled');
       expect(projectNodes).to.equal(nodes, 'projectNodes');
     });
   });
 
-  describe('$removeNodes', () => {
+  describe('$unmount', () => {
     it('calls $projector.take()', () => {
       const { sut } = createCustomElement('foo');
 
@@ -1277,7 +1277,7 @@ describe('@customElement', () => {
         }
       };
 
-      sut.$removeNodes();
+      sut.$unmount();
 
       expect(takeCalled).to.equal(true, 'takeCalled');
       expect(takeNodes).to.equal(nodes, 'takeNodes');

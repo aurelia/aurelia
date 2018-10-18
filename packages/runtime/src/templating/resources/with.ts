@@ -17,7 +17,7 @@ export class With {
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {
     this.currentView = this.factory.create();
-    this.currentView.mount(location);
+    this.currentView.hold(location);
   }
 
   public valueChanged(): void {

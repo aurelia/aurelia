@@ -13,7 +13,7 @@ export type RenderCallback = (view: IView) => void;
 export interface IView extends IBindScope, IRenderable, IAttach {
   readonly factory: IViewFactory;
 
-  mount(location: IRenderLocation): void;
+  hold(location: IRenderLocation): void;
   release(): boolean;
 
   lockScope(scope: IScope): void;
@@ -48,7 +48,7 @@ export class View implements IView {
     this.$nodes = this.template.createFor(this);
   }
 
-  public mount(location: IRenderLocation): void {
+  public hold(location: IRenderLocation): void {
     if (!location.parentNode) { // unmet invariant: location must be a child of some other node
       throw Reporter.error(60); // TODO: organize error codes
     }
@@ -73,7 +73,7 @@ export class View implements IView {
     if (this.$isAttached) {
       return this.factory.canReturnToCache(this);
     } else {
-      return this.$removeNodes();
+      return this.$unmount();
     }
   }
 
@@ -96,12 +96,12 @@ export class View implements IView {
     this.$isBound = true;
   }
 
-  public $addNodes(): void {
+  public $mount(): void {
     this.requiresNodeAdd = false;
     this.$nodes.insertBefore(this.location);
   }
 
-  public $removeNodes(): boolean {
+  public $unmount(): boolean {
     this.requiresNodeAdd = true;
     this.$nodes.remove();
 

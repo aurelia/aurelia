@@ -33,7 +33,7 @@ export interface IBindSelf {
   $unbind(flags: BindingFlags): void;
 }
 
-type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$addNodes' | '$removeNodes'>>;
+type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
 type RequiredLifecycleProperties = Readonly<IRenderable>;
 
 export interface ICustomElement extends IBindSelf, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {
@@ -139,8 +139,8 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$detach = detach;
     proto.$unbind = unbind;
     proto.$cache = cache;
-    proto.$addNodes = addNodes;
-    proto.$removeNodes = removeNodes;
+    proto.$mount = mount;
+    proto.$unmount = unmount;
 
     return <ICustomElementType & T>Type;
   }
@@ -297,11 +297,11 @@ function cache(this: IInternalCustomElementImplementation): void {
   }
 }
 
-function addNodes(this: IInternalCustomElementImplementation): void {
+function mount(this: IInternalCustomElementImplementation): void {
   this.$projector.project(this.$nodes);
 }
 
-function removeNodes(this: IInternalCustomElementImplementation): void {
+function unmount(this: IInternalCustomElementImplementation): void {
   this.$projector.take(this.$nodes);
 }
 

@@ -18,8 +18,8 @@ export class RenderableFake implements IRenderable {
   $bindables: IBindScope[];
   $attachables: IAttach[];
 
-  $addNodes() {}
-  $removeNodes() {}
+  $mount() {}
+  $unmount() {}
 
   constructor() {
     this.$bindables = [];

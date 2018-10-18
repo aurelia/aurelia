@@ -107,7 +107,7 @@ export class Compose {
     const view = this.provideViewFor(subject);
 
     if (view) {
-      view.mount(this.$projector.host);
+      view.hold(this.$projector.host);
       view.lockScope(this.renderable.$scope);
       return view;
     }

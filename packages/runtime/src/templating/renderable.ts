@@ -57,10 +57,10 @@ export interface IRenderable {
   /**
    * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is attached to.
    */
-  $addNodes(): void;
+  $mount(): void;
 
   /**
    * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is attached to, optionally returning them to a cache.
    */
-  $removeNodes(): void;
+  $unmount(): void;
 }

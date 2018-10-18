@@ -37,7 +37,7 @@ function verifyRemoveNodesCalls(offset: number, count: number, mock: LifecycleMo
     i++
   });
   expect(i).to.equal(count);
-  expect(mock.calls[offset + 0][0]).to.equal(`$removeNodes`,   `calls[${offset}+0][0]`);
+  expect(mock.calls[offset + 0][0]).to.equal(`$unmount`,   `calls[${offset}+0][0]`);
   expect(mock.calls[offset + 0][1]).to.equal(0,                `calls[${offset}+0][1]`);
   expect(mock.calls[offset + 0][2]).to.equal(0,                `calls[${offset}+0][2]`);
 }
@@ -73,7 +73,7 @@ function verifyAddNodesCalls(offset: number, count: number, mock: LifecycleMock)
 
   let i = 0;
   mock.walkBottomUp(x => {
-    expect(mock.calls[offset + i][0]).to.equal(`$addNodes`, `calls[${offset}+${i}][0]`);
+    expect(mock.calls[offset + i][0]).to.equal(`$mount`, `calls[${offset}+${i}][0]`);
     expect(mock.calls[offset + i][1]).to.equal(x.depth,     `calls[${offset}+${i}][1]`);
     expect(mock.calls[offset + i][2]).to.equal(x.index,     `calls[${offset}+${i}][2]`);
     i++

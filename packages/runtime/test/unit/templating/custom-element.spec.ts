@@ -2,21 +2,25 @@ import { MockTextNodeSequence, MockRenderingEngine, IComponentLifecycleMock, def
 import { IDetachLifecycle } from './../../../src/templating/lifecycle';
 import { BindingFlags } from './../../../src/binding/binding-flags';
 import { Immutable, PLATFORM, Writable } from '@aurelia/kernel';
-import { customElement, useShadowDOM, containerless, CustomElementResource, createCustomElementDescription, ShadowDOMProjector, ContainerlessProjector, HostProjector, CustomAttributeResource, INode, ITemplateDefinition, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate, ICustomElementType } from '../../../src/index';
+import { customElement, useShadowDOM, containerless, CustomElementResource, createCustomElementDescription, ShadowDOMProjector, ContainerlessProjector, HostProjector, CustomAttributeResource, INode, ITemplateDefinition, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate, ICustomElementType, IRenderingEngine, Scope, ITemplate, IInternalCustomElementImplementation, IRuntimeBehavior, IElementProjector } from '../../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../util';
 
-type CustomElement = Writable<ICustomElement> & IComponentLifecycleMock;
+type CustomElement = Writable<IInternalCustomElementImplementation> & IComponentLifecycleMock;
 
 describe('@customElement', () => {
 
-  function createCustomElement(nameOrDef?: string | ITemplateDefinition) {
+  function createCustomElement(nameOrDef: string | ITemplateDefinition) {
+    if (arguments.length === 0) {
+      nameOrDef = 'foo';
+    }
     const Type = customElement(nameOrDef)(defineComponentLifecycleMock());
     const sut: CustomElement = new (<any>Type)();
 
     return { Type, sut };
   }
 
+  // #region description verification
   it('throws if input is undefined', () => {
     expect(() => createCustomElement(undefined)).to.throw('Code 70');
   });
@@ -666,6 +670,617 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(hasSlotsSpec.getExpectedHasSlots(), 'hasSlots');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
+    });
+  });
+
+  // #endregion
+
+
+  describe('$hydrate', () => {
+
+    const behaviorSpecs = [
+      {
+        description: '$behavior.hasCreated: true',
+        expectation: 'calls created()',
+        getBehavior() { return <IRuntimeBehavior>{ hasCreated: true }; },
+        verifyBehaviorInvocation(sut: CustomElement) {
+          sut.verifyCreatedCalled();
+          sut.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasCreated: false',
+        expectation: 'does NOT call created()',
+        getBehavior() { return <IRuntimeBehavior>{ hasCreated: false }; },
+        verifyBehaviorInvocation(sut: CustomElement) {
+          sut.verifyNoFurtherCalls();
+        }
+      }
+    ];
+
+    eachCartesianJoin([behaviorSpecs],
+      (behaviorSpec) => {
+
+      it(`sets properties, applies runtime behavior and ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+        // Arrange
+        const { Type, sut } = createCustomElement('foo');
+
+        let createdForCalled = false;
+        let createdForRenderable;
+        let createdForHost;
+        let createdForParts;
+        const template: ITemplate = <any>{
+          renderContext: <ITemplate['renderContext']>{},
+          createFor: <ITemplate['createFor']>((renderable, host, parts) => {
+            createdForCalled = true;
+            createdForRenderable = renderable;
+            createdForHost = host;
+            createdForParts = parts;
+          })
+        };
+        let appliedType: ICustomElementType;
+        let appliedInstance: CustomElement;
+        let getElementTemplateCalled = false;
+        let getElementTemplateDescription;
+        let getElementTemplateType;
+        const renderingEngine: IRenderingEngine = <any>{
+          applyRuntimeBehavior(type: ICustomElementType, instance: CustomElement) {
+            instance.$behavior = behaviorSpec.getBehavior();
+            appliedType = type;
+            appliedInstance = instance;
+          },
+          getElementTemplate(description: ICustomElementType['description'], type: ICustomElementType) {
+            getElementTemplateCalled = true;
+            getElementTemplateDescription = description;
+            getElementTemplateType = type;
+            return template;
+          }
+        };
+        let host: INode = <any>{};
+
+        // Act
+        sut.$hydrate(renderingEngine, host);
+
+        // Assert
+        expect(sut.$isAttached).to.equal(false, 'sut.$isAttached');
+        expect(sut.$isBound).to.equal(false, 'sut.$isBound');
+        expect(sut.$scope.bindingContext).to.equal(sut, 'sut.$scope');
+
+        expect(appliedType).to.equal(Type, 'appliedType');
+        expect(appliedInstance).to.equal(sut, 'appliedInstance');
+        behaviorSpec.verifyBehaviorInvocation(sut);
+      });
+    });
+  });
+
+  describe('$bind', () => {
+
+    const propsAndScopeSpecs = [
+      {
+        description: '$isBound: true',
+        expectation: 'does NOT call behaviors',
+        callsBehaviors: false,
+        setProps(sut: CustomElement) {
+          sut.$isBound = true;
+        }
+      },
+      {
+        description: '$isBound: false',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setProps(sut: CustomElement) {
+          sut.$isBound = false;
+        }
+      }
+    ];
+
+    const flagsSpecs = [
+      {
+        description: 'flags: BindingFlags.fromBind',
+        expectation: 'passed-through flags: fromBind',
+        getFlags() {
+          return BindingFlags.fromBind;
+        },
+        getExpectedFlags() {
+          return BindingFlags.fromBind;
+        }
+      },
+      {
+        description: 'flags: BindingFlags.fromUnbind',
+        expectation: 'passed-through flags: fromBind|fromUnbind',
+        getFlags() {
+          return BindingFlags.fromUnbind;
+        },
+        getExpectedFlags() {
+          return BindingFlags.fromBind | BindingFlags.fromUnbind;
+        }
+      },
+      {
+        description: 'flags: BindingFlags.updateTargetInstance',
+        expectation: 'passed-through flags: fromBind|updateTargetInstance',
+        getFlags() {
+          return BindingFlags.updateTargetInstance;
+        },
+        getExpectedFlags() {
+          return BindingFlags.fromBind | BindingFlags.updateTargetInstance;
+        }
+      }
+    ];
+
+    const behaviorSpecs = [
+      {
+        description: '$behavior.hasBinding: true, $behavior.hasBound: false',
+        expectation: 'calls binding(), does NOT call bound()',
+        getBehavior() {
+          return <IRuntimeBehavior>{ hasBinding: true, hasBound: false };
+        },
+        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+          sut.verifyBindingCalled(flags);
+          sut.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasBinding: false, $behavior.hasBound: false',
+        expectation: 'does NOT call binding(), does NOT call bound()',
+        getBehavior() {
+          return <IRuntimeBehavior>{ hasBinding: false, hasBound: false };
+        },
+        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+          sut.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasBinding: true, $behavior.hasBound: true',
+        expectation: 'calls binding(), calls bound()',
+        getBehavior() {
+          return <IRuntimeBehavior>{ hasBinding: true, hasBound: true };
+        },
+        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+          sut.verifyBoundCalled(flags);
+          sut.verifyBindingCalled(flags);
+          sut.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasBinding: false, $behavior.hasBound: true',
+        expectation: 'does NOT call binding(), calls bound()',
+        getBehavior() {
+          return <IRuntimeBehavior>{ hasBinding: false, hasBound: true };
+        },
+        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+          sut.verifyBoundCalled(flags);
+          sut.verifyNoFurtherCalls();
+        }
+      }
+    ];
+
+    eachCartesianJoin([propsAndScopeSpecs, flagsSpecs, behaviorSpecs],
+      (psSpec, flagsSpec, behaviorSpec) => {
+
+      it(`${psSpec.expectation} if ${psSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomElement('foo');
+        psSpec.setProps(sut);
+        sut.$isAttached = false;
+        sut.$scope = Scope.create(sut, null);
+        sut.$bindables = [];
+        sut.$attachables = [];
+        sut.$behavior = behaviorSpec.getBehavior();
+        const expectedFlags = flagsSpec.getExpectedFlags();
+        const flags = flagsSpec.getFlags();
+
+        // Act
+        sut.$bind(flags);
+
+        // Assert
+        if (psSpec.callsBehaviors) {
+          behaviorSpec.verifyBehaviorInvocation(sut, expectedFlags);
+        } else {
+          sut.verifyNoFurtherCalls();
+        }
+      });
+    });
+  });
+
+  describe('$unbind', () => {
+
+    const propsAndScopeSpecs = [
+      {
+        description: '$isBound: false',
+        expectation: 'does NOT call behaviors',
+        callsBehaviors: false,
+        setProps(sut: CustomElement) {
+          sut.$isBound = false;
+        }
+      },
+      {
+        description: '$isBound: true',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setProps(sut: CustomElement) {
+          sut.$isBound = true;
+        }
+      }
+    ];
+
+    const flagsSpec = [
+      {
+        description: 'flags: BindingFlags.fromBind',
+        expectation: 'passed-through flags: fromUnbind|fromBind',
+        getFlags() { return BindingFlags.fromUnbind; },
+        getExpectedFlags() { return BindingFlags.fromUnbind; }
+      },
+      {
+        description: 'flags: BindingFlags.fromUnbind',
+        expectation: 'passed-through flags: fromUnbind',
+        getFlags() { return BindingFlags.fromUnbind; },
+        getExpectedFlags() { return BindingFlags.fromUnbind | BindingFlags.fromUnbind; }
+      },
+      {
+        description: 'flags: BindingFlags.updateTargetInstance',
+        expectation: 'passed-through flags: fromUnbind|updateTargetInstance',
+        getFlags() { return BindingFlags.updateTargetInstance; },
+        getExpectedFlags() { return BindingFlags.fromUnbind | BindingFlags.updateTargetInstance; }
+      }
+    ];
+
+    const behaviorSpecs = [
+      {
+        description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: false',
+        expectation: 'calls unbinding(), does NOT call unbound()',
+        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: true, hasUnbound: false }; },
+        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+          sut.verifyUnbindingCalled(flags);
+          sut.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: false',
+        expectation: 'does NOT call unbinding(), does NOT call unbound()',
+        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: false, hasUnbound: false }; },
+        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+          sut.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: true',
+        expectation: 'calls unbinding(), calls unbound()',
+        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: true, hasUnbound: true }; },
+        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+          sut.verifyUnboundCalled(flags);
+          sut.verifyUnbindingCalled(flags);
+          sut.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: true',
+        expectation: 'does NOT call unbinding(), calls unbound()',
+        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: false, hasUnbound: true }; },
+        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+          sut.verifyUnboundCalled(flags);
+          sut.verifyNoFurtherCalls();
+        }
+      }
+    ];
+
+
+    eachCartesianJoin([propsAndScopeSpecs, flagsSpec, behaviorSpecs],
+      (psSpec, flagsSpec, behaviorSpec) => {
+
+      it(`${psSpec.expectation} if ${psSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomElement('foo');
+        psSpec.setProps(sut);
+        sut.$isAttached = false;
+        sut.$scope = Scope.create(sut, null);
+        sut.$bindables = [];
+        sut.$attachables = [];
+        sut.$behavior = behaviorSpec.getBehavior();
+        const expectedFlags = flagsSpec.getExpectedFlags();
+        const flags = flagsSpec.getFlags();
+
+        // Act
+        sut.$unbind(flags);
+
+        // Assert
+        if (psSpec.callsBehaviors) {
+          behaviorSpec.verifyBehaviorInvocation(sut, expectedFlags);
+        } else {
+          sut.verifyNoFurtherCalls();
+        }
+      });
+    });
+  });
+
+  describe('$attach', () => {
+
+    const propsSpecs = [
+      {
+        description: '$isAttached: false',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setProps(sut: CustomElement) {
+          sut.$isAttached = false;
+        }
+      },
+      {
+        description: '$isAttached: true',
+        expectation: 'does NOT call behaviors',
+        callsBehaviors: false,
+        setProps(sut: CustomElement) {
+          sut.$isAttached = true;
+        }
+      }
+    ];
+
+    const behaviorSpecs = [
+      {
+        description: '$behavior.hasAttaching: true, $behavior.hasAttached: false',
+        expectation: 'calls attaching(), does NOT call attached()',
+        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: true, hasAttached: false }; }
+      },
+      {
+        description: '$behavior.hasAttaching: false, $behavior.hasAttached: false',
+        expectation: 'does NOT call attaching(), does NOT call attached()',
+        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: false, hasAttached: false }; }
+      },
+      {
+        description: '$behavior.hasAttaching: true, $behavior.hasAttached: true',
+        expectation: 'calls attaching(), calls attached()',
+        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: true, hasAttached: true }; }
+      },
+      {
+        description: '$behavior.hasAttaching: false, $behavior.hasAttached: true',
+        expectation: 'does NOT call attaching(), calls attached()',
+        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: false, hasAttached: true }; }
+      }
+    ];
+
+    eachCartesianJoin([propsSpecs, behaviorSpecs],
+      (propsSpec, behaviorSpec) => {
+
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomElement('foo');
+        sut.$isBound = true;
+        sut.$scope = Scope.create(sut, null);
+        sut.$bindables = [];
+        sut.$attachables = [];
+        propsSpec.setProps(sut);
+        const behavior = behaviorSpec.getBehavior();
+        sut.$behavior = behavior;
+        const encapsulationSource: INode = <any>{};
+
+        let provideEncapsulationSourceCalled = false;
+        const projector: IElementProjector = <any> {
+          provideEncapsulationSource($encapsulationSource: INode) {
+            provideEncapsulationSourceCalled = true;
+            return $encapsulationSource;
+          }
+        };
+        sut.$projector = projector;
+        let queueAttachedCallbackCalled = false;
+        let queueAttachedCallbackRequestor;
+        let queueAddNodesCalled = false;
+        let queueAddNodesRequestor;
+        const lifecycle: IAttachLifecycle = <any>{
+          queueAttachedCallback(requestor: CustomElement) {
+            queueAttachedCallbackCalled = true;
+            queueAttachedCallbackRequestor = requestor;
+            requestor.attached();
+          },
+          queueAddNodes(requestor: CustomElement) {
+            queueAddNodesCalled = true;
+            queueAddNodesRequestor = requestor;
+            requestor.$addNodes();
+          }
+        };
+        let addNodesCalled = false;
+        sut.$addNodes = () => {
+          addNodesCalled = true;
+        };
+
+        // Act
+        sut.$attach(encapsulationSource, lifecycle);
+
+        // Assert
+        if (propsSpec.callsBehaviors) {
+          if (behavior.hasAttached) {
+            sut.verifyAttachedCalled();
+            expect(queueAttachedCallbackCalled).to.equal(true, 'queueAttachedCallbackCalled');
+            expect(queueAttachedCallbackRequestor).to.equal(sut, 'queueAttachedCallbackRequestor')
+          }
+          if (behavior.hasAttaching) {
+            sut.verifyAttachingCalled(encapsulationSource, lifecycle);
+          }
+        } else {
+          expect(queueAttachedCallbackCalled).to.equal(false, 'queueAttachedCallbackCalled');
+        }
+        sut.verifyNoFurtherCalls();
+      });
+    });
+  });
+
+  describe('$detach', () => {
+
+    const propsSpecs = [
+      {
+        description: '$isAttached: false',
+        expectation: 'does NOT call behaviors',
+        callsBehaviors: false,
+        setProps(sut: CustomElement) {
+          sut.$isAttached = false;
+        }
+      },
+      {
+        description: '$isAttached: true',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setProps(sut: CustomElement) {
+          sut.$isAttached = true;
+        }
+      }
+    ];
+
+    const behaviorSpecs = [
+      {
+        description: '$behavior.hasDetaching: true, $behavior.hasDetached: false',
+        expectation: 'calls detaching(), does NOT call detached()',
+        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: true, hasDetached: false }; }
+      },
+      {
+        description: '$behavior.hasDetaching: false, $behavior.hasDetached: false',
+        expectation: 'does NOT call detaching(), does NOT call detached()',
+        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: false, hasDetached: false }; }
+      },
+      {
+        description: '$behavior.hasDetaching: true, $behavior.hasDetached: true',
+        expectation: 'calls detaching(), calls detached()',
+        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: true, hasDetached: true }; }
+      },
+      {
+        description: '$behavior.hasDetaching: false, $behavior.hasDetached: true',
+        expectation: 'does NOT call detaching(), calls detached()',
+        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: false, hasDetached: true }; }
+      }
+    ];
+
+    eachCartesianJoin([propsSpecs, behaviorSpecs],
+      (propsSpec, behaviorSpec) => {
+
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomElement('foo');
+        sut.$isBound = true;
+        sut.$scope = Scope.create(sut, null);
+        sut.$bindables = [];
+        sut.$attachables = [];
+        propsSpec.setProps(sut);
+        const behavior = behaviorSpec.getBehavior();
+        sut.$behavior = behavior;
+        const encapsulationSource: INode = <any>{};
+
+        let queueDetachedCallbackCalled = false;
+        let queueDetachedCallbackRequestor;
+        let queueRemoveNodesCalled = false;
+        let queueRemoveNodesRequestor;
+        const lifecycle: IDetachLifecycle = <any>{
+          queueDetachedCallback(requestor: CustomElement) {
+            queueDetachedCallbackCalled = true;
+            queueDetachedCallbackRequestor = requestor;
+            requestor.detached();
+          },
+          queueRemoveNodes(requestor: CustomElement) {
+            queueRemoveNodesCalled = true;
+            queueRemoveNodesRequestor = requestor;
+            requestor.$removeNodes();
+          }
+        };
+        let removeNodesCalled = false;
+        sut.$removeNodes = () => {
+          removeNodesCalled = true;
+        };
+
+        // Act
+        sut.$detach(lifecycle);
+
+        // Assert
+        if (propsSpec.callsBehaviors) {
+          if (behavior.hasDetached) {
+            sut.verifyDetachedCalled();
+            expect(queueDetachedCallbackCalled).to.equal(true, 'queueDetachedCallbackCalled');
+            expect(queueDetachedCallbackRequestor).to.equal(sut, 'queueDetachedCallbackRequestor')
+          }
+          if (behavior.hasDetaching) {
+            sut.verifyDetachingCalled(lifecycle);
+          }
+        } else {
+          expect(queueDetachedCallbackCalled).to.equal(false, 'queueDetachedCallbackCalled');
+        }
+        sut.verifyNoFurtherCalls();
+      });
+    });
+  });
+
+  describe('$cache', () => {
+
+    const behaviorSpecs = [
+      {
+        description: '$behavior.hasCaching: true',
+        expectation: 'calls hasCaching()',
+        getBehavior() { return <IRuntimeBehavior>{ hasCaching: true }; }
+      },
+      {
+        description: '$behavior.hasCaching: false',
+        expectation: 'does NOT call hasCaching()',
+        getBehavior() { return <IRuntimeBehavior>{ hasCaching: false }; }
+      }
+    ];
+
+    eachCartesianJoin([behaviorSpecs],
+      (behaviorSpec) => {
+
+      it(`${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomElement('foo');
+        sut.$isBound = true;
+        sut.$scope = Scope.create(sut, null);
+        sut.$bindables = [];
+        sut.$attachables = [];
+        const behavior = behaviorSpec.getBehavior();
+        sut.$behavior = behavior;
+
+        // Act
+        sut.$cache();
+
+        // Assert
+        if (behavior.hasCaching) {
+          sut.verifyCachingCalled();
+        }
+        sut.verifyNoFurtherCalls();
+      });
+    });
+  });
+
+  describe('$addNodes', () => {
+    it('calls $projector.project()', () => {
+      const { sut } = createCustomElement('foo');
+
+      const nodes = sut.$nodes = <any>{};
+      let projectCalled = false;
+      let projectNodes;
+      sut.$projector = <any> {
+        project(nodes) {
+          projectCalled = true;
+          projectNodes = nodes;
+        }
+      };
+
+      sut.$addNodes();
+
+      expect(projectCalled).to.equal(true, 'projectCalled');
+      expect(projectNodes).to.equal(nodes, 'projectNodes');
+    });
+  });
+
+  describe('$removeNodes', () => {
+    it('calls $projector.take()', () => {
+      const { sut } = createCustomElement('foo');
+
+      const nodes = sut.$nodes = <any>{};
+      let takeCalled = false;
+      let takeNodes;
+      sut.$projector = <any> {
+        take(nodes) {
+          takeCalled = true;
+          takeNodes = nodes;
+        }
+      };
+
+      sut.$removeNodes();
+
+      expect(takeCalled).to.equal(true, 'takeCalled');
+      expect(takeNodes).to.equal(nodes, 'takeNodes');
     });
   });
 

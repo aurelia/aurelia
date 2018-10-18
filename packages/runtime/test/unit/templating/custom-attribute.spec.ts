@@ -1,11 +1,11 @@
-import { customAttribute, templateController, CustomAttributeResource, ICustomAttribute, IRenderingEngine, Scope, BindingFlags, ICustomAttributeType, IAttachLifecycle, INode, IDetachLifecycle, IAttributeDefinition, BindingMode } from '../../../src/index';
+import { customAttribute, templateController, CustomAttributeResource, ICustomAttribute, IRenderingEngine, Scope, BindingFlags, ICustomAttributeType, IAttachLifecycle, INode, IDetachLifecycle, IAttributeDefinition, BindingMode, IInternalCustomAttributeImplementation, IRuntimeBehavior } from '../../../src/index';
 import { expect } from 'chai';
 import { defineComponentLifecycleMock, IComponentLifecycleMock } from '../mock';
 import { Writable, PLATFORM } from '@aurelia/kernel';
 import { eachCartesianJoin } from '../util';
 import { Container } from '../../../../kernel/src';
 
-type CustomAttribute = Writable<ICustomAttribute> & IComponentLifecycleMock;
+type CustomAttribute = Writable<IInternalCustomAttributeImplementation> & IComponentLifecycleMock;
 
 // Note regarding the expect() assertions:
 // We're intentionally using the less declarative to.equal() syntax for true/false/null equality comparison
@@ -301,7 +301,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasCreated: true',
         expectation: 'calls created()',
-        getBehavior() { return { hasCreated: true }; },
+        getBehavior() { return <IRuntimeBehavior>{ hasCreated: true }; },
         verifyBehaviorInvocation(sut: CustomAttribute) {
           sut.verifyCreatedCalled();
           sut.verifyNoFurtherCalls();
@@ -310,7 +310,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasCreated: false',
         expectation: 'does NOT call created()',
-        getBehavior() { return { hasCreated: false }; },
+        getBehavior() { return <IRuntimeBehavior>{ hasCreated: false }; },
         verifyBehaviorInvocation(sut: CustomAttribute) {
           sut.verifyNoFurtherCalls();
         }
@@ -328,7 +328,7 @@ describe('@customAttribute', () => {
         let appliedInstance: CustomAttribute;
         const renderingEngine: IRenderingEngine = <any>{
           applyRuntimeBehavior(type: ICustomAttributeType, instance: CustomAttribute) {
-            instance['$behavior'] = behaviorSpec.getBehavior();
+            instance.$behavior = behaviorSpec.getBehavior();
             appliedType = type;
             appliedInstance = instance;
           }
@@ -490,7 +490,7 @@ describe('@customAttribute', () => {
         description: '$behavior.hasBinding: true, $behavior.hasBound: false',
         expectation: 'calls binding(), does NOT call bound()',
         getBehavior() {
-          return { hasBinding: true, hasBound: false };
+          return <IRuntimeBehavior>{ hasBinding: true, hasBound: false };
         },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyBindingCalled(flags);
@@ -501,7 +501,7 @@ describe('@customAttribute', () => {
         description: '$behavior.hasBinding: false, $behavior.hasBound: false',
         expectation: 'does NOT call binding(), does NOT call bound()',
         getBehavior() {
-          return { hasBinding: false, hasBound: false };
+          return <IRuntimeBehavior>{ hasBinding: false, hasBound: false };
         },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyNoFurtherCalls();
@@ -511,7 +511,7 @@ describe('@customAttribute', () => {
         description: '$behavior.hasBinding: true, $behavior.hasBound: true',
         expectation: 'calls binding(), calls bound()',
         getBehavior() {
-          return { hasBinding: true, hasBound: true };
+          return <IRuntimeBehavior>{ hasBinding: true, hasBound: true };
         },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyBoundCalled(flags);
@@ -523,7 +523,7 @@ describe('@customAttribute', () => {
         description: '$behavior.hasBinding: false, $behavior.hasBound: true',
         expectation: 'does NOT call binding(), calls bound()',
         getBehavior() {
-          return { hasBinding: false, hasBound: true };
+          return <IRuntimeBehavior>{ hasBinding: false, hasBound: true };
         },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyBoundCalled(flags);
@@ -539,7 +539,7 @@ describe('@customAttribute', () => {
         // Arrange
         const { sut } = createCustomAttribute();
         psSpec.setProps(sut);
-        sut['$behavior'] = behaviorSpec.getBehavior();
+        sut.$behavior = behaviorSpec.getBehavior();
         const expectedFlags = flagsSpec.getExpectedFlags();
         const flags = flagsSpec.getFlags();
         const scope = psSpec.getScope(sut);
@@ -634,7 +634,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: false',
         expectation: 'calls unbinding(), does NOT call unbound()',
-        getBehavior() { return { hasUnbinding: true, hasUnbound: false }; },
+        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: true, hasUnbound: false }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyUnbindingCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -643,7 +643,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: false',
         expectation: 'does NOT call unbinding(), does NOT call unbound()',
-        getBehavior() { return { hasUnbinding: false, hasUnbound: false }; },
+        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: false, hasUnbound: false }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyNoFurtherCalls();
         }
@@ -651,7 +651,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: true',
         expectation: 'calls unbinding(), calls unbound()',
-        getBehavior() { return { hasUnbinding: true, hasUnbound: true }; },
+        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: true, hasUnbound: true }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyUnbindingCalled(flags);
@@ -661,7 +661,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: true',
         expectation: 'does NOT call unbinding(), calls unbound()',
-        getBehavior() { return { hasUnbinding: false, hasUnbound: true }; },
+        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: false, hasUnbound: true }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -677,7 +677,7 @@ describe('@customAttribute', () => {
         // Arrange
         const { sut } = createCustomAttribute();
         psSpec.setProps(sut);
-        sut['$behavior'] = behaviorSpec.getBehavior();
+        sut.$behavior = behaviorSpec.getBehavior();
         const expectedFlags = flagsSpec.getExpectedFlags();
         const flags = flagsSpec.getFlags();
 
@@ -721,22 +721,22 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasAttaching: true, $behavior.hasAttached: false',
         expectation: 'calls attaching(), does NOT call attached()',
-        getBehavior() { return { hasAttaching: true, hasAttached: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: true, hasAttached: false }; }
       },
       {
         description: '$behavior.hasAttaching: false, $behavior.hasAttached: false',
         expectation: 'does NOT call attaching(), does NOT call attached()',
-        getBehavior() { return { hasAttaching: false, hasAttached: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: false, hasAttached: false }; }
       },
       {
         description: '$behavior.hasAttaching: true, $behavior.hasAttached: true',
         expectation: 'calls attaching(), calls attached()',
-        getBehavior() { return { hasAttaching: true, hasAttached: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: true, hasAttached: true }; }
       },
       {
         description: '$behavior.hasAttaching: false, $behavior.hasAttached: true',
         expectation: 'does NOT call attaching(), calls attached()',
-        getBehavior() { return { hasAttaching: false, hasAttached: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: false, hasAttached: true }; }
       }
     ];
 
@@ -748,7 +748,7 @@ describe('@customAttribute', () => {
         const { sut } = createCustomAttribute();
         propsSpec.setProps(sut);
         const behavior = behaviorSpec.getBehavior();
-        sut['$behavior'] = behavior;
+        sut.$behavior = behavior;
         const encapsulationSource: INode = <any>{};
 
         let queueAttachedCallbackCalled = false;
@@ -809,22 +809,22 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasDetaching: true, $behavior.hasDetached: false',
         expectation: 'calls detaching(), does NOT call detached()',
-        getBehavior() { return { hasDetaching: true, hasDetached: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: true, hasDetached: false }; }
       },
       {
         description: '$behavior.hasDetaching: false, $behavior.hasDetached: false',
         expectation: 'does NOT call detaching(), does NOT call detached()',
-        getBehavior() { return { hasDetaching: false, hasDetached: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: false, hasDetached: false }; }
       },
       {
         description: '$behavior.hasDetaching: true, $behavior.hasDetached: true',
         expectation: 'calls detaching(), calls detached()',
-        getBehavior() { return { hasDetaching: true, hasDetached: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: true, hasDetached: true }; }
       },
       {
         description: '$behavior.hasDetaching: false, $behavior.hasDetached: true',
         expectation: 'does NOT call detaching(), calls detached()',
-        getBehavior() { return { hasDetaching: false, hasDetached: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: false, hasDetached: true }; }
       }
     ];
 
@@ -836,7 +836,7 @@ describe('@customAttribute', () => {
         const { sut } = createCustomAttribute();
         propsSpec.setProps(sut);
         const behavior = behaviorSpec.getBehavior();
-        sut['$behavior'] = behavior;
+        sut.$behavior = behavior;
         const encapsulationSource: INode = <any>{};
 
         let queueDetachedCallbackCalled = false;
@@ -876,12 +876,12 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasCaching: true',
         expectation: 'calls hasCaching()',
-        getBehavior() { return { hasCaching: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasCaching: true }; }
       },
       {
         description: '$behavior.hasCaching: false',
         expectation: 'does NOT call hasCaching()',
-        getBehavior() { return { hasCaching: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hasCaching: false }; }
       }
     ];
 
@@ -892,7 +892,7 @@ describe('@customAttribute', () => {
         // Arrange
         const { sut } = createCustomAttribute();
         const behavior = behaviorSpec.getBehavior();
-        sut['$behavior'] = behavior;
+        sut.$behavior = behavior;
 
         // Act
         sut.$cache();

@@ -36,7 +36,13 @@ map-4: &filter_only_release
       only:
         - release
 
-map-5: &filter_only_tag
+map-5: &filter_only_develop
+  filters:
+    branches:
+      only:
+        - develop
+
+map-6: &filter_only_tag
   filters:
     branches:
       ignore: /.*/
@@ -336,6 +342,7 @@ jobs:
       channel:
         type: string
     steps:
+      - checkout
       - do_publish:
           channel: << parameters.channel >>
 
@@ -344,8 +351,9 @@ jobs:
 # - Workflows -
 # # # # # # # # # # # # # # # #
 workflows:
-  # - triggered by commits -
-  build_test_dev:
+  # Runs build and tests
+  # Triggered by push to master or topic branches
+  build_test:
     jobs:
       - install_root:
           <<: *filter_ignore_develop_release
@@ -356,9 +364,9 @@ workflows:
           requires:
             - install_root
       - lint_packages:
+          <<: *filter_ignore_develop_release
           requires:
             - install_root
-          <<: *filter_ignore_develop_release
       - bundle_packages:
           <<: *filter_only_master
           requires:
@@ -368,35 +376,38 @@ workflows:
           requires:
             - bundle_packages
 
-  build_test_release:
+  # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
+  # Triggered by push to tag
+  build_test_push_release:
     jobs:
       - install_root:
           <<: *filter_only_tag
       - unit_test:
-          name: unit_test_chrome
           <<: *filter_only_tag
+          name: unit_test_chrome
       - unit_test:
+          <<: *filter_only_tag
           name: unit_test_firefox
           npm_command: "test-firefox"
           coverage: false
-          <<: *filter_only_tag
       - build_packages:
+          <<: *filter_only_tag
           requires:
             - install_root
-          <<: *filter_only_tag
       - lint_packages:
+          <<: *filter_only_tag
           requires:
             - install_root
-          <<: *filter_only_tag
       - bundle_packages:
+          <<: *filter_only_tag
           requires:
             - build_packages
-          <<: *filter_only_tag
       - e2e_browserstack:
+          <<: *filter_only_tag
           requires:
             - bundle_packages
-          <<: *filter_only_tag
       - merge_and_dist:
+          <<: *filter_only_tag
           requires:
             - lint_packages
             - unit_test_chrome
@@ -404,27 +415,37 @@ workflows:
             - e2e_browserstack
           from: $CIRCLE_TAG
           to: release
-          <<: *filter_only_tag
 
-  deploy_release:
+  # Asks for manual approval and then publishes from the release branch to npm@latest
+  # Triggered by push to release branch
+  publish_latest:
     jobs:
-      # artifacts are already prepared and committed by the tag workflow, so only approval remains
+      # artifacts are already prepared and committed by the tag workflow, so only approval + publish remains
       - request_publish_latest:
-          type: approval
           <<: *filter_only_release
+          type: approval
       - publish_npm:
+          <<: *filter_only_release
           requires:
             - request_publish_latest
           channel: latest
-          <<: *filter_only_release
 
-  # - triggered by schedules -
-  # This workflow runs once per day on 0:00 UTC on the master branch
-  build_test_deploy_dev:
+  # Publishes from the develop branch to npm@dev
+  # Triggered by push to develop branch
+  publish_dev:
+    jobs:
+      # artifacts are already prepared and committed by the scheduled workflow, so only publish remains
+      - publish_npm:
+          <<: *filter_only_develop
+          channel: dev
+
+  # Runs build and tests, and pushes the built artifacts to the develop branch (which then triggers publish_dev)
+  # Triggered by schedule once per day on 0:00 UTC on the master branch
+  build_test_push_dev:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
           <<: *filter_only_master
+          cron: "0 0 * * *"
     jobs:
       - install_root
       - unit_test:
@@ -452,7 +473,3 @@ workflows:
             - unit_test_firefox
             - e2e_browserstack
           to: "develop"
-      - publish_npm:
-          requires:
-            - merge_and_dist
-          channel: "dev"

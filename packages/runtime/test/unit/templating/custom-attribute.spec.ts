@@ -1,8 +1,9 @@
-import { customAttribute, templateController, CustomAttributeResource, createCustomAttributeDescription, ICustomAttribute, IRenderingEngine, RenderingEngine, Scope, BindingFlags, ICustomAttributeType } from '../../../src/index';
+import { customAttribute, templateController, CustomAttributeResource, ICustomAttribute, IRenderingEngine, Scope, BindingFlags, ICustomAttributeType, IAttachLifecycle, INode, IDetachLifecycle, IAttributeDefinition, BindingMode } from '../../../src/index';
 import { expect } from 'chai';
 import { defineComponentLifecycleMock, IComponentLifecycleMock } from '../mock';
-import { Writable } from '@aurelia/kernel';
+import { Writable, PLATFORM } from '@aurelia/kernel';
 import { eachCartesianJoin } from '../util';
+import { Container } from '../../../../kernel/src';
 
 type CustomAttribute = Writable<ICustomAttribute> & IComponentLifecycleMock;
 
@@ -12,17 +13,279 @@ type CustomAttribute = Writable<ICustomAttribute> & IComponentLifecycleMock;
 // easier to pin down the source of the error when a test fail.
 describe('@customAttribute', () => {
 
+  function createCustomAttribute(nameOrDef: string | IAttributeDefinition = 'foo') {
+    const Type = customAttribute(nameOrDef)(defineComponentLifecycleMock());
+    const sut: CustomAttribute = new (<any>Type)();
+
+    return { Type, sut };
+  }
+
+  it('creates the default attribute description', () => {
+    const { Type } = createCustomAttribute('foo');
+    expect(Type.description).to.be.a('object', 'description');
+    expect(Type.description.name).to.equal('foo', 'name');
+    expect(Type.description.aliases).to.equal(PLATFORM.emptyArray, 'aliases');
+    expect(Type.description.defaultBindingMode).to.equal(BindingMode.toView, 'defaultBindingMode');
+    expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
+    expect(Type.description.bindables).to.deep.equal({}, 'bindables');
+  });
+
+  const aliasesSpecs = [
+    {
+      description: 'aliases is null',
+      expectation: 'uses PLATFORM.emptyArray',
+      getAliases() { return null },
+      getExpectedAliases(def: IAttributeDefinition) {
+        return PLATFORM.emptyArray;
+      }
+    },
+    {
+      description: 'aliases is undefined',
+      expectation: 'uses PLATFORM.emptyArray',
+      getAliases() { return undefined },
+      getExpectedAliases(def: IAttributeDefinition) {
+        return PLATFORM.emptyArray;
+      }
+    },
+    {
+      description: 'aliases is empty array',
+      expectation: 'uses the provided aliases',
+      getAliases() { return [] },
+      getExpectedAliases(def: IAttributeDefinition) {
+        return def.aliases;
+      }
+    },
+    {
+      description: 'aliases has one item',
+      expectation: 'uses the provided aliases',
+      getAliases() { return ['a'] },
+      getExpectedAliases(def: IAttributeDefinition) {
+        return def.aliases;
+      }
+    },
+    {
+      description: 'aliases has three items',
+      expectation: 'uses the provided aliases',
+      getAliases() { return ['a', 'b', 'c'] },
+      getExpectedAliases(def: IAttributeDefinition) {
+        return def.aliases;
+      }
+    }
+  ];
+
+  const bindingModeSpecs = [
+    {
+      description: 'bindingMode is null',
+      expectation: 'uses BindingMode.toView',
+      getBindingMode() { return null },
+      getExpectedBindingMode(def: IAttributeDefinition) {
+        return BindingMode.toView;
+      }
+    },
+    {
+      description: 'bindingMode is undefined',
+      expectation: 'uses BindingMode.toView',
+      getBindingMode() { return undefined },
+      getExpectedBindingMode(def: IAttributeDefinition) {
+        return BindingMode.toView;
+      }
+    },
+    {
+      description: 'bindingMode is BindingMode.toView',
+      expectation: 'uses the provided BindingMode',
+      getBindingMode() { return BindingMode.toView },
+      getExpectedBindingMode(def: IAttributeDefinition) {
+        return def.defaultBindingMode;
+      }
+    },
+    {
+      description: 'bindingMode is BindingMode.oneTime',
+      expectation: 'uses the provided BindingMode',
+      getBindingMode() { return BindingMode.oneTime },
+      getExpectedBindingMode(def: IAttributeDefinition) {
+        return def.defaultBindingMode;
+      }
+    },
+    {
+      description: 'bindingMode is BindingMode.fromView',
+      expectation: 'uses the provided BindingMode',
+      getBindingMode() { return BindingMode.fromView },
+      getExpectedBindingMode(def: IAttributeDefinition) {
+        return def.defaultBindingMode;
+      }
+    },
+    {
+      description: 'bindingMode is BindingMode.twoWay',
+      expectation: 'uses the provided BindingMode',
+      getBindingMode() { return BindingMode.twoWay },
+      getExpectedBindingMode(def: IAttributeDefinition) {
+        return def.defaultBindingMode;
+      }
+    },
+    {
+      description: 'bindingMode is BindingMode.default',
+      expectation: 'uses the provided BindingMode',
+      getBindingMode() { return BindingMode.default },
+      getExpectedBindingMode(def: IAttributeDefinition) {
+        return def.defaultBindingMode;
+      }
+    }
+  ];
+
+  const templateControllerSpecs = [
+    {
+      description: 'isTemplateController is null',
+      expectation: 'uses false',
+      getIsTemplateController() { null },
+      getExpectedIsTemplateController(def: IAttributeDefinition) {
+        return false;
+      }
+    },
+    {
+      description: 'isTemplateController is undefined',
+      expectation: 'uses false',
+      getIsTemplateController() { undefined },
+      getExpectedIsTemplateController(def: IAttributeDefinition) {
+        return false;
+      }
+    },
+    {
+      description: 'isTemplateController is false',
+      expectation: 'uses false',
+      getIsTemplateController() { false },
+      getExpectedIsTemplateController(def: IAttributeDefinition) {
+        return false;
+      }
+    },
+    {
+      description: 'isTemplateController is true',
+      expectation: 'uses the provided isTemplateController',
+      getIsTemplateController() { true },
+      getExpectedIsTemplateController(def: IAttributeDefinition) {
+        return def.isTemplateController;
+      }
+    },
+  ];
+
+  const bindablesSpecs = [
+    {
+      description: 'def.bindables is null, Type.bindables is null',
+      expectation: 'does NOT yield any bindables',
+      getDefBindables() { return null },
+      getTypeBindables() { return null },
+      getExpectedBindables() { return {} }
+    },
+    {
+      description: 'def.bindables is undefined, Type.bindables is undefined',
+      expectation: 'does NOT yield any bindables',
+      getDefBindables() { return undefined },
+      getTypeBindables() { return undefined },
+      getExpectedBindables() { return {} }
+    },
+    {
+      description: 'def.bindables is empty obj, Type.bindables is empty obj',
+      expectation: 'does NOT yield any bindables',
+      getDefBindables() { return {} },
+      getTypeBindables() { return {} },
+      getExpectedBindables() { return {} }
+    },
+    {
+      description: 'def.bindables has bindables, Type.bindables is empty obj',
+      expectation: 'yields bindables from def',
+      getDefBindables() { return { 'foo': 1 } },
+      getTypeBindables() { return {} },
+      getExpectedBindables() { return { 'foo': 1 } }
+    },
+    {
+      description: 'def.bindables has bindables, Type.bindables has different bindables',
+      expectation: 'yields bindables from def and Type',
+      getDefBindables() { return { 'foo': 1 } },
+      getTypeBindables() { return { 'bar': 2 } },
+      getExpectedBindables() { return { 'foo': 1, 'bar': 2 } }
+    },
+    {
+      description: 'def.bindables is empty obj, Type.bindables has different bindables',
+      expectation: 'yields bindables from Type',
+      getDefBindables() { return { } },
+      getTypeBindables() { return { 'bar': 2 } },
+      getExpectedBindables() { return { 'bar': 2 } }
+    },
+    {
+      description: 'def.bindables has bindables, Type.bindables has same bindables',
+      expectation: 'yields bindables from def',
+      getDefBindables() { return { 'foo': 1 } },
+      getTypeBindables() { return { 'foo': 2 } },
+      getExpectedBindables() { return { 'foo': 1 } }
+    }
+  ];
+
+  eachCartesianJoin([aliasesSpecs, bindingModeSpecs, templateControllerSpecs, bindablesSpecs],
+    (aliasesSpec, bindingModeSpec, templateControllerSpec, bindablesSpec) => {
+
+    it(`${aliasesSpec.expectation} if ${aliasesSpec.description} AND ${bindingModeSpec.expectation} if ${bindingModeSpec.description} AND ${templateControllerSpec.expectation} if ${templateControllerSpec.description} AND ${bindablesSpec.expectation} if ${bindablesSpec.description}`, () => {
+      // Arrange
+      const def = {
+        name: 'foo',
+        aliases: aliasesSpec.getAliases(),
+        defaultBindingMode: bindingModeSpec.getBindingMode(),
+        bindables: bindablesSpec.getDefBindables(),
+      };
+      class Foo {
+        static bindables = bindablesSpec.getTypeBindables();
+      }
+
+      // Act
+      const Type = customAttribute(def)(Foo);
+
+      // Assert
+      const expectedAliases = aliasesSpec.getExpectedAliases(def);
+      const expectedBindingMode = bindingModeSpec.getExpectedBindingMode(def);
+      const expectedBindables = bindablesSpec.getExpectedBindables();
+      const description = Type.description;
+      expect(description.name).to.equal('foo', 'name');
+      expect(description.aliases).to.deep.equal(expectedAliases, 'aliases');
+      expect(description.defaultBindingMode).to.equal(expectedBindingMode, 'defaultBindingMode');
+      expect(description.bindables).to.deep.equal(expectedBindables, 'bindables');
+    });
+  });
+
+
+  describe('register', () => {
+    it('registers the custom attribute as transient', () => {
+      const { Type } = createCustomAttribute();
+      const container = new Container();
+
+      Type.register(container);
+
+      const resolved1 = container.get('custom-attribute:foo');
+      const resolved2 = container.get('custom-attribute:foo');
+      expect(resolved1).not.to.equal(resolved2);
+    });
+
+    it('registers the custom attribute with aliases that are transient', () => {
+      const { Type } = createCustomAttribute({
+        name: 'foo',
+        aliases: ['bar', 'baz']
+      });
+      const container = new Container();
+
+      Type.register(container);
+
+      const resolved1 = container.get('custom-attribute:foo');
+      const resolved2 = container.get('custom-attribute:bar');
+      const resolved3 = container.get('custom-attribute:bar');
+      const resolved4 = container.get('custom-attribute:baz');
+      const resolved5 = container.get('custom-attribute:baz');
+      expect(resolved1.constructor).to.equal(resolved2.constructor);
+      expect(resolved1.constructor).to.equal(resolved4.constructor);
+      expect(resolved2).not.to.equal(resolved3);
+      expect(resolved4).not.to.equal(resolved5);
+    });
+  });
+
   // Note: the sut and the sut are the same polymorphic object in these tests.
   // This is because the "real" sut is the decorator that modifies the prototype of the sut
   describe('$hydrate', () => {
-
-    function setup() {
-      const decorate = customAttribute('foo');
-      const Type = decorate(defineComponentLifecycleMock());
-      const sut: CustomAttribute = new (<any>Type)();
-
-      return { Type, sut };
-    }
 
     const behaviorSpecs = [
       {
@@ -49,7 +312,7 @@ describe('@customAttribute', () => {
 
       it(`sets properties, applies runtime behavior and ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
         // Arrange
-        const { Type, sut } = setup();
+        const { Type, sut } = createCustomAttribute();
 
         let appliedType: ICustomAttributeType;
         let appliedInstance: CustomAttribute;
@@ -78,16 +341,6 @@ describe('@customAttribute', () => {
 
   describe('$bind', () => {
 
-    function setup() {
-      const decorate = customAttribute('foo');
-      const Type = decorate(defineComponentLifecycleMock());
-      const sut: CustomAttribute = new (<any>Type)();
-      sut.$isAttached = false;
-      sut.$isBound = false;
-
-      return { Type, sut };
-    }
-
     const propsAndScopeSpecs = [
       // $isBound: true, with 4 variants
       {
@@ -96,6 +349,7 @@ describe('@customAttribute', () => {
         callsUnbind: true,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = true;
           sut.$scope = null;
         },
@@ -107,6 +361,7 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = true;
           sut.$scope = null;
         },
@@ -118,6 +373,7 @@ describe('@customAttribute', () => {
         callsUnbind: true,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = true;
           sut.$scope = Scope.create(sut, null);
         },
@@ -129,6 +385,7 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = true;
           sut.$scope = Scope.create(sut, null);
         },
@@ -141,6 +398,7 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = false;
           sut.$scope = null;
         },
@@ -152,6 +410,7 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = false;
           sut.$scope = null;
         },
@@ -163,6 +422,7 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = false;
           sut.$scope = Scope.create(sut, null);
         },
@@ -174,6 +434,7 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = false;
           sut.$scope = Scope.create(sut, null);
         },
@@ -266,9 +527,12 @@ describe('@customAttribute', () => {
 
       it(`${psSpec.expectation} if ${psSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
         // Arrange
-        const expectedFlags = flagsSpec.getExpectedFlags();
-        const { sut } = setup();
+        const { sut } = createCustomAttribute();
+        psSpec.setProps(sut);
         sut['$behavior'] = behaviorSpec.getBehavior();
+        const expectedFlags = flagsSpec.getExpectedFlags();
+        const flags = flagsSpec.getFlags();
+        const scope = psSpec.getScope(sut);
 
         let unbindCalled = false;
         let unbindFlags;
@@ -276,11 +540,6 @@ describe('@customAttribute', () => {
           unbindCalled = true;
           unbindFlags = flags;
         };
-
-        psSpec.setProps(sut);
-
-        const scope = psSpec.getScope(sut);
-        const flags = flagsSpec.getFlags();
 
         // Act
         sut.$bind(flags, scope);
@@ -301,23 +560,13 @@ describe('@customAttribute', () => {
 
   describe('$unbind', () => {
 
-    function setup() {
-      const decorate = customAttribute('foo');
-      const Type = decorate(defineComponentLifecycleMock());
-      const sut: CustomAttribute = new (<any>Type)();
-
-      sut.$isAttached = false;
-      sut.$isBound = true;
-
-      return { Type, sut };
-    }
-
     const propsAndScopeSpecs = [
       {
         description: '$isBound: false, $scope: null',
         expectation: 'calls behaviors',
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = false;
         }
       },
@@ -326,6 +575,7 @@ describe('@customAttribute', () => {
         expectation: 'calls behaviors',
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = false;
         }
       },
@@ -334,6 +584,7 @@ describe('@customAttribute', () => {
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = true;
         }
       },
@@ -342,6 +593,7 @@ describe('@customAttribute', () => {
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
           sut.$isBound = true;
         }
       }
@@ -371,7 +623,7 @@ describe('@customAttribute', () => {
     const behaviorSpecs = [
       {
         description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: false',
-        expectation: 'calls binding(), does NOT call bound()',
+        expectation: 'calls unbinding(), does NOT call unbound()',
         getBehavior() { return { hasUnbinding: true, hasUnbound: false }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyUnbindingCalled(flags);
@@ -380,7 +632,7 @@ describe('@customAttribute', () => {
       },
       {
         description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: false',
-        expectation: 'does NOT call binding(), does NOT call bound()',
+        expectation: 'does NOT call unbinding(), does NOT call unbound()',
         getBehavior() { return { hasUnbinding: false, hasUnbound: false }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyNoFurtherCalls();
@@ -388,7 +640,7 @@ describe('@customAttribute', () => {
       },
       {
         description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: true',
-        expectation: 'calls binding(), calls bound()',
+        expectation: 'calls unbinding(), calls unbound()',
         getBehavior() { return { hasUnbinding: true, hasUnbound: true }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyUnboundCalled(flags);
@@ -398,7 +650,7 @@ describe('@customAttribute', () => {
       },
       {
         description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: true',
-        expectation: 'does NOT call binding(), calls bound()',
+        expectation: 'does NOT call unbinding(), calls unbound()',
         getBehavior() { return { hasUnbinding: false, hasUnbound: true }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyUnboundCalled(flags);
@@ -413,14 +665,10 @@ describe('@customAttribute', () => {
 
       it(`${psSpec.expectation} if ${psSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
         // Arrange
-        const behavior = behaviorSpec.getBehavior();
-        const expectedFlags = flagsSpec.getExpectedFlags();
-
-        const { sut } = setup();
-        sut['$behavior'] = behavior;
-
+        const { sut } = createCustomAttribute();
         psSpec.setProps(sut);
-
+        sut['$behavior'] = behaviorSpec.getBehavior();
+        const expectedFlags = flagsSpec.getExpectedFlags();
         const flags = flagsSpec.getFlags();
 
         // Act
@@ -438,25 +686,252 @@ describe('@customAttribute', () => {
 
   describe('$attach', () => {
 
+    const propsSpecs = [
+      {
+        description: '$isAttached: false',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
+          sut.$isBound = true;
+        }
+      },
+      {
+        description: '$isAttached: true',
+        expectation: 'does NOT call behaviors',
+        callsBehaviors: false,
+        setProps(sut: CustomAttribute) {
+          sut.$isAttached = true;
+          sut.$isBound = true;
+        }
+      }
+    ];
+
+    const behaviorSpecs = [
+      {
+        description: '$behavior.hasAttaching: true, $behavior.hasAttached: false',
+        expectation: 'calls attaching(), does NOT call attached()',
+        getBehavior() { return { hasAttaching: true, hasAttached: false }; }
+      },
+      {
+        description: '$behavior.hasAttaching: false, $behavior.hasAttached: false',
+        expectation: 'does NOT call attaching(), does NOT call attached()',
+        getBehavior() { return { hasAttaching: false, hasAttached: false }; }
+      },
+      {
+        description: '$behavior.hasAttaching: true, $behavior.hasAttached: true',
+        expectation: 'calls attaching(), calls attached()',
+        getBehavior() { return { hasAttaching: true, hasAttached: true }; }
+      },
+      {
+        description: '$behavior.hasAttaching: false, $behavior.hasAttached: true',
+        expectation: 'does NOT call attaching(), calls attached()',
+        getBehavior() { return { hasAttaching: false, hasAttached: true }; }
+      }
+    ];
+
+    eachCartesianJoin([propsSpecs, behaviorSpecs],
+      (propsSpec, behaviorSpec) => {
+
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomAttribute();
+        propsSpec.setProps(sut);
+        const behavior = behaviorSpec.getBehavior();
+        sut['$behavior'] = behavior;
+        const encapsulationSource: INode = <any>{};
+
+        let queueAttachedCallbackCalled = false;
+        let queueAttachedCallbackRequestor;
+        const lifecycle: IAttachLifecycle = <any>{
+          queueAttachedCallback(requestor: CustomAttribute) {
+            queueAttachedCallbackCalled = true;
+            queueAttachedCallbackRequestor = requestor;
+            requestor.attached();
+          }
+        };
+
+        // Act
+        sut.$attach(encapsulationSource, lifecycle);
+
+        // Assert
+        if (propsSpec.callsBehaviors) {
+          if (behavior.hasAttached) {
+            sut.verifyAttachedCalled();
+            expect(queueAttachedCallbackCalled).to.equal(true, 'queueAttachedCallbackCalled');
+            expect(queueAttachedCallbackRequestor).to.equal(sut, 'queueAttachedCallbackRequestor')
+          }
+          if (behavior.hasAttaching) {
+            sut.verifyAttachingCalled(encapsulationSource, lifecycle);
+          }
+        } else {
+          expect(queueAttachedCallbackCalled).to.equal(false, 'queueAttachedCallbackCalled');
+        }
+        sut.verifyNoFurtherCalls();
+      });
+    });
   });
 
   describe('$detach', () => {
 
+    const propsSpecs = [
+      {
+        description: '$isAttached: false',
+        expectation: 'does NOT call behaviors',
+        callsBehaviors: false,
+        setProps(sut: CustomAttribute) {
+          sut.$isAttached = false;
+          sut.$isBound = true;
+        }
+      },
+      {
+        description: '$isAttached: true',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setProps(sut: CustomAttribute) {
+          sut.$isAttached = true;
+          sut.$isBound = true;
+        }
+      }
+    ];
+
+    const behaviorSpecs = [
+      {
+        description: '$behavior.hasDetaching: true, $behavior.hasDetached: false',
+        expectation: 'calls detaching(), does NOT call detached()',
+        getBehavior() { return { hasDetaching: true, hasDetached: false }; }
+      },
+      {
+        description: '$behavior.hasDetaching: false, $behavior.hasDetached: false',
+        expectation: 'does NOT call detaching(), does NOT call detached()',
+        getBehavior() { return { hasDetaching: false, hasDetached: false }; }
+      },
+      {
+        description: '$behavior.hasDetaching: true, $behavior.hasDetached: true',
+        expectation: 'calls detaching(), calls detached()',
+        getBehavior() { return { hasDetaching: true, hasDetached: true }; }
+      },
+      {
+        description: '$behavior.hasDetaching: false, $behavior.hasDetached: true',
+        expectation: 'does NOT call detaching(), calls detached()',
+        getBehavior() { return { hasDetaching: false, hasDetached: true }; }
+      }
+    ];
+
+    eachCartesianJoin([propsSpecs, behaviorSpecs],
+      (propsSpec, behaviorSpec) => {
+
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomAttribute();
+        propsSpec.setProps(sut);
+        const behavior = behaviorSpec.getBehavior();
+        sut['$behavior'] = behavior;
+        const encapsulationSource: INode = <any>{};
+
+        let queueDetachedCallbackCalled = false;
+        let queueDetachedCallbackRequestor;
+        const lifecycle: IDetachLifecycle = <any>{
+          queueDetachedCallback(requestor: CustomAttribute) {
+            queueDetachedCallbackCalled = true;
+            queueDetachedCallbackRequestor = requestor;
+            requestor.detached();
+          }
+        };
+
+        // Act
+        sut.$detach(lifecycle);
+
+        // Assert
+        if (propsSpec.callsBehaviors) {
+          if (behavior.hasDetached) {
+            sut.verifyDetachedCalled();
+            expect(queueDetachedCallbackCalled).to.equal(true, 'queueDetachedCallbackCalled');
+            expect(queueDetachedCallbackRequestor).to.equal(sut, 'queueDetachedCallbackRequestor')
+          }
+          if (behavior.hasDetaching) {
+            sut.verifyDetachingCalled(lifecycle);
+          }
+        } else {
+          expect(queueDetachedCallbackCalled).to.equal(false, 'queueDetachedCallbackCalled');
+        }
+        sut.verifyNoFurtherCalls();
+      });
+    });
   });
 
   describe('$cache', () => {
 
+    const behaviorSpecs = [
+      {
+        description: '$behavior.hasCaching: true',
+        expectation: 'calls hasCaching()',
+        getBehavior() { return { hasCaching: true }; }
+      },
+      {
+        description: '$behavior.hasCaching: false',
+        expectation: 'does NOT call hasCaching()',
+        getBehavior() { return { hasCaching: false }; }
+      }
+    ];
+
+    eachCartesianJoin([behaviorSpecs],
+      (behaviorSpec) => {
+
+      it(`${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomAttribute();
+        const behavior = behaviorSpec.getBehavior();
+        sut['$behavior'] = behavior;
+
+        // Act
+        sut.$cache();
+
+        // Assert
+        if (behavior.hasCaching) {
+          sut.verifyCachingCalled();
+        }
+        sut.verifyNoFurtherCalls();
+      });
+    });
   });
 });
 
 describe('@templateController', () => {
 
+  function createTemplateController(nameOrDef: string | IAttributeDefinition = 'foo') {
+    const Type = templateController(nameOrDef)(defineComponentLifecycleMock());
+    const sut: CustomAttribute = new (<any>Type)();
+
+    return { Type, sut };
+  }
+
+  it('marks the resource as a template controller if it only has a name', () => {
+    const { Type } = createTemplateController('foo');
+    expect(Type.description.isTemplateController).to.equal(true, 'isTemplateController');
+  });
+
+  it('marks the resource as a template controller if it has a def', () => {
+    const { Type } = createTemplateController({ name: 'foo' });
+    expect(Type.description.isTemplateController).to.equal(true, 'isTemplateController');
+  });
 });
 
 describe('CustomAttributeResource', () => {
+  it('name is custom-attribute', () => {
+    expect(CustomAttributeResource.name).to.equal('custom-attribute');
+  });
 
-});
+  it('keyFrom() returns the full key', () => {
+    expect(CustomAttributeResource.keyFrom('foo')).to.equal('custom-attribute:foo');
+  });
 
-describe('createCustomAttributeDescription', () => {
+  it('isType returns true if it is a custom-attribute', () => {
+    const Type = customAttribute('foo')(class {});
+    expect(CustomAttributeResource.isType(Type)).to.equal(true, 'isTy[e');
+  });
 
+  it('isType returns false if it is NOT a custom-attribute', () => {
+    expect(CustomAttributeResource.isType(class {})).to.equal(false, 'isType');
+  });
 });

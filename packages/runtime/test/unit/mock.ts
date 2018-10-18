@@ -781,7 +781,7 @@ export function defineComponentLifecycleMock() {
 
     public verifyPropertyValue(prop: string, value: any, during?: string): void {
       if (this[prop] !== value) {
-        let msg = `expected ${prop} to be false`;
+        let msg = `expected ${prop} to be ${value}`;
         if (during !== undefined) {
           msg += ` during ${during}() lifecycle hook`;
         }

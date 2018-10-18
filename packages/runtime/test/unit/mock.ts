@@ -729,30 +729,43 @@ export function defineComponentLifecycleMock() {
 
     public created(): void {
       this.trace(`created`);
+      this.verifyPropertyValue('$isBound', false, 'created');
+      this.verifyPropertyValue('$isAttached', false, 'created');
     }
     public binding(flags: BindingFlags): void {
       this.trace(`binding`, flags);
     }
     public bound(flags: BindingFlags): void {
       this.trace(`bound`, flags);
+      this.verifyPropertyValue('$isBound', true, 'bound');
     }
     public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
       this.trace(`attaching`, encapsulationSource, lifecycle);
+      this.verifyPropertyValue('$isBound', true, 'attaching');
+      this.verifyPropertyValue('$isAttached', false, 'attaching');
     }
     public attached(): void {
       this.trace(`attached`);
+      this.verifyPropertyValue('$isBound', true, 'attached');
+      this.verifyPropertyValue('$isAttached', true, 'attached');
     }
     public detaching(lifecycle: IDetachLifecycle): void {
       this.trace(`detaching`, lifecycle);
+      this.verifyPropertyValue('$isBound', true, 'detaching');
+      this.verifyPropertyValue('$isAttached', true, 'detaching');
     }
     public detached(): void {
       this.trace(`detached`);
+      this.verifyPropertyValue('$isBound', true, 'detached');
+      this.verifyPropertyValue('$isAttached', false, 'detached');
     }
     public unbinding(flags: BindingFlags): void {
       this.trace(`unbinding`, flags);
+      this.verifyPropertyValue('$isBound', true, 'detached');
     }
     public unbound(flags: BindingFlags): void {
       this.trace(`unbound`, flags);
+      this.verifyPropertyValue('$isBound', false, 'detached');
     }
     public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): INodeSequence {
       this.trace(`render`, host, parts);
@@ -764,6 +777,17 @@ export function defineComponentLifecycleMock() {
 
     public trace(fnName: keyof ComponentLifecycleMock, ...args: any[]): void {
       this.calls.push([fnName, ...args]);
+    }
+
+    public verifyPropertyValue(prop: string, value: any, during?: string): void {
+      if (this[prop] !== value) {
+        let msg = `expected ${prop} to be false`;
+        if (during !== undefined) {
+          msg += ` during ${during}() lifecycle hook`;
+        }
+        msg += `, got but: ${this[prop]}`;
+        this.fail(msg);
+      }
     }
 
     public verifyCreatedCalled(): void {

@@ -1,389 +1,458 @@
-# Defaults for all jobs
+version: 2.1
 
-defaults: &defaults
-  working_directory: ~/repo
-  docker:
-    - image: aureliaeffect/circleci-v2:latest
 
-# Variables
-var_1: &cache_key aurelia-{{ .Branch }}-{{ checksum "package-lock.json" }}
+# # # # # # # # # # # # # # # #
+# - Scalar variables -
+# # # # # # # # # # # # # # # #
+scalar-1: &node_modules_cache_key aurelia-{{ .Branch }}-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
 
-# Reusable steps
-aliases:
-  - &step_restore_cache
-    restore_cache:
-      key: *cache_key
-  - &step_attach_workspace
-    attach_workspace:
-      at: ~/repo
-  - &step_install_e2e_bs
-    run:
-      name: Install e2e tests
-      command: |
-        cd ./test/e2e
-        npm ci
-        npm run build
-  - &step_serve_e2e_bs
-    run:
-      name: Serve the e2e app in the background
-      background: true
-      command: |
-        cd ./test/e2e
-        npm run start
-  - &step_bootstrap_build
-    run:
-      name: Bootstrap and build the packages
-      command: |
-        npm run bootstrap
-        npm run build
+scalar-2: &working_dir ~/repo
 
-version: 2
-jobs:
-  install:
-    <<: *defaults
+# # # # # # # # # # # # # # # #
+# - Map variables -
+# # # # # # # # # # # # # # # #
+map-1: &package_globs
+  paths:
+    - dist
+    - packages/*/dist
+    - packages/*/node_modules
+
+map-2: &filter_ignore_develop_release
+  filters:
+    branches:
+      ignore:
+        - develop
+        - release
+
+map-3: &filter_only_master
+  filters:
+    branches:
+      only:
+        - master
+
+map-4: &filter_only_release
+  filters:
+    branches:
+      only:
+        - release
+
+map-5: &filter_only_tag
+  filters:
+    branches:
+      ignore: /.*/
+    tags:
+      only: /^v[0-9]+(\.[0-9]+)*$/
+
+# # # # # # # # # # # # # # # #
+# - Executors -
+# # # # # # # # # # # # # # # #
+executors:
+
+  docker-circleci:
+    parameters:
+      node:
+        type: string
+        default: "10.12"
+    working_directory: *working_dir
+    docker:
+      - image: "circleci/node:<< parameters.node >>-stretch-browsers"
+
+  docker-aurelia:
+    working_directory: *working_dir
+    docker:
+      - image: "aureliaeffect/circleci-v2:latest"
+
+
+# # # # # # # # # # # # # # # #
+# - Commands -
+# # # # # # # # # # # # # # # #
+commands:
+
+  # first_* commands are initializers for jobs, they must come first
+  first_npm_install:
     steps:
       - checkout
       - run:
-          name: "Install npm packages"
-          command: npm ci
+          name: "Run npm install"
+          command: npm ci --ignore-scripts
+
+  # implies first_npm_install
+  first_restore_cache:
+    steps:
+      - checkout
+      - restore_cache:
+          key: *node_modules_cache_key
+
+  # implies first_restore_cache
+  first_attach_workspace:
+    steps:
+      - first_restore_cache
+      - attach_workspace:
+          at: *working_dir
+
+  # first_* commands are finalizers for jobs, they must come last
+  last_save_cache:
+    steps:
       - save_cache:
-          key: *cache_key
+          key: *node_modules_cache_key
           paths:
             - node_modules
 
-  build:
-    <<: *defaults
+  last_persist_workspace:
     steps:
-      - checkout
-      - *step_restore_cache
-      - *step_bootstrap_build
-      - run:
-          name: "Create bundles with rollup"
-          command: npm run bundle:all
-      - run:
-          name: "Create tarballs from the build outputs"
-          command: npm run publish:local
       - persist_to_workspace:
-          root: ~/repo
-          paths:
-            - dist
-            - packages/*/dist
-            - packages/*/node_modules
-            - packages/*/*.tgz
+          root: *working_dir
+          <<: *package_globs
 
-  unit_tests_firefox:
-    <<: *defaults
+  # do_* commands are arbitrary commands that run in-between first and last
+  # - build related -
+  do_build_packages:
     steps:
-      - checkout
-      - *step_restore_cache
       - run:
-          name: "Run unit tests"
-          command: npm run test-firefox
-      - store_test_results:
-          path: ~/repo/coverage
-      - store_artifacts:
-          path: ~/repo/coverage
+          name: "Bootstrap and build packages"
+          command: |
+            npm run bootstrap
+            npm run build
 
-  unit_tests_chrome:
-    <<: *defaults
+  do_bundle_packages:
     steps:
-      - checkout
-      - *step_restore_cache
       - run:
-          name: "Run unit tests"
-          command: npm run test
+          name: "Bundle packages"
+          command: npm run bundle:all
+
+  do_lint_packages:
+    steps:
       - run:
-          name: Process coverage results for Code Climate
+          name: "Lint packages"
+          command: npm run lint
+
+  # - test related -
+  do_coverage_codecov:
+    steps:
+      - run:
+          name: "Process coverage for Codecov"
+          command: |
+            codecov -f ~/repo/coverage/coverage-final.json
+          when: always
+
+  do_coverage_codeclimate:
+    steps:
+      - run:
+          name: "Process coverage results for Code Climate"
           command: |
             ~/cc-test-reporter format-coverage ~/repo/coverage/lcov.info -t lcov -o ~/repo/coverage/cc-final.json
             ~/cc-test-reporter upload-coverage -i ~/repo/coverage/cc-final.json
           environment:
             CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
           when: always
-      - run:
-          name: Process coverage for Codecov
-          command: codecov -f ~/repo/coverage/coverage-final.json
-          when: always
-      - store_test_results:
-          path: ~/repo/coverage
-      - store_artifacts:
-          path: ~/repo/coverage
 
+  do_e2e_browserstack:
+    steps:
+      - run:
+          name: "Install e2e tests"
+          command: |
+            cd ./test/e2e
+            npm ci
+            npm run build
+      - run:
+          name: "Serve e2e app in the background"
+          background: true
+          command: |
+            cd ./test/e2e
+            npm run start
+      - run:
+          name: "Run e2e tests"
+          command: |
+            cd ./test/e2e
+            npm run e2e
+
+  # - git related -
+  do_git_set_config:
+    steps:
+      - run:
+          name: "Set git config user.name"
+          command: git config --local user.name "aurelia@bluespire.com"
+      - run:
+          name: "Set git config user.email"
+          command: git config --local user.email "AureliaEffect"
+
+  do_git_merge:
+    parameters:
+      from_branch:
+        type: string
+        default: "master"
+      to_branch:
+        type: string
+    steps:
+      - run:
+          name: "Merge << parameters.from_branch >> into << parameters.to_branch >>"
+          command: |
+            git checkout << parameters.to_branch >>
+            git merge << parameters.from_branch >> --no-ff --no-edit -Xtheirs
+
+  do_git_stash_dist:
+    steps:
+      - run:
+          name: "Cleanup unwanted files"
+          command: |
+            ./node_modules/.bin/lerna clean -y
+            rm -rf dist/*.map dist/*.ts dist/*/ packages/*/dist/build/**
+      - run:
+          name: "Stash dist folders"
+          command: |
+            git add packages/\*/dist/* dist --force
+            git stash
+
+  do_git_commit_dist:
+    parameters:
+      message:
+        type: string
+        default: "chore(all): add latest build artifacts"
+    steps:
+      - run:
+          name: "Overwrite existing with stashed dist folders"
+          command: |
+            rm -rf packages/*/dist dist
+            git add .
+            git stash pop
+            git add packages/\*/dist/* dist --force
+      - run:
+          name: "Commit dist folders"
+          command: git commit --allow-empty -m "<< parameters.message >>"
+
+  do_git_push:
+    parameters:
+      to_branch:
+        type: string
+    steps:
+      - run:
+          name: "Push << parameters.to_branch >>"
+          command: git push origin << parameters.to_branch >>
+
+  # - publish related -
+  do_publish:
+    parameters:
+      channel:
+        type: string
+    steps:
+      - run:
+          name: "Authenticate with registry"
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+      - run:
+          name: "Publish to @<< parameters.channel >>"
+          command: |
+            npm run publish:<< parameters.channel >>
+            npm run upload-dist:<< parameters.channel >>
+
+# # # # # # # # # # # # # # # #
+# - Jobs -
+# # # # # # # # # # # # # # # #
+jobs:
+
+  # Must come before any other job
+  install_root:
+    executor: docker-circleci
+    steps:
+      - first_npm_install
+      - last_save_cache
+
+  # Requires install_root
+  build_packages:
+    executor: docker-circleci
+    steps:
+      - first_restore_cache
+      - do_build_packages
+      - last_persist_workspace
+
+  # Requires install_root
+  lint_packages:
+    executor: docker-circleci
+    steps:
+      - first_restore_cache
+      - do_lint_packages
+
+  # Requires build_packages
+  bundle_packages:
+    executor: docker-circleci
+    steps:
+      - first_attach_workspace
+      - do_bundle_packages
+      - last_persist_workspace
+
+  # Requires bundle_packages
+  merge_and_dist:
+    executor: docker-circleci
+    parameters:
+      from:
+        type: string
+        default: "master"
+      to:
+        type: string
+        default: "dev"
+    steps:
+      - first_attach_workspace
+      - do_git_set_config
+      - do_git_stash_dist
+      - do_git_merge:
+          from_branch: << parameters.from >>
+          to_branch: << parameters.to >>
+      - do_git_commit_dist
+      - do_git_push:
+          to_branch: << parameters.to >>
+
+  unit_test:
+    executor: docker-aurelia
+    parameters:
+      coverage:
+        type: boolean
+        default: true
+      npm_command:
+        type: string
+        default: "test"
+    steps:
+      - first_npm_install
+      # can't safely restore cache here because this uses a different executor with a different node version
+      - run: npm run << parameters.npm_command >>
+      - when:
+          condition: << parameters.coverage >>
+          steps:
+            - do_coverage_codeclimate
+            - do_coverage_codecov
+            - store_test_results:
+                path: ~/repo/coverage
+            - store_artifacts:
+                path: ~/repo/coverage
+
+  # Requires bundle_packages
   e2e_browserstack:
-    <<: *defaults
+    executor: docker-circleci
     steps:
-      - checkout
-      - *step_restore_cache
-      - *step_bootstrap_build
-      - run:
-          name: "Create bundles with rollup"
-          command: |
-            npm run bundle:dist
-      - *step_install_e2e_bs
-      - *step_serve_e2e_bs
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./test/e2e
-            npm run e2e
-      #- run:
-      #    name: Generate allure report
-      #    command: |
-      #      cd ./test/e2e
-      #      npm run allure:generate
-      #    when: always
-      #- store_artifacts:
-      #    path: ./test/e2e/allure-report
-      #- run:
-      #    name: Post the link to allure report in PR comment
-      #    command: |
-      #      cd ./test/e2e
-      #      npm run allure:post
-      #    when: always
+      - first_attach_workspace
+      - do_e2e_browserstack
 
-  e2e_browserstack_compat:
-    <<: *defaults
+  publish_npm:
+    executor: docker-circleci
+    parameters:
+      channel:
+        type: string
     steps:
-      - checkout
-      - *step_restore_cache
-      - *step_bootstrap_build
-      - run:
-          name: "Create bundles with rollup"
-          command: |
-            npm run bundle:dist
-      - *step_install_e2e_bs
-      - *step_serve_e2e_bs
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./test/e2e
-            npm run e2e:compat
-      #- run:
-      #    name: Generate allure report
-      #    command: |
-      #      cd ./test/e2e
-      #      npm run allure:generate
-      #    when: always
-      #- store_artifacts:
-      #    path: ./test/e2e/allure-report
+      - do_publish:
+          channel: << parameters.channel >>
 
-  e2e_benchmark_vnext:
-    <<: *defaults
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Install e2e-benchmark/vnext
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark
-            npm ci
-            cd ~/repo/packages/examples/e2e-benchmark/vnext
-            npm ci
-            npm run build
-      - run:
-          name: Serve e2e-benchmark/vnext in the background
-          background: true
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark/vnext
-            npm run start
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark/vnext
-            npm run e2e
 
-  e2e_benchmark_vcurrent:
-    <<: *defaults
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Install e2e-benchmark/vcurrent
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark
-            npm ci
-            cd ~/repo/packages/examples/e2e-benchmark/vcurrent
-            npm ci
-            npm run build
-      - run:
-          name: Serve e2e-benchmark/vcurrent in the background
-          background: true
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark/vcurrent
-            npm run start
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark/vcurrent
-            npm run e2e
-
-  publish_dev:
-    <<: *defaults
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-      - run:
-          name: Publish to @dev
-          command: |
-            npm run publish:dev
-            npm run upload-dist:dev
-
-  merge_push_release:
-    <<: *defaults
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Merge tag into release
-          command: |
-            git checkout release
-            git merge $CIRCLE_TAG --no-ff -Xtheirs
-            git push
-
-  publish_latest:
-    <<: *defaults
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-      - run:
-          name: Publish to @latest
-          command: |
-            npm run publish:latest
-            npm run upload-dist:latest
-
+# # # # # # # # # # # # # # # #
+# - Workflows -
+# # # # # # # # # # # # # # # #
 workflows:
-  version: 2
-  # This workflow runs on every commit to any branch (with or without PR)
-  build_test:
+  # - triggered by commits -
+  build_test_dev:
     jobs:
-      - install
-      - build:
+      - install_root:
+          <<: *filter_ignore_develop_release
+      - unit_test:
+          <<: *filter_ignore_develop_release
+      - build_packages:
+          <<: *filter_ignore_develop_release
           requires:
-            - install
-      - unit_tests_chrome:
+            - install_root
+      - lint_packages:
           requires:
-            - install
-      - unit_tests_firefox:
+            - install_root
+          <<: *filter_ignore_develop_release
+      - bundle_packages:
+          <<: *filter_only_master
           requires:
-            - install
-          filters:
-            branches:
-              only:
-                - master
-                - release
+            - build_packages
+      - e2e_browserstack:
+          <<: *filter_only_master
+          requires:
+            - bundle_packages
+
+  build_test_release:
+    jobs:
+      - install_root:
+          <<: *filter_only_tag
+      - unit_test:
+          name: unit_test_chrome
+          <<: *filter_only_tag
+      - unit_test:
+          name: unit_test_firefox
+          npm_command: "test-firefox"
+          coverage: false
+          <<: *filter_only_tag
+      - build_packages:
+          requires:
+            - install_root
+          <<: *filter_only_tag
+      - lint_packages:
+          requires:
+            - install_root
+          <<: *filter_only_tag
+      - bundle_packages:
+          requires:
+            - build_packages
+          <<: *filter_only_tag
       - e2e_browserstack:
           requires:
-            - install
+            - bundle_packages
+          <<: *filter_only_tag
+      - merge_and_dist:
+          requires:
+            - lint_packages
+            - unit_test_chrome
+            - unit_test_firefox
+            - e2e_browserstack
+          from: $CIRCLE_TAG
+          to: release
+          <<: *filter_only_tag
+
+  deploy_release:
+    jobs:
+      # artifacts are already prepared and committed by the tag workflow, so only approval remains
       - request_publish_latest:
           type: approval
-          requires:
-            - build
-            - unit_tests_chrome
-            - unit_tests_firefox
-            - e2e_browserstack
-          filters:
-            branches:
-              only: release
-      - publish_latest:
+          <<: *filter_only_release
+      - publish_npm:
           requires:
             - request_publish_latest
-          filters:
-            branches:
-              only: release
+          channel: latest
+          <<: *filter_only_release
 
-  # This workflow runs on tag push
-  prepare_release:
-    jobs:
-      - install:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
-      - build:
-          requires:
-            - install
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
-      - unit_tests_chrome:
-          requires:
-            - install
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
-      - unit_tests_firefox:
-          requires:
-            - install
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
-      - e2e_browserstack:
-          requires:
-            - install
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
-      - merge_push_release:
-          requires:
-            - build
-            - unit_tests_chrome
-            - unit_tests_firefox
-            - e2e_browserstack
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
-
+  # - triggered by schedules -
   # This workflow runs once per day on 0:00 UTC on the master branch
   build_test_deploy_dev:
     triggers:
       - schedule:
           cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - master
+          <<: *filter_only_master
     jobs:
-      - install
-      - build:
+      - install_root
+      - unit_test:
+          name: unit_test_chrome
+      - unit_test:
+          name: unit_test_firefox
+          npm_command: "test-firefox"
+          coverage: false
+      - build_packages:
           requires:
-            - install
-      - unit_tests_chrome:
+            - install_root
+      - lint_packages:
           requires:
-            - install
-      - unit_tests_firefox:
+            - install_root
+      - bundle_packages:
           requires:
-            - install
-      # We only run the lightweight version of browserstack tests because failing tests on very old browsers shouldn't block a dev publish
+            - build_packages
       - e2e_browserstack:
           requires:
-            - install
-      - publish_dev:
+            - bundle_packages
+      - merge_and_dist:
           requires:
-            - build
-            - unit_tests_chrome
-            - unit_tests_firefox
+            - lint_packages
+            - unit_test_chrome
+            - unit_test_firefox
             - e2e_browserstack
-
-
+          to: "develop"
+      - publish_npm:
+          requires:
+            - merge_and_dist
+          channel: "dev"

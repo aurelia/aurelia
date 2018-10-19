@@ -119,13 +119,13 @@ export class MockCustomElement implements ICustomElement {
     for (let i = 0, ii = attachables.length; i < ii; ++i) {
       attachables[i].$attach(encapsulationSource, lifecycle);
     }
-    lifecycle.queueAddNodes(this);
+    lifecycle.queueMount(this);
     this.$isAttached = true;
   }
 
   public $detach(lifecycle: IDetachLifecycle): void {
     if (this.$isAttached) {
-      lifecycle.queueRemoveNodes(this);
+      lifecycle.queueUnmount(this);
       const attachables = this.$attachables;
       let i = attachables.length;
       while (i--) {
@@ -525,7 +525,7 @@ export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
     for (let i = 0, ii = children.length; i < ii; ++i) {
       children[i].$attach(encapsulationSource, lifecycle);
     }
-    lifecycle.queueAddNodes(this);
+    lifecycle.queueMount(this);
     this.$isAttached = true;
     lifecycle.queueAttachedCallback(this);
   }
@@ -536,7 +536,7 @@ export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
 
   public $detach(lifecycle: IDetachLifecycle): void {
     this.trace('$detach', lifecycle);
-    lifecycle.queueRemoveNodes(this);
+    lifecycle.queueUnmount(this);
     const children = this.children;
     let i = children.length;
     while (i--) {

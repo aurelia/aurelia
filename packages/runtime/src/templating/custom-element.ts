@@ -15,7 +15,7 @@ import { BindingFlags } from '../binding/binding-flags';
 import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
-import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable } from './lifecycle';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
@@ -36,7 +36,7 @@ export interface IBindSelf {
 type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
 type RequiredLifecycleProperties = Readonly<IRenderable>;
 
-export interface ICustomElement extends IBindSelf, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {
+export interface ICustomElement extends IBindSelf, IAttach, IMountable, OptionalLifecycleHooks, RequiredLifecycleProperties {
   readonly $projector: IElementProjector;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
@@ -252,7 +252,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
     attachables[i].$attach(encapsulationSource, lifecycle);
   }
 
-  lifecycle.queueAddNodes(this);
+  lifecycle.queueMount(this);
   this.$isAttached = true;
 
   if (behavior.hasAttached) {
@@ -267,7 +267,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLi
       this.detaching(lifecycle);
     }
 
-    lifecycle.queueRemoveNodes(this);
+    lifecycle.queueUnmount(this);
 
     const attachables = this.$attachables;
     let i = attachables.length;

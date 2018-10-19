@@ -1,5 +1,3 @@
-/**
- */
 import { DI } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
@@ -53,14 +51,4 @@ export interface IRenderable {
    * The Views, CustomElements, CustomAttributes and other attachable components that belong to this instance.
    */
   readonly $attachables: IAttach[];
-
-  /**
-   * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is attached to.
-   */
-  $mount(): void;
-
-  /**
-   * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is attached to, optionally returning them to a cache.
-   */
-  $unmount(): void;
 }

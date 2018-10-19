@@ -7,12 +7,12 @@ import {
   ITemplate,
   IScope,
   BindingContext,
-  ViewFactory,
-  View,
-  DetachLifecycleController,
   IViewFactory,
-  BindingFlags,
   IView,
+  DetachLifecycleController,
+  ViewFactory,
+  BindingFlags,
+  View,
   IAttachLifecycle,
   INode,
   AttachLifecycleController,
@@ -100,17 +100,17 @@ describe(`ViewFactory`, () => {
           expect(view1.cached).to.equal(canCache, 'view1.cached');
           if (canCache) {
             const cached = sut.create();
-            expect(cached).to.equal(view1);
+            expect(cached).to.equal(view1, 'cached');
             const created = sut.create();
-            expect(created.$nodes).to.equal(template.nodes);
-            expect(sut.tryReturnToCache(<any>view1)).to.be.true;
+            expect(created.$nodes).to.equal(template.nodes, 'created.$nodes');
+            expect(sut.tryReturnToCache(<any>view1)).to.equal(true, 'sut.tryReturnToCache(<any>view1)');
 
             if (size2 !== '*') {
               expect(sut.tryReturnToCache(<any>view1)).to.equal(false, 'sut.tryReturnToCache(view1) 2');
             }
           } else {
             const created = sut.create();
-            expect(created.$nodes).to.equal(template.nodes);
+            expect(created.$nodes).to.equal(template.nodes, 'created.$nodes');
           }
 
           // note: the difference in behavior between 0 (number) and '0' (string),
@@ -125,17 +125,17 @@ describe(`ViewFactory`, () => {
           expect(view2.cached).to.equal(canCache, 'view2.cached');
           if (canCache) {
             const cached = sut.create();
-            expect(cached).to.equal(view2);
+            expect(cached).to.equal(view2, 'cached');
             const created = sut.create();
-            expect(created.$nodes).to.equal(template.nodes);
-            expect(sut.tryReturnToCache(<any>view2)).to.be.true;
+            expect(created.$nodes).to.equal(template.nodes, 'created.$nodes');
+            expect(sut.tryReturnToCache(<any>view2)).to.equal(true, 'sut.tryReturnToCache(<any>view2)');
 
             if (size2 !== '*' && size4 !== '*') {
               expect(sut.tryReturnToCache(<any>view2)).to.equal(false, 'sut.tryReturnToCache(view2) 2');
             }
           } else {
             const created = sut.create();
-            expect(created.$nodes).to.equal(template.nodes);
+            expect(created.$nodes).to.equal(template.nodes, 'created.$nodes');
           }
 
         });
@@ -150,18 +150,18 @@ const expressions = {
 
 describe(`View`, () => {
   eachCartesianJoinFactory<
-    [string, IView, ITemplate, IViewFactory, IChangeSet, boolean],
+    [string, View, ITemplate, ViewFactory, IChangeSet, boolean],
     [string, BindingFlags, IScope],
-    [string, (sut: IView) => void],
+    [string, (sut: View) => void],
     [string, IRenderLocation],
-    [string, (sut: IView) => void],
+    [string, (sut: View) => void],
     [string, INode, IAttachLifecycleController],
-    [string, (sut: IView) => void],
-    [string, (sut: IView) => void],
+    [string, (sut: View) => void],
+    [string, (sut: View) => void],
     [string, IDetachLifecycleController],
-    [string, (sut: IView) => void],
+    [string, (sut: View) => void],
     [string, BindingFlags],
-    [string, (sut: IView) => void],
+    [string, (sut: View) => void],
     void
   >(
     [
@@ -170,32 +170,32 @@ describe(`View`, () => {
           const cs = new ChangeSet();
           const factory = new ViewFactory('foo', noViewTemplate);
           factory.setCacheSize('*', true);
-          return [` noViewTemplate, viewFactory(cache=true )`, factory.create(), noViewTemplate, factory, cs, true];
+          return [` noViewTemplate, viewFactory(cache=true )`, <View>factory.create(), noViewTemplate, factory, cs, true];
         },
         () => {
           const cs = new ChangeSet();
           const factory = new ViewFactory('foo', noViewTemplate);
-          return [` noViewTemplate, viewFactory(cache=false)`, factory.create(), noViewTemplate, factory, cs, false];
+          return [` noViewTemplate, viewFactory(cache=false)`, <View>factory.create(), noViewTemplate, factory, cs, false];
         },
         () => {
           const cs = new ChangeSet();
           const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
           const factory = new ViewFactory('foo', <any>template);
           factory.setCacheSize('*', true);
-          return [`textNodeTemplate, viewFactory(cache=true )`, factory.create(), template, factory, cs, true];
+          return [`textNodeTemplate, viewFactory(cache=true )`, <View>factory.create(), template, factory, cs, true];
         },
         () => {
           const cs = new ChangeSet();
           const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
           const factory = new ViewFactory('foo', <any>template);
-          return [`textNodeTemplate, viewFactory(cache=false)`, factory.create(), template, factory, cs, false];
+          return [`textNodeTemplate, viewFactory(cache=false)`, <View>factory.create(), template, factory, cs, false];
         },
         () => {
           const cs = new ChangeSet();
           const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
           const factory = new ViewFactory('foo', <any>template);
-          const child = factory.create();
-          const sut = factory.create();
+          const child = <View>factory.create();
+          const sut = <View>factory.create();
           sut.$attachables.push(child);
           sut.$bindables.push(child);
           factory.setCacheSize('*', true);
@@ -205,8 +205,8 @@ describe(`View`, () => {
           const cs = new ChangeSet();
           const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
           const factory = new ViewFactory('foo', <any>template);
-          const child = factory.create();
-          const sut = factory.create();
+          const child = <View>factory.create();
+          const sut = <View>factory.create();
           sut.$attachables.push(child);
           sut.$bindables.push(child);
           return [`textNodeTemplate, viewFactory(cache=false)`, sut, template, factory, cs, false];
@@ -220,10 +220,10 @@ describe(`View`, () => {
         ($1, [$21, flags, scope]) => [`      $bind`, (sut) => {
           sut.$bind(flags, scope);
 
-          expect(sut.$scope).to.equal(scope);
-          expect(sut.$isBound).to.be.true;
+          expect(sut.$scope).to.equal(scope, 'sut.$scope');
+          expect(sut.$isBound).to.equal(true, 'sut.$isBound');
           if (sut.$nodes.firstChild) {
-            expect(sut.$nodes.firstChild['textContent']).to.equal('');
+            expect(sut.$nodes.firstChild.textContent).to.equal('', 'sut.$nodes.firstChild.textContent');
           }
 
           // TODO: verify short-circuit if already bound (now we can only tell by debugging or looking at the coverage report, not very clean)
@@ -232,20 +232,20 @@ describe(`View`, () => {
           const newScope = Scope.create({text:'foo'}, null);
           sut.$bind(flags, newScope);
 
-          expect(sut.$scope).to.equal(newScope);
-          expect(sut.$isBound).to.be.true;
+          expect(sut.$scope).to.equal(newScope, 'sut.$scope');
+          expect(sut.$isBound).to.equal(true, 'sut.$isBound');
         }],
         ([$11, $12, $13, $14, cs], [$21, flags, scope]) => [`$bind+flush`, (sut) => {
           sut.$bind(flags, scope);
 
-          expect(sut.$scope).to.equal(scope);
-          expect(sut.$isBound).to.be.true;
+          expect(sut.$scope).to.equal(scope, 'sut.$scope');
+          expect(sut.$isBound).to.equal(true, 'sut.$isBound');
           if (sut.$nodes.firstChild) {
-            expect(sut.$nodes.firstChild['textContent']).to.equal('');
+            expect(sut.$nodes.firstChild.textContent).to.equal('', 'sut.$nodes.firstChild.textContent');
             cs.flushChanges();
-            expect(sut.$nodes.firstChild['textContent']).to.equal('foo');
+            expect(sut.$nodes.firstChild.textContent).to.equal('foo', 'sut.$nodes.firstChild.textContent');
             if (sut.$attachables.length) {
-              expect(sut.$attachables[0]['$nodes'].firstChild['textContent']).to.equal('foo');
+              expect(sut.$attachables[0].$nodes.firstChild.textContent).to.equal('foo', 'sut.$attachables[0].$nodes.firstChild.textContent');
             }
           }
         }]
@@ -270,20 +270,20 @@ describe(`View`, () => {
           } else {
             sut.hold(location);
 
-            expect(sut['location']).to.equal(location);
+            expect(sut.location).to.equal(location, 'sut.location');
             if (sut.$nodes === NodeSequence.empty) {
               // TODO uncomment this again if the currently commented logic in the view related to this is also uncommented
-              //expect(sut['requiresNodeAdd']).to.be.false;
+              //expect(sut.requiresNodeAdd).to.be.false;
             } else {
-              expect(sut['requiresNodeAdd']).to.be.true;
+              expect(sut.$needsMount).to.equal(true, 'sut.$needsMount');
             }
             if (sut.$attachables.length) {
-              expect(sut.$attachables[0]['location']).to.be.undefined;
+              expect(sut.$attachables[0].location).to.equal(undefined, 'sut.$attachables[0].location');
             }
 
-            expect(location.parentNode['textContent']).to.equal('');
-            expect(location.parentNode.childNodes.length).to.equal(1);
-            expect(location.parentNode.childNodes[0].childNodes.length).to.equal(0);
+            expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
+            expect(location.parentNode.childNodes.length).to.equal(1, 'location.parentNode.childNodes.length');
+            expect(location.parentNode.childNodes[0].childNodes.length).to.equal(0, 'location.parentNode.childNodes[0].childNodes.length');
           }
         }]
       ],
@@ -298,39 +298,39 @@ describe(`View`, () => {
         ([$11, $12, template, $14, cs], $2, $3, [$41, location], $5, [$61, source, lifecycle]) => [`$attach`, (sut) => {
           lifecycle.attach(sut).end();
 
-          expect(sut.$isAttached).to.be.true;
-          //expect(sut['$encapsulationSource']).to.equal(source);
+          expect(sut.$isAttached).to.equal(true, 'sut.$isAttached');
+          //expect(sut.$encapsulationSource).to.equal(source);
           if (sut.$attachables.length) {
-            expect(sut.$attachables[0].$isAttached).to.be.true;
-            //expect(sut.$attachables[0]['$encapsulationSource']).to.equal(source);
+            expect(sut.$attachables[0].$isAttached).to.equal(true, 'sut.$attachables[0].$isAttached');
+            //expect(sut.$attachables[0].$encapsulationSource).to.equal(source);
           }
 
           if (location.parentNode) {
-            if (template === noViewTemplate || !sut['location']) {
-              expect(location.parentNode.childNodes.length).to.equal(1);
-              expect(location.parentNode['textContent']).to.equal('');
+            if (template === noViewTemplate || !sut.location) {
+              expect(location.parentNode.childNodes.length).to.equal(1, 'location.parentNode.childNodes.length');
+              expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
             } else {
               expect(location.parentNode.childNodes.length).to.equal(2);
               if (cs.size > 0 || !sut.$isBound) {
-                expect(location.parentNode['textContent']).to.equal('');
+                expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
               } else {
-                expect(location.parentNode['textContent']).to.equal('foo');
+                expect(location.parentNode.textContent).to.equal('foo', 'location.parentNode.textContent');
               }
             }
           }
 
           // verify short-circuit if already attached
-          //const def = sut['$encapsulationSource'];
-          sut['$encapsulationSource'] = null;
+          //const def = sut.$encapsulationSource;
+          sut.$encapsulationSource = null;
           sut.$attach(source, <any>lifecycle);
-          expect(sut['$encapsulationSource']).to.be.null;
-          //sut['$encapsulationSource'] = def;
+          expect(sut.$encapsulationSource).to.equal(null, 'sut.$encapsulationSource');
+          //sut.$encapsulationSource = def;
         }]
       ],
       [
         () => [`   noop`, PLATFORM.noop],
         ([$11, $12, $13, $14, $15, cache], $2, $3, $4, $5, $6, $7) => [`release`, (sut) => {
-          expect(sut.release()).to.equal(cache);
+          expect(sut.release()).to.equal(cache, 'sut.release()');
         }]
       ],
       [
@@ -341,35 +341,35 @@ describe(`View`, () => {
         ([$11, $12, template, factory, cs, cache], $2, $3, [$41, location], $5, [$61, source], [$71, attach], [$81, release], [$91, lifecycle]) => [`$detach`, (sut) => {
           lifecycle.detach(sut).end();
 
-          expect(sut.$isAttached).to.be.false;
+          expect(sut.$isAttached).to.equal(false, 'sut.$isAttached');
           if (attach === PLATFORM.noop) {
-            //expect(sut['$encapsulationSource']).to.be.undefined;
+            //expect(sut.$encapsulationSource).to.be.undefined;
 
             // verify short-circuit if already detached
-            const s = spy(lifecycle, <any>'queueRemoveNodes');
+            const s = spy(lifecycle, <any>'queueUnmount');
             sut.$detach(<any>lifecycle);
             expect(s).not.to.have.been.called;
             s.restore();
           } else {
-            //expect(sut['$encapsulationSource']).to.equal(source);
+            //expect(sut.$encapsulationSource).to.equal(source);
           }
           if (sut.$attachables.length) {
-            expect(sut.$attachables[0].$isAttached).to.be.false;
+            expect(sut.$attachables[0].$isAttached).to.equal(false, 'sut.$attachables[0].$isAttached');
             if (attach === PLATFORM.noop) {
-              //expect(sut.$attachables[0]['$encapsulationSource']).to.be.undefined;
+              //expect(sut.$attachables[0].$encapsulationSource).to.be.undefined;
             } else {
-              //expect(sut.$attachables[0]['$encapsulationSource']).to.equal(source);
+              //expect(sut.$attachables[0].$encapsulationSource).to.equal(source);
             }
           }
 
           if (location.parentNode) {
-            expect(location.parentNode.childNodes.length).to.equal(1);
-            expect(location.parentNode['textContent']).to.equal('');
+            expect(location.parentNode.childNodes.length).to.equal(1, 'location.parentNode.childNodes.length');
+            expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
           }
           if (cache && release !== PLATFORM.noop) {
-            expect(factory['cache'][0]).to.equal(sut);
-          } else if (factory['cache'] !== null) {
-            expect(factory['cache'][0]).not.to.equal(sut);
+            expect(factory.cache[0]).to.equal(sut, 'factory.cache[0]');
+          } else if (factory.cache !== null) {
+            expect(factory.cache[0]).not.to.equal(sut, 'factory.cache[0]');
           }
         }]
       ],
@@ -381,11 +381,11 @@ describe(`View`, () => {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, [$111, flags]) => [`$unbind`, (sut) => {
           sut.$unbind(flags);
 
-          expect(sut.$isBound).to.be.false;
-          expect(sut.$scope).to.be.null;
+          expect(sut.$isBound).to.equal(false, 'sut.$isBound');
+          expect(sut.$scope).to.equal(null, 'sut.$scope');
           if (sut.$attachables.length) {
-            expect(sut.$attachables[0]['$isBound']).to.be.false;
-            expect(sut.$attachables[0]['$scope']).to.be.null;
+            expect(sut.$attachables[0].$isBound).to.equal(false, 'sut.$attachables[0].$isBound');
+            expect(sut.$attachables[0].$scope).to.equal(null, 'sut.$attachables[0].$scope');
           }
         }]
       ]

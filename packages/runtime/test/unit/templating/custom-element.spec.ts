@@ -676,6 +676,7 @@ describe('@customElement', () => {
   // #endregion
 
 
+  // TODO: the customElement lifecycle tests still lack most variations and assertions, below is just the skeleton
   describe('$hydrate', () => {
 
     const behaviorSpecs = [
@@ -1061,17 +1062,17 @@ describe('@customElement', () => {
         sut.$projector = projector;
         let queueAttachedCallbackCalled = false;
         let queueAttachedCallbackRequestor;
-        let queueAddNodesCalled = false;
-        let queueAddNodesRequestor;
+        let queueMountCalled = false;
+        let queueMountRequestor;
         const lifecycle: IAttachLifecycle = <any>{
           queueAttachedCallback(requestor: CustomElement) {
             queueAttachedCallbackCalled = true;
             queueAttachedCallbackRequestor = requestor;
             requestor.attached();
           },
-          queueAddNodes(requestor: CustomElement) {
-            queueAddNodesCalled = true;
-            queueAddNodesRequestor = requestor;
+          queueMount(requestor: CustomElement) {
+            queueMountCalled = true;
+            queueMountRequestor = requestor;
             requestor.$mount();
           }
         };
@@ -1162,17 +1163,17 @@ describe('@customElement', () => {
 
         let queueDetachedCallbackCalled = false;
         let queueDetachedCallbackRequestor;
-        let queueRemoveNodesCalled = false;
-        let queueRemoveNodesRequestor;
+        let queueUnmountCalled = false;
+        let queueUnmountRequestor;
         const lifecycle: IDetachLifecycle = <any>{
           queueDetachedCallback(requestor: CustomElement) {
             queueDetachedCallbackCalled = true;
             queueDetachedCallbackRequestor = requestor;
             requestor.detached();
           },
-          queueRemoveNodes(requestor: CustomElement) {
-            queueRemoveNodesCalled = true;
-            queueRemoveNodesRequestor = requestor;
+          queueUnmount(requestor: CustomElement) {
+            queueUnmountCalled = true;
+            queueUnmountRequestor = requestor;
             requestor.$unmount();
           }
         };

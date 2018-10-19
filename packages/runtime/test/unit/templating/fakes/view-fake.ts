@@ -72,14 +72,14 @@ export class ViewFake implements IView {
   // IAttach impl
   $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
     if (this.mountRequired) {
-      lifecycle.queueAddNodes(this);
+      lifecycle.queueMount(this);
     }
 
     this.$isAttached = true;
   }
 
   $detach(lifecycle: IDetachLifecycle): void {
-    lifecycle.queueRemoveNodes(this);
+    lifecycle.queueUnmount(this);
     this.$isAttached = false;
   }
 

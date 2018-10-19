@@ -9,11 +9,32 @@ export enum LifecycleFlags {
   unbindAfterDetached = 0b0_100
 }
 
-export interface IAttach {
+export interface IAttach extends ICachable {
   readonly $isAttached: boolean;
   $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
   $detach(lifecycle: IDetachLifecycle): void;
+}
+
+export interface ICachable {
+  readonly $isCached: boolean;
   $cache(): void;
+}
+
+export interface IMountable {
+  readonly $needsMount: boolean;
+  /**
+   * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
+   */
+  $mount(): void;
+
+  /**
+   * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
+   * @returns
+   * - `true` if the instance has been returned to the cache.
+   * - `false` if the cache (typically ViewFactory) did not allow the instance to be cached.
+   * - `undefined` (void) if the instance does not support caching. Functionally equivalent to `false`
+   */
+  $unmount(): boolean | void;
 }
 
 export interface IElementTemplateProvider {
@@ -23,7 +44,7 @@ export interface IElementTemplateProvider {
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface ILifecycleHooks extends Partial<Omit<IRenderable, '$mount' | '$unmount'>> {
+export interface ILifecycleHooks extends Partial<IRenderable> {
   /**
    * Only applies to `@customElement`. This hook is not invoked for `@customAttribute`s
    *
@@ -239,16 +260,16 @@ type LifecycleAttachable = {
   attached(): void;
 };
 
-type LifecycleNodeAddable = Pick<IRenderable, '$mount'> & {
+type LifecycleMountable = Pick<IMountable, '$mount'> & {
   /*@internal*/
-  $nextAddNodes?: LifecycleNodeAddable;
+  $nextMount?: LifecycleMountable;
 };
 
 export interface IAttachLifecycle {
   readonly flags: LifecycleFlags;
   registerTask(task: ILifecycleTask): void;
   createChild(): IAttachLifecycle;
-  queueAddNodes(requestor: LifecycleNodeAddable): void;
+  queueMount(requestor: LifecycleMountable): void;
   queueAttachedCallback(requestor: LifecycleAttachable): void;
 }
 
@@ -263,9 +284,9 @@ type LifecycleDetachable = {
   detached(): void;
 };
 
-type LifecycleNodeRemovable = Pick<IRenderable, '$unmount'> & {
+type LifecycleUnmountable = Pick<IMountable, '$unmount'> & {
   /*@internal*/
-  $nextRemoveNodes?: LifecycleNodeRemovable;
+  $nextUnmount?: LifecycleUnmountable;
 };
 
 export class AggregateLifecycleTask implements ILifecycleTask {
@@ -341,21 +362,21 @@ export interface IDetachLifecycle {
   readonly flags: LifecycleFlags;
   registerTask(task: ILifecycleTask): void;
   createChild(): IDetachLifecycle;
-  queueRemoveNodes(requestor: LifecycleNodeRemovable): void;
+  queueUnmount(requestor: LifecycleUnmountable): void;
   queueDetachedCallback(requestor: LifecycleDetachable): void;
 }
 
 /*@internal*/
 export class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleController {
   /*@internal*/
-  public $nextAddNodes: LifecycleNodeAddable;
+  public $nextMount: LifecycleMountable;
   /*@internal*/
   public $nextAttached: LifecycleAttachable;
 
   private attachedHead: LifecycleAttachable;
   private attachedTail: LifecycleAttachable;
-  private addNodesHead: LifecycleNodeAddable;
-  private addNodesTail: LifecycleNodeAddable;
+  private mountHead: LifecycleMountable;
+  private mountTail: LifecycleMountable;
   private task: AggregateLifecycleTask = null;
 
   constructor(
@@ -364,7 +385,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
     private parent: AttachLifecycleController = null,
     private encapsulationSource: INode = null
   ) {
-    this.addNodesTail = this.addNodesHead = this;
+    this.mountTail = this.mountHead = this;
     this.attachedTail = this.attachedHead = this;
   }
 
@@ -373,9 +394,9 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
     return this;
   }
 
-  public queueAddNodes(requestor: LifecycleNodeAddable): void {
-    this.addNodesTail.$nextAddNodes = requestor;
-    this.addNodesTail = requestor;
+  public queueMount(requestor: LifecycleMountable): void {
+    this.mountTail.$nextMount = requestor;
+    this.mountTail = requestor;
   }
 
   public queueAttachedCallback(requestor: LifecycleAttachable): void {
@@ -396,7 +417,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
 
   public createChild(): IAttachLifecycle {
     const lifecycle = new AttachLifecycleController(this.changeSet, this.flags, this);
-    this.queueAddNodes(lifecycle);
+    this.queueMount(lifecycle);
     this.queueAttachedCallback(lifecycle);
     return lifecycle;
   }
@@ -415,14 +436,14 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
   /*@internal*/
   public processAll(): void {
     this.changeSet.flushChanges();
-    this.processAddNodes();
+    this.processMounts();
     this.processAttachedCallbacks();
   }
 
   /*@internal*/
   public $mount(): void {
     if (this.parent !== null) {
-      this.processAddNodes();
+      this.processMounts();
     }
   }
 
@@ -433,15 +454,15 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
     }
   }
 
-  private processAddNodes(): void {
-    let currentAddNodes = this.addNodesHead;
-    let nextAddNodes;
+  private processMounts(): void {
+    let currentMount = this.mountHead;
+    let nextMount;
 
-    while (currentAddNodes) {
-      currentAddNodes.$mount();
-      nextAddNodes = currentAddNodes.$nextAddNodes;
-      currentAddNodes.$nextAddNodes = null;
-      currentAddNodes = nextAddNodes;
+    while (currentMount) {
+      currentMount.$mount();
+      nextMount = currentMount.$nextMount;
+      currentMount.$nextMount = null;
+      currentMount = nextMount;
     }
   }
 
@@ -461,16 +482,16 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
 /*@internal*/
 export class DetachLifecycleController implements IDetachLifecycle, IDetachLifecycleController {
   /*@internal*/
-  public $nextRemoveNodes: LifecycleNodeRemovable;
+  public $nextUnmount: LifecycleUnmountable;
   /*@internal*/
   public $nextDetached: LifecycleDetachable;
 
   private detachedHead: LifecycleDetachable; //LOL
   private detachedTail: LifecycleDetachable;
-  private removeNodesHead: LifecycleNodeRemovable;
-  private removeNodesTail: LifecycleNodeRemovable;
+  private unmountHead: LifecycleUnmountable;
+  private unmountTail: LifecycleUnmountable;
   private task: AggregateLifecycleTask = null;
-  private allowNodeRemoves: boolean = true;
+  private allowUnmount: boolean = true;
 
   constructor(
     public readonly changeSet: IChangeSet,
@@ -478,25 +499,25 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     private parent: DetachLifecycleController = null
   ) {
     this.detachedTail = this.detachedHead = this;
-    this.removeNodesTail = this.removeNodesHead = this;
+    this.unmountTail = this.unmountHead = this;
   }
 
   public detach(requestor: IAttach): IDetachLifecycleController {
-    this.allowNodeRemoves = true;
+    this.allowUnmount = true;
 
     if (requestor.$isAttached) {
       requestor.$detach(this);
-    } else if (isNodeRemovable(requestor)) {
-      this.queueRemoveNodes(requestor);
+    } else if (isUnmountable(requestor)) {
+      this.queueUnmount(requestor);
     }
 
     return this;
   }
 
-  public queueRemoveNodes(requestor: LifecycleNodeRemovable): void {
-    if (this.allowNodeRemoves) {
-      this.removeNodesTail.$nextRemoveNodes = requestor;
-      this.removeNodesTail = requestor;
+  public queueUnmount(requestor: LifecycleUnmountable): void {
+    if (this.allowUnmount) {
+      this.unmountTail.$nextUnmount = requestor;
+      this.unmountTail = requestor;
       // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
       // Just to reduce the amount of potential things to track down and check if something fails.
       // When everything is working and tested, we can add this optimization (and others) back in.
@@ -522,7 +543,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
 
   public createChild(): IDetachLifecycle {
     const lifecycle = new DetachLifecycleController(this.changeSet, this.flags, this);
-    this.queueRemoveNodes(lifecycle);
+    this.queueUnmount(lifecycle);
     this.queueDetachedCallback(lifecycle);
     return lifecycle;
   }
@@ -541,7 +562,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
   /*@internal*/
   public $unmount(): void {
     if (this.parent !== null) {
-      this.processRemoveNodes();
+      this.processUnmounts();
     }
   }
 
@@ -555,26 +576,26 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
   /*@internal*/
   public processAll(): void {
     this.changeSet.flushChanges();
-    this.processRemoveNodes();
+    this.processUnmounts();
     this.processDetachedCallbacks();
   }
 
-  private processRemoveNodes(): void {
-    let currentRemoveNodes = this.removeNodesHead;
+  private processUnmounts(): void {
+    let currentUnmount = this.unmountHead;
 
     if (this.flags & LifecycleFlags.unbindAfterDetached) {
-      while (currentRemoveNodes) {
-        currentRemoveNodes.$unmount();
-        currentRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
+      while (currentUnmount) {
+        currentUnmount.$unmount();
+        currentUnmount = currentUnmount.$nextUnmount;
       }
     } else {
-      let nextRemoveNodes;
+      let nextUnmount;
 
-      while (currentRemoveNodes) {
-        currentRemoveNodes.$unmount();
-        nextRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
-        currentRemoveNodes.$nextRemoveNodes = null;
-        currentRemoveNodes = nextRemoveNodes;
+      while (currentUnmount) {
+        currentUnmount.$unmount();
+        nextUnmount = currentUnmount.$nextUnmount;
+        currentUnmount.$nextUnmount = null;
+        currentUnmount = nextUnmount;
       }
     }
   }
@@ -591,23 +612,23 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     }
 
     if (this.flags & LifecycleFlags.unbindAfterDetached) {
-      let currentRemoveNodes = this.removeNodesHead;
-      let nextRemoveNodes;
+      let currentUnmount = this.unmountHead;
+      let nextUnmount;
 
-      while (currentRemoveNodes) {
-        if (isUnbindable(currentRemoveNodes)) {
-          currentRemoveNodes.$unbind(BindingFlags.fromUnbind);
+      while (currentUnmount) {
+        if (isUnbindable(currentUnmount)) {
+          currentUnmount.$unbind(BindingFlags.fromUnbind);
         }
 
-        nextRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
-        currentRemoveNodes.$nextRemoveNodes = null;
-        currentRemoveNodes = nextRemoveNodes;
+        nextUnmount = currentUnmount.$nextUnmount;
+        currentUnmount.$nextUnmount = null;
+        currentUnmount = nextUnmount;
       }
     }
   }
 }
 
-function isNodeRemovable(requestor: object): requestor is LifecycleNodeRemovable {
+function isUnmountable(requestor: object): requestor is LifecycleUnmountable {
   return '$unmount' in requestor;
 }
 

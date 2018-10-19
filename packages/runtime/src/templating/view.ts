@@ -3,14 +3,14 @@ import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle, IMountable } from './lifecycle';
 import { IRenderContext } from './render-context';
 import { IRenderable } from './renderable';
 import { ITemplate } from './template';
 
 export type RenderCallback = (view: IView) => void;
 
-export interface IView extends IBindScope, IRenderable, IAttach {
+export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
   readonly factory: IViewFactory;
 
   hold(location: IRenderLocation): void;
@@ -39,9 +39,10 @@ export class View implements IView {
   public $nodes: INodeSequence = null;
   public $isBound: boolean = false;
   public $isAttached: boolean = false;
+  public $needsMount: boolean = false;
+  public $isCached: boolean = false;
   public $context: IRenderContext;
-  private location: IRenderLocation;
-  private requiresNodeAdd: boolean = false;
+  public location: IRenderLocation;
   private isFree: boolean = false;
 
   constructor(public factory: ViewFactory, private template: ITemplate) {
@@ -53,13 +54,8 @@ export class View implements IView {
       throw Reporter.error(60); // TODO: organize error codes
     }
     this.location = location;
-
-    // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
-    // Just to reduce the amount of potential things to track down and check if something fails.
-    // When everything is working and tested, we can add this optimization (and others) back in.
-    //if (this.$nodes.lastChild && this.$nodes.lastChild.nextSibling !== location) {
-    this.requiresNodeAdd = true;
-    //}
+    const lastChild = this.$nodes.lastChild;
+    this.$needsMount = !(lastChild && lastChild.nextSibling === location);
   }
 
   public lockScope(scope: IScope): void {
@@ -69,12 +65,11 @@ export class View implements IView {
 
   public release(): boolean {
     this.isFree = true;
-
     if (this.$isAttached) {
       return this.factory.canReturnToCache(this);
-    } else {
-      return this.$unmount();
     }
+
+    return this.$unmount();
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
@@ -97,19 +92,18 @@ export class View implements IView {
   }
 
   public $mount(): void {
-    this.requiresNodeAdd = false;
+    this.$needsMount = false;
     this.$nodes.insertBefore(this.location);
   }
 
   public $unmount(): boolean {
-    this.requiresNodeAdd = true;
+    this.$needsMount = true;
     this.$nodes.remove();
 
     if (this.isFree) {
       this.isFree = false;
-      return this.factory.tryReturnToCache(this);
+      return this.$isCached = this.factory.tryReturnToCache(this);
     }
-
     return false;
   }
 
@@ -124,8 +118,8 @@ export class View implements IView {
       attachables[i].$attach(encapsulationSource, lifecycle);
     }
 
-    if (this.requiresNodeAdd) {
-      lifecycle.queueAddNodes(this);
+    if (this.$needsMount === true) {
+      lifecycle.queueMount(this);
     }
 
     this.$isAttached = true;
@@ -133,7 +127,7 @@ export class View implements IView {
 
   public $detach(lifecycle: IDetachLifecycle): void {
     if (this.$isAttached) {
-      lifecycle.queueRemoveNodes(this);
+      lifecycle.queueUnmount(this);
 
       const attachables = this.$attachables;
       let i = attachables.length;
@@ -219,7 +213,9 @@ export class ViewFactory implements IViewFactory {
     const cache = this.cache;
 
     if (cache !== null && cache.length > 0) {
-      return cache.pop();
+      const view = cache.pop();
+      view.$isCached = false;
+      return view;
     }
 
     return new View(this, this.template);

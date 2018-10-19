@@ -11,7 +11,7 @@ import { ITemplate } from './template';
 export type RenderCallback = (view: IView) => void;
 
 export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
-  readonly factory: IViewFactory;
+  readonly cache: IViewCache;
 
   hold(location: IRenderLocation): void;
   release(): boolean;
@@ -19,11 +19,16 @@ export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
   lockScope(scope: IScope): void;
 }
 
-export interface IViewFactory {
+export interface IViewFactory extends IViewCache {
   readonly name: string;
+  create(): IView;
+}
+
+export interface IViewCache {
   readonly isCaching: boolean;
   setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
-  create(): IView;
+  canReturnToCache(view: IView): boolean;
+  tryReturnToCache(view: IView): boolean;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>().noDefault();
@@ -36,7 +41,7 @@ export class View implements IView {
   public $bindables: IBindScope[] = [];
   public $attachables: IAttach[] = [];
   public $scope: IScope = null;
-  public $nodes: INodeSequence = null;
+  public $nodes: INodeSequence;
   public $isBound: boolean = false;
   public $isAttached: boolean = false;
   public $needsMount: boolean = false;
@@ -45,8 +50,10 @@ export class View implements IView {
   public location: IRenderLocation;
   private isFree: boolean = false;
 
-  constructor(public factory: ViewFactory, private template: ITemplate) {
-    this.$nodes = this.template.createFor(this);
+  constructor(
+    public cache: IViewCache,
+    template: ITemplate) {
+    this.$nodes = template.createFor(this);
   }
 
   public hold(location: IRenderLocation): void {
@@ -66,7 +73,7 @@ export class View implements IView {
   public release(): boolean {
     this.isFree = true;
     if (this.$isAttached) {
-      return this.factory.canReturnToCache(this);
+      return this.cache.canReturnToCache(this);
     }
 
     return this.$unmount();
@@ -102,7 +109,7 @@ export class View implements IView {
 
     if (this.isFree) {
       this.isFree = false;
-      return this.$isCached = this.factory.tryReturnToCache(this);
+      return this.$isCached = this.cache.tryReturnToCache(this);
     }
     return false;
   }

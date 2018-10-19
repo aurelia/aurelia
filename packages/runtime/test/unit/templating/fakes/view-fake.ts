@@ -49,7 +49,7 @@ export class ViewFake implements IView {
   }
 
   // IView impl
-  factory: IViewFactory;
+  cache: IViewFactory;
   $isAttached: boolean = false;
   location: IRenderLocation;
   mountRequired = false;

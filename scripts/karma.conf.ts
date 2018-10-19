@@ -60,7 +60,7 @@ export default function(config: IKarmaConfig): void {
 
   const options: IKarmaConfigOptions = {
     basePath: project.path,
-    frameworks: ['mocha', 'chai'],
+    frameworks: ['source-map-support', 'mocha', 'chai'],
     files: packages.map(p => p.test.setup),
     preprocessors: packages.reduce((preprocessors, p) => {
       preprocessors[p.test.setup] = ['webpack', 'sourcemap'];
@@ -79,7 +79,7 @@ export default function(config: IKarmaConfig): void {
           return alias;
         }, {})
       },
-      devtool: 'cheap-module-eval-source-map',
+      devtool: browsers.indexOf('ChromeDebugging') > -1 ? 'eval-source-map' : 'inline-source-map',
       module: {
         rules: [{
           test: /\.ts$/,
@@ -148,7 +148,7 @@ export default function(config: IKarmaConfig): void {
       options: { esModules: true },
       test: /src[\/\\].+\.ts$/
     });
-    options.reporters.push('coverage-istanbul');
+    options.reporters = ['coverage-istanbul', ...options.reporters];
     options.coverageIstanbulReporter = {
       reports: ["html", "text-summary", "json", "lcovonly", "cobertura"],
       dir: project.coverage.path

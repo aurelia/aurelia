@@ -25,7 +25,7 @@ import {
   INodeSequence,
   AccessScope,
   IChangeSet,
-  ChangeSet,
+  LinkedChangeList,
   Scope
 } from '../../../src';
 import { expect } from 'chai';
@@ -167,31 +167,31 @@ describe(`View`, () => {
     [
       [
         () => {
-          const cs = new ChangeSet();
+          const cs = new LinkedChangeList();
           const factory = new ViewFactory('foo', noViewTemplate);
           factory.setCacheSize('*', true);
           return [` noViewTemplate, viewFactory(cache=true )`, <View>factory.create(), noViewTemplate, factory, cs, true];
         },
         () => {
-          const cs = new ChangeSet();
+          const cs = new LinkedChangeList();
           const factory = new ViewFactory('foo', noViewTemplate);
           return [` noViewTemplate, viewFactory(cache=false)`, <View>factory.create(), noViewTemplate, factory, cs, false];
         },
         () => {
-          const cs = new ChangeSet();
+          const cs = new LinkedChangeList();
           const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
           const factory = new ViewFactory('foo', <any>template);
           factory.setCacheSize('*', true);
           return [`textNodeTemplate, viewFactory(cache=true )`, <View>factory.create(), template, factory, cs, true];
         },
         () => {
-          const cs = new ChangeSet();
+          const cs = new LinkedChangeList();
           const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
           const factory = new ViewFactory('foo', <any>template);
           return [`textNodeTemplate, viewFactory(cache=false)`, <View>factory.create(), template, factory, cs, false];
         },
         () => {
-          const cs = new ChangeSet();
+          const cs = new LinkedChangeList();
           const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
           const factory = new ViewFactory('foo', <any>template);
           const child = <View>factory.create();
@@ -202,7 +202,7 @@ describe(`View`, () => {
           return [`textNodeTemplate, viewFactory(cache=true )`, sut, template, factory, cs, true];
         },
         () => {
-          const cs = new ChangeSet();
+          const cs = new LinkedChangeList();
           const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
           const factory = new ViewFactory('foo', <any>template);
           const child = <View>factory.create();

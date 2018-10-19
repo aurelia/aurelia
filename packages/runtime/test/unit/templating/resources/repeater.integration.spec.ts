@@ -23,7 +23,7 @@ import {
   ObserverLocator,
   Lifecycle,
   LifecycleFlags,
-  ChangeSet,
+  LinkedChangeList,
   IView,
   Interpolation
 } from '../../../../src/index';
@@ -57,7 +57,7 @@ function verifyViewBindingContexts(views: IView[], items: any[]): void {
 }
 
 function setup<T extends ObservedCollection>() {
-  const cs = new ChangeSet();
+  const cs = new LinkedChangeList();
   const host = document.createElement('div');
   const location = document.createComment('au-loc');
   host.appendChild(location);
@@ -85,7 +85,7 @@ describe(`Repeat`, () => {
       () => [[{if:1,else:2},{if:3,else:4}],   2, false, `13`, `24`, `[{if:1,else:2},{if:3,else:4}] show=false`]
     ],
     // first operation "execute1" (initial bind + attach)
-    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
         sut.$bind(BindingFlags.fromBind, createScopeForTest({ show }));
@@ -117,7 +117,7 @@ describe(`Repeat`, () => {
       }, `$bind(fromFlush) -> $attach(none)`]
     ],
     // second operation "execute2" (second bind or noop)
-    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
         sut.$bind(BindingFlags.fromBind, sut.$scope);
@@ -161,7 +161,7 @@ describe(`Repeat`, () => {
       }, `noop                       `]
     ],
     // third operation "execute3" (change value)
-    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
         sut.$scope.bindingContext.show = !sut.$scope.bindingContext.show;

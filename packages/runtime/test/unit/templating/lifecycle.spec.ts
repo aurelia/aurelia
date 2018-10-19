@@ -1,4 +1,4 @@
-import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController, ChangeSet } from '../../../src';
+import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController, LinkedChangeList } from '../../../src';
 import { eachCartesianJoinFactory } from '../util';
 import { LifecycleMock } from '../mock';
 import { expect } from 'chai';
@@ -162,7 +162,7 @@ describe(`AttachLifecycleController `, () => {
       [
         ([text, flags]) => [
           `single`,
-          new AttachLifecycleController(new ChangeSet(), flags)
+          new AttachLifecycleController(new LinkedChangeList(), flags)
         ]
       ],
       [
@@ -323,7 +323,7 @@ describe(`DetachLifecycleController `, () => {
       [
         ([text, flags]) => [
           `single`,
-          new DetachLifecycleController(new ChangeSet(), flags)
+          new DetachLifecycleController(new LinkedChangeList(), flags)
         ]
       ],
       [

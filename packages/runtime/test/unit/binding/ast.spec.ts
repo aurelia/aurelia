@@ -11,7 +11,7 @@ import {
   Unary, ValueConverter, TaggedTemplate, BindingContext,
   BindingFlags, IsPrimary, IsBindingBehavior, IsLeftHandSide,
   IsValueConverter, IsAssign, IsConditional, IsBinary, IsUnary,
-  IScope, isPureLiteral, Binding, ObserverLocator, ChangeSet,
+  IScope, isPureLiteral, Binding, ObserverLocator, LinkedChangeList,
   connects, HtmlLiteral, ArrayBindingPattern, ObjectBindingPattern,
   BindingIdentifier, ForOfStatement, Interpolation, observes, callsFunction,
   hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, ExpressionKind, ISignaler, Scope, OverrideContext
@@ -1926,7 +1926,7 @@ describe('BindingBehavior', () => {
 
           const mock = new MockBindingBehavior();
           const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -1943,7 +1943,7 @@ describe('BindingBehavior', () => {
 
           const mock = new MockBindingBehavior();
           const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1 }, null);
@@ -1966,7 +1966,7 @@ describe('BindingBehavior', () => {
 
           const mock = new MockBindingBehavior();
           const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1, b: arg2, c: arg3 }, null);
@@ -2198,7 +2198,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2215,7 +2215,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2232,7 +2232,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2249,7 +2249,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2267,7 +2267,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1 }, null);
@@ -2291,7 +2291,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1, b: arg2, c: arg3 }, null);

@@ -1,11 +1,11 @@
 import { DI } from '@aurelia/kernel';
-import { IChangeTracker } from './observation';
+import { IChangeTracker, ILinkedNode } from './observation';
 import { nativeAdd } from './set-observer';
 
 /**
  * Represents a set of ChangeTrackers (typically observers) containing changes that can be flushed in some way (e.g. by calling subscribers).
  *
- * The ChangeSet itself also implements the IChangeTracker interface, allowing sets of changes to be grouped together and composed into a tree.
+ * The LinkedChangeList itself also implements the IChangeTracker interface, allowing sets of changes to be grouped together and composed into a tree.
  */
 export interface IChangeSet extends IChangeTracker {
   /**
@@ -15,7 +15,7 @@ export interface IChangeSet extends IChangeTracker {
   readonly flushed: Promise<void>;
 
   /**
-   * Indicates whether this ChangeSet is currently flushing changes
+   * Indicates whether this LinkedChangeList is currently flushing changes
    */
   readonly flushing: boolean;
 
@@ -48,7 +48,7 @@ export interface IChangeSet extends IChangeTracker {
 }
 
 export const IChangeSet = DI.createInterface<IChangeSet>()
-  .withDefault(x => x.singleton(<any>ChangeSet));
+  .withDefault(x => x.singleton(<any>LinkedChangeList));
 
 /*@internal*/
 export class ChangeSet extends Set<IChangeTracker> implements IChangeSet {
@@ -92,4 +92,82 @@ export class ChangeSet extends Set<IChangeTracker> implements IChangeSet {
     nativeAdd.call(this, changeTracker);
     return this.flushed;
   }
+}
+
+/*@internal*/
+export class LinkedChangeList implements IChangeSet {
+  public flushed: Promise<void>;
+  public flushing: boolean = false;
+  public size: number = 0;
+  private head: IChangeTracker = null;
+  private tail: IChangeTracker = null;
+
+  /*@internal*/
+  public promise: Promise<void> = Promise.resolve();
+
+  public toArray(): IChangeTracker[] {
+    const items = new Array<IChangeTracker>(this.size);
+    let i = 0;
+    let current = this.head;
+    let next;
+    while (current) {
+      items[i] = current;
+      next = current.$next;
+      current = next;
+      i++;
+    }
+    return items;
+  }
+
+  public has(item: IChangeTracker): boolean {
+    let current = this.head;
+    let next;
+    while (current) {
+      if (item === current) {
+        return true;
+      }
+      next = current.$next;
+      current = next;
+    }
+    return false;
+  }
+
+  /**
+   * This particular implementation is recursive; any changes added as a side-effect of flushing changes, will be flushed during the same tick.
+   */
+  public flushChanges = (): void => {
+    this.flushing = true;
+    let current = this.head;
+    this.head = this.tail = null;
+    let next;
+    while (current) {
+      next = current.$next;
+      current.$next = null;
+      current.$linked = false;
+      current.flushChanges();
+      current = next;
+      this.size--;
+    }
+    this.flushing = false;
+  }
+
+  public add(item: IChangeTracker): never; // this is a hack to keep intellisense/type checker from nagging about signature compatibility
+  public add(item: IChangeTracker): Promise<void> {
+    if (item.$linked === true) {
+      return;
+    }
+    item.$linked = true;
+    if (this.tail !== null) {
+      this.tail.$next = item;
+    } else {
+      this.head = item;
+    }
+    this.tail = item;
+    if (this.size === 0) {
+      this.flushed = this.promise.then(this.flushChanges);
+    }
+    this.size++;
+    return this.flushed;
+  }
+
 }

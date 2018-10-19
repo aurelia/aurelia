@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { Constructable } from '../../../../../kernel/src/index';
-import { BindingFlags, Lifecycle, LifecycleFlags, IAttach, IView, ChangeSet } from '../../../../src/index';
+import { BindingFlags, Lifecycle, LifecycleFlags, IAttach, IView, LinkedChangeList } from '../../../../src/index';
 import { ViewFake } from '../fakes/view-fake';
 import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';
@@ -9,7 +9,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
   Type: T,
   getChildView: (attribute: InstanceType<T>) => IView
   ) {
-    const cs = new ChangeSet();
+    const cs = new LinkedChangeList();
 
   it('creates a child instance from its template', () => {
     const { attribute } = hydrateCustomAttribute(Type);

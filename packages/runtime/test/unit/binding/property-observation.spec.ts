@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
 import { PLATFORM } from '../../../../kernel/src/index';
-import { PrimitiveObserver, SetterObserver, ChangeSet, BindingFlags, Observer } from '../../../src/index';
+import { PrimitiveObserver, SetterObserver, LinkedChangeList, BindingFlags, Observer } from '../../../src/index';
 import { expect } from 'chai';
 import { SpySubscriber } from '../util';
 

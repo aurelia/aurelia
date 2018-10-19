@@ -13,7 +13,7 @@ import {
   ObserverLocator,
   Lifecycle,
   LifecycleFlags,
-  ChangeSet,
+  LinkedChangeList,
   IView
 } from '../../../../src/index';
 import { expect } from 'chai';
@@ -44,7 +44,7 @@ function verifyViewBindingContexts(views: IView[], items: any[]): void {
 
 
 function setup<T extends ObservedCollection>() {
-  const cs = new ChangeSet();
+  const cs = new LinkedChangeList();
   const host = document.createElement('div');
   const location = document.createComment('au-loc');
   host.appendChild(location);
@@ -81,7 +81,7 @@ describe(`Repeat`, () => {
       () => [[1,2,3],   3, `123`  , `[1,2,3]  `]
     ],
     // first operation "execute1" (initial bind + attach)
-    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([items, count, expected]) => [(sut, host, cs) => {
         sut.$bind(BindingFlags.fromBind, createScopeForTest({ }));
@@ -110,7 +110,7 @@ describe(`Repeat`, () => {
       }, `$bind(fromFlush) -> $attach(none)`]
     ],
     // second operation "execute2" (second bind or noop)
-    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([items, count, expected]) => [(sut, host) => {
         sut.$bind(BindingFlags.fromBind, sut.$scope);
@@ -156,7 +156,7 @@ describe(`Repeat`, () => {
       ([items, count, expected, text]) => [items,   count, expected, text]
     ],
     // third operation "execute3" (assignment and/or mutation)
-    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
         sut.items = newItems;
@@ -434,7 +434,7 @@ describe(`Repeat`, () => {
       }, `assign+mutate(batch)`]
     ],
     // fourth operation "execute4" (detach and unbind)
-    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, cs: ChangeSet) => void, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([items, count], $2, $3, [newItems, newCount]) => [(sut, host, cs) => {
         Lifecycle.beginDetach(cs, LifecycleFlags.none).detach(sut).end();
@@ -467,7 +467,7 @@ describe(`Repeat`, () => {
       }, `$detach(unbind) -> $unbind(fromUnbind)`],
     ],
     // fifth operation "execute5" (second unbind)
-    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, cs: ChangeSet) => void, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([items, count], $2, $3, [newItems, newCount]) => [(sut, host) => {
         sut.$unbind(BindingFlags.fromUnbind);

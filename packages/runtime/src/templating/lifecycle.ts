@@ -98,7 +98,7 @@ export interface ILifecycleHooks extends Partial<IRenderable> {
    * - `flags & BindingFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
    * - `flags & BindingFlags.fromBind`: this is a normal `$bind` lifecycle
    * - `flags & BindingFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-   * - `flags & BindingFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `ChangeSet` which is now being flushed
+   * - `flags & BindingFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
    *
    * @description
    * This is the first "create" lifecycle hook of the hooks that can occur multiple times per instance,
@@ -117,7 +117,7 @@ export interface ILifecycleHooks extends Partial<IRenderable> {
    * - `flags & BindingFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
    * - `flags & BindingFlags.fromBind`: this is a normal `$bind` lifecycle
    * - `flags & BindingFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-   * - `flags & BindingFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `ChangeSet` which is now being flushed
+   * - `flags & BindingFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
    *
    * @description
    * This is the second "create" lifecycle hook (after `binding`) of the hooks that can occur multiple times per instance,

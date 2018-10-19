@@ -61,10 +61,15 @@ export type IndexMap = number[] & {
   deletedItems?: any[];
 };
 
+export interface ILinkedNode {
+  /*@internal*/$next?: IChangeTracker;
+  /*@internal*/$linked?: boolean;
+}
+
 /**
  * Describes a type that tracks changes and can flush those changes in some way
  */
-export interface IChangeTracker {
+export interface IChangeTracker extends ILinkedNode {
   hasChanges?: boolean;
   flushChanges(): void;
 }

@@ -17,7 +17,7 @@ import {
   ViewFactory,
   RuntimeBehavior,
   ObserverLocator,
-  ChangeSet,
+  LinkedChangeList,
   IChangeSet
 } from '../../../../src/index';
 import { MockTextNodeTemplate } from '../../mock';
@@ -178,7 +178,7 @@ export class MockIfTextNodeTemplate {
 
 
 function setup() {
-  const cs = new ChangeSet();
+  const cs = new LinkedChangeList();
   const host = document.createElement('div');
   const ifLoc = document.createComment('au-loc');
   host.appendChild(ifLoc);
@@ -232,7 +232,7 @@ describe(`If/Else`, () => {
       () => [{if:1,else:2},  undefined, `1`, `2`, `{if:1,else:2},value:undefined`]
     ],
     // first operation "execute1" (initial bind + attach)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([item, value, trueValue, falseValue]) => [(ifSut, elseSut, host, cs) => {
         ifSut.value = value;
@@ -265,7 +265,7 @@ describe(`If/Else`, () => {
       }, `$bind(fromFlush) -> $attach(none)`]
     ],
     // second operation "execute2" (second bind or noop)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([,, trueValue, falseValue]) => [(ifSut: If, elseSut: Else, host: Node) => {
         ifSut.$bind(BindingFlags.fromBind, ifSut.$scope);
@@ -277,7 +277,7 @@ describe(`If/Else`, () => {
 
       }, `$bind(fromBind), same scope`],
 
-      ([item,, trueValue, falseValue]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => {
+      ([item,, trueValue, falseValue]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => {
         ifSut.$bind(BindingFlags.fromBind, createScopeForTest({ item }));
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
@@ -309,7 +309,7 @@ describe(`If/Else`, () => {
       }, `noop                       `]
     ],
     // third operation "execute3" (change value)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([,, trueValue, falseValue]) => [(ifSut, elseSut, host, cs) => {
         const contentBeforeChange = host.textContent;
@@ -364,7 +364,7 @@ describe(`If/Else`, () => {
       }, `ifSut.value=!ifSut.value(x2)`]
     ],
     // fourth operation "execute4" (detach and unbind)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([,,]) => [(ifSut, elseSut, host, cs) => {
         Lifecycle.beginDetach(cs, LifecycleFlags.none).detach(ifSut).end();
@@ -389,7 +389,7 @@ describe(`If/Else`, () => {
       }, `$detach(unbind) -> $unbind(fromUnbind)`],
     ],
     // fifth operation "execute5" (second unbind)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([,,]) => [(ifSut, elseSut, host) => {
         ifSut.$unbind(BindingFlags.fromUnbind);

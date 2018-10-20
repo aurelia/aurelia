@@ -28,8 +28,6 @@ export class ViewFake implements IView {
 
   $state: LifecycleState = LifecycleState.none;
 
-  $isCached: boolean = false;
-  $needsMount: boolean = false;
   lockScope(scope: IScope): void {
     this.$scope = scope;
     this.$bind = () => {
@@ -44,18 +42,19 @@ export class ViewFake implements IView {
   }
 
   $mount() {
+    this.$state &= ~LifecycleState.needsMount;
     this.$nodes.insertBefore(this.location);
   }
 
   $unmount() {
-    this.$needsMount = true;
+    this.$state |= LifecycleState.needsMount;
     this.$nodes.remove();
   }
 
   $cache() {}
 
   hold(location: IRenderLocation): void {
-    this.$needsMount = true;
+    this.$state |= LifecycleState.needsMount;
     this.location = location;
   }
 
@@ -65,7 +64,6 @@ export class ViewFake implements IView {
 
   // IView impl
   cache: IViewFactory;
-  $isAttached: boolean = false;
   location: IRenderLocation;
   private isFree: boolean = false;
 
@@ -85,16 +83,15 @@ export class ViewFake implements IView {
 
   // IAttach impl
   $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    if (this.$needsMount) {
+    if (this.$state & LifecycleState.needsMount) {
       lifecycle.queueMount(this);
     }
-
-    this.$isAttached = true;
+    this.$state |= LifecycleState.isAttached;
   }
 
   $detach(lifecycle: IDetachLifecycle): void {
     lifecycle.queueUnmount(this);
-    this.$isAttached = false;
+    this.$state &= ~LifecycleState.isAttached;
   }
 
   // IViewOwner impl

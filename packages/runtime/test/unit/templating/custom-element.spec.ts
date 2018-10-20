@@ -743,7 +743,7 @@ describe('@customElement', () => {
         sut.$hydrate(renderingEngine, host);
 
         // Assert
-        expect(sut.$isAttached).to.equal(false, 'sut.$isAttached');
+        expect(sut).to.not.have.$state.isAttached('sut.$isAttached');
         expect(sut).to.not.have.$state.isBound();
         expect(sut.$scope.bindingContext).to.equal(sut, 'sut.$scope');
 
@@ -862,7 +862,6 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
-        sut.$isAttached = false;
         sut.$scope = Scope.create(sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
@@ -972,7 +971,6 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
-        sut.$isAttached = false;
         sut.$scope = Scope.create(sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
@@ -1000,16 +998,14 @@ describe('@customElement', () => {
         description: '$isAttached: false',
         expectation: 'calls behaviors',
         callsBehaviors: true,
-        setProps(sut: CustomElement) {
-          sut.$isAttached = false;
-        }
+        setProps(sut: CustomElement) { }
       },
       {
         description: '$isAttached: true',
         expectation: 'does NOT call behaviors',
         callsBehaviors: false,
         setProps(sut: CustomElement) {
-          sut.$isAttached = true;
+          sut.$state |= LifecycleState.isAttached;
         }
       }
     ];
@@ -1109,16 +1105,14 @@ describe('@customElement', () => {
         description: '$isAttached: false',
         expectation: 'does NOT call behaviors',
         callsBehaviors: false,
-        setProps(sut: CustomElement) {
-          sut.$isAttached = false;
-        }
+        setProps(sut: CustomElement) { }
       },
       {
         description: '$isAttached: true',
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomElement) {
-          sut.$isAttached = true;
+          sut.$state |= LifecycleState.isAttached;
         }
       }
     ];

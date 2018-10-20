@@ -279,7 +279,7 @@ describe(`View`, () => {
               // TODO uncomment this again if the currently commented logic in the view related to this is also uncommented
               //expect(sut.requiresNodeAdd).to.be.false;
             } else {
-              expect(sut.$needsMount).to.equal(true, 'sut.$needsMount');
+              expect(sut).to.have.$state.needsMount();
             }
             if (sut.$attachableHead) {
               expect(sut.$attachableHead.location).to.equal(undefined, 'sut.$attachableHead.location');
@@ -302,10 +302,10 @@ describe(`View`, () => {
         ([$11, $12, template, $14, cs], $2, $3, [$41, location], $5, [$61, source, lifecycle]) => [`$attach`, (sut) => {
           lifecycle.attach(sut).end();
 
-          expect(sut.$isAttached).to.equal(true, 'sut.$isAttached');
+          expect(sut).to.have.$state.isAttached('sut.$isAttached');
           //expect(sut.$encapsulationSource).to.equal(source);
           if (sut.$attachableHead) {
-            expect(sut.$attachableHead.$isAttached).to.equal(true, 'sut.$attachableHead.$isAttached');
+            expect(sut.$attachableHead).to.have.$state.isAttached('sut.$attachableHead.$isAttached');
             //expect(sut.$attachableHead.$encapsulationSource).to.equal(source);
           }
 
@@ -345,7 +345,7 @@ describe(`View`, () => {
         ([$11, $12, template, factory, cs, cache], $2, $3, [$41, location], $5, [$61, source], [$71, attach], [$81, release], [$91, lifecycle]) => [`$detach`, (sut) => {
           lifecycle.detach(sut).end();
 
-          expect(sut.$isAttached).to.equal(false, 'sut.$isAttached');
+          expect(sut).to.not.have.$state.isAttached('sut.$isAttached');
           if (attach === PLATFORM.noop) {
             //expect(sut.$encapsulationSource).to.be.undefined;
 
@@ -358,7 +358,7 @@ describe(`View`, () => {
             //expect(sut.$encapsulationSource).to.equal(source);
           }
           if (sut.$attachableHead) {
-            expect(sut.$attachableHead.$isAttached).to.equal(false, 'sut.$attachableHead.$isAttached');
+            expect(sut.$attachableHead).to.not.have.$state.isAttached('sut.$attachableHead.$isAttached');
             if (attach === PLATFORM.noop) {
               //expect(sut.$attachableHead.$encapsulationSource).to.be.undefined;
             } else {

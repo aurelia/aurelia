@@ -41,11 +41,11 @@ describe('The "if" template controller', () => {
     expect(child).to.equal(ifView);
     expect(ifView).to.be.instanceof(ViewFake);
     expect(ifView).to.have.$state.isBound();
-    expect(ifView.$isAttached).to.be.false;
+    expect(ifView).to.not.have.$state.isAttached();
 
     runAttachLifecycle(cs, ifAttr);
 
-    expect(ifView.$isAttached).to.be.true;
+    expect(ifView).to.have.$state.isAttached();
     expect(location.previousSibling)
       .to.equal(ifView.$nodes.lastChild);
   });
@@ -63,7 +63,7 @@ describe('The "if" template controller', () => {
     ifAttr.value = false;
 
     let ifView = ifAttr['ifView'] as IView;
-    expect(ifView.$isAttached).to.be.true;
+    expect(ifView).to.have.$state.isAttached();
     expect(ifView).to.have.$state.isBound();
 
     const childAfter = getCurrentView(ifAttr);
@@ -78,7 +78,7 @@ describe('The "if" template controller', () => {
     expect(location.previousSibling).to.be.null;
 
     ifView = ifAttr['ifView'] as IView;
-    expect(ifView.$isAttached).to.be.false;
+    expect(ifView).to.not.have.$state.isAttached();
     expect(ifView).to.not.have.$state.isBound();
   });
 
@@ -106,12 +106,12 @@ describe('The "if" template controller', () => {
     expect(child).to.not.be.null;
     expect(child).to.equal(elseView);
     expect(elseView).to.be.instanceof(ViewFake);
-    expect(elseView).to.be.isBound();
-    expect(elseView.$isAttached).to.be.false;
+    expect(elseView).to.have.$state.isBound();
+    expect(elseView).to.not.have.$state.isAttached();
 
     runAttachLifecycle(cs, ifAttr);
 
-    expect(elseView.$isAttached).to.be.true;
+    expect(elseView).to.have.$state.isAttached();
     expect(location.previousSibling)
       .to.equal(elseView.$nodes.lastChild);
   });
@@ -127,8 +127,8 @@ describe('The "if" template controller', () => {
     runAttachLifecycle(cs, ifAttr);
     runDetachLifecycle(cs, ifAttr);
 
-    expect(ifView.$isAttached).to.be.false;
-    expect(ifAttr.$isAttached).to.be.false;
+    expect(ifView).to.not.have.$state.isAttached();
+    expect(ifAttr).to.not.have.$state.isAttached();
   });
 
   it("unbinds its child view when it is unbound", () => {
@@ -238,7 +238,7 @@ describe(`If/Else`, () => {
         ifSut.$bind(BindingFlags.fromBind, createScopeForTest({ item }));
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
 
@@ -253,7 +253,7 @@ describe(`If/Else`, () => {
         ifSut.$bind(BindingFlags.fromBind | BindingFlags.fromFlushChanges, createScopeForTest({ item }));
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
 
@@ -270,7 +270,7 @@ describe(`If/Else`, () => {
         ifSut.$bind(BindingFlags.fromBind, ifSut.$scope);
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute2, host.textContent`);
 
@@ -280,14 +280,14 @@ describe(`If/Else`, () => {
         ifSut.$bind(BindingFlags.fromBind, createScopeForTest({ item }));
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute2, host.textContent`);
 
         cs.flushChanges();
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute2, host.textContent`);
 
@@ -297,7 +297,7 @@ describe(`If/Else`, () => {
         ifSut.$bind(BindingFlags.fromFlushChanges, createScopeForTest({ item }));
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute2, host.textContent`);
 
@@ -318,14 +318,14 @@ describe(`If/Else`, () => {
         ifSut.valueChanged(newValue, oldValue, undefined);
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(contentBeforeChange, `execute3, host.textContent`);
 
         cs.flushChanges();
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute3, host.textContent`);
 
@@ -339,7 +339,7 @@ describe(`If/Else`, () => {
         ifSut.valueChanged(newValue, oldValue, undefined);
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(contentBeforeChange, `execute3, host.textContent`);
 
@@ -349,14 +349,14 @@ describe(`If/Else`, () => {
         ifSut.valueChanged(newValue, oldValue, undefined);
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute3, host.textContent`);
 
         cs.flushChanges();
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView']).to.be.isBound();
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute3, host.textContent`);
 

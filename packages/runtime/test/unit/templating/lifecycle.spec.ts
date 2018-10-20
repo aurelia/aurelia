@@ -1,4 +1,4 @@
-import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController, LinkedChangeList } from '../../../src';
+import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController, LinkedChangeList, LifecycleState } from '../../../src';
 import { eachCartesianJoinFactory } from '../util';
 import { LifecycleMock } from '../mock';
 import { expect } from 'chai';
@@ -388,7 +388,7 @@ describe(`DetachLifecycleController `, () => {
           `$isAttached=true`,
           (count, sut, mock) => {
             mock.walkTopDown(x => {
-              x.$isAttached = true;
+              x.$state |= LifecycleState.isAttached;
             });
           }
         ]

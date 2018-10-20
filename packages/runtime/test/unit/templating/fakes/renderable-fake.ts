@@ -20,8 +20,6 @@ export class RenderableFake implements IRenderable {
 
   $state: LifecycleState = LifecycleState.none;
 
-  $isAttached: boolean;
-
   $context: IRenderContext;
   $nodes: INodeSequence;
   $scope: IScope;

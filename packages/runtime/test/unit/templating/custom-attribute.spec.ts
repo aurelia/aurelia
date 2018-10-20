@@ -338,7 +338,7 @@ describe('@customAttribute', () => {
         sut.$hydrate(renderingEngine);
 
         // Assert
-        expect(sut.$isAttached).to.equal(false, 'sut.$isAttached');
+        expect(sut).to.not.have.$state.isAttached('sut.$isAttached');
         expect(sut.$state & LifecycleState.isBound).to.equal(0, 'sut.$isBound');
         expect(sut.$scope).to.equal(null, 'sut.$scope');
 
@@ -359,7 +359,6 @@ describe('@customAttribute', () => {
         callsUnbind: true,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
           sut.$state |= LifecycleState.isBound;
           sut.$scope = null;
         },
@@ -371,7 +370,6 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
           sut.$state |= LifecycleState.isBound;
           sut.$scope = null;
         },
@@ -383,7 +381,6 @@ describe('@customAttribute', () => {
         callsUnbind: true,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
           sut.$state |= LifecycleState.isBound;
           sut.$scope = Scope.create(sut, null);
         },
@@ -395,7 +392,6 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
           sut.$state |= LifecycleState.isBound;
           sut.$scope = Scope.create(sut, null);
         },
@@ -408,8 +404,6 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
-          sut.$state &= ~LifecycleState.isBound;
           sut.$scope = null;
         },
         getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
@@ -420,8 +414,6 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
-          sut.$state &= ~LifecycleState.isBound;
           sut.$scope = null;
         },
         getScope(sut: CustomAttribute) { return sut.$scope; }
@@ -432,8 +424,6 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
-          sut.$state &= ~LifecycleState.isBound;
           sut.$scope = Scope.create(sut, null);
         },
         getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
@@ -444,8 +434,6 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
-          sut.$state &= ~LifecycleState.isBound;
           sut.$scope = Scope.create(sut, null);
         },
         getScope(sut: CustomAttribute) { return sut.$scope; }
@@ -575,26 +563,19 @@ describe('@customAttribute', () => {
         description: '$isBound: false, $scope: null',
         expectation: 'calls behaviors',
         callsBehaviors: false,
-        setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
-          sut.$state &= ~LifecycleState.isBound;
-        }
+        setProps(sut: CustomAttribute) { }
       },
       {
         description: '$isBound: false, $scope !== null',
         expectation: 'calls behaviors',
         callsBehaviors: false,
-        setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
-          sut.$state &= ~LifecycleState.isBound;
-        }
+        setProps(sut: CustomAttribute) { }
       },
       {
         description: '$isBound: true, $scope: null',
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
           sut.$state |= LifecycleState.isBound;
         }
       },
@@ -603,7 +584,6 @@ describe('@customAttribute', () => {
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
           sut.$state |= LifecycleState.isBound;
         }
       }
@@ -702,7 +682,6 @@ describe('@customAttribute', () => {
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
           sut.$state |= LifecycleState.isBound;
         }
       },
@@ -711,8 +690,7 @@ describe('@customAttribute', () => {
         expectation: 'does NOT call behaviors',
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = true;
-          sut.$state |= LifecycleState.isBound;
+          sut.$state |= LifecycleState.isBound | LifecycleState.isAttached;
         }
       }
     ];
@@ -790,7 +768,6 @@ describe('@customAttribute', () => {
         expectation: 'does NOT call behaviors',
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = false;
           sut.$state |= LifecycleState.isBound;
         }
       },
@@ -799,8 +776,7 @@ describe('@customAttribute', () => {
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$isAttached = true;
-          sut.$state |= LifecycleState.isBound;
+          sut.$state |= LifecycleState.isBound | LifecycleState.isAttached;
         }
       }
     ];

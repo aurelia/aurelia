@@ -1,6 +1,6 @@
 import { BindingContext, Scope } from './../../../src/binding/binding-context';
 import { spy, SinonSpy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType } from '../../../src/index';
+import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType, LifecycleState } from '../../../src/index';
 import { DI } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
@@ -788,14 +788,14 @@ describe('Binding', () => {
       const { sut } = setup();
       const scope: any = {};
       sut['$scope'] = scope;
-      sut['$isBound'] = true;
+      sut.$state = LifecycleState.isBound;
       sut['targetObserver'] = <any>{};
       const unobserveSpy = spy(sut, 'unobserve');
       const unbindSpy = dummySourceExpression.unbind = spy();
       (<any>dummySourceExpression).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(BindingFlags.fromUnbind);
       expect(sut['$scope']).to.be.null;
-      expect(sut['$isBound']).to.be.false;
+      expect(sut['$state'] & LifecycleState.isBound).to.equal(0);
       expect(unobserveSpy).to.have.been.calledWith(true);
       expect(unbindSpy).to.have.been.calledWith(BindingFlags.fromUnbind, scope, sut);
     });

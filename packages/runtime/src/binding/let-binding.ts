@@ -1,4 +1,5 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
+import { LifecycleState } from '../lifecycle-state';
 import { IExpression } from './ast';
 import { IBindingTarget } from './binding';
 import { IScope } from './binding-context';
@@ -16,7 +17,8 @@ export class LetBinding implements IPartialConnectableBinding {
   public $nextBindable: IBindScope = null;
   public $prevBindable: IBindScope = null;
 
-  public $isBound: boolean = false;
+  public $state: LifecycleState = LifecycleState.none;
+
   public $scope: IScope = null;
   public target: IBindingTarget = null;
 
@@ -29,7 +31,7 @@ export class LetBinding implements IPartialConnectableBinding {
   ) { }
 
   public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
 
@@ -47,14 +49,14 @@ export class LetBinding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.$unbind(flags);
     }
 
-    this.$isBound = true;
+    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
     this.target = this.toViewModel ? scope.bindingContext : scope.overrideContext;
 
@@ -68,10 +70,10 @@ export class LetBinding implements IPartialConnectableBinding {
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-    this.$isBound = false;
+    this.$state &= ~LifecycleState.isBound;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {

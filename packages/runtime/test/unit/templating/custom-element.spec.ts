@@ -2,7 +2,7 @@ import { MockTextNodeSequence, MockRenderingEngine, IComponentLifecycleMock, def
 import { IDetachLifecycle, LifecycleHooks } from './../../../src/templating/lifecycle';
 import { BindingFlags } from './../../../src/binding/binding-flags';
 import { Immutable, PLATFORM, Writable } from '@aurelia/kernel';
-import { customElement, useShadowDOM, containerless, CustomElementResource, ShadowDOMProjector, ContainerlessProjector, HostProjector, CustomAttributeResource, INode, ITemplateDefinition, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate, ICustomElementType, IRenderingEngine, Scope, ITemplate, IInternalCustomElementImplementation, IRuntimeBehavior, IElementProjector } from '../../../src/index';
+import { customElement, useShadowDOM, containerless, CustomElementResource, ShadowDOMProjector, ContainerlessProjector, HostProjector, CustomAttributeResource, INode, ITemplateDefinition, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate, ICustomElementType, IRenderingEngine, Scope, ITemplate, IInternalCustomElementImplementation, IRuntimeBehavior, IElementProjector, LifecycleState } from '../../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../util';
 
@@ -744,7 +744,7 @@ describe('@customElement', () => {
 
         // Assert
         expect(sut.$isAttached).to.equal(false, 'sut.$isAttached');
-        expect(sut.$isBound).to.equal(false, 'sut.$isBound');
+        expect(sut).to.not.have.$state.isBound();
         expect(sut.$scope.bindingContext).to.equal(sut, 'sut.$scope');
 
         expect(appliedType).to.equal(Type, 'appliedType');
@@ -762,7 +762,7 @@ describe('@customElement', () => {
         expectation: 'does NOT call behaviors',
         callsBehaviors: false,
         setProps(sut: CustomElement) {
-          sut.$isBound = true;
+          sut.$state |= LifecycleState.isBound;
         }
       },
       {
@@ -770,7 +770,7 @@ describe('@customElement', () => {
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomElement) {
-          sut.$isBound = false;
+          sut.$state &= ~LifecycleState.isBound;
         }
       }
     ];
@@ -891,7 +891,7 @@ describe('@customElement', () => {
         expectation: 'does NOT call behaviors',
         callsBehaviors: false,
         setProps(sut: CustomElement) {
-          sut.$isBound = false;
+          sut.$state &= ~LifecycleState.isBound;
         }
       },
       {
@@ -899,7 +899,7 @@ describe('@customElement', () => {
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomElement) {
-          sut.$isBound = true;
+          sut.$state |= LifecycleState.isBound;
         }
       }
     ];
@@ -1043,7 +1043,7 @@ describe('@customElement', () => {
       it(`${propsSpec.expectation} if ${propsSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
         // Arrange
         const { sut } = createCustomElement('foo');
-        sut.$isBound = true;
+        sut.$state |= LifecycleState.isBound;
         sut.$scope = Scope.create(sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
@@ -1152,7 +1152,7 @@ describe('@customElement', () => {
       it(`${propsSpec.expectation} if ${propsSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
         // Arrange
         const { sut } = createCustomElement('foo');
-        sut.$isBound = true;
+        sut.$state |= LifecycleState.isBound;
         sut.$scope = Scope.create(sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
@@ -1224,7 +1224,7 @@ describe('@customElement', () => {
       it(`${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
         // Arrange
         const { sut } = createCustomElement('foo');
-        sut.$isBound = true;
+        sut.$state |= LifecycleState.isBound;
         sut.$scope = Scope.create(sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;

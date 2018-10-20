@@ -1,12 +1,12 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
 import { INode } from '../dom';
+import { ILifecycleState } from '../lifecycle-state';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 // tslint:disable:no-any
 
-export interface IBindScope {
-  readonly $isBound: boolean;
+export interface IBindScope extends ILifecycleState {
   $nextBindable: IBindScope;
   $prevBindable: IBindScope;
   $bind(flags: BindingFlags, scope: IScope): void;

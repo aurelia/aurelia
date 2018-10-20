@@ -5,6 +5,7 @@ import { IBindScope } from '../binding/observation';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { IAttach, IAttachLifecycle, IDetachLifecycle, IMountable, ICachable } from './lifecycle';
 import { IRenderable, IRenderContext, ITemplate } from './rendering-engine';
+import { LifecycleState } from '../lifecycle-state';
 
 export type RenderCallback = (view: IView) => void;
 
@@ -48,8 +49,8 @@ export class View implements IView {
   public $nextAttachable: IAttach = null;
   public $prevAttachable: IAttach = null;
 
+  public $state: LifecycleState = LifecycleState.none;
   public $scope: IScope = null;
-  public $isBound: boolean = false;
   public $isAttached: boolean = false;
   public $needsMount: boolean = false;
   public $isCached: boolean = false;
@@ -86,7 +87,7 @@ export class View implements IView {
   public $bind(flags: BindingFlags, scope: IScope): void {
     flags |= BindingFlags.fromBind;
 
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       if (this.$scope === scope) {
         return;
       }
@@ -101,11 +102,11 @@ export class View implements IView {
       current = current.$nextBindable;
     }
 
-    this.$isBound = true;
+    this.$state |= LifecycleState.isBound;
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       flags |= BindingFlags.fromUnbind;
 
       let current = this.$bindableTail;
@@ -114,7 +115,7 @@ export class View implements IView {
         current = current.$prevBindable;
       }
 
-      this.$isBound = false;
+      this.$state &= ~LifecycleState.isBound;
       this.$scope = null;
     }
   }
@@ -242,7 +243,7 @@ export class ViewFactory implements IViewFactory {
 }
 
 function lockedBind(this: View, flags: BindingFlags): void {
-  if (this.$isBound) {
+  if (this.$state & LifecycleState.isBound) {
     return;
   }
 
@@ -254,5 +255,5 @@ function lockedBind(this: View, flags: BindingFlags): void {
     current = current.$nextBindable;
   }
 
-  this.$isBound = true;
+  this.$state |= LifecycleState.isBound;
 }

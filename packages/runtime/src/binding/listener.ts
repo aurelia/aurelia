@@ -1,5 +1,6 @@
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
+import { LifecycleState } from '../lifecycle-state';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IScope } from './binding-context';
@@ -13,7 +14,8 @@ export class Listener implements IBinding {
   public $nextBindable: IBindScope = null;
   public $prevBindable: IBindScope = null;
 
-  public $isBound: boolean = false;
+  public $state: LifecycleState = LifecycleState.none;
+
   public $scope: IScope;
 
   private handler: IDisposable;
@@ -48,7 +50,7 @@ export class Listener implements IBinding {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       if (this.$scope === scope) {
         return;
       }
@@ -56,7 +58,7 @@ export class Listener implements IBinding {
       this.$unbind(flags);
     }
 
-    this.$isBound = true;
+    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
 
     const sourceExpression = this.sourceExpression;
@@ -73,11 +75,11 @@ export class Listener implements IBinding {
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
 
-    this.$isBound = false;
+    this.$state &= ~LifecycleState.isBound;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {

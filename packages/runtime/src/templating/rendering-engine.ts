@@ -5,6 +5,7 @@ import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
 import { IObserverLocator } from '../binding/observer-locator';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
+import { ILifecycleState } from '../lifecycle-state';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
@@ -348,7 +349,7 @@ export interface IAttachables {
 /**
  * An object containing the necessary information to render something for display.
  */
-export interface IRenderable extends IBindables, IAttachables {
+export interface IRenderable extends IBindables, IAttachables, ILifecycleState {
 
   /**
    * The (dependency) context of this instance.
@@ -370,11 +371,6 @@ export interface IRenderable extends IBindables, IAttachables {
    * This includes the `BindingContext` which can be either a user-defined view model instance, or a synthetic view model instantiated by a `templateController`
    */
   readonly $scope: IScope;
-
-  /**
-   * Indicates whether the `$scope` is bound to the `$bindables`
-   */
-  readonly $isBound: boolean;
 
 
   /**

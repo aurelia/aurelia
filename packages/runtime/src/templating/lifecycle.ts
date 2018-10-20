@@ -1,7 +1,8 @@
-import { Immutable, Omit } from '@aurelia/kernel';
+import { Immutable } from '@aurelia/kernel';
 import { ICustomElementType, IHydrateElementInstruction, IRenderable, IRenderingEngine, ITemplate } from '.';
 import { BindingFlags, IBindScope, IChangeSet } from '../binding';
-import { INode, INodeSequence } from '../dom';
+import { INode } from '../dom';
+import { ILifecycleState } from '../lifecycle-state';
 
 export enum LifecycleFlags {
   none                = 0b001,
@@ -32,12 +33,12 @@ export interface IAttach extends ICachable {
   $detach(lifecycle: IDetachLifecycle): void;
 }
 
-export interface ICachable {
+export interface ICachable extends ILifecycleState {
   readonly $isCached: boolean;
   $cache(): void;
 }
 
-export interface IMountable {
+export interface IMountable extends ILifecycleState {
   readonly $needsMount: boolean;
   /**
    * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.

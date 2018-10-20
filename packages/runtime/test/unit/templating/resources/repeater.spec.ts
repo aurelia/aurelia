@@ -20,6 +20,7 @@ import { expect } from 'chai';
 import { MockTextNodeTemplate } from '../../mock';
 import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
 import { createScopeForTest } from '../../binding/shared';
+import { LifecycleState } from '../../../../src/lifecycle-state';
 
 
 const expressions = {
@@ -55,7 +56,7 @@ function setup<T extends ObservedCollection>() {
   const sut = new Repeat<T>(cs, location, renderable, factory);
   renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null);
   sut.$isAttached = false;
-  sut.$isBound = false;
+  sut.$state &= ~LifecycleState.isBound;
   sut.$scope = null;
   const behavior = RuntimeBehavior.create(<any>Repeat, sut);
   behavior.applyTo(sut, cs);

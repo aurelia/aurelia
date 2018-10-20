@@ -1,6 +1,7 @@
 import { inject } from '@aurelia/kernel';
 import { Binding, BindingContext, BindingFlags, CollectionObserver, ForOfStatement, getCollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IObservedArray, IScope, ObservedCollection, Scope, SetterObserver } from '../../binding';
 import { INode, IRenderLocation } from '../../dom';
+import { LifecycleState } from '../../lifecycle-state';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 import { IAttachLifecycle, IDetachLifecycle, Lifecycle, LifecycleFlags } from '../lifecycle';
@@ -17,7 +18,6 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   @bindable public items: T;
 
   public $isAttached: boolean;
-  public $isBound: boolean;
   public $scope: IScope;
   public $observers: { items: SetterObserver }
 
@@ -92,7 +92,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
   private processViews(indexMap: number[] | null, flags: BindingFlags): void {
     const views = this.views;
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
       const newLength = forOf.count(items);
@@ -161,7 +161,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
   private checkCollectionObserver(): void {
     const oldObserver = this.observer;
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       const newObserver = this.observer = getCollectionObserver(this.changeSet, this.items);
       if (oldObserver !== newObserver) {
         if (oldObserver) {

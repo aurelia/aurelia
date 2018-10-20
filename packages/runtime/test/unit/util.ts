@@ -4,6 +4,7 @@ import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomEleme
 import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory, getAllPropertyDescriptors } from '../../../../scripts/test-lib';
 import { h } from '../../../../scripts/test-lib-dom';
 
+
 /**
  * Object describing a test fixture
  *

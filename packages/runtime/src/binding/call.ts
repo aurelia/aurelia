@@ -1,5 +1,6 @@
 import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
 import { INode } from '../dom';
+import { LifecycleState } from '../lifecycle-state';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
@@ -12,7 +13,7 @@ export class Call {
   public $nextBindable: IBindScope = null;
   public $prevBindable: IBindScope = null;
 
-  public $isBound: boolean = false;
+  public $state: LifecycleState = LifecycleState.none;
   public $scope: IScope;
 
   public targetObserver: IAccessor;
@@ -39,7 +40,7 @@ export class Call {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       if (this.$scope === scope) {
         return;
       }
@@ -47,7 +48,7 @@ export class Call {
       this.$unbind(flags);
     }
 
-    this.$isBound = true;
+    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
 
     const sourceExpression = this.sourceExpression;
@@ -59,11 +60,11 @@ export class Call {
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
 
-    this.$isBound = false;
+    this.$state &= ~LifecycleState.isBound;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import { DI, IContainer } from '../../../../kernel/src/index';
 import { LetBinding } from '../../../src/binding/let-binding';
-import { BindingContext, BindingFlags, BindingMode, ExpressionKind, IBindingTarget, IExpression, IObserverLocator, IScope, Scope } from '../../../src/index';
+import { BindingContext, BindingFlags, BindingMode, ExpressionKind, IBindingTarget, IExpression, IObserverLocator, IScope, Scope, LifecycleState } from '../../../src/index';
 import { MockExpression } from '../mock';
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
@@ -92,12 +92,12 @@ describe('LetBinding', () => {
       const scope: any = {};
       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);
       sut['$scope'] = scope;
-      sut.$isBound = true;
+      sut.$state |= LifecycleState.isBound;
       const unobserveSpy = spy(sut, 'unobserve');
       const unbindSpy = sourceExpression.unbind = spy();
       sut.$unbind(BindingFlags.fromUnbind);
       expect(sut['$scope']).to.be.null;
-      expect(sut['$isBound']).to.be.false;
+      expect(sut['$state'] & LifecycleState.isBound).to.equal(0);
       expect(unobserveSpy).to.have.been.calledWith(true);
       expect(unbindSpy).to.have.been.calledWith(BindingFlags.fromUnbind, scope, sut);
     });

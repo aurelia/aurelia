@@ -14,6 +14,7 @@ import {
   IAttachLifecycle,
   NodeSequenceFactory
 } from "../../../../src/index";
+import { LifecycleState } from "../../../../src/lifecycle-state";
 
 export class ViewFake implements IView {
   $nextBindable: IBindScope = null;
@@ -25,12 +26,14 @@ export class ViewFake implements IView {
   $nextAttachable: IAttach = null;
   $prevAttachable: IAttach = null;
 
+  $state: LifecycleState = LifecycleState.none;
+
   $isCached: boolean = false;
   $needsMount: boolean = false;
   lockScope(scope: IScope): void {
     this.$scope = scope;
     this.$bind = () => {
-      this.$isBound = true;
+      this.$state |= LifecycleState.isBound;
     };
   }
 
@@ -73,11 +76,11 @@ export class ViewFake implements IView {
   // IBindScope impl
   $bind(flags: BindingFlags, scope: IScope): void {
     this.$scope = scope;
-    this.$isBound = true;
+    this.$state |= LifecycleState.isBound;
   }
 
   $unbind(): void {
-    this.$isBound = false;
+    this.$state &= ~LifecycleState.isBound;
   }
 
   // IAttach impl
@@ -98,7 +101,6 @@ export class ViewFake implements IView {
   $context: IRenderContext;
   $nodes: INodeSequence;
   $scope: IScope;
-  $isBound: boolean = false;
 
   $bindables: IBindScope[];
   $attachables: IAttach[];

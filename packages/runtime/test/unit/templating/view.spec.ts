@@ -29,7 +29,8 @@ import {
   Scope,
   IRenderable,
   addBindable,
-  addAttachable
+  addAttachable,
+  LifecycleState
 } from '../../../src';
 import { expect } from 'chai';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
@@ -224,7 +225,7 @@ describe(`View`, () => {
           sut.$bind(flags, scope);
 
           expect(sut.$scope).to.equal(scope, 'sut.$scope');
-          expect(sut.$isBound).to.equal(true, 'sut.$isBound');
+          expect(sut).to.have.$state.isBound();
           if (sut.$nodes.firstChild) {
             expect(sut.$nodes.firstChild.textContent).to.equal('', 'sut.$nodes.firstChild.textContent');
           }
@@ -236,13 +237,13 @@ describe(`View`, () => {
           sut.$bind(flags, newScope);
 
           expect(sut.$scope).to.equal(newScope, 'sut.$scope');
-          expect(sut.$isBound).to.equal(true, 'sut.$isBound');
+          expect(sut).to.have.$state.isBound();
         }],
         ([$11, $12, $13, $14, cs], [$21, flags, scope]) => [`$bind+flush`, (sut) => {
           sut.$bind(flags, scope);
 
           expect(sut.$scope).to.equal(scope, 'sut.$scope');
-          expect(sut.$isBound).to.equal(true, 'sut.$isBound');
+          expect(sut).to.have.$state.isBound();
           if (sut.$nodes.firstChild) {
             expect(sut.$nodes.firstChild.textContent).to.equal('', 'sut.$nodes.firstChild.textContent');
             cs.flushChanges();
@@ -314,7 +315,7 @@ describe(`View`, () => {
               expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
             } else {
               expect(location.parentNode.childNodes.length).to.equal(2);
-              if (cs.size > 0 || !sut.$isBound) {
+              if (cs.size > 0 || !(sut.$state & LifecycleState.isBound)) {
                 expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
               } else {
                 expect(location.parentNode.textContent).to.equal('foo', 'location.parentNode.textContent');
@@ -384,10 +385,10 @@ describe(`View`, () => {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, [$111, flags]) => [`$unbind`, (sut) => {
           sut.$unbind(flags);
 
-          expect(sut.$isBound).to.equal(false, 'sut.$isBound');
+          expect(sut).to.not.have.$state.isBound();
           expect(sut.$scope).to.equal(null, 'sut.$scope');
           if (sut.$attachableHead) {
-            expect(sut.$attachableHead.$isBound).to.equal(false, 'sut.$attachableHead.$isBound');
+            expect(sut.$attachableHead).to.not.have.$state.isBound();;
             expect(sut.$attachableHead.$scope).to.equal(null, 'sut.$attachableHead.$scope');
           }
         }]

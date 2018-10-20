@@ -1,7 +1,8 @@
 import { inject } from '@aurelia/kernel';
-import { BindingContext, IScope, Scope } from '../../binding/binding-context';
+import { Scope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
+import { LifecycleState } from '../../lifecycle-state';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';

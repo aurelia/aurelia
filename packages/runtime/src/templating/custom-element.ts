@@ -10,9 +10,10 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
-import { Scope, IBindScope } from '../binding';
+import { IBindScope, Scope } from '../binding';
 import { BindingFlags } from '../binding/binding-flags';
 import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
+import { ILifecycleState, LifecycleState } from '../lifecycle-state';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
@@ -26,8 +27,7 @@ export interface ICustomElementType extends
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
-export interface IBindSelf {
-  readonly $isBound: boolean;
+export interface IBindSelf extends ILifecycleState {
   readonly $nextBindable: IBindSelf | IBindScope;
   readonly $prevBindable: IBindSelf | IBindScope;
   $bind(flags: BindingFlags): void;
@@ -35,7 +35,7 @@ export interface IBindSelf {
 }
 
 type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
-type RequiredLifecycleProperties = Readonly<IRenderable>;
+type RequiredLifecycleProperties = Omit<IRenderable, '$state'> & ILifecycleState;
 
 export interface ICustomElement extends IBindSelf, IAttach, IMountable, OptionalLifecycleHooks, RequiredLifecycleProperties {
   readonly $projector: IElementProjector;
@@ -161,8 +161,9 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   this.$attachableHead = this.$attachableTail = null;
   this.$prevAttachable = this.$nextAttachable = null;
 
+  this.$state = LifecycleState.none;
   this.$isAttached = false;
-  this.$isBound = false;
+  this.$state &= ~LifecycleState.isBound;
   this.$scope = Scope.create(this, null);
   this.$projector = determineProjector(this, host, description);
 
@@ -184,7 +185,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
 }
 
 function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
-  if (this.$isBound) {
+  if (this.$state & LifecycleState.isBound) {
     return;
   }
   const hooks = this.$behavior.hooks;
@@ -201,7 +202,7 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
     current = current.$nextBindable;
   }
 
-  this.$isBound = true;
+  this.$state |= LifecycleState.isBound;
 
   if (hooks & LifecycleHooks.hasBound) {
     this.bound(flags);
@@ -209,7 +210,7 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
 }
 
 function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
-  if (this.$isBound) {
+  if (this.$state & LifecycleState.isBound) {
     const hooks = this.$behavior.hooks;
     flags |= BindingFlags.fromUnbind;
 
@@ -223,7 +224,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
       current = current.$prevBindable;
     }
 
-    this.$isBound = false;
+    this.$state &= ~LifecycleState.isBound;
 
     if (hooks & LifecycleHooks.hasUnbound) {
       this.unbound(flags);

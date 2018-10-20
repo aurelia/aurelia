@@ -14,6 +14,7 @@ import { BindingFlags } from '../binding/binding-flags';
 import { BindingMode } from '../binding/binding-mode';
 import { IBindScope } from '../binding/observation';
 import { INode } from '../dom';
+import { ILifecycleState, LifecycleState } from '../lifecycle-state';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
 import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, LifecycleHooks } from './lifecycle';
@@ -35,7 +36,7 @@ export interface ICustomAttributeType extends
   Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
 
 type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
-type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$isAttached' | '$isBound' | '$scope'>>;
+type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$isAttached' | '$scope'>> & ILifecycleState;
 
 export interface ICustomAttribute extends IBindScope, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {
   $hydrate(renderingEngine: IRenderingEngine): void;
@@ -114,8 +115,9 @@ function register(this: ICustomAttributeType, container: IContainer): void {
 function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
   const Type = this.constructor as ICustomAttributeType;
 
+  this.$state = LifecycleState.none;
   this.$isAttached = false;
-  this.$isBound = false;
+  this.$state &= ~LifecycleState.isBound;
   this.$scope = null;
 
   renderingEngine.applyRuntimeBehavior(Type, this);
@@ -128,7 +130,7 @@ function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: 
 function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope): void {
   flags |= BindingFlags.fromBind;
 
-  if (this.$isBound) {
+  if (this.$state & LifecycleState.isBound) {
     if (this.$scope === scope) {
       return;
     }
@@ -143,7 +145,7 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
     this.binding(flags);
   }
 
-  this.$isBound = true;
+  this.$state |= LifecycleState.isBound;
 
   if (hooks & LifecycleHooks.hasBound) {
     this.bound(flags);
@@ -151,7 +153,7 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
 }
 
 function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
-  if (this.$isBound) {
+  if (this.$state & LifecycleState.isBound) {
     const hooks = this.$behavior.hooks;
     flags |= BindingFlags.fromUnbind;
 
@@ -159,7 +161,7 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
       this.unbinding(flags);
     }
 
-    this.$isBound = false;
+    this.$state &= ~LifecycleState.isBound;
 
     if (this.$behavior.hooks & LifecycleHooks.hasUnbound) {
       this.unbound(flags);

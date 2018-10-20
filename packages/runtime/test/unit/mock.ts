@@ -47,7 +47,9 @@ import {
   ExpressionKind,
   IBinding,
   ISignaler,
-  Scope
+  Scope,
+  addBindable,
+  addAttachable
 } from '../../src';
 import { spy } from 'sinon';
 import { expect } from 'chai';
@@ -58,6 +60,15 @@ export class MockContext {
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
 export class MockCustomElement implements ICustomElement {
+  public $nextBindable: IBindScope = null;
+  public $prevBindable: IBindScope = null;
+  public $bindableHead?: IBindScope = null;
+  public $bindableTail?: IBindScope = null;
+  public $attachableHead?: IAttach = null;
+  public $attachableTail?: IAttach = null;
+  public $nextAttachable: IAttach = null;
+  public $prevAttachable: IAttach = null;
+
   public $isCached: boolean = false;
   public $needsMount: boolean = false;
   public $bindables: IBindScope[];
@@ -75,8 +86,8 @@ export class MockCustomElement implements ICustomElement {
     const Type = this.constructor as ICustomElementType;
     const description = Type.description;
 
-    this.$bindables = [];
-    this.$attachables = [];
+    this.$bindableHead = this.$bindableTail = null;
+    this.$attachableHead = this.$attachableTail = null;
     this.$isAttached = false;
     this.$isBound = false;
     this.$scope = Scope.create(this, null);
@@ -370,7 +381,7 @@ export class MockTextNodeTemplate {
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockTextNodeSequence();
-    renderable.$bindables.push(new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, null));
   }
 }
 
@@ -402,9 +413,9 @@ export class MockIfTextNodeTemplate {
     const behavior = RuntimeBehavior.create(<any>If, sut);
     behavior.applyTo(sut, this.changeSet);
 
-    renderable.$attachables.push(sut);
-    renderable.$bindables.push(new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
-    renderable.$bindables.push(sut);
+    addAttachable(renderable, sut);
+    addBindable(renderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, sut);
   }
 }
 
@@ -423,7 +434,7 @@ export class MockElseTextNodeTemplate {
 
     const sut = new Else(factory);
 
-    sut.link(<any>renderable.$attachables[renderable.$attachables.length - 1]);
+    sut.link(<any>renderable.$attachableTail);
 
     (<any>sut)['$isAttached'] = false;
     (<any>sut)['$isBound'] = false;
@@ -432,9 +443,9 @@ export class MockElseTextNodeTemplate {
     const behavior = RuntimeBehavior.create(<any>Else, <any>sut);
     behavior.applyTo(<any>sut, this.changeSet);
 
-    renderable.$attachables.push(<any>sut);
-    renderable.$bindables.push(new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
-    renderable.$bindables.push(<any>sut);
+    addAttachable(renderable, <any>sut);
+    addBindable(renderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, <any>sut);
   }
 }
 
@@ -460,15 +471,15 @@ export class MockIfElseTextNodeTemplate {
     const ifBehavior = RuntimeBehavior.create(<any>If, ifSut);
     ifBehavior.applyTo(ifSut, this.changeSet);
 
-    renderable.$attachables.push(ifSut);
-    renderable.$bindables.push(new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, null));
-    renderable.$bindables.push(ifSut);
+    addAttachable(renderable, ifSut);
+    addBindable(renderable, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, ifSut);
 
     const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
 
     const elseSut = new Else(elseFactory);
 
-    elseSut.link(<any>renderable.$attachables[renderable.$attachables.length - 1]);
+    elseSut.link(<any>renderable.$attachableTail);
 
     (<any>elseSut)['$isAttached'] = false;
     (<any>elseSut)['$isBound'] = false;
@@ -477,14 +488,23 @@ export class MockIfElseTextNodeTemplate {
     const elseBehavior = RuntimeBehavior.create(<any>Else, <any>elseSut);
     elseBehavior.applyTo(<any>elseSut, this.changeSet);
 
-    renderable.$attachables.push(<any>elseSut);
-    renderable.$bindables.push(new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, null));
-    renderable.$bindables.push(<any>elseSut);
+    addAttachable(renderable, <any>elseSut);
+    addBindable(renderable, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, <any>elseSut);
   }
 }
 
 
 export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
+  public $nextBindable: IBindScope = null;
+  public $prevBindable: IBindScope = null;
+  public $bindableHead?: IBindScope = null;
+  public $bindableTail?: IBindScope = null;
+  public $attachableHead?: IAttach = null;
+  public $attachableTail?: IAttach = null;
+  public $nextAttachable: IAttach = null;
+  public $prevAttachable: IAttach = null;
+
   public $isCached: boolean = false;
   public $isAttached: boolean = false;
   public $isBound: boolean = false;

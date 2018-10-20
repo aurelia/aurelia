@@ -26,6 +26,9 @@ export interface Binding extends IConnectableBinding {}
 
 @connectable()
 export class Binding implements IPartialConnectableBinding {
+  public $nextBindable: IBindScope = null;
+  public $prevBindable: IBindScope = null;
+
   public $isBound: boolean = false;
   public $scope: IScope = null;
 

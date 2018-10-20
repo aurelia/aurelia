@@ -16,6 +16,15 @@ import {
 } from "../../../../src/index";
 
 export class ViewFake implements IView {
+  $nextBindable: IBindScope = null;
+  $prevBindable: IBindScope = null;
+  $bindableHead?: IBindScope = null;
+  $bindableTail?: IBindScope = null;
+  $attachableHead?: IAttach = null;
+  $attachableTail?: IAttach = null;
+  $nextAttachable: IAttach = null;
+  $prevAttachable: IAttach = null;
+
   $isCached: boolean = false;
   $needsMount: boolean = false;
   lockScope(scope: IScope): void {
@@ -95,8 +104,8 @@ export class ViewFake implements IView {
   $attachables: IAttach[];
 
   constructor() {
-    this.$bindables = [];
-    this.$attachables = [];
+    this.$bindableHead = this.$bindableTail = null;
+    this.$attachableHead = this.$attachableTail = null;
     this.$nodes = NodeSequenceFactory.createFor('<div>Fake View</div>').createNodeSequence();
   }
 }

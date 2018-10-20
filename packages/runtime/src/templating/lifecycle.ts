@@ -4,13 +4,28 @@ import { BindingFlags, IBindScope, IChangeSet } from '../binding';
 import { INode, INodeSequence } from '../dom';
 
 export enum LifecycleFlags {
-  none                = 0b0_001,
-  noTasks             = 0b0_010,
-  unbindAfterDetached = 0b0_100
+  none                = 0b0_0000000000000_001,
+  noTasks             = 0b0_0000000000000_010,
+  unbindAfterDetached = 0b0_0000000000000_100,
+  binding             = 0b0_0000000000001_000,
+  bind                = 0b0_0000000000010_000,
+  bound               = 0b0_0000000000100_000,
+  attaching           = 0b0_0000000001000_000,
+  attach              = 0b0_0000000010000_000,
+  attached            = 0b0_0000000100000_000,
+  detaching           = 0b0_0000001000000_000,
+  detach              = 0b0_0000010000000_000,
+  detached            = 0b0_0000100000000_000,
+  mount               = 0b0_0001000000000_000,
+  unmount             = 0b0_0010000000000_000,
+  cache               = 0b0_0100000000000_000,
+  caching             = 0b0_1000000000000_000
 }
 
 export interface IAttach extends ICachable {
   readonly $isAttached: boolean;
+  $nextAttachable: IAttach;
+  $prevAttachable: IAttach;
   $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
   $detach(lifecycle: IDetachLifecycle): void;
 }
@@ -370,14 +385,14 @@ export interface IDetachLifecycle {
 /*@internal*/
 export class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleController {
   /*@internal*/
-  public $nextMount: LifecycleMountable;
+  public $nextMount: LifecycleMountable = null;
   /*@internal*/
-  public $nextAttached: LifecycleAttachable;
+  public $nextAttached: LifecycleAttachable = null;
 
-  private attachedHead: LifecycleAttachable;
-  private attachedTail: LifecycleAttachable;
-  private mountHead: LifecycleMountable;
-  private mountTail: LifecycleMountable;
+  private attachedHead: LifecycleAttachable = this;
+  private attachedTail: LifecycleAttachable = this;
+  private mountHead: LifecycleMountable = this;
+  private mountTail: LifecycleMountable = this;
   private task: AggregateLifecycleTask = null;
 
   constructor(
@@ -385,10 +400,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
     public readonly flags: LifecycleFlags,
     private parent: AttachLifecycleController = null,
     private encapsulationSource: INode = null
-  ) {
-    this.mountTail = this.mountHead = this;
-    this.attachedTail = this.attachedHead = this;
-  }
+  ) { }
 
   public attach(requestor: IAttach): IAttachLifecycleController {
     requestor.$attach(this.encapsulationSource, this);
@@ -483,14 +495,14 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
 /*@internal*/
 export class DetachLifecycleController implements IDetachLifecycle, IDetachLifecycleController {
   /*@internal*/
-  public $nextUnmount: LifecycleUnmountable;
+  public $nextUnmount: LifecycleUnmountable = null;
   /*@internal*/
-  public $nextDetached: LifecycleDetachable;
+  public $nextDetached: LifecycleDetachable = null;
 
-  private detachedHead: LifecycleDetachable; //LOL
-  private detachedTail: LifecycleDetachable;
-  private unmountHead: LifecycleUnmountable;
-  private unmountTail: LifecycleUnmountable;
+  private detachedHead: LifecycleDetachable = this; //LOL
+  private detachedTail: LifecycleDetachable = this;
+  private unmountHead: LifecycleUnmountable = this;
+  private unmountTail: LifecycleUnmountable = this;
   private task: AggregateLifecycleTask = null;
   private allowUnmount: boolean = true;
 
@@ -498,10 +510,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     public readonly changeSet: IChangeSet,
     public readonly flags: LifecycleFlags,
     private parent: DetachLifecycleController = null
-  ) {
-    this.detachedTail = this.detachedHead = this;
-    this.unmountTail = this.unmountHead = this;
-  }
+  ) { }
 
   public detach(requestor: IAttach): IDetachLifecycleController {
     this.allowUnmount = true;

@@ -36,7 +36,14 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     public factory: IViewFactory) { }
 
   public bound(flags: BindingFlags): void {
-    this.forOf = (<Binding[]>this.renderable.$bindables).find(b => b.target === this).sourceExpression as ForOfStatement;
+    let current = this.renderable.$bindableHead;
+    while (current !== null) {
+      if ((<Binding>current).target === this && (<Binding>current).targetProperty === 'items') {
+        this.forOf = (<Binding>current).sourceExpression as ForOfStatement;
+        break;
+      }
+      current = current.$nextBindable;
+    }
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
 
     this.processViews(null, flags);

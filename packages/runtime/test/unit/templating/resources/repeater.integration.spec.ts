@@ -66,7 +66,7 @@ function setup<T extends ObservedCollection>() {
   const factory = new ViewFactory(null, <any>new MockIfElseTextNodeTemplate(expressions.show, observerLocator, cs));
   const renderable = { } as any;
   const sut = new Repeat<T>(cs, location, renderable, factory);
-  renderable.$bindables = [new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null)];
+  renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null);
   sut.$isAttached = false;
   sut.$isBound = false;
   sut.$scope = null;

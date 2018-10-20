@@ -27,7 +27,9 @@ import {
   IChangeSet,
   LinkedChangeList,
   Scope,
-  IRenderable
+  IRenderable,
+  addBindable,
+  addAttachable
 } from '../../../src';
 import { expect } from 'chai';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
@@ -197,8 +199,8 @@ describe(`View`, () => {
           const factory = new ViewFactory('foo', <any>template);
           const child = <View>factory.create();
           const sut = <View>factory.create();
-          sut.$attachables.push(child);
-          sut.$bindables.push(child);
+          addBindable(sut, child);
+          addAttachable(sut, child);
           factory.setCacheSize('*', true);
           return [`textNodeTemplate, viewFactory(cache=true )`, sut, template, factory, cs, true];
         },
@@ -208,8 +210,8 @@ describe(`View`, () => {
           const factory = new ViewFactory('foo', <any>template);
           const child = <View>factory.create();
           const sut = <View>factory.create();
-          sut.$attachables.push(child);
-          sut.$bindables.push(child);
+          addBindable(sut, child);
+          addAttachable(sut, child);
           return [`textNodeTemplate, viewFactory(cache=false)`, sut, template, factory, cs, false];
         }
       ],
@@ -245,8 +247,8 @@ describe(`View`, () => {
             expect(sut.$nodes.firstChild.textContent).to.equal('', 'sut.$nodes.firstChild.textContent');
             cs.flushChanges();
             expect(sut.$nodes.firstChild.textContent).to.equal('foo', 'sut.$nodes.firstChild.textContent');
-            if (sut.$attachables.length) {
-              expect(sut.$attachables[0].$nodes.firstChild.textContent).to.equal('foo', 'sut.$attachables[0].$nodes.firstChild.textContent');
+            if (sut.$attachableHead) {
+              expect(sut.$attachableHead.$nodes.firstChild.textContent).to.equal('foo', 'sut.$attachableHead.$nodes.firstChild.textContent');
             }
           }
         }]
@@ -278,8 +280,8 @@ describe(`View`, () => {
             } else {
               expect(sut.$needsMount).to.equal(true, 'sut.$needsMount');
             }
-            if (sut.$attachables.length) {
-              expect(sut.$attachables[0].location).to.equal(undefined, 'sut.$attachables[0].location');
+            if (sut.$attachableHead) {
+              expect(sut.$attachableHead.location).to.equal(undefined, 'sut.$attachableHead.location');
             }
 
             expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
@@ -301,9 +303,9 @@ describe(`View`, () => {
 
           expect(sut.$isAttached).to.equal(true, 'sut.$isAttached');
           //expect(sut.$encapsulationSource).to.equal(source);
-          if (sut.$attachables.length) {
-            expect(sut.$attachables[0].$isAttached).to.equal(true, 'sut.$attachables[0].$isAttached');
-            //expect(sut.$attachables[0].$encapsulationSource).to.equal(source);
+          if (sut.$attachableHead) {
+            expect(sut.$attachableHead.$isAttached).to.equal(true, 'sut.$attachableHead.$isAttached');
+            //expect(sut.$attachableHead.$encapsulationSource).to.equal(source);
           }
 
           if (location.parentNode) {
@@ -354,12 +356,12 @@ describe(`View`, () => {
           } else {
             //expect(sut.$encapsulationSource).to.equal(source);
           }
-          if (sut.$attachables.length) {
-            expect(sut.$attachables[0].$isAttached).to.equal(false, 'sut.$attachables[0].$isAttached');
+          if (sut.$attachableHead) {
+            expect(sut.$attachableHead.$isAttached).to.equal(false, 'sut.$attachableHead.$isAttached');
             if (attach === PLATFORM.noop) {
-              //expect(sut.$attachables[0].$encapsulationSource).to.be.undefined;
+              //expect(sut.$attachableHead.$encapsulationSource).to.be.undefined;
             } else {
-              //expect(sut.$attachables[0].$encapsulationSource).to.equal(source);
+              //expect(sut.$attachableHead.$encapsulationSource).to.equal(source);
             }
           }
 
@@ -384,9 +386,9 @@ describe(`View`, () => {
 
           expect(sut.$isBound).to.equal(false, 'sut.$isBound');
           expect(sut.$scope).to.equal(null, 'sut.$scope');
-          if (sut.$attachables.length) {
-            expect(sut.$attachables[0].$isBound).to.equal(false, 'sut.$attachables[0].$isBound');
-            expect(sut.$attachables[0].$scope).to.equal(null, 'sut.$attachables[0].$scope');
+          if (sut.$attachableHead) {
+            expect(sut.$attachableHead.$isBound).to.equal(false, 'sut.$attachableHead.$isBound');
+            expect(sut.$attachableHead.$scope).to.equal(null, 'sut.$attachableHead.$scope');
           }
         }]
       ]

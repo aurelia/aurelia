@@ -864,8 +864,8 @@ describe('@customElement', () => {
         psSpec.setProps(sut);
         sut.$isAttached = false;
         sut.$scope = Scope.create(sut, null);
-        sut.$bindables = [];
-        sut.$attachables = [];
+        sut.$bindableHead = sut.$bindableTail = null;
+        sut.$attachableHead = sut.$attachableTail = null;
         sut.$behavior = behaviorSpec.getBehavior();
         const expectedFlags = flagsSpec.getExpectedFlags();
         const flags = flagsSpec.getFlags();
@@ -974,8 +974,8 @@ describe('@customElement', () => {
         psSpec.setProps(sut);
         sut.$isAttached = false;
         sut.$scope = Scope.create(sut, null);
-        sut.$bindables = [];
-        sut.$attachables = [];
+        sut.$bindableHead = sut.$bindableTail = null;
+        sut.$attachableHead = sut.$attachableTail = null;
         sut.$behavior = behaviorSpec.getBehavior();
         const expectedFlags = flagsSpec.getExpectedFlags();
         const flags = flagsSpec.getFlags();
@@ -1045,8 +1045,8 @@ describe('@customElement', () => {
         const { sut } = createCustomElement('foo');
         sut.$isBound = true;
         sut.$scope = Scope.create(sut, null);
-        sut.$bindables = [];
-        sut.$attachables = [];
+        sut.$bindableHead = sut.$bindableTail = null;
+        sut.$attachableHead = sut.$attachableTail = null;
         propsSpec.setProps(sut);
         const behavior = behaviorSpec.getBehavior();
         sut.$behavior = behavior;
@@ -1154,8 +1154,8 @@ describe('@customElement', () => {
         const { sut } = createCustomElement('foo');
         sut.$isBound = true;
         sut.$scope = Scope.create(sut, null);
-        sut.$bindables = [];
-        sut.$attachables = [];
+        sut.$bindableHead = sut.$bindableTail = null;
+        sut.$attachableHead = sut.$attachableTail = null;
         propsSpec.setProps(sut);
         const behavior = behaviorSpec.getBehavior();
         sut.$behavior = behavior;
@@ -1226,8 +1226,8 @@ describe('@customElement', () => {
         const { sut } = createCustomElement('foo');
         sut.$isBound = true;
         sut.$scope = Scope.create(sut, null);
-        sut.$bindables = [];
-        sut.$attachables = [];
+        sut.$bindableHead = sut.$bindableTail = null;
+        sut.$attachableHead = sut.$attachableTail = null;
         const behavior = behaviorSpec.getBehavior();
         sut.$behavior = behavior;
 

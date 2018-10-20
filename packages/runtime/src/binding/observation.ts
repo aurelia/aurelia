@@ -7,6 +7,8 @@ import { IChangeSet } from './change-set';
 
 export interface IBindScope {
   readonly $isBound: boolean;
+  $nextBindable: IBindScope;
+  $prevBindable: IBindScope;
   $bind(flags: BindingFlags, scope: IScope): void;
   $unbind(flags: BindingFlags): void;
 }

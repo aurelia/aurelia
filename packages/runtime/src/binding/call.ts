@@ -4,11 +4,14 @@ import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
-import { IAccessor } from './observation';
+import { IAccessor, IBindScope } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 export interface Call extends IConnectableBinding {}
 export class Call {
+  public $nextBindable: IBindScope = null;
+  public $prevBindable: IBindScope = null;
+
   public $isBound: boolean = false;
   public $scope: IScope;
 

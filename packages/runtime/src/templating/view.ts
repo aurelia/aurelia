@@ -3,7 +3,7 @@ import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IAttachLifecycle, IDetachLifecycle, IMountable } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle, IMountable, ICachable } from './lifecycle';
 import { IRenderable, IRenderContext, ITemplate } from './rendering-engine';
 
 export type RenderCallback = (view: IView) => void;
@@ -36,8 +36,18 @@ export interface View extends IView {}
 
 /*@internal*/
 export class View implements IView {
-  public $bindables: IBindScope[] = [];
-  public $attachables: IAttach[] = [];
+  public $bindableHead: IBindScope = null;
+  public $bindableTail: IBindScope = null;
+
+  public $nextBindable: IBindScope = null;
+  public $prevBindable: IBindScope = null;
+
+  public $attachableHead: IAttach = null;
+  public $attachableTail: IAttach = null;
+
+  public $nextAttachable: IAttach = null;
+  public $prevAttachable: IAttach = null;
+
   public $scope: IScope = null;
   public $isBound: boolean = false;
   public $isAttached: boolean = false;
@@ -48,7 +58,7 @@ export class View implements IView {
   public location: IRenderLocation;
   private isFree: boolean = false;
 
-  constructor(public cache: IViewCache) { }
+  constructor(public cache: IViewCache) {}
 
   public hold(location: IRenderLocation): void {
     if (!location.parentNode) { // unmet invariant: location must be a child of some other node
@@ -83,13 +93,58 @@ export class View implements IView {
     }
 
     this.$scope = scope;
-    const bindables = this.$bindables;
-
-    for (let i = 0, ii = bindables.length; i < ii; ++i) {
-      bindables[i].$bind(flags, scope);
+    let current = this.$bindableHead;
+    while (current !== null) {
+      current.$bind(flags | BindingFlags.fromBind, scope);
+      current = current.$nextBindable;
     }
 
     this.$isBound = true;
+  }
+
+  public $unbind(flags: BindingFlags): void {
+    if (this.$isBound) {
+      let current = this.$bindableTail;
+      while (current !== null) {
+        current.$unbind(flags | BindingFlags.fromUnbind);
+        current = current.$prevBindable;
+      }
+
+      this.$isBound = false;
+      this.$scope = null;
+    }
+  }
+
+  public $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+    if (this.$isAttached) {
+      return;
+    }
+
+    let current = this.$attachableHead;
+    while (current !== null) {
+      current.$attach(encapsulationSource, lifecycle);
+      current = current.$nextAttachable;
+    }
+
+    if (this.$needsMount === true) {
+      lifecycle.queueMount(this);
+    }
+
+    this.$isAttached = true;
+  }
+
+  public $detach(lifecycle: IDetachLifecycle): void {
+    if (this.$isAttached) {
+      lifecycle.queueUnmount(this);
+
+      let current = this.$attachableTail;
+      while (current !== null) {
+        current.$detach(lifecycle);
+        current = current.$prevAttachable;
+      }
+
+      this.$isAttached = false;
+    }
   }
 
   public $mount(): void {
@@ -108,58 +163,11 @@ export class View implements IView {
     return false;
   }
 
-  public $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    if (this.$isAttached) {
-      return;
-    }
-
-    const attachables = this.$attachables;
-
-    for (let i = 0, ii = attachables.length; i < ii; ++i) {
-      attachables[i].$attach(encapsulationSource, lifecycle);
-    }
-
-    if (this.$needsMount === true) {
-      lifecycle.queueMount(this);
-    }
-
-    this.$isAttached = true;
-  }
-
-  public $detach(lifecycle: IDetachLifecycle): void {
-    if (this.$isAttached) {
-      lifecycle.queueUnmount(this);
-
-      const attachables = this.$attachables;
-      let i = attachables.length;
-
-      while (i--) {
-        attachables[i].$detach(lifecycle);
-      }
-
-      this.$isAttached = false;
-    }
-  }
-
-  public $unbind(flags: BindingFlags): void {
-    if (this.$isBound) {
-      const bindables = this.$bindables;
-      let i = bindables.length;
-
-      while (i--) {
-        bindables[i].$unbind(flags);
-      }
-
-      this.$isBound = false;
-      this.$scope = null;
-    }
-  }
-
   public $cache(): void {
-    const attachables = this.$attachables;
-
-    for (let i = 0, ii = attachables.length; i < ii; ++i) {
-      attachables[i].$cache();
+    let current = this.$attachableTail;
+    while (current !== null) {
+      current.$cache();
+      current = current.$prevAttachable;
     }
   }
 }
@@ -235,10 +243,10 @@ function lockedBind(this: View, flags: BindingFlags): void {
   }
 
   const lockedScope = this.$scope;
-  const bindables = this.$bindables;
-
-  for (let i = 0, ii = bindables.length; i < ii; ++i) {
-    bindables[i].$bind(flags, lockedScope);
+  let current = this.$bindableHead;
+  while (current !== null) {
+    current.$bind(flags | BindingFlags.fromBind, lockedScope);
+    current = current.$nextBindable;
   }
 
   this.$isBound = true;

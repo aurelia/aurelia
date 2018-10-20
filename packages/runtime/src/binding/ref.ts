@@ -4,9 +4,13 @@ import { IBinding, IBindingTarget } from './binding';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
+import { IBindScope } from './observation';
 
 export interface Ref extends IConnectableBinding {}
 export class Ref implements IBinding {
+  public $nextBindable: IBindScope = null;
+  public $prevBindable: IBindScope = null;
+
   public $isBound: boolean = false;
   public $scope: IScope;
 

@@ -4,6 +4,7 @@ import { IBindingTarget } from './binding';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import { IBindScope } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 // tslint:disable:no-any
@@ -12,6 +13,9 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
+  public $nextBindable: IBindScope = null;
+  public $prevBindable: IBindScope = null;
+
   public $isBound: boolean = false;
   public $scope: IScope = null;
   public target: IBindingTarget = null;

@@ -10,7 +10,7 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
-import { Scope } from '../binding';
+import { Scope, IBindScope } from '../binding';
 import { BindingFlags } from '../binding/binding-flags';
 import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
@@ -28,6 +28,8 @@ export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction
 
 export interface IBindSelf {
   readonly $isBound: boolean;
+  readonly $nextBindable: IBindSelf | IBindScope;
+  readonly $prevBindable: IBindSelf | IBindScope;
   $bind(flags: BindingFlags): void;
   $unbind(flags: BindingFlags): void;
 }
@@ -154,8 +156,11 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
-  this.$bindables = [];
-  this.$attachables = [];
+  this.$bindableHead = this.$bindableTail = null;
+  this.$prevBindable = this.$nextBindable = null;
+  this.$attachableHead = this.$attachableTail = null;
+  this.$prevAttachable = this.$nextAttachable = null;
+
   this.$isAttached = false;
   this.$isBound = false;
   this.$scope = Scope.create(this, null);
@@ -189,10 +194,10 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   }
 
   const scope = this.$scope;
-  const bindables = this.$bindables;
-
-  for (let i = 0, ii = bindables.length; i < ii; ++i) {
-    bindables[i].$bind(flags | BindingFlags.fromBind, scope);
+  let current = this.$bindableHead;
+  while (current !== null) {
+    current.$bind(flags | BindingFlags.fromBind, scope);
+    current = current.$nextBindable;
   }
 
   this.$isBound = true;
@@ -210,11 +215,10 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
       this.unbinding(flags | BindingFlags.fromUnbind);
     }
 
-    const bindables = this.$bindables;
-    let i = bindables.length;
-
-    while (i--) {
-      bindables[i].$unbind(flags | BindingFlags.fromUnbind);
+    let current = this.$bindableTail;
+    while (current !== null) {
+      current.$unbind(flags | BindingFlags.fromUnbind);
+      current = current.$prevBindable;
     }
 
     this.$isBound = false;
@@ -236,10 +240,10 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
     this.attaching(encapsulationSource, lifecycle);
   }
 
-  const attachables = this.$attachables;
-
-  for (let i = 0, ii = attachables.length; i < ii; ++i) {
-    attachables[i].$attach(encapsulationSource, lifecycle);
+  let current = this.$attachableHead;
+  while (current !== null) {
+    current.$attach(encapsulationSource, lifecycle);
+    current = current.$nextAttachable;
   }
 
   lifecycle.queueMount(this);
@@ -259,11 +263,10 @@ function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLi
 
     lifecycle.queueUnmount(this);
 
-    const attachables = this.$attachables;
-    let i = attachables.length;
-
-    while (i--) {
-      attachables[i].$detach(lifecycle);
+    let current = this.$attachableTail;
+    while (current !== null) {
+      current.$detach(lifecycle);
+      current = current.$prevAttachable;
     }
 
     this.$isAttached = false;
@@ -279,11 +282,10 @@ function cache(this: IInternalCustomElementImplementation): void {
     this.caching();
   }
 
-  const attachables = this.$attachables;
-  let i = attachables.length;
-
-  while (i--) {
-    attachables[i].$cache();
+  let current = this.$attachableTail;
+  while (current !== null) {
+    current.$cache();
+    current = current.$prevAttachable;
   }
 }
 

@@ -6,9 +6,13 @@ import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
+import { IBindScope } from './observation';
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
+  public $nextBindable: IBindScope = null;
+  public $prevBindable: IBindScope = null;
+
   public $isBound: boolean = false;
   public $scope: IScope;
 

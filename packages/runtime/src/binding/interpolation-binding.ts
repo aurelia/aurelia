@@ -4,7 +4,7 @@ import { Interpolation } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
-import { IBindingTargetAccessor } from './observation';
+import { IBindingTargetAccessor, IBindScope } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 // tslint:disable:no-any
@@ -12,6 +12,8 @@ import { IObserverLocator } from './observer-locator';
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
+  public $nextBindable: IBindScope = null;
+  public $prevBindable: IBindScope = null;
   public $isBound: boolean = false;
   public $scope: IScope = null;
 

@@ -328,19 +328,27 @@ export class ViewFactoryProvider implements IResolver {
 
 export const IRenderable = DI.createInterface<IRenderable>().noDefault();
 
-/**
- * An object containing the necessary information to render something for display.
- */
-export interface IRenderable {
+export interface IBindables {
   /**
    * The Bindings, Views, CustomElements, CustomAttributes and other bindable components that belong to this instance.
    */
-  readonly $bindables: IBindScope[];
+  $bindableHead?: IBindScope;
+  $bindableTail?: IBindScope;
+}
+
+export interface IAttachables {
 
   /**
    * The Views, CustomElements, CustomAttributes and other attachable components that belong to this instance.
    */
-  readonly $attachables: IAttach[];
+  $attachableHead?: IAttach;
+  $attachableTail?: IAttach;
+}
+
+/**
+ * An object containing the necessary information to render something for display.
+ */
+export interface IRenderable extends IBindables, IAttachables {
 
   /**
    * The (dependency) context of this instance.
@@ -374,4 +382,26 @@ export interface IRenderable {
    */
   readonly $isAttached: boolean;
 
+}
+
+export function addBindable(renderable: IBindables, bindable: IBindScope): void {
+  bindable.$prevBindable = renderable.$bindableTail;
+  bindable.$nextBindable = null;
+  if (renderable.$bindableTail === null) {
+    renderable.$bindableHead = bindable;
+  } else {
+    renderable.$bindableTail.$nextBindable = bindable;
+  }
+  renderable.$bindableTail = bindable;
+}
+
+export function addAttachable(renderable: IAttachables, attachable: IAttach): void {
+  attachable.$prevAttachable = renderable.$attachableTail;
+  attachable.$nextAttachable = null;
+  if (renderable.$attachableTail === null) {
+    renderable.$attachableHead = attachable;
+  } else {
+    renderable.$attachableTail.$nextAttachable = attachable;
+  }
+  renderable.$attachableTail = attachable;
 }

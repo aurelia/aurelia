@@ -16,7 +16,7 @@ import { IBindScope } from '../binding/observation';
 import { INode } from '../dom';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
-import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, LifecycleHooks } from './lifecycle';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
@@ -120,7 +120,7 @@ function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: 
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
-  if (this.$behavior.hasCreated) {
+  if ((this.$behavior.hooks & LifecycleHooks.hasCreated) > 0) {
     this.created();
   }
 }
@@ -134,31 +134,31 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
     this.$unbind(flags | BindingFlags.fromBind);
   }
 
-  const behavior = this.$behavior;
+  const hooks = this.$behavior.hooks;
   this.$scope = scope;
 
-  if (behavior.hasBinding) {
+  if ((hooks & LifecycleHooks.hasBinding) > 0) {
     this.binding(flags | BindingFlags.fromBind);
   }
 
   this.$isBound = true;
 
-  if (behavior.hasBound) {
+  if ((hooks & LifecycleHooks.hasBound) > 0) {
     this.bound(flags | BindingFlags.fromBind);
   }
 }
 
 function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
   if (this.$isBound) {
-    const behavior = this.$behavior;
+    const hooks = this.$behavior.hooks;
 
-    if (behavior.hasUnbinding) {
+    if ((hooks & LifecycleHooks.hasUnbinding) > 0) {
       this.unbinding(flags | BindingFlags.fromUnbind);
     }
 
     this.$isBound = false;
 
-    if (this.$behavior.hasUnbound) {
+    if ((this.$behavior.hooks & LifecycleHooks.hasUnbound) > 0) {
       this.unbound(flags | BindingFlags.fromUnbind);
     }
   }
@@ -168,36 +168,36 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
   if (this.$isAttached) {
     return;
   }
-  const behavior = this.$behavior;
+  const hooks = this.$behavior.hooks;
 
-  if (behavior.hasAttaching) {
+  if ((hooks & LifecycleHooks.hasAttaching) > 0) {
     this.attaching(encapsulationSource, lifecycle);
   }
 
   this.$isAttached = true;
 
-  if (behavior.hasAttached) {
+  if ((hooks & LifecycleHooks.hasAttached) > 0) {
     lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
 }
 
 function detach(this: IInternalCustomAttributeImplementation, lifecycle: IDetachLifecycle): void {
   if (this.$isAttached) {
-    const behavior = this.$behavior;
-    if (behavior.hasDetaching) {
+    const hooks = this.$behavior.hooks;
+    if ((hooks & LifecycleHooks.hasDetaching) > 0) {
       this.detaching(lifecycle);
     }
 
     this.$isAttached = false;
 
-    if (behavior.hasDetached) {
+    if ((hooks & LifecycleHooks.hasDetached) > 0) {
       lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
   }
 }
 
 function cache(this: IInternalCustomAttributeImplementation): void {
-  if (this.$behavior.hasCaching) {
+  if ((this.$behavior.hooks & LifecycleHooks.hasCaching) > 0) {
     this.caching();
   }
 }

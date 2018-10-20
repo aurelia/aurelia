@@ -1,4 +1,4 @@
-import { customAttribute, templateController, CustomAttributeResource, ICustomAttribute, IRenderingEngine, Scope, BindingFlags, ICustomAttributeType, IAttachLifecycle, INode, IDetachLifecycle, IAttributeDefinition, BindingMode, IInternalCustomAttributeImplementation, IRuntimeBehavior } from '../../../src/index';
+import { customAttribute, templateController, CustomAttributeResource, ICustomAttribute, IRenderingEngine, Scope, BindingFlags, ICustomAttributeType, IAttachLifecycle, INode, IDetachLifecycle, IAttributeDefinition, BindingMode, IInternalCustomAttributeImplementation, IRuntimeBehavior, LifecycleHooks } from '../../../src/index';
 import { expect } from 'chai';
 import { defineComponentLifecycleMock, IComponentLifecycleMock } from '../mock';
 import { Writable, PLATFORM } from '@aurelia/kernel';
@@ -301,7 +301,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasCreated: true',
         expectation: 'calls created()',
-        getBehavior() { return <IRuntimeBehavior>{ hasCreated: true }; },
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasCreated }; },
         verifyBehaviorInvocation(sut: CustomAttribute) {
           sut.verifyCreatedCalled();
           sut.verifyNoFurtherCalls();
@@ -310,7 +310,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasCreated: false',
         expectation: 'does NOT call created()',
-        getBehavior() { return <IRuntimeBehavior>{ hasCreated: false }; },
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.none }; },
         verifyBehaviorInvocation(sut: CustomAttribute) {
           sut.verifyNoFurtherCalls();
         }
@@ -490,7 +490,7 @@ describe('@customAttribute', () => {
         description: '$behavior.hasBinding: true, $behavior.hasBound: false',
         expectation: 'calls binding(), does NOT call bound()',
         getBehavior() {
-          return <IRuntimeBehavior>{ hasBinding: true, hasBound: false };
+          return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasBinding };
         },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyBindingCalled(flags);
@@ -501,7 +501,7 @@ describe('@customAttribute', () => {
         description: '$behavior.hasBinding: false, $behavior.hasBound: false',
         expectation: 'does NOT call binding(), does NOT call bound()',
         getBehavior() {
-          return <IRuntimeBehavior>{ hasBinding: false, hasBound: false };
+          return <IRuntimeBehavior>{ hooks: LifecycleHooks.none};
         },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyNoFurtherCalls();
@@ -511,7 +511,7 @@ describe('@customAttribute', () => {
         description: '$behavior.hasBinding: true, $behavior.hasBound: true',
         expectation: 'calls binding(), calls bound()',
         getBehavior() {
-          return <IRuntimeBehavior>{ hasBinding: true, hasBound: true };
+          return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasBinding | LifecycleHooks.hasBound };
         },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyBoundCalled(flags);
@@ -523,7 +523,7 @@ describe('@customAttribute', () => {
         description: '$behavior.hasBinding: false, $behavior.hasBound: true',
         expectation: 'does NOT call binding(), calls bound()',
         getBehavior() {
-          return <IRuntimeBehavior>{ hasBinding: false, hasBound: true };
+          return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasBound};
         },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyBoundCalled(flags);
@@ -634,7 +634,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: false',
         expectation: 'calls unbinding(), does NOT call unbound()',
-        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: true, hasUnbound: false }; },
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasUnbinding }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyUnbindingCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -643,7 +643,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: false',
         expectation: 'does NOT call unbinding(), does NOT call unbound()',
-        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: false, hasUnbound: false }; },
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.none }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyNoFurtherCalls();
         }
@@ -651,7 +651,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: true',
         expectation: 'calls unbinding(), calls unbound()',
-        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: true, hasUnbound: true }; },
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasUnbinding | LifecycleHooks.hasUnbound }; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyUnbindingCalled(flags);
@@ -661,7 +661,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: true',
         expectation: 'does NOT call unbinding(), calls unbound()',
-        getBehavior() { return <IRuntimeBehavior>{ hasUnbinding: false, hasUnbound: true }; },
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasUnbound}; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: BindingFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -721,22 +721,22 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasAttaching: true, $behavior.hasAttached: false',
         expectation: 'calls attaching(), does NOT call attached()',
-        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: true, hasAttached: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasAttaching }; }
       },
       {
         description: '$behavior.hasAttaching: false, $behavior.hasAttached: false',
         expectation: 'does NOT call attaching(), does NOT call attached()',
-        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: false, hasAttached: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.none }; }
       },
       {
         description: '$behavior.hasAttaching: true, $behavior.hasAttached: true',
         expectation: 'calls attaching(), calls attached()',
-        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: true, hasAttached: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasAttaching | LifecycleHooks.hasAttached }; }
       },
       {
         description: '$behavior.hasAttaching: false, $behavior.hasAttached: true',
         expectation: 'does NOT call attaching(), calls attached()',
-        getBehavior() { return <IRuntimeBehavior>{ hasAttaching: false, hasAttached: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasAttached }; }
       }
     ];
 
@@ -766,12 +766,12 @@ describe('@customAttribute', () => {
 
         // Assert
         if (propsSpec.callsBehaviors) {
-          if (behavior.hasAttached) {
+          if ((behavior.hooks & LifecycleHooks.hasAttached) > 0) {
             sut.verifyAttachedCalled();
             expect(queueAttachedCallbackCalled).to.equal(true, 'queueAttachedCallbackCalled');
             expect(queueAttachedCallbackRequestor).to.equal(sut, 'queueAttachedCallbackRequestor')
           }
-          if (behavior.hasAttaching) {
+          if ((behavior.hooks & LifecycleHooks.hasAttaching) > 0) {
             sut.verifyAttachingCalled(encapsulationSource, lifecycle);
           }
         } else {
@@ -809,22 +809,22 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasDetaching: true, $behavior.hasDetached: false',
         expectation: 'calls detaching(), does NOT call detached()',
-        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: true, hasDetached: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasDetaching }; }
       },
       {
         description: '$behavior.hasDetaching: false, $behavior.hasDetached: false',
         expectation: 'does NOT call detaching(), does NOT call detached()',
-        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: false, hasDetached: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.none }; }
       },
       {
         description: '$behavior.hasDetaching: true, $behavior.hasDetached: true',
         expectation: 'calls detaching(), calls detached()',
-        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: true, hasDetached: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasDetaching | LifecycleHooks.hasDetaching }; }
       },
       {
         description: '$behavior.hasDetaching: false, $behavior.hasDetached: true',
         expectation: 'does NOT call detaching(), calls detached()',
-        getBehavior() { return <IRuntimeBehavior>{ hasDetaching: false, hasDetached: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasDetached }; }
       }
     ];
 
@@ -854,12 +854,12 @@ describe('@customAttribute', () => {
 
         // Assert
         if (propsSpec.callsBehaviors) {
-          if (behavior.hasDetached) {
+          if ((behavior.hooks & LifecycleHooks.hasDetached) > 0) {
             sut.verifyDetachedCalled();
             expect(queueDetachedCallbackCalled).to.equal(true, 'queueDetachedCallbackCalled');
             expect(queueDetachedCallbackRequestor).to.equal(sut, 'queueDetachedCallbackRequestor')
           }
-          if (behavior.hasDetaching) {
+          if ((behavior.hooks & LifecycleHooks.hasDetaching) > 0) {
             sut.verifyDetachingCalled(lifecycle);
           }
         } else {
@@ -876,12 +876,12 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasCaching: true',
         expectation: 'calls hasCaching()',
-        getBehavior() { return <IRuntimeBehavior>{ hasCaching: true }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasCaching }; }
       },
       {
         description: '$behavior.hasCaching: false',
         expectation: 'does NOT call hasCaching()',
-        getBehavior() { return <IRuntimeBehavior>{ hasCaching: false }; }
+        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.none }; }
       }
     ];
 
@@ -898,7 +898,7 @@ describe('@customAttribute', () => {
         sut.$cache();
 
         // Assert
-        if (behavior.hasCaching) {
+        if ((behavior.hooks & LifecycleHooks.hasCaching) > 0) {
           sut.verifyCachingCalled();
         }
         sut.verifyNoFurtherCalls();

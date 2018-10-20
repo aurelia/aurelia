@@ -11,36 +11,16 @@ import {
   ICustomElementType
 } from './custom-element';
 import { BindableDefinitions } from './instructions';
+import { LifecycleHooks } from './lifecycle';
 
 export interface IRuntimeBehavior {
-  readonly hasCreated: boolean;
-  readonly hasBinding: boolean;
-  readonly hasBound: boolean;
-  readonly hasAttaching: boolean;
-  readonly hasAttached: boolean;
-  readonly hasDetaching: boolean;
-  readonly hasDetached: boolean;
-  readonly hasUnbinding: boolean;
-  readonly hasUnbound: boolean;
-  readonly hasRender: boolean;
-  readonly hasCaching: boolean;
+  readonly hooks: LifecycleHooks;
 }
 
 /** @internal */
 export class RuntimeBehavior implements IRuntimeBehavior {
   public bindables: BindableDefinitions;
-
-  public hasCreated: boolean = false;
-  public hasBinding: boolean = false;
-  public hasBound: boolean = false;
-  public hasAttaching: boolean = false;
-  public hasAttached: boolean = false;
-  public hasDetaching: boolean = false;
-  public hasDetached: boolean = false;
-  public hasUnbinding: boolean = false;
-  public hasUnbound: boolean = false;
-  public hasRender: boolean = false;
-  public hasCaching: boolean = false;
+  public hooks: LifecycleHooks;
 
   private constructor() {}
 
@@ -48,17 +28,19 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     const behavior = new RuntimeBehavior();
 
     behavior.bindables = Component.description.bindables;
-    behavior.hasCreated = 'created' in instance;
-    behavior.hasBinding = 'binding' in instance;
-    behavior.hasBound = 'bound' in instance;
-    behavior.hasAttaching = 'attaching' in instance;
-    behavior.hasAttached = 'attached' in instance;
-    behavior.hasDetaching = 'detaching' in instance;
-    behavior.hasDetached = 'detached' in instance;
-    behavior.hasUnbinding = 'unbinding' in instance;
-    behavior.hasUnbound = 'unbound' in instance;
-    behavior.hasRender = 'render' in instance;
-    behavior.hasCaching = 'caching' in instance;
+    behavior.hooks = 0;
+    if ('created' in instance) behavior.hooks |= LifecycleHooks.hasCreated;
+    if ('binding' in instance) behavior.hooks |= LifecycleHooks.hasBinding;
+    if ('bound' in instance) behavior.hooks |= LifecycleHooks.hasBound;
+    if ('attaching' in instance) behavior.hooks |= LifecycleHooks.hasAttaching;
+    if ('attached' in instance) behavior.hooks |= LifecycleHooks.hasAttached;
+    if ('detaching' in instance) behavior.hooks |= LifecycleHooks.hasDetaching;
+    if ('detached' in instance) behavior.hooks |= LifecycleHooks.hasDetached;
+    if ('unbinding' in instance) behavior.hooks |= LifecycleHooks.hasUnbinding;
+    if ('unbound' in instance) behavior.hooks |= LifecycleHooks.hasUnbound;
+    if ('render' in instance) behavior.hooks |= LifecycleHooks.hasRender;
+    if ('caching' in instance) behavior.hooks |= LifecycleHooks.hasCaching;
+    if (behavior.hooks === 0) behavior.hooks |= LifecycleHooks.none;
 
     return behavior;
   }

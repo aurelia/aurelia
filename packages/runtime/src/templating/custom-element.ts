@@ -16,7 +16,7 @@ import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
-import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable, LifecycleHooks } from './lifecycle';
 import { IRenderable, IRenderingEngine, ITemplate } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
@@ -168,7 +168,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
-  if (this.$behavior.hasRender) {
+  if ((this.$behavior.hooks & LifecycleHooks.hasRender) > 0) {
     const result = this.render(host, options.parts);
 
     if (result && 'getElementTemplate' in result) {
@@ -178,7 +178,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
     renderingEngine.getElementTemplate(description, Type).render(this, host, options.parts);
   }
 
-  if (this.$behavior.hasCreated) {
+  if ((this.$behavior.hooks & LifecycleHooks.hasCreated) > 0) {
     this.created();
   }
 }
@@ -187,9 +187,9 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   if (this.$isBound) {
     return;
   }
-  const behavior = this.$behavior;
+  const hooks = this.$behavior.hooks;
 
-  if (behavior.hasBinding) {
+  if ((hooks & LifecycleHooks.hasBinding) > 0) {
     this.binding(flags | BindingFlags.fromBind);
   }
 
@@ -202,16 +202,16 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
 
   this.$isBound = true;
 
-  if (behavior.hasBound) {
+  if ((hooks & LifecycleHooks.hasBound) > 0) {
     this.bound(flags | BindingFlags.fromBind);
   }
 }
 
 function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
   if (this.$isBound) {
-    const behavior = this.$behavior;
+    const hooks = this.$behavior.hooks;
 
-    if (behavior.hasUnbinding) {
+    if ((hooks & LifecycleHooks.hasUnbinding) > 0) {
       this.unbinding(flags | BindingFlags.fromUnbind);
     }
 
@@ -223,7 +223,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
 
     this.$isBound = false;
 
-    if (behavior.hasUnbound) {
+    if ((hooks & LifecycleHooks.hasUnbound) > 0) {
       this.unbound(flags | BindingFlags.fromUnbind);
     }
   }
@@ -233,10 +233,10 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   if (this.$isAttached) {
     return;
   }
-  const behavior = this.$behavior;
+  const hooks = this.$behavior.hooks;
   encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
 
-  if (behavior.hasAttaching) {
+  if ((hooks & LifecycleHooks.hasAttaching) > 0) {
     this.attaching(encapsulationSource, lifecycle);
   }
 
@@ -249,15 +249,15 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   lifecycle.queueMount(this);
   this.$isAttached = true;
 
-  if (behavior.hasAttached) {
+  if ((hooks & LifecycleHooks.hasAttached) > 0) {
     lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
 }
 
 function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLifecycle): void {
   if (this.$isAttached) {
-    const behavior = this.$behavior;
-    if (behavior.hasDetaching) {
+    const hooks = this.$behavior.hooks;
+    if ((hooks & LifecycleHooks.hasDetaching) > 0) {
       this.detaching(lifecycle);
     }
 
@@ -271,14 +271,14 @@ function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLi
 
     this.$isAttached = false;
 
-    if (behavior.hasDetached) {
+    if ((hooks & LifecycleHooks.hasDetached) > 0) {
       lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
   }
 }
 
 function cache(this: IInternalCustomElementImplementation): void {
-  if (this.$behavior.hasCaching) {
+  if ((this.$behavior.hooks & LifecycleHooks.hasCaching) > 0) {
     this.caching();
   }
 

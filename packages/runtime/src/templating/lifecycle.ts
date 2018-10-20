@@ -4,22 +4,24 @@ import { BindingFlags, IBindScope, IChangeSet } from '../binding';
 import { INode, INodeSequence } from '../dom';
 
 export enum LifecycleFlags {
-  none                = 0b0_0000000000000_001,
-  noTasks             = 0b0_0000000000000_010,
-  unbindAfterDetached = 0b0_0000000000000_100,
-  binding             = 0b0_0000000000001_000,
-  bind                = 0b0_0000000000010_000,
-  bound               = 0b0_0000000000100_000,
-  attaching           = 0b0_0000000001000_000,
-  attach              = 0b0_0000000010000_000,
-  attached            = 0b0_0000000100000_000,
-  detaching           = 0b0_0000001000000_000,
-  detach              = 0b0_0000010000000_000,
-  detached            = 0b0_0000100000000_000,
-  mount               = 0b0_0001000000000_000,
-  unmount             = 0b0_0010000000000_000,
-  cache               = 0b0_0100000000000_000,
-  caching             = 0b0_1000000000000_000
+  none                = 0b001,
+  noTasks             = 0b010,
+  unbindAfterDetached = 0b100,
+}
+
+export const enum LifecycleHooks {
+  none                   = 0b000000000001,
+  hasCreated             = 0b000000000010,
+  hasBinding             = 0b000000000100,
+  hasBound               = 0b000000001000,
+  hasAttaching           = 0b000000010000,
+  hasAttached            = 0b000000100000,
+  hasDetaching           = 0b000001000000,
+  hasDetached            = 0b000010000000,
+  hasUnbinding           = 0b000100000000,
+  hasUnbound             = 0b001000000000,
+  hasRender              = 0b010000000000,
+  hasCaching             = 0b100000000000
 }
 
 export interface IAttach extends ICachable {

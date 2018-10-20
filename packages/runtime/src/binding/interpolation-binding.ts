@@ -132,7 +132,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     if (this.isFirst) {
       this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator), flags);
     }
-    if ((this.mode & toView) > 0) {
+    if (this.mode & toView) {
       sourceExpression.connect(flags, scope, this);
     }
   }

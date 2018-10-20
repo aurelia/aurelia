@@ -168,7 +168,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
-  if ((this.$behavior.hooks & LifecycleHooks.hasRender) > 0) {
+  if (this.$behavior.hooks & LifecycleHooks.hasRender) {
     const result = this.render(host, options.parts);
 
     if (result && 'getElementTemplate' in result) {
@@ -178,7 +178,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
     renderingEngine.getElementTemplate(description, Type).render(this, host, options.parts);
   }
 
-  if ((this.$behavior.hooks & LifecycleHooks.hasCreated) > 0) {
+  if (this.$behavior.hooks & LifecycleHooks.hasCreated) {
     this.created();
   }
 }
@@ -189,7 +189,7 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   }
   const hooks = this.$behavior.hooks;
 
-  if ((hooks & LifecycleHooks.hasBinding) > 0) {
+  if (hooks & LifecycleHooks.hasBinding) {
     this.binding(flags | BindingFlags.fromBind);
   }
 
@@ -202,7 +202,7 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
 
   this.$isBound = true;
 
-  if ((hooks & LifecycleHooks.hasBound) > 0) {
+  if (hooks & LifecycleHooks.hasBound) {
     this.bound(flags | BindingFlags.fromBind);
   }
 }
@@ -211,7 +211,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
   if (this.$isBound) {
     const hooks = this.$behavior.hooks;
 
-    if ((hooks & LifecycleHooks.hasUnbinding) > 0) {
+    if (hooks & LifecycleHooks.hasUnbinding) {
       this.unbinding(flags | BindingFlags.fromUnbind);
     }
 
@@ -223,7 +223,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
 
     this.$isBound = false;
 
-    if ((hooks & LifecycleHooks.hasUnbound) > 0) {
+    if (hooks & LifecycleHooks.hasUnbound) {
       this.unbound(flags | BindingFlags.fromUnbind);
     }
   }
@@ -236,7 +236,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   const hooks = this.$behavior.hooks;
   encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
 
-  if ((hooks & LifecycleHooks.hasAttaching) > 0) {
+  if (hooks & LifecycleHooks.hasAttaching) {
     this.attaching(encapsulationSource, lifecycle);
   }
 
@@ -249,7 +249,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   lifecycle.queueMount(this);
   this.$isAttached = true;
 
-  if ((hooks & LifecycleHooks.hasAttached) > 0) {
+  if (hooks & LifecycleHooks.hasAttached) {
     lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
 }
@@ -257,7 +257,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
 function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLifecycle): void {
   if (this.$isAttached) {
     const hooks = this.$behavior.hooks;
-    if ((hooks & LifecycleHooks.hasDetaching) > 0) {
+    if (hooks & LifecycleHooks.hasDetaching) {
       this.detaching(lifecycle);
     }
 
@@ -271,14 +271,14 @@ function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLi
 
     this.$isAttached = false;
 
-    if ((hooks & LifecycleHooks.hasDetached) > 0) {
+    if (hooks & LifecycleHooks.hasDetached) {
       lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
   }
 }
 
 function cache(this: IInternalCustomElementImplementation): void {
-  if ((this.$behavior.hooks & LifecycleHooks.hasCaching) > 0) {
+  if (this.$behavior.hooks & LifecycleHooks.hasCaching) {
     this.caching();
   }
 

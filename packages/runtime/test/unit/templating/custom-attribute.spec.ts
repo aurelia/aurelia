@@ -766,12 +766,12 @@ describe('@customAttribute', () => {
 
         // Assert
         if (propsSpec.callsBehaviors) {
-          if ((behavior.hooks & LifecycleHooks.hasAttached) > 0) {
+          if (behavior.hooks & LifecycleHooks.hasAttached) {
             sut.verifyAttachedCalled();
             expect(queueAttachedCallbackCalled).to.equal(true, 'queueAttachedCallbackCalled');
             expect(queueAttachedCallbackRequestor).to.equal(sut, 'queueAttachedCallbackRequestor')
           }
-          if ((behavior.hooks & LifecycleHooks.hasAttaching) > 0) {
+          if (behavior.hooks & LifecycleHooks.hasAttaching) {
             sut.verifyAttachingCalled(encapsulationSource, lifecycle);
           }
         } else {
@@ -854,12 +854,12 @@ describe('@customAttribute', () => {
 
         // Assert
         if (propsSpec.callsBehaviors) {
-          if ((behavior.hooks & LifecycleHooks.hasDetached) > 0) {
+          if (behavior.hooks & LifecycleHooks.hasDetached) {
             sut.verifyDetachedCalled();
             expect(queueDetachedCallbackCalled).to.equal(true, 'queueDetachedCallbackCalled');
             expect(queueDetachedCallbackRequestor).to.equal(sut, 'queueDetachedCallbackRequestor')
           }
-          if ((behavior.hooks & LifecycleHooks.hasDetaching) > 0) {
+          if (behavior.hooks & LifecycleHooks.hasDetaching) {
             sut.verifyDetachingCalled(lifecycle);
           }
         } else {
@@ -898,7 +898,7 @@ describe('@customAttribute', () => {
         sut.$cache();
 
         // Assert
-        if ((behavior.hooks & LifecycleHooks.hasCaching) > 0) {
+        if (behavior.hooks & LifecycleHooks.hasCaching) {
           sut.verifyCachingCalled();
         }
         sut.verifyNoFurtherCalls();

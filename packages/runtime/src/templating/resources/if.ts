@@ -58,7 +58,7 @@ export class If {
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: BindingFlags): void {
-    if ((flags & BindingFlags.fromFlushChanges) > 0) {
+    if (flags & BindingFlags.fromFlushChanges) {
       const view = this.updateView();
       this.coordinator.compose(view);
     } else {

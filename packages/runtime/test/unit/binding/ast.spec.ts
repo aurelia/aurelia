@@ -2005,7 +2005,7 @@ describe('BindingBehavior', () => {
             expect(arg.calls[0][3]).to.equal(locator);
           }
 
-          if (($kind & ExpressionKind.HasBind) > 0) {
+          if ($kind & ExpressionKind.HasBind) {
             expect(expr.calls.length).to.equal(1);
             expect(expr.calls[0].length).to.equal(4);
             expect(expr.calls[0][0]).to.equal('bind');
@@ -2132,7 +2132,7 @@ describe('BindingBehavior', () => {
           const expr = sut.expression as any as MockTracingExpression;
 
           let callCount = ($kind & ExpressionKind.HasBind) > 0 ? 6 : 5;
-          if (($kind & ExpressionKind.HasUnbind) > 0) {
+          if ($kind & ExpressionKind.HasUnbind) {
             expect(expr.calls.length).to.equal(callCount);
             expect(expr.calls[callCount - 1].length).to.equal(4);
             expect(expr.calls[callCount - 1][0]).to.equal('unbind');

@@ -35,7 +35,7 @@ export interface IBindingContext {
 
   readonly $synthetic?: true;
   readonly $observers?: ObserversLookup<IOverrideContext>;
-  getObservers(): ObserversLookup<IOverrideContext>;
+  getObservers?(): ObserversLookup<IOverrideContext>;
 }
 
 export interface IOverrideContext {

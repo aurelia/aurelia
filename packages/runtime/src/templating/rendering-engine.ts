@@ -371,13 +371,6 @@ export interface IRenderable extends IBindables, IAttachables, ILifecycleState {
    * This includes the `BindingContext` which can be either a user-defined view model instance, or a synthetic view model instantiated by a `templateController`
    */
   readonly $scope: IScope;
-
-
-  /**
-   * Indicates whether the `$attachables` are currently attached to the `DOM`.
-   */
-  readonly $isAttached: boolean;
-
 }
 
 export function addBindable(renderable: IBindables, bindable: IBindScope): void {

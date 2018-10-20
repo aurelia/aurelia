@@ -17,7 +17,6 @@ const batchedChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.fromBin
 export class Repeat<T extends ObservedCollection = IObservedArray> {
   @bindable public items: T;
 
-  public $isAttached: boolean;
   public $scope: IScope;
   public $observers: { items: SetterObserver }
 
@@ -137,7 +136,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
       }
     }
 
-    if (this.$isAttached) {
+    if (this.$state & LifecycleState.isAttached) {
       const { location } = this;
       const lifecycle = Lifecycle.beginAttach(this.changeSet, this.encapsulationSource, LifecycleFlags.none);
       if (indexMap === null) {

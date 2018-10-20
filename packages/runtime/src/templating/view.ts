@@ -51,9 +51,6 @@ export class View implements IView {
 
   public $state: LifecycleState = LifecycleState.none;
   public $scope: IScope = null;
-  public $isAttached: boolean = false;
-  public $needsMount: boolean = false;
-  public $isCached: boolean = false;
   public $nodes: INodeSequence;
   public $context: IRenderContext;
   public location: IRenderLocation;
@@ -67,7 +64,11 @@ export class View implements IView {
     }
     this.location = location;
     const lastChild = this.$nodes.lastChild;
-    this.$needsMount = !(lastChild && lastChild.nextSibling === location);
+    if (lastChild && lastChild.nextSibling === location) {
+      this.$state &= ~LifecycleState.needsMount;
+    } else {
+      this.$state |= LifecycleState.needsMount;
+    }
   }
 
   public lockScope(scope: IScope): void {
@@ -77,7 +78,7 @@ export class View implements IView {
 
   public release(): boolean {
     this.isFree = true;
-    if (this.$isAttached) {
+    if (this.$state & LifecycleState.isAttached) {
       return this.cache.canReturnToCache(this);
     }
 
@@ -121,7 +122,7 @@ export class View implements IView {
   }
 
   public $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    if (this.$isAttached) {
+    if (this.$state & LifecycleState.isAttached) {
       return;
     }
 
@@ -131,15 +132,15 @@ export class View implements IView {
       current = current.$nextAttachable;
     }
 
-    if (this.$needsMount === true) {
+    if (this.$state & LifecycleState.needsMount) {
       lifecycle.queueMount(this);
     }
 
-    this.$isAttached = true;
+    this.$state |= LifecycleState.isAttached;
   }
 
   public $detach(lifecycle: IDetachLifecycle): void {
-    if (this.$isAttached) {
+    if (this.$state & LifecycleState.isAttached) {
       lifecycle.queueUnmount(this);
 
       let current = this.$attachableTail;
@@ -148,22 +149,25 @@ export class View implements IView {
         current = current.$prevAttachable;
       }
 
-      this.$isAttached = false;
+      this.$state &= ~LifecycleState.isAttached;
     }
   }
 
   public $mount(): void {
-    this.$needsMount = false;
+    this.$state &= ~LifecycleState.needsMount;
     this.$nodes.insertBefore(this.location);
   }
 
   public $unmount(): boolean {
-    this.$needsMount = true;
+    this.$state |= LifecycleState.needsMount;
     this.$nodes.remove();
 
     if (this.isFree) {
       this.isFree = false;
-      return this.$isCached = this.cache.tryReturnToCache(this);
+      if (this.cache.tryReturnToCache(this)) {
+        this.$state |= LifecycleState.isCached;
+        return true;
+      }
     }
     return false;
   }
@@ -229,7 +233,7 @@ export class ViewFactory implements IViewFactory {
 
     if (cache !== null && cache.length > 0) {
       view = cache.pop();
-      view.$isCached = false;
+      view.$state &= ~LifecycleState.isCached;
       return view;
     }
 

@@ -2,7 +2,7 @@ import { Immutable } from '@aurelia/kernel';
 import { ICustomElementType, IHydrateElementInstruction, IRenderable, IRenderingEngine, ITemplate } from '.';
 import { BindingFlags, IBindScope, IChangeSet } from '../binding';
 import { INode } from '../dom';
-import { ILifecycleState } from '../lifecycle-state';
+import { ILifecycleState, LifecycleState } from '../lifecycle-state';
 
 export enum LifecycleFlags {
   none                = 0b001,
@@ -26,7 +26,6 @@ export const enum LifecycleHooks {
 }
 
 export interface IAttach extends ICachable {
-  readonly $isAttached: boolean;
   $nextAttachable: IAttach;
   $prevAttachable: IAttach;
   $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
@@ -34,12 +33,10 @@ export interface IAttach extends ICachable {
 }
 
 export interface ICachable extends ILifecycleState {
-  readonly $isCached: boolean;
   $cache(): void;
 }
 
 export interface IMountable extends ILifecycleState {
-  readonly $needsMount: boolean;
   /**
    * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
    */
@@ -518,7 +515,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
   public detach(requestor: IAttach): IDetachLifecycleController {
     this.allowUnmount = true;
 
-    if (requestor.$isAttached) {
+    if (requestor.$state & LifecycleState.isAttached) {
       requestor.$detach(this);
     } else if (isUnmountable(requestor)) {
       this.queueUnmount(requestor);

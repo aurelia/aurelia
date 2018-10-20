@@ -36,7 +36,7 @@ export interface ICustomAttributeType extends
   Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
 
 type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
-type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$isAttached' | '$scope'>> & ILifecycleState;
+type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & ILifecycleState;
 
 export interface ICustomAttribute extends IBindScope, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {
   $hydrate(renderingEngine: IRenderingEngine): void;
@@ -116,8 +116,6 @@ function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: 
   const Type = this.constructor as ICustomAttributeType;
 
   this.$state = LifecycleState.none;
-  this.$isAttached = false;
-  this.$state &= ~LifecycleState.isBound;
   this.$scope = null;
 
   renderingEngine.applyRuntimeBehavior(Type, this);
@@ -170,7 +168,7 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
 }
 
 function attach(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-  if (this.$isAttached) {
+  if (this.$state & LifecycleState.isAttached) {
     return;
   }
   const hooks = this.$behavior.hooks;
@@ -179,7 +177,7 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
     this.attaching(encapsulationSource, lifecycle);
   }
 
-  this.$isAttached = true;
+  this.$state |= LifecycleState.isAttached;
 
   if (hooks & LifecycleHooks.hasAttached) {
     lifecycle.queueAttachedCallback(<Required<typeof this>>this);
@@ -187,13 +185,13 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
 }
 
 function detach(this: IInternalCustomAttributeImplementation, lifecycle: IDetachLifecycle): void {
-  if (this.$isAttached) {
+  if (this.$state & LifecycleState.isAttached) {
     const hooks = this.$behavior.hooks;
     if (hooks & LifecycleHooks.hasDetaching) {
       this.detaching(lifecycle);
     }
 
-    this.$isAttached = false;
+    this.$state &= ~LifecycleState.isAttached;
 
     if (hooks & LifecycleHooks.hasDetached) {
       lifecycle.queueDetachedCallback(<Required<typeof this>>this);

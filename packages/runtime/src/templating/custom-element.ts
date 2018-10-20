@@ -162,8 +162,6 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   this.$prevAttachable = this.$nextAttachable = null;
 
   this.$state = LifecycleState.none;
-  this.$isAttached = false;
-  this.$state &= ~LifecycleState.isBound;
   this.$scope = Scope.create(this, null);
   this.$projector = determineProjector(this, host, description);
 
@@ -233,7 +231,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
 }
 
 function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-  if (this.$isAttached) {
+  if (this.$state & LifecycleState.isAttached) {
     return;
   }
   const hooks = this.$behavior.hooks;
@@ -250,7 +248,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   }
 
   lifecycle.queueMount(this);
-  this.$isAttached = true;
+  this.$state |= LifecycleState.isAttached;
 
   if (hooks & LifecycleHooks.hasAttached) {
     lifecycle.queueAttachedCallback(<Required<typeof this>>this);
@@ -258,7 +256,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
 }
 
 function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLifecycle): void {
-  if (this.$isAttached) {
+  if (this.$state & LifecycleState.isAttached) {
     const hooks = this.$behavior.hooks;
     if (hooks & LifecycleHooks.hasDetaching) {
       this.detaching(lifecycle);
@@ -272,7 +270,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLi
       current = current.$prevAttachable;
     }
 
-    this.$isAttached = false;
+    this.$state &= ~LifecycleState.isAttached;
 
     if (hooks & LifecycleHooks.hasDetached) {
       lifecycle.queueDetachedCallback(<Required<typeof this>>this);

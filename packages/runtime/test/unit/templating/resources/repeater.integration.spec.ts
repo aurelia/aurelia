@@ -358,7 +358,7 @@ describe('ArrayRepeater - render html', () => {
     changeSet.flushChanges();
 
     const expectedText = initItems.map(i => `${i.id}${i.innerTodos.length}${i.innerTodos.map(ii => `${ii.innerId}${ii.innerInnerTodos.length}${ii.innerInnerTodos.map(iii => `${iii.innerInnerId}`).join('')}`).join(' ')}`).join(' ');
-    expect(host['innerText']).to.equal(expectedText);
+    expect(host['innerText'].trim()).to.equal(expectedText);
   });
 });
 

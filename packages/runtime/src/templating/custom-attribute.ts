@@ -17,8 +17,7 @@ import { INode } from '../dom';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
 import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks } from './lifecycle';
-import { IRenderable } from './renderable';
-import { IRenderingEngine } from './rendering-engine';
+import { IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
 export interface IAttributeDefinition {

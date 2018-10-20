@@ -1,5 +1,5 @@
 import { ILifecycleTask } from './../../src/templating/lifecycle';
-import { PLATFORM, IContainer, IDisposable, ImmutableArray, Immutable } from '../../../kernel/src';
+import { PLATFORM, IContainer, IDisposable, ImmutableArray, Immutable, Writable } from '../../../kernel/src';
 import {
   INodeSequence,
   ITemplate,
@@ -58,6 +58,8 @@ export class MockContext {
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
 export class MockCustomElement implements ICustomElement {
+  public $isCached: boolean = false;
+  public $needsMount: boolean = false;
   public $bindables: IBindScope[];
   public $attachables: IAttach[];
   public $isAttached: boolean;
@@ -144,11 +146,14 @@ export class MockCustomElement implements ICustomElement {
   }
 
   public $mount(): void {
+    this.$needsMount = false;
     this.$nodes.appendTo(this.$host);
     this.$mount = PLATFORM.noop;
   }
 
-  public $unmount(): void { }
+  public $unmount(): void {
+    this.$needsMount = true;
+  }
 }
 
 export function createMockRenderContext(
@@ -306,7 +311,7 @@ export class MockTextNodeSequence implements INodeSequence {
   }
 
   public findTargets(): ArrayLike<Node> {
-    return PLATFORM.emptyArray;
+    return [this.firstChild];
   }
 
   public insertBefore(refNode: Node): void {
@@ -350,10 +355,10 @@ export class MockTemplate implements ITemplate {
     }
   }
 
-  public createFor(renderable: IRenderable, host?: Node, replacements?: TemplatePartDefinitions): MockNodeSequence {
-    const nodes = new MockNodeSequence(<DocumentFragment>this.template.content.cloneNode(true));
-    this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, replacements);
-    return nodes;
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockNodeSequence(<DocumentFragment>this.template.content.cloneNode(true));
+    (<Writable<IRenderable>>renderable).$context = this.renderContext;
+    this.renderContext.render(<any>renderable, nodes.findTargets(), this.templateDefinition, host, parts);
   }
 }
 
@@ -363,10 +368,9 @@ export class MockTextNodeTemplate {
     public observerLocator: any
   ) {}
 
-  public createFor(renderable: { $bindables: IBindScope[] }): MockTextNodeSequence {
-    const nodes = new MockTextNodeSequence();
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockTextNodeSequence();
     renderable.$bindables.push(new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, null));
-    return nodes;
   }
 }
 
@@ -383,8 +387,8 @@ export class MockIfTextNodeTemplate {
     public changeSet: any
   ) {}
 
-  public createFor(renderable: IView): MockNodeSequence {
-    const nodes = MockNodeSequence.createRenderLocation();
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const nodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
     const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
     const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
@@ -401,7 +405,6 @@ export class MockIfTextNodeTemplate {
     renderable.$attachables.push(sut);
     renderable.$bindables.push(new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
     renderable.$bindables.push(sut);
-    return nodes;
   }
 }
 
@@ -412,8 +415,8 @@ export class MockElseTextNodeTemplate {
     public changeSet: any
   ) {}
 
-  public createFor(renderable: IView): MockNodeSequence {
-    const nodes = MockNodeSequence.createRenderLocation();
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
     const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
     const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
@@ -432,7 +435,6 @@ export class MockElseTextNodeTemplate {
     renderable.$attachables.push(<any>sut);
     renderable.$bindables.push(new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
     renderable.$bindables.push(<any>sut);
-    return nodes;
   }
 }
 
@@ -443,8 +445,8 @@ export class MockIfElseTextNodeTemplate {
     public changeSet: any
   ) {}
 
-  public createFor(renderable: IView): MockNodeSequence {
-    const ifNodes = MockNodeSequence.createRenderLocation();
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const ifNodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
     const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
     const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
@@ -478,13 +480,12 @@ export class MockIfElseTextNodeTemplate {
     renderable.$attachables.push(<any>elseSut);
     renderable.$bindables.push(new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, null));
     renderable.$bindables.push(<any>elseSut);
-
-    return ifNodes;
   }
 }
 
 
 export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
+  public $isCached: boolean = false;
   public $isAttached: boolean = false;
   public $isBound: boolean = false;
 
@@ -767,9 +768,8 @@ export function defineComponentLifecycleMock() {
       this.trace(`unbound`, flags);
       this.verifyPropertyValue('$isBound', false, 'detached');
     }
-    public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): INodeSequence {
+    public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
       this.trace(`render`, host, parts);
-      return new MockTextNodeSequence();
     }
     public caching(): void {
       this.trace(`caching`);

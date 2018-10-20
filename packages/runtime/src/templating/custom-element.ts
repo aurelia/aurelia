@@ -14,12 +14,11 @@ import { Scope } from '../binding';
 import { BindingFlags } from '../binding/binding-flags';
 import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
+import { buildTemplateDefinition } from './definition-builder';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
 import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable } from './lifecycle';
-import { IRenderable } from './renderable';
-import { IRenderingEngine } from './rendering-engine';
+import { IRenderable, IRenderingEngine, ITemplate } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
-import { ITemplate } from './template';
 
 export interface ICustomElementType extends
   IResourceType<ITemplateDefinition, ICustomElement>,
@@ -126,7 +125,7 @@ export const CustomElementResource: ICustomElementResource = {
       throw Reporter.error(70);
     }
     const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
-    const description = createCustomElementDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, <ICustomElementType & T>Type);
+    const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrSource)
     const proto: Writable<ICustomElement> = Type.prototype;
 
     Type.kind = CustomElementResource;
@@ -164,23 +163,14 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
-  let template: ITemplate;
-
   if (this.$behavior.hasRender) {
     const result = this.render(host, options.parts);
 
-    if ('getElementTemplate' in result) {
-      template = result.getElementTemplate(renderingEngine, Type);
-    } else {
-      this.$nodes = result;
+    if (result && 'getElementTemplate' in result) {
+      result.getElementTemplate(renderingEngine, Type).render(this, host, options.parts);
     }
   } else {
-    template = renderingEngine.getElementTemplate(description, Type);
-  }
-
-  if (template) {
-    this.$context = template.renderContext;
-    this.$nodes = template.createFor(this, host, options.parts);
+    renderingEngine.getElementTemplate(description, Type).render(this, host, options.parts);
   }
 
   if (this.$behavior.hasCreated) {
@@ -303,26 +293,6 @@ function mount(this: IInternalCustomElementImplementation): void {
 
 function unmount(this: IInternalCustomElementImplementation): void {
   this.$projector.take(this.$nodes);
-}
-
-/*@internal*/
-export function createCustomElementDescription(def: ITemplateDefinition, Type: ICustomElementType): TemplateDefinition {
-  return {
-    name: def.name || 'unnamed',
-    template: def.template || null,
-    cache: def.cache || 0,
-    build: def.build || {
-      required: false,
-      compiler: 'default'
-    },
-    bindables: {...Type.bindables, ...def.bindables},
-    instructions: def.instructions ? PLATFORM.toArray(def.instructions) : PLATFORM.emptyArray,
-    dependencies: def.dependencies ? PLATFORM.toArray(def.dependencies) : PLATFORM.emptyArray,
-    surrogates: def.surrogates ? PLATFORM.toArray(def.surrogates) : PLATFORM.emptyArray,
-    containerless: def.containerless || Type.containerless || false,
-    shadowOptions: def.shadowOptions || Type.shadowOptions || null,
-    hasSlots: def.hasSlots || false
-  };
 }
 
 export interface IElementProjector {

@@ -2,7 +2,7 @@ import { MockTextNodeSequence, MockRenderingEngine, IComponentLifecycleMock, def
 import { IDetachLifecycle } from './../../../src/templating/lifecycle';
 import { BindingFlags } from './../../../src/binding/binding-flags';
 import { Immutable, PLATFORM, Writable } from '@aurelia/kernel';
-import { customElement, useShadowDOM, containerless, CustomElementResource, createCustomElementDescription, ShadowDOMProjector, ContainerlessProjector, HostProjector, CustomAttributeResource, INode, ITemplateDefinition, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate, ICustomElementType, IRenderingEngine, Scope, ITemplate, IInternalCustomElementImplementation, IRuntimeBehavior, IElementProjector } from '../../../src/index';
+import { customElement, useShadowDOM, containerless, CustomElementResource, ShadowDOMProjector, ContainerlessProjector, HostProjector, CustomAttributeResource, INode, ITemplateDefinition, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate, ICustomElementType, IRenderingEngine, Scope, ITemplate, IInternalCustomElementImplementation, IRuntimeBehavior, IElementProjector } from '../../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../util';
 
@@ -706,17 +706,17 @@ describe('@customElement', () => {
         // Arrange
         const { Type, sut } = createCustomElement('foo');
 
-        let createdForCalled = false;
-        let createdForRenderable;
-        let createdForHost;
-        let createdForParts;
+        let renderCalled = false;
+        let renderRenderable;
+        let renderHost;
+        let renderParts;
         const template: ITemplate = <any>{
           renderContext: <ITemplate['renderContext']>{},
-          createFor: <ITemplate['createFor']>((renderable, host, parts) => {
-            createdForCalled = true;
-            createdForRenderable = renderable;
-            createdForHost = host;
-            createdForParts = parts;
+          render: <ITemplate['render']>((renderable, host, parts) => {
+            renderCalled = true;
+            renderRenderable = renderable;
+            renderHost = host;
+            renderParts = parts;
           })
         };
         let appliedType: ICustomElementType;

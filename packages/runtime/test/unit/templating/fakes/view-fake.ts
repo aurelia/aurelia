@@ -11,10 +11,13 @@ import {
   INodeSequence,
   IRenderLocation,
   IDetachLifecycle,
-  IAttachLifecycle
+  IAttachLifecycle,
+  NodeSequenceFactory
 } from "../../../../src/index";
 
 export class ViewFake implements IView {
+  $isCached: boolean = false;
+  $needsMount: boolean = false;
   lockScope(scope: IScope): void {
     this.$scope = scope;
     this.$bind = () => {
@@ -33,14 +36,14 @@ export class ViewFake implements IView {
   }
 
   $unmount() {
-    this.mountRequired = true;
+    this.$needsMount = true;
     this.$nodes.remove();
   }
 
   $cache() {}
 
   hold(location: IRenderLocation): void {
-    this.mountRequired = true;
+    this.$needsMount = true;
     this.location = location;
   }
 
@@ -52,7 +55,6 @@ export class ViewFake implements IView {
   cache: IViewFactory;
   $isAttached: boolean = false;
   location: IRenderLocation;
-  mountRequired = false;
   private isFree: boolean = false;
 
   tryReturnToCache(): boolean {
@@ -71,7 +73,7 @@ export class ViewFake implements IView {
 
   // IAttach impl
   $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    if (this.mountRequired) {
+    if (this.$needsMount) {
       lifecycle.queueMount(this);
     }
 
@@ -95,6 +97,6 @@ export class ViewFake implements IView {
   constructor() {
     this.$bindables = [];
     this.$attachables = [];
-    this.$nodes = DOM.createNodeSequenceFactory('<div>Fake View</div>')();
+    this.$nodes = NodeSequenceFactory.createFor('<div>Fake View</div>').createNodeSequence();
   }
 }

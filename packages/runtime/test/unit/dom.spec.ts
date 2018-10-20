@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
 import { expect } from 'chai';
-import { DOM, INode, FragmentNodeSequence } from '../../src/index';
+import { DOM, INode, FragmentNodeSequence, NodeSequenceFactory } from '../../src/index';
 
 function wrap(inner: string, tag: string): string {
   if (tag.length === 0) {
@@ -29,6 +29,70 @@ function verifyDoesNotThrow(call: Function): void {
   expect(err).to.be.undefined;
 }
 
+describe('NodeSequenceFactory', () => {
+
+  describe('createNodeSequenceFactory', () => {
+    const textArr = ['', 'text', '#text'];
+    const elementsArr = [[''], ['div'], ['div', 'p']];
+    const wrapperArr = ['', 'div', 'template'];
+
+    for (const text of textArr) {
+
+      for (const elements of elementsArr) {
+        let elementsMarkup = elements.map(e => wrap(text, e)).join('');
+
+        for (const wrapper of wrapperArr) {
+          const markup = wrap(elementsMarkup, wrapper);
+
+          it(`should create a factory that returns the correct markup for "${markup}"`, () => {
+            const factory = NodeSequenceFactory.createFor(markup);
+            const view = factory.createNodeSequence();
+            const fragment = <DocumentFragment>view['fragment'];
+            let parsedMarkup = '';
+            const childCount = fragment.childNodes.length;
+            let i = 0;
+            while (i < childCount) {
+              const child = fragment.childNodes.item(i);
+              if (child['outerHTML']) {
+                parsedMarkup += child['outerHTML'];
+              } else {
+                parsedMarkup += child['textContent'];
+              }
+              i++;
+            }
+            expect(parsedMarkup).to.equal(markup);
+          });
+
+          it(`should create a factory that always returns a view with a different fragment instance for "${markup}"`, () => {
+            const factory = NodeSequenceFactory.createFor(markup);
+            const fragment1 = factory.createNodeSequence()['fragment'];
+            const fragment2 = factory.createNodeSequence()['fragment'];
+            const fragment3 = factory.createNodeSequence()['fragment'];
+
+            if (fragment1 === fragment2 || fragment1 === fragment3 || fragment2 === fragment3) {
+              throw new Error('Expected all fragments to be different instances');
+            }
+          });
+        }
+      }
+    }
+
+    const validInputArr: any[] = ['', 'asdf', 'div', 1, true, false, {}, new Error(), undefined, null];
+    for (const validInput of validInputArr) {
+      it(`should not throw for valid input type "${typeof validInput}"`, () => {
+        verifyDoesNotThrow(NodeSequenceFactory.createFor.bind(null, validInput));
+      });
+    }
+
+    const invalidInputArr: any[] = [Symbol()];
+    for (const invalidInput of invalidInputArr) {
+      it(`should throw for invalid input type "${typeof invalidInput}"`, () => {
+        verifyThrows(NodeSequenceFactory.createFor.bind(null, invalidInput));
+      });
+    }
+  });
+})
+
 describe('DOM', () => {
   // reset DOM after each test to make sure self-optimizations do not affect test outcomes
   const DOMBackup = Object.create(null);
@@ -52,67 +116,6 @@ describe('DOM', () => {
 
   afterEach(() => {
     restoreBackups();
-  });
-
-  describe('createNodeSequenceFactory', () => {
-    const textArr = ['', 'text', '#text'];
-    const elementsArr = [[''], ['div'], ['div', 'p']];
-    const wrapperArr = ['', 'div', 'template'];
-
-    for (const text of textArr) {
-
-      for (const elements of elementsArr) {
-        let elementsMarkup = elements.map(e => wrap(text, e)).join('');
-
-        for (const wrapper of wrapperArr) {
-          const markup = wrap(elementsMarkup, wrapper);
-
-          it(`should create a factory that returns the correct markup for "${markup}"`, () => {
-            const factory = DOM.createNodeSequenceFactory(markup);
-            const view = factory();
-            const fragment = <DocumentFragment>view['fragment'];
-            let parsedMarkup = '';
-            const childCount = fragment.childNodes.length;
-            let i = 0;
-            while (i < childCount) {
-              const child = fragment.childNodes.item(i);
-              if (child['outerHTML']) {
-                parsedMarkup += child['outerHTML'];
-              } else {
-                parsedMarkup += child['textContent'];
-              }
-              i++;
-            }
-            expect(parsedMarkup).to.equal(markup);
-          });
-
-          it(`should create a factory that always returns a view with a different fragment instance for "${markup}"`, () => {
-            const factory = DOM.createNodeSequenceFactory(markup);
-            const fragment1 = factory()['fragment'];
-            const fragment2 = factory()['fragment'];
-            const fragment3 = factory()['fragment'];
-
-            if (fragment1 === fragment2 || fragment1 === fragment3 || fragment2 === fragment3) {
-              throw new Error('Expected all fragments to be different instances');
-            }
-          });
-        }
-      }
-    }
-
-    const validInputArr: any[] = ['', 'asdf', 'div', 1, true, false, {}, new Error()];
-    for (const validInput of validInputArr) {
-      it(`should not throw for valid input type "${typeof validInput}"`, () => {
-        verifyDoesNotThrow(DOM.createNodeSequenceFactory.bind(null, validInput));
-      });
-    }
-
-    const invalidInputArr: any[] = [Symbol(), null, undefined];
-    for (const invalidInput of invalidInputArr) {
-      it(`should throw for invalid input type "${typeof invalidInput}"`, () => {
-        verifyThrows(DOM.createNodeSequenceFactory.bind(null, invalidInput));
-      });
-    }
   });
 
   describe('createElement', () => {

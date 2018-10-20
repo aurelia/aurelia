@@ -33,10 +33,8 @@ import {
   TemplateDefinition,
   TemplatePartDefinitions
 } from './instructions';
-import { IRenderContext } from './render-context';
 import { IRenderStrategy, RenderStrategyResource } from './render-strategy';
-import { IRenderable } from './renderable';
-import { IRenderingEngine } from './rendering-engine';
+import { IRenderable, IRenderContext, IRenderingEngine } from './rendering-engine';
 
 export interface IRenderer {
   render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
@@ -106,8 +104,8 @@ export class Renderer implements IRenderer {
     const next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
-    const from = instruction.from as any;
-    const expr = (from.$kind ? from : this.parser.parse(from, BindingType.Interpolation)) as Interpolation;
+    const $from = instruction.from as any;
+    const expr = ($from.$kind ? $from : this.parser.parse($from, BindingType.Interpolation)) as Interpolation;
     if (expr.isMulti) {
       renderable.$bindables.push(new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, this.context));
     } else {
@@ -116,8 +114,8 @@ export class Renderer implements IRenderer {
   }
 
   public [TargetedInstructionType.interpolation](renderable: IRenderable, target: any, instruction: Immutable<IInterpolationInstruction>): void {
-    const from = instruction.from as any;
-    const expr = (from.$kind ? from : this.parser.parse(from, BindingType.Interpolation)) as Interpolation;
+    const $from = instruction.from as any;
+    const expr = ($from.$kind ? $from : this.parser.parse($from, BindingType.Interpolation)) as Interpolation;
     if (expr.isMulti) {
       renderable.$bindables.push(new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.to, BindingMode.toView, this.context));
     } else {
@@ -126,33 +124,33 @@ export class Renderer implements IRenderer {
   }
 
   public [TargetedInstructionType.propertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IPropertyBindingInstruction>): void {
-    const from = instruction.from as any;
-    renderable.$bindables.push(new Binding(from.$kind ? from : this.parser.parse(from, BindingType.IsPropertyCommand | instruction.mode), target, instruction.to, instruction.mode, this.observerLocator, this.context));
+    const $from = instruction.from as any;
+    renderable.$bindables.push(new Binding($from.$kind ? $from : this.parser.parse($from, BindingType.IsPropertyCommand | instruction.mode), target, instruction.to, instruction.mode, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.iteratorBinding](renderable: IRenderable, target: any, instruction: Immutable<IIteratorBindingInstruction>): void {
-    const from = instruction.from as any;
-    renderable.$bindables.push(new Binding(from.$kind ? from : this.parser.parse(from, BindingType.ForCommand), target, instruction.to, BindingMode.toView, this.observerLocator, this.context));
+    const $from = instruction.from as any;
+    renderable.$bindables.push(new Binding($from.$kind ? $from : this.parser.parse($from, BindingType.ForCommand), target, instruction.to, BindingMode.toView, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.listenerBinding](renderable: IRenderable, target: any, instruction: Immutable<IListenerBindingInstruction>): void {
-    const from = instruction.from as any;
-    renderable.$bindables.push(new Listener(instruction.to, instruction.strategy, from.$kind ? from : this.parser.parse(from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta)), target, instruction.preventDefault, this.eventManager, this.context));
+    const $from = instruction.from as any;
+    renderable.$bindables.push(new Listener(instruction.to, instruction.strategy, $from.$kind ? $from : this.parser.parse($from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta)), target, instruction.preventDefault, this.eventManager, this.context));
   }
 
   public [TargetedInstructionType.callBinding](renderable: IRenderable, target: any, instruction: Immutable<ICallBindingInstruction>): void {
-    const from = instruction.from as any;
-    renderable.$bindables.push(new Call(from.$kind ? from : this.parser.parse(from, BindingType.CallCommand), target, instruction.to, this.observerLocator, this.context));
+    const $from = instruction.from as any;
+    renderable.$bindables.push(new Call($from.$kind ? $from : this.parser.parse($from, BindingType.CallCommand), target, instruction.to, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.refBinding](renderable: IRenderable, target: any, instruction: Immutable<IRefBindingInstruction>): void {
-    const from = instruction.from as any;
-    renderable.$bindables.push(new Ref(from.$kind ? from : this.parser.parse(from, BindingType.IsRef), target, this.context));
+    const $from = instruction.from as any;
+    renderable.$bindables.push(new Ref($from.$kind ? $from : this.parser.parse($from, BindingType.IsRef), target, this.context));
   }
 
   public [TargetedInstructionType.stylePropertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IStylePropertyBindingInstruction>): void {
-    const from = instruction.from as any;
-    renderable.$bindables.push(new Binding(from.$kind ? from : this.parser.parse(from, BindingType.IsPropertyCommand | BindingMode.toView), (<any>target).style, instruction.to, BindingMode.toView, this.observerLocator, this.context));
+    const $from = instruction.from as any;
+    renderable.$bindables.push(new Binding($from.$kind ? $from : this.parser.parse($from, BindingType.IsPropertyCommand | BindingMode.toView), (<any>target).style, instruction.to, BindingMode.toView, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.setProperty](renderable: IRenderable, target: any, instruction: Immutable<ISetPropertyInstruction>): void {
@@ -232,9 +230,9 @@ export class Renderer implements IRenderer {
     const toViewModel = instruction.toViewModel;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const childInstruction = childInstructions[i];
-      const from: any = childInstruction.from;
+      const $from: any = childInstruction.from;
       renderable.$bindables.push(new LetBinding(
-        from.$kind ? from : this.parser.parse(from, BindingType.IsPropertyCommand),
+        $from.$kind ? $from : this.parser.parse($from, BindingType.IsPropertyCommand),
         childInstruction.to,
         this.observerLocator,
         this.context,

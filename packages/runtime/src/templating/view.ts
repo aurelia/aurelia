@@ -4,9 +4,7 @@ import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { IAttach, IAttachLifecycle, IDetachLifecycle, IMountable } from './lifecycle';
-import { IRenderContext } from './render-context';
-import { IRenderable } from './renderable';
-import { ITemplate } from './template';
+import { IRenderable, IRenderContext, ITemplate } from './rendering-engine';
 
 export type RenderCallback = (view: IView) => void;
 
@@ -41,20 +39,16 @@ export class View implements IView {
   public $bindables: IBindScope[] = [];
   public $attachables: IAttach[] = [];
   public $scope: IScope = null;
-  public $nodes: INodeSequence;
   public $isBound: boolean = false;
   public $isAttached: boolean = false;
   public $needsMount: boolean = false;
   public $isCached: boolean = false;
+  public $nodes: INodeSequence;
   public $context: IRenderContext;
   public location: IRenderLocation;
   private isFree: boolean = false;
 
-  constructor(
-    public cache: IViewCache,
-    template: ITemplate) {
-    this.$nodes = template.createFor(this);
-  }
+  constructor(public cache: IViewCache) { }
 
   public hold(location: IRenderLocation): void {
     if (!location.parentNode) { // unmet invariant: location must be a child of some other node
@@ -218,14 +212,20 @@ export class ViewFactory implements IViewFactory {
 
   public create(): IView {
     const cache = this.cache;
+    let view: View;
 
     if (cache !== null && cache.length > 0) {
-      const view = cache.pop();
+      view = cache.pop();
       view.$isCached = false;
       return view;
     }
 
-    return new View(this, this.template);
+    view = new View(this);
+    this.template.render(view);
+    if (!view.$nodes) {
+      throw Reporter.error(90);
+    }
+    return view;
   }
 }
 

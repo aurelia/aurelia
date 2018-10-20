@@ -53,21 +53,22 @@ export interface ILifecycleHooks extends Partial<IRenderable> {
    * If this hook is implemented, it will be used instead of `renderingEngine.getElementTemplate`.
    * This allows you to completely override the default rendering behavior.
    *
-   * In addition to providing the return value, it is the responsibility of the implementer to:
+   * It is the responsibility of the implementer to:
    * - Populate `this.$bindables` with any Bindings, child Views, custom elements and custom attributes
    * - Populate `this.$attachables` with any child Views, custom elements and custom attributes
+   * - Populate `this.$nodes` with the nodes that need to be appended to the host
+   * - Populate `this.$context` with the RenderContext / Container scoped to this instance
    *
    * @param host The DOM node that declares this custom element
    * @param parts Replaceable parts, if any
    *
-   * @returns Either an instance of `INodeSequence` with the nodes that need to be appended to the host,
-   * or an implementation of `IElementTemplateProvider`
+   * @returns Either an implementation of `IElementTemplateProvider`, or void
    *
    * @description
    * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
-  render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | INodeSequence;
+  render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
 
   /**
    * Called at the end of `$hydrate`.

@@ -1,4 +1,4 @@
-import { DI, IContainer, IResolver, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
+import { Constructable, DI, IContainer, IResolver, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
 import { ICustomElement } from './templating/custom-element';
 
 export const ELEMENT_NODE = 1;
@@ -106,11 +106,27 @@ export interface INodeObserver {
 
 // tslint:disable:no-any
 export const DOM = {
-  createDocumentFragment(): IDocumentFragment {
-    return <IDocumentFragment>document.createDocumentFragment();
+  createDocumentFragment(markupOrNode?: string | IElement): IDocumentFragment {
+    if (markupOrNode === undefined || markupOrNode === null) {
+      return <IDocumentFragment>document.createDocumentFragment();
+    }
+    if ((<IElement>markupOrNode).nodeType > 0) {
+      if ((<IElement>markupOrNode).content !== undefined) {
+        return (<IElement>markupOrNode).content;
+      }
+      const fragment = document.createDocumentFragment();
+      fragment.appendChild(<any>markupOrNode);
+      return <IDocumentFragment>fragment;
+    }
+    return DOM.createTemplate(<string>markupOrNode).content;
   },
-  createTemplate(): IElement {
-    return <IElement>document.createElement('template');
+  createTemplate(markup?: string): IElement {
+    if (markup === undefined) {
+      return <IElement>document.createElement('template');
+    }
+    const template = document.createElement('template');
+    template.innerHTML = markup;
+    return <IElement>template;
   },
   addClass(node: INode, className: string): void {
     (<any>node).classList.add(className);
@@ -145,38 +161,6 @@ export const DOM = {
     const observer = new MutationObserver(callback);
     observer.observe(<any>target, options);
     return observer;
-  },
-  createNodeSequenceFactory(markupOrNode: string | IElement): () => INodeSequence {
-    let fragment: IDocumentFragment;
-    if (DOM.isNodeInstance(markupOrNode)) {
-      if (markupOrNode.content !== undefined) {
-        fragment = markupOrNode.content;
-      } else {
-        fragment = DOM.createDocumentFragment();
-        DOM.appendChild(fragment, markupOrNode);
-      }
-    } else {
-      const template = DOM.createTemplate();
-      (<any>template).innerHTML = markupOrNode;
-      fragment = template.content;
-    }
-    const childNodes = fragment.childNodes;
-    if (childNodes.length === 2) {
-      const target = childNodes[0];
-      if (target.nodeName === 'AU-MARKER') {
-        const text = childNodes[1];
-        if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
-          // tslint:disable-next-line:typedef
-          return (function() {
-            return new TextNodeSequence((<any>text).cloneNode(false));
-          }).bind(undefined);
-        }
-      }
-    }
-    // tslint:disable-next-line:typedef
-    return (function() {
-      return new FragmentNodeSequence((<any>fragment).cloneNode(true));
-    }).bind(undefined);
   },
   createTextNode(text: string): IText {
     return <IText>document.createTextNode(text);
@@ -373,6 +357,47 @@ export class FragmentNodeSequence implements INodeSequence {
         current = next;
       }
     }
+  }
+}
+
+interface ICloneableNode extends INode {
+  cloneNode(deep?: boolean): ICloneableNode;
+}
+
+export interface INodeSequenceFactory {
+  createNodeSequence(): INodeSequence;
+}
+
+export class NodeSequenceFactory {
+  private readonly deepClone: boolean;
+  private readonly node: ICloneableNode;
+  private readonly Type: Constructable<INodeSequence>;
+  constructor(fragment: IDocumentFragment) {
+    const childNodes = fragment.childNodes;
+    if (childNodes.length === 2) {
+      const target = childNodes[0];
+      if (target.nodeName === 'AU-MARKER') {
+        const text = childNodes[1];
+        if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
+          this.deepClone = false;
+          this.node = <ICloneableNode>text;
+          this.Type = TextNodeSequence;
+          return;
+        }
+      }
+    }
+    this.deepClone = true;
+    this.node = <ICloneableNode>fragment;
+    this.Type = FragmentNodeSequence;
+  }
+
+  public static createFor(markupOrNode: string | INode): NodeSequenceFactory {
+    const fragment = DOM.createDocumentFragment(markupOrNode);
+    return new NodeSequenceFactory(fragment);
+  }
+
+  public createNodeSequence(): INodeSequence {
+    return new this.Type(this.node.cloneNode(this.deepClone));
   }
 }
 

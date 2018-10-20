@@ -13,8 +13,7 @@ import {
   TemplateDefinition
 } from '../instructions';
 import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
-import { IRenderable } from '../renderable';
-import { IRenderingEngine } from '../rendering-engine';
+import { IRenderable, IRenderingEngine } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
 

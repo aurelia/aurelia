@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
-import { PLATFORM } from '@aurelia/kernel';
-import { NodeSequence } from './../../../src/dom';
+import { PLATFORM, Writable } from '@aurelia/kernel';
+import { NodeSequence, INodeSequenceFactory } from './../../../src/dom';
 import { ObserverLocator } from './../../../src/binding/observer-locator';
 import {
   noViewTemplate,
@@ -26,7 +26,8 @@ import {
   AccessScope,
   IChangeSet,
   LinkedChangeList,
-  Scope
+  Scope,
+  IRenderable
 } from '../../../src';
 import { expect } from 'chai';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
@@ -41,8 +42,8 @@ class StubView {
 
 class StubTemplate {
   constructor(public nodes = {}) {}
-  public createFor() {
-    return this.nodes;
+  public render(renderable: Partial<IRenderable>) {
+    (<Writable<IRenderable>>renderable).$nodes = <any>this.nodes;
   }
 }
 

@@ -1,15 +1,14 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { DOM, INode } from '../dom';
 import { ICustomElementType } from './custom-element';
+import { buildTemplateDefinition } from './definition-builder';
 import {
   isTargetedInstruction,
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition
 } from './instructions';
-import { IRenderContext } from './render-context';
-import { IRenderingEngine } from './rendering-engine';
-import { ITemplate } from './template';
+import { IRenderContext, IRenderingEngine, ITemplate } from './rendering-engine';
 import { IView, IViewFactory } from './view';
 
 type ChildType = PotentialRenderable | string | INode;
@@ -32,24 +31,8 @@ export class PotentialRenderable {
   ) {}
 
   public get definition(): TemplateDefinition {
-    return this.lazyDefinition || (this.lazyDefinition = {
-      name: 'unnamed',
-      template: this.node,
-      cache: 0,
-      build: typeof this.node === 'string' ? {
-        required: true,
-        compiler: 'default'
-      } : {
-        required: false
-      },
-      dependencies: this.dependencies,
-      instructions: this.instructions,
-      bindables: {},
-      containerless: false,
-      hasSlots: false,
-      shadowOptions: null,
-      surrogates: PLATFORM.emptyArray
-    });
+    return this.lazyDefinition || (this.lazyDefinition =
+      buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies))
   }
 
   public getElementTemplate(engine: IRenderingEngine, type?: ICustomElementType): ITemplate {

@@ -188,43 +188,45 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
     return;
   }
   const hooks = this.$behavior.hooks;
+  flags |= BindingFlags.fromBind;
 
   if (hooks & LifecycleHooks.hasBinding) {
-    this.binding(flags | BindingFlags.fromBind);
+    this.binding(flags);
   }
 
   const scope = this.$scope;
   let current = this.$bindableHead;
   while (current !== null) {
-    current.$bind(flags | BindingFlags.fromBind, scope);
+    current.$bind(flags, scope);
     current = current.$nextBindable;
   }
 
   this.$isBound = true;
 
   if (hooks & LifecycleHooks.hasBound) {
-    this.bound(flags | BindingFlags.fromBind);
+    this.bound(flags);
   }
 }
 
 function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
   if (this.$isBound) {
     const hooks = this.$behavior.hooks;
+    flags |= BindingFlags.fromUnbind;
 
     if (hooks & LifecycleHooks.hasUnbinding) {
-      this.unbinding(flags | BindingFlags.fromUnbind);
+      this.unbinding(flags);
     }
 
     let current = this.$bindableTail;
     while (current !== null) {
-      current.$unbind(flags | BindingFlags.fromUnbind);
+      current.$unbind(flags);
       current = current.$prevBindable;
     }
 
     this.$isBound = false;
 
     if (hooks & LifecycleHooks.hasUnbound) {
-      this.unbound(flags | BindingFlags.fromUnbind);
+      this.unbound(flags);
     }
   }
 }

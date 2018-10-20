@@ -126,40 +126,43 @@ function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: 
 }
 
 function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope): void {
+  flags |= BindingFlags.fromBind;
+
   if (this.$isBound) {
     if (this.$scope === scope) {
       return;
     }
 
-    this.$unbind(flags | BindingFlags.fromBind);
+    this.$unbind(flags);
   }
 
   const hooks = this.$behavior.hooks;
   this.$scope = scope;
 
   if (hooks & LifecycleHooks.hasBinding) {
-    this.binding(flags | BindingFlags.fromBind);
+    this.binding(flags);
   }
 
   this.$isBound = true;
 
   if (hooks & LifecycleHooks.hasBound) {
-    this.bound(flags | BindingFlags.fromBind);
+    this.bound(flags);
   }
 }
 
 function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
   if (this.$isBound) {
     const hooks = this.$behavior.hooks;
+    flags |= BindingFlags.fromUnbind;
 
     if (hooks & LifecycleHooks.hasUnbinding) {
-      this.unbinding(flags | BindingFlags.fromUnbind);
+      this.unbinding(flags);
     }
 
     this.$isBound = false;
 
     if (this.$behavior.hooks & LifecycleHooks.hasUnbound) {
-      this.unbound(flags | BindingFlags.fromUnbind);
+      this.unbound(flags);
     }
   }
 }

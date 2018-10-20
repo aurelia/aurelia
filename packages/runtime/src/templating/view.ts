@@ -84,18 +84,20 @@ export class View implements IView {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
+    flags |= BindingFlags.fromBind;
+
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind(flags | BindingFlags.fromBind);
+      this.$unbind(flags);
     }
 
     this.$scope = scope;
     let current = this.$bindableHead;
     while (current !== null) {
-      current.$bind(flags | BindingFlags.fromBind, scope);
+      current.$bind(flags, scope);
       current = current.$nextBindable;
     }
 
@@ -104,9 +106,11 @@ export class View implements IView {
 
   public $unbind(flags: BindingFlags): void {
     if (this.$isBound) {
+      flags |= BindingFlags.fromUnbind;
+
       let current = this.$bindableTail;
       while (current !== null) {
-        current.$unbind(flags | BindingFlags.fromUnbind);
+        current.$unbind(flags);
         current = current.$prevBindable;
       }
 
@@ -242,10 +246,11 @@ function lockedBind(this: View, flags: BindingFlags): void {
     return;
   }
 
+  flags |= BindingFlags.fromBind;
   const lockedScope = this.$scope;
   let current = this.$bindableHead;
   while (current !== null) {
-    current.$bind(flags | BindingFlags.fromBind, lockedScope);
+    current.$bind(flags, lockedScope);
     current = current.$nextBindable;
   }
 

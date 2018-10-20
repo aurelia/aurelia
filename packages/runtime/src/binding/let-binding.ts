@@ -55,8 +55,9 @@ export class LetBinding implements IPartialConnectableBinding {
       }
       this.$unbind(flags);
     }
+    // add isBinding flag
+    this.$state |= LifecycleState.isBinding;
 
-    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
     this.target = this.toViewModel ? scope.bindingContext : scope.overrideContext;
 
@@ -67,13 +68,18 @@ export class LetBinding implements IPartialConnectableBinding {
     // sourceExpression might have been changed during bind
     this.target[this.targetProperty] = this.sourceExpression.evaluate(BindingFlags.fromBind, scope, this.locator);
     this.sourceExpression.connect(flags, scope, this);
+
+    // add isBound flag and remove isBinding flag
+    this.$state |= LifecycleState.isBound;
+    this.$state &= ~LifecycleState.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
     if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-    this.$state &= ~LifecycleState.isBound;
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
@@ -81,5 +87,8 @@ export class LetBinding implements IPartialConnectableBinding {
     }
     this.$scope = null;
     this.unobserve(true);
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
   }
 }

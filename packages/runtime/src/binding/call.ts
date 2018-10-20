@@ -47,8 +47,9 @@ export class Call {
 
       this.$unbind(flags);
     }
+    // add isBinding flag
+    this.$state |= LifecycleState.isBinding;
 
-    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
 
     const sourceExpression = this.sourceExpression;
@@ -57,14 +58,18 @@ export class Call {
     }
 
     this.targetObserver.setValue($args => this.callSource($args), flags);
+
+    // add isBound flag and remove isBinding flag
+    this.$state |= LifecycleState.isBound;
+    this.$state &= ~LifecycleState.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
     if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-
-    this.$state &= ~LifecycleState.isBound;
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
@@ -73,6 +78,9 @@ export class Call {
 
     this.$scope = null;
     this.targetObserver.setValue(null, flags);
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
   }
   // tslint:disable:no-empty no-any
   public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }

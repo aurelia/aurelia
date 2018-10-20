@@ -97,8 +97,9 @@ export class Binding implements IPartialConnectableBinding {
       }
       this.$unbind(flags);
     }
+    // add isBinding flag
+    this.$state |= LifecycleState.isBinding;
 
-    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
 
     let sourceExpression = this.sourceExpression;
@@ -130,13 +131,18 @@ export class Binding implements IPartialConnectableBinding {
     if (mode & fromView) {
       targetObserver.subscribe(this);
     }
+
+    // add isBound flag and remove isBinding flag
+    this.$state |= LifecycleState.isBound;
+    this.$state &= ~LifecycleState.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
     if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-    this.$state &= ~LifecycleState.isBound;
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
@@ -152,5 +158,8 @@ export class Binding implements IPartialConnectableBinding {
       targetObserver.unsubscribe(this);
     }
     this.unobserve(true);
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
   }
 }

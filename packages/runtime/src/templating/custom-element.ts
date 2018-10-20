@@ -186,6 +186,9 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   if (this.$state & LifecycleState.isBound) {
     return;
   }
+  // add isBinding flag
+  this.$state |= LifecycleState.isBinding;
+
   const hooks = this.$behavior.hooks;
   flags |= BindingFlags.fromBind;
 
@@ -200,7 +203,9 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
     current = current.$nextBindable;
   }
 
+  // add isBound flag and remove isBinding flag
   this.$state |= LifecycleState.isBound;
+  this.$state &= ~LifecycleState.isBinding;
 
   if (hooks & LifecycleHooks.hasBound) {
     this.bound(flags);
@@ -209,6 +214,9 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
 
 function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
   if (this.$state & LifecycleState.isBound) {
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
+
     const hooks = this.$behavior.hooks;
     flags |= BindingFlags.fromUnbind;
 
@@ -222,7 +230,8 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
       current = current.$prevBindable;
     }
 
-    this.$state &= ~LifecycleState.isBound;
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
 
     if (hooks & LifecycleHooks.hasUnbound) {
       this.unbound(flags);
@@ -234,6 +243,9 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   if (this.$state & LifecycleState.isAttached) {
     return;
   }
+  // add isAttaching flag
+  this.$state |= LifecycleState.isAttaching;
+
   const hooks = this.$behavior.hooks;
   encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
 
@@ -248,7 +260,9 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   }
 
   lifecycle.queueMount(this);
+  // add isAttached flag, remove isAttaching flag
   this.$state |= LifecycleState.isAttached;
+  this.$state &= ~LifecycleState.isAttaching;
 
   if (hooks & LifecycleHooks.hasAttached) {
     lifecycle.queueAttachedCallback(<Required<typeof this>>this);
@@ -257,6 +271,9 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
 
 function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLifecycle): void {
   if (this.$state & LifecycleState.isAttached) {
+    // add isDetaching flag
+    this.$state |= LifecycleState.isDetaching;
+
     const hooks = this.$behavior.hooks;
     if (hooks & LifecycleHooks.hasDetaching) {
       this.detaching(lifecycle);
@@ -270,7 +287,8 @@ function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLi
       current = current.$prevAttachable;
     }
 
-    this.$state &= ~LifecycleState.isAttached;
+    // remove isAttached and isDetaching flags
+    this.$state &= ~(LifecycleState.isAttached | LifecycleState.isDetaching);
 
     if (hooks & LifecycleHooks.hasDetached) {
       lifecycle.queueDetachedCallback(<Required<typeof this>>this);

@@ -57,8 +57,9 @@ export class Listener implements IBinding {
 
       this.$unbind(flags);
     }
+    // add isBinding flag
+    this.$state |= LifecycleState.isBinding;
 
-    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
 
     const sourceExpression = this.sourceExpression;
@@ -72,14 +73,18 @@ export class Listener implements IBinding {
       this,
       this.delegationStrategy
     );
+
+    // add isBound flag and remove isBinding flag
+    this.$state |= LifecycleState.isBound;
+    this.$state &= ~LifecycleState.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
     if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-
-    this.$state &= ~LifecycleState.isBound;
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
@@ -89,6 +94,9 @@ export class Listener implements IBinding {
     this.$scope = null;
     this.handler.dispose();
     this.handler = null;
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
   }
   // tslint:disable:no-empty no-any
   public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }

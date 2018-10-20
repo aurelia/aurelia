@@ -30,8 +30,9 @@ export class Ref implements IBinding {
 
       this.$unbind(flags);
     }
+    // add isBinding flag
+    this.$state |= LifecycleState.isBinding;
 
-    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
 
     const sourceExpression = this.sourceExpression;
@@ -40,14 +41,18 @@ export class Ref implements IBinding {
     }
 
     this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
+
+    // add isBound flag and remove isBinding flag
+    this.$state |= LifecycleState.isBound;
+    this.$state &= ~LifecycleState.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
     if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-
-    this.$state &= ~LifecycleState.isBound;
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
     if (this.sourceExpression.evaluate(flags, this.$scope, this.locator) === this.target) {
       this.sourceExpression.assign(flags, this.$scope, this.locator, null);
@@ -59,6 +64,9 @@ export class Ref implements IBinding {
     }
 
     this.$scope = null;
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
   }
   // tslint:disable:no-empty no-any
   public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }

@@ -95,6 +95,8 @@ export class View implements IView {
 
       this.$unbind(flags);
     }
+    // add isBinding flag
+    this.$state |= LifecycleState.isBinding;
 
     this.$scope = scope;
     let current = this.$bindableHead;
@@ -103,11 +105,16 @@ export class View implements IView {
       current = current.$nextBindable;
     }
 
+    // add isBound flag and remove isBinding flag
     this.$state |= LifecycleState.isBound;
+    this.$state &= ~LifecycleState.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
     if (this.$state & LifecycleState.isBound) {
+      // add isUnbinding flag
+      this.$state |= LifecycleState.isUnbinding;
+
       flags |= BindingFlags.fromUnbind;
 
       let current = this.$bindableTail;
@@ -116,7 +123,8 @@ export class View implements IView {
         current = current.$prevBindable;
       }
 
-      this.$state &= ~LifecycleState.isBound;
+      // remove isBound and isUnbinding flags
+      this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
       this.$scope = null;
     }
   }
@@ -125,6 +133,8 @@ export class View implements IView {
     if (this.$state & LifecycleState.isAttached) {
       return;
     }
+    // add isAttaching flag
+    this.$state |= LifecycleState.isAttaching;
 
     let current = this.$attachableHead;
     while (current !== null) {
@@ -136,11 +146,16 @@ export class View implements IView {
       lifecycle.queueMount(this);
     }
 
+    // add isAttached flag, remove isAttaching flag
     this.$state |= LifecycleState.isAttached;
+    this.$state &= ~LifecycleState.isAttaching;
   }
 
   public $detach(lifecycle: IDetachLifecycle): void {
     if (this.$state & LifecycleState.isAttached) {
+      // add isDetaching flag
+      this.$state |= LifecycleState.isDetaching;
+
       lifecycle.queueUnmount(this);
 
       let current = this.$attachableTail;
@@ -149,7 +164,8 @@ export class View implements IView {
         current = current.$prevAttachable;
       }
 
-      this.$state &= ~LifecycleState.isAttached;
+      // remove isAttached and isDetaching flags
+      this.$state &= ~(LifecycleState.isAttached | LifecycleState.isDetaching);
     }
   }
 

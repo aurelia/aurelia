@@ -161,7 +161,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   this.$attachableHead = this.$attachableTail = null;
   this.$prevAttachable = this.$nextAttachable = null;
 
-  this.$state = LifecycleState.none;
+  this.$state = LifecycleState.needsMount;
   this.$scope = Scope.create(this, null);
   this.$projector = determineProjector(this, host, description);
 
@@ -389,7 +389,6 @@ export class ShadowDOMProjector implements IElementProjector {
 export class ContainerlessProjector implements IElementProjector {
   public host: IRenderLocation;
   private childNodes: ArrayLike<INode>;
-  private requiresMount: boolean = true;
 
   constructor(private $customElement: ICustomElement, host: ICustomElementHost) {
     if (host.childNodes.length) {
@@ -419,14 +418,14 @@ export class ContainerlessProjector implements IElementProjector {
   }
 
   public project(nodes: INodeSequence): void {
-    if (this.requiresMount) {
-      this.requiresMount = false;
+    if (this.$customElement.$state & LifecycleState.needsMount) {
+      this.$customElement.$state &= ~LifecycleState.needsMount;
       nodes.insertBefore(this.host);
     }
   }
 
   public take(nodes: INodeSequence): void {
-    this.requiresMount = true;
+    this.$customElement.$state |= LifecycleState.needsMount;
     nodes.remove();
   }
 }

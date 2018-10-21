@@ -192,7 +192,7 @@ export class Renderer implements IRenderer {
     const childInstructions = instruction.instructions;
     const factory = this.renderingEngine.getViewFactory(instruction.def, this.context);
     const context = this.context;
-    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
+    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, renderable.$nodes.convertToRenderLocation(target), false);
 
     const component = context.get<ICustomAttribute>(CustomAttributeResource.keyFrom(instruction.res));
     component.$hydrate(this.renderingEngine);

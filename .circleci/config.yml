@@ -466,7 +466,7 @@ workflows:
           path: "bundlers/jit-fuse-box-ts"
       - e2e_examples_wdio:
           name: jit-parcel-ts
-          path: "bundlers/jit-jit-parcel-ts"
+          path: "bundlers/jit-parcel-ts"
       - e2e_examples_wdio:
           name: jit-webpack-ts
           path: "bundlers/jit-webpack-ts"

@@ -1,7 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { IResourceDescriptions } from '../resource';
 import { ITemplateDefinition, TemplateDefinition } from './instructions';
-import { ViewCompileFlags } from './view-compile-flags';
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -9,3 +8,9 @@ export interface ITemplateCompiler {
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>().noDefault();
+
+export enum ViewCompileFlags {
+  none        = 0b0_001,
+  surrogate   = 0b0_010,
+  shadowDOM   = 0b0_100,
+}

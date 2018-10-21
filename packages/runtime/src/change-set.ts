@@ -1,6 +1,17 @@
 import { DI } from '@aurelia/kernel';
-import { IChangeTracker } from './observation';
-import { nativeAdd } from './set-observer';
+
+export interface ILinkedNode {
+  /*@internal*/$next?: IChangeTracker;
+  /*@internal*/$linked?: boolean;
+}
+
+/**
+ * Describes a type that tracks changes and can flush those changes in some way
+ */
+export interface IChangeTracker extends ILinkedNode {
+  hasChanges?: boolean;
+  flushChanges(): void;
+}
 
 /**
  * Represents a set of ChangeTrackers (typically observers) containing changes that can be flushed in some way (e.g. by calling subscribers).
@@ -50,6 +61,8 @@ export interface IChangeSet extends IChangeTracker {
 export const IChangeSet = DI.createInterface<IChangeSet>()
   .withDefault(x => x.singleton(<any>LinkedChangeList));
 
+const add = Set.prototype.add;
+
 /*@internal*/
 export class ChangeSet extends Set<IChangeTracker> implements IChangeSet {
   public flushed: Promise<void>;
@@ -89,7 +102,7 @@ export class ChangeSet extends Set<IChangeTracker> implements IChangeSet {
     if (this.size === 0) {
       this.flushed = this.promise.then(this.flushChanges);
     }
-    nativeAdd.call(this, changeTracker);
+    add.call(this, changeTracker);
     return this.flushed;
   }
 }

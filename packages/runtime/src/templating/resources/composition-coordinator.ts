@@ -1,7 +1,7 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
-import { IChangeSet } from '../../binding/change-set';
+import { IChangeSet } from '../../change-set';
 import { INode } from '../../dom';
 import {
   AggregateLifecycleTask,

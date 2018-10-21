@@ -1,6 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
+import { IChangeSet } from '../change-set';
 import { DOM, IHTMLElement, INode } from '../dom';
-import { IChangeSet } from './change-set';
 import { IBindingTargetAccessor } from './observation';
 import { targetObserver } from './target-observer';
 

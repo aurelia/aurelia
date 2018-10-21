@@ -1,9 +1,9 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
+import { IChangeSet, IChangeTracker } from '../change-set';
 import { INode } from '../dom';
 import { ILifecycleState } from '../lifecycle-state';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
-import { IChangeSet } from './change-set';
 // tslint:disable:no-any
 
 export interface IBindScope extends ILifecycleState {
@@ -62,19 +62,6 @@ export type IObservable = (IIndexable | string | Node | INode | Collection) & {
 export type IndexMap = number[] & {
   deletedItems?: any[];
 };
-
-export interface ILinkedNode {
-  /*@internal*/$next?: IChangeTracker;
-  /*@internal*/$linked?: boolean;
-}
-
-/**
- * Describes a type that tracks changes and can flush those changes in some way
- */
-export interface IChangeTracker extends ILinkedNode {
-  hasChanges?: boolean;
-  flushChanges(): void;
-}
 
 /**
  * Mostly just a marker enum to help with typings (specifically to reduce duplication)

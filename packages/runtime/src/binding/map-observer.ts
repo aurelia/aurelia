@@ -1,8 +1,8 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
+import { IChangeSet } from '../change-set';
 // tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
-import { IChangeSet } from './change-set';
 import { collectionObserver } from './collection-observer';
 import { CollectionKind, ICollectionObserver, IObservedMap } from './observation';
 

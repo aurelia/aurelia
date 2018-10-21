@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
-import { IChangeSet } from '../../binding/change-set';
+import { IChangeSet } from '../../change-set';
 import { INode, IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';

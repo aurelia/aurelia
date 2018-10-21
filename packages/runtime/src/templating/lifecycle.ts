@@ -1,7 +1,7 @@
 import { Immutable } from '@aurelia/kernel';
 import { BindingFlags } from '../binding/binding-flags';
-import { IChangeSet } from '../binding/change-set';
 import { IBindScope } from '../binding/observation';
+import { IChangeSet } from '../change-set';
 import { INode } from '../dom';
 import { ILifecycleState, LifecycleState } from '../lifecycle-state';
 import { ICustomElementType } from './custom-element';

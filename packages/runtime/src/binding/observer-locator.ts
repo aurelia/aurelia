@@ -1,8 +1,8 @@
 import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
+import { IChangeSet } from '../change-set';
 import { DOM, IHTMLElement, IInputElement } from '../dom';
 import { getArrayObserver } from './array-observer';
 import { IBindingContext, IOverrideContext } from './binding-context';
-import { IChangeSet } from './change-set';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
 import { CheckedObserver, ISelectElement, SelectValueObserver, ValueAttributeObserver } from './element-observation';

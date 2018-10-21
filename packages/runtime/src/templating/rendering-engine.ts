@@ -1,10 +1,10 @@
 import { all, DI, IContainer, IDisposable, Immutable, ImmutableArray, inject, IResolver, IServiceLocator, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
-import { IChangeSet } from '../binding/change-set';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
 import { IBindScope } from '../binding/observation';
 import { IObserverLocator } from '../binding/observer-locator';
+import { IChangeSet } from '../change-set';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
 import { ILifecycleState } from '../lifecycle-state';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
@@ -15,9 +15,8 @@ import { ITargetedInstruction, ITemplateDefinition, TemplateDefinition, Template
 import { IAttach } from './lifecycle';
 import { IRenderer, Renderer } from './renderer';
 import { RuntimeBehavior } from './runtime-behavior';
-import { ITemplateCompiler } from './template-compiler';
+import { ITemplateCompiler, ViewCompileFlags } from './template-compiler';
 import { IViewFactory, ViewFactory } from './view';
-import { ViewCompileFlags } from './view-compile-flags';
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;

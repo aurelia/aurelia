@@ -547,27 +547,27 @@ workflows:
     jobs:
       # verify the packages before asking approval
       - e2e_wdio:
-          <<: *filter_only_develop
+          <<: *filter_only_release
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
       - e2e_wdio:
-          <<: *filter_only_develop
+          <<: *filter_only_release
           name: jit-browserify-ts
           path: "local/jit-browserify-ts"
       - e2e_wdio:
-          <<: *filter_only_develop
+          <<: *filter_only_release
           name: jit-fuse-box-ts
           path: "local/jit-fuse-box-ts"
       - e2e_wdio:
-          <<: *filter_only_develop
+          <<: *filter_only_release
           name: jit-parcel-ts
           path: "local/jit-parcel-ts"
       - e2e_wdio:
-          <<: *filter_only_develop
+          <<: *filter_only_release
           name: jit-webpack-ts
           path: "local/jit-webpack-ts"
       - e2e_wdio:
-          <<: *filter_only_develop
+          <<: *filter_only_release
           name: jit-iife-inline
           path: "local/jit-iife-inline"
       # artifacts are already prepared and committed by the tag workflow, so only approval + publish remains

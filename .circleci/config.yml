@@ -113,16 +113,16 @@ commands:
         default: false
     steps:
       - checkout
-      - when:
-          condition: << parameters.local >>
-          steps:
-            - first_npm_install_example_local:
-                path: << parameters.path >>
       - run:
           name: "Run npm install"
           command: |
             cd ./examples/<< parameters.path >>
             npm install
+      - when:
+          condition: << parameters.local >>
+          steps:
+            - first_npm_install_example_local:
+                path: << parameters.path >>
       - when:
           condition: << parameters.e2e >>
           steps:

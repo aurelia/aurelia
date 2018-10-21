@@ -416,6 +416,8 @@ jobs:
     steps:
       - first_npm_install_example:
           path: << parameters.path >>
+      - do_build_example:
+          path: << parameters.path >>
       - do_serve_example:
           path: << parameters.path >>
       - do_test_example:

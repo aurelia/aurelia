@@ -588,6 +588,45 @@ workflows:
           channel: dev
       # verify the dev packages after publishing them
 
+  test_examples:
+    jobs:
+      - e2e_examples_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-aurelia-cli-ts
+          path: "bundlers/jit-aurelia-cli-ts"
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-browserify-ts
+          path: "bundlers/jit-browserify-ts"
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-fuse-box-ts
+          path: "bundlers/jit-fuse-box-ts"
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-parcel-ts
+          path: "bundlers/jit-parcel-ts"
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-webpack-ts
+          path: "bundlers/jit-webpack-ts"
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-iife-inline
+          path: "no-bundlers/jit-iife-inline"
+          requires:
+            - bundle_packages
+
 
   # Runs build and tests, and pushes the built artifacts to the develop branch (which then triggers publish_dev)
   # Triggered by schedule once per day on 0:00 UTC on the master branch

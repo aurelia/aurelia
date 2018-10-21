@@ -90,6 +90,17 @@ commands:
             cd ./examples/test
             npm ci
 
+  first_npm_install_example_local:
+    parameters:
+      path:
+        type: string
+    steps:
+      - run:
+          name: "Install local aurelia"
+          command: |
+            cd ./examples/<< parameters.path >>
+            npm install ../../../packages/kernel ../../../packages/runtime ../../../packages/jit
+
   first_npm_install_example:
     parameters:
       path:
@@ -97,8 +108,16 @@ commands:
       e2e:
         type: boolean
         default: true
+      local:
+        type: boolean
+        default: false
     steps:
       - checkout
+      - when:
+          condition: << parameters.local >>
+          steps:
+            - first_npm_install_example_local:
+                path: << parameters.path >>
       - run:
           name: "Run npm install"
           command: |
@@ -407,7 +426,7 @@ jobs:
       - do_publish:
           channel: << parameters.channel >>
 
-  # Standalone example test job
+  # Standalone example test jobs
   e2e_examples_wdio:
     executor: docker-circleci
     parameters:
@@ -416,6 +435,22 @@ jobs:
     steps:
       - first_npm_install_example:
           path: << parameters.path >>
+      - do_build_example:
+          path: << parameters.path >>
+      - do_serve_example:
+          path: << parameters.path >>
+      - do_test_example:
+          path: << parameters.path >>
+
+  e2e_examples_wdio_local:
+    executor: docker-circleci
+    parameters:
+      path:
+        type: string
+    steps:
+      - first_npm_install_example:
+          path: << parameters.path >>
+          local: true
       - do_build_example:
           path: << parameters.path >>
       - do_serve_example:
@@ -445,34 +480,49 @@ workflows:
           requires:
             - install_root
       - bundle_packages:
-          <<: *filter_only_master
+          <<: *filter_ignore_develop_release
           requires:
             - build_packages
       - e2e_browserstack:
           <<: *filter_only_master
           requires:
             - bundle_packages
-
-  test_examples:
-    jobs:
-      - e2e_examples_wdio:
+      - e2e_examples_wdio_local:
+          <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts
           path: "bundlers/jit-aurelia-cli-ts"
-      - e2e_examples_wdio:
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio_local:
+          <<: *filter_ignore_develop_release
           name: jit-browserify-ts
           path: "bundlers/jit-browserify-ts"
-      - e2e_examples_wdio:
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio_local:
+          <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
           path: "bundlers/jit-fuse-box-ts"
-      - e2e_examples_wdio:
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio_local:
+          <<: *filter_ignore_develop_release
           name: jit-parcel-ts
           path: "bundlers/jit-parcel-ts"
-      - e2e_examples_wdio:
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio_local:
+          <<: *filter_ignore_develop_release
           name: jit-webpack-ts
           path: "bundlers/jit-webpack-ts"
-      - e2e_examples_wdio:
+          requires:
+            - bundle_packages
+      - e2e_examples_wdio_local:
+          <<: *filter_ignore_develop_release
           name: jit-iife-inline
           path: "no-bundlers/jit-iife-inline"
+          requires:
+            - bundle_packages
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag

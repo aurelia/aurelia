@@ -237,19 +237,19 @@ commands:
       - run:
           name: "Install e2e tests"
           command: |
-            cd ./test/e2e
+            cd ./test/browserstack
             npm ci
             npm run build
       - run:
           name: "Serve e2e app in the background"
           background: true
           command: |
-            cd ./test/e2e
+            cd ./test/browserstack
             npm run start
       - run:
           name: "Run e2e tests"
           command: |
-            cd ./test/e2e
+            cd ./test/browserstack
             npm run e2e
 
   # - git related -

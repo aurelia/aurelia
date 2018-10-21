@@ -413,7 +413,14 @@ jobs:
     parameters:
       path:
         type: string
+      attach:
+        type: boolean
+        default: false
     steps:
+      - when:
+          condition: << parameters.attach >>
+          steps:
+            - first_attach_workspace
       - first_npm_install_wdio_case:
           path: << parameters.path >>
       - do_build_wdio_app:
@@ -455,36 +462,42 @@ workflows:
           <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
+          attach: true
           requires:
             - bundle_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-browserify-ts
           path: "local/jit-browserify-ts"
+          attach: true
           requires:
             - bundle_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
           path: "local/jit-fuse-box-ts"
+          attach: true
           requires:
             - bundle_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
           path: "local/jit-parcel-ts"
+          attach: true
           requires:
             - bundle_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
           path: "local/jit-webpack-ts"
+          attach: true
           requires:
             - bundle_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-iife-inline
           path: "local/jit-iife-inline"
+          attach: true
           requires:
             - bundle_packages
 

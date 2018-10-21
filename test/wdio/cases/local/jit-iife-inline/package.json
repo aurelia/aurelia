@@ -3,11 +3,12 @@
   "version": "0.1.1",
   "scripts": {
     "watch": "http-server -c-1 -p 9000 .",
-    "build": "echo \"Nothing to build!\"",
+    "build": "copyfiles -u 5 ../../../../../dist/au.bundle.js .",
     "serve": "http-server -c-1 -p 9000 ."
   },
-  "dependencies": { },
+  "dependencies": {},
   "devDependencies": {
+    "copyfiles": "latest",
     "http-server": "latest"
   }
 }

@@ -7,6 +7,7 @@
     "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {
+    "@aurelia/debug": "latest",
     "@aurelia/jit": "latest",
     "@aurelia/kernel": "latest",
     "@aurelia/runtime": "latest"

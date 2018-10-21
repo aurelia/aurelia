@@ -7,6 +7,7 @@
     "serve": "http-server -c-1 -p 9000 ."
   },
   "dependencies": {
+    "@aurelia/debug": "file:../../../../../packages/debug",
     "@aurelia/jit": "file:../../../../../packages/jit",
     "@aurelia/kernel": "file:../../../../../packages/kernel",
     "@aurelia/runtime": "file:../../../../../packages/runtime"

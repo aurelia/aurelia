@@ -27,6 +27,7 @@
     "gulp-typescript": "latest",
     "gulp-watch": "latest",
     "gulp": "next",
+    "http-server": "latest",
     "minimatch": "latest",
     "rimraf": "latest",
     "typescript": "latest"

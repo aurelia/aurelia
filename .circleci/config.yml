@@ -409,7 +409,7 @@ jobs:
 
   # Standalone wdio test jobs
   e2e_wdio:
-    executor: docker-circleci
+    executor: docker-aurelia
     parameters:
       path:
         type: string

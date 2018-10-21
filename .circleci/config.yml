@@ -82,6 +82,33 @@ commands:
           name: "Run npm install"
           command: npm ci --ignore-scripts
 
+  first_npm_install_wdio:
+    steps:
+      - run:
+          name: "Install wdio"
+          command: |
+            cd ./test/wdio
+            npm ci
+
+  first_npm_install_wdio_case:
+    parameters:
+      path:
+        type: string
+      e2e:
+        type: boolean
+        default: true
+    steps:
+      - checkout
+      - run:
+          name: "Run npm install"
+          command: |
+            cd ./test/wdio/cases/<< parameters.path >>
+            npm install
+      - when:
+          condition: << parameters.e2e >>
+          steps:
+            - first_npm_install_wdio
+
   # implies first_npm_install
   first_restore_cache:
     steps:
@@ -112,6 +139,17 @@ commands:
 
   # do_* commands are arbitrary commands that run in-between first and last
   # - build related -
+  do_build_wdio_app:
+    parameters:
+      path:
+        type: string
+    steps:
+      - run:
+          name: "Build wdio test app"
+          command: |
+            cd ./test/wdio/cases/<< parameters.path >>
+            npm run build
+
   do_build_packages:
     steps:
       - run:
@@ -133,6 +171,29 @@ commands:
           command: npm run lint
 
   # - test related -
+  do_serve_wdio_app:
+    parameters:
+      path:
+        type: string
+    steps:
+      - run:
+          name: "Serve wdio test app"
+          background: true
+          command: |
+            cd ./test/wdio/cases/<< parameters.path >>
+            npm run serve
+
+  do_test_wdio_app:
+    parameters:
+      path:
+        type: string
+    steps:
+      - run:
+          name: "Run wdio test"
+          command: |
+            cd ./test/wdio
+            npm run test
+
   do_coverage_codecov:
     steps:
       - run:
@@ -157,19 +218,19 @@ commands:
       - run:
           name: "Install e2e tests"
           command: |
-            cd ./test/e2e
+            cd ./test/browserstack
             npm ci
             npm run build
       - run:
           name: "Serve e2e app in the background"
           background: true
           command: |
-            cd ./test/e2e
+            cd ./test/browserstack
             npm run start
       - run:
           name: "Run e2e tests"
           command: |
-            cd ./test/e2e
+            cd ./test/browserstack
             npm run e2e
 
   # - git related -
@@ -346,6 +407,28 @@ jobs:
       - do_publish:
           channel: << parameters.channel >>
 
+  # Standalone wdio test jobs
+  e2e_wdio:
+    executor: docker-aurelia
+    parameters:
+      path:
+        type: string
+      attach:
+        type: boolean
+        default: false
+    steps:
+      - when:
+          condition: << parameters.attach >>
+          steps:
+            - first_attach_workspace
+      - first_npm_install_wdio_case:
+          path: << parameters.path >>
+      - do_build_wdio_app:
+          path: << parameters.path >>
+      - do_serve_wdio_app:
+          path: << parameters.path >>
+      - do_test_wdio_app:
+          path: << parameters.path >>
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
@@ -368,11 +451,53 @@ workflows:
           requires:
             - install_root
       - bundle_packages:
-          <<: *filter_only_master
+          <<: *filter_ignore_develop_release
           requires:
             - build_packages
       - e2e_browserstack:
           <<: *filter_only_master
+          requires:
+            - bundle_packages
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-aurelia-cli-ts
+          path: "local/jit-aurelia-cli-ts"
+          attach: true
+          requires:
+            - bundle_packages
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-browserify-ts
+          path: "local/jit-browserify-ts"
+          attach: true
+          requires:
+            - bundle_packages
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-fuse-box-ts
+          path: "local/jit-fuse-box-ts"
+          attach: true
+          requires:
+            - bundle_packages
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-parcel-ts
+          path: "local/jit-parcel-ts"
+          attach: true
+          requires:
+            - bundle_packages
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-webpack-ts
+          path: "local/jit-webpack-ts"
+          attach: true
+          requires:
+            - bundle_packages
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-iife-inline
+          path: "local/jit-iife-inline"
+          attach: true
           requires:
             - bundle_packages
 
@@ -420,6 +545,31 @@ workflows:
   # Triggered by push to release branch
   publish_latest:
     jobs:
+      # verify the packages before asking approval
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-aurelia-cli-ts
+          path: "local/jit-aurelia-cli-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-browserify-ts
+          path: "local/jit-browserify-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-fuse-box-ts
+          path: "local/jit-fuse-box-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-parcel-ts
+          path: "local/jit-parcel-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-webpack-ts
+          path: "local/jit-webpack-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-iife-inline
+          path: "local/jit-iife-inline"
       # artifacts are already prepared and committed by the tag workflow, so only approval + publish remains
       - request_publish_latest:
           <<: *filter_only_release
@@ -429,6 +579,31 @@ workflows:
           requires:
             - request_publish_latest
           channel: latest
+      # verify the latest packages after publishing them
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-aurelia-cli-ts
+          path: "latest/jit-aurelia-cli-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-browserify-ts
+          path: "latest/jit-browserify-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-fuse-box-ts
+          path: "latest/jit-fuse-box-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-parcel-ts
+          path: "latest/jit-parcel-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-webpack-ts
+          path: "latest/jit-webpack-ts"
+      - e2e_wdio:
+          <<: *filter_only_release
+          name: jit-iife-inline
+          path: "latest/jit-iife-inline"
 
   # Publishes from the develop branch to npm@dev
   # Triggered by push to develop branch
@@ -438,6 +613,31 @@ workflows:
       - publish_npm:
           <<: *filter_only_develop
           channel: dev
+      # verify the dev packages after publishing them
+      - e2e_wdio:
+          <<: *filter_only_develop
+          name: jit-aurelia-cli-ts
+          path: "dev/jit-aurelia-cli-ts"
+      - e2e_wdio:
+          <<: *filter_only_develop
+          name: jit-browserify-ts
+          path: "dev/jit-browserify-ts"
+      - e2e_wdio:
+          <<: *filter_only_develop
+          name: jit-fuse-box-ts
+          path: "dev/jit-fuse-box-ts"
+      - e2e_wdio:
+          <<: *filter_only_develop
+          name: jit-parcel-ts
+          path: "dev/jit-parcel-ts"
+      - e2e_wdio:
+          <<: *filter_only_develop
+          name: jit-webpack-ts
+          path: "dev/jit-webpack-ts"
+      - e2e_wdio:
+          <<: *filter_only_develop
+          name: jit-iife-inline
+          path: "dev/jit-iife-inline"
 
   # Runs build and tests, and pushes the built artifacts to the develop branch (which then triggers publish_dev)
   # Triggered by schedule once per day on 0:00 UTC on the master branch

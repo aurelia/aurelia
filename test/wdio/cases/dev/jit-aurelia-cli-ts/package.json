@@ -1,0 +1,36 @@
+{
+  "name": "jit-aurelia-cli",
+  "version": "0.1.1",
+  "scripts": {
+    "watch": "au run --watch",
+    "build": "rimraf scripts && au build",
+    "serve": "http-server -c-1 -p 9000 ."
+  },
+  "dependencies": {
+    "@aurelia/debug": "dev",
+    "@aurelia/jit": "dev",
+    "@aurelia/kernel": "dev",
+    "@aurelia/runtime": "dev",
+    "requirejs": "latest",
+    "text": "github:requirejs/text#latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "aurelia-cli": "latest",
+    "browser-sync": "latest",
+    "connect-history-api-fallback": "latest",
+    "debounce": "latest",
+    "event-stream": "latest",
+    "gulp-changed-in-place": "latest",
+    "gulp-notify": "latest",
+    "gulp-plumber": "latest",
+    "gulp-sourcemaps": "latest",
+    "gulp-typescript": "latest",
+    "gulp-watch": "latest",
+    "gulp": "next",
+    "http-server": "latest",
+    "minimatch": "latest",
+    "rimraf": "latest",
+    "typescript": "latest"
+  }
+}

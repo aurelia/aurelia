@@ -287,7 +287,7 @@ jobs:
 
   # Requires bundle_packages
   merge_and_dist:
-    executor: docker-circleci
+    executor: docker-aurelia
     parameters:
       from:
         type: string
@@ -337,12 +337,12 @@ jobs:
       - do_e2e_browserstack
 
   publish_npm:
-    executor: docker-circleci
+    executor: docker-aurelia
     parameters:
       channel:
         type: string
     steps:
-      - checkout
+      - first_restore_cache
       - do_publish:
           channel: << parameters.channel >>
 

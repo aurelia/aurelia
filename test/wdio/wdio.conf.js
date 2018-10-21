@@ -1,7 +1,7 @@
 module.exports.config = {
   port: '9515',
   path: '/',
-  specs: ['./e2e/*.spec.js'],
+  specs: ['./specs/*.spec.js'],
 
   capabilities: [{ browserName: 'chrome' }],
 

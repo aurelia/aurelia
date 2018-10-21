@@ -342,7 +342,7 @@ jobs:
       channel:
         type: string
     steps:
-      - first_restore_cache
+      - first_npm_install
       - do_publish:
           channel: << parameters.channel >>
 

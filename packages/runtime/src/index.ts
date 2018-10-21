@@ -21,6 +21,8 @@ export * from './binding/dirty-checker';
 export * from './binding/element-observation';
 export * from './binding/event-manager';
 export * from './binding/expression-parser';
+export * from './binding/interpolation-binding';
+export * from './binding/let-binding';
 export * from './binding/listener';
 export { MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear } from './binding/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export * from './binding/observation';
@@ -44,6 +46,7 @@ export * from './templating/resources/with';
 export * from './templating/bindable';
 export * from './templating/custom-attribute';
 export * from './templating/custom-element';
+export * from './templating/create-element';
 export * from './templating/instructions';
 export * from './templating/lifecycle';
 export * from './templating/render-strategy';

@@ -8,12 +8,14 @@
   },
   "dependencies": {
     "@aurelia/jit": "dev",
+    "@aurelia/kernel": "dev",
+    "@aurelia/runtime": "dev",
     "requirejs": "latest",
     "text": "github:requirejs/text#latest"
   },
   "devDependencies": {
-    "@types/node": "^8.10.22",
-    "aurelia-cli": "github:huochunpeng/cli#at47",
+    "@types/node": "latest",
+    "aurelia-cli": "latest",
     "browser-sync": "latest",
     "connect-history-api-fallback": "latest",
     "debounce": "latest",
@@ -24,7 +26,7 @@
     "gulp-sourcemaps": "latest",
     "gulp-typescript": "latest",
     "gulp-watch": "latest",
-    "gulp": "^4.0.0",
+    "gulp": "next",
     "minimatch": "latest",
     "rimraf": "latest",
     "typescript": "latest"

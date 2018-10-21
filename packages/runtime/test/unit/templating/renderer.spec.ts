@@ -22,7 +22,8 @@ import {
   Call,
   CallScope,
   Ref,
-  Interpolation
+  Interpolation,
+  InterpolationBinding
 } from '../../../src/index';
 import { expect } from 'chai';
 import { _, createElement } from '../util';
@@ -48,7 +49,6 @@ import {
 } from '../../../../jit/src/index';
 import { DI } from '../../../../kernel/src/index';
 import { spy, SinonSpy } from 'sinon';
-import { InterpolationBinding } from '../../../src/binding/interpolation-binding';
 
 describe('Renderer', () => {
   function setup() {

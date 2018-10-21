@@ -1,4 +1,4 @@
-import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController, LinkedChangeList, LifecycleState } from '../../../src';
+import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController, LinkedChangeList, LifecycleState } from '../../../src/index';
 import { eachCartesianJoinFactory } from '../util';
 import { LifecycleMock } from '../mock';
 import { expect } from 'chai';

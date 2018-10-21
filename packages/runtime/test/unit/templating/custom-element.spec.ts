@@ -1,8 +1,13 @@
 import { MockTextNodeSequence, MockRenderingEngine, IComponentLifecycleMock, defineComponentLifecycleMock } from './../mock';
-import { IDetachLifecycle, LifecycleHooks } from './../../../src/templating/lifecycle';
-import { BindingFlags } from './../../../src/binding/binding-flags';
 import { Immutable, PLATFORM, Writable } from '@aurelia/kernel';
-import { customElement, useShadowDOM, containerless, CustomElementResource, ShadowDOMProjector, ContainerlessProjector, HostProjector, CustomAttributeResource, INode, ITemplateDefinition, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate, ICustomElementType, IRenderingEngine, Scope, ITemplate, IInternalCustomElementImplementation, IRuntimeBehavior, IElementProjector, LifecycleState } from '../../../src/index';
+import {
+  IDetachLifecycle, LifecycleHooks, BindingFlags, customElement,
+  useShadowDOM, containerless, CustomElementResource, ShadowDOMProjector,
+  ContainerlessProjector, HostProjector, CustomAttributeResource, INode,
+  ITemplateDefinition, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate,
+  ICustomElementType, IRenderingEngine, Scope, ITemplate, IInternalCustomElementImplementation,
+  IRuntimeBehavior, IElementProjector, LifecycleState
+} from '../../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../util';
 

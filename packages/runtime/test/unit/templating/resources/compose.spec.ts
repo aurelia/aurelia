@@ -1,8 +1,6 @@
 import { expect } from 'chai';
 import { hydrateCustomElement } from '../behavior-assistance';
-import { Compose } from '../../../../src/templating/resources/compose';
-import { DOM, IViewFactory, customElement, ITemplateDefinition, BindingFlags, Lifecycle, LifecycleFlags, IAttach, LinkedChangeList } from '../../../../src';
-import { PotentialRenderable } from '../../../../src/templating/create-element';
+import { DOM, IViewFactory, customElement, ITemplateDefinition, BindingFlags, Lifecycle, LifecycleFlags, IAttach, LinkedChangeList, PotentialRenderable, Compose } from '../../../../src/index';
 import { ViewFactoryFake } from '../fakes/view-factory-fake';
 
 describe('The "compose" custom element', () => {

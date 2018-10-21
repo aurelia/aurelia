@@ -25,15 +25,14 @@ import {
   LifecycleFlags,
   LinkedChangeList,
   IView,
-  Interpolation
+  Interpolation,
+  LifecycleState
 } from '../../../../src/index';
 import { IContainer, DI } from '../../../../../kernel/src/index';
 import { createAureliaRepeaterConfig, createRepeater } from '../../util';
 import { expect } from 'chai';
-import { MockIfTextNodeTemplate } from '../../mock';
 import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
 import { createScopeForTest } from '../../binding/shared';
-import { LifecycleState } from '../../../../src/lifecycle-state';
 
 
 const expressions = {

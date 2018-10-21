@@ -25,7 +25,7 @@ import { MockTextNodeTemplate } from '../../mock';
 import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
 import { createScopeForTest } from '../../binding/shared';
 import { expect } from 'chai';
-import { DI } from '@aurelia/kernel';
+import { DI } from '../../../../../kernel/src/index';
 
 describe('The "if" template controller', () => {
   it("renders its view when the value is true", () => {

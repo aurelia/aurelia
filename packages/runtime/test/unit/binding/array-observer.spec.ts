@@ -1,8 +1,7 @@
 import { match } from 'sinon';
-import { ArrayObserver, enableArrayObservation, disableArrayObservation, IChangeSet, IndexMap } from '../../../src/index';
+import { ArrayObserver, enableArrayObservation, disableArrayObservation, LinkedChangeList, IndexMap } from '../../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
-import { LinkedChangeList } from '../../../src/binding/change-set';
 
 function assertArrayEqual(actual: any[], expected: any[]): void {
   const len = actual.length;

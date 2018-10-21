@@ -12,9 +12,9 @@ import {
   IRenderLocation,
   IDetachLifecycle,
   IAttachLifecycle,
-  NodeSequenceFactory
+  NodeSequenceFactory,
+  LifecycleState
 } from "../../../../src/index";
-import { LifecycleState } from "../../../../src/lifecycle-state";
 
 export class ViewFake implements IView {
   $nextBindable: IBindScope = null;

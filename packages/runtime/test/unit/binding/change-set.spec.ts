@@ -1,7 +1,6 @@
 import { spy, SinonSpy } from 'sinon';
-import { ChangeSet, IChangeSet } from './../../../src/binding/change-set';
 import { expect } from 'chai';
-import { IChangeTracker } from '../../../src/index';
+import { IChangeTracker, ChangeSet, IChangeSet } from '../../../src/index';
 
 
 export class MockChangeTracker implements IChangeTracker {

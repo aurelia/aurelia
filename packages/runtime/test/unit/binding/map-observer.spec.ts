@@ -1,8 +1,7 @@
 import { match } from 'sinon';
-import { MapObserver, enableMapObservation, disableMapObservation, nativeMapDelete, nativeSet, IndexMap } from '../../../src/index';
+import { MapObserver, enableMapObservation, disableMapObservation, nativeMapDelete, nativeSet, IndexMap, LinkedChangeList } from '../../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
-import { LinkedChangeList } from '../../../src/binding/change-set';
 
 function assetMapEqual(actual: Map<any, any>, expected: Map<any, any>): void {
   const len = actual.size;

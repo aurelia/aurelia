@@ -6,7 +6,7 @@ import {
   IRenderable,
   INodeSequence
 } from "../../../../src/index";
-import { LifecycleState } from "../../../../src/lifecycle-state";
+import { LifecycleState } from "../../../../src/index";
 
 export class RenderableFake implements IRenderable {
   $nextBindable: IBindScope = null;

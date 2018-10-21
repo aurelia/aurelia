@@ -1,7 +1,5 @@
 import { spy } from 'sinon';
-import { PLATFORM, Writable } from '@aurelia/kernel';
-import { NodeSequence, INodeSequenceFactory } from './../../../src/dom';
-import { ObserverLocator } from './../../../src/binding/observer-locator';
+import { PLATFORM, Writable } from '../../../../kernel/src/index';
 import {
   noViewTemplate,
   ITemplate,
@@ -30,7 +28,10 @@ import {
   IRenderable,
   addBindable,
   addAttachable,
-  LifecycleState
+  LifecycleState,
+  ObserverLocator,
+  NodeSequence,
+  INodeSequenceFactory
 } from '../../../src';
 import { expect } from 'chai';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../scripts/test-lib';

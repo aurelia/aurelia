@@ -14,13 +14,13 @@ import {
   Lifecycle,
   LifecycleFlags,
   LinkedChangeList,
-  IView
+  IView,
+  LifecycleState
 } from '../../../../src/index';
 import { expect } from 'chai';
 import { MockTextNodeTemplate } from '../../mock';
 import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
 import { createScopeForTest } from '../../binding/shared';
-import { LifecycleState } from '../../../../src/lifecycle-state';
 
 
 const expressions = {

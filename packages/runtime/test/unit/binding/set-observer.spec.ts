@@ -1,8 +1,7 @@
 import { match } from 'sinon';
-import { SetObserver, enableSetObservation, disableSetObservation, nativeSetDelete, nativeAdd, IndexMap } from '../../../src/index';
+import { SetObserver, enableSetObservation, disableSetObservation, nativeSetDelete, nativeAdd, IndexMap, LinkedChangeList } from '../../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
-import { LinkedChangeList } from '../../../src/binding/change-set';
 
 function assetSetEqual(actual: Set<any>, expected: Set<any>): void {
   const len = actual.size;

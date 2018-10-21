@@ -1,5 +1,4 @@
-import { ILifecycleTask } from './../../src/templating/lifecycle';
-import { PLATFORM, IContainer, IDisposable, ImmutableArray, Immutable, Writable } from '../../../kernel/src';
+import { PLATFORM, IContainer, IDisposable, ImmutableArray, Immutable, Writable } from '../../../kernel/src/index';
 import {
   INodeSequence,
   ITemplate,
@@ -49,11 +48,12 @@ import {
   ISignaler,
   Scope,
   addBindable,
-  addAttachable
-} from '../../src';
+  addAttachable,
+  ILifecycleTask,
+  LifecycleState
+} from '../../src/index';
 import { spy } from 'sinon';
 import { expect } from 'chai';
-import { LifecycleState } from '../../src/lifecycle-state';
 
 export class MockContext {
   public log: any[] = [];

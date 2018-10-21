@@ -1,8 +1,9 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { BindingFlags, IExpression, IScope } from '.';
 import { LifecycleState } from '../lifecycle-state';
-import { Interpolation } from './ast';
+import { IExpression, Interpolation } from './ast';
 import { IBinding, IBindingTarget } from './binding';
+import { IScope } from './binding-context';
+import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IBindingTargetAccessor, IBindScope } from './observation';

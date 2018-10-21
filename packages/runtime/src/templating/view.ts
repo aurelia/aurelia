@@ -3,9 +3,9 @@ import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IAttachLifecycle, IDetachLifecycle, IMountable, ICachable } from './lifecycle';
-import { IRenderable, IRenderContext, ITemplate } from './rendering-engine';
 import { LifecycleState } from '../lifecycle-state';
+import { IAttach, IAttachLifecycle, IDetachLifecycle, IMountable } from './lifecycle';
+import { IRenderable, IRenderContext, ITemplate } from './rendering-engine';
 
 export type RenderCallback = (view: IView) => void;
 

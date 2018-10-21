@@ -1,5 +1,5 @@
 import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
-import { IHTMLElement, IInputElement, DOM } from '../dom';
+import { DOM, IHTMLElement, IInputElement } from '../dom';
 import { getArrayObserver } from './array-observer';
 import { IBindingContext, IOverrideContext } from './binding-context';
 import { IChangeSet } from './change-set';

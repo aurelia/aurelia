@@ -1,6 +1,6 @@
 import { Constructable, Immutable, inject } from '@aurelia/kernel';
-import { IChangeSet } from '../../binding';
 import { BindingFlags } from '../../binding/binding-flags';
+import { IChangeSet } from '../../binding/change-set';
 import { INode } from '../../dom';
 import { bindable } from '../bindable';
 import { createElement, PotentialRenderable } from '../create-element';

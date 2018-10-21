@@ -1,5 +1,5 @@
 import { Immutable, Reporter } from '@aurelia/kernel';
-import { Interpolation } from '../binding';
+import { Interpolation } from '../binding/ast';
 import { Binding } from '../binding/binding';
 import { BindingMode } from '../binding/binding-mode';
 import { Call } from '../binding/call';

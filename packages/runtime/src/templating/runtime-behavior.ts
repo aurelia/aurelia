@@ -5,11 +5,7 @@ import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
 import { INode } from '../dom';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
-import {
-  CustomElementResource,
-  ICustomElement,
-  ICustomElementType
-} from './custom-element';
+import { CustomElementResource, ICustomElement, ICustomElementType } from './custom-element';
 import { BindableDefinitions } from './instructions';
 import { LifecycleHooks } from './lifecycle';
 

@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { IChangeTracker, ILinkedNode } from './observation';
+import { IChangeTracker } from './observation';
 import { nativeAdd } from './set-observer';
 
 /**

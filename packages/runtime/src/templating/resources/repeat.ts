@@ -1,5 +1,12 @@
 import { inject } from '@aurelia/kernel';
-import { Binding, BindingContext, BindingFlags, CollectionObserver, ForOfStatement, getCollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IObservedArray, IScope, ObservedCollection, Scope, SetterObserver } from '../../binding';
+import { ForOfStatement } from '../../binding/ast';
+import { Binding } from '../../binding/binding';
+import { BindingContext, IScope, Scope } from '../../binding/binding-context';
+import { BindingFlags } from '../../binding/binding-flags';
+import { IChangeSet } from '../../binding/change-set';
+import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, ObservedCollection } from '../../binding/observation';
+import { getCollectionObserver } from '../../binding/observer-locator';
+import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleState } from '../../lifecycle-state';
 import { bindable } from '../bindable';
@@ -10,15 +17,13 @@ import { IView, IViewFactory } from '../view';
 
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}
 
-const batchedChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.fromBind;
-
 @inject(IChangeSet, IRenderLocation, IRenderable, IViewFactory)
 @templateController('repeat')
 export class Repeat<T extends ObservedCollection = IObservedArray> {
   @bindable public items: T;
 
   public $scope: IScope;
-  public $observers: { items: SetterObserver }
+  public $observers: { items: SetterObserver };
 
   public encapsulationSource: INode = null;
   public views: IView[] = [];

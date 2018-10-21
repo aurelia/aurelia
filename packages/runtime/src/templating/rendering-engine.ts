@@ -1,8 +1,9 @@
 import { all, DI, IContainer, IDisposable, Immutable, ImmutableArray, inject, IResolver, IServiceLocator, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
-import { IBindScope, IScope, Template } from '../binding';
+import { IScope } from '../binding/binding-context';
 import { IChangeSet } from '../binding/change-set';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
+import { IBindScope } from '../binding/observation';
 import { IObserverLocator } from '../binding/observer-locator';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
 import { ILifecycleState } from '../lifecycle-state';

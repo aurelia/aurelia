@@ -3,7 +3,7 @@ import { IIndexable, Primitive } from '@aurelia/kernel';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { collectionObserver } from './collection-observer';
-import { CollectionKind, IBatchedCollectionChangeNotifier, IBatchedCollectionSubscriber, ICollectionChangeNotifier, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray } from './observation';
+import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray } from './observation';
 
 const proto = Array.prototype;
 export const nativePush = proto.push; // TODO: probably want to make these internal again

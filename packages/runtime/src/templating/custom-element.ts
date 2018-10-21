@@ -10,15 +10,16 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
-import { IBindScope, Scope } from '../binding';
+import { Scope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
+import { IBindScope } from '../binding/observation';
 import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
 import { ILifecycleState, LifecycleState } from '../lifecycle-state';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
 import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable, LifecycleHooks } from './lifecycle';
-import { IRenderable, IRenderingEngine, ITemplate } from './rendering-engine';
+import { IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
 export interface ICustomElementType extends

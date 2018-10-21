@@ -1,8 +1,12 @@
 import { Immutable } from '@aurelia/kernel';
-import { ICustomElementType, IHydrateElementInstruction, IRenderable, IRenderingEngine, ITemplate } from '.';
-import { BindingFlags, IBindScope, IChangeSet } from '../binding';
+import { BindingFlags } from '../binding/binding-flags';
+import { IChangeSet } from '../binding/change-set';
+import { IBindScope } from '../binding/observation';
 import { INode } from '../dom';
 import { ILifecycleState, LifecycleState } from '../lifecycle-state';
+import { ICustomElementType } from './custom-element';
+import { IHydrateElementInstruction } from './instructions';
+import { IRenderable, IRenderingEngine, ITemplate } from './rendering-engine';
 
 export enum LifecycleFlags {
   none                = 0b001,

@@ -1,4 +1,4 @@
-import { Constructable, PLATFORM } from '@aurelia/kernel';
+import { Constructable } from '@aurelia/kernel';
 import { DOM, INode } from '../dom';
 import { ICustomElementType } from './custom-element';
 import { buildTemplateDefinition } from './definition-builder';

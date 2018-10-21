@@ -82,6 +82,33 @@ commands:
           name: "Run npm install"
           command: npm ci --ignore-scripts
 
+  first_npm_install_example_e2e:
+    steps:
+      - run:
+          name: "Install e2e tests"
+          command: |
+            cd ./examples/test
+            npm ci
+
+  first_npm_install_example:
+    parameters:
+      path:
+        type: string
+      e2e:
+        type: boolean
+        default: true
+    steps:
+      - checkout
+      - run:
+          name: "Run npm install"
+          command: |
+            cd ./examples/<< parameters.path >>
+            npm install
+      - when:
+          condition: << parameters.e2e >>
+          steps:
+            - first_npm_install_example_e2e
+
   # implies first_npm_install
   first_restore_cache:
     steps:
@@ -112,6 +139,17 @@ commands:
 
   # do_* commands are arbitrary commands that run in-between first and last
   # - build related -
+  do_build_example:
+    parameters:
+      path:
+        type: string
+    steps:
+      - run:
+          name: "Build example"
+          command: |
+            cd ./examples/<< parameters.path >>
+            npm run build
+
   do_build_packages:
     steps:
       - run:
@@ -133,6 +171,29 @@ commands:
           command: npm run lint
 
   # - test related -
+  do_serve_example:
+    parameters:
+      path:
+        type: string
+    steps:
+      - run:
+          name: "Serve example"
+          background: true
+          command: |
+            cd ./examples/<< parameters.path >>
+            npm run serve
+
+  do_test_example:
+    parameters:
+      path:
+        type: string
+    steps:
+      - run:
+          name: "Test example"
+          command: |
+            cd ./examples/test
+            npm run test
+
   do_coverage_codecov:
     steps:
       - run:
@@ -346,6 +407,20 @@ jobs:
       - do_publish:
           channel: << parameters.channel >>
 
+  # Standalone example test job
+  e2e_examples_wdio:
+    executor: docker-circleci
+    parameters:
+      path:
+        type: string
+    steps:
+      - first_npm_install_example:
+          path: << parameters.path >>
+      - do_serve_example:
+          path: << parameters.path >>
+      - do_test_example:
+          path: << parameters.path >>
+
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
@@ -375,6 +450,12 @@ workflows:
           <<: *filter_only_master
           requires:
             - bundle_packages
+
+  test_examples:
+    jobs:
+      - e2e_examples_wdio:
+          name: jit_aurelia_cli_ts
+          path: "bundlers/jit-aurelia-cli-ts"
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag
@@ -438,6 +519,8 @@ workflows:
       - publish_npm:
           <<: *filter_only_develop
           channel: dev
+      # verify the dev packages after publishing them
+
 
   # Runs build and tests, and pushes the built artifacts to the develop branch (which then triggers publish_dev)
   # Triggered by schedule once per day on 0:00 UTC on the master branch

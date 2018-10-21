@@ -2,6 +2,8 @@
   "name": "jit-iife-inline",
   "version": "0.1.1",
   "scripts": {
+    "watch": "http-server -c-1 -p 9000 .",
+    "build": "echo \"Nothing to build!\"",
     "serve": "http-server -c-1 -p 9000 ."
   },
   "dependencies": { },

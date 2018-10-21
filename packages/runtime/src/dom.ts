@@ -98,8 +98,6 @@ export interface INodeSequence extends INodeLike {
    * Remove this sequence from its parent.
    */
   remove(): void;
-
-  convertToRenderLocation(node: INode): IRenderLocation;
 }
 
 export interface INodeObserver {
@@ -259,10 +257,7 @@ const emptySequence: INodeSequence = {
   findTargets(): ReturnType<INodeSequence['findTargets']> { return PLATFORM.emptyArray; },
   insertBefore(refNode: INode): ReturnType<INodeSequence['insertBefore']> { /*do nothing*/ },
   appendTo(parent: INode): ReturnType<INodeSequence['appendTo']> { /*do nothing*/ },
-  remove(): ReturnType<INodeSequence['remove']> { /*do nothing*/ },
-  convertToRenderLocation(node: INode): IRenderLocation {
-    return DOM.convertToRenderLocation(node);
-  }
+  remove(): ReturnType<INodeSequence['remove']> { /*do nothing*/ }
 };
 
 export const NodeSequence = {
@@ -303,10 +298,6 @@ export class TextNodeSequence implements INodeSequence {
 
   public remove(): void {
     (<any>this.firstChild).remove();
-  }
-
-  public convertToRenderLocation(node: INode): IRenderLocation {
-    return DOM.convertToRenderLocation(node);
   }
 }
 // tslint:enable:no-any
@@ -366,17 +357,6 @@ export class FragmentNodeSequence implements INodeSequence {
         current = next;
       }
     }
-  }
-
-  public convertToRenderLocation(node: INode): IRenderLocation {
-    const locationStart = DOM.createComment('au-loc');
-    this.remove();
-    (<any>this.fragment).insertBefore(locationStart, this.firstChild);
-    const locationEnd = DOM.convertToRenderLocation(node);
-    DOM.appendChild(this.fragment, locationEnd);
-    this.firstChild = locationStart;
-    this.lastChild = locationEnd;
-    return locationEnd;
   }
 }
 

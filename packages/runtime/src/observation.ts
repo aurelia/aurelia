@@ -184,16 +184,16 @@ export class LinkedChangeList implements IChangeSet {
    */
   public flushChanges = (): void => {
     this.flushing = true;
-    while (this.head !== null) {
+    while (this.size > 0) {
       let current = this.head;
       this.head = this.tail = null;
+      this.size = 0;
       let next;
       while (current && current !== marker) {
-        current.flushChanges();
         next = current.$next;
         current.$next = null;
+        current.flushChanges();
         current = next;
-        this.size--;
       }
     }
     this.flushing = false;
@@ -201,8 +201,11 @@ export class LinkedChangeList implements IChangeSet {
 
   public add(item: IChangeTracker): never; // this is a hack to keep intellisense/type checker from nagging about signature compatibility
   public add(item: IChangeTracker): Promise<void> {
+    if (this.size === 0) {
+      this.flushed = this.promise.then(this.flushChanges);
+    }
     if (item.$next) {
-      return;
+      return this.flushed;
     }
     // this is just to give the tail node a non-null value as a cheap way to check whether
     // something is queued already
@@ -213,9 +216,6 @@ export class LinkedChangeList implements IChangeSet {
       this.head = item;
     }
     this.tail = item;
-    if (this.size === 0) {
-      this.flushed = this.promise.then(this.flushChanges);
-    }
     this.size++;
     return this.flushed;
   }

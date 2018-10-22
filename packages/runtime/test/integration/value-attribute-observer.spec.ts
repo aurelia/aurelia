@@ -6,11 +6,11 @@ import {
   Binding,
   IBindingTargetObserver,
   IPropertySubscriber,
-} from '../../../../src/index';
-import { createElement, _ } from '../../util';
+} from '../../src/index';
+import { createElement, _ } from '../unit/util';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
-import { DI } from '../../../../../kernel/src/index';
+import { DI } from '../../../kernel/src/index';
 
 describe('ValueAttributeObserver', () => {
   const eventDefaults = { bubbles: true };

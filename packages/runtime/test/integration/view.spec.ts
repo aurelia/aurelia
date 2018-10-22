@@ -1,5 +1,5 @@
 import { spy } from 'sinon';
-import { PLATFORM, Writable } from '../../../../kernel/src/index';
+import { PLATFORM, Writable } from '../../../kernel/src/index';
 import {
   noViewTemplate,
   ITemplate,
@@ -32,10 +32,10 @@ import {
   ObserverLocator,
   NodeSequence,
   INodeSequenceFactory
-} from '../../../src';
+} from '../../src';
 import { expect } from 'chai';
-import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
-import { MockTextNodeTemplate } from '../mock';
+import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
+import { MockTextNodeTemplate } from '../unit/mock';
 
 class StubView {
   constructor(public cached = false) {}

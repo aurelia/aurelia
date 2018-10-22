@@ -1,12 +1,12 @@
-import { BindingContext, Scope } from './../../../src/binding/binding-context';
+import { BindingContext, Scope } from '../../src/binding/binding-context';
 import { spy, SinonSpy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType, LifecycleState } from '../../../src/index';
-import { DI } from '../../../../kernel/src/index';
-import { createScopeForTest } from './shared';
+import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType, LifecycleState } from '../../src/index';
+import { DI } from '../../../kernel/src/index';
+import { createScopeForTest } from '../unit/binding/shared';
 import { expect } from 'chai';
-import { _, massSpy, massReset, massRestore, ensureNotCalled, eachCartesianJoinFactory, verifyEqual } from '../util';
+import { _, massSpy, massReset, massRestore, ensureNotCalled, eachCartesianJoinFactory, verifyEqual } from '../unit/util';
 import sinon from 'sinon';
-import { parse, ParserState, Access, Precedence, parseCore } from '../../../../jit/src';
+import { parse, ParserState, Access, Precedence, parseCore } from '../../../jit/src';
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length

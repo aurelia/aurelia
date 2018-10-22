@@ -1,9 +1,9 @@
-import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, SelfBindingBehavior } from '../../../../src/index';
-import { IContainer } from '../../../../../kernel/src/index';
+import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, SelfBindingBehavior, IsBindingBehavior } from '../../src/index';
+import { IContainer } from '../../../kernel/src/index';
 import { expect } from 'chai';
 
 describe('SelfBindingBehavior', () => {
-  let sourceExpression: IExpression;
+  let sourceExpression: IsBindingBehavior;
   let target: any;
   let targetProperty: string;
   let mode: BindingMode;

@@ -16,11 +16,11 @@ import {
   LinkedChangeList,
   IView,
   LifecycleState
-} from '../../../../src/index';
+} from '../../src/index';
 import { expect } from 'chai';
-import { MockTextNodeTemplate } from '../../mock';
-import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
-import { createScopeForTest } from '../../binding/shared';
+import { MockTextNodeTemplate } from '../unit/mock';
+import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';
+import { createScopeForTest } from '../unit/binding/shared';
 
 
 const expressions = {
@@ -55,8 +55,7 @@ function setup<T extends ObservedCollection>() {
   const renderable = { } as any;
   const sut = new Repeat<T>(cs, location, renderable, factory);
   renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null);
-  sut.$isAttached = false;
-  sut.$state &= ~LifecycleState.isBound;
+  sut.$state = 0;
   sut.$scope = null;
   const behavior = RuntimeBehavior.create(<any>Repeat, sut);
   behavior.applyTo(sut, cs);

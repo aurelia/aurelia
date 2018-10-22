@@ -1,4 +1,4 @@
-import { createMarker, MockNodeSequence, MockIfElseTextNodeTemplate } from './../../mock';
+import { createMarker, MockNodeSequence, MockIfElseTextNodeTemplate } from '../unit/mock';
 import {
   ITemplateDefinition,
   TargetedInstructionType,
@@ -27,12 +27,12 @@ import {
   IView,
   Interpolation,
   LifecycleState
-} from '../../../../src/index';
-import { IContainer, DI } from '../../../../../kernel/src/index';
-import { createAureliaRepeaterConfig, createRepeater } from '../../util';
+} from '../../src/index';
+import { IContainer, DI } from '../../../kernel/src/index';
+import { createAureliaRepeaterConfig, createRepeater } from '../unit/util';
 import { expect } from 'chai';
-import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
-import { createScopeForTest } from '../../binding/shared';
+import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';
+import { createScopeForTest } from '../unit/binding/shared';
 
 
 const expressions = {
@@ -67,8 +67,7 @@ function setup<T extends ObservedCollection>() {
   const renderable = { } as any;
   const sut = new Repeat<T>(cs, location, renderable, factory);
   renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null);
-  sut.$isAttached = false;
-  sut.$state &= ~LifecycleState.isBound;
+  sut.$state = 0;
   sut.$scope = null;
   const behavior = RuntimeBehavior.create(<any>Repeat, sut);
   behavior.applyTo(sut, cs);

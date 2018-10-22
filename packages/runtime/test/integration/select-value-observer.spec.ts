@@ -1,8 +1,8 @@
-import { IObserverLocator, IChangeSet, SelectValueObserver, BindingFlags, DOM } from '../../../../src/index';
-import { createElement, _, eachCartesianJoin, eachCartesianJoinFactory, h, verifyEqual } from '../../util';
+import { IObserverLocator, IChangeSet, SelectValueObserver, BindingFlags, DOM } from '../../src/index';
+import { createElement, _, eachCartesianJoin, eachCartesianJoinFactory, h, verifyEqual } from '../unit/util';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
-import { DI, Primitive } from '../../../../../kernel/src/index';
+import { DI, Primitive } from '../../../kernel/src/index';
 
 const eventDefaults = { bubbles: true };
 

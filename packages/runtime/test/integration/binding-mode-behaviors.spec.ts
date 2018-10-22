@@ -1,6 +1,6 @@
-import { ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, IObserverLocator, OneTimeBindingBehavior, Binding, BindingFlags, IExpression, BindingMode, IScope } from '../../../../src/index';
+import { ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, IObserverLocator, OneTimeBindingBehavior, Binding, BindingFlags, IExpression, BindingMode, IScope, IsBindingBehavior } from '../../src/index';
 import { expect } from 'chai';
-import { IContainer } from '../../../../../kernel/src/index';
+import { IContainer } from '../../../kernel/src/index';
 
 const tests = [
   { Behavior: OneTimeBindingBehavior, mode: BindingMode.oneTime },
@@ -10,7 +10,7 @@ const tests = [
 ];
 
 describe('BindingModeBehavior', () => {
-  let sourceExpression: IExpression;
+  let sourceExpression: IsBindingBehavior;
   let target: any;
   let targetProperty: string;
   let observerLocator: IObserverLocator;

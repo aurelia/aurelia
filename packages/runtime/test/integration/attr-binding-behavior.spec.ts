@@ -1,9 +1,9 @@
-import { DataAttributeAccessor,AttrBindingBehavior ,IExpression , IObserverLocator ,Binding ,BindingFlags,IScope ,BindingMode,DOM } from '../../../../src/index';
+import { DataAttributeAccessor, AttrBindingBehavior ,IExpression , IObserverLocator ,Binding ,BindingFlags,IScope ,BindingMode,DOM, IsBindingBehavior } from '../../src/index';
 import { expect } from 'chai';
-import { IContainer, DI } from '../../../../../kernel/src/index';
+import { IContainer, DI } from '../../../kernel/src/index';
 
 describe('AttrBindingBehavior', () => {
-  let sourceExpression: IExpression;
+  let sourceExpression: IsBindingBehavior;
   let target: any;
   let targetProperty: string;
   let mode: BindingMode;

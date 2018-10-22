@@ -65,7 +65,10 @@ chai.use(function(_chai, utils) {
 
 Error.stackTraceLimit = Infinity;
 
-const testContext: any = (require as any).context('./unit', true, /\.spec/);
-testContext.keys().forEach(testContext);
+const unitTests: any = (require as any).context('./unit', true, /\.spec/);
+unitTests.keys().forEach(unitTests);
+
+const integrationTests: any = (require as any).context('./integration', true, /\.spec/);
+integrationTests.keys().forEach(integrationTests);
 
 

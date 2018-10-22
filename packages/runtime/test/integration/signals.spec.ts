@@ -1,10 +1,10 @@
-import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, SignalBindingBehavior, ISignaler } from '../../../../src/index';
+import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, SignalBindingBehavior, ISignaler, IsBindingBehavior } from '../../src/index';
 import { spy } from 'sinon';
 import { expect } from 'chai';
-import { IContainer } from '../../../../../kernel/src/index';
+import { IContainer } from '../../../kernel/src/index';
 
 describe('SignalBindingBehavior', () => {
-  let sourceExpression: IExpression;
+  let sourceExpression: IsBindingBehavior;
   let target: any;
   let targetProperty: string;
   let mode: BindingMode;

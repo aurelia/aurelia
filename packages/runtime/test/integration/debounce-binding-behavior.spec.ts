@@ -1,9 +1,9 @@
-import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, DebounceBindingBehavior } from '../../../../src/index';
+import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, DebounceBindingBehavior, IsBindingBehavior } from '../../src/index';
 import { expect } from 'chai';
-import { IContainer } from '../../../../../kernel/src/index';
+import { IContainer } from '../../../kernel/src/index';
 
 describe('DebounceBindingBehavior', () => {
-  let sourceExpression: IExpression;
+  let sourceExpression: IsBindingBehavior;
   let target: any;
   let targetProperty: string;
   let mode: BindingMode;

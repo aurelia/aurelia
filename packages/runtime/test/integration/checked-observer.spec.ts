@@ -7,11 +7,11 @@ import {
   IBindingTargetObserver,
   IPropertySubscriber,
   enableArrayObservation
-} from '../../../../src/index';
-import { createElement, _ } from '../../util';
+} from '../../src/index';
+import { createElement, _ } from '../unit/util';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
-import { DI } from '../../../../../kernel/src/index';
+import { DI } from '../../../kernel/src/index';
 
 type ObservedInputElement = HTMLInputElement & {
   $observers: Record<string, IBindingTargetObserver>;

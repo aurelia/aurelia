@@ -3,7 +3,7 @@ import { BindingFlags } from '../../binding/binding-flags';
 import { IChangeSet } from '../../change-set';
 import { INode } from '../../dom';
 import { bindable } from '../bindable';
-import { createElement, PotentialRenderable } from '../create-element';
+import { createElement, RenderPlan } from '../create-element';
 import { customElement, ICustomElement } from '../custom-element';
 import {
   IHydrateElementInstruction,
@@ -24,7 +24,7 @@ const composeSource: ITemplateDefinition = {
 
 const composeProps = ['subject', 'composing'];
 
-type Subject = IViewFactory | IView | PotentialRenderable | Constructable | TemplateDefinition;
+type Subject = IViewFactory | IView | RenderPlan | Constructable | TemplateDefinition;
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
@@ -123,7 +123,7 @@ export class Compose {
       return subject;
     }
 
-    if ('createView' in subject) { // PotentialRenderable
+    if ('createView' in subject) { // RenderPlan
       return subject.createView(
         this.renderingEngine,
         this.renderable.$context

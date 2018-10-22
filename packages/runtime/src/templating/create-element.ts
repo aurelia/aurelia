@@ -11,9 +11,9 @@ import {
 import { IRenderContext, IRenderingEngine, ITemplate } from './rendering-engine';
 import { IView, IViewFactory } from './view';
 
-type ChildType = PotentialRenderable | string | INode;
+type ChildType = RenderPlan | string | INode;
 
-export function createElement(tagOrType: string | Constructable, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
+export function createElement(tagOrType: string | Constructable, props?: any, children?: ArrayLike<ChildType>): RenderPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(tagOrType, props, children);
   } else {
@@ -21,7 +21,7 @@ export function createElement(tagOrType: string | Constructable, props?: any, ch
   }
 }
 
-export class PotentialRenderable {
+export class RenderPlan {
   private lazyDefinition: TemplateDefinition;
 
   constructor(
@@ -55,7 +55,7 @@ export class PotentialRenderable {
   }
 }
 
-function createElementForTag(tagName: string, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
+function createElementForTag(tagName: string, props?: any, children?: ArrayLike<ChildType>): RenderPlan {
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [];
   const dependencies = [];
@@ -85,10 +85,10 @@ function createElementForTag(tagName: string, props?: any, children?: ArrayLike<
     addChildren(element, children, allInstructions, dependencies);
   }
 
-  return new PotentialRenderable(element, allInstructions, dependencies);
+  return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function createElementForType(Type: ICustomElementType, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
+function createElementForType(Type: ICustomElementType, props?: any, children?: ArrayLike<ChildType>): RenderPlan {
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
@@ -140,7 +140,7 @@ function createElementForType(Type: ICustomElementType, props?: any, children?: 
     addChildren(element, children, allInstructions, dependencies);
   }
 
-  return new PotentialRenderable(element, allInstructions, dependencies);
+  return new RenderPlan(element, allInstructions, dependencies);
 }
 
 function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: any[]): void {

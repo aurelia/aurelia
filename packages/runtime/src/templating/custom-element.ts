@@ -18,7 +18,7 @@ import { ILifecycleState, LifecycleState } from '../lifecycle-state';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
-import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable, LifecycleHooks } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable, LifecycleHooks, BindLifecycle } from './lifecycle';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
@@ -193,6 +193,10 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   const hooks = this.$behavior.hooks;
   flags |= BindingFlags.fromBind;
 
+  if (hooks & LifecycleHooks.hasBound) {
+    BindLifecycle.queueBound(this, flags);
+  }
+
   if (hooks & LifecycleHooks.hasBinding) {
     this.binding(flags);
   }
@@ -209,7 +213,7 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   this.$state &= ~LifecycleState.isBinding;
 
   if (hooks & LifecycleHooks.hasBound) {
-    this.bound(flags);
+    BindLifecycle.unqueueBound();
   }
 }
 
@@ -220,6 +224,10 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
 
     const hooks = this.$behavior.hooks;
     flags |= BindingFlags.fromUnbind;
+
+    if (hooks & LifecycleHooks.hasUnbound) {
+      BindLifecycle.queueUnbound(this, flags);
+    }
 
     if (hooks & LifecycleHooks.hasUnbinding) {
       this.unbinding(flags);
@@ -235,7 +243,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
     this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
 
     if (hooks & LifecycleHooks.hasUnbound) {
-      this.unbound(flags);
+      BindLifecycle.unqueueUnbound();
     }
   }
 }

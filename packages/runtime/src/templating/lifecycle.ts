@@ -667,3 +667,41 @@ export const Lifecycle = {
     wait(): Promise<void> { return Promise.resolve(); }
   }
 };
+
+// TODO: make linked list
+type LifecycleBoundable = IBindScope & Pick<ILifecycleHooks, 'bound'> & { $boundFlags?: BindingFlags };
+type LifecycleUnboundable = IBindScope & Pick<ILifecycleHooks, 'unbound'> & { $unboundFlags?: BindingFlags };
+export const BindLifecycle = {
+  boundDepth: 0,
+  boundItems: <LifecycleBoundable[]>[],
+  queueBound(bindable: LifecycleBoundable, flags: BindingFlags): void {
+    bindable.$boundFlags = flags;
+    BindLifecycle.boundItems.push(bindable);
+    ++BindLifecycle.boundDepth;
+  },
+  unqueueBound(): void {
+    if (--BindLifecycle.boundDepth === 0) {
+      const items = BindLifecycle.boundItems.splice(0);
+      for (let i = 0, ii = items.length; i < ii; ++i) {
+        const item = items[i];
+        item.bound(item.$boundFlags);
+      }
+    }
+  },
+  unboundDepth: 0,
+  unboundItems: <LifecycleUnboundable[]>[],
+  queueUnbound(bindable: LifecycleUnboundable, flags: BindingFlags): void {
+    bindable.$unboundFlags = flags;
+    BindLifecycle.unboundItems.push(bindable);
+    ++BindLifecycle.unboundDepth;
+  },
+  unqueueUnbound(): void {
+    if (--BindLifecycle.unboundDepth === 0) {
+      const items = BindLifecycle.unboundItems.splice(0);
+      for (let i = 0, ii = items.length; i < ii; ++i) {
+        const item = items[i];
+        item.unbound(item.$unboundFlags);
+      }
+    }
+  }
+}

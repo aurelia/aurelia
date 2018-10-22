@@ -1,8 +1,7 @@
-import { DI } from '@aurelia/kernel';
+import { DI, PLATFORM } from '@aurelia/kernel';
 
 export interface ILinkedNode {
   /*@internal*/$next?: IChangeTracker;
-  /*@internal*/$linked?: boolean;
 }
 
 /**
@@ -107,6 +106,8 @@ export class ChangeSet extends Set<IChangeTracker> implements IChangeSet {
   }
 }
 
+const marker = PLATFORM.emptyObject as IChangeTracker;
+
 /*@internal*/
 export class LinkedChangeList implements IChangeSet {
   public flushed: Promise<void>;
@@ -154,11 +155,10 @@ export class LinkedChangeList implements IChangeSet {
       let current = this.head;
       this.head = this.tail = null;
       let next;
-      while (current) {
+      while (current && current !== marker) {
+        current.flushChanges();
         next = current.$next;
         current.$next = null;
-        current.$linked = false;
-        current.flushChanges();
         current = next;
         this.size--;
       }
@@ -168,10 +168,12 @@ export class LinkedChangeList implements IChangeSet {
 
   public add(item: IChangeTracker): never; // this is a hack to keep intellisense/type checker from nagging about signature compatibility
   public add(item: IChangeTracker): Promise<void> {
-    if (item.$linked === true) {
+    if (item.$next) {
       return;
     }
-    item.$linked = true;
+    // this is just to give the tail node a non-null value as a cheap way to check whether
+    // something is queued already
+    item.$next = marker;
     if (this.tail !== null) {
       this.tail.$next = item;
     } else {

@@ -119,15 +119,8 @@ export class Compose {
       return null;
     }
 
-    if ('template' in subject) { // Raw Template Definition
-      return this.renderingEngine.getViewFactory(
-        subject,
-        this.renderable.$context
-      ).create();
-    }
-
-    if ('create' in subject) { // IViewFactory
-      return subject.create();
+    if ('lockScope' in subject) { // IView
+      return subject;
     }
 
     if ('createView' in subject) { // PotentialRenderable
@@ -137,8 +130,15 @@ export class Compose {
       );
     }
 
-    if ('lockScope' in subject) { // IView
-      return subject;
+    if ('create' in subject) { // IViewFactory
+      return subject.create();
+    }
+
+    if ('template' in subject) { // Raw Template Definition
+      return this.renderingEngine.getViewFactory(
+        subject,
+        this.renderable.$context
+      ).create();
     }
 
     // Constructable (Custom Element Constructor)

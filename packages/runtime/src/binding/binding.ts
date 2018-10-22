@@ -95,7 +95,7 @@ export class Binding implements IPartialConnectableBinding {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags);
+      this.$unbind(flags | BindingFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= LifecycleState.isBinding;

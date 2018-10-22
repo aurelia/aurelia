@@ -45,7 +45,7 @@ export class Call {
         return;
       }
 
-      this.$unbind(flags);
+      this.$unbind(flags | BindingFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= LifecycleState.isBinding;

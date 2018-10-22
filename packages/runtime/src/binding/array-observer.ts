@@ -1,10 +1,7 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { IChangeSet } from '../change-set';
-// tslint:disable:no-reserved-keywords
-import { BindingFlags } from './binding-flags';
+import { BindingFlags, CollectionKind, IChangeSet, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
 import { collectionObserver } from './collection-observer';
-import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray } from './observation';
-
+// tslint:disable:no-reserved-keywords
 const proto = Array.prototype;
 export const nativePush = proto.push; // TODO: probably want to make these internal again
 export const nativeUnshift = proto.unshift;

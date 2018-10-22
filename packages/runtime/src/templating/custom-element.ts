@@ -11,15 +11,13 @@ import {
   Writable
 } from '@aurelia/kernel';
 import { Scope } from '../binding/binding-context';
-import { BindingFlags } from '../binding/binding-flags';
-import { IBindScope } from '../binding/observation';
-import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
-import { ILifecycleState, LifecycleState } from '../lifecycle-state';
+import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
+import { BindLifecycle, IAttach, IAttachLifecycle, IBindSelf, IDetachLifecycle, ILifecycleHooks, ILifecycleState, IMountable, LifecycleHooks, LifecycleState } from '../lifecycle';
+import { BindingFlags } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
-import { BindLifecycle, IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable, LifecycleHooks } from './lifecycle';
-import { IRenderable, IRenderingEngine } from './rendering-engine';
+import { ILifecycleRender, IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
 export interface ICustomElementType extends
@@ -28,19 +26,17 @@ export interface ICustomElementType extends
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
-export interface IBindSelf extends ILifecycleState {
-  readonly $nextBindable: IBindSelf | IBindScope;
-  readonly $prevBindable: IBindSelf | IBindScope;
-  $bind(flags: BindingFlags): void;
-  $unbind(flags: BindingFlags): void;
-}
 
-type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
+type OptionalLifecycleHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
 type RequiredLifecycleProperties = Omit<IRenderable, '$state'> & ILifecycleState;
 
-export interface ICustomElement extends IBindSelf, IAttach, IMountable, OptionalLifecycleHooks, RequiredLifecycleProperties {
+export interface ICustomElement extends ILifecycleRender, IBindSelf, IAttach, IMountable, OptionalLifecycleHooks, RequiredLifecycleProperties {
   readonly $projector: IElementProjector;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+}
+
+export interface ICustomElementHost extends IRenderLocation {
+  $customElement?: ICustomElement;
 }
 
 export type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
@@ -396,7 +392,7 @@ export class ShadowDOMProjector implements IElementProjector {
 }
 
 export class ContainerlessProjector implements IElementProjector {
-  public host: IRenderLocation;
+  public host: ICustomElementHost;
   private childNodes: ArrayLike<INode>;
 
   constructor(private $customElement: ICustomElement, host: ICustomElementHost) {

@@ -1,7 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
+import { BindingFlags, IScope } from '../../observation';
 import { bindingBehavior } from '../binding-behavior';
-import { IScope } from '../binding-context';
-import { BindingFlags } from '../binding-flags';
 import { Listener } from '../listener';
 
 type CompatibleEvent = {

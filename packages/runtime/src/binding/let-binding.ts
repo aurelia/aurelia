@@ -1,11 +1,9 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
-import { LifecycleState } from '../lifecycle-state';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IScope } from '../observation';
 import { IExpression } from './ast';
 import { IBindingTarget } from './binding';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
-import { IBindScope } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 // tslint:disable:no-any

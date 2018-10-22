@@ -1,7 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { IChangeSet } from '../change-set';
 import { DOM, IHTMLElement, INode } from '../dom';
-import { IBindingTargetAccessor } from './observation';
+import { IBindingTargetAccessor, IChangeSet } from '../observation';
 import { targetObserver } from './target-observer';
 
 // tslint:disable-next-line:no-http-string

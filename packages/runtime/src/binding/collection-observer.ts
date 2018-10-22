@@ -1,5 +1,7 @@
-import { BindingFlags } from './binding-flags';
-import { Collection, CollectionKind, CollectionObserver, IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber, MutationKind } from './observation';
+import {
+  BindingFlags, Collection, CollectionKind, CollectionObserver,
+  IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber, MutationKind
+} from '../observation';
 import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';
 

@@ -1,13 +1,11 @@
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { LifecycleState } from '../lifecycle-state';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IScope } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
-import { IBindScope } from './observation';
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {

@@ -1,10 +1,10 @@
 import { inject } from '@aurelia/kernel';
 import { Scope } from '../../binding/binding-context';
-import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
+import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { BindingFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
 import { IView, IViewFactory } from '../view';
 
 export interface With extends ICustomAttribute {}

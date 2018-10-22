@@ -1,11 +1,9 @@
 import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { LifecycleState } from '../lifecycle-state';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IAccessor, IScope } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
-import { IAccessor, IBindScope } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 export interface Call extends IConnectableBinding {}

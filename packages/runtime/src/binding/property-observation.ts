@@ -1,6 +1,5 @@
 import { IIndexable, PLATFORM, Primitive } from '@aurelia/kernel';
-import { BindingFlags } from './binding-flags';
-import { IAccessor, IPropertyObserver, IPropertySubscriber, ISubscribable, MutationKind } from './observation';
+import { BindingFlags, IAccessor, IPropertyObserver, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { propertyObserver } from './property-observer';
 
 const noop = PLATFORM.noop;

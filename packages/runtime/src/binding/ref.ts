@@ -1,11 +1,9 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { LifecycleState } from '../lifecycle-state';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IScope } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding, IBindingTarget } from './binding';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
-import { IBindScope } from './observation';
 
 export interface Ref extends IConnectableBinding {}
 export class Ref implements IBinding {

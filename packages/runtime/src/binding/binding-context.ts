@@ -1,6 +1,6 @@
-import { IIndexable, Reporter } from '@aurelia/kernel';
-import { StrictPrimitive } from './ast';
-import { IBindScope, ObservedCollection, PropertyObserver } from './observation';
+import { IIndexable, Reporter, StrictPrimitive } from '@aurelia/kernel';
+import { IBindScope } from '../lifecycle';
+import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup, PropertyObserver } from '../observation';
 import { SetterObserver } from './property-observation';
 
 const enum RuntimeError {
@@ -9,15 +9,6 @@ const enum RuntimeError {
   NilOverrideContext = 252,
   NilParentScope = 253
 }
-
-export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
-Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> {
-
-}
-
-export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
-  Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> =
-  { [P in TKey]: PropertyObserver; } & { getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver };
 
 /*@internal*/
 export class InternalObserversLookup {
@@ -28,29 +19,6 @@ export class InternalObserversLookup {
     }
     return observer;
   }
-}
-
-export interface IBindingContext {
-  [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
-
-  readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup<IOverrideContext>;
-  getObservers?(): ObserversLookup<IOverrideContext>;
-}
-
-export interface IOverrideContext {
-  [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
-
-  readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup<IOverrideContext>;
-  readonly bindingContext: IBindingContext | IBindScope;
-  readonly parentOverrideContext: IOverrideContext | null;
-  getObservers(): ObserversLookup<IOverrideContext>;
-}
-
-export interface IScope {
-  readonly bindingContext: IBindingContext | IBindScope;
-  readonly overrideContext: IOverrideContext;
 }
 
 export class BindingContext implements IBindingContext {

@@ -1,5 +1,4 @@
 import { Constructable, DI, IContainer, IResolver, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
-import { ICustomElement } from './templating/custom-element';
 
 export const ELEMENT_NODE = 1;
 export const ATTRIBUTE_NODE = 2;
@@ -21,6 +20,7 @@ export interface INode extends INodeLike {
   readonly nodeName: string;
   readonly nodeType: number;
 }
+
 export interface IAttr extends Partial<INode> {
   readonly name: string;
   value: string;
@@ -64,11 +64,7 @@ export interface IDocumentFragment extends INode {
 }
 
 export const IRenderLocation = DI.createInterface<IRenderLocation>().noDefault();
-export interface IRenderLocation extends ICustomElementHost { }
-
-export interface ICustomElementHost extends INode {
-  $customElement?: ICustomElement;
-}
+export interface IRenderLocation extends INode { }
 
 /**
  * Represents a DocumentFragment

@@ -1,17 +1,14 @@
 import { inject } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
-import { BindingContext, IScope, Scope } from '../../binding/binding-context';
-import { BindingFlags } from '../../binding/binding-flags';
-import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, ObservedCollection } from '../../binding/observation';
+import { BindingContext, Scope } from '../../binding/binding-context';
 import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
-import { IChangeSet } from '../../change-set';
 import { INode, IRenderLocation } from '../../dom';
-import { LifecycleState } from '../../lifecycle-state';
+import { IAttachLifecycle, IDetachLifecycle, Lifecycle, LifecycleFlags, LifecycleState } from '../../lifecycle';
+import { BindingFlags, CollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IAttachLifecycle, IDetachLifecycle, Lifecycle, LifecycleFlags } from '../lifecycle';
 import { IRenderable } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
 

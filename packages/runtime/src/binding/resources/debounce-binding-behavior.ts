@@ -1,7 +1,6 @@
+import { BindingFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
-import { IScope } from '../binding-context';
-import { BindingFlags } from '../binding-flags';
 import { BindingMode } from '../binding-mode';
 import { Call } from '../call';
 import { Listener } from '../listener';

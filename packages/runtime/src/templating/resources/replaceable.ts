@@ -1,8 +1,8 @@
 import { inject } from '@aurelia/kernel';
-import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
+import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { BindingFlags } from '../../observation';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
 import { IView, IViewFactory } from '../view';
 
 export interface Replaceable extends ICustomAttribute {}

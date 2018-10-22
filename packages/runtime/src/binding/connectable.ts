@@ -1,7 +1,7 @@
 import { Decoratable, Decorated, IIndexable } from '@aurelia/kernel';
+import { IBindingTargetObserver, IPropertySubscriber } from '../observation';
 import { StrictAny } from './ast';
 import { IBinding } from './binding';
-import { IBindingTargetObserver, IPropertySubscriber } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time

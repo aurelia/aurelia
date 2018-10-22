@@ -1,8 +1,7 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
-import { BindingFlags } from './binding/binding-flags';
-import { IChangeSet } from './change-set';
+import { Lifecycle, LifecycleFlags } from './lifecycle';
+import { BindingFlags, IChangeSet } from './observation';
 import { ICustomElement } from './templating/custom-element';
-import { Lifecycle, LifecycleFlags } from './templating/lifecycle';
 import { IRenderingEngine } from './templating/rendering-engine';
 
 export interface ISinglePageApp {

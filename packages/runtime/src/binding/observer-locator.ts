@@ -1,14 +1,16 @@
 import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
-import { IChangeSet } from '../change-set';
 import { DOM, IHTMLElement, IInputElement } from '../dom';
+import {
+  AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext,
+  IBindingTargetAccessor, IBindingTargetObserver, IChangeSet, ICollectionObserver,
+  IObservable,  IObservedArray, IObservedMap, IObservedSet, IOverrideContext
+} from '../observation';
 import { getArrayObserver } from './array-observer';
-import { IBindingContext, IOverrideContext } from './binding-context';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
 import { CheckedObserver, ISelectElement, SelectValueObserver, ValueAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
 import { getMapObserver } from './map-observer';
-import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet } from './observation';
 import { PrimitiveObserver, SetterObserver } from './property-observation';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';

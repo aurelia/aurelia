@@ -1,7 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { IChangeSet } from '../change-set';
-import { BindingFlags } from './binding-flags';
-import { IBindingTargetAccessor, MutationKind } from './observation';
+import { BindingFlags, IBindingTargetAccessor, IChangeSet, MutationKind } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 type BindingTargetAccessor = IBindingTargetAccessor & {

@@ -1,6 +1,5 @@
 import { DI, IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags } from './binding-flags';
-import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber } from './observation';
+import { BindingFlags, IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
 import { propertyObserver } from './property-observer';
 
 export interface IDirtyChecker {

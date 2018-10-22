@@ -11,7 +11,6 @@ export { ArrayObserver, enableArrayObservation, disableArrayObservation, nativeP
 export * from './binding/ast';
 export * from './binding/binding-behavior';
 export * from './binding/binding-context';
-export * from './binding/binding-flags';
 export * from './binding/binding-mode';
 export * from './binding/binding';
 export * from './binding/call';
@@ -25,7 +24,6 @@ export * from './binding/interpolation-binding';
 export * from './binding/let-binding';
 export * from './binding/listener';
 export { MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear } from './binding/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
-export * from './binding/observation';
 export * from './binding/observer-locator';
 export * from './binding/property-observation';
 export * from './binding/ref';
@@ -48,7 +46,6 @@ export * from './templating/custom-attribute';
 export * from './templating/custom-element';
 export * from './templating/create-element';
 export * from './templating/instructions';
-export * from './templating/lifecycle';
 export * from './templating/render-strategy';
 export * from './templating/renderer';
 export * from './templating/rendering-engine';
@@ -57,7 +54,7 @@ export * from './templating/template-compiler';
 export * from './templating/view';
 
 export * from './aurelia';
-export * from './change-set';
 export * from './dom';
-export * from './lifecycle-state';
+export * from './lifecycle';
+export * from './observation';
 export * from './resource';

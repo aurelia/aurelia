@@ -1,16 +1,225 @@
-import { IDisposable, IIndexable } from '@aurelia/kernel';
-import { IChangeSet, IChangeTracker } from '../change-set';
-import { INode } from '../dom';
-import { ILifecycleState } from '../lifecycle-state';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
-// tslint:disable:no-any
+import { DI, IDisposable, IIndexable, PLATFORM } from '@aurelia/kernel';
 
-export interface IBindScope extends ILifecycleState {
-  $nextBindable: IBindScope;
-  $prevBindable: IBindScope;
-  $bind(flags: BindingFlags, scope: IScope): void;
-  $unbind(flags: BindingFlags): void;
+export enum BindingFlags {
+  none                   = 0b000_00000000_000_00,
+  mustEvaluate           = 0b100_00000000_000_00,
+
+  mutation               = 0b0000_00000000_000_11,
+  isCollectionMutation   = 0b0000_00000000_000_01,
+  isInstanceMutation     = 0b0000_00000000_000_10,
+
+  update                 = 0b0000_00000000_111_00,
+  updateTargetObserver   = 0b0000_00000000_001_00,
+  updateTargetInstance   = 0b0000_00000000_010_00,
+  updateSourceExpression = 0b0000_00000000_100_00,
+
+  from                   = 0b0000_11111111_000_00,
+  fromFlushChanges       = 0b0000_00000001_000_00,
+  fromStartTask          = 0b0000_00000010_000_00,
+  fromStopTask           = 0b0000_00000100_000_00,
+  fromBind               = 0b0000_00001000_000_00,
+  fromUnbind             = 0b0000_00010000_000_00,
+  fromDOMEvent           = 0b0000_00100000_000_00,
+  fromObserverSetter     = 0b0000_01000000_000_00,
+  fromBindableHandler    = 0b0000_10000000_000_00,
+}
+
+/*@internal*/
+export const enum SubscriberFlags {
+  None            = 0,
+  Subscriber0     = 0b0001,
+  Subscriber1     = 0b0010,
+  Subscriber2     = 0b0100,
+  SubscribersRest = 0b1000,
+  Any             = 0b1111,
+}
+
+export interface ILinkedNode {
+  /*@internal*/$next?: IChangeTracker;
+}
+
+/**
+ * Describes a type that tracks changes and can flush those changes in some way
+ */
+export interface IChangeTracker extends ILinkedNode {
+  hasChanges?: boolean;
+  flushChanges(): void;
+}
+/**
+ * Represents a set of ChangeTrackers (typically observers) containing changes that can be flushed in some way (e.g. by calling subscribers).
+ *
+ * The LinkedChangeList itself also implements the IChangeTracker interface, allowing sets of changes to be grouped together and composed into a tree.
+ */
+export interface IChangeSet extends IChangeTracker {
+  /**
+   * A promise that resolves when the current set of changes has been flushed.
+   * This is the same promise that is returned from `add`
+   */
+  readonly flushed: Promise<void>;
+
+  /**
+   * Indicates whether this LinkedChangeList is currently flushing changes
+   */
+  readonly flushing: boolean;
+
+  /**
+   * The number of ChangeTrackers that this set contains
+   */
+  readonly size: number;
+
+  /**
+   * Flushes the changes for all ChangeTrackers currently present in this set.
+   */
+  flushChanges(): void;
+
+  /**
+   * Returns this set of ChangeTrackers as an array.
+   */
+  toArray(): IChangeTracker[];
+
+  /**
+   * Adds a ChangeTracker to the set. Similar to how a normal Set behaves, adding the same item multiple times has the same effect as adding it once.
+   *
+   * @returns A promise that resolves when the changes have been flushed.
+   */
+  add(changeTracker: IChangeTracker): Promise<void>;
+
+  /**
+   * Returns true if the specified ChangeTracker is present in the set.
+   */
+  has(changeTracker: IChangeTracker): boolean;
+}
+
+export const IChangeSet = DI.createInterface<IChangeSet>()
+  .withDefault(x => x.singleton(<any>LinkedChangeList));
+
+const add = Set.prototype.add;
+
+/*@internal*/
+export class ChangeSet extends Set<IChangeTracker> implements IChangeSet {
+  public flushed: Promise<void>;
+  public flushing: boolean = false;
+
+  /*@internal*/
+  public promise: Promise<void> = Promise.resolve();
+
+  public toArray(): IChangeTracker[] {
+    const items = new Array<IChangeTracker>(this.size);
+    let i = 0;
+    for (const item of this.keys()) {
+      items[i++] = item;
+    }
+    return items;
+  }
+
+  /**
+   * This particular implementation is recursive; any changes added as a side-effect of flushing changes, will be flushed during the same tick.
+   */
+  public flushChanges = (): void => {
+    this.flushing = true;
+    while (this.size > 0) {
+      const items = this.toArray();
+      this.clear();
+      const len = items.length;
+      let i = 0;
+      while (i < len) {
+        items[i++].flushChanges();
+      }
+    }
+    this.flushing = false;
+  }
+
+  public add(changeTracker: IChangeTracker): never; // this is a hack to keep intellisense/type checker from nagging about signature compatibility
+  public add(changeTracker: IChangeTracker): Promise<void> {
+    if (this.size === 0) {
+      this.flushed = this.promise.then(this.flushChanges);
+    }
+    add.call(this, changeTracker);
+    return this.flushed;
+  }
+}
+
+const marker = PLATFORM.emptyObject as IChangeTracker;
+
+/*@internal*/
+export class LinkedChangeList implements IChangeSet {
+  public flushed: Promise<void>;
+  public flushing: boolean = false;
+  public size: number = 0;
+  private head: IChangeTracker = null;
+  private tail: IChangeTracker = null;
+
+  /*@internal*/
+  public promise: Promise<void> = Promise.resolve();
+
+  public toArray(): IChangeTracker[] {
+    const items = new Array<IChangeTracker>(this.size);
+    let i = 0;
+    let current = this.head;
+    let next;
+    while (current) {
+      items[i] = current;
+      next = current.$next;
+      current = next;
+      i++;
+    }
+    return items;
+  }
+
+  public has(item: IChangeTracker): boolean {
+    let current = this.head;
+    let next;
+    while (current) {
+      if (item === current) {
+        return true;
+      }
+      next = current.$next;
+      current = next;
+    }
+    return false;
+  }
+
+  /**
+   * This particular implementation is recursive; any changes added as a side-effect of flushing changes, will be flushed during the same tick.
+   */
+  public flushChanges = (): void => {
+    this.flushing = true;
+    while (this.head !== null) {
+      let current = this.head;
+      this.head = this.tail = null;
+      let next;
+      while (current && current !== marker) {
+        current.flushChanges();
+        next = current.$next;
+        current.$next = null;
+        current = next;
+        this.size--;
+      }
+    }
+    this.flushing = false;
+  }
+
+  public add(item: IChangeTracker): never; // this is a hack to keep intellisense/type checker from nagging about signature compatibility
+  public add(item: IChangeTracker): Promise<void> {
+    if (item.$next) {
+      return;
+    }
+    // this is just to give the tail node a non-null value as a cheap way to check whether
+    // something is queued already
+    item.$next = marker;
+    if (this.tail !== null) {
+      this.tail.$next = item;
+    } else {
+      this.head = item;
+    }
+    this.tail = item;
+    if (this.size === 0) {
+      this.flushed = this.promise.then(this.flushChanges);
+    }
+    this.size++;
+    return this.flushed;
+  }
+
 }
 
 /**
@@ -49,10 +258,6 @@ export interface IBindingTargetObserver<
 
 export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 
-export type IObservable = (IIndexable | string | Node | INode | Collection) & {
-  readonly $synthetic?: false;
-  $observers?: Record<string, AccessorOrObserver>;
-};
 
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
@@ -174,15 +379,6 @@ export interface ISubscribable<T extends MutationKind> {
   unsubscribe(subscriber: MutationKindToSubscriber<T>): void;
 }
 
-/*@internal*/
-export const enum SubscriberFlags {
-  None            = 0,
-  Subscriber0     = 0b0001,
-  Subscriber1     = 0b0010,
-  Subscriber2     = 0b0100,
-  SubscribersRest = 0b1000,
-  Any             = 0b1111,
-}
 
 /**
  * A collection of property or collection subscribers
@@ -318,5 +514,42 @@ export interface ICollectionObserver<T extends CollectionKind> extends
     lengthObserver: IBindingTargetObserver;
     getLengthObserver(): IBindingTargetObserver;
 }
-
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
+
+
+export interface IBindingContext {
+  [key: string]: unknown;
+
+  readonly $synthetic?: true;
+  readonly $observers?: ObserversLookup<IOverrideContext>;
+  getObservers?(): ObserversLookup<IOverrideContext>;
+}
+
+export interface IOverrideContext {
+  [key: string]: unknown;
+
+  readonly $synthetic?: true;
+  readonly $observers?: ObserversLookup<IOverrideContext>;
+  readonly bindingContext: IBindingContext;
+  readonly parentOverrideContext: IOverrideContext | null;
+  getObservers(): ObserversLookup<IOverrideContext>;
+}
+
+export interface IScope {
+  readonly bindingContext: IBindingContext;
+  readonly overrideContext: IOverrideContext;
+}
+
+export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
+Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> {
+
+}
+
+export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
+  Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> =
+  { [P in TKey]: PropertyObserver; } & { getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver };
+
+export type IObservable = IIndexable & {
+  readonly $synthetic?: false;
+  $observers?: Record<string, AccessorOrObserver>;
+};

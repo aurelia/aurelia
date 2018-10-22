@@ -1,10 +1,10 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { IChangeSet } from '../change-set';
 import { DOM, IElement, IInputElement, INode, INodeObserver } from '../dom';
-import { IObserversLookup } from './binding-context';
-import { BindingFlags } from './binding-flags';
+import {
+  BindingFlags, CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver,
+  IChangeSet, ICollectionObserver, IndexMap,  IObserversLookup, IPropertySubscriber
+} from '../observation';
 import { IEventSubscriber } from './event-manager';
-import { CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber } from './observation';
 import { IObserverLocator } from './observer-locator';
 import { SetterObserver } from './property-observation';
 import { targetObserver } from './target-observer';

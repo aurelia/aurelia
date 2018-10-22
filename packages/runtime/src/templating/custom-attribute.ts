@@ -9,15 +9,12 @@ import {
   Registration,
   Writable
 } from '@aurelia/kernel';
-import { IScope } from '../binding/binding-context';
-import { BindingFlags } from '../binding/binding-flags';
 import { BindingMode } from '../binding/binding-mode';
-import { IBindScope } from '../binding/observation';
 import { INode } from '../dom';
-import { ILifecycleState, LifecycleState } from '../lifecycle-state';
+import { BindLifecycle, IAttach, IAttachLifecycle, IBindScope, IDetachLifecycle, ILifecycleHooks, ILifecycleState, LifecycleHooks, LifecycleState } from '../lifecycle';
+import { BindingFlags, IScope } from '../observation';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
-import { BindLifecycle, IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, LifecycleHooks } from './lifecycle';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
@@ -35,7 +32,7 @@ export interface ICustomAttributeType extends
   IResourceType<IAttributeDefinition, ICustomAttribute>,
   Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
 
-type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
+type OptionalLifecycleHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
 type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & ILifecycleState;
 
 export interface ICustomAttribute extends IBindScope, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {

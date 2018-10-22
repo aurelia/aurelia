@@ -1,12 +1,17 @@
-import { Immutable } from '@aurelia/kernel';
-import { BindingFlags } from '../binding/binding-flags';
-import { IBindScope } from '../binding/observation';
-import { IChangeSet } from '../change-set';
-import { INode } from '../dom';
-import { ILifecycleState, LifecycleState } from '../lifecycle-state';
-import { ICustomElementType } from './custom-element';
-import { IHydrateElementInstruction } from './instructions';
-import { IRenderable, IRenderingEngine, ITemplate } from './rendering-engine';
+import { INode } from './dom';
+import { BindingFlags, IChangeSet, IScope } from './observation';
+
+export const enum LifecycleState {
+  none                  = 0b00000000000,
+  isBinding             = 0b00000000001,
+  isBound               = 0b00000000010,
+  isAttaching           = 0b00000000100,
+  isAttached            = 0b00000001000,
+  isDetaching           = 0b00000010000,
+  isUnbinding           = 0b00000100000,
+  isCached              = 0b00001000000,
+  needsMount            = 0b00010000000
+}
 
 export enum LifecycleFlags {
   none                = 0b001,
@@ -29,65 +34,10 @@ export const enum LifecycleHooks {
   hasCaching             = 0b100000000000
 }
 
-export interface IAttach extends ICachable {
-  $nextAttachable: IAttach;
-  $prevAttachable: IAttach;
-  $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
-  $detach(lifecycle: IDetachLifecycle): void;
-}
-
-export interface ICachable extends ILifecycleState {
-  $cache(): void;
-}
-
-export interface IMountable extends ILifecycleState {
-  /**
-   * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
-   */
-  $mount(): void;
-
-  /**
-   * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
-   * @returns
-   * - `true` if the instance has been returned to the cache.
-   * - `false` if the cache (typically ViewFactory) did not allow the instance to be cached.
-   * - `undefined` (void) if the instance does not support caching. Functionally equivalent to `false`
-   */
-  $unmount(): boolean | void;
-}
-
-export interface IElementTemplateProvider {
-  getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType): ITemplate;
-}
-
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface ILifecycleHooks extends Partial<IRenderable> {
-  /**
-   * Only applies to `@customElement`. This hook is not invoked for `@customAttribute`s
-   *
-   * Called during `$hydrate`, after `this.$scope` and `this.$projector` are set.
-   *
-   * If this hook is implemented, it will be used instead of `renderingEngine.getElementTemplate`.
-   * This allows you to completely override the default rendering behavior.
-   *
-   * It is the responsibility of the implementer to:
-   * - Populate `this.$bindables` with any Bindings, child Views, custom elements and custom attributes
-   * - Populate `this.$attachables` with any child Views, custom elements and custom attributes
-   * - Populate `this.$nodes` with the nodes that need to be appended to the host
-   * - Populate `this.$context` with the RenderContext / Container scoped to this instance
-   *
-   * @param host The DOM node that declares this custom element
-   * @param parts Replaceable parts, if any
-   *
-   * @returns Either an implementation of `IElementTemplateProvider`, or void
-   *
-   * @description
-   * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
-   * which can happen many times per instance), though it can happen many times per type (once for each instance)
-   */
-  render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
+export interface ILifecycleHooks {
 
   /**
    * Called at the end of `$hydrate`.
@@ -262,6 +212,51 @@ export interface ILifecycleHooks extends Partial<IRenderable> {
   unbound?(flags: BindingFlags): void;
 }
 
+export interface ILifecycleState {
+  $state: LifecycleState;
+}
+
+export interface IAttach extends ICachable {
+  $nextAttachable: IAttach;
+  $prevAttachable: IAttach;
+  $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
+  $detach(lifecycle: IDetachLifecycle): void;
+}
+
+export interface ICachable extends ILifecycleState {
+  $cache(): void;
+}
+
+export interface IMountable extends ILifecycleState {
+  /**
+   * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
+   */
+  $mount(): void;
+
+  /**
+   * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
+   * @returns
+   * - `true` if the instance has been returned to the cache.
+   * - `false` if the cache (typically ViewFactory) did not allow the instance to be cached.
+   * - `undefined` (void) if the instance does not support caching. Functionally equivalent to `false`
+   */
+  $unmount(): boolean | void;
+}
+
+export interface IBindScope extends ILifecycleState {
+  $nextBindable: IBindScope;
+  $prevBindable: IBindScope;
+  $bind(flags: BindingFlags, scope: IScope): void;
+  $unbind(flags: BindingFlags): void;
+}
+
+export interface IBindSelf extends ILifecycleState {
+  readonly $nextBindable: IBindSelf | IBindScope;
+  readonly $prevBindable: IBindSelf | IBindScope;
+  $bind(flags: BindingFlags): void;
+  $unbind(flags: BindingFlags): void;
+}
+
 export interface ILifecycleTask {
   readonly done: boolean;
   canCancel(): boolean;
@@ -308,6 +303,17 @@ type LifecycleUnmountable = Pick<IMountable, '$unmount'> & {
   /*@internal*/
   $nextUnmount?: LifecycleUnmountable;
 };
+
+export interface IDetachLifecycle {
+  readonly flags: LifecycleFlags;
+  registerTask(task: ILifecycleTask): void;
+  createChild(): IDetachLifecycle;
+  queueUnmount(requestor: LifecycleUnmountable): void;
+  queueDetachedCallback(requestor: LifecycleDetachable): void;
+}
+
+type LifecycleBoundable = IBindScope & Pick<ILifecycleHooks, 'bound'> & { $boundFlags?: BindingFlags; $nextBound?: LifecycleBoundable };
+type LifecycleUnboundable = IBindScope & Pick<ILifecycleHooks, 'unbound'> & { $unboundFlags?: BindingFlags; $nextUnbound?: LifecycleUnboundable };
 
 export class AggregateLifecycleTask implements ILifecycleTask {
   public done: boolean = true;
@@ -376,14 +382,6 @@ export class AggregateLifecycleTask implements ILifecycleTask {
       this.resolve();
     }
   }
-}
-
-export interface IDetachLifecycle {
-  readonly flags: LifecycleFlags;
-  registerTask(task: ILifecycleTask): void;
-  createChild(): IDetachLifecycle;
-  queueUnmount(requestor: LifecycleUnmountable): void;
-  queueDetachedCallback(requestor: LifecycleDetachable): void;
 }
 
 /*@internal*/
@@ -668,8 +666,6 @@ export const Lifecycle = {
   }
 };
 
-type LifecycleBoundable = IBindScope & Pick<ILifecycleHooks, 'bound'> & { $boundFlags?: BindingFlags; $nextBound?: LifecycleBoundable };
-type LifecycleUnboundable = IBindScope & Pick<ILifecycleHooks, 'unbound'> & { $unboundFlags?: BindingFlags; $nextUnbound?: LifecycleUnboundable };
 export const BindLifecycle = {
   boundDepth: 0,
   boundHead: <LifecycleBoundable>null,

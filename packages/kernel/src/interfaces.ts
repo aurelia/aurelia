@@ -61,3 +61,5 @@ export type Unwrap<T> =
     T extends (...args: any[]) => infer U ? U :
     T extends Promise<infer U> ? U :
     T;
+
+export type StrictPrimitive = string | number | boolean | null | undefined;

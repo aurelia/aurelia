@@ -727,4 +727,4 @@ export const BindLifecycle = {
       }
     }
   }
-}
+};

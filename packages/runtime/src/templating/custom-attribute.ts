@@ -17,7 +17,7 @@ import { INode } from '../dom';
 import { ILifecycleState, LifecycleState } from '../lifecycle-state';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
-import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, LifecycleHooks, BindLifecycle } from './lifecycle';
+import { BindLifecycle, IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, LifecycleHooks } from './lifecycle';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 

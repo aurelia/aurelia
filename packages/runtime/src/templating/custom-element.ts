@@ -18,7 +18,7 @@ import { ILifecycleState, LifecycleState } from '../lifecycle-state';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
-import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable, LifecycleHooks, BindLifecycle } from './lifecycle';
+import { BindLifecycle, IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks, IMountable, LifecycleHooks } from './lifecycle';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
@@ -128,7 +128,7 @@ export const CustomElementResource: ICustomElementResource = {
       throw Reporter.error(70);
     }
     const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
-    const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrSource)
+    const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrSource);
     const proto: Writable<ICustomElement> = Type.prototype;
 
     Type.kind = CustomElementResource;

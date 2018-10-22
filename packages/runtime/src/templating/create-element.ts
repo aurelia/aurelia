@@ -1,4 +1,4 @@
-import { Constructable } from '@aurelia/kernel';
+import { Constructable, IIndexable } from '@aurelia/kernel';
 import { DOM, INode } from '../dom';
 import { ICustomElementType } from './custom-element';
 import { buildTemplateDefinition } from './definition-builder';
@@ -13,7 +13,7 @@ import { IView, IViewFactory } from './view';
 
 type ChildType = RenderPlan | string | INode;
 
-export function createElement(tagOrType: string | Constructable, props?: any, children?: ArrayLike<ChildType>): RenderPlan {
+export function createElement(tagOrType: string | Constructable, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(tagOrType, props, children);
   } else {
@@ -35,8 +35,8 @@ export class RenderPlan {
       buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies))
   }
 
-  public getElementTemplate(engine: IRenderingEngine, type?: ICustomElementType): ITemplate {
-    return engine.getElementTemplate(this.definition, type);
+  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate {
+    return engine.getElementTemplate(this.definition, Type);
   }
 
   public createView(engine: IRenderingEngine, parentContext?: IRenderContext): IView {
@@ -55,7 +55,7 @@ export class RenderPlan {
   }
 }
 
-function createElementForTag(tagName: string, props?: any, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForTag(tagName: string, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [];
   const dependencies = [];
@@ -88,7 +88,7 @@ function createElementForTag(tagName: string, props?: any, children?: ArrayLike<
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function createElementForType(Type: ICustomElementType, props?: any, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForType(Type: ICustomElementType, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];

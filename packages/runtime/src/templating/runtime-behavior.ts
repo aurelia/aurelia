@@ -1,3 +1,4 @@
+import { IIndexable } from '@aurelia/kernel';
 import { BindingFlags } from '../binding/binding-flags';
 import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from '../binding/observation';
 import { Observer } from '../binding/property-observation';
@@ -74,17 +75,17 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   private applyToElement(changeSet: IChangeSet, instance: ICustomElement): void {
     const observers = this.applyToCore(changeSet, instance);
 
-    (observers as any).$children = new ChildrenObserver(changeSet, instance);
+    observers.$children = new ChildrenObserver(changeSet, instance);
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
-      get: function() {
+      get: function(): unknown {
         return this.$observers.$children.getValue();
       }
     });
   }
 
-  private applyToCore(changeSet: IChangeSet, instance: any) {
+  private applyToCore(changeSet: IChangeSet, instance: (ICustomAttribute | ICustomElement) & { $behavior?: IRuntimeBehavior }): IIndexable {
     const observers = {};
     const bindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
@@ -112,11 +113,11 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   }
 }
 
-function createGetterSetter(instance: any, name: string): void {
+function createGetterSetter(instance: ICustomAttribute | ICustomElement, name: string): void {
   Reflect.defineProperty(instance, name, {
     enumerable: true,
-    get: function() { return this.$observers[name].getValue(); },
-    set: function(value) { this.$observers[name].setValue(value, BindingFlags.updateTargetInstance); }
+    get: function(): unknown { return this.$observers[name].getValue(); },
+    set: function(value: unknown): void { this.$observers[name].setValue(value, BindingFlags.updateTargetInstance); }
   });
 }
 
@@ -133,7 +134,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   private children: ICustomElement[] = null;
   private observing: boolean = false;
 
-  constructor(private changeSet: IChangeSet, private customElement: ICustomElement) { }
+  constructor(private changeSet: IChangeSet, private customElement: ICustomElement & { $childrenChanged?(): void }) { }
 
   public getValue(): ICustomElement[] {
     if (!this.observing) {
@@ -145,7 +146,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
     return this.children;
   }
 
-  public setValue(newValue: any): void {}
+  public setValue(newValue: unknown): void { /* do nothing */ }
 
   public flushChanges(this: ChildrenObserver & IChildrenObserver): void {
     this.callSubscribers(this.children, undefined, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
@@ -164,7 +165,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
     this.children = findElements(this.customElement.$projector.children);
 
     if ('$childrenChanged' in this.customElement) {
-      (this.customElement as any).$childrenChanged();
+      this.customElement.$childrenChanged();
     }
 
     this.changeSet.add(this);

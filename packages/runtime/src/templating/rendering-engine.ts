@@ -22,8 +22,8 @@ export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
   getViewFactory(source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory;
 
-  applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute): void;
-  applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void;
+  applyRuntimeBehavior(Type: ICustomAttributeType, instance: ICustomAttribute): void;
+  applyRuntimeBehavior(Type: ICustomElementType, instance: ICustomElement): void;
 
   createRenderer(context: IRenderContext): IRenderer;
 }
@@ -97,12 +97,12 @@ export class RenderingEngine implements IRenderingEngine {
     return factory;
   }
 
-  public applyRuntimeBehavior(type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement): void {
-    let found = this.behaviorLookup.get(type);
+  public applyRuntimeBehavior(Type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement): void {
+    let found = this.behaviorLookup.get(Type);
 
     if (!found) {
-      found = RuntimeBehavior.create(type, instance);
-      this.behaviorLookup.set(type, found);
+      found = RuntimeBehavior.create(Type, instance);
+      this.behaviorLookup.set(Type, found);
     }
 
     found.applyTo(instance, this.changeSet);
@@ -168,7 +168,6 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
   }
 }
 
-
 // The basic template abstraction that allows consumers to create
 // instances of an INodeSequence on-demand. Templates are contextual in that they are, in the very least,
 // part of a particular application, with application-level resources, but they also may have their
@@ -212,11 +211,10 @@ export const noViewTemplate: ITemplate = {
   }
 };
 
-
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;
   render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IRenderable, target: any, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable;
+  beginComponentOperation(renderable: IRenderable, target: INode, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable;
 }
 
 /*@internal*/
@@ -243,10 +241,10 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   }
 
   context.render = function(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
-    renderer.render(renderable, targets, templateDefinition, host, parts)
+    renderer.render(renderable, targets, templateDefinition, host, parts);
   };
 
-  context.beginComponentOperation = function(renderable: IRenderable, target: any, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
+  context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);

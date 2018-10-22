@@ -1,8 +1,7 @@
 import { Immutable, PLATFORM } from '@aurelia/kernel';
+import { IBindableDescription, IBuildInstruction, ITemplateDefinition, TargetedInstruction, TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
-import { IBindableDescription } from './bindable';
 import { ICustomElementType } from './custom-element';
-import { IBuildInstruction, ITemplateDefinition, TargetedInstruction, TemplateDefinition } from './instructions';
 
 /*@internal*/
 export const buildRequired: IBuildInstruction = Object.freeze({

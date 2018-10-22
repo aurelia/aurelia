@@ -1,6 +1,6 @@
 import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { IRenderStrategyInstruction } from '../definitions';
 import { IResourceKind, IResourceType } from '../resource';
-import { IRenderStrategyInstruction } from './instructions';
 import { IRenderable } from './rendering-engine';
 
 export interface IRenderStrategy<TTarget = any, TInstruction extends IRenderStrategyInstruction = any> {

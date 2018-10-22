@@ -1,12 +1,12 @@
 import { IIndexable } from '@aurelia/kernel';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
+import { BindableDefinitions } from '../definitions';
 import { INode } from '../dom';
 import { LifecycleHooks } from '../lifecycle';
 import { BindingFlags, IAccessor, IChangeSet, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './custom-element';
-import { BindableDefinitions } from './instructions';
 
 export interface IRuntimeBehavior {
   readonly hooks: LifecycleHooks;

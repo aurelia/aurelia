@@ -10,12 +10,12 @@ import {
   Writable
 } from '@aurelia/kernel';
 import { Scope } from '../binding/binding-context';
+import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { BindLifecycle, IAttach, IAttachLifecycle, IBindSelf, IDetachLifecycle, ILifecycleHooks, ILifecycleState, IMountable, LifecycleHooks, LifecycleState } from '../lifecycle';
 import { BindingFlags } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
-import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
 import { ILifecycleRender, IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 

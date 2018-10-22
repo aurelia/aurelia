@@ -10,23 +10,13 @@ import {
   Writable
 } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
+import { IAttributeDefinition } from '../definitions';
 import { INode } from '../dom';
 import { BindLifecycle, IAttach, IAttachLifecycle, IBindScope, IDetachLifecycle, ILifecycleHooks, ILifecycleState, LifecycleHooks, LifecycleState } from '../lifecycle';
 import { BindingFlags, IScope } from '../observation';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
-import { IBindableDescription } from './bindable';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
-
-export interface IAttributeDefinition {
-  name: string;
-  defaultBindingMode?: BindingMode;
-  aliases?: string[];
-  isTemplateController?: boolean;
-  bindables?: Record<string, IBindableDescription>;
-}
-
-export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
 
 export interface ICustomAttributeType extends
   IResourceType<IAttributeDefinition, ICustomAttribute>,

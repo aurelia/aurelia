@@ -45,7 +45,6 @@ export * from './templating/bindable';
 export * from './templating/custom-attribute';
 export * from './templating/custom-element';
 export * from './templating/create-element';
-export * from './templating/instructions';
 export * from './templating/render-strategy';
 export * from './templating/renderer';
 export * from './templating/rendering-engine';
@@ -54,6 +53,7 @@ export * from './templating/template-compiler';
 export * from './templating/view';
 
 export * from './aurelia';
+export * from './definitions';
 export * from './dom';
 export * from './lifecycle';
 export * from './observation';

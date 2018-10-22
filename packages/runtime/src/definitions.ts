@@ -1,11 +1,19 @@
 // tslint:disable:no-reserved-keywords
-import { DI, Immutable } from '@aurelia/kernel';
-import { ForOfStatement, Interpolation, IsBindingBehavior } from '../binding/ast';
-import { BindingMode } from '../binding/binding-mode';
-import { DelegationStrategy } from '../binding/event-manager';
-import { INode } from '../dom';
-import { ResourceDescription } from '../resource';
-import { IBindableDescription } from './bindable';
+import { DI, Immutable, Omit } from '@aurelia/kernel';
+import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
+import { BindingMode } from './binding/binding-mode';
+import { DelegationStrategy } from './binding/event-manager';
+import { INode } from './dom';
+import { ResourceDescription } from './resource';
+
+export type BindableSource = Omit<IBindableDescription, 'property'>;
+
+export interface IBindableDescription {
+  mode?: BindingMode;
+  callback?: string;
+  attribute?: string;
+  property?: string;
+}
 
 export const enum TargetedInstructionType {
   textBinding = 'a',
@@ -50,6 +58,16 @@ export interface ITemplateDefinition {
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 export type TemplatePartDefinitions = Record<string, Immutable<ITemplateDefinition>>;
 export type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
+
+export interface IAttributeDefinition {
+  name: string;
+  defaultBindingMode?: BindingMode;
+  aliases?: string[];
+  isTemplateController?: boolean;
+  bindables?: Record<string, IBindableDescription>;
+}
+
+export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
 
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>();
 export interface ITargetedInstruction {

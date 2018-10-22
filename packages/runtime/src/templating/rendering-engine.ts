@@ -2,6 +2,7 @@ import { all, DI, IContainer, IDisposable, Immutable, ImmutableArray, inject, IR
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
 import { IObserverLocator } from '../binding/observer-locator';
+import { IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
 import { IAttach, IBindScope, ILifecycleState } from '../lifecycle';
 import { IChangeSet, IScope } from '../observation';
@@ -9,7 +10,6 @@ import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescriptio
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { buildTemplateDefinition } from './definition-builder';
-import { IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { IRenderer, Renderer } from './renderer';
 import { RuntimeBehavior } from './runtime-behavior';
 import { ITemplateCompiler, ViewCompileFlags } from './template-compiler';

@@ -1,14 +1,6 @@
-import { Constructable, Omit, PLATFORM } from '@aurelia/kernel';
+import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
-
-export type BindableSource = Omit<IBindableDescription, 'property'>;
-
-export interface IBindableDescription {
-  mode?: BindingMode;
-  callback?: string;
-  attribute?: string;
-  property?: string;
-}
+import { BindableSource, IBindableDescription } from '../definitions';
 
 type WithBindables = { bindables: Record<string, IBindableDescription> };
 type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>

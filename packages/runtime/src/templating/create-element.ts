@@ -1,13 +1,8 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
+import { isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
 import { DOM, INode } from '../dom';
 import { ICustomElementType } from './custom-element';
 import { buildTemplateDefinition } from './definition-builder';
-import {
-  isTargetedInstruction,
-  TargetedInstruction,
-  TargetedInstructionType,
-  TemplateDefinition
-} from './instructions';
 import { IRenderContext, IRenderingEngine, ITemplate } from './rendering-engine';
 import { IView, IViewFactory } from './view';
 

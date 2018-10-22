@@ -10,9 +10,6 @@ import { LetBinding } from '../binding/let-binding';
 import { Listener } from '../binding/listener';
 import { IObserverLocator } from '../binding/observer-locator';
 import { Ref } from '../binding/ref';
-import { DOM, INode } from '../dom';
-import { CustomAttributeResource, ICustomAttribute } from './custom-attribute';
-import { CustomElementResource, ICustomElement } from './custom-element';
 import {
   ICallBindingInstruction,
   IHydrateAttributeInstruction,
@@ -32,7 +29,10 @@ import {
   TargetedInstructionType,
   TemplateDefinition,
   TemplatePartDefinitions
-} from './instructions';
+} from '../definitions';
+import { DOM, INode } from '../dom';
+import { CustomAttributeResource, ICustomAttribute } from './custom-attribute';
+import { CustomElementResource, ICustomElement } from './custom-element';
 import { IRenderStrategy, RenderStrategyResource } from './render-strategy';
 import { addAttachable, addBindable, IRenderable, IRenderContext, IRenderingEngine } from './rendering-engine';
 

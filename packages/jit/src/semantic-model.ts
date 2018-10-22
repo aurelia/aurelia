@@ -483,7 +483,11 @@ export class ElementSymbol {
   }
 
   public addInstructions(instructions: TargetedInstruction[]): void {
-    this.$root.definition.instructions.push(instructions);
+    const def = this.$root.definition;
+    if (def.instructions === PLATFORM.emptyArray) {
+      def.instructions = [];
+    }
+    def.instructions.push(instructions);
   }
 
   private setToMarker(marker: ElementSyntax): void {

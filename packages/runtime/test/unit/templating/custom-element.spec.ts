@@ -56,7 +56,7 @@ describe('@customElement', () => {
     expect(Type.description.name).to.equal('unnamed', 'name');
     expect(Type.description.template).to.equal(null, 'template');
     expect(Type.description.cache).to.equal(0, 'cache');
-    expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+    expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
     expect(Type.description.bindables).to.deep.equal({}, 'bindables');
     expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
     expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
@@ -101,7 +101,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal(nameSpec.getExpectedname(), 'name');
       expect(Type.description.template).to.equal(null, 'template');
       expect(Type.description.cache).to.equal(0, 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
@@ -147,7 +147,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(templateSpec.getExpectedTemplate(), 'template');
       expect(Type.description.cache).to.equal(0, 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
@@ -205,7 +205,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
       expect(Type.description.cache).to.equal(cacheSpec.getExpectedCache(), 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
@@ -220,15 +220,20 @@ describe('@customElement', () => {
   const buildSpecs = [
     {
       description: 'build is undefined',
-      expectation: 'uses default build',
+      expectation: 'uses default build required=false',
       getBuild() { return undefined; },
       getExpectedBuild() { return { required: false, compiler: 'default' }; }
     },
     {
       description: 'build is null',
-      expectation: 'uses default build',
+      expectation: 'uses default build required=false',
       getBuild() { return null; },
       getExpectedBuild() { return { required: false, compiler: 'default' }; }
+    },
+    {
+      description: 'build property does not exist',
+      expectation: 'uses default build required=true',
+      getExpectedBuild() { return { required: true, compiler: 'default' }; }
     },
     {
       description: 'build is object',
@@ -240,7 +245,7 @@ describe('@customElement', () => {
 
   eachCartesianJoin([buildSpecs], (buildSpec) => {
     it(`${buildSpec.expectation} if ${buildSpec.description}`, () => {
-      const { Type } = createCustomElement({ build: buildSpec.getBuild() });
+      const { Type } = createCustomElement( buildSpec.getBuild ? { build: buildSpec.getBuild() } : {});
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
@@ -322,7 +327,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
       expect(Type.description.cache).to.equal(0, 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal(bindablesSpec.getExpectedBindables(), 'bindables');
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
@@ -372,7 +377,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
       expect(Type.description.cache).to.equal(0, 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.deep.equal(instructionsSpec.getExpectedInstructions(), 'instructions');
       if (instructionsSpec.canMutate) {
@@ -427,7 +432,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
       expect(Type.description.cache).to.equal(0, 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.deep.equal(dependenciesSpec.getExpectedDependencies(), 'dependencies');
@@ -482,7 +487,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
       expect(Type.description.cache).to.equal(0, 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
@@ -557,7 +562,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
       expect(Type.description.cache).to.equal(0, 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
@@ -620,7 +625,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
       expect(Type.description.cache).to.equal(0, 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
@@ -666,7 +671,7 @@ describe('@customElement', () => {
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
       expect(Type.description.cache).to.equal(0, 'cache');
-      expect(Type.description.build).to.deep.equal({ required: false, compiler: 'default' }, 'build');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');

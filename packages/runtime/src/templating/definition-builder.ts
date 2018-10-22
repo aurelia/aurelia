@@ -4,7 +4,8 @@ import { IBindableDescription } from './bindable';
 import { ICustomElementType } from './custom-element';
 import { IBuildInstruction, ITemplateDefinition, TargetedInstruction, TemplateDefinition } from './instructions';
 
-const buildRequired: IBuildInstruction = Object.freeze({
+/*@internal*/
+export const buildRequired: IBuildInstruction = Object.freeze({
   required: true,
   compiler: 'default'
 });
@@ -100,7 +101,8 @@ export function buildTemplateDefinition(
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
-  switch (arguments.length) {
+  const argLen = arguments.length;
+  switch (argLen) {
     case 12: if (hasSlots !== null) def.hasSlots = hasSlots;
     case 11: if (shadowOptions !== null) def.shadowOptions = shadowOptions;
     case 10: if (containerless !== null) def.containerless = containerless;
@@ -146,6 +148,13 @@ export function buildTemplateDefinition(
           }
         }
       }
+  }
+
+  // special handling for invocations that quack like a @customElement decorator
+  if (argLen === 2 && ctor !== null) {
+    if (typeof nameOrDef === 'string' || !('build' in nameOrDef)) {
+      def.build = buildRequired;
+    }
   }
 
   return def;

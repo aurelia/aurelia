@@ -289,6 +289,7 @@ describe('ArrayRepeater - render html', () => {
     au.register(aureliaConfig);
     const templateSource: ITemplateDefinition = {
       name: 'app',
+      build: { required: false },
       dependencies: [],
       template: `<span class="au"></span> `,
       instructions: [

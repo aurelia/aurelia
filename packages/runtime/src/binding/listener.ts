@@ -9,8 +9,8 @@ import { DelegationStrategy, IEventManager } from './event-manager';
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
-  public $nextBindable: IBindScope = null;
-  public $prevBindable: IBindScope = null;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
   public $state: LifecycleState = LifecycleState.none;
 

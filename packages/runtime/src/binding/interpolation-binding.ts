@@ -12,8 +12,8 @@ import { IObserverLocator } from './observer-locator';
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
-  public $nextBindable: IBindScope = null;
-  public $prevBindable: IBindScope = null;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
   public $state: LifecycleState = LifecycleState.none;
 

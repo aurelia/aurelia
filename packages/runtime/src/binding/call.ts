@@ -8,8 +8,8 @@ import { IObserverLocator } from './observer-locator';
 
 export interface Call extends IConnectableBinding {}
 export class Call {
-  public $nextBindable: IBindScope = null;
-  public $prevBindable: IBindScope = null;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
   public $state: LifecycleState = LifecycleState.none;
   public $scope: IScope;

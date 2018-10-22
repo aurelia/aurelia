@@ -12,8 +12,8 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
-  public $nextBindable: IBindScope = null;
-  public $prevBindable: IBindScope = null;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
   public $state: LifecycleState = LifecycleState.none;
 

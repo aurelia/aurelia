@@ -1,3 +1,4 @@
+import { Omit } from '@aurelia/kernel';
 import { INode } from './dom';
 import { BindingFlags, IChangeSet, IScope } from './observation';
 
@@ -34,11 +35,7 @@ export const enum LifecycleHooks {
   hasCaching             = 0b100000000000
 }
 
-/**
- * Defines optional lifecycle hooks that will be called only when they are implemented.
- */
-export interface ILifecycleHooks {
-
+export interface ILifecycleCreated {
   /**
    * Called at the end of `$hydrate`.
    *
@@ -56,7 +53,9 @@ export interface ILifecycleHooks {
    * for any high-level post processing on initialized properties.
    */
   created?(): void;
+}
 
+export interface ILifecycleBinding {
   /**
    * Called at the start of `$bind`, before this instance and its children (if any) are bound.
    *
@@ -75,6 +74,11 @@ export interface ILifecycleHooks {
    * and the third lifecycle hook (after `render` and `created`) of the very first lifecycle.
    */
   binding?(flags: BindingFlags): void;
+}
+
+export interface ILifecycleBound {
+  /*@internal*/$boundFlags?: BindingFlags;
+  /*@internal*/$nextBound?: ILifecycleBound;
 
   /**
    * Called at the end of `$bind`, after this instance and its children (if any) are bound.
@@ -94,82 +98,9 @@ export interface ILifecycleHooks {
    * and the fourth lifecycle hook (after `render`, `created` and `binding`) of the very first lifecycle.
    */
   bound?(flags: BindingFlags): void;
+}
 
-  /**
-   * Called at the start of `$attach`, before this instance and its children (if any) are attached.
-   *
-   * `$isAttached` is false.
-   *
-   * @param encapsulationSource Ask Rob.
-   * @param lifecycle Utility that encapsulates the attach sequence for a hierarchy of attachables and guarantees the correct attach order.
-   *
-   * @description
-   * This is the third "create" lifecycle hook (after `binding` and `bound`) of the hooks that can occur multiple times per instance,
-   * and the fifth lifecycle hook (after `render`, `created`, `binding` and `bound`) of the very first lifecycle
-   *
-   * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
-   * the nodes are added to the DOM.
-   */
-  attaching?(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
-
-  /**
-   * Called at the end of `$attach`, after this instance and its children (if any) are attached.
-   *
-   * - `$isAttached` is true.
-   *
-   * @description
-   * This is the fourth (and last) "create" lifecycle hook (after `binding`, `bound` and `attaching`) of the hooks that can occur
-   * multiple times per instance, and the sixth lifecycle hook (after `render`, `created`, `binding`, `bound` and `attaching`)
-   * of the very first lifecycle
-   *
-   * This instance and its children (if any) can be assumed
-   * to be fully initialized, bound, rendered, added to the DOM and ready for use.
-   */
-  attached?(): void;
-
-  /**
-   * Called at the start of `$detach`, before this instance and its children (if any) are detached.
-   *
-   * - `$isAttached` is true.
-   *
-   * @param lifecycle Utility that encapsulates the detach sequence for a hierarchy of attachables and guarantees the correct detach order.
-   *
-   * @description
-   * This is the first "cleanup" lifecycle hook.
-   *
-   * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
-   * the nodes are removed from the DOM.
-   */
-  detaching?(lifecycle: IDetachLifecycle): void;
-
-  /**
-   * Called during `$unmount` (which happens during `$detach`), specifically after the
-   * `$nodes` are removed from the DOM, but before the view is actually added to the cache.
-   *
-   * @description
-   * This is the second "cleanup" lifecycle hook.
-   *
-   * This lifecycle is invoked if and only if the `ViewFactory` that created the `View` allows the view to be cached.
-   *
-   * Usually this hook is not invoked unless you explicitly set the cache size to to something greater than zero
-   * on the resource description.
-   */
-  caching?(): void;
-
-  /**
-   * Called at the end of `$detach`, after this instance and its children (if any) are detached.
-   *
-   * - `$isAttached` is false.
-   *
-   * @description
-   * This is the third "cleanup" lifecycle hook (after `detaching` and `caching`).
-   *
-   * The `$nodes` are now removed from the DOM and the `View` (if possible) is returned to cache.
-   *
-   * If no `$unbind` lifecycle is queued, this is the last opportunity to make state changes before the lifecycle ends.
-   */
-  detached?(): void;
-
+export interface ILifecycleUnbinding {
   /**
    * Called at the start of `$unbind`, before this instance and its children (if any) are unbound.
    *
@@ -189,6 +120,11 @@ export interface ILifecycleHooks {
    *
    */
   unbinding?(flags: BindingFlags): void;
+}
+
+export interface ILifecycleUnbound {
+  /*@internal*/$unboundFlags?: BindingFlags;
+  /*@internal*/$nextUnbound?: ILifecycleUnbound;
 
   /**
    * Called at the end of `$unbind`, after this instance and its children (if any) are unbound.
@@ -212,26 +148,144 @@ export interface ILifecycleHooks {
   unbound?(flags: BindingFlags): void;
 }
 
+export interface ILifecycleAttaching {
+  /**
+   * Called at the start of `$attach`, before this instance and its children (if any) are attached.
+   *
+   * `$isAttached` is false.
+   *
+   * @param encapsulationSource Ask Rob.
+   * @param lifecycle Utility that encapsulates the attach sequence for a hierarchy of attachables and guarantees the correct attach order.
+   *
+   * @description
+   * This is the third "create" lifecycle hook (after `binding` and `bound`) of the hooks that can occur multiple times per instance,
+   * and the fifth lifecycle hook (after `render`, `created`, `binding` and `bound`) of the very first lifecycle
+   *
+   * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
+   * the nodes are added to the DOM.
+   */
+  attaching?(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
+}
+
+export interface ILifecycleAttached {
+  /*@internal*/$nextAttached?: ILifecycleAttached;
+
+  /**
+   * Called at the end of `$attach`, after this instance and its children (if any) are attached.
+   *
+   * - `$isAttached` is true.
+   *
+   * @description
+   * This is the fourth (and last) "create" lifecycle hook (after `binding`, `bound` and `attaching`) of the hooks that can occur
+   * multiple times per instance, and the sixth lifecycle hook (after `render`, `created`, `binding`, `bound` and `attaching`)
+   * of the very first lifecycle
+   *
+   * This instance and its children (if any) can be assumed
+   * to be fully initialized, bound, rendered, added to the DOM and ready for use.
+   */
+  attached?(): void;
+}
+
+export interface ILifecycleDetaching {
+  /**
+   * Called at the start of `$detach`, before this instance and its children (if any) are detached.
+   *
+   * - `$isAttached` is true.
+   *
+   * @param lifecycle Utility that encapsulates the detach sequence for a hierarchy of attachables and guarantees the correct detach order.
+   *
+   * @description
+   * This is the first "cleanup" lifecycle hook.
+   *
+   * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
+   * the nodes are removed from the DOM.
+   */
+  detaching?(lifecycle: IDetachLifecycle): void;
+}
+
+export interface ILifecycleDetached {
+  /*@internal*/$nextDetached?: ILifecycleDetached;
+
+  /**
+   * Called at the end of `$detach`, after this instance and its children (if any) are detached.
+   *
+   * - `$isAttached` is false.
+   *
+   * @description
+   * This is the third "cleanup" lifecycle hook (after `detaching` and `caching`).
+   *
+   * The `$nodes` are now removed from the DOM and the `View` (if possible) is returned to cache.
+   *
+   * If no `$unbind` lifecycle is queued, this is the last opportunity to make state changes before the lifecycle ends.
+   */
+  detached?(): void;
+}
+
+export interface ILifecycleCaching {
+  /**
+   * Called during `$unmount` (which happens during `$detach`), specifically after the
+   * `$nodes` are removed from the DOM, but before the view is actually added to the cache.
+   *
+   * @description
+   * This is the second "cleanup" lifecycle hook.
+   *
+   * This lifecycle is invoked if and only if the `ViewFactory` that created the `View` allows the view to be cached.
+   *
+   * Usually this hook is not invoked unless you explicitly set the cache size to to something greater than zero
+   * on the resource description.
+   */
+  caching?(): void;
+}
+
+/**
+ * Defines optional lifecycle hooks that will be called only when they are implemented.
+ */
+export interface ILifecycleHooks extends
+  ILifecycleCreated,
+  ILifecycleBinding,
+  ILifecycleBound,
+  ILifecycleUnbinding,
+  ILifecycleUnbound,
+  ILifecycleAttaching,
+  ILifecycleAttached,
+  ILifecycleDetaching,
+  ILifecycleDetached,
+  ILifecycleCaching { }
+
 export interface ILifecycleState {
   $state: LifecycleState;
 }
 
-export interface IAttach extends ICachable {
-  $nextAttachable: IAttach;
-  $prevAttachable: IAttach;
-  $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
-  $detach(lifecycle: IDetachLifecycle): void;
-}
-
-export interface ICachable extends ILifecycleState {
+export interface ILifecycleCache {
   $cache(): void;
 }
 
-export interface IMountable extends ILifecycleState {
+export interface ICachable extends ILifecycleCache, ILifecycleState { }
+
+export interface ILifecycleAttach {
+  $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
+}
+
+export interface ILifecycleDetach {
+  $detach(lifecycle: IDetachLifecycle): void;
+}
+
+export interface IAttach extends ILifecycleAttach, ILifecycleDetach, ICachable {
+  /*@internal*/$nextAttach: IAttach;
+  /*@internal*/$prevAttach: IAttach;
+}
+
+export interface ILifecycleMount {
+  /*@internal*/$nextMount?: ILifecycleMount;
+
   /**
    * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
    */
   $mount(): void;
+}
+
+export interface ILifecycleUnmount {
+  /*@internal*/$nextUnmount?: ILifecycleUnmount;
 
   /**
    * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
@@ -242,20 +296,32 @@ export interface IMountable extends ILifecycleState {
    */
   $unmount(): boolean | void;
 }
+export interface IMountable extends ILifecycleMount, ILifecycleUnmount, ILifecycleState { }
 
-export interface IBindScope extends ILifecycleState {
-  $nextBindable: IBindScope;
-  $prevBindable: IBindScope;
-  $bind(flags: BindingFlags, scope: IScope): void;
+export interface ILifecycleUnbind {
   $unbind(flags: BindingFlags): void;
 }
 
-export interface IBindSelf extends ILifecycleState {
-  readonly $nextBindable: IBindSelf | IBindScope;
-  readonly $prevBindable: IBindSelf | IBindScope;
+export interface ILifecycleBind {
+  $bind(flags: BindingFlags, scope?: IScope): void;
+}
+
+export interface ILifecycleBindSelf {
   $bind(flags: BindingFlags): void;
-  $unbind(flags: BindingFlags): void;
 }
+
+export interface ILifecycleBindScope {
+  $bind(flags: BindingFlags, scope: IScope): void;
+}
+
+export interface IBind extends ILifecycleBind, ILifecycleUnbind, ILifecycleState {
+  /*@internal*/$nextBind: IBindSelf | IBindScope;
+  /*@internal*/$prevBind: IBindSelf | IBindScope;
+}
+
+export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope { }
+
+export interface IBindSelf extends Omit<IBind, '$bind'>, ILifecycleBindSelf { }
 
 export interface ILifecycleTask {
   readonly done: boolean;
@@ -269,23 +335,12 @@ export interface IAttachLifecycleController {
   end(): ILifecycleTask;
 }
 
-type LifecycleAttachable = {
-  /*@internal*/
-  $nextAttached?: LifecycleAttachable;
-  attached(): void;
-};
-
-type LifecycleMountable = Pick<IMountable, '$mount'> & {
-  /*@internal*/
-  $nextMount?: LifecycleMountable;
-};
-
 export interface IAttachLifecycle {
   readonly flags: LifecycleFlags;
   registerTask(task: ILifecycleTask): void;
   createChild(): IAttachLifecycle;
-  queueMount(requestor: LifecycleMountable): void;
-  queueAttachedCallback(requestor: LifecycleAttachable): void;
+  queueMount(requestor: ILifecycleMount): void;
+  queueAttachedCallback(requestor: ILifecycleAttached): void;
 }
 
 export interface IDetachLifecycleController {
@@ -293,27 +348,13 @@ export interface IDetachLifecycleController {
   end(): ILifecycleTask;
 }
 
-type LifecycleDetachable = {
-  /*@internal*/
-  $nextDetached?: LifecycleDetachable;
-  detached(): void;
-};
-
-type LifecycleUnmountable = Pick<IMountable, '$unmount'> & {
-  /*@internal*/
-  $nextUnmount?: LifecycleUnmountable;
-};
-
 export interface IDetachLifecycle {
   readonly flags: LifecycleFlags;
   registerTask(task: ILifecycleTask): void;
   createChild(): IDetachLifecycle;
-  queueUnmount(requestor: LifecycleUnmountable): void;
-  queueDetachedCallback(requestor: LifecycleDetachable): void;
+  queueUnmount(requestor: ILifecycleUnmount): void;
+  queueDetachedCallback(requestor: ILifecycleDetached): void;
 }
-
-type LifecycleBoundable = IBindScope & Pick<ILifecycleHooks, 'bound'> & { $boundFlags?: BindingFlags; $nextBound?: LifecycleBoundable };
-type LifecycleUnboundable = IBindScope & Pick<ILifecycleHooks, 'unbound'> & { $unboundFlags?: BindingFlags; $nextUnbound?: LifecycleUnboundable };
 
 export class AggregateLifecycleTask implements ILifecycleTask {
   public done: boolean = true;
@@ -387,14 +428,14 @@ export class AggregateLifecycleTask implements ILifecycleTask {
 /*@internal*/
 export class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleController {
   /*@internal*/
-  public $nextMount: LifecycleMountable = null;
+  public $nextMount: ILifecycleMount = null;
   /*@internal*/
-  public $nextAttached: LifecycleAttachable = null;
+  public $nextAttached: ILifecycleAttached = null;
 
-  private attachedHead: LifecycleAttachable = this;
-  private attachedTail: LifecycleAttachable = this;
-  private mountHead: LifecycleMountable = this;
-  private mountTail: LifecycleMountable = this;
+  private attachedHead: ILifecycleAttached = this;
+  private attachedTail: ILifecycleAttached = this;
+  private mountHead: ILifecycleMount = this;
+  private mountTail: ILifecycleMount = this;
   private task: AggregateLifecycleTask = null;
 
   constructor(
@@ -409,12 +450,12 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
     return this;
   }
 
-  public queueMount(requestor: LifecycleMountable): void {
+  public queueMount(requestor: ILifecycleMount): void {
     this.mountTail.$nextMount = requestor;
     this.mountTail = requestor;
   }
 
-  public queueAttachedCallback(requestor: LifecycleAttachable): void {
+  public queueAttachedCallback(requestor: ILifecycleAttached): void {
     this.attachedTail.$nextAttached = requestor;
     this.attachedTail = requestor;
   }
@@ -497,14 +538,14 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
 /*@internal*/
 export class DetachLifecycleController implements IDetachLifecycle, IDetachLifecycleController {
   /*@internal*/
-  public $nextUnmount: LifecycleUnmountable = null;
+  public $nextUnmount: ILifecycleUnmount = null;
   /*@internal*/
-  public $nextDetached: LifecycleDetachable = null;
+  public $nextDetached: ILifecycleDetached = null;
 
-  private detachedHead: LifecycleDetachable = this; //LOL
-  private detachedTail: LifecycleDetachable = this;
-  private unmountHead: LifecycleUnmountable = this;
-  private unmountTail: LifecycleUnmountable = this;
+  private detachedHead: ILifecycleDetached = this; //LOL
+  private detachedTail: ILifecycleDetached = this;
+  private unmountHead: ILifecycleUnmount = this;
+  private unmountTail: ILifecycleUnmount = this;
   private task: AggregateLifecycleTask = null;
   private allowUnmount: boolean = true;
 
@@ -526,7 +567,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     return this;
   }
 
-  public queueUnmount(requestor: LifecycleUnmountable): void {
+  public queueUnmount(requestor: ILifecycleUnmount): void {
     if (this.allowUnmount) {
       this.unmountTail.$nextUnmount = requestor;
       this.unmountTail = requestor;
@@ -537,7 +578,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     }
   }
 
-  public queueDetachedCallback(requestor: LifecycleDetachable): void {
+  public queueDetachedCallback(requestor: ILifecycleDetached): void {
     this.detachedTail.$nextDetached = requestor;
     this.detachedTail = requestor;
   }
@@ -640,11 +681,11 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
   }
 }
 
-function isUnmountable(requestor: object): requestor is LifecycleUnmountable {
+function isUnmountable(requestor: object): requestor is ILifecycleUnmount {
   return '$unmount' in requestor;
 }
 
-function isUnbindable(requestor: object): requestor is IBindScope {
+function isUnbindable(requestor: object): requestor is ILifecycleUnbind {
   return '$unbind' in requestor;
 }
 
@@ -668,9 +709,9 @@ export const Lifecycle = {
 
 export const BindLifecycle = {
   boundDepth: 0,
-  boundHead: <LifecycleBoundable>null,
-  boundTail: <LifecycleBoundable>null,
-  queueBound(requestor: LifecycleBoundable, flags: BindingFlags): void {
+  boundHead: <ILifecycleBound>null,
+  boundTail: <ILifecycleBound>null,
+  queueBound(requestor: ILifecycleBound, flags: BindingFlags): void {
     requestor.$boundFlags = flags;
     requestor.$nextBound = null;
     if (BindLifecycle.boundHead === null) {
@@ -684,7 +725,7 @@ export const BindLifecycle = {
   unqueueBound(): void {
     if (--BindLifecycle.boundDepth === 0) {
       let current = BindLifecycle.boundHead;
-      let next: LifecycleBoundable;
+      let next: ILifecycleBound;
       BindLifecycle.boundHead = BindLifecycle.boundTail = null;
       while (current !== null) {
         current.bound(current.$boundFlags);
@@ -697,9 +738,9 @@ export const BindLifecycle = {
     }
   },
   unboundDepth: 0,
-  unboundHead: <LifecycleUnboundable>null,
-  unboundTail: <LifecycleUnboundable>null,
-  queueUnbound(requestor: LifecycleUnboundable, flags: BindingFlags): void {
+  unboundHead: <ILifecycleUnbound>null,
+  unboundTail: <ILifecycleUnbound>null,
+  queueUnbound(requestor: ILifecycleUnbound, flags: BindingFlags): void {
     requestor.$unboundFlags = flags;
     requestor.$nextUnbound = null;
     if (BindLifecycle.unboundHead === null) {
@@ -713,7 +754,7 @@ export const BindLifecycle = {
   unqueueUnbound(): void {
     if (--BindLifecycle.unboundDepth === 0) {
       let current = BindLifecycle.unboundHead;
-      let next: LifecycleUnboundable;
+      let next: ILifecycleUnbound;
       BindLifecycle.unboundHead = BindLifecycle.unboundTail = null;
       while (current !== null) {
         current.unbound(current.$unboundFlags);

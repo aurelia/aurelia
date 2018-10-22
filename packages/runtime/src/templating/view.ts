@@ -37,14 +37,14 @@ export class View implements IView {
   public $bindableHead: IBindScope = null;
   public $bindableTail: IBindScope = null;
 
-  public $nextBindable: IBindScope = null;
-  public $prevBindable: IBindScope = null;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
   public $attachableHead: IAttach = null;
   public $attachableTail: IAttach = null;
 
-  public $nextAttachable: IAttach = null;
-  public $prevAttachable: IAttach = null;
+  public $nextAttach: IAttach = null;
+  public $prevAttach: IAttach = null;
 
   // Pre-setting to null for performance (see RuntimeBehavior.create())
   public $nextMount: IMountable = null;
@@ -102,7 +102,7 @@ export class View implements IView {
     let current = this.$bindableHead;
     while (current !== null) {
       current.$bind(flags, scope);
-      current = current.$nextBindable;
+      current = current.$nextBind;
     }
 
     // add isBound flag and remove isBinding flag
@@ -120,7 +120,7 @@ export class View implements IView {
       let current = this.$bindableTail;
       while (current !== null) {
         current.$unbind(flags);
-        current = current.$prevBindable;
+        current = current.$prevBind;
       }
 
       // remove isBound and isUnbinding flags
@@ -139,7 +139,7 @@ export class View implements IView {
     let current = this.$attachableHead;
     while (current !== null) {
       current.$attach(encapsulationSource, lifecycle);
-      current = current.$nextAttachable;
+      current = current.$nextAttach;
     }
 
     if (this.$state & LifecycleState.needsMount) {
@@ -161,7 +161,7 @@ export class View implements IView {
       let current = this.$attachableTail;
       while (current !== null) {
         current.$detach(lifecycle);
-        current = current.$prevAttachable;
+        current = current.$prevAttach;
       }
 
       // remove isAttached and isDetaching flags
@@ -192,7 +192,7 @@ export class View implements IView {
     let current = this.$attachableTail;
     while (current !== null) {
       current.$cache();
-      current = current.$prevAttachable;
+      current = current.$prevAttach;
     }
   }
 }
@@ -272,7 +272,7 @@ function lockedBind(this: View, flags: BindingFlags): void {
   let current = this.$bindableHead;
   while (current !== null) {
     current.$bind(flags, lockedScope);
-    current = current.$nextBindable;
+    current = current.$nextBind;
   }
 
   this.$state |= LifecycleState.isBound;

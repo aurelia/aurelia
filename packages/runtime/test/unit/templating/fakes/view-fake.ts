@@ -17,14 +17,14 @@ import {
 } from "../../../../src/index";
 
 export class ViewFake implements IView {
-  $nextBindable: IBindScope = null;
-  $prevBindable: IBindScope = null;
+  $nextBind: IBindScope = null;
+  $prevBind: IBindScope = null;
   $bindableHead?: IBindScope = null;
   $bindableTail?: IBindScope = null;
   $attachableHead?: IAttach = null;
   $attachableTail?: IAttach = null;
-  $nextAttachable: IAttach = null;
-  $prevAttachable: IAttach = null;
+  $nextAttach: IAttach = null;
+  $prevAttach: IAttach = null;
 
   $state: LifecycleState = LifecycleState.none;
 

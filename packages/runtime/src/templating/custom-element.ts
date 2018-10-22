@@ -4,7 +4,6 @@ import {
   Decorated,
   IContainer,
   Immutable,
-  Omit,
   PLATFORM,
   Registration,
   Reporter,
@@ -26,11 +25,7 @@ export interface ICustomElementType extends
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
-
-type OptionalLifecycleHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
-type RequiredLifecycleProperties = Omit<IRenderable, '$state'> & ILifecycleState;
-
-export interface ICustomElement extends ILifecycleRender, IBindSelf, IAttach, IMountable, OptionalLifecycleHooks, RequiredLifecycleProperties {
+export interface ICustomElement extends ILifecycleHooks, ILifecycleRender, IBindSelf, IAttach, IMountable, ILifecycleState, IRenderable {
   readonly $projector: IElementProjector;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
@@ -154,9 +149,9 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   const description = Type.description;
 
   this.$bindableHead = this.$bindableTail = null;
-  this.$prevBindable = this.$nextBindable = null;
+  this.$prevBind = this.$nextBind = null;
   this.$attachableHead = this.$attachableTail = null;
-  this.$prevAttachable = this.$nextAttachable = null;
+  this.$prevAttach = this.$nextAttach = null;
 
   this.$state = LifecycleState.needsMount;
   this.$scope = Scope.create(this, null);
@@ -201,7 +196,7 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   let current = this.$bindableHead;
   while (current !== null) {
     current.$bind(flags, scope);
-    current = current.$nextBindable;
+    current = current.$nextBind;
   }
 
   // add isBound flag and remove isBinding flag
@@ -232,7 +227,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
     let current = this.$bindableTail;
     while (current !== null) {
       current.$unbind(flags);
-      current = current.$prevBindable;
+      current = current.$prevBind;
     }
 
     // remove isBound and isUnbinding flags
@@ -261,7 +256,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   let current = this.$attachableHead;
   while (current !== null) {
     current.$attach(encapsulationSource, lifecycle);
-    current = current.$nextAttachable;
+    current = current.$nextAttach;
   }
 
   lifecycle.queueMount(this);
@@ -289,7 +284,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLi
     let current = this.$attachableTail;
     while (current !== null) {
       current.$detach(lifecycle);
-      current = current.$prevAttachable;
+      current = current.$prevAttach;
     }
 
     // remove isAttached and isDetaching flags
@@ -309,7 +304,7 @@ function cache(this: IInternalCustomElementImplementation): void {
   let current = this.$attachableTail;
   while (current !== null) {
     current.$cache();
-    current = current.$prevAttachable;
+    current = current.$prevAttach;
   }
 }
 

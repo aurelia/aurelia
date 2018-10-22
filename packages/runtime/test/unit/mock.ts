@@ -61,14 +61,14 @@ export class MockContext {
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
 export class MockCustomElement implements ICustomElement {
-  public $nextBindable: IBindScope = null;
-  public $prevBindable: IBindScope = null;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
   public $bindableHead?: IBindScope = null;
   public $bindableTail?: IBindScope = null;
   public $attachableHead?: IAttach = null;
   public $attachableTail?: IAttach = null;
-  public $nextAttachable: IAttach = null;
-  public $prevAttachable: IAttach = null;
+  public $nextAttach: IAttach = null;
+  public $prevAttach: IAttach = null;
 
   public $state: LifecycleState = LifecycleState.none;
 
@@ -491,14 +491,14 @@ export class MockIfElseTextNodeTemplate {
 
 
 export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
-  public $nextBindable: IBindScope = null;
-  public $prevBindable: IBindScope = null;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
   public $bindableHead?: IBindScope = null;
   public $bindableTail?: IBindScope = null;
   public $attachableHead?: IAttach = null;
   public $attachableTail?: IAttach = null;
-  public $nextAttachable: IAttach = null;
-  public $prevAttachable: IAttach = null;
+  public $nextAttach: IAttach = null;
+  public $prevAttach: IAttach = null;
 
   public $state: LifecycleState = LifecycleState.none;
 

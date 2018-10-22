@@ -400,23 +400,23 @@ export interface IRenderable extends IBindables, IAttachables, ILifecycleState {
 }
 
 export function addBindable(renderable: IBindables, bindable: IBindScope): void {
-  bindable.$prevBindable = renderable.$bindableTail;
-  bindable.$nextBindable = null;
+  bindable.$prevBind = renderable.$bindableTail;
+  bindable.$nextBind = null;
   if (renderable.$bindableTail === null) {
     renderable.$bindableHead = bindable;
   } else {
-    renderable.$bindableTail.$nextBindable = bindable;
+    renderable.$bindableTail.$nextBind = bindable;
   }
   renderable.$bindableTail = bindable;
 }
 
 export function addAttachable(renderable: IAttachables, attachable: IAttach): void {
-  attachable.$prevAttachable = renderable.$attachableTail;
-  attachable.$nextAttachable = null;
+  attachable.$prevAttach = renderable.$attachableTail;
+  attachable.$nextAttach = null;
   if (renderable.$attachableTail === null) {
     renderable.$attachableHead = attachable;
   } else {
-    renderable.$attachableTail.$nextAttachable = attachable;
+    renderable.$attachableTail.$nextAttach = attachable;
   }
   renderable.$attachableTail = attachable;
 }

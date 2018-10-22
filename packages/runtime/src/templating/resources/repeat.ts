@@ -43,7 +43,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
         this.forOf = (<Binding>current).sourceExpression as ForOfStatement;
         break;
       }
-      current = current.$nextBindable;
+      current = current.$nextBind;
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
 

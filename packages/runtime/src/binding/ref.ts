@@ -7,8 +7,8 @@ import { IConnectableBinding } from './connectable';
 
 export interface Ref extends IConnectableBinding {}
 export class Ref implements IBinding {
-  public $nextBindable: IBindScope = null;
-  public $prevBindable: IBindScope = null;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
   public $state: LifecycleState = LifecycleState.none;
 

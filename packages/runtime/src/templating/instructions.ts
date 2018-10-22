@@ -73,7 +73,7 @@ export type TargetedInstruction =
   IRenderStrategyInstruction |
   ILetElementInstruction;
 
-export function isTargetedInstruction(value: any): value is TargetedInstruction {
+export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
   const type = value.type;
   return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
 }
@@ -136,32 +136,32 @@ export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
 
 export interface ISetPropertyInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setProperty;
-  value: any;
+  value: unknown;
   to: string;
 }
 
 export interface ISetAttributeInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setAttribute;
-  value: any;
+  value: unknown;
   to: string;
 }
 
 export interface IHydrateElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateElement;
-  res: any;
+  res: string;
   instructions: TargetedInstruction[];
   parts?: Record<string, ITemplateDefinition>;
 }
 
 export interface IHydrateAttributeInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateAttribute;
-  res: any;
+  res: string;
   instructions: TargetedInstruction[];
 }
 
 export interface IHydrateTemplateController extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateTemplateController;
-  res: any;
+  res: string;
   instructions: TargetedInstruction[];
   def: ITemplateDefinition;
   link?: boolean;

@@ -1,0 +1,23 @@
+{
+  "name": "jit-parcel",
+  "version": "0.1.1",
+  "scripts": {
+    "watch": "parcel index.html -p 9000 --open",
+    "build": "rimraf dist && parcel build index.html",
+    "serve": "http-server -c-1 -p 9000 dist"
+  },
+  "dependencies": {
+    "@aurelia/debug": "file:../../../../../packages/debug",
+    "@aurelia/jit": "file:../../../../../packages/jit",
+    "@aurelia/kernel": "file:../../../../../packages/kernel",
+    "@aurelia/runtime": "file:../../../../../packages/runtime"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "http-server": "latest",
+    "parcel-bundler": "latest",
+    "parcel-plugin-typescript": "latest",
+    "rimraf": "latest",
+    "typescript": "latest"
+  }
+}

@@ -473,7 +473,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
 
   private processMounts(): void {
     let currentMount = this.mountHead;
-    let nextMount;
+    let nextMount: typeof currentMount;
 
     while (currentMount) {
       currentMount.$mount();
@@ -485,7 +485,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
 
   private processAttachedCallbacks(): void {
     let currentAttached = this.attachedHead;
-    let nextAttached;
+    let nextAttached: typeof currentAttached;
 
     while (currentAttached) {
       currentAttached.attached();
@@ -603,7 +603,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
         currentUnmount = currentUnmount.$nextUnmount;
       }
     } else {
-      let nextUnmount;
+      let nextUnmount: typeof currentUnmount;
 
       while (currentUnmount) {
         currentUnmount.$unmount();
@@ -616,7 +616,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
 
   private processDetachedCallbacks(): void {
     let currentDetached = this.detachedHead;
-    let nextDetached;
+    let nextDetached: typeof currentDetached;
 
     while (currentDetached) {
       currentDetached.detached();
@@ -627,7 +627,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
 
     if (this.flags & LifecycleFlags.unbindAfterDetached) {
       let currentUnmount = this.unmountHead;
-      let nextUnmount;
+      let nextUnmount: typeof currentUnmount;
 
       while (currentUnmount) {
         if (isUnbindable(currentUnmount)) {
@@ -668,39 +668,62 @@ export const Lifecycle = {
   }
 };
 
-// TODO: make linked list
-type LifecycleBoundable = IBindScope & Pick<ILifecycleHooks, 'bound'> & { $boundFlags?: BindingFlags };
-type LifecycleUnboundable = IBindScope & Pick<ILifecycleHooks, 'unbound'> & { $unboundFlags?: BindingFlags };
+type LifecycleBoundable = IBindScope & Pick<ILifecycleHooks, 'bound'> & { $boundFlags?: BindingFlags; $nextBound?: LifecycleBoundable };
+type LifecycleUnboundable = IBindScope & Pick<ILifecycleHooks, 'unbound'> & { $unboundFlags?: BindingFlags; $nextUnbound?: LifecycleUnboundable };
 export const BindLifecycle = {
   boundDepth: 0,
-  boundItems: <LifecycleBoundable[]>[],
-  queueBound(bindable: LifecycleBoundable, flags: BindingFlags): void {
-    bindable.$boundFlags = flags;
-    BindLifecycle.boundItems.push(bindable);
+  boundHead: <LifecycleBoundable>null,
+  boundTail: <LifecycleBoundable>null,
+  queueBound(requestor: LifecycleBoundable, flags: BindingFlags): void {
+    requestor.$boundFlags = flags;
+    requestor.$nextBound = null;
+    if (BindLifecycle.boundHead === null) {
+      BindLifecycle.boundHead = requestor;
+    } else {
+      BindLifecycle.boundTail.$nextBound = requestor;
+    }
+    BindLifecycle.boundTail = requestor;
     ++BindLifecycle.boundDepth;
   },
   unqueueBound(): void {
     if (--BindLifecycle.boundDepth === 0) {
-      const items = BindLifecycle.boundItems.splice(0);
-      for (let i = 0, ii = items.length; i < ii; ++i) {
-        const item = items[i];
-        item.bound(item.$boundFlags);
+      let current = BindLifecycle.boundHead;
+      let next: LifecycleBoundable;
+      BindLifecycle.boundHead = BindLifecycle.boundTail = null;
+      while (current !== null) {
+        current.bound(current.$boundFlags);
+        next = current.$nextBound;
+        // Note: we're intentionally not resetting $boundFlags because it's not an object reference
+        // so it can't cause memory leaks. Save some cycles. It's somewhat unclean, but it's fine really.
+        current.$nextBound = null;
+        current = next;
       }
     }
   },
   unboundDepth: 0,
-  unboundItems: <LifecycleUnboundable[]>[],
-  queueUnbound(bindable: LifecycleUnboundable, flags: BindingFlags): void {
-    bindable.$unboundFlags = flags;
-    BindLifecycle.unboundItems.push(bindable);
+  unboundHead: <LifecycleUnboundable>null,
+  unboundTail: <LifecycleUnboundable>null,
+  queueUnbound(requestor: LifecycleUnboundable, flags: BindingFlags): void {
+    requestor.$unboundFlags = flags;
+    requestor.$nextUnbound = null;
+    if (BindLifecycle.unboundHead === null) {
+      BindLifecycle.unboundHead = requestor;
+    } else {
+      BindLifecycle.unboundTail.$nextUnbound = requestor;
+    }
+    BindLifecycle.unboundTail = requestor;
     ++BindLifecycle.unboundDepth;
   },
   unqueueUnbound(): void {
     if (--BindLifecycle.unboundDepth === 0) {
-      const items = BindLifecycle.unboundItems.splice(0);
-      for (let i = 0, ii = items.length; i < ii; ++i) {
-        const item = items[i];
-        item.unbound(item.$unboundFlags);
+      let current = BindLifecycle.unboundHead;
+      let next: LifecycleUnboundable;
+      BindLifecycle.unboundHead = BindLifecycle.unboundTail = null;
+      while (current !== null) {
+        current.unbound(current.$unboundFlags);
+        next = current.$nextUnbound;
+        current.$nextUnbound = null;
+        current = next;
       }
     }
   }

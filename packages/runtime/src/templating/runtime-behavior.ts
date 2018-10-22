@@ -23,20 +23,42 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   public static create(Component: ICustomElementType | ICustomAttributeType, instance: ICustomAttribute | ICustomElement): RuntimeBehavior {
     const behavior = new RuntimeBehavior();
 
+    // Pre-setting the properties for the lifecycle queues (to null) is to help generate
+    // fewer variations in property declaration order and makes it easier for the browser
+    // to perform optimizations via generated hidden classes.
+    // It also allows us to perform strict null checks which is more efficient than falsey
+    // value coercion
     behavior.bindables = Component.description.bindables;
     behavior.hooks = 0;
     if ('created' in instance) behavior.hooks |= LifecycleHooks.hasCreated;
     if ('binding' in instance) behavior.hooks |= LifecycleHooks.hasBinding;
-    if ('bound' in instance) behavior.hooks |= LifecycleHooks.hasBound;
+    if ('bound' in instance) {
+      behavior.hooks |= LifecycleHooks.hasBound;
+      instance['$boundFlags'] = 0;
+      instance['$nextBound'] = null;
+    }
     if ('attaching' in instance) behavior.hooks |= LifecycleHooks.hasAttaching;
-    if ('attached' in instance) behavior.hooks |= LifecycleHooks.hasAttached;
+    if ('attached' in instance) {
+      behavior.hooks |= LifecycleHooks.hasAttached;
+      instance['$nextAttached'] = null;
+    }
     if ('detaching' in instance) behavior.hooks |= LifecycleHooks.hasDetaching;
-    if ('detached' in instance) behavior.hooks |= LifecycleHooks.hasDetached;
+    if ('detached' in instance) {
+      behavior.hooks |= LifecycleHooks.hasDetached;
+      instance['$nextDetached'] = null;
+    }
     if ('unbinding' in instance) behavior.hooks |= LifecycleHooks.hasUnbinding;
-    if ('unbound' in instance) behavior.hooks |= LifecycleHooks.hasUnbound;
+    if ('unbound' in instance) {
+      behavior.hooks |= LifecycleHooks.hasUnbound;
+      instance['$unboundFlags'] = 0;
+      instance['$nextUnbound'] = null;
+    }
     if ('render' in instance) behavior.hooks |= LifecycleHooks.hasRender;
     if ('caching' in instance) behavior.hooks |= LifecycleHooks.hasCaching;
     if (behavior.hooks === 0) behavior.hooks |= LifecycleHooks.none;
+    if ('$mount' in Component.prototype) {
+      instance['$nextMount'] = null;
+    }
 
     return behavior;
   }

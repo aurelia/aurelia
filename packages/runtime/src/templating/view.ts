@@ -49,6 +49,9 @@ export class View implements IView {
   public $nextAttachable: IAttach = null;
   public $prevAttachable: IAttach = null;
 
+  // Pre-setting to null for performance (see RuntimeBehavior.create())
+  public $nextMount: IMountable = null;
+
   public $state: LifecycleState = LifecycleState.none;
   public $scope: IScope = null;
   public $nodes: INodeSequence;

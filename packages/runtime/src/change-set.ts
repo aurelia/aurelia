@@ -150,16 +150,18 @@ export class LinkedChangeList implements IChangeSet {
    */
   public flushChanges = (): void => {
     this.flushing = true;
-    let current = this.head;
-    this.head = this.tail = null;
-    let next;
-    while (current) {
-      next = current.$next;
-      current.$next = null;
-      current.$linked = false;
-      current.flushChanges();
-      current = next;
-      this.size--;
+    while (this.head !== null) {
+      let current = this.head;
+      this.head = this.tail = null;
+      let next;
+      while (current) {
+        next = current.$next;
+        current.$next = null;
+        current.$linked = false;
+        current.flushChanges();
+        current = next;
+        this.size--;
+      }
     }
     this.flushing = false;
   }

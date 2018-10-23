@@ -234,15 +234,6 @@ commands:
             npm run e2e
 
   # - git related -
-  do_git_set_config:
-    steps:
-      - run:
-          name: "Set git config user.name"
-          command: git config --local user.name "aurelia@bluespire.com"
-      - run:
-          name: "Set git config user.email"
-          command: git config --local user.email "AureliaEffect"
-
   do_git_merge:
     parameters:
       from_branch:
@@ -358,7 +349,6 @@ jobs:
         default: "dev"
     steps:
       - first_attach_workspace
-      - do_git_set_config
       - do_git_stash_dist
       - do_git_merge:
           from_branch: << parameters.from >>
@@ -584,26 +574,38 @@ workflows:
           <<: *filter_only_release
           name: jit-aurelia-cli-ts
           path: "latest/jit-aurelia-cli-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_release
           name: jit-browserify-ts
           path: "latest/jit-browserify-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_release
           name: jit-fuse-box-ts
           path: "latest/jit-fuse-box-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_release
           name: jit-parcel-ts
           path: "latest/jit-parcel-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_release
           name: jit-webpack-ts
           path: "latest/jit-webpack-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_release
           name: jit-iife-inline
           path: "latest/jit-iife-inline"
+          requires:
+            - publish_npm
 
   # Publishes from the develop branch to npm@dev
   # Triggered by push to develop branch
@@ -618,26 +620,38 @@ workflows:
           <<: *filter_only_develop
           name: jit-aurelia-cli-ts
           path: "dev/jit-aurelia-cli-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_develop
           name: jit-browserify-ts
           path: "dev/jit-browserify-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_develop
           name: jit-fuse-box-ts
           path: "dev/jit-fuse-box-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_develop
           name: jit-parcel-ts
           path: "dev/jit-parcel-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_develop
           name: jit-webpack-ts
           path: "dev/jit-webpack-ts"
+          requires:
+            - publish_npm
       - e2e_wdio:
           <<: *filter_only_develop
           name: jit-iife-inline
           path: "dev/jit-iife-inline"
+          requires:
+            - publish_npm
 
   # Runs build and tests, and pushes the built artifacts to the develop branch (which then triggers publish_dev)
   # Triggered by schedule once per day on 0:00 UTC on the master branch

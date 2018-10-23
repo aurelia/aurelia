@@ -234,15 +234,6 @@ commands:
             npm run e2e
 
   # - git related -
-  do_git_set_config:
-    steps:
-      - run:
-          name: "Set git config user.name"
-          command: git config --local user.name "aurelia@bluespire.com"
-      - run:
-          name: "Set git config user.email"
-          command: git config --local user.email "AureliaEffect"
-
   do_git_merge:
     parameters:
       from_branch:
@@ -358,7 +349,6 @@ jobs:
         default: "dev"
     steps:
       - first_attach_workspace
-      - do_git_set_config
       - do_git_stash_dist
       - do_git_merge:
           from_branch: << parameters.from >>

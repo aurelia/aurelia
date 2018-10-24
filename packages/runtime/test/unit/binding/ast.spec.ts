@@ -11,7 +11,7 @@ import {
   Unary, ValueConverter, TaggedTemplate, BindingContext,
   BindingFlags, IsPrimary, IsBindingBehavior, IsLeftHandSide,
   IsValueConverter, IsAssign, IsConditional, IsBinary, IsUnary,
-  IScope, isPureLiteral, Binding, ObserverLocator, ChangeSet,
+  IScope, isPureLiteral, Binding, ObserverLocator, LinkedChangeList,
   connects, HtmlLiteral, ArrayBindingPattern, ObjectBindingPattern,
   BindingIdentifier, ForOfStatement, Interpolation, observes, callsFunction,
   hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, ExpressionKind, ISignaler, Scope, OverrideContext
@@ -1926,7 +1926,7 @@ describe('BindingBehavior', () => {
 
           const mock = new MockBindingBehavior();
           const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -1943,7 +1943,7 @@ describe('BindingBehavior', () => {
 
           const mock = new MockBindingBehavior();
           const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1 }, null);
@@ -1966,7 +1966,7 @@ describe('BindingBehavior', () => {
 
           const mock = new MockBindingBehavior();
           const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1, b: arg2, c: arg3 }, null);
@@ -2005,7 +2005,7 @@ describe('BindingBehavior', () => {
             expect(arg.calls[0][3]).to.equal(locator);
           }
 
-          if (($kind & ExpressionKind.HasBind) > 0) {
+          if ($kind & ExpressionKind.HasBind) {
             expect(expr.calls.length).to.equal(1);
             expect(expr.calls[0].length).to.equal(4);
             expect(expr.calls[0][0]).to.equal('bind');
@@ -2132,7 +2132,7 @@ describe('BindingBehavior', () => {
           const expr = sut.expression as any as MockTracingExpression;
 
           let callCount = ($kind & ExpressionKind.HasBind) > 0 ? 6 : 5;
-          if (($kind & ExpressionKind.HasUnbind) > 0) {
+          if ($kind & ExpressionKind.HasUnbind) {
             expect(expr.calls.length).to.equal(callCount);
             expect(expr.calls[callCount - 1].length).to.equal(4);
             expect(expr.calls[callCount - 1][0]).to.equal('unbind');
@@ -2198,7 +2198,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2215,7 +2215,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2232,7 +2232,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2249,7 +2249,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2267,7 +2267,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1 }, null);
@@ -2291,7 +2291,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new ChangeSet(), null, null, null);
+          const observerLocator = new ObserverLocator(new LinkedChangeList(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1, b: arg2, c: arg3 }, null);

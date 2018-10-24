@@ -1,47 +1,72 @@
-import { Omit, PLATFORM } from '@aurelia/kernel';
+import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
+import { BindableSource, IBindableDescription } from '../definitions';
 
-export type BindableSource = Omit<IBindableDescription, 'property'>;
-
-export interface IBindableDescription {
-  mode?: BindingMode;
-  callback?: string;
-  attribute?: string;
-  property?: string;
-}
+type WithBindables = { bindables: Record<string, IBindableDescription> };
+type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>
+  (target: T, prop: string) => void;
 
 /**
  * Decorator: Specifies custom behavior for a bindable property.
- * @param configOrTarget The overrides.
+ * @param config The overrides
  */
-export function bindable(configOrTarget?: BindableSource | Object, key?, descriptor?): any {
-  let deco = function(target, key2, descriptor2) {
-    target = target.constructor;
+export function bindable(config?: BindableSource): BindableDecorator;
+/**
+ * Decorator: Specifies a bindable property on a class.
+ * @param prop The property name
+ */
+export function bindable(prop: string): ClassDecorator;
+/**
+ * Decorator: Specifies a bindable property on a class.
+ * @param target The class
+ * @param prop The property name
+ */
+export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string): void;
+export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(configOrTarget?: BindableSource | T, prop?: string): void | BindableDecorator | ClassDecorator {
+  let config: IBindableDescription;
 
-    let bindables: Record<string, IBindableDescription> = target.bindables || (target.bindables = {});
-    let config: IBindableDescription = configOrTarget || {};
-
+  const decorator = function decorate($target: T, $prop: string): void {
+    const Type = $target.constructor as Constructable & Partial<WithBindables>;
+    let bindables = Type.bindables;
+    if (bindables === undefined) {
+      bindables = Type.bindables = {};
+    }
     if (!config.attribute) {
-      config.attribute = PLATFORM.kebabCase(key2);
+      config.attribute = PLATFORM.kebabCase($prop);
     }
-
     if (!config.callback) {
-      config.callback = `${key2}Changed`;
+      config.callback = `${$prop}Changed`;
     }
-
     if (!config.mode) {
       config.mode = BindingMode.toView;
     }
-
-    config.property = key2;
-    bindables[key2] = config;
+    if (arguments.length > 1) {
+      // Non invocation:
+      // - @bindable
+      // Invocation with or w/o opts:
+      // - @bindable()
+      // - @bindable({...opts})
+      config.property = $prop;
+    }
+    bindables[config.property] = config;
   };
-
-  if (key) { //placed on a property without parens
-    var target = configOrTarget;
-    configOrTarget = null; //ensure that the closure captures the fact that there's actually no config
-    return deco(target, key, descriptor);
+  if (arguments.length > 1) {
+    // Non invocation:
+    // - @bindable
+    config = {};
+    return decorator(configOrTarget as T, prop);
+  } else if (typeof configOrTarget === 'string') {
+    // ClassDecorator
+    // - @bindable('bar')
+    // Direct call:
+    // - @bindable('bar')(Foo)
+    config = {};
+    return decorator as BindableDecorator;
   }
 
-  return deco;
+  // Invocation with or w/o opts:
+  // - @bindable()
+  // - @bindable({...opts})
+  config = (configOrTarget || {}) as IBindableDescription;
+  return decorator as BindableDecorator;
 }

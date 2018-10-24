@@ -1,8 +1,6 @@
 import { IIndexable, PLATFORM, Primitive, Reporter } from '@aurelia/kernel';
-import { BindingFlags } from './binding-flags';
-import { IChangeSet } from './change-set';
+import { BindingFlags, IBindingTargetAccessor, IBindingTargetObserver, IChangeSet, IObservable, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
-import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, ISubscribable, MutationKind } from './observation';
 import { IObserverLocator } from './observer-locator';
 import { subscriberCollection } from './subscriber-collection';
 

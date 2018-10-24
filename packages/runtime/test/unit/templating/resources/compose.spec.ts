@@ -1,16 +1,14 @@
 import { expect } from 'chai';
 import { hydrateCustomElement } from '../behavior-assistance';
-import { Compose } from '../../../../src/templating/resources/compose';
-import { DOM, IViewFactory, customElement, ITemplateDefinition, BindingFlags, Lifecycle, LifecycleFlags, IAttach, ChangeSet } from '../../../../src';
-import { PotentialRenderable } from '../../../../src/templating/create-element';
+import { DOM, IViewFactory, customElement, ITemplateDefinition, BindingFlags, Lifecycle, LifecycleFlags, IAttach, LinkedChangeList, RenderPlan, Compose } from '../../../../src/index';
 import { ViewFactoryFake } from '../fakes/view-factory-fake';
 
 describe('The "compose" custom element', () => {
   // this is not ideal (same instance will be reused for multiple loops) but probably fine
   // need to revisit this later to give this extra dep a clean atomic entry point for the tests
-  let cs: ChangeSet;
+  let cs: LinkedChangeList;
   beforeEach(() => {
-    cs = new ChangeSet();
+    cs = new LinkedChangeList();
   });
 
   @customElement(createTemplateDefinition())
@@ -259,8 +257,8 @@ describe('The "compose" custom element', () => {
     return new ViewFactoryFake();
   }
 
-  function createPotentialRenderable(): PotentialRenderable {
-    return new PotentialRenderable(
+  function createPotentialRenderable(): RenderPlan {
+    return new RenderPlan(
       DOM.createElement('div'),
       [],
       []

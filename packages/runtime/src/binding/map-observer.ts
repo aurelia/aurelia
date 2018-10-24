@@ -1,10 +1,8 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-// tslint:disable:no-reserved-keywords
+import { BindingFlags, CollectionKind, IChangeSet, ICollectionObserver, IObservedMap } from '../observation';
 import { nativePush, nativeSplice } from './array-observer';
-import { BindingFlags } from './binding-flags';
-import { IChangeSet } from './change-set';
 import { collectionObserver } from './collection-observer';
-import { CollectionKind, ICollectionObserver, IObservedMap } from './observation';
+// tslint:disable:no-reserved-keywords
 
 const proto = Map.prototype;
 export const nativeSet = proto.set; // TODO: probably want to make these internal again

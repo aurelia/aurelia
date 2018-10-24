@@ -131,16 +131,21 @@ export class TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   public next: this;
   public prev: this;
 
+  public isAsync: boolean;
+
   constructor(
     public readonly name: string,
     public readonly execute: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => void,
     public readonly slot: TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) {
     this.next = null;
     this.prev = null;
+    this.isAsync = false;
   }
 
   public clone(slot: this['slot']): this {
-    return new TestAction(this.name, this.execute, slot) as this;
+    const clone = new TestAction(this.name, this.execute, slot) as this;
+    clone.isAsync = this.isAsync;
+    return clone;
   }
 }
 
@@ -177,6 +182,23 @@ export class TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     return this;
   }
 
+  public addAsyncAction(name: string, execute: ((ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => Promise<void>)): this;
+  public addAsyncAction(action: this['head']): this;
+  public addAsyncAction(nameOrAction: this['head'] | string, execute?: ((ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => Promise<void>)): this {
+    if (!(nameOrAction instanceof TestAction)) {
+      nameOrAction = new TestAction(nameOrAction, execute, this);
+    }
+    nameOrAction.isAsync = true;
+    if (this.tail !== null) {
+      nameOrAction.prev = this.tail;
+      this.tail.next = nameOrAction;
+    } else {
+      this.head = this.current = nameOrAction;
+    }
+    this.tail = nameOrAction;
+    return this;
+  }
+
   public clone(): this {
     const clone = new TestActionSlot(this.name) as this;
     let current = this.head;
@@ -198,6 +220,8 @@ export class TestFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
 
   public ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>;
 
+  public isAsync: boolean;
+
   constructor() {
     this.next = null;
     this.prev = null;
@@ -206,9 +230,13 @@ export class TestFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     this.tail = null;
 
     this.ctx = null;
+    this.isAsync = false;
   }
 
   public addAction(action: this['head']): void {
+    if (action.isAsync) {
+      this.isAsync = true;
+    }
     if (this.tail !== null) {
       action.prev = this.tail;
       this.tail.next = action;
@@ -220,6 +248,7 @@ export class TestFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
 
   public clone(): this {
     const clone = new TestFixture() as this;
+    clone.isAsync = this.isAsync;
     let current = this.head;
     while (current !== null) {
       clone.addAction(current.clone(current.slot));
@@ -233,7 +262,11 @@ function runSuite<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(suite: TestSuite<A,B,C,D,E,F,G,
   return (function() {
     let fixture = suite.head;
     while (fixture !== null) {
-      it(fixture.ctx.title, runFixture(fixture));
+      if (fixture.isAsync) {
+        it(fixture.ctx.title, runAsyncFixture(fixture));
+      } else {
+        it(fixture.ctx.title, runFixture(fixture));
+      }
       fixture = fixture.next;
     }
   }).bind(undefined);
@@ -245,6 +278,17 @@ function runFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B,C,D,
     let action = fixture.head;
     while (action !== null) {
       action.execute(ctx);
+      action = action.next;
+    }
+  }).bind(undefined);
+}
+
+function runAsyncFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): () => Promise<void> {
+  return (async function() {
+    const ctx = fixture.ctx;
+    let action = fixture.head;
+    while (action !== null) {
+      await action.execute(ctx);
       action = action.next;
     }
   }).bind(undefined);

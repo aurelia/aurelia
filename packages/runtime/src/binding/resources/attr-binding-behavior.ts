@@ -1,8 +1,6 @@
+import { BindingFlags, IChangeSet, IScope } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
-import { IScope } from '../binding-context';
-import { BindingFlags } from '../binding-flags';
-import { IChangeSet } from '../change-set';
 import { DataAttributeAccessor } from '../target-accessors';
 
 @bindingBehavior('attr')

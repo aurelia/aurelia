@@ -1,5 +1,4 @@
-import { ILifecycleTask } from './../../src/templating/lifecycle';
-import { PLATFORM, IContainer, IDisposable, ImmutableArray, Immutable } from '../../../kernel/src';
+import { PLATFORM, IContainer, IDisposable, ImmutableArray, Immutable, Writable } from '../../../kernel/src/index';
 import {
   INodeSequence,
   ITemplate,
@@ -47,9 +46,14 @@ import {
   ExpressionKind,
   IBinding,
   ISignaler,
-  Scope
-} from '../../src';
+  Scope,
+  addBindable,
+  addAttachable,
+  ILifecycleTask,
+  LifecycleState
+} from '../../src/index';
 import { spy } from 'sinon';
+import { expect } from 'chai';
 
 export class MockContext {
   public log: any[] = [];
@@ -57,10 +61,19 @@ export class MockContext {
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
 export class MockCustomElement implements ICustomElement {
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
+  public $bindableHead?: IBindScope = null;
+  public $bindableTail?: IBindScope = null;
+  public $attachableHead?: IAttach = null;
+  public $attachableTail?: IAttach = null;
+  public $nextAttach: IAttach = null;
+  public $prevAttach: IAttach = null;
+
+  public $state: LifecycleState = LifecycleState.none;
+
   public $bindables: IBindScope[];
   public $attachables: IAttach[];
-  public $isAttached: boolean;
-  public $isBound: boolean;
   public $scope: IScope;
   public $projector: IElementProjector;
   public $context: IRenderContext;
@@ -71,11 +84,8 @@ export class MockCustomElement implements ICustomElement {
     this.$host = host;
     const Type = this.constructor as ICustomElementType;
     const description = Type.description;
-
-    this.$bindables = [];
-    this.$attachables = [];
-    this.$isAttached = false;
-    this.$isBound = false;
+;
+    this.$state = LifecycleState.none;
     this.$scope = Scope.create(this, null);
 
     this.$context = createMockRenderContext(renderingEngine, <ExposedContext>renderingEngine['container'], PLATFORM.emptyArray);
@@ -87,7 +97,7 @@ export class MockCustomElement implements ICustomElement {
   }
 
   public $bind(flags: BindingFlags): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       return;
     }
     const scope = this.$scope;
@@ -95,22 +105,22 @@ export class MockCustomElement implements ICustomElement {
     for (let i = 0, ii = bindables.length; i < ii; ++i) {
       bindables[i].$bind(flags | BindingFlags.fromBind, scope);
     }
-    this.$isBound = true;
+    this.$state |= LifecycleState.isBound;
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       const bindables = this.$bindables;
       let i = bindables.length;
       while (i--) {
         bindables[i].$unbind(flags | BindingFlags.fromUnbind);
       }
-      this.$isBound = false;
+      this.$state &= ~LifecycleState.isBound;
     }
   }
 
   public $attach(encapsulationSource: Node, lifecycle: IAttachLifecycle): void {
-    if (this.$isAttached) {
+    if (this.$state & LifecycleState.isAttached) {
       return;
     }
     this.$encapsulationSource = encapsulationSource;
@@ -118,19 +128,19 @@ export class MockCustomElement implements ICustomElement {
     for (let i = 0, ii = attachables.length; i < ii; ++i) {
       attachables[i].$attach(encapsulationSource, lifecycle);
     }
-    lifecycle.queueAddNodes(this);
-    this.$isAttached = true;
+    lifecycle.queueMount(this);
+    this.$state |= LifecycleState.isAttached;
   }
 
   public $detach(lifecycle: IDetachLifecycle): void {
-    if (this.$isAttached) {
-      lifecycle.queueRemoveNodes(this);
+    if (this.$state & LifecycleState.isAttached) {
+      lifecycle.queueUnmount(this);
       const attachables = this.$attachables;
       let i = attachables.length;
       while (i--) {
         attachables[i].$detach(lifecycle);
       }
-      this.$isAttached = false;
+      this.$state &= ~LifecycleState.isAttached;
     }
   }
 
@@ -142,12 +152,15 @@ export class MockCustomElement implements ICustomElement {
     }
   }
 
-  public $addNodes(): void {
+  public $mount(): void {
+    this.$state &= ~LifecycleState.needsMount;
     this.$nodes.appendTo(this.$host);
-    this.$addNodes = PLATFORM.noop;
+    this.$mount = PLATFORM.noop;
   }
 
-  public $removeNodes(): void { }
+  public $unmount(): void {
+    this.$state |= LifecycleState.needsMount;
+  }
 }
 
 export function createMockRenderContext(
@@ -305,7 +318,7 @@ export class MockTextNodeSequence implements INodeSequence {
   }
 
   public findTargets(): ArrayLike<Node> {
-    return PLATFORM.emptyArray;
+    return [this.firstChild];
   }
 
   public insertBefore(refNode: Node): void {
@@ -349,10 +362,10 @@ export class MockTemplate implements ITemplate {
     }
   }
 
-  public createFor(renderable: IRenderable, host?: Node, replacements?: TemplatePartDefinitions): MockNodeSequence {
-    const nodes = new MockNodeSequence(<DocumentFragment>this.template.content.cloneNode(true));
-    this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, replacements);
-    return nodes;
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockNodeSequence(<DocumentFragment>this.template.content.cloneNode(true));
+    (<Writable<IRenderable>>renderable).$context = this.renderContext;
+    this.renderContext.render(<any>renderable, nodes.findTargets(), this.templateDefinition, host, parts);
   }
 }
 
@@ -362,10 +375,9 @@ export class MockTextNodeTemplate {
     public observerLocator: any
   ) {}
 
-  public createFor(renderable: { $bindables: IBindScope[] }): MockTextNodeSequence {
-    const nodes = new MockTextNodeSequence();
-    renderable.$bindables.push(new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, null));
-    return nodes;
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockTextNodeSequence();
+    addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, null));
   }
 }
 
@@ -382,8 +394,8 @@ export class MockIfTextNodeTemplate {
     public changeSet: any
   ) {}
 
-  public createFor(renderable: IView): MockNodeSequence {
-    const nodes = MockNodeSequence.createRenderLocation();
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const nodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
     const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
     const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
@@ -391,16 +403,14 @@ export class MockIfTextNodeTemplate {
     const sut = new If(this.changeSet, factory, nodes.firstChild);
 
     (<any>sut)['$isAttached'] = false;
-    (<any>sut)['$isBound'] = false;
     (<any>sut)['$scope'] = null;
 
     const behavior = RuntimeBehavior.create(<any>If, sut);
     behavior.applyTo(sut, this.changeSet);
 
-    renderable.$attachables.push(sut);
-    renderable.$bindables.push(new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
-    renderable.$bindables.push(sut);
-    return nodes;
+    addAttachable(renderable, sut);
+    addBindable(renderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, sut);
   }
 }
 
@@ -411,27 +421,26 @@ export class MockElseTextNodeTemplate {
     public changeSet: any
   ) {}
 
-  public createFor(renderable: IView): MockNodeSequence {
-    const nodes = MockNodeSequence.createRenderLocation();
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
     const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
     const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
 
     const sut = new Else(factory);
 
-    sut.link(<any>renderable.$attachables[renderable.$attachables.length - 1]);
+    sut.link(<any>renderable.$attachableTail);
 
     (<any>sut)['$isAttached'] = false;
-    (<any>sut)['$isBound'] = false;
+    (<any>sut)['$state'] = LifecycleState.none;
     (<any>sut)['$scope'] = null;
 
     const behavior = RuntimeBehavior.create(<any>Else, <any>sut);
     behavior.applyTo(<any>sut, this.changeSet);
 
-    renderable.$attachables.push(<any>sut);
-    renderable.$bindables.push(new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
-    renderable.$bindables.push(<any>sut);
-    return nodes;
+    addAttachable(renderable, <any>sut);
+    addBindable(renderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, <any>sut);
   }
 }
 
@@ -442,8 +451,8 @@ export class MockIfElseTextNodeTemplate {
     public changeSet: any
   ) {}
 
-  public createFor(renderable: IView): MockNodeSequence {
-    const ifNodes = MockNodeSequence.createRenderLocation();
+  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const ifNodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
     const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
     const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
@@ -451,41 +460,47 @@ export class MockIfElseTextNodeTemplate {
     const ifSut = new If(this.changeSet, ifFactory, ifNodes.firstChild);
 
     (<any>ifSut)['$isAttached'] = false;
-    (<any>ifSut)['$isBound'] = false;
+    (<any>ifSut)['$state'] = LifecycleState.none;
     (<any>ifSut)['$scope'] = null;
 
     const ifBehavior = RuntimeBehavior.create(<any>If, ifSut);
     ifBehavior.applyTo(ifSut, this.changeSet);
 
-    renderable.$attachables.push(ifSut);
-    renderable.$bindables.push(new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, null));
-    renderable.$bindables.push(ifSut);
+    addAttachable(renderable, ifSut);
+    addBindable(renderable, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, ifSut);
 
     const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
 
     const elseSut = new Else(elseFactory);
 
-    elseSut.link(<any>renderable.$attachables[renderable.$attachables.length - 1]);
+    elseSut.link(<any>renderable.$attachableTail);
 
     (<any>elseSut)['$isAttached'] = false;
-    (<any>elseSut)['$isBound'] = false;
+    (<any>elseSut)['$state'] = LifecycleState.none;
     (<any>elseSut)['$scope'] = null;
 
     const elseBehavior = RuntimeBehavior.create(<any>Else, <any>elseSut);
     elseBehavior.applyTo(<any>elseSut, this.changeSet);
 
-    renderable.$attachables.push(<any>elseSut);
-    renderable.$bindables.push(new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, null));
-    renderable.$bindables.push(<any>elseSut);
-
-    return ifNodes;
+    addAttachable(renderable, <any>elseSut);
+    addBindable(renderable, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, <any>elseSut);
   }
 }
 
 
 export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
-  public $isAttached: boolean = false;
-  public $isBound: boolean = false;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
+  public $bindableHead?: IBindScope = null;
+  public $bindableTail?: IBindScope = null;
+  public $attachableHead?: IAttach = null;
+  public $attachableTail?: IAttach = null;
+  public $nextAttach: IAttach = null;
+  public $prevAttach: IAttach = null;
+
+  public $state: LifecycleState = LifecycleState.none;
 
   public parent: LifecycleMock;
   private _root: LifecycleMock;
@@ -524,29 +539,29 @@ export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
     for (let i = 0, ii = children.length; i < ii; ++i) {
       children[i].$attach(encapsulationSource, lifecycle);
     }
-    lifecycle.queueAddNodes(this);
-    this.$isAttached = true;
+    lifecycle.queueMount(this);
+    this.$state |= LifecycleState.isAttached;
     lifecycle.queueAttachedCallback(this);
   }
 
-  public $addNodes(): void {
-    this.trace('$addNodes');
+  public $mount(): void {
+    this.trace('$mount');
   }
 
   public $detach(lifecycle: IDetachLifecycle): void {
     this.trace('$detach', lifecycle);
-    lifecycle.queueRemoveNodes(this);
+    lifecycle.queueUnmount(this);
     const children = this.children;
     let i = children.length;
     while (i--) {
       children[i].$detach(lifecycle);
     }
-    this.$isAttached = false;
+    this.$state &= ~LifecycleState.isAttached;
     lifecycle.queueDetachedCallback(this);
   }
 
-  public $removeNodes(): void {
-    this.trace('$removeNodes');
+  public $unmount(): void {
+    this.trace('$unmount');
   }
 
   public $cache(): void {
@@ -563,7 +578,7 @@ export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
     for (let i = 0, ii = children.length; i < ii; ++i) {
       children[i].$bind(flags, scope);
     }
-    this.$isBound = true;
+    this.$state |= LifecycleState.isBound;
   }
 
   public $unbind(flags: BindingFlags): void {
@@ -573,7 +588,7 @@ export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
     while (i--) {
       children[i].$unbind(flags);
     }
-    this.$isBound = false;
+    this.$state &= ~LifecycleState.isBound;
   }
 
   public attached(): void {
@@ -720,49 +735,167 @@ export class MockRenderingEngine implements IRenderingEngine {
 
 }
 
-export class MockCustomElementWithAllLifecycles {
-  public calls: [keyof MockCustomElementWithAllLifecycles, ...any[]][];
+export function defineComponentLifecycleMock() {
+  return class ComponentLifecycleMock {
+    public calls: [keyof ComponentLifecycleMock, ...any[]][] = [];
 
-  public created(): void {
-    this.trace(`created`);
-  }
-  public binding(flags: BindingFlags): void {
-    this.trace(`binding`, flags);
-  }
-  public bound(flags: BindingFlags): void {
-    this.trace(`bound`, flags);
-  }
-  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    this.trace(`attaching`, encapsulationSource, lifecycle);
-  }
-  public attached(): void {
-    this.trace(`attached`);
-  }
-  public detaching(lifecycle: IDetachLifecycle): void {
-    this.trace(`detaching`, lifecycle);
-  }
-  public detached(): void {
-    this.trace(`detached`);
-  }
-  public unbinding(flags: BindingFlags): void {
-    this.trace(`unbinding`, flags);
-  }
-  public unbound(flags: BindingFlags): void {
-    this.trace(`unbound`, flags);
-  }
-  public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): INodeSequence {
-    this.trace(`render`, host, parts);
-    return new MockTextNodeSequence();
-  }
-  public caching(): void {
-    this.trace(`caching`);
-  }
+    constructor() {}
 
-  public trace(fnName: keyof MockCustomElementWithAllLifecycles, ...args: any[]): void {
-    this.calls.push([fnName, ...args]);
+    public created(): void {
+      this.trace(`created`);
+      this.verifyStateBit(LifecycleState.isBound, false, 'created');
+      this.verifyStateBit(LifecycleState.isAttached, false, 'created');
+    }
+    public binding(flags: BindingFlags): void {
+      this.trace(`binding`, flags);
+    }
+    public bound(flags: BindingFlags): void {
+      this.trace(`bound`, flags);
+      this.verifyStateBit(LifecycleState.isBound, true, 'bound');
+    }
+    public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+      this.trace(`attaching`, encapsulationSource, lifecycle);
+      this.verifyStateBit(LifecycleState.isBound, true, 'attaching');
+      this.verifyStateBit(LifecycleState.isAttached, false, 'attaching');
+    }
+    public attached(): void {
+      this.trace(`attached`);
+      this.verifyStateBit(LifecycleState.isBound, true, 'attached');
+      this.verifyStateBit(LifecycleState.isAttached, true, 'attached');
+    }
+    public detaching(lifecycle: IDetachLifecycle): void {
+      this.trace(`detaching`, lifecycle);
+      this.verifyStateBit(LifecycleState.isBound, true, 'detaching');
+      this.verifyStateBit(LifecycleState.isAttached, true, 'detaching');
+    }
+    public detached(): void {
+      this.trace(`detached`);
+      this.verifyStateBit(LifecycleState.isBound, true, 'detached');
+      this.verifyStateBit(LifecycleState.isAttached, false, 'detached');
+    }
+    public unbinding(flags: BindingFlags): void {
+      this.trace(`unbinding`, flags);
+      this.verifyStateBit(LifecycleState.isBound, true, 'detached');
+    }
+    public unbound(flags: BindingFlags): void {
+      this.trace(`unbound`, flags);
+      this.verifyStateBit(LifecycleState.isBound, false, 'detached');
+    }
+    public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
+      this.trace(`render`, host, parts);
+    }
+    public caching(): void {
+      this.trace(`caching`);
+    }
+
+    public trace(fnName: keyof ComponentLifecycleMock, ...args: any[]): void {
+      this.calls.push([fnName, ...args]);
+    }
+
+    public verifyPropertyValue(prop: string, value: any, during?: string): void {
+      if (this[prop] !== value) {
+        let msg = `expected ${prop} to be ${value}`;
+        if (during !== undefined) {
+          msg += ` during ${during}() lifecycle hook`;
+        }
+        msg += `, got but: ${this[prop]}`;
+        this.fail(msg);
+      }
+    }
+
+    public verifyStateBit(value: any, isTrue: boolean, during?: string): void {
+      if (!isTrue) {
+        if ((this['$state'] & value) === value) {
+          let msg = `expected $state to NOT have flag ${value}`;
+          if (during !== undefined) {
+            msg += ` during ${during}() lifecycle hook`;
+          }
+          msg += `, got but: ${this['$state']}`;
+          this.fail(msg);
+        }
+      } else {
+        if ((this['$state'] & value) !== value) {
+          let msg = `expected $state to have flag ${value}`;
+          if (during !== undefined) {
+            msg += ` during ${during}() lifecycle hook`;
+          }
+          msg += `, got but: ${this['$state']}`;
+          this.fail(msg);
+        }
+      }
+    }
+
+    public verifyCreatedCalled(): void {
+      this.verifyLastCall('created');
+    }
+    public verifyBindingCalled(flags: BindingFlags): void {
+      this.verifyLastCall(`binding`, flags);
+    }
+    public verifyBoundCalled(flags: BindingFlags): void {
+      this.verifyLastCall(`bound`, flags);
+    }
+    public verifyAttachingCalled(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+      this.verifyLastCall(`attaching`, encapsulationSource, lifecycle);
+    }
+    public verifyAttachedCalled(): void {
+      this.verifyLastCall(`attached`);
+    }
+    public verifyDetachingCalled(lifecycle: IDetachLifecycle): void {
+      this.verifyLastCall(`detaching`, lifecycle);
+    }
+    public verifyDetachedCalled(): void {
+      this.verifyLastCall(`detached`);
+    }
+    public verifyUnbindingCalled(flags: BindingFlags): void {
+      this.verifyLastCall(`unbinding`, flags);
+    }
+    public verifyUnboundCalled(flags: BindingFlags): void {
+      this.verifyLastCall(`unbound`, flags);
+    }
+    public verifyRenderCalled(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
+      this.verifyLastCall(`render`, host, parts);
+    }
+    public verifyCachingCalled(): void {
+      this.verifyLastCall(`caching`);
+    }
+    public verifyLastCall(name: string, ...args: any[]): void {
+      const calls = this.calls;
+      if (calls.length === 0) {
+        this.fail(`expected "${name}" to be the last called method, but no methods on this mock were called at all`);
+      }
+      const lastCall = calls.pop();
+      if (lastCall[0] !== name) {
+        if (calls.length === 0) {
+          this.fail(`expected "${name}" to be the last called method, but the ONLY method called on this mock was "${lastCall[0]}"`);
+        } else {
+          const callChain = calls.map(c => `"${c[0]}"`).join('->');
+          this.fail(`expected "${name}" to be the last called method, but the last method called on this mock was "${lastCall[0]}", preceded by: ${callChain}`);
+        }
+      }
+      for (let i = 0, ii = args.length; i < ii; ++i) {
+        const expected = args[i];
+        const actual = lastCall[i + 1];
+        if (expected !== actual) {
+          this.fail(`expected argument #${i} of the call to "${name}" to be: ${expected}, but instead got: ${actual}`);
+        }
+      }
+      if (lastCall.length > args.length + 1) {
+        this.fail(`expected "${name}" to have been called with ${args.length} arguments, but it was called with ${lastCall.length - 1} arguments instead (last argument is: ${lastCall[lastCall.length - 1]})`)
+      }
+    }
+    public verifyNoFurtherCalls(): void {
+      if (this.calls.length > 0) {
+        const callChain = this.calls.map(c => `"${c[0]}"`).join('->');
+        this.fail(`expected no further calls, but found additional calls: ${callChain}`);
+      }
+    }
+    private fail(message: string) {
+      throw new Error(`ComponentLifecycleMock: ${message}`);
+    }
   }
 }
 
+export type IComponentLifecycleMock = InstanceType<ReturnType<typeof defineComponentLifecycleMock>>;
 
 export class MockPropertySubscriber {
   public calls: [keyof MockPropertySubscriber, ...any[]][] = [];

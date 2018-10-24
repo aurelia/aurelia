@@ -17,14 +17,15 @@ import {
   ViewFactory,
   RuntimeBehavior,
   ObserverLocator,
-  ChangeSet,
-  IChangeSet
+  LinkedChangeList,
+  IChangeSet,
+  LifecycleState
 } from '../../../../src/index';
 import { MockTextNodeTemplate } from '../../mock';
 import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
 import { createScopeForTest } from '../../binding/shared';
 import { expect } from 'chai';
-import { DI } from '@aurelia/kernel';
+import { DI } from '../../../../../kernel/src/index';
 
 describe('The "if" template controller', () => {
   it("renders its view when the value is true", () => {
@@ -39,12 +40,12 @@ describe('The "if" template controller', () => {
     expect(child).to.not.be.null;
     expect(child).to.equal(ifView);
     expect(ifView).to.be.instanceof(ViewFake);
-    expect(ifView.$isBound).to.be.true;
-    expect(ifView.$isAttached).to.be.false;
+    expect(ifView).to.have.$state.isBound();
+    expect(ifView).to.not.have.$state.isAttached();
 
     runAttachLifecycle(cs, ifAttr);
 
-    expect(ifView.$isAttached).to.be.true;
+    expect(ifView).to.have.$state.isAttached();
     expect(location.previousSibling)
       .to.equal(ifView.$nodes.lastChild);
   });
@@ -62,8 +63,8 @@ describe('The "if" template controller', () => {
     ifAttr.value = false;
 
     let ifView = ifAttr['ifView'] as IView;
-    expect(ifView.$isAttached).to.be.true;
-    expect(ifView.$isBound).to.be.true;
+    expect(ifView).to.have.$state.isAttached();
+    expect(ifView).to.have.$state.isBound();
 
     const childAfter = getCurrentView(ifAttr);
     expect(childAfter).to.equal(childBefore);
@@ -77,8 +78,8 @@ describe('The "if" template controller', () => {
     expect(location.previousSibling).to.be.null;
 
     ifView = ifAttr['ifView'] as IView;
-    expect(ifView.$isAttached).to.be.false;
-    expect(ifView.$isBound).to.be.false;
+    expect(ifView).to.not.have.$state.isAttached();
+    expect(ifView).to.not.have.$state.isBound();
   });
 
   it("queues the rendering of an else view when one is linked and its value is false", () => {
@@ -105,12 +106,12 @@ describe('The "if" template controller', () => {
     expect(child).to.not.be.null;
     expect(child).to.equal(elseView);
     expect(elseView).to.be.instanceof(ViewFake);
-    expect(elseView.$isBound).to.be.true;
-    expect(elseView.$isAttached).to.be.false;
+    expect(elseView).to.have.$state.isBound();
+    expect(elseView).to.not.have.$state.isAttached();
 
     runAttachLifecycle(cs, ifAttr);
 
-    expect(elseView.$isAttached).to.be.true;
+    expect(elseView).to.have.$state.isAttached();
     expect(location.previousSibling)
       .to.equal(elseView.$nodes.lastChild);
   });
@@ -126,8 +127,8 @@ describe('The "if" template controller', () => {
     runAttachLifecycle(cs, ifAttr);
     runDetachLifecycle(cs, ifAttr);
 
-    expect(ifView.$isAttached).to.be.false;
-    expect(ifAttr.$isAttached).to.be.false;
+    expect(ifView).to.not.have.$state.isAttached();
+    expect(ifAttr).to.not.have.$state.isAttached();
   });
 
   it("unbinds its child view when it is unbound", () => {
@@ -140,8 +141,8 @@ describe('The "if" template controller', () => {
 
     ifAttr.$unbind(BindingFlags.fromUnbind);
 
-    expect(ifView.$isBound).to.be.false;
-    expect(ifAttr.$isBound).to.be.false;
+    expect(ifView).to.not.have.$state.isBound();
+    expect(ifAttr).to.not.have.$state.isBound();
   });
 
   function getCurrentView(ifAttr: If) {
@@ -178,7 +179,7 @@ export class MockIfTextNodeTemplate {
 
 
 function setup() {
-  const cs = new ChangeSet();
+  const cs = new LinkedChangeList();
   const host = document.createElement('div');
   const ifLoc = document.createComment('au-loc');
   host.appendChild(ifLoc);
@@ -193,11 +194,9 @@ function setup() {
   elseSut.link(ifSut);
 
   (<any>ifSut)['$isAttached'] = false;
-  (<any>ifSut)['$isBound'] = false;
   (<any>ifSut)['$scope'] = null;
 
   (<any>elseSut)['$isAttached'] = false;
-  (<any>elseSut)['$isBound'] = false;
   (<any>elseSut)['$scope'] = null;
 
   const ifBehavior = RuntimeBehavior.create(<any>If, ifSut);
@@ -232,14 +231,14 @@ describe(`If/Else`, () => {
       () => [{if:1,else:2},  undefined, `1`, `2`, `{if:1,else:2},value:undefined`]
     ],
     // first operation "execute1" (initial bind + attach)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([item, value, trueValue, falseValue]) => [(ifSut, elseSut, host, cs) => {
         ifSut.value = value;
         ifSut.$bind(BindingFlags.fromBind, createScopeForTest({ item }));
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
 
@@ -254,7 +253,7 @@ describe(`If/Else`, () => {
         ifSut.$bind(BindingFlags.fromBind | BindingFlags.fromFlushChanges, createScopeForTest({ item }));
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
 
@@ -265,30 +264,30 @@ describe(`If/Else`, () => {
       }, `$bind(fromFlush) -> $attach(none)`]
     ],
     // second operation "execute2" (second bind or noop)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([,, trueValue, falseValue]) => [(ifSut: If, elseSut: Else, host: Node) => {
         ifSut.$bind(BindingFlags.fromBind, ifSut.$scope);
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute2, host.textContent`);
 
       }, `$bind(fromBind), same scope`],
 
-      ([item,, trueValue, falseValue]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => {
+      ([item,, trueValue, falseValue]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => {
         ifSut.$bind(BindingFlags.fromBind, createScopeForTest({ item }));
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute2, host.textContent`);
 
         cs.flushChanges();
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute2, host.textContent`);
 
@@ -298,7 +297,7 @@ describe(`If/Else`, () => {
         ifSut.$bind(BindingFlags.fromFlushChanges, createScopeForTest({ item }));
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute2, host.textContent`);
 
@@ -309,7 +308,7 @@ describe(`If/Else`, () => {
       }, `noop                       `]
     ],
     // third operation "execute3" (change value)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([,, trueValue, falseValue]) => [(ifSut, elseSut, host, cs) => {
         const contentBeforeChange = host.textContent;
@@ -319,14 +318,14 @@ describe(`If/Else`, () => {
         ifSut.valueChanged(newValue, oldValue, undefined);
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(contentBeforeChange, `execute3, host.textContent`);
 
         cs.flushChanges();
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute3, host.textContent`);
 
@@ -340,7 +339,7 @@ describe(`If/Else`, () => {
         ifSut.valueChanged(newValue, oldValue, undefined);
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(contentBeforeChange, `execute3, host.textContent`);
 
@@ -350,21 +349,21 @@ describe(`If/Else`, () => {
         ifSut.valueChanged(newValue, oldValue, undefined);
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute3, host.textContent`);
 
         cs.flushChanges();
 
         expect(ifSut.coordinator['currentView'].$scope).to.equal(ifSut.$scope);
-        expect(ifSut.coordinator['currentView'].$isBound).to.be.true;
+        expect(ifSut.coordinator['currentView']).to.have.$state.isBound();
 
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute3, host.textContent`);
 
       }, `ifSut.value=!ifSut.value(x2)`]
     ],
     // fourth operation "execute4" (detach and unbind)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([,,]) => [(ifSut, elseSut, host, cs) => {
         Lifecycle.beginDetach(cs, LifecycleFlags.none).detach(ifSut).end();
@@ -389,7 +388,7 @@ describe(`If/Else`, () => {
       }, `$detach(unbind) -> $unbind(fromUnbind)`],
     ],
     // fifth operation "execute5" (second unbind)
-    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: ChangeSet) => void, string])[]>[
+    <(($1: [any, boolean, string, string, string]) => [(ifSut: If, elseSut: Else, host: Node, cs: LinkedChangeList) => void, string])[]>[
 
       ([,,]) => [(ifSut, elseSut, host) => {
         ifSut.$unbind(BindingFlags.fromUnbind);

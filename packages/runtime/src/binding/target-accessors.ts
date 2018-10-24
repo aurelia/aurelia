@@ -1,14 +1,12 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { DOM, INode } from '../dom';
-import { IChangeSet } from './change-set';
-import { IBindingTargetAccessor, MutationKind } from './observation';
+import { DOM, IHTMLElement, INode } from '../dom';
+import { IBindingTargetAccessor, IChangeSet } from '../observation';
 import { targetObserver } from './target-observer';
-import { subscriberCollection } from './subscriber-collection';
 
 // tslint:disable-next-line:no-http-string
 const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
 
-export interface XLinkAttributeAccessor extends IBindingTargetAccessor<Element, string, string> {}
+export interface XLinkAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, string, string> {}
 
 @targetObserver('')
 export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
@@ -25,7 +23,7 @@ export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
 
   constructor(
     public changeSet: IChangeSet,
-    public obj: Element,
+    public obj: IHTMLElement,
     public propertyKey: string,
     public attributeName: string) {
 
@@ -72,7 +70,7 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   }
 }
 
-export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLElement, 'style', string | IIndexable> {}
+export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, 'style', string | IIndexable> {}
 
 @targetObserver()
 export class StyleAttributeAccessor implements StyleAttributeAccessor {
@@ -87,7 +85,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
 
   constructor(
     public changeSet: IChangeSet,
-    public obj: HTMLElement) {
+    public obj: IHTMLElement) {
 
     this.oldValue = this.currentValue = obj.style.cssText;
   }
@@ -176,8 +174,6 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
   }
 
   public setValueCore(newValue: string): void {
-    const addClass = DOM.addClass;
-    const removeClass = DOM.removeClass;
     const nameIndex = this.nameIndex || {};
     let version = this.version;
     let names;
@@ -193,7 +189,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
           continue;
         }
         nameIndex[name] = version;
-        addClass(node, name);
+        DOM.addClass(node, name);
       }
     }
 
@@ -217,7 +213,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
       // will be removed if they're not present in the next update.
       // Better would be do have some configurability for this behavior, allowing the user to
       // decide whether initial classes always need to be kept, always removed, or something in between
-      removeClass(this.obj, name);
+      DOM.removeClass(this.obj, name);
     }
   }
 }

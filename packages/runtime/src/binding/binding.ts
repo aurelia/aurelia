@@ -1,10 +1,9 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { AccessorOrObserver, BindingFlags, IBindingTargetObserver, IScope } from '../observation';
 import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
-import { AccessorOrObserver, IBindingTargetObserver, IBindScope } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 // tslint:disable:no-any
@@ -26,7 +25,10 @@ export interface Binding extends IConnectableBinding {}
 
 @connectable()
 export class Binding implements IPartialConnectableBinding {
-  public $isBound: boolean = false;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
+
+  public $state: LifecycleState = LifecycleState.none;
   public $scope: IScope = null;
 
   public targetObserver: AccessorOrObserver;
@@ -48,7 +50,7 @@ export class Binding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
 
@@ -87,14 +89,15 @@ export class Binding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags);
+      this.$unbind(flags | BindingFlags.fromBind);
     }
+    // add isBinding flag
+    this.$state |= LifecycleState.isBinding;
 
-    this.$isBound = true;
     this.$scope = scope;
 
     let sourceExpression = this.sourceExpression;
@@ -126,13 +129,18 @@ export class Binding implements IPartialConnectableBinding {
     if (mode & fromView) {
       targetObserver.subscribe(this);
     }
+
+    // add isBound flag and remove isBinding flag
+    this.$state |= LifecycleState.isBound;
+    this.$state &= ~LifecycleState.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-    this.$isBound = false;
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
@@ -148,5 +156,8 @@ export class Binding implements IPartialConnectableBinding {
       targetObserver.unsubscribe(this);
     }
     this.unobserve(true);
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
   }
 }

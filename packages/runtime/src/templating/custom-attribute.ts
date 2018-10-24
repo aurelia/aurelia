@@ -1,5 +1,7 @@
 import {
   Constructable,
+  Decoratable,
+  Decorated,
   IContainer,
   Immutable,
   Omit,
@@ -7,31 +9,23 @@ import {
   Registration,
   Writable
 } from '@aurelia/kernel';
-import { IScope } from '../binding/binding-context';
-import { BindingFlags } from '../binding/binding-flags';
 import { BindingMode } from '../binding/binding-mode';
-import { IBindScope } from '../binding/observation';
+import { IAttributeDefinition } from '../definitions';
 import { INode } from '../dom';
+import { BindLifecycle, IAttach, IAttachLifecycle, IBindScope, IDetachLifecycle, ILifecycleHooks, ILifecycleState, LifecycleHooks, LifecycleState } from '../lifecycle';
+import { BindingFlags, IScope } from '../observation';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
-import { IBindableDescription } from './bindable';
-import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
-import { IRenderingEngine } from './rendering-engine';
+import { IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
-export interface IAttributeDefinition {
-  name: string;
-  defaultBindingMode?: BindingMode;
-  aliases?: string[];
-  isTemplateController?: boolean;
-  bindables?: Record<string, IBindableDescription>;
-}
+export interface ICustomAttributeType extends
+  IResourceType<IAttributeDefinition, ICustomAttribute>,
+  Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
 
-export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
+type OptionalLifecycleHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
+type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & ILifecycleState;
 
-export type ICustomAttributeType = IResourceType<IAttributeDefinition, ICustomAttribute>;
-
-export interface ICustomAttribute extends IBindScope, IAttach {
-  readonly $scope: IScope;
+export interface ICustomAttribute extends IBindScope, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {
   $hydrate(renderingEngine: IRenderingEngine): void;
 }
 
@@ -40,14 +34,12 @@ export interface IInternalCustomAttributeImplementation extends Writable<ICustom
   $behavior: IRuntimeBehavior;
 }
 
-
+type CustomAttributeDecorator = <T extends Constructable>(target: Decoratable<ICustomAttribute, T>) => Decorated<ICustomAttribute, T> & ICustomAttributeType;
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
  */
-export function customAttribute(nameOrSource: string | IAttributeDefinition) {
-  return function<T extends Constructable>(target: T) {
-    return CustomAttributeResource.define(nameOrSource, target);
-  }
+export function customAttribute(nameOrDef: string | IAttributeDefinition): CustomAttributeDecorator {
+  return target => CustomAttributeResource.define(nameOrDef, target);
 }
 
 /**
@@ -55,21 +47,12 @@ export function customAttribute(nameOrSource: string | IAttributeDefinition) {
  * attribute is placed on should be converted into a template and that this
  * attribute controls the instantiation of the template.
  */
-export function templateController(nameOrDef: string | Omit<IAttributeDefinition, 'isTemplateController'>) {
-  return function<T extends Constructable>(target: T) {
-    let def: IAttributeDefinition;
-
-    if (typeof nameOrDef === 'string') {
-      def = {
-        name: nameOrDef,
-        isTemplateController: true
-      };
-    } else {
-      def = { isTemplateController: true, ...nameOrDef };
-    }
-
-    return CustomAttributeResource.define(def, target);
-  }
+export function templateController(nameOrDef: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
+  return target => CustomAttributeResource.define(
+    typeof nameOrDef === 'string'
+    ? { isTemplateController: true , name: nameOrDef }
+    : { isTemplateController: true, ...nameOrDef },
+    target);
 }
 
 export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICustomAttributeType> = {
@@ -79,20 +62,17 @@ export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICusto
     return `${this.name}:${name}`;
   },
 
-  isType<T extends Constructable>(type: T): type is T & ICustomAttributeType {
-    return (type as any).kind === this;
+  isType<T extends Constructable & Partial<ICustomAttributeType>>(Type: T): Type is T & ICustomAttributeType {
+    return Type.kind === this;
   },
 
   define<T extends Constructable>(nameOrSource: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
-    const Type = ctor as ICustomAttributeType & T;
+    const Type = ctor as Writable<ICustomAttributeType> & T;
     const proto: ICustomAttribute = Type.prototype;
-    const description = createCustomAttributeDescription(
-      typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource,
-      Type
-    );
+    const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, <T & ICustomAttributeType>Type);
 
-    (Type as Writable<ICustomAttributeType>).kind = CustomAttributeResource;
-    (Type as Writable<ICustomAttributeType>).description = description;
+    Type.kind = CustomAttributeResource;
+    Type.description = description;
     Type.register = register;
 
     proto.$hydrate = hydrate;
@@ -102,7 +82,7 @@ export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICusto
     proto.$unbind = unbind;
     proto.$cache = cache;
 
-    return Type;
+    return <ICustomAttributeType & T>Type;
   }
 };
 
@@ -113,98 +93,128 @@ function register(this: ICustomAttributeType, container: IContainer): void {
 
   container.register(Registration.transient(resourceKey, this));
 
-  for(let i = 0, ii = aliases.length; i < ii; ++i) {
-    container.register(Registration.alias(resourceKey, aliases[i]));
+  for (let i = 0, ii = aliases.length; i < ii; ++i) {
+    const aliasKey = CustomAttributeResource.keyFrom(aliases[i]);
+    container.register(Registration.alias(resourceKey, aliasKey));
   }
 }
 
 function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
-  this.$isAttached = false;
-  this.$isBound = false;
+  const Type = this.constructor as ICustomAttributeType;
+
+  this.$state = LifecycleState.none;
   this.$scope = null;
 
-  renderingEngine.applyRuntimeBehavior(
-    this.constructor as ICustomAttributeType,
-    this
-  );
+  renderingEngine.applyRuntimeBehavior(Type, this);
 
-  if (this.$behavior.hasCreated) {
-    (this as any).created();
+  if (this.$behavior.hooks & LifecycleHooks.hasCreated) {
+    this.created();
   }
 }
 
 function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope): void {
-  if (this.$isBound) {
+  flags |= BindingFlags.fromBind;
+
+  if (this.$state & LifecycleState.isBound) {
     if (this.$scope === scope) {
       return;
     }
 
-    this.$unbind(flags | BindingFlags.fromBind);
+    this.$unbind(flags);
+  }
+  // add isBinding flag
+  this.$state |= LifecycleState.isBinding;
+
+  const hooks = this.$behavior.hooks;
+
+  if (hooks & LifecycleHooks.hasBound) {
+    BindLifecycle.queueBound(this, flags);
   }
 
-  const behavior = this.$behavior;
   this.$scope = scope;
 
-  if (behavior.hasBinding) {
-    (this as any).binding(flags | BindingFlags.fromBind);
+  if (hooks & LifecycleHooks.hasBinding) {
+    this.binding(flags);
   }
 
-  this.$isBound = true;
+  // add isBound flag and remove isBinding flag
+  this.$state |= LifecycleState.isBound;
+  this.$state &= ~LifecycleState.isBinding;
 
-  if (behavior.hasBound) {
-    (this as any).bound(flags | BindingFlags.fromBind, scope);
+  if (hooks & LifecycleHooks.hasBound) {
+    BindLifecycle.unqueueBound();
   }
 }
 
 function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
-  if (this.$isBound) {
-    const behavior = this.$behavior;
+  if (this.$state & LifecycleState.isBound) {
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
-    if (behavior.hasUnbinding) {
-      (this as any).unbinding(flags | BindingFlags.fromUnbind);
+    const hooks = this.$behavior.hooks;
+    flags |= BindingFlags.fromUnbind;
+
+    if (hooks & LifecycleHooks.hasUnbound) {
+      BindLifecycle.queueUnbound(this, flags);
     }
 
-    this.$isBound = false;
+    if (hooks & LifecycleHooks.hasUnbinding) {
+      this.unbinding(flags);
+    }
 
-    if (this.$behavior.hasUnbound) {
-      (this as any).unbound(flags | BindingFlags.fromUnbind);
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
+
+    if (hooks & LifecycleHooks.hasUnbound) {
+      BindLifecycle.unqueueUnbound();
     }
   }
 }
 
 function attach(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-  if (this.$isAttached) {
+  if (this.$state & LifecycleState.isAttached) {
     return;
   }
+  // add isAttaching flag
+  this.$state |= LifecycleState.isAttaching;
 
-  if (this.$behavior.hasAttaching) {
-    (this as any).attaching(encapsulationSource, lifecycle);
+  const hooks = this.$behavior.hooks;
+
+  if (hooks & LifecycleHooks.hasAttaching) {
+    this.attaching(encapsulationSource, lifecycle);
   }
 
-  this.$isAttached = true;
+  // add isAttached flag, remove isAttaching flag
+  this.$state |= LifecycleState.isAttached;
+  this.$state &= ~LifecycleState.isAttaching;
 
-  if (this.$behavior.hasAttached) {
-    lifecycle.queueAttachedCallback(this as any);
+  if (hooks & LifecycleHooks.hasAttached) {
+    lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
 }
 
 function detach(this: IInternalCustomAttributeImplementation, lifecycle: IDetachLifecycle): void {
-  if (this.$isAttached) {
-    if (this.$behavior.hasDetaching) {
-      (this as any).detaching(lifecycle);
+  if (this.$state & LifecycleState.isAttached) {
+    // add isDetaching flag
+    this.$state |= LifecycleState.isDetaching;
+
+    const hooks = this.$behavior.hooks;
+    if (hooks & LifecycleHooks.hasDetaching) {
+      this.detaching(lifecycle);
     }
 
-    this.$isAttached = false;
+    // remove isAttached and isDetaching flags
+    this.$state &= ~(LifecycleState.isAttached | LifecycleState.isDetaching);
 
-    if (this.$behavior.hasDetached) {
-      lifecycle.queueDetachedCallback(this as any);
+    if (hooks & LifecycleHooks.hasDetached) {
+      lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
   }
 }
 
 function cache(this: IInternalCustomAttributeImplementation): void {
-  if (this.$behavior.hasCaching) {
-    (this as any).caching();
+  if (this.$behavior.hooks & LifecycleHooks.hasCaching) {
+    this.caching();
   }
 }
 
@@ -215,6 +225,6 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     aliases: def.aliases || PLATFORM.emptyArray,
     defaultBindingMode: def.defaultBindingMode || BindingMode.toView,
     isTemplateController: def.isTemplateController || false,
-    bindables: {...(Type as any).bindables, ...def.bindables}
+    bindables: {...Type.bindables, ...def.bindables}
   };
 }

@@ -1,16 +1,7 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { IChangeSet } from '../../binding';
-import { IScope } from '../../binding/binding-context';
-import { BindingFlags } from '../../binding/binding-flags';
 import { INode } from '../../dom';
-import {
-  AggregateLifecycleTask,
-  IAttachLifecycle,
-  IDetachLifecycle,
-  ILifecycleTask,
-  Lifecycle,
-  LifecycleFlags
-} from '../lifecycle';
+import { AggregateLifecycleTask, IAttachLifecycle, IDetachLifecycle, ILifecycleTask, Lifecycle, LifecycleFlags } from '../../lifecycle';
+import { BindingFlags, IChangeSet, IScope } from '../../observation';
 import { IView } from '../view';
 
 export class CompositionCoordinator {

@@ -1,64 +1,63 @@
-import { BindingFlags } from '../binding/binding-flags';
-import { IChangeSet } from '../binding/change-set';
-import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from '../binding/observation';
+import { IIndexable } from '@aurelia/kernel';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
+import { BindableDefinitions } from '../definitions';
 import { INode } from '../dom';
+import { LifecycleHooks } from '../lifecycle';
+import { BindingFlags, IAccessor, IChangeSet, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
-import {
-  CustomElementResource,
-  ICustomElement,
-  ICustomElementType
-} from './custom-element';
-import { BindableDefinitions } from './instructions';
+import { CustomElementResource, ICustomElement, ICustomElementType } from './custom-element';
 
 export interface IRuntimeBehavior {
-  readonly hasCreated: boolean;
-  readonly hasBinding: boolean;
-  readonly hasBound: boolean;
-  readonly hasAttaching: boolean;
-  readonly hasAttached: boolean;
-  readonly hasDetaching: boolean;
-  readonly hasDetached: boolean;
-  readonly hasUnbinding: boolean;
-  readonly hasUnbound: boolean;
-  readonly hasRender: boolean;
-  readonly hasCaching: boolean;
+  readonly hooks: LifecycleHooks;
 }
 
 /** @internal */
 export class RuntimeBehavior implements IRuntimeBehavior {
   public bindables: BindableDefinitions;
-
-  public hasCreated: boolean = false;
-  public hasBinding: boolean = false;
-  public hasBound: boolean = false;
-  public hasAttaching: boolean = false;
-  public hasAttached: boolean = false;
-  public hasDetaching: boolean = false;
-  public hasDetached: boolean = false;
-  public hasUnbinding: boolean = false;
-  public hasUnbound: boolean = false;
-  public hasRender: boolean = false;
-  public hasCaching: boolean = false;
+  public hooks: LifecycleHooks;
 
   private constructor() {}
 
   public static create(Component: ICustomElementType | ICustomAttributeType, instance: ICustomAttribute | ICustomElement): RuntimeBehavior {
     const behavior = new RuntimeBehavior();
 
+    // Pre-setting the properties for the lifecycle queues (to null) is to help generate
+    // fewer variations in property declaration order and makes it easier for the browser
+    // to perform optimizations via generated hidden classes.
+    // It also allows us to perform strict null checks which is more efficient than falsey
+    // value coercion
     behavior.bindables = Component.description.bindables;
-    behavior.hasCreated = 'created' in instance;
-    behavior.hasBinding = 'binding' in instance;
-    behavior.hasBound = 'bound' in instance;
-    behavior.hasAttaching = 'attaching' in instance;
-    behavior.hasAttached = 'attached' in instance;
-    behavior.hasDetaching = 'detaching' in instance;
-    behavior.hasDetached = 'detached' in instance;
-    behavior.hasUnbinding = 'unbinding' in instance;
-    behavior.hasUnbound = 'unbound' in instance;
-    behavior.hasRender = 'render' in instance;
-    behavior.hasCaching = 'caching' in instance;
+    behavior.hooks = 0;
+    if ('created' in instance) behavior.hooks |= LifecycleHooks.hasCreated;
+    if ('binding' in instance) behavior.hooks |= LifecycleHooks.hasBinding;
+    if ('bound' in instance) {
+      behavior.hooks |= LifecycleHooks.hasBound;
+      instance['$boundFlags'] = 0;
+      instance['$nextBound'] = null;
+    }
+    if ('attaching' in instance) behavior.hooks |= LifecycleHooks.hasAttaching;
+    if ('attached' in instance) {
+      behavior.hooks |= LifecycleHooks.hasAttached;
+      instance['$nextAttached'] = null;
+    }
+    if ('detaching' in instance) behavior.hooks |= LifecycleHooks.hasDetaching;
+    if ('detached' in instance) {
+      behavior.hooks |= LifecycleHooks.hasDetached;
+      instance['$nextDetached'] = null;
+    }
+    if ('unbinding' in instance) behavior.hooks |= LifecycleHooks.hasUnbinding;
+    if ('unbound' in instance) {
+      behavior.hooks |= LifecycleHooks.hasUnbound;
+      instance['$unboundFlags'] = 0;
+      instance['$nextUnbound'] = null;
+    }
+    if ('render' in instance) behavior.hooks |= LifecycleHooks.hasRender;
+    if ('caching' in instance) behavior.hooks |= LifecycleHooks.hasCaching;
+    if (behavior.hooks === 0) behavior.hooks |= LifecycleHooks.none;
+    if ('$mount' in Component.prototype) {
+      instance['$nextMount'] = null;
+    }
 
     return behavior;
   }
@@ -74,17 +73,17 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   private applyToElement(changeSet: IChangeSet, instance: ICustomElement): void {
     const observers = this.applyToCore(changeSet, instance);
 
-    (observers as any).$children = new ChildrenObserver(changeSet, instance);
+    observers.$children = new ChildrenObserver(changeSet, instance);
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
-      get: function() {
+      get: function(): unknown {
         return this.$observers.$children.getValue();
       }
     });
   }
 
-  private applyToCore(changeSet: IChangeSet, instance: any) {
+  private applyToCore(changeSet: IChangeSet, instance: (ICustomAttribute | ICustomElement) & { $behavior?: IRuntimeBehavior }): IIndexable {
     const observers = {};
     const bindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
@@ -112,11 +111,11 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   }
 }
 
-function createGetterSetter(instance: any, name: string): void {
+function createGetterSetter(instance: ICustomAttribute | ICustomElement, name: string): void {
   Reflect.defineProperty(instance, name, {
     enumerable: true,
-    get: function() { return this.$observers[name].getValue(); },
-    set: function(value) { this.$observers[name].setValue(value, BindingFlags.updateTargetInstance); }
+    get: function(): unknown { return this.$observers[name].getValue(); },
+    set: function(value: unknown): void { this.$observers[name].setValue(value, BindingFlags.updateTargetInstance); }
   });
 }
 
@@ -133,7 +132,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   private children: ICustomElement[] = null;
   private observing: boolean = false;
 
-  constructor(private changeSet: IChangeSet, private customElement: ICustomElement) { }
+  constructor(private changeSet: IChangeSet, private customElement: ICustomElement & { $childrenChanged?(): void }) { }
 
   public getValue(): ICustomElement[] {
     if (!this.observing) {
@@ -145,7 +144,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
     return this.children;
   }
 
-  public setValue(newValue: any): void {}
+  public setValue(newValue: unknown): void { /* do nothing */ }
 
   public flushChanges(this: ChildrenObserver & IChildrenObserver): void {
     this.callSubscribers(this.children, undefined, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
@@ -164,7 +163,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
     this.children = findElements(this.customElement.$projector.children);
 
     if ('$childrenChanged' in this.customElement) {
-      (this.customElement as any).$childrenChanged();
+      this.customElement.$childrenChanged();
     }
 
     this.changeSet.add(this);

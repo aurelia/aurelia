@@ -1,6 +1,5 @@
 import { DI, Immutable } from '@aurelia/kernel';
-import { BindingFlags } from './binding-flags';
-import { IPropertySubscriber } from './observation';
+import { BindingFlags, IPropertySubscriber } from '../observation';
 
 type Signal = string;
 

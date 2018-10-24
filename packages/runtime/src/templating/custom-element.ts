@@ -1,37 +1,37 @@
 import {
   Constructable,
+  Decoratable,
+  Decorated,
   IContainer,
   Immutable,
-  Omit,
   PLATFORM,
   Registration,
   Reporter,
   Writable
 } from '@aurelia/kernel';
-import { BindingContext, Scope } from '../binding/binding-context';
-import { BindingFlags } from '../binding/binding-flags';
-import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
+import { Scope } from '../binding/binding-context';
+import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from '../definitions';
+import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
+import { BindLifecycle, IAttach, IAttachLifecycle, IBindSelf, IDetachLifecycle, ILifecycleHooks, ILifecycleState, IMountable, LifecycleHooks, LifecycleState } from '../lifecycle';
+import { BindingFlags } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
-import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
-import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks } from './lifecycle';
-import { IRenderable } from './renderable';
-import { IRenderingEngine } from './rendering-engine';
+import { buildTemplateDefinition } from './definition-builder';
+import { ILifecycleRender, IRenderable, IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
-import { ITemplate } from './template';
 
-export interface ICustomElementType extends IResourceType<ITemplateDefinition, ICustomElement>, Immutable<Pick<Partial<ITemplateDefinition>, 'containerless' | 'shadowOptions' | 'bindables'>> { }
+export interface ICustomElementType extends
+  IResourceType<ITemplateDefinition, ICustomElement>,
+  Immutable<Pick<Partial<ITemplateDefinition>, 'containerless' | 'shadowOptions' | 'bindables'>> { }
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
-export interface IBindSelf {
-  readonly $isBound: boolean;
-  $bind(flags: BindingFlags): void;
-  $unbind(flags: BindingFlags): void;
-}
-
-export interface ICustomElement extends IBindSelf, IAttach, Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$addNodes' | '$removeNodes'>>, Readonly<IRenderable> {
+export interface ICustomElement extends ILifecycleHooks, ILifecycleRender, IBindSelf, IAttach, IMountable, ILifecycleState, IRenderable {
   readonly $projector: IElementProjector;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+}
+
+export interface ICustomElementHost extends IRenderLocation {
+  $customElement?: ICustomElement;
 }
 
 export type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
@@ -41,50 +41,58 @@ export interface IInternalCustomElementImplementation extends Writable<ICustomEl
   $behavior: IRuntimeBehavior;
 }
 
+type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T> & ICustomElementType;
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-// tslint:disable-next-line:no-any
-export function customElement(nameOrSource: string | ITemplateDefinition): any {
-  return function<T extends Constructable>(target: T): T {
-    return CustomElementResource.define(nameOrSource, target);
-  };
+export function customElement(nameOrSource: string | ITemplateDefinition): CustomElementDecorator {
+  return target => CustomElementResource.define(nameOrSource, target);
 }
 
 const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
 
+type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
+
 /**
- * Decorator: Indicates that the custom element should render its view in Shadow
- * DOM.
+ * Decorator: Indicates that the custom element should render its view in ShadowDOM.
  */
-// tslint:disable-next-line:no-any
-export function useShadowDOM(targetOrOptions?: any): any {
+export function useShadowDOM<T extends Constructable>(options?: HasShadowOptions['shadowOptions']): (target: T & HasShadowOptions) => Decorated<HasShadowOptions, T>;
+/**
+ * Decorator: Indicates that the custom element should render its view in ShadowDOM.
+ */
+export function useShadowDOM<T extends Constructable>(target: (T & HasShadowOptions)): Decorated<HasShadowOptions, T>;
+export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & HasShadowOptions) | HasShadowOptions['shadowOptions']):  Decorated<HasShadowOptions, T> | ((target: T & HasShadowOptions) => Decorated<HasShadowOptions, T>) {
   const options = typeof targetOrOptions === 'function' || !targetOrOptions
     ? defaultShadowOptions
-    : targetOrOptions;
+    : targetOrOptions as HasShadowOptions['shadowOptions'];
 
-  const deco = function<T extends Constructable>(target: T): T {
-    (target as Writable<Partial<ICustomElementType>>).shadowOptions = options;
+  function useShadowDOMDecorator(target: T & HasShadowOptions): Decorated<HasShadowOptions, T> {
+    target.shadowOptions = options;
     return target;
-  };
+  }
 
-  return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
+  return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
+}
+
+type HasContainerless = Pick<ITemplateDefinition, 'containerless'>;
+
+function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): Decorated<HasContainerless, T> {
+  target.containerless = true;
+  return target;
 }
 
 /**
- * Decorator: Indicates that the custom element should be rendered without its
- * element container.
+ * Decorator: Indicates that the custom element should be rendered without its element container.
  */
-// tslint:disable-next-line:no-any
-export function containerless(maybeTarget?: any): any {
-  const deco = function<T extends Constructable>(target: T): T {
-    (target as Writable<Partial<ICustomElementType>>).containerless = true;
-    return target;
-  };
-
-  return maybeTarget ? deco(maybeTarget) : deco;
+export function containerless(): typeof containerlessDecorator;
+/**
+ * Decorator: Indicates that the custom element should be rendered without its element container.
+ */
+export function containerless<T extends Constructable>(target: T & HasContainerless): Decorated<HasContainerless, T>;
+export function containerless<T extends Constructable>(target?: T & HasContainerless): Decorated<HasContainerless, T> | typeof containerlessDecorator {
+  return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
 }
 
 export interface ICustomElementResource extends IResourceKind<ITemplateDefinition, ICustomElementType> {
@@ -107,12 +115,15 @@ export const CustomElementResource: ICustomElementResource = {
   },
 
   define<T extends Constructable>(nameOrSource: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
-    const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType;
-    const description = createCustomElementDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
-    const proto: ICustomElement = Type.prototype;
+    if (!nameOrSource) {
+      throw Reporter.error(70);
+    }
+    const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
+    const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrSource);
+    const proto: Writable<ICustomElement> = Type.prototype;
 
-    (Type as Writable<ICustomElementType>).kind = CustomElementResource;
-    (Type as Writable<ICustomElementType>).description = description;
+    Type.kind = CustomElementResource;
+    Type.description = description;
     Type.register = register;
 
     proto.$hydrate = hydrate;
@@ -121,194 +132,188 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$detach = detach;
     proto.$unbind = unbind;
     proto.$cache = cache;
-    (proto as Writable<IRenderable>).$addNodes = addNodes;
-    (proto as Writable<IRenderable>).$removeNodes = removeNodes;
+    proto.$mount = mount;
+    proto.$unmount = unmount;
 
-    return Type;
+    return <ICustomElementType & T>Type;
   }
 };
 
 function register(this: ICustomElementType, container: IContainer): void {
-  container.register(
-    Registration.transient(
-      CustomElementResource.keyFrom(this.description.name),
-      this
-    )
-  );
+  const resourceKey = CustomElementResource.keyFrom(this.description.name);
+  container.register(Registration.transient(resourceKey, this));
 }
 
 function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
-  this.$bindables = [];
-  this.$attachables = [];
-  this.$isAttached = false;
-  this.$isBound = false;
-  this.$scope = Scope.create(this, null); // TODO: get the parent from somewhere?
+  this.$bindableHead = this.$bindableTail = null;
+  this.$prevBind = this.$nextBind = null;
+  this.$attachableHead = this.$attachableTail = null;
+  this.$prevAttach = this.$nextAttach = null;
+
+  this.$state = LifecycleState.needsMount;
+  this.$scope = Scope.create(this, null);
   this.$projector = determineProjector(this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
-  let template: ITemplate;
-
-  if (this.$behavior.hasRender) {
+  if (this.$behavior.hooks & LifecycleHooks.hasRender) {
     const result = this.render(host, options.parts);
 
-    if ('getElementTemplate' in result) {
-      template = result.getElementTemplate(renderingEngine, Type);
-    } else {
-      this.$nodes = result;
+    if (result && 'getElementTemplate' in result) {
+      result.getElementTemplate(renderingEngine, Type).render(this, host, options.parts);
     }
   } else {
-    template = renderingEngine.getElementTemplate(description, Type);
+    renderingEngine.getElementTemplate(description, Type).render(this, host, options.parts);
   }
 
-  if (template) {
-    this.$context = template.renderContext;
-    this.$nodes = template.createFor(this, host, options.parts);
-  }
-
-  if (this.$behavior.hasCreated) {
+  if (this.$behavior.hooks & LifecycleHooks.hasCreated) {
     this.created();
   }
 }
 
 function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
-  if (this.$isBound) {
+  if (this.$state & LifecycleState.isBound) {
     return;
   }
+  // add isBinding flag
+  this.$state |= LifecycleState.isBinding;
 
-  const behavior = this.$behavior;
+  const hooks = this.$behavior.hooks;
+  flags |= BindingFlags.fromBind;
 
-  if (behavior.hasBinding) {
-    this.binding(flags | BindingFlags.fromBind);
+  if (hooks & LifecycleHooks.hasBound) {
+    BindLifecycle.queueBound(this, flags);
+  }
+
+  if (hooks & LifecycleHooks.hasBinding) {
+    this.binding(flags);
   }
 
   const scope = this.$scope;
-  const bindables = this.$bindables;
-
-  for (let i = 0, ii = bindables.length; i < ii; ++i) {
-    bindables[i].$bind(flags | BindingFlags.fromBind, scope);
+  let current = this.$bindableHead;
+  while (current !== null) {
+    current.$bind(flags, scope);
+    current = current.$nextBind;
   }
 
-  this.$isBound = true;
+  // add isBound flag and remove isBinding flag
+  this.$state |= LifecycleState.isBound;
+  this.$state &= ~LifecycleState.isBinding;
 
-  if (behavior.hasBound) {
-    this.bound(flags | BindingFlags.fromBind);
+  if (hooks & LifecycleHooks.hasBound) {
+    BindLifecycle.unqueueBound();
   }
 }
 
 function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
-  if (this.$isBound) {
-    const behavior = this.$behavior;
+  if (this.$state & LifecycleState.isBound) {
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
-    if (behavior.hasUnbinding) {
-      this.unbinding(flags | BindingFlags.fromUnbind);
+    const hooks = this.$behavior.hooks;
+    flags |= BindingFlags.fromUnbind;
+
+    if (hooks & LifecycleHooks.hasUnbound) {
+      BindLifecycle.queueUnbound(this, flags);
     }
 
-    const bindables = this.$bindables;
-    let i = bindables.length;
-
-    while (i--) {
-      bindables[i].$unbind(flags | BindingFlags.fromUnbind);
+    if (hooks & LifecycleHooks.hasUnbinding) {
+      this.unbinding(flags);
     }
 
-    this.$isBound = false;
+    let current = this.$bindableTail;
+    while (current !== null) {
+      current.$unbind(flags);
+      current = current.$prevBind;
+    }
 
-    if (behavior.hasUnbound) {
-      this.unbound(flags | BindingFlags.fromUnbind);
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
+
+    if (hooks & LifecycleHooks.hasUnbound) {
+      BindLifecycle.unqueueUnbound();
     }
   }
 }
 
 function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-  if (this.$isAttached) {
+  if (this.$state & LifecycleState.isAttached) {
     return;
   }
+  // add isAttaching flag
+  this.$state |= LifecycleState.isAttaching;
 
+  const hooks = this.$behavior.hooks;
   encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
 
-  if (this.$behavior.hasAttaching) {
+  if (hooks & LifecycleHooks.hasAttaching) {
     this.attaching(encapsulationSource, lifecycle);
   }
 
-  const attachables = this.$attachables;
-
-  for (let i = 0, ii = attachables.length; i < ii; ++i) {
-    attachables[i].$attach(encapsulationSource, lifecycle);
+  let current = this.$attachableHead;
+  while (current !== null) {
+    current.$attach(encapsulationSource, lifecycle);
+    current = current.$nextAttach;
   }
 
-  lifecycle.queueAddNodes(this);
-  this.$isAttached = true;
+  lifecycle.queueMount(this);
+  // add isAttached flag, remove isAttaching flag
+  this.$state |= LifecycleState.isAttached;
+  this.$state &= ~LifecycleState.isAttaching;
 
-  if (this.$behavior.hasAttached) {
+  if (hooks & LifecycleHooks.hasAttached) {
     lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
 }
 
 function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLifecycle): void {
-  if (this.$isAttached) {
-    if (this.$behavior.hasDetaching) {
+  if (this.$state & LifecycleState.isAttached) {
+    // add isDetaching flag
+    this.$state |= LifecycleState.isDetaching;
+
+    const hooks = this.$behavior.hooks;
+    if (hooks & LifecycleHooks.hasDetaching) {
       this.detaching(lifecycle);
     }
 
-    lifecycle.queueRemoveNodes(this);
+    lifecycle.queueUnmount(this);
 
-    const attachables = this.$attachables;
-    let i = attachables.length;
-
-    while (i--) {
-      attachables[i].$detach(lifecycle);
+    let current = this.$attachableTail;
+    while (current !== null) {
+      current.$detach(lifecycle);
+      current = current.$prevAttach;
     }
 
-    this.$isAttached = false;
+    // remove isAttached and isDetaching flags
+    this.$state &= ~(LifecycleState.isAttached | LifecycleState.isDetaching);
 
-    if (this.$behavior.hasDetached) {
+    if (hooks & LifecycleHooks.hasDetached) {
       lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
   }
 }
 
 function cache(this: IInternalCustomElementImplementation): void {
-  if (this.$behavior.hasCaching) {
+  if (this.$behavior.hooks & LifecycleHooks.hasCaching) {
     this.caching();
   }
 
-  const attachables = this.$attachables;
-  let i = attachables.length;
-
-  while (i--) {
-    attachables[i].$cache();
+  let current = this.$attachableTail;
+  while (current !== null) {
+    current.$cache();
+    current = current.$prevAttach;
   }
 }
 
-function addNodes(this: IInternalCustomElementImplementation): void {
+function mount(this: IInternalCustomElementImplementation): void {
   this.$projector.project(this.$nodes);
 }
 
-function removeNodes(this: IInternalCustomElementImplementation): void {
-  this.$projector.onElementRemoved();
-}
-
-/*@internal*/
-export function createCustomElementDescription(templateSource: ITemplateDefinition, Type: ICustomElementType): TemplateDefinition {
-  return {
-    name: templateSource.name || 'unnamed',
-    template: templateSource.template || null,
-    cache: 0,
-    build: templateSource.build || {
-      required: false,
-      compiler: 'default'
-    },
-    bindables: {...Type.bindables, ...templateSource.bindables},
-    instructions: templateSource.instructions ? PLATFORM.toArray(templateSource.instructions) : PLATFORM.emptyArray,
-    dependencies: templateSource.dependencies ? PLATFORM.toArray(templateSource.dependencies) : PLATFORM.emptyArray,
-    surrogates: templateSource.surrogates ? PLATFORM.toArray(templateSource.surrogates) : PLATFORM.emptyArray,
-    containerless: templateSource.containerless || Type.containerless || false,
-    shadowOptions: templateSource.shadowOptions || Type.shadowOptions || null,
-    hasSlots: templateSource.hasSlots || false
-  };
+function unmount(this: IInternalCustomElementImplementation): void {
+  this.$projector.take(this.$nodes);
 }
 
 export interface IElementProjector {
@@ -317,11 +322,9 @@ export interface IElementProjector {
 
   provideEncapsulationSource(parentEncapsulationSource: ICustomElementHost): ICustomElementHost;
   project(nodes: INodeSequence): void;
+  take(nodes: INodeSequence): void;
 
   subscribeToChildrenChange(callback: () => void): void;
-
-  /*@internal*/
-  onElementRemoved(): void;
 }
 
 function determineProjector(
@@ -376,7 +379,7 @@ export class ShadowDOMProjector implements IElementProjector {
     this.project = PLATFORM.noop;
   }
 
-  public onElementRemoved(): void {
+  public take(nodes: INodeSequence): void {
     // No special behavior is required because the host element removal
     // will result in the projected nodes being removed, since they are in
     // the ShadowDOM.
@@ -384,9 +387,8 @@ export class ShadowDOMProjector implements IElementProjector {
 }
 
 export class ContainerlessProjector implements IElementProjector {
-  public host: IRenderLocation;
+  public host: ICustomElementHost;
   private childNodes: ArrayLike<INode>;
-  private requiresMount: boolean = true;
 
   constructor(private $customElement: ICustomElement, host: ICustomElementHost) {
     if (host.childNodes.length) {
@@ -416,15 +418,15 @@ export class ContainerlessProjector implements IElementProjector {
   }
 
   public project(nodes: INodeSequence): void {
-    if (this.requiresMount) {
-      this.requiresMount = false;
+    if (this.$customElement.$state & LifecycleState.needsMount) {
+      this.$customElement.$state &= ~LifecycleState.needsMount;
       nodes.insertBefore(this.host);
     }
   }
 
-  public onElementRemoved(): void {
-    this.requiresMount = true;
-    this.$customElement.$nodes.remove();
+  public take(nodes: INodeSequence): void {
+    this.$customElement.$state |= LifecycleState.needsMount;
+    nodes.remove();
   }
 }
 
@@ -450,7 +452,7 @@ export class HostProjector implements IElementProjector {
     this.project = PLATFORM.noop;
   }
 
-  public onElementRemoved(): void {
+  public take(nodes: INodeSequence): void {
     // No special behavior is required because the host element removal
     // will result in the projected nodes being removed, since they are children.
   }

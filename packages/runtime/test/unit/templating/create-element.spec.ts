@@ -1,8 +1,7 @@
 import { HydrateElementInstruction } from '../../../../jit/src';
 import { expect } from 'chai';
-import { createElement as sut, PotentialRenderable } from "../../../src/templating/create-element";
 import { eachCartesianJoinFactory, eachCartesianJoin, createElement, _ } from '../util';
-import { TargetedInstruction, INode, ICustomElementType, CustomElementResource, TargetedInstructionType } from '../../../src';
+import { TargetedInstruction, INode, ICustomElementType, CustomElementResource, TargetedInstructionType, createElement as sut, RenderPlan  } from '../../../src';
 
 describe(`createElement() creates element based on tag`, () => {
   eachCartesianJoin([['div', 'template']], (tag: string) => {
@@ -45,12 +44,12 @@ describe(`createElement() creates element based on tag`, () => {
       });
 
       eachCartesianJoinFactory([
-        <(() => [Array<PotentialRenderable | string | INode>, string])[]>[
+        <(() => [Array<RenderPlan | string | INode>, string])[]>[
           () => [['foo', 'bar'], 'foobar'],
           () => [[createElement('<div>foo</div>'), createElement('<div>bar</div>')], 'foobar'],
           () => [['foo', createElement('<div>bar</div>')], 'foobar']
         ],
-        <(($1: [Array<PotentialRenderable | string | INode>, string]) => [Array<PotentialRenderable | string | INode>, string])[]>[
+        <(($1: [Array<RenderPlan | string | INode>, string]) => [Array<RenderPlan | string | INode>, string])[]>[
           ([children, expected]) => [children, expected],
           ([children, expected]) => [[sut('div', null, ['baz']), ...children], `baz${expected}`],
           ([children, expected]) => [[sut('div', null, [createElement('<div>baz</div>')]), ...children], `baz${expected}`]
@@ -142,12 +141,12 @@ describe(`createElement() creates element based on type`, () => {
       });
 
       eachCartesianJoinFactory([
-        <(() => [Array<PotentialRenderable | string | INode>, string])[]>[
+        <(() => [Array<RenderPlan | string | INode>, string])[]>[
           () => [['foo', 'bar'], 'foobar'],
           () => [[createElement('<div>foo</div>'), createElement('<div>bar</div>')], 'foobar'],
           () => [['foo', createElement('<div>bar</div>')], 'foobar']
         ],
-        <(($1: [Array<PotentialRenderable | string | INode>, string]) => [Array<PotentialRenderable | string | INode>, string])[]>[
+        <(($1: [Array<RenderPlan | string | INode>, string]) => [Array<RenderPlan | string | INode>, string])[]>[
           ([children, expected]) => [children, expected],
           ([children, expected]) => [[sut('div', null, ['baz']), ...children], `baz${expected}`],
           ([children, expected]) => [[sut('div', null, [createElement('<div>baz</div>')]), ...children], `baz${expected}`]

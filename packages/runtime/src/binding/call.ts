@@ -1,15 +1,17 @@
 import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
 import { INode } from '../dom';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IAccessor, IScope } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
-import { IAccessor } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 export interface Call extends IConnectableBinding {}
 export class Call {
-  public $isBound: boolean = false;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
+
+  public $state: LifecycleState = LifecycleState.none;
   public $scope: IScope;
 
   public targetObserver: IAccessor;
@@ -36,15 +38,16 @@ export class Call {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind(flags);
+      this.$unbind(flags | BindingFlags.fromBind);
     }
+    // add isBinding flag
+    this.$state |= LifecycleState.isBinding;
 
-    this.$isBound = true;
     this.$scope = scope;
 
     const sourceExpression = this.sourceExpression;
@@ -53,14 +56,18 @@ export class Call {
     }
 
     this.targetObserver.setValue($args => this.callSource($args), flags);
+
+    // add isBound flag and remove isBinding flag
+    this.$state |= LifecycleState.isBound;
+    this.$state &= ~LifecycleState.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-
-    this.$isBound = false;
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
@@ -69,6 +76,9 @@ export class Call {
 
     this.$scope = null;
     this.targetObserver.setValue(null, flags);
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
   }
   // tslint:disable:no-empty no-any
   public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }

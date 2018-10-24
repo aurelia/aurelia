@@ -1,20 +1,19 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
-import { IChangeSet } from './binding';
-import { BindingFlags } from './binding/binding-flags';
-import { Lifecycle, LifecycleFlags } from './templating';
+import { Lifecycle, LifecycleFlags } from './lifecycle';
+import { BindingFlags, IChangeSet } from './observation';
 import { ICustomElement } from './templating/custom-element';
 import { IRenderingEngine } from './templating/rendering-engine';
 
 export interface ISinglePageApp {
   host: any,
-  component: any
+  component: any;
 }
 
 export class Aurelia {
   private components: ICustomElement[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
-  private isStarted = false;
+  private isStarted: boolean = false;
   private _root: ICustomElement = null;
 
   constructor(private container: IContainer = DI.createContainer()) {

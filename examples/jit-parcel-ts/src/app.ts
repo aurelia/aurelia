@@ -1,15 +1,7 @@
 import { customElement } from '@aurelia/runtime';
-import view from './app.html';
+import template from './app.html';
 
-@customElement({
-  name: 'app',
-  template: view,
-  build: {
-    required: true,
-    compiler: 'default'
-  },
-  instructions: []
-})
+@customElement({ name: 'app', template })
 export class App {
   message = 'Hello World!';
 }

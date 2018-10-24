@@ -1,20 +1,18 @@
 import { Constructable, Immutable, inject } from '@aurelia/kernel';
-import { IChangeSet } from '../../binding';
-import { BindingFlags } from '../../binding/binding-flags';
-import { INode } from '../../dom';
-import { bindable } from '../bindable';
-import { createElement, PotentialRenderable } from '../create-element';
-import { customElement, ICustomElement } from '../custom-element';
 import {
   IHydrateElementInstruction,
   ITargetedInstruction,
   ITemplateDefinition,
   TargetedInstruction,
   TemplateDefinition
-} from '../instructions';
-import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
-import { IRenderable } from '../renderable';
-import { IRenderingEngine } from '../rendering-engine';
+} from '../../definitions';
+import { INode } from '../../dom';
+import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { BindingFlags, IChangeSet } from '../../observation';
+import { bindable } from '../bindable';
+import { createElement, RenderPlan } from '../create-element';
+import { customElement, ICustomElement } from '../custom-element';
+import { IRenderable, IRenderingEngine } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
 
@@ -25,7 +23,7 @@ const composeSource: ITemplateDefinition = {
 
 const composeProps = ['subject', 'composing'];
 
-type Subject = IViewFactory | IView | PotentialRenderable | Constructable | TemplateDefinition;
+type Subject = IViewFactory | IView | RenderPlan | Constructable | TemplateDefinition;
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
@@ -107,7 +105,7 @@ export class Compose {
     const view = this.provideViewFor(subject);
 
     if (view) {
-      view.mount(this.$projector.host);
+      view.hold(this.$projector.host);
       view.lockScope(this.renderable.$scope);
       return view;
     }
@@ -120,26 +118,26 @@ export class Compose {
       return null;
     }
 
-    if ('template' in subject) { // Raw Template Definition
-      return this.renderingEngine.getViewFactory(
-        subject,
-        this.renderable.$context
-      ).create();
+    if ('lockScope' in subject) { // IView
+      return subject;
     }
 
-    if ('create' in subject) { // IViewFactory
-      return subject.create();
-    }
-
-    if ('createView' in subject) { // PotentialRenderable
+    if ('createView' in subject) { // RenderPlan
       return subject.createView(
         this.renderingEngine,
         this.renderable.$context
       );
     }
 
-    if ('lockScope' in subject) { // IView
-      return subject;
+    if ('create' in subject) { // IViewFactory
+      return subject.create();
+    }
+
+    if ('template' in subject) { // Raw Template Definition
+      return this.renderingEngine.getViewFactory(
+        subject,
+        this.renderable.$context
+      ).create();
     }
 
     // Constructable (Custom Element Constructor)

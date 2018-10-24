@@ -1,4 +1,4 @@
-import { XLinkAttributeAccessor, DataAttributeAccessor, StyleAttributeAccessor, ChangeSet, ClassAttributeAccessor } from "../../../src/index";
+import { XLinkAttributeAccessor, DataAttributeAccessor, StyleAttributeAccessor, LinkedChangeList, ClassAttributeAccessor } from "../../../src/index";
 import { createElement, globalAttributeNames } from "../util";
 import { expect } from "chai";
 import { CSS_PROPERTIES } from "../css-properties";
@@ -22,7 +22,7 @@ function createSvgUseElement(name: string, value: string) {
 describe('XLinkAttributeAccessor', () => {
   let sut: XLinkAttributeAccessor;
   let el: Element;
-  let changeSet: ChangeSet;
+  let changeSet: LinkedChangeList;
 
   const tests = [
     { name: 'href', value: '#shape1' },
@@ -37,7 +37,7 @@ describe('XLinkAttributeAccessor', () => {
     for (const { name, value } of tests) {
       it(`returns ${value} for xlink:${name}`, () => {
         el = createSvgUseElement(name, value);
-        changeSet = new ChangeSet();
+        changeSet = new LinkedChangeList();
         sut = new XLinkAttributeAccessor(changeSet, el, `xlink:${name}`, name);
         const actual = sut.getValue();
         expect(actual).to.equal(value);
@@ -49,7 +49,7 @@ describe('XLinkAttributeAccessor', () => {
     for (const { name, value } of tests) {
       it(`sets xlink:${name} to foo`, () => {
         el = createSvgUseElement(name, value);
-        changeSet = new ChangeSet();
+        changeSet = new LinkedChangeList();
         sut = new XLinkAttributeAccessor(changeSet, el, `xlink:${name}`, name);
         sut.setValue('foo');
         expect(sut.getValue()).not.to.equal('foo');
@@ -64,7 +64,7 @@ describe('XLinkAttributeAccessor', () => {
 describe('DataAttributeAccessor', () => {
   let sut: DataAttributeAccessor;
   let el: Element;
-  let changeSet: ChangeSet;
+  let changeSet: LinkedChangeList;
 
   const valueArr = [undefined, null, '', 'foo'];
   describe('getValue()', () => {
@@ -72,7 +72,7 @@ describe('DataAttributeAccessor', () => {
       for (const value of valueArr.filter(v => v !== null && v !== undefined)) {
         it(`returns "${value}" for attribute "${name}"`, () => {
           el = createElement(`<div ${name}="${value}"></div>`);
-          changeSet = new ChangeSet();
+          changeSet = new LinkedChangeList();
           sut = new DataAttributeAccessor(changeSet, el, name);
           const actual = sut.getValue();
           expect(actual).to.equal(value);
@@ -86,7 +86,7 @@ describe('DataAttributeAccessor', () => {
       for (const value of valueArr) {
         it(`sets attribute "${name}" to "${value}"`, () => {
           el = createElement(`<div></div>`);
-          changeSet = new ChangeSet();
+          changeSet = new LinkedChangeList();
           const expected = value !== null && value !== undefined ? `<div ${name}="${value}"></div>` : '<div></div>';
           sut = new DataAttributeAccessor(changeSet, el, name);
           sut.setValue(value);
@@ -106,7 +106,7 @@ describe('StyleAccessor', () => {
 
   let sut: StyleAttributeAccessor;
   let el: HTMLElement;
-  let changeSet: ChangeSet;
+  let changeSet: LinkedChangeList;
 
   // TODO: this is just quick-n-dirty; remove redundant tests and add missing tests
   for (const propName of propNames) {
@@ -115,7 +115,7 @@ describe('StyleAccessor', () => {
     const rule = `${propName}:${value}`;
     it(`setValue - style="${rule}"`, () => {
       el = <HTMLElement>createElement('<div></div>');
-      changeSet = new ChangeSet();
+      changeSet = new LinkedChangeList();
       sut = new StyleAttributeAccessor(changeSet, el);
       sut._setProperty = spy();
 
@@ -129,7 +129,7 @@ describe('StyleAccessor', () => {
 
   it(`getValue - style="display: block;"`, () => {
     el = <HTMLElement>createElement(`<div style="display: block;"></div>`);
-    changeSet = new ChangeSet();
+    changeSet = new LinkedChangeList();
     sut = new StyleAttributeAccessor(changeSet, el);
 
     const actual = sut.getValue();
@@ -141,7 +141,7 @@ describe('StyleAccessor', () => {
 describe('ClassAccessor', () => {
   let sut: ClassAttributeAccessor;
   let el: Element;
-  let changeSet: ChangeSet;
+  let changeSet: LinkedChangeList;
   let initialClassList: string;
 
   const markupArr = [
@@ -157,7 +157,7 @@ describe('ClassAccessor', () => {
       beforeEach(() => {
         el = createElement(markup);
         initialClassList = el.classList.toString();
-        changeSet = new ChangeSet();
+        changeSet = new LinkedChangeList();
         sut = new ClassAttributeAccessor(changeSet, el);
       });
 

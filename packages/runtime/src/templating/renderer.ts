@@ -215,7 +215,7 @@ export class Renderer implements IRenderer {
   public [TargetedInstructionType.renderStrategy](renderable: IRenderable, target: any, instruction: Immutable<IRenderStrategyInstruction>): void {
     const strategyName = instruction.name;
     if (this[strategyName] === undefined) {
-      const strategy = this.context.get(RenderStrategyResource.keyFrom(strategyName)) as IRenderStrategy;
+      const strategy = this.context.get<IRenderStrategy>(RenderStrategyResource.keyFrom(strategyName));
       if (strategy === null || strategy === undefined) {
         throw new Error(`Unknown renderStrategy "${strategyName}"`);
       }

@@ -32,14 +32,16 @@ export interface IFactory<T = any> {
 export interface IServiceLocator {
   has(key: any, searchAncestors: boolean): boolean;
 
-  get<K>(key: Constructable<unknown> | Key<unknown> | K):
+  get<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K):
     K extends InterfaceSymbol<infer T> ? T :
     K extends Constructable ? InstanceType<K> :
+    K extends IResolver<infer T1> ? T1 extends Constructable ? InstanceType<T1> : T1 :
     K;
 
-  getAll<K>(key: Constructable<unknown> | Key<unknown> | K):
+  getAll<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K):
     K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> :
     K extends Constructable ? ReadonlyArray<InstanceType<K>> :
+    K extends IResolver<infer T1> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> :
     ReadonlyArray<K>;
 }
 
@@ -474,7 +476,7 @@ export class Container implements IContainer {
     }
   }
 
-  public getAll(key: any): ReadonlyArray<any> {
+  public getAll(key: any): any {
     validateKey(key);
 
     let current: Container | null = this;

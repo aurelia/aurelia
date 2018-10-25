@@ -19,12 +19,7 @@
       constructor() { this.message = 'Hello World!'; }
     }
     var host = document.querySelector('app');
-    au.runtime.customElement({
-      name: 'app',
-      template: host.innerHTML,
-      build: { required: true, compiler: 'default' },
-      instructions: []
-    })(App)
+    au.runtime.customElement({ name: 'app', template: host.innerHTML })(App)
     new au.runtime.Aurelia()
       .register(au.jit.BasicConfiguration)
       .app({ host, component: new App() })

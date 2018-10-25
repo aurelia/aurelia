@@ -3,7 +3,7 @@ import {
   IExpressionParser, INode, TargetedInstructionType, BindingType, IRenderable,
   IRenderStrategyInstruction, renderStrategy, IRenderStrategy, Aurelia,
   IChangeSet, CustomElementResource, IEventManager, Listener, IExpression,
-  DelegationStrategy, AttributeDefinition, ElementDefinition, TargetedInstruction
+  DelegationStrategy, AttributeDefinition, ElementDefinition, TargetedInstruction, addBindable
 } from "../../../runtime/src";
 import { IIndexable, DI, IContainer, IServiceLocator, inject } from "../../../kernel/src";
 import { expect } from "chai";
@@ -37,7 +37,7 @@ export class KeyupRenderStrategy implements IRenderStrategy {
 
   public render(renderable: IRenderable, target: any, instruction: IRenderStrategyInstruction & IIndexable): void {
     const binding = new KeyupListener(instruction.keys, instruction.expr, target, this.eventManager, this.context);
-    renderable.$bindables.push(binding);
+    addBindable(renderable, binding);
   }
 }
 

@@ -1,10 +1,8 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
+import { BindingFlags, CollectionKind, IChangeSet, ICollectionObserver, IObservedSet } from '../observation';
 // tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
-import { BindingFlags } from './binding-flags';
-import { IChangeSet } from './change-set';
 import { collectionObserver } from './collection-observer';
-import { CollectionKind, ICollectionObserver, IObservedSet } from './observation';
 
 const proto = Set.prototype;
 export const nativeAdd = proto.add; // TODO: probably want to make these internal again

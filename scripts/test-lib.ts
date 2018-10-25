@@ -394,8 +394,14 @@ export function eachCartesianJoinFactory<T extends any, U>(
   }
   const totalCallCount: number = arrays.reduce((count: number, arr: ((...args: T[])=>T)[]) => count *= arr.length, 1);
   const argsIndices = Array(arrays.length).fill(0);
-  const args: T[] = updateElementByIndicesFactory(arrays, Array(arrays.length), argsIndices);
-  callback(...args);
+  const errors: Error[] = [];
+  let args: T[];
+  try {
+    args = updateElementByIndicesFactory(arrays, Array(arrays.length), argsIndices);
+    callback(...args);
+  } catch (e) {
+    errors.push(e);
+  }
   let callCount = 1;
   if (totalCallCount === callCount) {
     return;
@@ -403,7 +409,11 @@ export function eachCartesianJoinFactory<T extends any, U>(
   while (true) {
     const hasUpdate = updateIndices(arrays, argsIndices);
     if (hasUpdate) {
-      callback(...updateElementByIndicesFactory(arrays, args, argsIndices));
+      try {
+        callback(...updateElementByIndicesFactory(arrays, args, argsIndices));
+      } catch (e) {
+        errors.push(e);
+      }
       callCount++;
       if (totalCallCount < callCount) {
         throw new Error('Invalid loop implementation.');
@@ -411,6 +421,13 @@ export function eachCartesianJoinFactory<T extends any, U>(
     } else {
       break;
     }
+  }
+  if (errors.length > 0) {
+    // TODO: this doesn't actually log anything to the terminal and effectively suppresses any errors, find out a way to log it to the console..
+    // in the meantime, only use this by commenting out the throw by hand if the throw makes it difficult to troubleshoot an error
+    const msg = `eachCartesionJoinFactory failed to load ${errors.length} tests:\n\n${errors.map(e => e.message).join('\n')}`;
+    throw new Error(msg);
+    console.error(msg);
   }
 }
 function updateElementByIndicesFactory<T extends any>(arrays: ((...args: T[])=>T)[][], args: T[], indices: number[]): T[] {

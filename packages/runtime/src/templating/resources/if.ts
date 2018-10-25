@@ -1,10 +1,9 @@
 import { inject } from '@aurelia/kernel';
-import { IChangeSet } from '../../binding';
-import { BindingFlags } from '../../binding/binding-flags';
-import { DOM, INode, IRenderLocation } from '../../dom';
+import { INode, IRenderLocation } from '../../dom';
+import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { BindingFlags, IChangeSet } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
 
@@ -58,7 +57,7 @@ export class If {
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: BindingFlags): void {
-    if ((flags & BindingFlags.fromFlushChanges) > 0) {
+    if (flags & BindingFlags.fromFlushChanges) {
       const view = this.updateView();
       this.coordinator.compose(view);
     } else {
@@ -90,7 +89,7 @@ export class If {
       view = factory.create();
     }
 
-    view.mount(this.location);
+    view.hold(this.location);
 
     return view;
   }

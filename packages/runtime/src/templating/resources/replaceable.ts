@@ -1,9 +1,8 @@
 import { inject } from '@aurelia/kernel';
-import { IScope } from '../../binding/binding-context';
-import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
+import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { BindingFlags } from '../../observation';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
 import { IView, IViewFactory } from '../view';
 
 export interface Replaceable extends ICustomAttribute {}
@@ -14,7 +13,7 @@ export class Replaceable {
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {
     this.currentView = this.factory.create();
-    this.currentView.mount(location);
+    this.currentView.hold(location);
   }
 
   public binding(flags: BindingFlags): void {

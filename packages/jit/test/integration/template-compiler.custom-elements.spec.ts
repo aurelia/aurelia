@@ -179,63 +179,79 @@ describe('template-compiler.custom-elements', () => {
 
     let i = 0;
     let current = component;
+    let cur: any;
     while (i < 5) {
       const childCtor = customElementCtors[i];
-      expect(current.$attachables.length).to.equal(1);
-      expect(current.$attachables[0]).to.be.instanceof(childCtor);
+      expect(current.$attachableHead).to.be.a('object');
+      expect(current.$attachableHead).to.equal(current.$attachableTail);
+      expect(current.$attachableHead).to.be.instanceof(childCtor);
 
       switch (i) {
         case 0: // root component -> foo1
-          expect(current.$bindables.length).to.equal(3);
-          expect(current.$bindables[0]).to.be.instanceof(Binding);
-          expect(current.$bindables[0]._observer0).be.instanceof(SetterObserver);
-          expect(current.$bindables[0]._observer1).to.be.undefined;
-          expect(current.$bindables[0].targetObserver).to.be.instanceof(PropertyAccessor);
+          cur = current.$bindableHead;
+          expect(cur).to.be.instanceof(Binding);
+          expect(cur._observer0).be.instanceof(SetterObserver);
+          expect(cur._observer1).to.be.undefined;
+          expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
-          expect(current.$bindables[1]).to.be.instanceof(childCtor);
+          cur = cur.$nextBind;
+          expect(cur).to.be.instanceof(childCtor);
 
-          expect(current.$bindables[2]).to.be.instanceof(InterpolationBinding);
-          expect(current.$bindables[2].target.nodeName).to.equal('#text');
-          expect(current.$bindables[2].targetObserver).to.be.instanceof(ElementPropertyAccessor);
-          current = current.$bindables[1];
+          cur = cur.$nextBind;
+          expect(cur).to.be.instanceof(InterpolationBinding);
+          expect(cur.target.nodeName).to.equal('#text');
+          expect(cur.targetObserver).to.be.instanceof(ElementPropertyAccessor);
+
+          expect(cur.$nextBind).to.equal(null, 'cur.$nextBind');
+          current = cur.$prevBind;
           break;
         case 1: // foo1 -> foo2
-          expect(current.$bindables.length).to.equal(4);
-          expect(current.$bindables[0]).to.be.instanceof(Binding);
-          expect(current.$bindables[0]._observer0).be.instanceof(Observer);
-          expect(current.$bindables[0]._observer1).to.be.undefined;
-          expect(current.$bindables[0].targetObserver).to.be.instanceof(PropertyAccessor);
+          cur = current.$bindableHead;
+          expect(cur).to.be.instanceof(Binding);
+          expect(cur._observer0).be.instanceof(Observer);
+          expect(cur._observer1).to.be.undefined;
+          expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
-          expect(current.$bindables[1]).to.be.instanceof(Binding);
-          expect(current.$bindables[1]._observer0).be.instanceof(SetterObserver);
-          expect(current.$bindables[1]._observer1).to.be.undefined;
-          expect(current.$bindables[1].targetObserver).to.be.instanceof(PropertyAccessor);
+          cur = cur.$nextBind;
+          expect(cur).to.be.instanceof(Binding);
+          expect(cur._observer0).be.instanceof(SetterObserver);
+          expect(cur._observer1).to.be.undefined;
+          expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
-          expect(current.$bindables[2]).to.be.instanceof(childCtor);
-          expect(current.$bindables[3]).to.be.instanceof(InterpolationBinding);
-          expect(current.$bindables[3].target.nodeName).to.equal('#text');
-          expect(current.$bindables[3].targetObserver).to.be.instanceof(ElementPropertyAccessor);
-          current = current.$bindables[2];
+          cur = cur.$nextBind;
+          expect(cur).to.be.instanceof(childCtor);
+
+          cur = cur.$nextBind;
+          expect(cur).to.be.instanceof(InterpolationBinding);
+          expect(cur.target.nodeName).to.equal('#text');
+          expect(cur.targetObserver).to.be.instanceof(ElementPropertyAccessor);
+          expect(cur.$nextBind).to.equal(null, 'cur.$nextBind');
+          current = cur.$prevBind;
           break;
         case 2:
         case 3:
         case 4: // foo2 -> foo3-5
-          expect(current.$bindables.length).to.equal(4);
-          expect(current.$bindables[0]).to.be.instanceof(Binding);
-          expect(current.$bindables[0]._observer0).be.instanceof(Observer);
-          expect(current.$bindables[0]._observer1).to.be.undefined;
-          expect(current.$bindables[0].targetObserver).to.be.instanceof(PropertyAccessor);
+          cur = current.$bindableHead;
+          expect(cur).to.be.instanceof(Binding);
+          expect(cur._observer0).be.instanceof(Observer);
+          expect(cur._observer1).to.be.undefined;
+          expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
-          expect(current.$bindables[1]).to.be.instanceof(Binding);
-          expect(current.$bindables[1]._observer0).be.instanceof(Observer);
-          expect(current.$bindables[1]._observer1).to.be.undefined;
-          expect(current.$bindables[1].targetObserver).to.be.instanceof(PropertyAccessor);
+          cur = cur.$nextBind;
+          expect(cur).to.be.instanceof(Binding);
+          expect(cur._observer0).be.instanceof(Observer);
+          expect(cur._observer1).to.be.undefined;
+          expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
-          expect(current.$bindables[2]).to.be.instanceof(childCtor);
-          expect(current.$bindables[3]).to.be.instanceof(InterpolationBinding);
-          expect(current.$bindables[3].target.nodeName).to.equal('#text');
-          expect(current.$bindables[3].targetObserver).to.be.instanceof(ElementPropertyAccessor);
-          current = current.$bindables[2];
+          cur = cur.$nextBind;
+          expect(cur).to.be.instanceof(childCtor);
+
+          cur = cur.$nextBind;
+          expect(cur).to.be.instanceof(InterpolationBinding);
+          expect(cur.target.nodeName).to.equal('#text');
+          expect(cur.targetObserver).to.be.instanceof(ElementPropertyAccessor);
+          expect(cur.$nextBind).to.equal(null, 'cur.$nextBind');
+          current = cur.$prevBind;
       }
 
       i++;

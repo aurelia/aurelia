@@ -6,23 +6,27 @@ import {
   IRenderable,
   INodeSequence
 } from "../../../../src/index";
+import { LifecycleState } from "../../../../src/index";
 
 export class RenderableFake implements IRenderable {
-  $isAttached: boolean;
+  $nextBind: IBindScope = null;
+  $prevBind: IBindScope = null;
+  $bindableHead?: IBindScope = null;
+  $bindableTail?: IBindScope = null;
+  $attachableHead?: IAttach = null;
+  $attachableTail?: IAttach = null;
+  $nextAttach: IAttach = null;
+  $prevAttach: IAttach = null;
+
+  $state: LifecycleState = LifecycleState.none;
 
   $context: IRenderContext;
   $nodes: INodeSequence;
   $scope: IScope;
-  $isBound: boolean;
 
   $bindables: IBindScope[];
   $attachables: IAttach[];
 
-  $addNodes() {}
-  $removeNodes() {}
-
-  constructor() {
-    this.$bindables = [];
-    this.$attachables = [];
-  }
+  $mount() {}
+  $unmount() {}
 }

@@ -1,6 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { BindingFlags } from './binding-flags';
-import { IPropertySubscriber, MutationKind, PropertyObserver } from './observation';
+import { BindingFlags, IPropertySubscriber, MutationKind, PropertyObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 const defineProperty = Reflect.defineProperty;

@@ -1,16 +1,14 @@
-import { IIndexable, IServiceLocator, PLATFORM, Reporter } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator, PLATFORM, Reporter, StrictPrimitive } from '@aurelia/kernel';
+import { BindingFlags, Collection, IScope, ObservedCollection } from '../observation';
 import { IBinding } from './binding';
 import { BindingBehaviorResource } from './binding-behavior';
-import { BindingContext, IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
+import { BindingContext } from './binding-context';
 import { IConnectableBinding } from './connectable';
-import { Collection, ObservedCollection } from './observation';
 import { ISignaler } from './signaler';
 import { ValueConverterResource } from './value-converter';
 
 // tslint:disable:no-empty
 
-export type StrictPrimitive = string | number | boolean | null | undefined;
 /**
  * StrictAny is a somewhat strongly typed alternative to 'any', in an effort to try to get rid of all 'any''s
  * It's not even remotely foolproof however, and this can largely be attributed to the fact that TypeScript imposes

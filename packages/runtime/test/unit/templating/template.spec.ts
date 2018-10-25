@@ -66,7 +66,7 @@ describe(`CompiledTemplate`, () => {
       expect(sut.renderContext.get(ITargetedInstruction)).to.equal(instruction);
       expect(sut.renderContext.get(IRenderLocation)).to.equal(location);
 
-      const nodes = sut['createNodeSequence']();
+      const nodes = sut.factory.createNodeSequence();
       expect(nodes.firstChild['textContent']).to.equal('foo');
     })
   });

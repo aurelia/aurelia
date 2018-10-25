@@ -1,8 +1,7 @@
 import { inject, Reporter } from '@aurelia/kernel';
+import { BindingFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
-import { IScope } from '../binding-context';
-import { BindingFlags } from '../binding-flags';
 import { BindingMode } from '../binding-mode';
 import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from '../element-observation';
 import { EventSubscriber, IEventSubscriber } from '../event-manager';

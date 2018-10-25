@@ -1,4 +1,4 @@
-import { Aurelia } from '../../src/index';
+import { Aurelia, LifecycleState } from '../../src/index';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 
@@ -69,7 +69,7 @@ describe('Aurelia', () => {
     let detached = false;
 
     sut.app({component: {
-      $isAttached: true,
+      $state: LifecycleState.isAttached,
       $unbind() { unbound = true; },
       $detach() { detached = true; }
     }, host: {}});

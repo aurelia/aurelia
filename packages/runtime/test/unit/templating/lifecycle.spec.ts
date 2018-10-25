@@ -1,4 +1,4 @@
-import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController, ChangeSet } from '../../../src';
+import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController, LinkedChangeList, LifecycleState } from '../../../src/index';
 import { eachCartesianJoinFactory } from '../util';
 import { LifecycleMock } from '../mock';
 import { expect } from 'chai';
@@ -37,7 +37,7 @@ function verifyRemoveNodesCalls(offset: number, count: number, mock: LifecycleMo
     i++
   });
   expect(i).to.equal(count);
-  expect(mock.calls[offset + 0][0]).to.equal(`$removeNodes`,   `calls[${offset}+0][0]`);
+  expect(mock.calls[offset + 0][0]).to.equal(`$unmount`,   `calls[${offset}+0][0]`);
   expect(mock.calls[offset + 0][1]).to.equal(0,                `calls[${offset}+0][1]`);
   expect(mock.calls[offset + 0][2]).to.equal(0,                `calls[${offset}+0][2]`);
 }
@@ -73,7 +73,7 @@ function verifyAddNodesCalls(offset: number, count: number, mock: LifecycleMock)
 
   let i = 0;
   mock.walkBottomUp(x => {
-    expect(mock.calls[offset + i][0]).to.equal(`$addNodes`, `calls[${offset}+${i}][0]`);
+    expect(mock.calls[offset + i][0]).to.equal(`$mount`, `calls[${offset}+${i}][0]`);
     expect(mock.calls[offset + i][1]).to.equal(x.depth,     `calls[${offset}+${i}][1]`);
     expect(mock.calls[offset + i][2]).to.equal(x.index,     `calls[${offset}+${i}][2]`);
     i++
@@ -162,7 +162,7 @@ describe(`AttachLifecycleController `, () => {
       [
         ([text, flags]) => [
           `single`,
-          new AttachLifecycleController(new ChangeSet(), flags)
+          new AttachLifecycleController(new LinkedChangeList(), flags)
         ]
       ],
       [
@@ -323,7 +323,7 @@ describe(`DetachLifecycleController `, () => {
       [
         ([text, flags]) => [
           `single`,
-          new DetachLifecycleController(new ChangeSet(), flags)
+          new DetachLifecycleController(new LinkedChangeList(), flags)
         ]
       ],
       [
@@ -388,7 +388,7 @@ describe(`DetachLifecycleController `, () => {
           `$isAttached=true`,
           (count, sut, mock) => {
             mock.walkTopDown(x => {
-              x.$isAttached = true;
+              x.$state |= LifecycleState.isAttached;
             });
           }
         ]

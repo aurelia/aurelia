@@ -1,10 +1,10 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { BindingFlags, IExpression, IScope } from '.';
-import { Interpolation } from './ast';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IBindingTargetAccessor, IScope } from '../observation';
+import { IExpression, Interpolation } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
-import { IBindingTargetAccessor } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 // tslint:disable:no-any
@@ -12,7 +12,11 @@ import { IObserverLocator } from './observer-locator';
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
-  public $isBound: boolean = false;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
+
+  public $state: LifecycleState = LifecycleState.none;
+
   public $scope: IScope = null;
 
   public parts: InterpolationBinding[];
@@ -37,13 +41,13 @@ export class MultiInterpolationBinding implements IBinding {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.$unbind(flags);
     }
-    this.$isBound = true;
+    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
 
     const parts = this.parts;
@@ -53,10 +57,10 @@ export class MultiInterpolationBinding implements IBinding {
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-    this.$isBound = false;
+    this.$state &= ~LifecycleState.isBound;
     this.$scope = null;
     const parts = this.parts;
     for (let i = 0, ii = parts.length; i < ii; ++i) {
@@ -70,7 +74,6 @@ export interface InterpolationBinding extends IConnectableBinding {}
 @connectable()
 export class InterpolationBinding implements IPartialConnectableBinding {
   public $scope: IScope;
-  public $isBound: boolean;
 
   public targetObserver: IBindingTargetAccessor;
 
@@ -92,7 +95,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
 
@@ -110,14 +113,14 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.$unbind(flags);
     }
 
-    this.$isBound = true;
+    this.$state |= LifecycleState.isBound;
     this.$scope = scope;
 
     const sourceExpression = this.sourceExpression;
@@ -130,16 +133,16 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     if (this.isFirst) {
       this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator), flags);
     }
-    if ((this.mode & toView) > 0) {
+    if (this.mode & toView) {
       sourceExpression.connect(flags, scope, this);
     }
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-    this.$isBound = false;
+    this.$state &= ~LifecycleState.isBound;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {

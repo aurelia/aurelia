@@ -1,15 +1,19 @@
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IScope } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
-  public $isBound: boolean = false;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
+
+  public $state: LifecycleState = LifecycleState.none;
+
   public $scope: IScope;
 
   private handler: IDisposable;
@@ -44,15 +48,16 @@ export class Listener implements IBinding {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$isBound) {
+    if (this.$state & LifecycleState.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind(flags);
+      this.$unbind(flags | BindingFlags.fromBind);
     }
+    // add isBinding flag
+    this.$state |= LifecycleState.isBinding;
 
-    this.$isBound = true;
     this.$scope = scope;
 
     const sourceExpression = this.sourceExpression;
@@ -66,14 +71,18 @@ export class Listener implements IBinding {
       this,
       this.delegationStrategy
     );
+
+    // add isBound flag and remove isBinding flag
+    this.$state |= LifecycleState.isBound;
+    this.$state &= ~LifecycleState.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (!this.$isBound) {
+    if (!(this.$state & LifecycleState.isBound)) {
       return;
     }
-
-    this.$isBound = false;
+    // add isUnbinding flag
+    this.$state |= LifecycleState.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
@@ -83,6 +92,9 @@ export class Listener implements IBinding {
     this.$scope = null;
     this.handler.dispose();
     this.handler = null;
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
   }
   // tslint:disable:no-empty no-any
   public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }

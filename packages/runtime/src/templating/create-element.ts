@@ -1,20 +1,14 @@
-import { Constructable, PLATFORM } from '@aurelia/kernel';
+import { Constructable, IIndexable } from '@aurelia/kernel';
+import { isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
 import { DOM, INode } from '../dom';
 import { ICustomElementType } from './custom-element';
-import {
-  isTargetedInstruction,
-  TargetedInstruction,
-  TargetedInstructionType,
-  TemplateDefinition
-} from './instructions';
-import { IRenderContext } from './render-context';
-import { IRenderingEngine } from './rendering-engine';
-import { ITemplate } from './template';
+import { buildTemplateDefinition } from './definition-builder';
+import { IRenderContext, IRenderingEngine, ITemplate } from './rendering-engine';
 import { IView, IViewFactory } from './view';
 
-type ChildType = PotentialRenderable | string | INode;
+type ChildType = RenderPlan | string | INode;
 
-export function createElement(tagOrType: string | Constructable, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
+export function createElement(tagOrType: string | Constructable, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(tagOrType, props, children);
   } else {
@@ -22,7 +16,7 @@ export function createElement(tagOrType: string | Constructable, props?: any, ch
   }
 }
 
-export class PotentialRenderable {
+export class RenderPlan {
   private lazyDefinition: TemplateDefinition;
 
   constructor(
@@ -32,28 +26,12 @@ export class PotentialRenderable {
   ) {}
 
   public get definition(): TemplateDefinition {
-    return this.lazyDefinition || (this.lazyDefinition = {
-      name: 'unnamed',
-      template: this.node,
-      cache: 0,
-      build: typeof this.node === 'string' ? {
-        required: true,
-        compiler: 'default'
-      } : {
-        required: false
-      },
-      dependencies: this.dependencies,
-      instructions: this.instructions,
-      bindables: {},
-      containerless: false,
-      hasSlots: false,
-      shadowOptions: null,
-      surrogates: PLATFORM.emptyArray
-    });
+    return this.lazyDefinition || (this.lazyDefinition =
+      buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies))
   }
 
-  public getElementTemplate(engine: IRenderingEngine, type?: ICustomElementType): ITemplate {
-    return engine.getElementTemplate(this.definition, type);
+  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate {
+    return engine.getElementTemplate(this.definition, Type);
   }
 
   public createView(engine: IRenderingEngine, parentContext?: IRenderContext): IView {
@@ -72,7 +50,7 @@ export class PotentialRenderable {
   }
 }
 
-function createElementForTag(tagName: string, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
+function createElementForTag(tagName: string, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [];
   const dependencies = [];
@@ -102,10 +80,10 @@ function createElementForTag(tagName: string, props?: any, children?: ArrayLike<
     addChildren(element, children, allInstructions, dependencies);
   }
 
-  return new PotentialRenderable(element, allInstructions, dependencies);
+  return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function createElementForType(Type: ICustomElementType, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
+function createElementForType(Type: ICustomElementType, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
@@ -157,7 +135,7 @@ function createElementForType(Type: ICustomElementType, props?: any, children?: 
     addChildren(element, children, allInstructions, dependencies);
   }
 
-  return new PotentialRenderable(element, allInstructions, dependencies);
+  return new RenderPlan(element, allInstructions, dependencies);
 }
 
 function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: any[]): void {
@@ -165,7 +143,7 @@ function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructi
     const current = children[i];
 
     if (typeof current === 'string') {
-      DOM.appendChild(parent, DOM.createText(current));
+      DOM.appendChild(parent, DOM.createTextNode(current));
     } else if (DOM.isNodeInstance(current)) {
       DOM.appendChild(parent, current);
     } else {

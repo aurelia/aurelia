@@ -3,7 +3,7 @@ import { DI } from "../../../kernel/src/index";
 import { CustomElementResource, DOM, Aurelia } from "../../../runtime/src/index";
 import { BasicConfiguration } from "../../src/index";
 
-describe.only("template-compiler.generated", function template_compiler_generated() {
+describe("template-compiler.generated", function template_compiler_generated() {
     function setup() {
         const container = DI.createContainer();
         container.register(BasicConfiguration);

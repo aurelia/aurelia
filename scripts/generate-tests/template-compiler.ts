@@ -645,7 +645,7 @@ const nodes = [
   $import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia'),
   $import('../../src/index', 'BasicConfiguration'),
   null,
-  $describeOnly(
+  $describe(
     'template-compiler.generated',
     $functionDeclaration(
       'setup',

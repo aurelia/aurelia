@@ -1,5 +1,8 @@
 import { Decoratable, Decorated } from '@aurelia/kernel';
-import { IBinding, IBindingTargetObserver, IObserverLocator, IPropertySubscriber, StrictAny } from '.';
+import { IBindingTargetObserver, IPropertySubscriber } from '../observation';
+import { StrictAny } from './ast';
+import { IBinding } from './binding';
+import { IObserverLocator } from './observer-locator';
 export interface IPartialConnectableBinding extends IBinding, IPropertySubscriber {
     observerLocator: IObserverLocator;
 }

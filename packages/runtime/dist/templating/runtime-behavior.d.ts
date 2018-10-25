@@ -1,16 +1,7 @@
-import { IAccessor, ISubscribable, ISubscriberCollection, MutationKind } from '../binding/observation';
+import { LifecycleHooks } from '../lifecycle';
+import { IAccessor, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
 export interface IRuntimeBehavior {
-    readonly hasCreated: boolean;
-    readonly hasBinding: boolean;
-    readonly hasBound: boolean;
-    readonly hasAttaching: boolean;
-    readonly hasAttached: boolean;
-    readonly hasDetaching: boolean;
-    readonly hasDetached: boolean;
-    readonly hasUnbinding: boolean;
-    readonly hasUnbound: boolean;
-    readonly hasRender: boolean;
-    readonly hasCaching: boolean;
+    readonly hooks: LifecycleHooks;
 }
 export interface IChildrenObserver extends IAccessor, ISubscribable<MutationKind.instance>, ISubscriberCollection<MutationKind.instance> {
 }

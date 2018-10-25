@@ -612,6 +612,155 @@ var au = (function (exports) {
         return c > 3 && r && Object.defineProperty(target, key, r), r;
     }
 
+    var BindingFlags;
+    (function (BindingFlags) {
+        BindingFlags[BindingFlags["none"] = 0] = "none";
+        BindingFlags[BindingFlags["mustEvaluate"] = 32768] = "mustEvaluate";
+        BindingFlags[BindingFlags["mutation"] = 3] = "mutation";
+        BindingFlags[BindingFlags["isCollectionMutation"] = 1] = "isCollectionMutation";
+        BindingFlags[BindingFlags["isInstanceMutation"] = 2] = "isInstanceMutation";
+        BindingFlags[BindingFlags["update"] = 28] = "update";
+        BindingFlags[BindingFlags["updateTargetObserver"] = 4] = "updateTargetObserver";
+        BindingFlags[BindingFlags["updateTargetInstance"] = 8] = "updateTargetInstance";
+        BindingFlags[BindingFlags["updateSourceExpression"] = 16] = "updateSourceExpression";
+        BindingFlags[BindingFlags["from"] = 8160] = "from";
+        BindingFlags[BindingFlags["fromFlushChanges"] = 32] = "fromFlushChanges";
+        BindingFlags[BindingFlags["fromStartTask"] = 64] = "fromStartTask";
+        BindingFlags[BindingFlags["fromStopTask"] = 128] = "fromStopTask";
+        BindingFlags[BindingFlags["fromBind"] = 256] = "fromBind";
+        BindingFlags[BindingFlags["fromUnbind"] = 512] = "fromUnbind";
+        BindingFlags[BindingFlags["fromDOMEvent"] = 1024] = "fromDOMEvent";
+        BindingFlags[BindingFlags["fromObserverSetter"] = 2048] = "fromObserverSetter";
+        BindingFlags[BindingFlags["fromBindableHandler"] = 4096] = "fromBindableHandler";
+    })(BindingFlags || (BindingFlags = {}));
+    const IChangeSet = DI.createInterface()
+        .withDefault(x => x.singleton(LinkedChangeList));
+    const add = Set.prototype.add;
+    /*@internal*/
+    class ChangeSet extends Set {
+        constructor() {
+            super(...arguments);
+            this.flushing = false;
+            /*@internal*/
+            this.promise = Promise.resolve();
+            /**
+             * This particular implementation is recursive; any changes added as a side-effect of flushing changes, will be flushed during the same tick.
+             */
+            this.flushChanges = () => {
+                this.flushing = true;
+                while (this.size > 0) {
+                    const items = this.toArray();
+                    this.clear();
+                    const len = items.length;
+                    let i = 0;
+                    while (i < len) {
+                        items[i++].flushChanges();
+                    }
+                }
+                this.flushing = false;
+            };
+        }
+        toArray() {
+            const items = new Array(this.size);
+            let i = 0;
+            for (const item of this.keys()) {
+                items[i++] = item;
+            }
+            return items;
+        }
+        add(changeTracker) {
+            if (this.size === 0) {
+                this.flushed = this.promise.then(this.flushChanges);
+            }
+            add.call(this, changeTracker);
+            return this.flushed;
+        }
+    }
+    const marker = PLATFORM.emptyObject;
+    /*@internal*/
+    class LinkedChangeList {
+        constructor() {
+            this.flushing = false;
+            this.size = 0;
+            this.head = null;
+            this.tail = null;
+            /*@internal*/
+            this.promise = Promise.resolve();
+            /**
+             * This particular implementation is recursive; any changes added as a side-effect of flushing changes, will be flushed during the same tick.
+             */
+            this.flushChanges = () => {
+                this.flushing = true;
+                while (this.size > 0) {
+                    let current = this.head;
+                    this.head = this.tail = null;
+                    this.size = 0;
+                    let next;
+                    while (current && current !== marker) {
+                        next = current.$next;
+                        current.$next = null;
+                        current.flushChanges();
+                        current = next;
+                    }
+                }
+                this.flushing = false;
+            };
+        }
+        toArray() {
+            const items = new Array(this.size);
+            let i = 0;
+            let current = this.head;
+            let next;
+            while (current) {
+                items[i] = current;
+                next = current.$next;
+                current = next;
+                i++;
+            }
+            return items;
+        }
+        has(item) {
+            let current = this.head;
+            let next;
+            while (current) {
+                if (item === current) {
+                    return true;
+                }
+                next = current.$next;
+                current = next;
+            }
+            return false;
+        }
+        add(item) {
+            if (this.size === 0) {
+                this.flushed = this.promise.then(this.flushChanges);
+            }
+            if (item.$next) {
+                return this.flushed;
+            }
+            // this is just to give the tail node a non-null value as a cheap way to check whether
+            // something is queued already
+            item.$next = marker;
+            if (this.tail !== null) {
+                this.tail.$next = item;
+            }
+            else {
+                this.head = item;
+            }
+            this.tail = item;
+            this.size++;
+            return this.flushed;
+        }
+    }
+    /**
+     * Mostly just a marker enum to help with typings (specifically to reduce duplication)
+     */
+    var MutationKind;
+    (function (MutationKind) {
+        MutationKind[MutationKind["instance"] = 1] = "instance";
+        MutationKind[MutationKind["collection"] = 2] = "collection";
+    })(MutationKind || (MutationKind = {}));
+
     function bindingBehavior(nameOrSource) {
         return function (target) {
             return BindingBehaviorResource.define(nameOrSource, target);
@@ -640,36 +789,287 @@ var au = (function (exports) {
         container.register(Registration.singleton(BindingBehaviorResource.keyFrom(this.description.name), this));
     }
 
-    var BindingFlags;
-    (function (BindingFlags) {
-        BindingFlags[BindingFlags["none"] = 0] = "none";
-        BindingFlags[BindingFlags["mustEvaluate"] = 1073741824] = "mustEvaluate";
-        BindingFlags[BindingFlags["mutation"] = 3] = "mutation";
-        BindingFlags[BindingFlags["isCollectionMutation"] = 1] = "isCollectionMutation";
-        BindingFlags[BindingFlags["isInstanceMutation"] = 2] = "isInstanceMutation";
-        BindingFlags[BindingFlags["update"] = 28] = "update";
-        BindingFlags[BindingFlags["updateTargetObserver"] = 4] = "updateTargetObserver";
-        BindingFlags[BindingFlags["updateTargetInstance"] = 8] = "updateTargetInstance";
-        BindingFlags[BindingFlags["updateSourceExpression"] = 16] = "updateSourceExpression";
-        BindingFlags[BindingFlags["from"] = 8160] = "from";
-        BindingFlags[BindingFlags["fromFlushChanges"] = 32] = "fromFlushChanges";
-        BindingFlags[BindingFlags["fromStartTask"] = 64] = "fromStartTask";
-        BindingFlags[BindingFlags["fromStopTask"] = 128] = "fromStopTask";
-        BindingFlags[BindingFlags["fromBind"] = 256] = "fromBind";
-        BindingFlags[BindingFlags["fromUnbind"] = 512] = "fromUnbind";
-        BindingFlags[BindingFlags["fromDOMEvent"] = 1024] = "fromDOMEvent";
-        BindingFlags[BindingFlags["fromObserverSetter"] = 2048] = "fromObserverSetter";
-        BindingFlags[BindingFlags["fromBindableHandler"] = 4096] = "fromBindableHandler";
-    })(BindingFlags || (BindingFlags = {}));
-
+    const ELEMENT_NODE = 1;
+    const ATTRIBUTE_NODE = 2;
+    const TEXT_NODE = 3;
+    const COMMENT_NODE = 8;
+    const DOCUMENT_FRAGMENT_NODE = 11;
+    const INode = DI.createInterface().noDefault();
+    const IRenderLocation = DI.createInterface().noDefault();
+    // tslint:disable:no-any
+    const DOM = {
+        createDocumentFragment(markupOrNode) {
+            if (markupOrNode === undefined || markupOrNode === null) {
+                return document.createDocumentFragment();
+            }
+            if (markupOrNode.nodeType > 0) {
+                if (markupOrNode.content !== undefined) {
+                    return markupOrNode.content;
+                }
+                const fragment = document.createDocumentFragment();
+                fragment.appendChild(markupOrNode);
+                return fragment;
+            }
+            return DOM.createTemplate(markupOrNode).content;
+        },
+        createTemplate(markup) {
+            if (markup === undefined) {
+                return document.createElement('template');
+            }
+            const template = document.createElement('template');
+            template.innerHTML = markup;
+            return template;
+        },
+        addClass(node, className) {
+            node.classList.add(className);
+        },
+        addEventListener(eventName, subscriber, publisher, options) {
+            (publisher || document).addEventListener(eventName, subscriber, options);
+        },
+        appendChild(parent, child) {
+            parent.appendChild(child);
+        },
+        attachShadow(host, options) {
+            return host.attachShadow(options);
+        },
+        cloneNode(node, deep) {
+            return node.cloneNode(deep !== false); // use true unless the caller explicitly passes in false
+        },
+        convertToRenderLocation(node) {
+            if (node.parentNode === null) {
+                throw Reporter.error(52);
+            }
+            const location = document.createComment('au-loc');
+            node.parentNode.replaceChild(location, node);
+            return location;
+        },
+        createComment(text) {
+            return document.createComment(text);
+        },
+        createElement(name) {
+            return document.createElement(name);
+        },
+        createNodeObserver(target, callback, options) {
+            const observer = new MutationObserver(callback);
+            observer.observe(target, options);
+            return observer;
+        },
+        createTextNode(text) {
+            return document.createTextNode(text);
+        },
+        getAttribute(node, name) {
+            return node.getAttribute(name);
+        },
+        hasClass(node, className) {
+            return node.classList.contains(className);
+        },
+        insertBefore(nodeToInsert, referenceNode) {
+            referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
+        },
+        isAllWhitespace(node) {
+            if (node.auInterpolationTarget === true) {
+                return false;
+            }
+            const text = node.textContent;
+            const len = text.length;
+            let i = 0;
+            // for perf benchmark of this compared to the regex method: http://jsben.ch/p70q2 (also a general case against using regex)
+            while (i < len) {
+                // charCodes 0-0x20(32) can all be considered whitespace (non-whitespace chars in this range don't have a visual representation anyway)
+                if (text.charCodeAt(i) > 0x20) {
+                    return false;
+                }
+                i++;
+            }
+            return true;
+        },
+        isCommentNodeType(node) {
+            return node.nodeType === COMMENT_NODE;
+        },
+        isDocumentFragmentType(node) {
+            return node.nodeType === DOCUMENT_FRAGMENT_NODE;
+        },
+        isElementNodeType(node) {
+            return node.nodeType === ELEMENT_NODE;
+        },
+        isNodeInstance(potentialNode) {
+            return potentialNode.nodeType > 0;
+        },
+        isTextNodeType(node) {
+            return node.nodeType === TEXT_NODE;
+        },
+        migrateChildNodes(currentParent, newParent) {
+            while (currentParent.firstChild) {
+                DOM.appendChild(newParent, currentParent.firstChild);
+            }
+        },
+        registerElementResolver(container, resolver) {
+            container.registerResolver(INode, resolver);
+            container.registerResolver(Element, resolver);
+            container.registerResolver(HTMLElement, resolver);
+            container.registerResolver(SVGElement, resolver);
+        },
+        remove(node) {
+            if (node.remove) {
+                node.remove();
+            }
+            else {
+                node.parentNode.removeChild(node);
+            }
+        },
+        removeAttribute(node, name) {
+            node.removeAttribute(name);
+        },
+        removeClass(node, className) {
+            node.classList.remove(className);
+        },
+        removeEventListener(eventName, subscriber, publisher, options) {
+            (publisher || document).removeEventListener(eventName, subscriber, options);
+        },
+        replaceNode(newChild, oldChild) {
+            if (oldChild.parentNode) {
+                oldChild.parentNode.replaceChild(newChild, oldChild);
+            }
+        },
+        setAttribute(node, name, value) {
+            node.setAttribute(name, value);
+        },
+        treatAsNonWhitespace(node) {
+            // see isAllWhitespace above
+            node.auInterpolationTarget = true;
+        }
+    };
+    // This is an implementation of INodeSequence that represents "no DOM" to render.
+    // It's used in various places to avoid null and to encode
+    // the explicit idea of "no view".
+    const emptySequence = {
+        firstChild: null,
+        lastChild: null,
+        childNodes: PLATFORM.emptyArray,
+        findTargets() { return PLATFORM.emptyArray; },
+        insertBefore(refNode) { },
+        appendTo(parent) { },
+        remove() { }
+    };
+    const NodeSequence = {
+        empty: emptySequence
+    };
     /**
-     * Mostly just a marker enum to help with typings (specifically to reduce duplication)
+     * An specialized INodeSequence with optimizations for text (interpolation) bindings
+     * The contract of this INodeSequence is:
+     * - the previous element is an `au-marker` node
+     * - text is the actual text node
      */
-    var MutationKind;
-    (function (MutationKind) {
-        MutationKind[MutationKind["instance"] = 1] = "instance";
-        MutationKind[MutationKind["collection"] = 2] = "collection";
-    })(MutationKind || (MutationKind = {}));
+    class TextNodeSequence {
+        constructor(text) {
+            this.firstChild = text;
+            this.lastChild = text;
+            this.childNodes = [text];
+            this.targets = [new AuMarker(text)];
+        }
+        findTargets() {
+            return this.targets;
+        }
+        insertBefore(refNode) {
+            refNode.parentNode.insertBefore(this.firstChild, refNode);
+        }
+        appendTo(parent) {
+            parent.appendChild(this.firstChild);
+        }
+        remove() {
+            this.firstChild.remove();
+        }
+    }
+    // tslint:enable:no-any
+    // This is the most common form of INodeSequence.
+    // Every custom element or template controller whose node sequence is based on an HTML template
+    // has an instance of this under the hood. Anyone who wants to create a node sequence from
+    // a string of markup would also receive an instance of this.
+    // CompiledTemplates create instances of FragmentNodeSequence.
+    /*@internal*/
+    class FragmentNodeSequence {
+        constructor(fragment) {
+            this.fragment = fragment;
+            this.firstChild = fragment.firstChild;
+            this.lastChild = fragment.lastChild;
+            this.childNodes = PLATFORM.toArray(fragment.childNodes);
+        }
+        findTargets() {
+            // tslint:disable-next-line:no-any
+            return this.fragment.querySelectorAll('.au');
+        }
+        insertBefore(refNode) {
+            // tslint:disable-next-line:no-any
+            refNode.parentNode.insertBefore(this.fragment, refNode);
+        }
+        appendTo(parent) {
+            // tslint:disable-next-line:no-any
+            parent.appendChild(this.fragment);
+        }
+        remove() {
+            const fragment = this.fragment;
+            let current = this.firstChild;
+            if (current.parentNode !== fragment) {
+                const end = this.lastChild;
+                let next;
+                while (current !== null) {
+                    next = current.nextSibling;
+                    // tslint:disable-next-line:no-any
+                    fragment.appendChild(current);
+                    if (current === end) {
+                        break;
+                    }
+                    current = next;
+                }
+            }
+        }
+    }
+    class NodeSequenceFactory {
+        constructor(fragment) {
+            const childNodes = fragment.childNodes;
+            if (childNodes.length === 2) {
+                const target = childNodes[0];
+                if (target.nodeName === 'AU-MARKER') {
+                    const text = childNodes[1];
+                    if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
+                        this.deepClone = false;
+                        this.node = text;
+                        this.Type = TextNodeSequence;
+                        return;
+                    }
+                }
+            }
+            this.deepClone = true;
+            this.node = fragment;
+            this.Type = FragmentNodeSequence;
+        }
+        static createFor(markupOrNode) {
+            const fragment = DOM.createDocumentFragment(markupOrNode);
+            return new NodeSequenceFactory(fragment);
+        }
+        createNodeSequence() {
+            return new this.Type(this.node.cloneNode(this.deepClone));
+        }
+    }
+    /*@internal*/
+    class AuMarker {
+        constructor(next) {
+            this.textContent = '';
+            this.nextSibling = next;
+        }
+        get parentNode() {
+            return this.nextSibling.parentNode;
+        }
+        remove() { }
+    }
+    (proto => {
+        proto.previousSibling = null;
+        proto.firstChild = null;
+        proto.lastChild = null;
+        proto.childNodes = PLATFORM.emptyArray;
+        proto.nodeName = 'AU-MARKER';
+        proto.nodeType = ELEMENT_NODE;
+    })(AuMarker.prototype);
 
     function subscriberCollection(mutationKind) {
         return function (target) {
@@ -1014,847 +1414,6 @@ var au = (function (exports) {
         };
     }
 
-    function flushChanges$1() {
-        this.callBatchedSubscribers(this.indexMap);
-        this.resetIndexMap();
-    }
-    function dispose$1() {
-        this.collection.$observer = undefined;
-        this.collection = null;
-        this.indexMap = null;
-    }
-    function resetIndexMapIndexed() {
-        const len = this.collection.length;
-        const indexMap = (this.indexMap = Array(len));
-        let i = 0;
-        while (i < len) {
-            indexMap[i] = i++;
-        }
-        indexMap.deletedItems = [];
-    }
-    function resetIndexMapKeyed() {
-        const len = this.collection.size;
-        const indexMap = (this.indexMap = Array(len));
-        let i = 0;
-        while (i < len) {
-            indexMap[i] = i++;
-        }
-        indexMap.deletedItems = [];
-    }
-    function getLengthObserver() {
-        return this.lengthObserver || (this.lengthObserver = new CollectionLengthObserver(this, this.lengthPropertyName));
-    }
-    function collectionObserver(kind) {
-        return function (target) {
-            subscriberCollection(MutationKind.collection)(target);
-            batchedSubscriberCollection()(target);
-            const proto = target.prototype;
-            proto.collection = null;
-            proto.indexMap = null;
-            proto.hasChanges = false;
-            proto.lengthPropertyName = kind & 8 /* indexed */ ? 'length' : 'size';
-            proto.collectionKind = kind;
-            proto.resetIndexMap = kind & 8 /* indexed */ ? resetIndexMapIndexed : resetIndexMapKeyed;
-            proto.flushChanges = flushChanges$1;
-            proto.dispose = dispose$1;
-            proto.getLengthObserver = getLengthObserver;
-            proto.subscribe = proto.subscribe || proto.addSubscriber;
-            proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;
-            proto.subscribeBatched = proto.subscribeBatched || proto.addBatchedSubscriber;
-            proto.unsubscribeBatched = proto.unsubscribeBatched || proto.removeBatchedSubscriber;
-        };
-    }
-    let CollectionLengthObserver = class CollectionLengthObserver {
-        constructor(obj, propertyKey) {
-            this.obj = obj;
-            this.propertyKey = propertyKey;
-            this.currentValue = obj[propertyKey];
-        }
-        getValue() {
-            return this.obj[this.propertyKey];
-        }
-        setValueCore(newValue) {
-            this.obj[this.propertyKey] = newValue;
-        }
-        subscribe(subscriber) {
-            this.addSubscriber(subscriber);
-        }
-        unsubscribe(subscriber) {
-            this.removeSubscriber(subscriber);
-        }
-    };
-    CollectionLengthObserver = __decorate([
-        targetObserver()
-    ], CollectionLengthObserver);
-
-    const proto = Array.prototype;
-    const nativePush = proto.push; // TODO: probably want to make these internal again
-    const nativeUnshift = proto.unshift;
-    const nativePop = proto.pop;
-    const nativeShift = proto.shift;
-    const nativeSplice = proto.splice;
-    const nativeReverse = proto.reverse;
-    const nativeSort = proto.sort;
-    // https://tc39.github.io/ecma262/#sec-array.prototype.push
-    function observePush() {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativePush.apply(this, arguments);
-        }
-        const len = this.length;
-        const argCount = arguments.length;
-        if (argCount === 0) {
-            return len;
-        }
-        this.length = o.indexMap.length = len + argCount;
-        let i = len;
-        while (i < this.length) {
-            this[i] = arguments[i - len];
-            o.indexMap[i] = -2;
-            i++;
-        }
-        o.callSubscribers('push', arguments, BindingFlags.isCollectionMutation);
-        return this.length;
-    }
-    // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-    function observeUnshift() {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativeUnshift.apply(this, arguments);
-        }
-        const argCount = arguments.length;
-        const inserts = new Array(argCount);
-        let i = 0;
-        while (i < argCount) {
-            inserts[i++] = -2;
-        }
-        nativeUnshift.apply(o.indexMap, inserts);
-        const len = nativeUnshift.apply(this, arguments);
-        o.callSubscribers('unshift', arguments, BindingFlags.isCollectionMutation);
-        return len;
-    }
-    // https://tc39.github.io/ecma262/#sec-array.prototype.pop
-    function observePop() {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativePop.call(this);
-        }
-        const indexMap = o.indexMap;
-        const element = nativePop.call(this);
-        // only mark indices as deleted if they actually existed in the original array
-        const index = indexMap.length - 1;
-        if (indexMap[index] > -1) {
-            nativePush.call(indexMap.deletedItems, element);
-        }
-        nativePop.call(indexMap);
-        o.callSubscribers('pop', arguments, BindingFlags.isCollectionMutation);
-        return element;
-    }
-    // https://tc39.github.io/ecma262/#sec-array.prototype.shift
-    function observeShift() {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativeShift.call(this);
-        }
-        const indexMap = o.indexMap;
-        const element = nativeShift.call(this);
-        // only mark indices as deleted if they actually existed in the original array
-        if (indexMap[0] > -1) {
-            nativePush.call(indexMap.deletedItems, element);
-        }
-        nativeShift.call(indexMap);
-        o.callSubscribers('shift', arguments, BindingFlags.isCollectionMutation);
-        return element;
-    }
-    // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-    function observeSplice(start, deleteCount) {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativeSplice.apply(this, arguments);
-        }
-        const indexMap = o.indexMap;
-        if (deleteCount > 0) {
-            let i = start || 0;
-            const to = i + deleteCount;
-            while (i < to) {
-                if (indexMap[i] > -1) {
-                    nativePush.call(indexMap.deletedItems, this[i]);
-                }
-                i++;
-            }
-        }
-        const argCount = arguments.length;
-        if (argCount > 2) {
-            const itemCount = argCount - 2;
-            const inserts = new Array(itemCount);
-            let i = 0;
-            while (i < itemCount) {
-                inserts[i++] = -2;
-            }
-            nativeSplice.call(indexMap, start, deleteCount, ...inserts);
-        }
-        else if (argCount === 2) {
-            nativeSplice.call(indexMap, start, deleteCount);
-        }
-        const deleted = nativeSplice.apply(this, arguments);
-        o.callSubscribers('splice', arguments, BindingFlags.isCollectionMutation);
-        return deleted;
-    }
-    // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
-    function observeReverse() {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativeReverse.call(this);
-        }
-        const len = this.length;
-        const middle = (len / 2) | 0;
-        let lower = 0;
-        while (lower !== middle) {
-            const upper = len - lower - 1;
-            const lowerValue = this[lower];
-            const lowerIndex = o.indexMap[lower];
-            const upperValue = this[upper];
-            const upperIndex = o.indexMap[upper];
-            this[lower] = upperValue;
-            o.indexMap[lower] = upperIndex;
-            this[upper] = lowerValue;
-            o.indexMap[upper] = lowerIndex;
-            lower++;
-        }
-        o.callSubscribers('reverse', arguments, BindingFlags.isCollectionMutation);
-        return this;
-    }
-    // https://tc39.github.io/ecma262/#sec-array.prototype.sort
-    // https://github.com/v8/v8/blob/master/src/js/array.js
-    function observeSort(compareFn) {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativeSort.call(this, compareFn);
-        }
-        const len = this.length;
-        if (len < 2) {
-            return this;
-        }
-        quickSort(this, o.indexMap, 0, len, preSortCompare);
-        let i = 0;
-        while (i < len) {
-            if (this[i] === undefined) {
-                break;
-            }
-            i++;
-        }
-        if (compareFn === undefined || typeof compareFn !== 'function' /*spec says throw a TypeError, should we do that too?*/) {
-            compareFn = sortCompare;
-        }
-        quickSort(this, o.indexMap, 0, i, compareFn);
-        o.callSubscribers('sort', arguments, BindingFlags.isCollectionMutation);
-        return this;
-    }
-    // https://tc39.github.io/ecma262/#sec-sortcompare
-    function sortCompare(x, y) {
-        if (x === y) {
-            return 0;
-        }
-        x = x === null ? 'null' : x.toString();
-        y = y === null ? 'null' : y.toString();
-        return x < y ? -1 : 1;
-    }
-    function preSortCompare(x, y) {
-        if (x === undefined) {
-            if (y === undefined) {
-                return 0;
-            }
-            else {
-                return 1;
-            }
-        }
-        if (y === undefined) {
-            return -1;
-        }
-        return 0;
-    }
-    function insertionSort(arr, indexMap, from, to, compareFn) {
-        let velement, ielement, vtmp, itmp, order;
-        let i, j;
-        for (i = from + 1; i < to; i++) {
-            velement = arr[i];
-            ielement = indexMap[i];
-            for (j = i - 1; j >= from; j--) {
-                vtmp = arr[j];
-                itmp = indexMap[j];
-                order = compareFn(vtmp, velement);
-                if (order > 0) {
-                    arr[j + 1] = vtmp;
-                    indexMap[j + 1] = itmp;
-                }
-                else {
-                    break;
-                }
-            }
-            arr[j + 1] = velement;
-            indexMap[j + 1] = ielement;
-        }
-    }
-    function quickSort(arr, indexMap, from, to, compareFn) {
-        let thirdIndex = 0, i = 0;
-        let v0, v1, v2;
-        let i0, i1, i2;
-        let c01, c02, c12;
-        let vtmp, itmp;
-        let vpivot, ipivot, lowEnd, highStart;
-        let velement, ielement, order, vtopElement;
-        // tslint:disable-next-line:no-constant-condition
-        while (true) {
-            if (to - from <= 10) {
-                insertionSort(arr, indexMap, from, to, compareFn);
-                return;
-            }
-            thirdIndex = from + ((to - from) >> 1);
-            v0 = arr[from];
-            i0 = indexMap[from];
-            v1 = arr[to - 1];
-            i1 = indexMap[to - 1];
-            v2 = arr[thirdIndex];
-            i2 = indexMap[thirdIndex];
-            c01 = compareFn(v0, v1);
-            if (c01 > 0) {
-                vtmp = v0;
-                itmp = i0;
-                v0 = v1;
-                i0 = i1;
-                v1 = vtmp;
-                i1 = itmp;
-            }
-            c02 = compareFn(v0, v2);
-            if (c02 >= 0) {
-                vtmp = v0;
-                itmp = i0;
-                v0 = v2;
-                i0 = i2;
-                v2 = v1;
-                i2 = i1;
-                v1 = vtmp;
-                i1 = itmp;
-            }
-            else {
-                c12 = compareFn(v1, v2);
-                if (c12 > 0) {
-                    vtmp = v1;
-                    itmp = i1;
-                    v1 = v2;
-                    i1 = i2;
-                    v2 = vtmp;
-                    i2 = itmp;
-                }
-            }
-            arr[from] = v0;
-            indexMap[from] = i0;
-            arr[to - 1] = v2;
-            indexMap[to - 1] = i2;
-            vpivot = v1;
-            ipivot = i1;
-            lowEnd = from + 1;
-            highStart = to - 1;
-            arr[thirdIndex] = arr[lowEnd];
-            indexMap[thirdIndex] = indexMap[lowEnd];
-            arr[lowEnd] = vpivot;
-            indexMap[lowEnd] = ipivot;
-            partition: for (i = lowEnd + 1; i < highStart; i++) {
-                velement = arr[i];
-                ielement = indexMap[i];
-                order = compareFn(velement, vpivot);
-                if (order < 0) {
-                    arr[i] = arr[lowEnd];
-                    indexMap[i] = indexMap[lowEnd];
-                    arr[lowEnd] = velement;
-                    indexMap[lowEnd] = ielement;
-                    lowEnd++;
-                }
-                else if (order > 0) {
-                    do {
-                        highStart--;
-                        // tslint:disable-next-line:triple-equals
-                        if (highStart == i) {
-                            break partition;
-                        }
-                        vtopElement = arr[highStart];
-                        order = compareFn(vtopElement, vpivot);
-                    } while (order > 0);
-                    arr[i] = arr[highStart];
-                    indexMap[i] = indexMap[highStart];
-                    arr[highStart] = velement;
-                    indexMap[highStart] = ielement;
-                    if (order < 0) {
-                        velement = arr[i];
-                        ielement = indexMap[i];
-                        arr[i] = arr[lowEnd];
-                        indexMap[i] = indexMap[lowEnd];
-                        arr[lowEnd] = velement;
-                        indexMap[lowEnd] = ielement;
-                        lowEnd++;
-                    }
-                }
-            }
-            if (to - highStart < lowEnd - from) {
-                quickSort(arr, indexMap, highStart, to, compareFn);
-                to = lowEnd;
-            }
-            else {
-                quickSort(arr, indexMap, from, lowEnd, compareFn);
-                from = highStart;
-            }
-        }
-    }
-    for (const observe of [observePush, observeUnshift, observePop, observeShift, observeSplice, observeReverse, observeSort]) {
-        Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
-    }
-    function enableArrayObservation() {
-        if (proto.push['observing'] !== true)
-            proto.push = observePush;
-        if (proto.unshift['observing'] !== true)
-            proto.unshift = observeUnshift;
-        if (proto.pop['observing'] !== true)
-            proto.pop = observePop;
-        if (proto.shift['observing'] !== true)
-            proto.shift = observeShift;
-        if (proto.splice['observing'] !== true)
-            proto.splice = observeSplice;
-        if (proto.reverse['observing'] !== true)
-            proto.reverse = observeReverse;
-        if (proto.sort['observing'] !== true)
-            proto.sort = observeSort;
-    }
-    enableArrayObservation();
-    function disableArrayObservation() {
-        if (proto.push['observing'] === true)
-            proto.push = nativePush;
-        if (proto.unshift['observing'] === true)
-            proto.unshift = nativeUnshift;
-        if (proto.pop['observing'] === true)
-            proto.pop = nativePop;
-        if (proto.shift['observing'] === true)
-            proto.shift = nativeShift;
-        if (proto.splice['observing'] === true)
-            proto.splice = nativeSplice;
-        if (proto.reverse['observing'] === true)
-            proto.reverse = nativeReverse;
-        if (proto.sort['observing'] === true)
-            proto.sort = nativeSort;
-    }
-    let ArrayObserver = class ArrayObserver {
-        constructor(changeSet, array) {
-            this.changeSet = changeSet;
-            array.$observer = this;
-            this.collection = array;
-            this.resetIndexMap();
-        }
-    };
-    ArrayObserver = __decorate([
-        collectionObserver(9 /* array */)
-    ], ArrayObserver);
-    function getArrayObserver(changeSet, array) {
-        return array.$observer || new ArrayObserver(changeSet, array);
-    }
-
-    const proto$1 = Set.prototype;
-    const nativeAdd = proto$1.add; // TODO: probably want to make these internal again
-    const nativeClear = proto$1.clear;
-    const nativeDelete = proto$1.delete;
-    // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
-    // fortunately, add/delete/clear are easy to reconstruct for the indexMap
-    // https://tc39.github.io/ecma262/#sec-set.prototype.add
-    function observeAdd(value) {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativeAdd.call(this, value);
-        }
-        const oldSize = this.size;
-        nativeAdd.call(this, value);
-        const newSize = this.size;
-        if (newSize === oldSize) {
-            return this;
-        }
-        o.indexMap[oldSize] = -2;
-        o.callSubscribers('add', arguments, BindingFlags.isCollectionMutation);
-        return this;
-    }
-    // https://tc39.github.io/ecma262/#sec-set.prototype.clear
-    function observeClear() {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativeClear.call(this);
-        }
-        const size = this.size;
-        if (size > 0) {
-            const indexMap = o.indexMap;
-            let i = 0;
-            for (const entry of this.keys()) {
-                if (indexMap[i] > -1) {
-                    nativePush.call(indexMap.deletedItems, entry);
-                }
-                i++;
-            }
-            nativeClear.call(this);
-            indexMap.length = 0;
-            o.callSubscribers('clear', arguments, BindingFlags.isCollectionMutation);
-        }
-        return undefined;
-    }
-    // https://tc39.github.io/ecma262/#sec-set.prototype.delete
-    function observeDelete(value) {
-        const o = this.$observer;
-        if (o === undefined) {
-            return nativeDelete.call(this, value);
-        }
-        const size = this.size;
-        if (size === 0) {
-            return false;
-        }
-        let i = 0;
-        const indexMap = o.indexMap;
-        for (const entry of this.keys()) {
-            if (entry === value) {
-                if (indexMap[i] > -1) {
-                    nativePush.call(indexMap.deletedItems, entry);
-                }
-                nativeSplice.call(indexMap, i, 1);
-                return nativeDelete.call(this, value);
-            }
-            i++;
-        }
-        o.callSubscribers('delete', arguments, BindingFlags.isCollectionMutation);
-        return false;
-    }
-    for (const observe of [observeAdd, observeClear, observeDelete]) {
-        Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
-    }
-    function enableSetObservation() {
-        if (proto$1.add['observing'] !== true)
-            proto$1.add = observeAdd;
-        if (proto$1.clear['observing'] !== true)
-            proto$1.clear = observeClear;
-        if (proto$1.delete['observing'] !== true)
-            proto$1.delete = observeDelete;
-    }
-    enableSetObservation();
-    function disableSetObservation() {
-        if (proto$1.add['observing'] === true)
-            proto$1.add = nativeAdd;
-        if (proto$1.clear['observing'] === true)
-            proto$1.clear = nativeClear;
-        if (proto$1.delete['observing'] === true)
-            proto$1.delete = nativeDelete;
-    }
-    let SetObserver = class SetObserver {
-        constructor(changeSet, set) {
-            this.changeSet = changeSet;
-            set.$observer = this;
-            this.collection = set;
-            this.resetIndexMap();
-        }
-    };
-    SetObserver = __decorate([
-        collectionObserver(7 /* set */)
-    ], SetObserver);
-    function getSetObserver(changeSet, set) {
-        return set.$observer || new SetObserver(changeSet, set);
-    }
-
-    const IChangeSet = DI.createInterface()
-        .withDefault(x => x.singleton(ChangeSet));
-    /*@internal*/
-    class ChangeSet extends Set {
-        constructor() {
-            super(...arguments);
-            this.flushing = false;
-            /*@internal*/
-            this.promise = Promise.resolve();
-            /**
-             * This particular implementation is recursive; any changes added as a side-effect of flushing changes, will be flushed during the same tick.
-             */
-            this.flushChanges = () => {
-                this.flushing = true;
-                while (this.size > 0) {
-                    const items = this.toArray();
-                    this.clear();
-                    const len = items.length;
-                    let i = 0;
-                    while (i < len) {
-                        items[i++].flushChanges();
-                    }
-                }
-                this.flushing = false;
-            };
-        }
-        toArray() {
-            const items = new Array(this.size);
-            let i = 0;
-            for (const item of this.keys()) {
-                items[i++] = item;
-            }
-            return items;
-        }
-        add(changeTracker) {
-            if (this.size === 0) {
-                this.flushed = this.promise.then(this.flushChanges);
-            }
-            nativeAdd.call(this, changeTracker);
-            return this.flushed;
-        }
-    }
-
-    /*@internal*/
-    class AuMarker {
-        constructor(next) {
-            this.previousSibling = null;
-            this.firstChild = null;
-            this.lastChild = null;
-            this.childNodes = PLATFORM.emptyArray;
-            this.nextSibling = next;
-        }
-        get parentNode() {
-            return this.nextSibling.parentNode;
-        }
-        // tslint:disable-next-line:no-empty
-        remove() { }
-    }
-    const INode = DI.createInterface().noDefault();
-    const IRenderLocation = DI.createInterface().noDefault();
-    const DOM = {
-        createNodeSequenceFactory(markupOrNode) {
-            let fragment;
-            if (DOM.isNodeInstance(markupOrNode)) {
-                if (markupOrNode.content !== undefined) {
-                    fragment = markupOrNode.content;
-                }
-                else {
-                    fragment = DOM.createFragment();
-                    DOM.appendChild(fragment, markupOrNode);
-                }
-            }
-            else {
-                const template = DOM.createTemplate();
-                template.innerHTML = markupOrNode;
-                fragment = template.content;
-            }
-            const childNodes = fragment.childNodes;
-            if (childNodes.length === 2) {
-                const target = childNodes[0];
-                if (target.nodeName === 'AU-MARKER') {
-                    const text = childNodes[1];
-                    if (text.nodeType === 3 && text.textContent === ' ') {
-                        // tslint:disable-next-line:typedef
-                        return (function () {
-                            return new TextNodeSequence(text.cloneNode(false));
-                        }).bind(undefined);
-                    }
-                }
-            }
-            // tslint:disable-next-line:typedef
-            return (function () {
-                return new FragmentNodeSequence(fragment.cloneNode(true));
-            }).bind(undefined);
-        },
-        createElement(name) {
-            return document.createElement(name);
-        },
-        createText(text) {
-            return document.createTextNode(text);
-        },
-        createNodeObserver(target, callback, options) {
-            const observer = new MutationObserver(callback);
-            observer.observe(target, options);
-            return observer;
-        },
-        attachShadow(host, options) {
-            return host.attachShadow(options);
-        },
-        /*@internal*/
-        createTemplate() {
-            return document.createElement('template');
-        },
-        /*@internal*/
-        createFragment() {
-            return document.createDocumentFragment();
-        },
-        cloneNode(node, deep) {
-            return node.cloneNode(deep !== false); // use true unless the caller explicitly passes in false
-        },
-        migrateChildNodes(currentParent, newParent) {
-            const append = DOM.appendChild;
-            while (currentParent.firstChild) {
-                append(newParent, currentParent.firstChild);
-            }
-        },
-        isNodeInstance(potentialNode) {
-            return potentialNode instanceof Node;
-        },
-        isElementNodeType(node) {
-            return node.nodeType === 1;
-        },
-        isTextNodeType(node) {
-            return node.nodeType === 3;
-        },
-        remove(node) {
-            if (node.remove) {
-                node.remove();
-            }
-            else {
-                node.parentNode.removeChild(node);
-            }
-        },
-        replaceNode(newChild, oldChild) {
-            if (oldChild.parentNode) {
-                oldChild.parentNode.replaceChild(newChild, oldChild);
-            }
-        },
-        appendChild(parent, child) {
-            parent.appendChild(child);
-        },
-        insertBefore(nodeToInsert, referenceNode) {
-            referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
-        },
-        getAttribute(node, name) {
-            return node.getAttribute(name);
-        },
-        setAttribute(node, name, value) {
-            node.setAttribute(name, value);
-        },
-        removeAttribute(node, name) {
-            node.removeAttribute(name);
-        },
-        hasClass(node, className) {
-            return node.classList.contains(className);
-        },
-        addClass(node, className) {
-            node.classList.add(className);
-        },
-        removeClass(node, className) {
-            node.classList.remove(className);
-        },
-        addEventListener(eventName, subscriber, publisher, options) {
-            (publisher || document).addEventListener(eventName, subscriber, options);
-        },
-        removeEventListener(eventName, subscriber, publisher, options) {
-            (publisher || document).removeEventListener(eventName, subscriber, options);
-        },
-        isAllWhitespace(node) {
-            if (node.auInterpolationTarget === true) {
-                return false;
-            }
-            const text = node.textContent;
-            const len = text.length;
-            let i = 0;
-            // for perf benchmark of this compared to the regex method: http://jsben.ch/p70q2 (also a general case against using regex)
-            while (i < len) {
-                // charCodes 0-0x20(32) can all be considered whitespace (non-whitespace chars in this range don't have a visual representation anyway)
-                if (text.charCodeAt(i) > 0x20) {
-                    return false;
-                }
-                i++;
-            }
-            return true;
-        },
-        treatAsNonWhitespace(node) {
-            // see isAllWhitespace above
-            node.auInterpolationTarget = true;
-        },
-        convertToRenderLocation(node) {
-            const location = document.createComment('au-loc');
-            // let this throw if node does not have a parent
-            node.parentNode.replaceChild(location, node);
-            return location;
-        },
-        registerElementResolver(container, resolver) {
-            container.registerResolver(INode, resolver);
-            container.registerResolver(Element, resolver);
-            container.registerResolver(HTMLElement, resolver);
-            container.registerResolver(SVGElement, resolver);
-        }
-    };
-    // This is an implementation of INodeSequence that represents "no DOM" to render.
-    // It's used in various places to avoid null and to encode
-    // the explicit idea of "no view".
-    const emptySequence = {
-        firstChild: null,
-        lastChild: null,
-        childNodes: PLATFORM.emptyArray,
-        findTargets() { return PLATFORM.emptyArray; },
-        insertBefore(refNode) { },
-        appendTo(parent) { },
-        remove() { }
-    };
-    const NodeSequence = {
-        empty: emptySequence
-    };
-    /**
-     * An specialized INodeSequence with optimizations for text (interpolation) bindings
-     * The contract of this INodeSequence is:
-     * - the previous element is an `au-marker` node
-     * - text is the actual text node
-     */
-    class TextNodeSequence {
-        constructor(text) {
-            this.firstChild = text;
-            this.lastChild = text;
-            this.childNodes = [text];
-            this.targets = [new AuMarker(text)];
-        }
-        findTargets() {
-            return this.targets;
-        }
-        insertBefore(refNode) {
-            refNode.parentNode.insertBefore(this.firstChild, refNode);
-        }
-        appendTo(parent) {
-            parent.appendChild(this.firstChild);
-        }
-        remove() {
-            this.firstChild.remove();
-        }
-    }
-    // This is the most common form of INodeSequence.
-    // Every custom element or template controller whose node sequence is based on an HTML template
-    // has an instance of this under the hood. Anyone who wants to create a node sequence from
-    // a string of markup would also receive an instance of this.
-    // CompiledTemplates create instances of FragmentNodeSequence.
-    /*@internal*/
-    class FragmentNodeSequence {
-        constructor(fragment) {
-            this.fragment = fragment;
-            this.firstChild = fragment.firstChild;
-            this.lastChild = fragment.lastChild;
-            this.childNodes = PLATFORM.toArray(fragment.childNodes);
-        }
-        findTargets() {
-            return this.fragment.querySelectorAll('.au');
-        }
-        insertBefore(refNode) {
-            refNode.parentNode.insertBefore(this.fragment, refNode);
-        }
-        appendTo(parent) {
-            parent.appendChild(this.fragment);
-        }
-        remove() {
-            const fragment = this.fragment;
-            let current = this.firstChild;
-            if (current.parentNode !== fragment) {
-                // this bind is a small perf tweak to minimize member accessors
-                const append = fragment.appendChild.bind(fragment);
-                const end = this.lastChild;
-                let next;
-                while (current) {
-                    next = current.nextSibling;
-                    append(current);
-                    if (current === end) {
-                        break;
-                    }
-                    current = next;
-                }
-            }
-        }
-    }
-
     // tslint:disable-next-line:no-http-string
     const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
     let XLinkAttributeAccessor = class XLinkAttributeAccessor {
@@ -1979,8 +1538,6 @@ var au = (function (exports) {
             return this.currentValue;
         }
         setValueCore(newValue) {
-            const addClass = DOM.addClass;
-            const removeClass = DOM.removeClass;
             const nameIndex = this.nameIndex || {};
             let version = this.version;
             let names;
@@ -1995,7 +1552,7 @@ var au = (function (exports) {
                         continue;
                     }
                     nameIndex[name] = version;
-                    addClass(node, name);
+                    DOM.addClass(node, name);
                 }
             }
             // Update state variables.
@@ -2015,7 +1572,7 @@ var au = (function (exports) {
                 // will be removed if they're not present in the next update.
                 // Better would be do have some configurability for this behavior, allowing the user to
                 // decide whether initial classes always need to be kept, always removed, or something in between
-                removeClass(this.obj, name);
+                DOM.removeClass(this.obj, name);
             }
         }
     };
@@ -2152,7 +1709,7 @@ var au = (function (exports) {
         }
         this.addSubscriber(subscriber);
     }
-    function dispose$2() {
+    function dispose$1() {
         delete this.obj[this.propertyKey];
         this.obj = null;
         this.propertyKey = null;
@@ -2173,7 +1730,7 @@ var au = (function (exports) {
             proto.currentValue = Symbol();
             proto.subscribe = proto.subscribe || subscribe;
             proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;
-            proto.dispose = proto.dispose || dispose$2;
+            proto.dispose = proto.dispose || dispose$1;
         };
     }
 
@@ -3503,7 +3060,9 @@ var au = (function (exports) {
             this.mode = mode;
             this.observerLocator = observerLocator;
             this.locator = locator;
-            this.$isBound = false;
+            this.$nextBind = null;
+            this.$prevBind = null;
+            this.$state = 0 /* none */;
             this.$scope = null;
         }
         updateTarget(value, flags) {
@@ -3513,7 +3072,7 @@ var au = (function (exports) {
             this.sourceExpression.assign(flags | BindingFlags.updateSourceExpression, this.$scope, this.locator, value);
         }
         handleChange(newValue, previousValue, flags) {
-            if (!this.$isBound) {
+            if (!(this.$state & 2 /* isBound */)) {
                 return;
             }
             const sourceExpression = this.sourceExpression;
@@ -3546,13 +3105,14 @@ var au = (function (exports) {
             throw Reporter.error(15, BindingFlags[flags]);
         }
         $bind(flags, scope) {
-            if (this.$isBound) {
+            if (this.$state & 2 /* isBound */) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags);
+                this.$unbind(flags | BindingFlags.fromBind);
             }
-            this.$isBound = true;
+            // add isBinding flag
+            this.$state |= 1 /* isBinding */;
             this.$scope = scope;
             let sourceExpression = this.sourceExpression;
             if (hasBind(sourceExpression)) {
@@ -3582,12 +3142,16 @@ var au = (function (exports) {
             if (mode & fromView$1) {
                 targetObserver.subscribe(this);
             }
+            // add isBound flag and remove isBinding flag
+            this.$state |= 2 /* isBound */;
+            this.$state &= ~1 /* isBinding */;
         }
         $unbind(flags) {
-            if (!this.$isBound) {
+            if (!(this.$state & 2 /* isBound */)) {
                 return;
             }
-            this.$isBound = false;
+            // add isUnbinding flag
+            this.$state |= 32 /* isUnbinding */;
             const sourceExpression = this.sourceExpression;
             if (hasUnbind(sourceExpression)) {
                 sourceExpression.unbind(flags, this.$scope, this);
@@ -3601,6 +3165,8 @@ var au = (function (exports) {
                 targetObserver.unsubscribe(this);
             }
             this.unobserve(true);
+            // remove isBound and isUnbinding flags
+            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
         }
     };
     Binding = __decorate([
@@ -4072,6 +3638,449 @@ var au = (function (exports) {
             }
             return new TriggerSubscription(target, targetEvent, callbackOrListener);
         }
+    }
+
+    function flushChanges$1() {
+        this.callBatchedSubscribers(this.indexMap);
+        this.resetIndexMap();
+    }
+    function dispose$2() {
+        this.collection.$observer = undefined;
+        this.collection = null;
+        this.indexMap = null;
+    }
+    function resetIndexMapIndexed() {
+        const len = this.collection.length;
+        const indexMap = (this.indexMap = Array(len));
+        let i = 0;
+        while (i < len) {
+            indexMap[i] = i++;
+        }
+        indexMap.deletedItems = [];
+    }
+    function resetIndexMapKeyed() {
+        const len = this.collection.size;
+        const indexMap = (this.indexMap = Array(len));
+        let i = 0;
+        while (i < len) {
+            indexMap[i] = i++;
+        }
+        indexMap.deletedItems = [];
+    }
+    function getLengthObserver() {
+        return this.lengthObserver || (this.lengthObserver = new CollectionLengthObserver(this, this.lengthPropertyName));
+    }
+    function collectionObserver(kind) {
+        return function (target) {
+            subscriberCollection(MutationKind.collection)(target);
+            batchedSubscriberCollection()(target);
+            const proto = target.prototype;
+            proto.collection = null;
+            proto.indexMap = null;
+            proto.hasChanges = false;
+            proto.lengthPropertyName = kind & 8 /* indexed */ ? 'length' : 'size';
+            proto.collectionKind = kind;
+            proto.resetIndexMap = kind & 8 /* indexed */ ? resetIndexMapIndexed : resetIndexMapKeyed;
+            proto.flushChanges = flushChanges$1;
+            proto.dispose = dispose$2;
+            proto.getLengthObserver = getLengthObserver;
+            proto.subscribe = proto.subscribe || proto.addSubscriber;
+            proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;
+            proto.subscribeBatched = proto.subscribeBatched || proto.addBatchedSubscriber;
+            proto.unsubscribeBatched = proto.unsubscribeBatched || proto.removeBatchedSubscriber;
+        };
+    }
+    let CollectionLengthObserver = class CollectionLengthObserver {
+        constructor(obj, propertyKey) {
+            this.obj = obj;
+            this.propertyKey = propertyKey;
+            this.currentValue = obj[propertyKey];
+        }
+        getValue() {
+            return this.obj[this.propertyKey];
+        }
+        setValueCore(newValue) {
+            this.obj[this.propertyKey] = newValue;
+        }
+        subscribe(subscriber) {
+            this.addSubscriber(subscriber);
+        }
+        unsubscribe(subscriber) {
+            this.removeSubscriber(subscriber);
+        }
+    };
+    CollectionLengthObserver = __decorate([
+        targetObserver()
+    ], CollectionLengthObserver);
+
+    // tslint:disable:no-reserved-keywords
+    const proto = Array.prototype;
+    const nativePush = proto.push; // TODO: probably want to make these internal again
+    const nativeUnshift = proto.unshift;
+    const nativePop = proto.pop;
+    const nativeShift = proto.shift;
+    const nativeSplice = proto.splice;
+    const nativeReverse = proto.reverse;
+    const nativeSort = proto.sort;
+    // https://tc39.github.io/ecma262/#sec-array.prototype.push
+    function observePush() {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativePush.apply(this, arguments);
+        }
+        const len = this.length;
+        const argCount = arguments.length;
+        if (argCount === 0) {
+            return len;
+        }
+        this.length = o.indexMap.length = len + argCount;
+        let i = len;
+        while (i < this.length) {
+            this[i] = arguments[i - len];
+            o.indexMap[i] = -2;
+            i++;
+        }
+        o.callSubscribers('push', arguments, BindingFlags.isCollectionMutation);
+        return this.length;
+    }
+    // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
+    function observeUnshift() {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativeUnshift.apply(this, arguments);
+        }
+        const argCount = arguments.length;
+        const inserts = new Array(argCount);
+        let i = 0;
+        while (i < argCount) {
+            inserts[i++] = -2;
+        }
+        nativeUnshift.apply(o.indexMap, inserts);
+        const len = nativeUnshift.apply(this, arguments);
+        o.callSubscribers('unshift', arguments, BindingFlags.isCollectionMutation);
+        return len;
+    }
+    // https://tc39.github.io/ecma262/#sec-array.prototype.pop
+    function observePop() {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativePop.call(this);
+        }
+        const indexMap = o.indexMap;
+        const element = nativePop.call(this);
+        // only mark indices as deleted if they actually existed in the original array
+        const index = indexMap.length - 1;
+        if (indexMap[index] > -1) {
+            nativePush.call(indexMap.deletedItems, element);
+        }
+        nativePop.call(indexMap);
+        o.callSubscribers('pop', arguments, BindingFlags.isCollectionMutation);
+        return element;
+    }
+    // https://tc39.github.io/ecma262/#sec-array.prototype.shift
+    function observeShift() {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativeShift.call(this);
+        }
+        const indexMap = o.indexMap;
+        const element = nativeShift.call(this);
+        // only mark indices as deleted if they actually existed in the original array
+        if (indexMap[0] > -1) {
+            nativePush.call(indexMap.deletedItems, element);
+        }
+        nativeShift.call(indexMap);
+        o.callSubscribers('shift', arguments, BindingFlags.isCollectionMutation);
+        return element;
+    }
+    // https://tc39.github.io/ecma262/#sec-array.prototype.splice
+    function observeSplice(start, deleteCount) {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativeSplice.apply(this, arguments);
+        }
+        const indexMap = o.indexMap;
+        if (deleteCount > 0) {
+            let i = start || 0;
+            const to = i + deleteCount;
+            while (i < to) {
+                if (indexMap[i] > -1) {
+                    nativePush.call(indexMap.deletedItems, this[i]);
+                }
+                i++;
+            }
+        }
+        const argCount = arguments.length;
+        if (argCount > 2) {
+            const itemCount = argCount - 2;
+            const inserts = new Array(itemCount);
+            let i = 0;
+            while (i < itemCount) {
+                inserts[i++] = -2;
+            }
+            nativeSplice.call(indexMap, start, deleteCount, ...inserts);
+        }
+        else if (argCount === 2) {
+            nativeSplice.call(indexMap, start, deleteCount);
+        }
+        const deleted = nativeSplice.apply(this, arguments);
+        o.callSubscribers('splice', arguments, BindingFlags.isCollectionMutation);
+        return deleted;
+    }
+    // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
+    function observeReverse() {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativeReverse.call(this);
+        }
+        const len = this.length;
+        const middle = (len / 2) | 0;
+        let lower = 0;
+        while (lower !== middle) {
+            const upper = len - lower - 1;
+            const lowerValue = this[lower];
+            const lowerIndex = o.indexMap[lower];
+            const upperValue = this[upper];
+            const upperIndex = o.indexMap[upper];
+            this[lower] = upperValue;
+            o.indexMap[lower] = upperIndex;
+            this[upper] = lowerValue;
+            o.indexMap[upper] = lowerIndex;
+            lower++;
+        }
+        o.callSubscribers('reverse', arguments, BindingFlags.isCollectionMutation);
+        return this;
+    }
+    // https://tc39.github.io/ecma262/#sec-array.prototype.sort
+    // https://github.com/v8/v8/blob/master/src/js/array.js
+    function observeSort(compareFn) {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativeSort.call(this, compareFn);
+        }
+        const len = this.length;
+        if (len < 2) {
+            return this;
+        }
+        quickSort(this, o.indexMap, 0, len, preSortCompare);
+        let i = 0;
+        while (i < len) {
+            if (this[i] === undefined) {
+                break;
+            }
+            i++;
+        }
+        if (compareFn === undefined || typeof compareFn !== 'function' /*spec says throw a TypeError, should we do that too?*/) {
+            compareFn = sortCompare;
+        }
+        quickSort(this, o.indexMap, 0, i, compareFn);
+        o.callSubscribers('sort', arguments, BindingFlags.isCollectionMutation);
+        return this;
+    }
+    // https://tc39.github.io/ecma262/#sec-sortcompare
+    function sortCompare(x, y) {
+        if (x === y) {
+            return 0;
+        }
+        x = x === null ? 'null' : x.toString();
+        y = y === null ? 'null' : y.toString();
+        return x < y ? -1 : 1;
+    }
+    function preSortCompare(x, y) {
+        if (x === undefined) {
+            if (y === undefined) {
+                return 0;
+            }
+            else {
+                return 1;
+            }
+        }
+        if (y === undefined) {
+            return -1;
+        }
+        return 0;
+    }
+    function insertionSort(arr, indexMap, from, to, compareFn) {
+        let velement, ielement, vtmp, itmp, order;
+        let i, j;
+        for (i = from + 1; i < to; i++) {
+            velement = arr[i];
+            ielement = indexMap[i];
+            for (j = i - 1; j >= from; j--) {
+                vtmp = arr[j];
+                itmp = indexMap[j];
+                order = compareFn(vtmp, velement);
+                if (order > 0) {
+                    arr[j + 1] = vtmp;
+                    indexMap[j + 1] = itmp;
+                }
+                else {
+                    break;
+                }
+            }
+            arr[j + 1] = velement;
+            indexMap[j + 1] = ielement;
+        }
+    }
+    function quickSort(arr, indexMap, from, to, compareFn) {
+        let thirdIndex = 0, i = 0;
+        let v0, v1, v2;
+        let i0, i1, i2;
+        let c01, c02, c12;
+        let vtmp, itmp;
+        let vpivot, ipivot, lowEnd, highStart;
+        let velement, ielement, order, vtopElement;
+        // tslint:disable-next-line:no-constant-condition
+        while (true) {
+            if (to - from <= 10) {
+                insertionSort(arr, indexMap, from, to, compareFn);
+                return;
+            }
+            thirdIndex = from + ((to - from) >> 1);
+            v0 = arr[from];
+            i0 = indexMap[from];
+            v1 = arr[to - 1];
+            i1 = indexMap[to - 1];
+            v2 = arr[thirdIndex];
+            i2 = indexMap[thirdIndex];
+            c01 = compareFn(v0, v1);
+            if (c01 > 0) {
+                vtmp = v0;
+                itmp = i0;
+                v0 = v1;
+                i0 = i1;
+                v1 = vtmp;
+                i1 = itmp;
+            }
+            c02 = compareFn(v0, v2);
+            if (c02 >= 0) {
+                vtmp = v0;
+                itmp = i0;
+                v0 = v2;
+                i0 = i2;
+                v2 = v1;
+                i2 = i1;
+                v1 = vtmp;
+                i1 = itmp;
+            }
+            else {
+                c12 = compareFn(v1, v2);
+                if (c12 > 0) {
+                    vtmp = v1;
+                    itmp = i1;
+                    v1 = v2;
+                    i1 = i2;
+                    v2 = vtmp;
+                    i2 = itmp;
+                }
+            }
+            arr[from] = v0;
+            indexMap[from] = i0;
+            arr[to - 1] = v2;
+            indexMap[to - 1] = i2;
+            vpivot = v1;
+            ipivot = i1;
+            lowEnd = from + 1;
+            highStart = to - 1;
+            arr[thirdIndex] = arr[lowEnd];
+            indexMap[thirdIndex] = indexMap[lowEnd];
+            arr[lowEnd] = vpivot;
+            indexMap[lowEnd] = ipivot;
+            partition: for (i = lowEnd + 1; i < highStart; i++) {
+                velement = arr[i];
+                ielement = indexMap[i];
+                order = compareFn(velement, vpivot);
+                if (order < 0) {
+                    arr[i] = arr[lowEnd];
+                    indexMap[i] = indexMap[lowEnd];
+                    arr[lowEnd] = velement;
+                    indexMap[lowEnd] = ielement;
+                    lowEnd++;
+                }
+                else if (order > 0) {
+                    do {
+                        highStart--;
+                        // tslint:disable-next-line:triple-equals
+                        if (highStart == i) {
+                            break partition;
+                        }
+                        vtopElement = arr[highStart];
+                        order = compareFn(vtopElement, vpivot);
+                    } while (order > 0);
+                    arr[i] = arr[highStart];
+                    indexMap[i] = indexMap[highStart];
+                    arr[highStart] = velement;
+                    indexMap[highStart] = ielement;
+                    if (order < 0) {
+                        velement = arr[i];
+                        ielement = indexMap[i];
+                        arr[i] = arr[lowEnd];
+                        indexMap[i] = indexMap[lowEnd];
+                        arr[lowEnd] = velement;
+                        indexMap[lowEnd] = ielement;
+                        lowEnd++;
+                    }
+                }
+            }
+            if (to - highStart < lowEnd - from) {
+                quickSort(arr, indexMap, highStart, to, compareFn);
+                to = lowEnd;
+            }
+            else {
+                quickSort(arr, indexMap, from, lowEnd, compareFn);
+                from = highStart;
+            }
+        }
+    }
+    for (const observe of [observePush, observeUnshift, observePop, observeShift, observeSplice, observeReverse, observeSort]) {
+        Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+    }
+    function enableArrayObservation() {
+        if (proto.push['observing'] !== true)
+            proto.push = observePush;
+        if (proto.unshift['observing'] !== true)
+            proto.unshift = observeUnshift;
+        if (proto.pop['observing'] !== true)
+            proto.pop = observePop;
+        if (proto.shift['observing'] !== true)
+            proto.shift = observeShift;
+        if (proto.splice['observing'] !== true)
+            proto.splice = observeSplice;
+        if (proto.reverse['observing'] !== true)
+            proto.reverse = observeReverse;
+        if (proto.sort['observing'] !== true)
+            proto.sort = observeSort;
+    }
+    enableArrayObservation();
+    function disableArrayObservation() {
+        if (proto.push['observing'] === true)
+            proto.push = nativePush;
+        if (proto.unshift['observing'] === true)
+            proto.unshift = nativeUnshift;
+        if (proto.pop['observing'] === true)
+            proto.pop = nativePop;
+        if (proto.shift['observing'] === true)
+            proto.shift = nativeShift;
+        if (proto.splice['observing'] === true)
+            proto.splice = nativeSplice;
+        if (proto.reverse['observing'] === true)
+            proto.reverse = nativeReverse;
+        if (proto.sort['observing'] === true)
+            proto.sort = nativeSort;
+    }
+    let ArrayObserver = class ArrayObserver {
+        constructor(changeSet, array) {
+            this.changeSet = changeSet;
+            array.$observer = this;
+            this.collection = array;
+            this.resetIndexMap();
+        }
+    };
+    ArrayObserver = __decorate([
+        collectionObserver(9 /* array */)
+    ], ArrayObserver);
+    function getArrayObserver(changeSet, array) {
+        return array.$observer || new ArrayObserver(changeSet, array);
     }
 
     function computed(config) {
@@ -4662,7 +4671,7 @@ var au = (function (exports) {
             const options = obj.options;
             let i = options.length;
             while (i--) {
-                const option = options.item(i);
+                const option = options[i];
                 const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
                 if (isArray) {
                     option.selected = currentValue.findIndex(item => !!matcher(optionValue, item)) !== -1;
@@ -4705,7 +4714,7 @@ var au = (function (exports) {
                 // A.1.b.i
                 const values = [];
                 while (i < len) {
-                    option = options.item(i);
+                    option = options[i];
                     if (option.selected) {
                         values.push(option.hasOwnProperty('model')
                             ? option.model
@@ -4742,7 +4751,7 @@ var au = (function (exports) {
             // B.1
             let value = null;
             while (i < len) {
-                const option = options.item(i);
+                const option = options[i];
                 if (option.selected) {
                     value = option.hasOwnProperty('model')
                         ? option.model
@@ -4794,10 +4803,11 @@ var au = (function (exports) {
     SelectValueObserver.prototype.handler = null;
     SelectValueObserver.prototype.observerLocator = null;
 
-    const proto$2 = Map.prototype;
-    const nativeSet = proto$2.set; // TODO: probably want to make these internal again
-    const nativeClear$1 = proto$2.clear;
-    const nativeDelete$1 = proto$2.delete;
+    // tslint:disable:no-reserved-keywords
+    const proto$1 = Map.prototype;
+    const nativeSet = proto$1.set; // TODO: probably want to make these internal again
+    const nativeClear = proto$1.clear;
+    const nativeDelete = proto$1.delete;
     // note: we can't really do much with Map due to the internal data structure not being accessible so we're just using the native calls
     // fortunately, map/delete/clear are easy to reconstruct for the indexMap
     // https://tc39.github.io/ecma262/#sec-map.prototype.map
@@ -4827,6 +4837,110 @@ var au = (function (exports) {
         return this;
     }
     // https://tc39.github.io/ecma262/#sec-map.prototype.clear
+    function observeClear() {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativeClear.call(this);
+        }
+        const size = this.size;
+        if (size > 0) {
+            const indexMap = o.indexMap;
+            let i = 0;
+            for (const entry of this.keys()) {
+                if (indexMap[i] > -1) {
+                    nativePush.call(indexMap.deletedItems, entry);
+                }
+                i++;
+            }
+            nativeClear.call(this);
+            indexMap.length = 0;
+            o.callSubscribers('clear', arguments, BindingFlags.isCollectionMutation);
+        }
+        return undefined;
+    }
+    // https://tc39.github.io/ecma262/#sec-map.prototype.delete
+    function observeDelete(value) {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativeDelete.call(this, value);
+        }
+        const size = this.size;
+        if (size === 0) {
+            return false;
+        }
+        let i = 0;
+        const indexMap = o.indexMap;
+        for (const entry of this.keys()) {
+            if (entry === value) {
+                if (indexMap[i] > -1) {
+                    nativePush.call(indexMap.deletedItems, entry);
+                }
+                nativeSplice.call(indexMap, i, 1);
+                return nativeDelete.call(this, value);
+            }
+            i++;
+        }
+        o.callSubscribers('delete', arguments, BindingFlags.isCollectionMutation);
+        return false;
+    }
+    for (const observe of [observeSet, observeClear, observeDelete]) {
+        Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+    }
+    function enableMapObservation() {
+        if (proto$1.set['observing'] !== true)
+            proto$1.set = observeSet;
+        if (proto$1.clear['observing'] !== true)
+            proto$1.clear = observeClear;
+        if (proto$1.delete['observing'] !== true)
+            proto$1.delete = observeDelete;
+    }
+    enableMapObservation();
+    function disableMapObservation() {
+        if (proto$1.set['observing'] === true)
+            proto$1.set = nativeSet;
+        if (proto$1.clear['observing'] === true)
+            proto$1.clear = nativeClear;
+        if (proto$1.delete['observing'] === true)
+            proto$1.delete = nativeDelete;
+    }
+    let MapObserver = class MapObserver {
+        constructor(changeSet, map) {
+            this.changeSet = changeSet;
+            map.$observer = this;
+            this.collection = map;
+            this.resetIndexMap();
+        }
+    };
+    MapObserver = __decorate([
+        collectionObserver(6 /* map */)
+    ], MapObserver);
+    function getMapObserver(changeSet, map) {
+        return map.$observer || new MapObserver(changeSet, map);
+    }
+
+    const proto$2 = Set.prototype;
+    const nativeAdd = proto$2.add; // TODO: probably want to make these internal again
+    const nativeClear$1 = proto$2.clear;
+    const nativeDelete$1 = proto$2.delete;
+    // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
+    // fortunately, add/delete/clear are easy to reconstruct for the indexMap
+    // https://tc39.github.io/ecma262/#sec-set.prototype.add
+    function observeAdd(value) {
+        const o = this.$observer;
+        if (o === undefined) {
+            return nativeAdd.call(this, value);
+        }
+        const oldSize = this.size;
+        nativeAdd.call(this, value);
+        const newSize = this.size;
+        if (newSize === oldSize) {
+            return this;
+        }
+        o.indexMap[oldSize] = -2;
+        o.callSubscribers('add', arguments, BindingFlags.isCollectionMutation);
+        return this;
+    }
+    // https://tc39.github.io/ecma262/#sec-set.prototype.clear
     function observeClear$1() {
         const o = this.$observer;
         if (o === undefined) {
@@ -4848,7 +4962,7 @@ var au = (function (exports) {
         }
         return undefined;
     }
-    // https://tc39.github.io/ecma262/#sec-map.prototype.delete
+    // https://tc39.github.io/ecma262/#sec-set.prototype.delete
     function observeDelete$1(value) {
         const o = this.$observer;
         if (o === undefined) {
@@ -4873,39 +4987,39 @@ var au = (function (exports) {
         o.callSubscribers('delete', arguments, BindingFlags.isCollectionMutation);
         return false;
     }
-    for (const observe of [observeSet, observeClear$1, observeDelete$1]) {
+    for (const observe of [observeAdd, observeClear$1, observeDelete$1]) {
         Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
     }
-    function enableMapObservation() {
-        if (proto$2.set['observing'] !== true)
-            proto$2.set = observeSet;
+    function enableSetObservation() {
+        if (proto$2.add['observing'] !== true)
+            proto$2.add = observeAdd;
         if (proto$2.clear['observing'] !== true)
             proto$2.clear = observeClear$1;
         if (proto$2.delete['observing'] !== true)
             proto$2.delete = observeDelete$1;
     }
-    enableMapObservation();
-    function disableMapObservation() {
-        if (proto$2.set['observing'] === true)
-            proto$2.set = nativeSet;
+    enableSetObservation();
+    function disableSetObservation() {
+        if (proto$2.add['observing'] === true)
+            proto$2.add = nativeAdd;
         if (proto$2.clear['observing'] === true)
             proto$2.clear = nativeClear$1;
         if (proto$2.delete['observing'] === true)
             proto$2.delete = nativeDelete$1;
     }
-    let MapObserver = class MapObserver {
-        constructor(changeSet, map) {
+    let SetObserver = class SetObserver {
+        constructor(changeSet, set) {
             this.changeSet = changeSet;
-            map.$observer = this;
-            this.collection = map;
+            set.$observer = this;
+            this.collection = set;
             this.resetIndexMap();
         }
     };
-    MapObserver = __decorate([
-        collectionObserver(6 /* map */)
-    ], MapObserver);
-    function getMapObserver(changeSet, map) {
-        return map.$observer || new MapObserver(changeSet, map);
+    SetObserver = __decorate([
+        collectionObserver(7 /* set */)
+    ], SetObserver);
+    function getSetObserver(changeSet, set) {
+        return set.$observer || new SetObserver(changeSet, set);
     }
 
     const ISVGAnalyzer = DI.createInterface()
@@ -5145,7 +5259,9 @@ var au = (function (exports) {
         constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
             this.sourceExpression = sourceExpression;
             this.locator = locator;
-            this.$isBound = false;
+            this.$nextBind = null;
+            this.$prevBind = null;
+            this.$state = 0 /* none */;
             this.targetObserver = observerLocator.getObserver(target, targetProperty);
         }
         callSource(args) {
@@ -5158,31 +5274,38 @@ var au = (function (exports) {
             return result;
         }
         $bind(flags, scope) {
-            if (this.$isBound) {
+            if (this.$state & 2 /* isBound */) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags);
+                this.$unbind(flags | BindingFlags.fromBind);
             }
-            this.$isBound = true;
+            // add isBinding flag
+            this.$state |= 1 /* isBinding */;
             this.$scope = scope;
             const sourceExpression = this.sourceExpression;
             if (hasBind(sourceExpression)) {
                 sourceExpression.bind(flags, scope, this);
             }
             this.targetObserver.setValue($args => this.callSource($args), flags);
+            // add isBound flag and remove isBinding flag
+            this.$state |= 2 /* isBound */;
+            this.$state &= ~1 /* isBinding */;
         }
         $unbind(flags) {
-            if (!this.$isBound) {
+            if (!(this.$state & 2 /* isBound */)) {
                 return;
             }
-            this.$isBound = false;
+            // add isUnbinding flag
+            this.$state |= 32 /* isUnbinding */;
             const sourceExpression = this.sourceExpression;
             if (hasUnbind(sourceExpression)) {
                 sourceExpression.unbind(flags, this.$scope, this);
             }
             this.$scope = null;
             this.targetObserver.setValue(null, flags);
+            // remove isBound and isUnbinding flags
+            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
         }
         // tslint:disable:no-empty no-any
         observeProperty(obj, propertyName) { }
@@ -5277,6 +5400,195 @@ var au = (function (exports) {
         }
     }
 
+    // tslint:disable:no-any
+    const { toView: toView$2, oneTime: oneTime$2 } = BindingMode;
+    class MultiInterpolationBinding {
+        constructor(observerLocator, interpolation, target, targetProperty, mode, locator) {
+            this.observerLocator = observerLocator;
+            this.interpolation = interpolation;
+            this.target = target;
+            this.targetProperty = targetProperty;
+            this.mode = mode;
+            this.locator = locator;
+            this.$nextBind = null;
+            this.$prevBind = null;
+            this.$state = 0 /* none */;
+            this.$scope = null;
+            // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
+            // value converters and binding behaviors.
+            // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
+            // in which case the renderer will create the TextBinding directly
+            const expressions = interpolation.expressions;
+            const parts = this.parts = Array(expressions.length);
+            for (let i = 0, ii = expressions.length; i < ii; ++i) {
+                parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
+            }
+        }
+        $bind(flags, scope) {
+            if (this.$state & 2 /* isBound */) {
+                if (this.$scope === scope) {
+                    return;
+                }
+                this.$unbind(flags);
+            }
+            this.$state |= 2 /* isBound */;
+            this.$scope = scope;
+            const parts = this.parts;
+            for (let i = 0, ii = parts.length; i < ii; ++i) {
+                parts[i].$bind(flags, scope);
+            }
+        }
+        $unbind(flags) {
+            if (!(this.$state & 2 /* isBound */)) {
+                return;
+            }
+            this.$state &= ~2 /* isBound */;
+            this.$scope = null;
+            const parts = this.parts;
+            for (let i = 0, ii = parts.length; i < ii; ++i) {
+                parts[i].$unbind(flags);
+            }
+        }
+    }
+    let InterpolationBinding = class InterpolationBinding {
+        constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
+            this.sourceExpression = sourceExpression;
+            this.interpolation = interpolation;
+            this.target = target;
+            this.targetProperty = targetProperty;
+            this.mode = mode;
+            this.observerLocator = observerLocator;
+            this.locator = locator;
+            this.isFirst = isFirst;
+            this.targetObserver = observerLocator.getAccessor(target, targetProperty);
+        }
+        updateTarget(value, flags) {
+            this.targetObserver.setValue(value, flags | BindingFlags.updateTargetInstance);
+        }
+        handleChange(newValue, previousValue, flags) {
+            if (!(this.$state & 2 /* isBound */)) {
+                return;
+            }
+            previousValue = this.targetObserver.getValue();
+            newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
+            if (newValue !== previousValue) {
+                this.updateTarget(newValue, flags);
+            }
+            if ((this.mode & oneTime$2) === 0) {
+                this.version++;
+                this.sourceExpression.connect(flags, this.$scope, this);
+                this.unobserve(false);
+            }
+        }
+        $bind(flags, scope) {
+            if (this.$state & 2 /* isBound */) {
+                if (this.$scope === scope) {
+                    return;
+                }
+                this.$unbind(flags);
+            }
+            this.$state |= 2 /* isBound */;
+            this.$scope = scope;
+            const sourceExpression = this.sourceExpression;
+            if (sourceExpression.bind) {
+                sourceExpression.bind(flags, scope, this);
+            }
+            // since the interpolation already gets the whole value, we only need to let the first
+            // text binding do the update if there are multiple
+            if (this.isFirst) {
+                this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator), flags);
+            }
+            if (this.mode & toView$2) {
+                sourceExpression.connect(flags, scope, this);
+            }
+        }
+        $unbind(flags) {
+            if (!(this.$state & 2 /* isBound */)) {
+                return;
+            }
+            this.$state &= ~2 /* isBound */;
+            const sourceExpression = this.sourceExpression;
+            if (sourceExpression.unbind) {
+                sourceExpression.unbind(flags, this.$scope, this);
+            }
+            this.$scope = null;
+            this.unobserve(true);
+        }
+    };
+    InterpolationBinding = __decorate([
+        connectable()
+    ], InterpolationBinding);
+
+    let LetBinding = class LetBinding {
+        constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
+            this.sourceExpression = sourceExpression;
+            this.targetProperty = targetProperty;
+            this.observerLocator = observerLocator;
+            this.locator = locator;
+            this.toViewModel = toViewModel;
+            this.$nextBind = null;
+            this.$prevBind = null;
+            this.$state = 0 /* none */;
+            this.$scope = null;
+            this.target = null;
+        }
+        handleChange(newValue, previousValue, flags) {
+            if (!(this.$state & 2 /* isBound */)) {
+                return;
+            }
+            if (flags & BindingFlags.updateTargetInstance) {
+                const { target, targetProperty } = this;
+                previousValue = target[targetProperty];
+                newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+                if (newValue !== previousValue) {
+                    target[targetProperty] = newValue;
+                }
+                return;
+            }
+            throw Reporter.error(15, flags);
+        }
+        $bind(flags, scope) {
+            if (this.$state & 2 /* isBound */) {
+                if (this.$scope === scope) {
+                    return;
+                }
+                this.$unbind(flags | BindingFlags.fromBind);
+            }
+            // add isBinding flag
+            this.$state |= 1 /* isBinding */;
+            this.$scope = scope;
+            this.target = this.toViewModel ? scope.bindingContext : scope.overrideContext;
+            const sourceExpression = this.sourceExpression;
+            if (sourceExpression.bind) {
+                sourceExpression.bind(flags, scope, this);
+            }
+            // sourceExpression might have been changed during bind
+            this.target[this.targetProperty] = this.sourceExpression.evaluate(BindingFlags.fromBind, scope, this.locator);
+            this.sourceExpression.connect(flags, scope, this);
+            // add isBound flag and remove isBinding flag
+            this.$state |= 2 /* isBound */;
+            this.$state &= ~1 /* isBinding */;
+        }
+        $unbind(flags) {
+            if (!(this.$state & 2 /* isBound */)) {
+                return;
+            }
+            // add isUnbinding flag
+            this.$state |= 32 /* isUnbinding */;
+            const sourceExpression = this.sourceExpression;
+            if (sourceExpression.unbind) {
+                sourceExpression.unbind(flags, this.$scope, this);
+            }
+            this.$scope = null;
+            this.unobserve(true);
+            // remove isBound and isUnbinding flags
+            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
+        }
+    };
+    LetBinding = __decorate([
+        connectable()
+    ], LetBinding);
+
     class Listener {
         constructor(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
             this.targetEvent = targetEvent;
@@ -5286,7 +5598,9 @@ var au = (function (exports) {
             this.preventDefault = preventDefault;
             this.eventManager = eventManager;
             this.locator = locator;
-            this.$isBound = false;
+            this.$nextBind = null;
+            this.$prevBind = null;
+            this.$state = 0 /* none */;
         }
         callSource(event) {
             const overrideContext = this.$scope.overrideContext;
@@ -5302,25 +5616,30 @@ var au = (function (exports) {
             this.callSource(event);
         }
         $bind(flags, scope) {
-            if (this.$isBound) {
+            if (this.$state & 2 /* isBound */) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags);
+                this.$unbind(flags | BindingFlags.fromBind);
             }
-            this.$isBound = true;
+            // add isBinding flag
+            this.$state |= 1 /* isBinding */;
             this.$scope = scope;
             const sourceExpression = this.sourceExpression;
             if (hasBind(sourceExpression)) {
                 sourceExpression.bind(flags, scope, this);
             }
             this.handler = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
+            // add isBound flag and remove isBinding flag
+            this.$state |= 2 /* isBound */;
+            this.$state &= ~1 /* isBinding */;
         }
         $unbind(flags) {
-            if (!this.$isBound) {
+            if (!(this.$state & 2 /* isBound */)) {
                 return;
             }
-            this.$isBound = false;
+            // add isUnbinding flag
+            this.$state |= 32 /* isUnbinding */;
             const sourceExpression = this.sourceExpression;
             if (hasUnbind(sourceExpression)) {
                 sourceExpression.unbind(flags, this.$scope, this);
@@ -5328,6 +5647,8 @@ var au = (function (exports) {
             this.$scope = null;
             this.handler.dispose();
             this.handler = null;
+            // remove isBound and isUnbinding flags
+            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
         }
         // tslint:disable:no-empty no-any
         observeProperty(obj, propertyName) { }
@@ -5339,28 +5660,35 @@ var au = (function (exports) {
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.locator = locator;
-            this.$isBound = false;
+            this.$nextBind = null;
+            this.$prevBind = null;
+            this.$state = 0 /* none */;
         }
         $bind(flags, scope) {
-            if (this.$isBound) {
+            if (this.$state & 2 /* isBound */) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags);
+                this.$unbind(flags | BindingFlags.fromBind);
             }
-            this.$isBound = true;
+            // add isBinding flag
+            this.$state |= 1 /* isBinding */;
             this.$scope = scope;
             const sourceExpression = this.sourceExpression;
             if (hasBind(sourceExpression)) {
                 sourceExpression.bind(flags, scope, this);
             }
             this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
+            // add isBound flag and remove isBinding flag
+            this.$state |= 2 /* isBound */;
+            this.$state &= ~1 /* isBinding */;
         }
         $unbind(flags) {
-            if (!this.$isBound) {
+            if (!(this.$state & 2 /* isBound */)) {
                 return;
             }
-            this.$isBound = false;
+            // add isUnbinding flag
+            this.$state |= 32 /* isUnbinding */;
             if (this.sourceExpression.evaluate(flags, this.$scope, this.locator) === this.target) {
                 this.sourceExpression.assign(flags, this.$scope, this.locator, null);
             }
@@ -5369,39 +5697,12 @@ var au = (function (exports) {
                 sourceExpression.unbind(flags, this.$scope, this);
             }
             this.$scope = null;
+            // remove isBound and isUnbinding flags
+            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
         }
         // tslint:disable:no-empty no-any
         observeProperty(obj, propertyName) { }
         handleChange(newValue, previousValue, flags) { }
-    }
-
-    /**
-     * Decorator: Specifies custom behavior for a bindable property.
-     * @param configOrTarget The overrides.
-     */
-    function bindable(configOrTarget, key, descriptor) {
-        let deco = function (target, key2, descriptor2) {
-            target = target.constructor;
-            let bindables = target.bindables || (target.bindables = {});
-            let config = configOrTarget || {};
-            if (!config.attribute) {
-                config.attribute = PLATFORM.kebabCase(key2);
-            }
-            if (!config.callback) {
-                config.callback = `${key2}Changed`;
-            }
-            if (!config.mode) {
-                config.mode = BindingMode.toView;
-            }
-            config.property = key2;
-            bindables[key2] = config;
-        };
-        if (key) { //placed on a property without parens
-            var target = configOrTarget;
-            configOrTarget = null; //ensure that the closure captures the fact that there's actually no config
-            return deco(target, key, descriptor);
-        }
-        return deco;
     }
 
     // tslint:disable:no-reserved-keywords
@@ -5412,6 +5713,167 @@ var au = (function (exports) {
         return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
     }
 
+    function bindable(configOrTarget, prop) {
+        let config;
+        const decorator = function decorate($target, $prop) {
+            const Type = $target.constructor;
+            let bindables = Type.bindables;
+            if (bindables === undefined) {
+                bindables = Type.bindables = {};
+            }
+            if (!config.attribute) {
+                config.attribute = PLATFORM.kebabCase($prop);
+            }
+            if (!config.callback) {
+                config.callback = `${$prop}Changed`;
+            }
+            if (!config.mode) {
+                config.mode = BindingMode.toView;
+            }
+            if (arguments.length > 1) {
+                // Non invocation:
+                // - @bindable
+                // Invocation with or w/o opts:
+                // - @bindable()
+                // - @bindable({...opts})
+                config.property = $prop;
+            }
+            bindables[config.property] = config;
+        };
+        if (arguments.length > 1) {
+            // Non invocation:
+            // - @bindable
+            config = {};
+            return decorator(configOrTarget, prop);
+        }
+        else if (typeof configOrTarget === 'string') {
+            // ClassDecorator
+            // - @bindable('bar')
+            // Direct call:
+            // - @bindable('bar')(Foo)
+            config = {};
+            return decorator;
+        }
+        // Invocation with or w/o opts:
+        // - @bindable()
+        // - @bindable({...opts})
+        config = (configOrTarget || {});
+        return decorator;
+    }
+
+    /*@internal*/
+    const buildRequired = Object.freeze({
+        required: true,
+        compiler: 'default'
+    });
+    const buildNotRequired = Object.freeze({
+        required: false,
+        compiler: 'default'
+    });
+    // Note: this is a little perf thing; having one predefined class with the properties always
+    // assigned in the same order ensures the browser can keep reusing the same generated hidden
+    // class
+    class DefaultTemplateDefinition {
+        constructor() {
+            this.name = 'unnamed';
+            this.template = null;
+            this.cache = 0;
+            this.build = buildNotRequired;
+            this.bindables = PLATFORM.emptyObject;
+            this.instructions = PLATFORM.emptyArray;
+            this.dependencies = PLATFORM.emptyArray;
+            this.surrogates = PLATFORM.emptyArray;
+            this.containerless = false;
+            this.shadowOptions = null;
+            this.hasSlots = false;
+        }
+    }
+    const templateDefinitionAssignables = [
+        'name',
+        'template',
+        'cache',
+        'build',
+        'containerless',
+        'shadowOptions',
+        'hasSlots'
+    ];
+    const templateDefinitionArrays = [
+        'instructions',
+        'dependencies',
+        'surrogates'
+    ];
+    function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots) {
+        const def = new DefaultTemplateDefinition();
+        // all cases fall through intentionally
+        const argLen = arguments.length;
+        switch (argLen) {
+            case 12: if (hasSlots !== null)
+                def.hasSlots = hasSlots;
+            case 11: if (shadowOptions !== null)
+                def.shadowOptions = shadowOptions;
+            case 10: if (containerless !== null)
+                def.containerless = containerless;
+            case 9: if (surrogates !== null)
+                def.surrogates = PLATFORM.toArray(surrogates);
+            case 8: if (dependencies !== null)
+                def.dependencies = PLATFORM.toArray(dependencies);
+            case 7: if (instructions !== null)
+                def.instructions = PLATFORM.toArray(instructions);
+            case 6: if (bindables !== null)
+                def.bindables = Object.assign({}, bindables);
+            case 5: if (build !== null)
+                def.build = build === true ? buildRequired : build === false ? buildNotRequired : Object.assign({}, build);
+            case 4: if (cache !== null)
+                def.cache = cache;
+            case 3: if (template !== null)
+                def.template = template;
+            case 2:
+                if (ctor !== null) {
+                    if (ctor['bindables']) {
+                        def.bindables = Object.assign({}, ctor.bindables);
+                    }
+                    if (ctor['containerless']) {
+                        def.containerless = ctor.containerless;
+                    }
+                    if (ctor['shadowOptions']) {
+                        def.shadowOptions = ctor.shadowOptions;
+                    }
+                }
+                if (typeof nameOrDef === 'string') {
+                    if (nameOrDef.length > 0) {
+                        def.name = nameOrDef;
+                    }
+                }
+                else if (nameOrDef !== null) {
+                    templateDefinitionAssignables.forEach(prop => {
+                        if (nameOrDef[prop]) {
+                            def[prop] = nameOrDef[prop];
+                        }
+                    });
+                    templateDefinitionArrays.forEach(prop => {
+                        if (nameOrDef[prop]) {
+                            def[prop] = PLATFORM.toArray(nameOrDef[prop]);
+                        }
+                    });
+                    if (nameOrDef['bindables']) {
+                        if (def.bindables === PLATFORM.emptyObject) {
+                            def.bindables = Object.assign({}, nameOrDef.bindables);
+                        }
+                        else {
+                            Object.assign(def.bindables, nameOrDef.bindables);
+                        }
+                    }
+                }
+        }
+        // special handling for invocations that quack like a @customElement decorator
+        if (argLen === 2 && ctor !== null) {
+            if (typeof nameOrDef === 'string' || !('build' in nameOrDef)) {
+                def.build = buildRequired;
+            }
+        }
+        return def;
+    }
+
     function createElement(tagOrType, props, children) {
         if (typeof tagOrType === 'string') {
             return createElementForTag(tagOrType, props, children);
@@ -5420,34 +5882,18 @@ var au = (function (exports) {
             return createElementForType(tagOrType, props, children);
         }
     }
-    class PotentialRenderable {
+    class RenderPlan {
         constructor(node, instructions, dependencies) {
             this.node = node;
             this.instructions = instructions;
             this.dependencies = dependencies;
         }
         get definition() {
-            return this.lazyDefinition || (this.lazyDefinition = {
-                name: 'unnamed',
-                template: this.node,
-                cache: 0,
-                build: typeof this.node === 'string' ? {
-                    required: true,
-                    compiler: 'default'
-                } : {
-                    required: false
-                },
-                dependencies: this.dependencies,
-                instructions: this.instructions,
-                bindables: {},
-                containerless: false,
-                hasSlots: false,
-                shadowOptions: null,
-                surrogates: PLATFORM.emptyArray
-            });
+            return this.lazyDefinition || (this.lazyDefinition =
+                buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies));
         }
-        getElementTemplate(engine, type) {
-            return engine.getElementTemplate(this.definition, type);
+        getElementTemplate(engine, Type) {
+            return engine.getElementTemplate(this.definition, Type);
         }
         createView(engine, parentContext) {
             return this.getViewFactory(engine, parentContext).create();
@@ -5488,7 +5934,7 @@ var au = (function (exports) {
         if (children) {
             addChildren(element, children, allInstructions, dependencies);
         }
-        return new PotentialRenderable(element, allInstructions, dependencies);
+        return new RenderPlan(element, allInstructions, dependencies);
     }
     function createElementForType(Type, props, children) {
         const tagName = Type.description.name;
@@ -5536,13 +5982,13 @@ var au = (function (exports) {
         if (children) {
             addChildren(element, children, allInstructions, dependencies);
         }
-        return new PotentialRenderable(element, allInstructions, dependencies);
+        return new RenderPlan(element, allInstructions, dependencies);
     }
     function addChildren(parent, children, allInstructions, dependencies) {
         for (let i = 0, ii = children.length; i < ii; ++i) {
             const current = children[i];
             if (typeof current === 'string') {
-                DOM.appendChild(parent, DOM.createText(current));
+                DOM.appendChild(parent, DOM.createTextNode(current));
             }
             else if (DOM.isNodeInstance(current)) {
                 DOM.appendChild(parent, current);
@@ -5553,44 +5999,395 @@ var au = (function (exports) {
         }
     }
 
+    var LifecycleFlags;
+    (function (LifecycleFlags) {
+        LifecycleFlags[LifecycleFlags["none"] = 1] = "none";
+        LifecycleFlags[LifecycleFlags["noTasks"] = 2] = "noTasks";
+        LifecycleFlags[LifecycleFlags["unbindAfterDetached"] = 4] = "unbindAfterDetached";
+    })(LifecycleFlags || (LifecycleFlags = {}));
+    class AggregateLifecycleTask {
+        constructor() {
+            this.done = true;
+            /*@internal*/
+            this.owner = null;
+            this.tasks = [];
+            this.waiter = null;
+            this.resolve = null;
+        }
+        addTask(task) {
+            if (!task.done) {
+                this.done = false;
+                this.tasks.push(task);
+                task.wait().then(() => this.tryComplete());
+            }
+        }
+        canCancel() {
+            if (this.done) {
+                return false;
+            }
+            return this.tasks.every(x => x.canCancel());
+        }
+        cancel() {
+            if (this.canCancel()) {
+                this.tasks.forEach(x => x.cancel());
+                this.done = false;
+            }
+        }
+        wait() {
+            if (this.waiter === null) {
+                if (this.done) {
+                    this.waiter = Promise.resolve();
+                }
+                else {
+                    // tslint:disable-next-line:promise-must-complete
+                    this.waiter = new Promise((resolve) => this.resolve = resolve);
+                }
+            }
+            return this.waiter;
+        }
+        tryComplete() {
+            if (this.done) {
+                return;
+            }
+            if (this.tasks.every(x => x.done)) {
+                this.complete(true);
+            }
+        }
+        complete(notCancelled) {
+            this.done = true;
+            if (notCancelled && this.owner !== null) {
+                this.owner.processAll();
+            }
+            if (this.resolve !== null) {
+                this.resolve();
+            }
+        }
+    }
+    /*@internal*/
+    class AttachLifecycleController {
+        constructor(changeSet, flags, parent = null, encapsulationSource = null) {
+            this.changeSet = changeSet;
+            this.flags = flags;
+            this.parent = parent;
+            this.encapsulationSource = encapsulationSource;
+            /*@internal*/
+            this.$nextMount = null;
+            /*@internal*/
+            this.$nextAttached = null;
+            this.attachedHead = this;
+            this.attachedTail = this;
+            this.mountHead = this;
+            this.mountTail = this;
+            this.task = null;
+        }
+        attach(requestor) {
+            requestor.$attach(this.encapsulationSource, this);
+            return this;
+        }
+        queueMount(requestor) {
+            this.mountTail.$nextMount = requestor;
+            this.mountTail = requestor;
+        }
+        queueAttachedCallback(requestor) {
+            this.attachedTail.$nextAttached = requestor;
+            this.attachedTail = requestor;
+        }
+        registerTask(task) {
+            if (this.parent !== null) {
+                this.parent.registerTask(task);
+            }
+            else {
+                if (this.task === null) {
+                    this.task = new AggregateLifecycleTask();
+                }
+                this.task.addTask(task);
+            }
+        }
+        createChild() {
+            const lifecycle = new AttachLifecycleController(this.changeSet, this.flags, this);
+            this.queueMount(lifecycle);
+            this.queueAttachedCallback(lifecycle);
+            return lifecycle;
+        }
+        end() {
+            if (this.task !== null && !this.task.done) {
+                this.task.owner = this;
+                return this.task;
+            }
+            this.processAll();
+            return Lifecycle.done;
+        }
+        /*@internal*/
+        processAll() {
+            this.changeSet.flushChanges();
+            this.processMounts();
+            this.processAttachedCallbacks();
+        }
+        /*@internal*/
+        $mount() {
+            if (this.parent !== null) {
+                this.processMounts();
+            }
+        }
+        /*@internal*/
+        attached() {
+            if (this.parent !== null) {
+                this.processAttachedCallbacks();
+            }
+        }
+        processMounts() {
+            let currentMount = this.mountHead;
+            let nextMount;
+            while (currentMount) {
+                currentMount.$mount();
+                nextMount = currentMount.$nextMount;
+                currentMount.$nextMount = null;
+                currentMount = nextMount;
+            }
+        }
+        processAttachedCallbacks() {
+            let currentAttached = this.attachedHead;
+            let nextAttached;
+            while (currentAttached) {
+                currentAttached.attached();
+                nextAttached = currentAttached.$nextAttached;
+                currentAttached.$nextAttached = null;
+                currentAttached = nextAttached;
+            }
+        }
+    }
+    /*@internal*/
+    class DetachLifecycleController {
+        constructor(changeSet, flags, parent = null) {
+            this.changeSet = changeSet;
+            this.flags = flags;
+            this.parent = parent;
+            /*@internal*/
+            this.$nextUnmount = null;
+            /*@internal*/
+            this.$nextDetached = null;
+            this.detachedHead = this; //LOL
+            this.detachedTail = this;
+            this.unmountHead = this;
+            this.unmountTail = this;
+            this.task = null;
+            this.allowUnmount = true;
+        }
+        detach(requestor) {
+            this.allowUnmount = true;
+            if (requestor.$state & 8 /* isAttached */) {
+                requestor.$detach(this);
+            }
+            else if (isUnmountable(requestor)) {
+                this.queueUnmount(requestor);
+            }
+            return this;
+        }
+        queueUnmount(requestor) {
+            if (this.allowUnmount) {
+                this.unmountTail.$nextUnmount = requestor;
+                this.unmountTail = requestor;
+                // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
+                // Just to reduce the amount of potential things to track down and check if something fails.
+                // When everything is working and tested, we can add this optimization (and others) back in.
+                //this.allowUnmount = false; // only remove roots
+            }
+        }
+        queueDetachedCallback(requestor) {
+            this.detachedTail.$nextDetached = requestor;
+            this.detachedTail = requestor;
+        }
+        registerTask(task) {
+            if (this.parent !== null) {
+                this.parent.registerTask(task);
+            }
+            else {
+                if (this.task === null) {
+                    this.task = new AggregateLifecycleTask();
+                }
+                this.task.addTask(task);
+            }
+        }
+        createChild() {
+            const lifecycle = new DetachLifecycleController(this.changeSet, this.flags, this);
+            this.queueUnmount(lifecycle);
+            this.queueDetachedCallback(lifecycle);
+            return lifecycle;
+        }
+        end() {
+            if (this.task !== null && !this.task.done) {
+                this.task.owner = this;
+                return this.task;
+            }
+            this.processAll();
+            return Lifecycle.done;
+        }
+        /*@internal*/
+        $unmount() {
+            if (this.parent !== null) {
+                this.processUnmounts();
+            }
+        }
+        /*@internal*/
+        detached() {
+            if (this.parent !== null) {
+                this.processDetachedCallbacks();
+            }
+        }
+        /*@internal*/
+        processAll() {
+            this.changeSet.flushChanges();
+            this.processUnmounts();
+            this.processDetachedCallbacks();
+        }
+        processUnmounts() {
+            let currentUnmount = this.unmountHead;
+            if (this.flags & LifecycleFlags.unbindAfterDetached) {
+                while (currentUnmount) {
+                    currentUnmount.$unmount();
+                    currentUnmount = currentUnmount.$nextUnmount;
+                }
+            }
+            else {
+                let nextUnmount;
+                while (currentUnmount) {
+                    currentUnmount.$unmount();
+                    nextUnmount = currentUnmount.$nextUnmount;
+                    currentUnmount.$nextUnmount = null;
+                    currentUnmount = nextUnmount;
+                }
+            }
+        }
+        processDetachedCallbacks() {
+            let currentDetached = this.detachedHead;
+            let nextDetached;
+            while (currentDetached) {
+                currentDetached.detached();
+                nextDetached = currentDetached.$nextDetached;
+                currentDetached.$nextDetached = null;
+                currentDetached = nextDetached;
+            }
+            if (this.flags & LifecycleFlags.unbindAfterDetached) {
+                let currentUnmount = this.unmountHead;
+                let nextUnmount;
+                while (currentUnmount) {
+                    if (isUnbindable(currentUnmount)) {
+                        currentUnmount.$unbind(BindingFlags.fromUnbind);
+                    }
+                    nextUnmount = currentUnmount.$nextUnmount;
+                    currentUnmount.$nextUnmount = null;
+                    currentUnmount = nextUnmount;
+                }
+            }
+        }
+    }
+    function isUnmountable(requestor) {
+        return '$unmount' in requestor;
+    }
+    function isUnbindable(requestor) {
+        return '$unbind' in requestor;
+    }
+    const Lifecycle = {
+        beginAttach(changeSet, encapsulationSource, flags) {
+            return new AttachLifecycleController(changeSet, flags, null, encapsulationSource);
+        },
+        beginDetach(changeSet, flags) {
+            return new DetachLifecycleController(changeSet, flags);
+        },
+        done: {
+            done: true,
+            canCancel() { return false; },
+            // tslint:disable-next-line:no-empty
+            cancel() { },
+            wait() { return Promise.resolve(); }
+        }
+    };
+    const BindLifecycle = {
+        boundDepth: 0,
+        boundHead: null,
+        boundTail: null,
+        queueBound(requestor, flags) {
+            requestor.$boundFlags = flags;
+            requestor.$nextBound = null;
+            if (BindLifecycle.boundHead === null) {
+                BindLifecycle.boundHead = requestor;
+            }
+            else {
+                BindLifecycle.boundTail.$nextBound = requestor;
+            }
+            BindLifecycle.boundTail = requestor;
+            ++BindLifecycle.boundDepth;
+        },
+        unqueueBound() {
+            if (--BindLifecycle.boundDepth === 0) {
+                let current = BindLifecycle.boundHead;
+                let next;
+                BindLifecycle.boundHead = BindLifecycle.boundTail = null;
+                while (current !== null) {
+                    current.bound(current.$boundFlags);
+                    next = current.$nextBound;
+                    // Note: we're intentionally not resetting $boundFlags because it's not an object reference
+                    // so it can't cause memory leaks. Save some cycles. It's somewhat unclean, but it's fine really.
+                    current.$nextBound = null;
+                    current = next;
+                }
+            }
+        },
+        unboundDepth: 0,
+        unboundHead: null,
+        unboundTail: null,
+        queueUnbound(requestor, flags) {
+            requestor.$unboundFlags = flags;
+            requestor.$nextUnbound = null;
+            if (BindLifecycle.unboundHead === null) {
+                BindLifecycle.unboundHead = requestor;
+            }
+            else {
+                BindLifecycle.unboundTail.$nextUnbound = requestor;
+            }
+            BindLifecycle.unboundTail = requestor;
+            ++BindLifecycle.unboundDepth;
+        },
+        unqueueUnbound() {
+            if (--BindLifecycle.unboundDepth === 0) {
+                let current = BindLifecycle.unboundHead;
+                let next;
+                BindLifecycle.unboundHead = BindLifecycle.unboundTail = null;
+                while (current !== null) {
+                    current.unbound(current.$unboundFlags);
+                    next = current.$nextUnbound;
+                    current.$nextUnbound = null;
+                    current = next;
+                }
+            }
+        }
+    };
+
     /**
      * Decorator: Indicates that the decorated class is a custom element.
      */
-    // tslint:disable-next-line:no-any
     function customElement(nameOrSource) {
-        return function (target) {
-            return CustomElementResource.define(nameOrSource, target);
-        };
+        return target => CustomElementResource.define(nameOrSource, target);
     }
     const defaultShadowOptions = {
         mode: 'open'
     };
-    /**
-     * Decorator: Indicates that the custom element should render its view in Shadow
-     * DOM.
-     */
-    // tslint:disable-next-line:no-any
     function useShadowDOM(targetOrOptions) {
         const options = typeof targetOrOptions === 'function' || !targetOrOptions
             ? defaultShadowOptions
             : targetOrOptions;
-        const deco = function (target) {
+        function useShadowDOMDecorator(target) {
             target.shadowOptions = options;
             return target;
-        };
-        return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
+        }
+        return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
     }
-    /**
-     * Decorator: Indicates that the custom element should be rendered without its
-     * element container.
-     */
-    // tslint:disable-next-line:no-any
-    function containerless(maybeTarget) {
-        const deco = function (target) {
-            target.containerless = true;
-            return target;
-        };
-        return maybeTarget ? deco(maybeTarget) : deco;
+    function containerlessDecorator(target) {
+        target.containerless = true;
+        return target;
+    }
+    function containerless(target) {
+        return target === undefined ? containerlessDecorator : containerlessDecorator(target);
     }
     const CustomElementResource = {
         name: 'custom-element',
@@ -5604,9 +6401,12 @@ var au = (function (exports) {
             return node.$customElement || null;
         },
         define(nameOrSource, ctor = null) {
+            if (!nameOrSource) {
+                throw Reporter.error(70);
+            }
             const Type = (ctor === null ? class HTMLOnlyElement {
             } : ctor);
-            const description = createCustomElementDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
+            const description = buildTemplateDefinition(Type, nameOrSource);
             const proto = Type.prototype;
             Type.kind = CustomElementResource;
             Type.description = description;
@@ -5617,149 +6417,150 @@ var au = (function (exports) {
             proto.$detach = detach;
             proto.$unbind = unbind;
             proto.$cache = cache;
-            proto.$addNodes = addNodes;
-            proto.$removeNodes = removeNodes;
+            proto.$mount = mount;
+            proto.$unmount = unmount;
             return Type;
         }
     };
     function register$2(container) {
-        container.register(Registration.transient(CustomElementResource.keyFrom(this.description.name), this));
+        const resourceKey = CustomElementResource.keyFrom(this.description.name);
+        container.register(Registration.transient(resourceKey, this));
     }
     function hydrate(renderingEngine, host, options = PLATFORM.emptyObject) {
         const Type = this.constructor;
         const description = Type.description;
-        this.$bindables = [];
-        this.$attachables = [];
-        this.$isAttached = false;
-        this.$isBound = false;
-        this.$scope = Scope.create(this, null); // TODO: get the parent from somewhere?
+        this.$bindableHead = this.$bindableTail = null;
+        this.$prevBind = this.$nextBind = null;
+        this.$attachableHead = this.$attachableTail = null;
+        this.$prevAttach = this.$nextAttach = null;
+        this.$state = 128 /* needsMount */;
+        this.$scope = Scope.create(this, null);
         this.$projector = determineProjector(this, host, description);
         renderingEngine.applyRuntimeBehavior(Type, this);
-        let template;
-        if (this.$behavior.hasRender) {
+        if (this.$behavior.hooks & 1024 /* hasRender */) {
             const result = this.render(host, options.parts);
-            if ('getElementTemplate' in result) {
-                template = result.getElementTemplate(renderingEngine, Type);
-            }
-            else {
-                this.$nodes = result;
+            if (result && 'getElementTemplate' in result) {
+                result.getElementTemplate(renderingEngine, Type).render(this, host, options.parts);
             }
         }
         else {
-            template = renderingEngine.getElementTemplate(description, Type);
+            renderingEngine.getElementTemplate(description, Type).render(this, host, options.parts);
         }
-        if (template) {
-            this.$context = template.renderContext;
-            this.$nodes = template.createFor(this, host, options.parts);
-        }
-        if (this.$behavior.hasCreated) {
+        if (this.$behavior.hooks & 2 /* hasCreated */) {
             this.created();
         }
     }
     function bind(flags) {
-        if (this.$isBound) {
+        if (this.$state & 2 /* isBound */) {
             return;
         }
-        const behavior = this.$behavior;
-        if (behavior.hasBinding) {
-            this.binding(flags | BindingFlags.fromBind);
+        // add isBinding flag
+        this.$state |= 1 /* isBinding */;
+        const hooks = this.$behavior.hooks;
+        flags |= BindingFlags.fromBind;
+        if (hooks & 8 /* hasBound */) {
+            BindLifecycle.queueBound(this, flags);
+        }
+        if (hooks & 4 /* hasBinding */) {
+            this.binding(flags);
         }
         const scope = this.$scope;
-        const bindables = this.$bindables;
-        for (let i = 0, ii = bindables.length; i < ii; ++i) {
-            bindables[i].$bind(flags | BindingFlags.fromBind, scope);
+        let current = this.$bindableHead;
+        while (current !== null) {
+            current.$bind(flags, scope);
+            current = current.$nextBind;
         }
-        this.$isBound = true;
-        if (behavior.hasBound) {
-            this.bound(flags | BindingFlags.fromBind);
+        // add isBound flag and remove isBinding flag
+        this.$state |= 2 /* isBound */;
+        this.$state &= ~1 /* isBinding */;
+        if (hooks & 8 /* hasBound */) {
+            BindLifecycle.unqueueBound();
         }
     }
     function unbind(flags) {
-        if (this.$isBound) {
-            const behavior = this.$behavior;
-            if (behavior.hasUnbinding) {
-                this.unbinding(flags | BindingFlags.fromUnbind);
+        if (this.$state & 2 /* isBound */) {
+            // add isUnbinding flag
+            this.$state |= 32 /* isUnbinding */;
+            const hooks = this.$behavior.hooks;
+            flags |= BindingFlags.fromUnbind;
+            if (hooks & 512 /* hasUnbound */) {
+                BindLifecycle.queueUnbound(this, flags);
             }
-            const bindables = this.$bindables;
-            let i = bindables.length;
-            while (i--) {
-                bindables[i].$unbind(flags | BindingFlags.fromUnbind);
+            if (hooks & 256 /* hasUnbinding */) {
+                this.unbinding(flags);
             }
-            this.$isBound = false;
-            if (behavior.hasUnbound) {
-                this.unbound(flags | BindingFlags.fromUnbind);
+            let current = this.$bindableTail;
+            while (current !== null) {
+                current.$unbind(flags);
+                current = current.$prevBind;
+            }
+            // remove isBound and isUnbinding flags
+            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
+            if (hooks & 512 /* hasUnbound */) {
+                BindLifecycle.unqueueUnbound();
             }
         }
     }
     function attach(encapsulationSource, lifecycle) {
-        if (this.$isAttached) {
+        if (this.$state & 8 /* isAttached */) {
             return;
         }
+        // add isAttaching flag
+        this.$state |= 4 /* isAttaching */;
+        const hooks = this.$behavior.hooks;
         encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
-        if (this.$behavior.hasAttaching) {
+        if (hooks & 16 /* hasAttaching */) {
             this.attaching(encapsulationSource, lifecycle);
         }
-        const attachables = this.$attachables;
-        for (let i = 0, ii = attachables.length; i < ii; ++i) {
-            attachables[i].$attach(encapsulationSource, lifecycle);
+        let current = this.$attachableHead;
+        while (current !== null) {
+            current.$attach(encapsulationSource, lifecycle);
+            current = current.$nextAttach;
         }
-        lifecycle.queueAddNodes(this);
-        this.$isAttached = true;
-        if (this.$behavior.hasAttached) {
+        lifecycle.queueMount(this);
+        // add isAttached flag, remove isAttaching flag
+        this.$state |= 8 /* isAttached */;
+        this.$state &= ~4 /* isAttaching */;
+        if (hooks & 32 /* hasAttached */) {
             lifecycle.queueAttachedCallback(this);
         }
     }
     function detach(lifecycle) {
-        if (this.$isAttached) {
-            if (this.$behavior.hasDetaching) {
+        if (this.$state & 8 /* isAttached */) {
+            // add isDetaching flag
+            this.$state |= 16 /* isDetaching */;
+            const hooks = this.$behavior.hooks;
+            if (hooks & 64 /* hasDetaching */) {
                 this.detaching(lifecycle);
             }
-            lifecycle.queueRemoveNodes(this);
-            const attachables = this.$attachables;
-            let i = attachables.length;
-            while (i--) {
-                attachables[i].$detach(lifecycle);
+            lifecycle.queueUnmount(this);
+            let current = this.$attachableTail;
+            while (current !== null) {
+                current.$detach(lifecycle);
+                current = current.$prevAttach;
             }
-            this.$isAttached = false;
-            if (this.$behavior.hasDetached) {
+            // remove isAttached and isDetaching flags
+            this.$state &= ~(8 /* isAttached */ | 16 /* isDetaching */);
+            if (hooks & 128 /* hasDetached */) {
                 lifecycle.queueDetachedCallback(this);
             }
         }
     }
     function cache() {
-        if (this.$behavior.hasCaching) {
+        if (this.$behavior.hooks & 2048 /* hasCaching */) {
             this.caching();
         }
-        const attachables = this.$attachables;
-        let i = attachables.length;
-        while (i--) {
-            attachables[i].$cache();
+        let current = this.$attachableTail;
+        while (current !== null) {
+            current.$cache();
+            current = current.$prevAttach;
         }
     }
-    function addNodes() {
+    function mount() {
         this.$projector.project(this.$nodes);
     }
-    function removeNodes() {
-        this.$projector.onElementRemoved();
-    }
-    /*@internal*/
-    function createCustomElementDescription(templateSource, Type) {
-        return {
-            name: templateSource.name || 'unnamed',
-            template: templateSource.template || null,
-            cache: 0,
-            build: templateSource.build || {
-                required: false,
-                compiler: 'default'
-            },
-            bindables: Object.assign({}, Type.bindables, templateSource.bindables),
-            instructions: templateSource.instructions ? PLATFORM.toArray(templateSource.instructions) : PLATFORM.emptyArray,
-            dependencies: templateSource.dependencies ? PLATFORM.toArray(templateSource.dependencies) : PLATFORM.emptyArray,
-            surrogates: templateSource.surrogates ? PLATFORM.toArray(templateSource.surrogates) : PLATFORM.emptyArray,
-            containerless: templateSource.containerless || Type.containerless || false,
-            shadowOptions: templateSource.shadowOptions || Type.shadowOptions || null,
-            hasSlots: templateSource.hasSlots || false
-        };
+    function unmount() {
+        this.$projector.take(this.$nodes);
     }
     function determineProjector($customElement, host, definition) {
         if (definition.shadowOptions || definition.hasSlots) {
@@ -5794,7 +6595,7 @@ var au = (function (exports) {
             nodes.appendTo(this.host);
             this.project = PLATFORM.noop;
         }
-        onElementRemoved() {
+        take(nodes) {
             // No special behavior is required because the host element removal
             // will result in the projected nodes being removed, since they are in
             // the ShadowDOM.
@@ -5803,7 +6604,6 @@ var au = (function (exports) {
     class ContainerlessProjector {
         constructor($customElement, host) {
             this.$customElement = $customElement;
-            this.requiresMount = true;
             if (host.childNodes.length) {
                 this.childNodes = PLATFORM.toArray(host.childNodes);
             }
@@ -5826,14 +6626,14 @@ var au = (function (exports) {
             return parentEncapsulationSource;
         }
         project(nodes) {
-            if (this.requiresMount) {
-                this.requiresMount = false;
+            if (this.$customElement.$state & 128 /* needsMount */) {
+                this.$customElement.$state &= ~128 /* needsMount */;
                 nodes.insertBefore(this.host);
             }
         }
-        onElementRemoved() {
-            this.requiresMount = true;
-            this.$customElement.$nodes.remove();
+        take(nodes) {
+            this.$customElement.$state |= 128 /* needsMount */;
+            nodes.remove();
         }
     }
     class HostProjector {
@@ -5854,7 +6654,7 @@ var au = (function (exports) {
             nodes.appendTo(this.host);
             this.project = PLATFORM.noop;
         }
-        onElementRemoved() {
+        take(nodes) {
             // No special behavior is required because the host element removal
             // will result in the projected nodes being removed, since they are children.
         }
@@ -5883,194 +6683,10 @@ var au = (function (exports) {
     // will gather up all nodes between the start and end slot comments.
 
     /**
-     */
-    const IRenderable = DI.createInterface().noDefault();
-
-    // tslint:disable:no-any
-    const { toView: toView$2, oneTime: oneTime$2 } = BindingMode;
-    class MultiInterpolationBinding {
-        constructor(observerLocator, interpolation, target, targetProperty, mode, locator) {
-            this.observerLocator = observerLocator;
-            this.interpolation = interpolation;
-            this.target = target;
-            this.targetProperty = targetProperty;
-            this.mode = mode;
-            this.locator = locator;
-            this.$isBound = false;
-            this.$scope = null;
-            // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
-            // value converters and binding behaviors.
-            // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
-            // in which case the renderer will create the TextBinding directly
-            const expressions = interpolation.expressions;
-            const parts = this.parts = Array(expressions.length);
-            for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
-            }
-        }
-        $bind(flags, scope) {
-            if (this.$isBound) {
-                if (this.$scope === scope) {
-                    return;
-                }
-                this.$unbind(flags);
-            }
-            this.$isBound = true;
-            this.$scope = scope;
-            const parts = this.parts;
-            for (let i = 0, ii = parts.length; i < ii; ++i) {
-                parts[i].$bind(flags, scope);
-            }
-        }
-        $unbind(flags) {
-            if (!this.$isBound) {
-                return;
-            }
-            this.$isBound = false;
-            this.$scope = null;
-            const parts = this.parts;
-            for (let i = 0, ii = parts.length; i < ii; ++i) {
-                parts[i].$unbind(flags);
-            }
-        }
-    }
-    let InterpolationBinding = class InterpolationBinding {
-        constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
-            this.sourceExpression = sourceExpression;
-            this.interpolation = interpolation;
-            this.target = target;
-            this.targetProperty = targetProperty;
-            this.mode = mode;
-            this.observerLocator = observerLocator;
-            this.locator = locator;
-            this.isFirst = isFirst;
-            this.targetObserver = observerLocator.getAccessor(target, targetProperty);
-        }
-        updateTarget(value, flags) {
-            this.targetObserver.setValue(value, flags | BindingFlags.updateTargetInstance);
-        }
-        handleChange(newValue, previousValue, flags) {
-            if (!this.$isBound) {
-                return;
-            }
-            previousValue = this.targetObserver.getValue();
-            newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
-            if (newValue !== previousValue) {
-                this.updateTarget(newValue, flags);
-            }
-            if ((this.mode & oneTime$2) === 0) {
-                this.version++;
-                this.sourceExpression.connect(flags, this.$scope, this);
-                this.unobserve(false);
-            }
-        }
-        $bind(flags, scope) {
-            if (this.$isBound) {
-                if (this.$scope === scope) {
-                    return;
-                }
-                this.$unbind(flags);
-            }
-            this.$isBound = true;
-            this.$scope = scope;
-            const sourceExpression = this.sourceExpression;
-            if (sourceExpression.bind) {
-                sourceExpression.bind(flags, scope, this);
-            }
-            // since the interpolation already gets the whole value, we only need to let the first
-            // text binding do the update if there are multiple
-            if (this.isFirst) {
-                this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator), flags);
-            }
-            if ((this.mode & toView$2) > 0) {
-                sourceExpression.connect(flags, scope, this);
-            }
-        }
-        $unbind(flags) {
-            if (!this.$isBound) {
-                return;
-            }
-            this.$isBound = false;
-            const sourceExpression = this.sourceExpression;
-            if (sourceExpression.unbind) {
-                sourceExpression.unbind(flags, this.$scope, this);
-            }
-            this.$scope = null;
-            this.unobserve(true);
-        }
-    };
-    InterpolationBinding = __decorate([
-        connectable()
-    ], InterpolationBinding);
-
-    let LetBinding = class LetBinding {
-        constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
-            this.sourceExpression = sourceExpression;
-            this.targetProperty = targetProperty;
-            this.observerLocator = observerLocator;
-            this.locator = locator;
-            this.toViewModel = toViewModel;
-            this.$isBound = false;
-            this.$scope = null;
-            this.target = null;
-        }
-        handleChange(newValue, previousValue, flags) {
-            if (!this.$isBound) {
-                return;
-            }
-            if (flags & BindingFlags.updateTargetInstance) {
-                const { target, targetProperty } = this;
-                previousValue = target[targetProperty];
-                newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
-                if (newValue !== previousValue) {
-                    target[targetProperty] = newValue;
-                }
-                return;
-            }
-            throw Reporter.error(15, flags);
-        }
-        $bind(flags, scope) {
-            if (this.$isBound) {
-                if (this.$scope === scope) {
-                    return;
-                }
-                this.$unbind(flags);
-            }
-            this.$isBound = true;
-            this.$scope = scope;
-            this.target = this.toViewModel ? scope.bindingContext : scope.overrideContext;
-            const sourceExpression = this.sourceExpression;
-            if (sourceExpression.bind) {
-                sourceExpression.bind(flags, scope, this);
-            }
-            // sourceExpression might have been changed during bind
-            this.target[this.targetProperty] = this.sourceExpression.evaluate(BindingFlags.fromBind, scope, this.locator);
-            this.sourceExpression.connect(flags, scope, this);
-        }
-        $unbind(flags) {
-            if (!this.$isBound) {
-                return;
-            }
-            this.$isBound = false;
-            const sourceExpression = this.sourceExpression;
-            if (sourceExpression.unbind) {
-                sourceExpression.unbind(flags, this.$scope, this);
-            }
-            this.$scope = null;
-            this.unobserve(true);
-        }
-    };
-    LetBinding = __decorate([
-        connectable()
-    ], LetBinding);
-
-    /**
      * Decorator: Indicates that the decorated class is a custom attribute.
      */
-    function customAttribute(nameOrSource) {
-        return function (target) {
-            return CustomAttributeResource.define(nameOrSource, target);
-        };
+    function customAttribute(nameOrDef) {
+        return target => CustomAttributeResource.define(nameOrDef, target);
     }
     /**
      * Decorator: Applied to custom attributes. Indicates that whatever element the
@@ -6078,27 +6694,17 @@ var au = (function (exports) {
      * attribute controls the instantiation of the template.
      */
     function templateController(nameOrDef) {
-        return function (target) {
-            let def;
-            if (typeof nameOrDef === 'string') {
-                def = {
-                    name: nameOrDef,
-                    isTemplateController: true
-                };
-            }
-            else {
-                def = Object.assign({ isTemplateController: true }, nameOrDef);
-            }
-            return CustomAttributeResource.define(def, target);
-        };
+        return target => CustomAttributeResource.define(typeof nameOrDef === 'string'
+            ? { isTemplateController: true, name: nameOrDef }
+            : Object.assign({ isTemplateController: true }, nameOrDef), target);
     }
     const CustomAttributeResource = {
         name: 'custom-attribute',
         keyFrom(name) {
             return `${this.name}:${name}`;
         },
-        isType(type) {
-            return type.kind === this;
+        isType(Type) {
+            return Type.kind === this;
         },
         define(nameOrSource, ctor) {
             const Type = ctor;
@@ -6122,72 +6728,97 @@ var au = (function (exports) {
         const aliases = description.aliases;
         container.register(Registration.transient(resourceKey, this));
         for (let i = 0, ii = aliases.length; i < ii; ++i) {
-            container.register(Registration.alias(resourceKey, aliases[i]));
+            const aliasKey = CustomAttributeResource.keyFrom(aliases[i]);
+            container.register(Registration.alias(resourceKey, aliasKey));
         }
     }
     function hydrate$1(renderingEngine) {
-        this.$isAttached = false;
-        this.$isBound = false;
+        const Type = this.constructor;
+        this.$state = 0 /* none */;
         this.$scope = null;
-        renderingEngine.applyRuntimeBehavior(this.constructor, this);
-        if (this.$behavior.hasCreated) {
+        renderingEngine.applyRuntimeBehavior(Type, this);
+        if (this.$behavior.hooks & 2 /* hasCreated */) {
             this.created();
         }
     }
     function bind$1(flags, scope) {
-        if (this.$isBound) {
+        flags |= BindingFlags.fromBind;
+        if (this.$state & 2 /* isBound */) {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | BindingFlags.fromBind);
+            this.$unbind(flags);
         }
-        const behavior = this.$behavior;
+        // add isBinding flag
+        this.$state |= 1 /* isBinding */;
+        const hooks = this.$behavior.hooks;
+        if (hooks & 8 /* hasBound */) {
+            BindLifecycle.queueBound(this, flags);
+        }
         this.$scope = scope;
-        if (behavior.hasBinding) {
-            this.binding(flags | BindingFlags.fromBind);
+        if (hooks & 4 /* hasBinding */) {
+            this.binding(flags);
         }
-        this.$isBound = true;
-        if (behavior.hasBound) {
-            this.bound(flags | BindingFlags.fromBind, scope);
+        // add isBound flag and remove isBinding flag
+        this.$state |= 2 /* isBound */;
+        this.$state &= ~1 /* isBinding */;
+        if (hooks & 8 /* hasBound */) {
+            BindLifecycle.unqueueBound();
         }
     }
     function unbind$1(flags) {
-        if (this.$isBound) {
-            const behavior = this.$behavior;
-            if (behavior.hasUnbinding) {
-                this.unbinding(flags | BindingFlags.fromUnbind);
+        if (this.$state & 2 /* isBound */) {
+            // add isUnbinding flag
+            this.$state |= 32 /* isUnbinding */;
+            const hooks = this.$behavior.hooks;
+            flags |= BindingFlags.fromUnbind;
+            if (hooks & 512 /* hasUnbound */) {
+                BindLifecycle.queueUnbound(this, flags);
             }
-            this.$isBound = false;
-            if (this.$behavior.hasUnbound) {
-                this.unbound(flags | BindingFlags.fromUnbind);
+            if (hooks & 256 /* hasUnbinding */) {
+                this.unbinding(flags);
+            }
+            // remove isBound and isUnbinding flags
+            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
+            if (hooks & 512 /* hasUnbound */) {
+                BindLifecycle.unqueueUnbound();
             }
         }
     }
     function attach$1(encapsulationSource, lifecycle) {
-        if (this.$isAttached) {
+        if (this.$state & 8 /* isAttached */) {
             return;
         }
-        if (this.$behavior.hasAttaching) {
+        // add isAttaching flag
+        this.$state |= 4 /* isAttaching */;
+        const hooks = this.$behavior.hooks;
+        if (hooks & 16 /* hasAttaching */) {
             this.attaching(encapsulationSource, lifecycle);
         }
-        this.$isAttached = true;
-        if (this.$behavior.hasAttached) {
+        // add isAttached flag, remove isAttaching flag
+        this.$state |= 8 /* isAttached */;
+        this.$state &= ~4 /* isAttaching */;
+        if (hooks & 32 /* hasAttached */) {
             lifecycle.queueAttachedCallback(this);
         }
     }
     function detach$1(lifecycle) {
-        if (this.$isAttached) {
-            if (this.$behavior.hasDetaching) {
+        if (this.$state & 8 /* isAttached */) {
+            // add isDetaching flag
+            this.$state |= 16 /* isDetaching */;
+            const hooks = this.$behavior.hooks;
+            if (hooks & 64 /* hasDetaching */) {
                 this.detaching(lifecycle);
             }
-            this.$isAttached = false;
-            if (this.$behavior.hasDetached) {
+            // remove isAttached and isDetaching flags
+            this.$state &= ~(8 /* isAttached */ | 16 /* isDetaching */);
+            if (hooks & 128 /* hasDetached */) {
                 lifecycle.queueDetachedCallback(this);
             }
         }
     }
     function cache$1() {
-        if (this.$behavior.hasCaching) {
+        if (this.$behavior.hooks & 2048 /* hasCaching */) {
             this.caching();
         }
     }
@@ -6272,55 +6903,55 @@ var au = (function (exports) {
                 const currentType = current.type;
                 this[currentType](renderable, component, current);
             }
-            renderable.$bindables.push(component);
-            renderable.$attachables.push(component);
+            addBindable(renderable, component);
+            addAttachable(renderable, component);
         }
         ["a" /* textBinding */](renderable, target, instruction) {
             const next = target.nextSibling;
             DOM.treatAsNonWhitespace(next);
             DOM.remove(target);
-            const from = instruction.from;
-            const expr = (from.$kind ? from : this.parser.parse(from, 2048 /* Interpolation */));
+            const $from = instruction.from;
+            const expr = ($from.$kind ? $from : this.parser.parse($from, 2048 /* Interpolation */));
             if (expr.isMulti) {
-                renderable.$bindables.push(new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, this.context));
+                addBindable(renderable, new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, this.context));
             }
             else {
-                renderable.$bindables.push(new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, this.context, true));
+                addBindable(renderable, new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, this.context, true));
             }
         }
         ["b" /* interpolation */](renderable, target, instruction) {
-            const from = instruction.from;
-            const expr = (from.$kind ? from : this.parser.parse(from, 2048 /* Interpolation */));
+            const $from = instruction.from;
+            const expr = ($from.$kind ? $from : this.parser.parse($from, 2048 /* Interpolation */));
             if (expr.isMulti) {
-                renderable.$bindables.push(new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.to, BindingMode.toView, this.context));
+                addBindable(renderable, new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.to, BindingMode.toView, this.context));
             }
             else {
-                renderable.$bindables.push(new InterpolationBinding(expr.firstExpression, expr, target, instruction.to, BindingMode.toView, this.observerLocator, this.context, true));
+                addBindable(renderable, new InterpolationBinding(expr.firstExpression, expr, target, instruction.to, BindingMode.toView, this.observerLocator, this.context, true));
             }
         }
         ["c" /* propertyBinding */](renderable, target, instruction) {
-            const from = instruction.from;
-            renderable.$bindables.push(new Binding(from.$kind ? from : this.parser.parse(from, 48 /* IsPropertyCommand */ | instruction.mode), target, instruction.to, instruction.mode, this.observerLocator, this.context));
+            const $from = instruction.from;
+            addBindable(renderable, new Binding($from.$kind ? $from : this.parser.parse($from, 48 /* IsPropertyCommand */ | instruction.mode), target, instruction.to, instruction.mode, this.observerLocator, this.context));
         }
         ["d" /* iteratorBinding */](renderable, target, instruction) {
-            const from = instruction.from;
-            renderable.$bindables.push(new Binding(from.$kind ? from : this.parser.parse(from, 539 /* ForCommand */), target, instruction.to, BindingMode.toView, this.observerLocator, this.context));
+            const $from = instruction.from;
+            addBindable(renderable, new Binding($from.$kind ? $from : this.parser.parse($from, 539 /* ForCommand */), target, instruction.to, BindingMode.toView, this.observerLocator, this.context));
         }
         ["e" /* listenerBinding */](renderable, target, instruction) {
-            const from = instruction.from;
-            renderable.$bindables.push(new Listener(instruction.to, instruction.strategy, from.$kind ? from : this.parser.parse(from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */)), target, instruction.preventDefault, this.eventManager, this.context));
+            const $from = instruction.from;
+            addBindable(renderable, new Listener(instruction.to, instruction.strategy, $from.$kind ? $from : this.parser.parse($from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */)), target, instruction.preventDefault, this.eventManager, this.context));
         }
         ["f" /* callBinding */](renderable, target, instruction) {
-            const from = instruction.from;
-            renderable.$bindables.push(new Call(from.$kind ? from : this.parser.parse(from, 153 /* CallCommand */), target, instruction.to, this.observerLocator, this.context));
+            const $from = instruction.from;
+            addBindable(renderable, new Call($from.$kind ? $from : this.parser.parse($from, 153 /* CallCommand */), target, instruction.to, this.observerLocator, this.context));
         }
         ["g" /* refBinding */](renderable, target, instruction) {
-            const from = instruction.from;
-            renderable.$bindables.push(new Ref(from.$kind ? from : this.parser.parse(from, 1280 /* IsRef */), target, this.context));
+            const $from = instruction.from;
+            addBindable(renderable, new Ref($from.$kind ? $from : this.parser.parse($from, 1280 /* IsRef */), target, this.context));
         }
         ["h" /* stylePropertyBinding */](renderable, target, instruction) {
-            const from = instruction.from;
-            renderable.$bindables.push(new Binding(from.$kind ? from : this.parser.parse(from, 48 /* IsPropertyCommand */ | BindingMode.toView), target.style, instruction.to, BindingMode.toView, this.observerLocator, this.context));
+            const $from = instruction.from;
+            addBindable(renderable, new Binding($from.$kind ? $from : this.parser.parse($from, 48 /* IsPropertyCommand */ | BindingMode.toView), target.style, instruction.to, BindingMode.toView, this.observerLocator, this.context));
         }
         ["i" /* setProperty */](renderable, target, instruction) {
             target[instruction.to] = instruction.value;
@@ -6345,8 +6976,8 @@ var au = (function (exports) {
                 const current = childInstructions[i];
                 this[current.type](renderable, component, current);
             }
-            renderable.$bindables.push(component);
-            renderable.$attachables.push(component);
+            addBindable(renderable, component);
+            addAttachable(renderable, component);
             operation.dispose();
         }
         ["m" /* hydrateTemplateController */](renderable, target, instruction, parts) {
@@ -6357,14 +6988,14 @@ var au = (function (exports) {
             const component = context.get(CustomAttributeResource.keyFrom(instruction.res));
             component.$hydrate(this.renderingEngine);
             if (instruction.link) {
-                component.link(renderable.$attachables[renderable.$attachables.length - 1]);
+                component.link(renderable.$attachableTail);
             }
             for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
                 const current = childInstructions[i];
                 this[current.type](renderable, component, current);
             }
-            renderable.$bindables.push(component);
-            renderable.$attachables.push(component);
+            addBindable(renderable, component);
+            addAttachable(renderable, component);
             operation.dispose();
         }
         ["z" /* renderStrategy */](renderable, target, instruction) {
@@ -6384,41 +7015,61 @@ var au = (function (exports) {
             const toViewModel = instruction.toViewModel;
             for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
                 const childInstruction = childInstructions[i];
-                const from = childInstruction.from;
-                renderable.$bindables.push(new LetBinding(from.$kind ? from : this.parser.parse(from, 48 /* IsPropertyCommand */), childInstruction.to, this.observerLocator, this.context, toViewModel));
+                const $from = childInstruction.from;
+                addBindable(renderable, new LetBinding($from.$kind ? $from : this.parser.parse($from, 48 /* IsPropertyCommand */), childInstruction.to, this.observerLocator, this.context, toViewModel));
             }
         }
     }
 
     /** @internal */
     class RuntimeBehavior {
-        constructor() {
-            this.hasCreated = false;
-            this.hasBinding = false;
-            this.hasBound = false;
-            this.hasAttaching = false;
-            this.hasAttached = false;
-            this.hasDetaching = false;
-            this.hasDetached = false;
-            this.hasUnbinding = false;
-            this.hasUnbound = false;
-            this.hasRender = false;
-            this.hasCaching = false;
-        }
+        constructor() { }
         static create(Component, instance) {
             const behavior = new RuntimeBehavior();
+            // Pre-setting the properties for the lifecycle queues (to null) is to help generate
+            // fewer variations in property declaration order and makes it easier for the browser
+            // to perform optimizations via generated hidden classes.
+            // It also allows us to perform strict null checks which is more efficient than falsey
+            // value coercion
             behavior.bindables = Component.description.bindables;
-            behavior.hasCreated = 'created' in instance;
-            behavior.hasBinding = 'binding' in instance;
-            behavior.hasBound = 'bound' in instance;
-            behavior.hasAttaching = 'attaching' in instance;
-            behavior.hasAttached = 'attached' in instance;
-            behavior.hasDetaching = 'detaching' in instance;
-            behavior.hasDetached = 'detached' in instance;
-            behavior.hasUnbinding = 'unbinding' in instance;
-            behavior.hasUnbound = 'unbound' in instance;
-            behavior.hasRender = 'render' in instance;
-            behavior.hasCaching = 'caching' in instance;
+            behavior.hooks = 0;
+            if ('created' in instance)
+                behavior.hooks |= 2 /* hasCreated */;
+            if ('binding' in instance)
+                behavior.hooks |= 4 /* hasBinding */;
+            if ('bound' in instance) {
+                behavior.hooks |= 8 /* hasBound */;
+                instance['$boundFlags'] = 0;
+                instance['$nextBound'] = null;
+            }
+            if ('attaching' in instance)
+                behavior.hooks |= 16 /* hasAttaching */;
+            if ('attached' in instance) {
+                behavior.hooks |= 32 /* hasAttached */;
+                instance['$nextAttached'] = null;
+            }
+            if ('detaching' in instance)
+                behavior.hooks |= 64 /* hasDetaching */;
+            if ('detached' in instance) {
+                behavior.hooks |= 128 /* hasDetached */;
+                instance['$nextDetached'] = null;
+            }
+            if ('unbinding' in instance)
+                behavior.hooks |= 256 /* hasUnbinding */;
+            if ('unbound' in instance) {
+                behavior.hooks |= 512 /* hasUnbound */;
+                instance['$unboundFlags'] = 0;
+                instance['$nextUnbound'] = null;
+            }
+            if ('render' in instance)
+                behavior.hooks |= 1024 /* hasRender */;
+            if ('caching' in instance)
+                behavior.hooks |= 2048 /* hasCaching */;
+            if (behavior.hooks === 0)
+                behavior.hooks |= 1 /* none */;
+            if ('$mount' in Component.prototype) {
+                instance['$nextMount'] = null;
+            }
             return behavior;
         }
         applyTo(instance, changeSet) {
@@ -6517,33 +7168,45 @@ var au = (function (exports) {
         return components;
     }
 
+    const ITemplateCompiler = DI.createInterface().noDefault();
+    var ViewCompileFlags;
+    (function (ViewCompileFlags) {
+        ViewCompileFlags[ViewCompileFlags["none"] = 1] = "none";
+        ViewCompileFlags[ViewCompileFlags["surrogate"] = 2] = "surrogate";
+        ViewCompileFlags[ViewCompileFlags["shadowDOM"] = 4] = "shadowDOM";
+    })(ViewCompileFlags || (ViewCompileFlags = {}));
+
     const IViewFactory = DI.createInterface().noDefault();
     /*@internal*/
     class View {
-        constructor(factory, template) {
-            this.factory = factory;
-            this.template = template;
-            this.$bindables = [];
-            this.$attachables = [];
+        constructor(cache) {
+            this.cache = cache;
+            this.$bindableHead = null;
+            this.$bindableTail = null;
+            this.$nextBind = null;
+            this.$prevBind = null;
+            this.$attachableHead = null;
+            this.$attachableTail = null;
+            this.$nextAttach = null;
+            this.$prevAttach = null;
+            // Pre-setting to null for performance (see RuntimeBehavior.create())
+            this.$nextMount = null;
+            this.$state = 0 /* none */;
             this.$scope = null;
-            this.$nodes = null;
-            this.$isBound = false;
-            this.$isAttached = false;
-            this.requiresNodeAdd = false;
             this.isFree = false;
-            this.$nodes = this.template.createFor(this);
         }
-        mount(location) {
+        hold(location) {
             if (!location.parentNode) { // unmet invariant: location must be a child of some other node
                 throw Reporter.error(60); // TODO: organize error codes
             }
             this.location = location;
-            // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
-            // Just to reduce the amount of potential things to track down and check if something fails.
-            // When everything is working and tested, we can add this optimization (and others) back in.
-            //if (this.$nodes.lastChild && this.$nodes.lastChild.nextSibling !== location) {
-            this.requiresNodeAdd = true;
-            //}
+            const lastChild = this.$nodes.lastChild;
+            if (lastChild && lastChild.nextSibling === location) {
+                this.$state &= ~128 /* needsMount */;
+            }
+            else {
+                this.$state |= 128 /* needsMount */;
+            }
         }
         lockScope(scope) {
             this.$scope = scope;
@@ -6551,79 +7214,99 @@ var au = (function (exports) {
         }
         release() {
             this.isFree = true;
-            if (this.$isAttached) {
-                return this.factory.canReturnToCache(this);
+            if (this.$state & 8 /* isAttached */) {
+                return this.cache.canReturnToCache(this);
             }
-            else {
-                return this.$removeNodes();
-            }
+            return this.$unmount();
         }
         $bind(flags, scope) {
-            if (this.$isBound) {
+            flags |= BindingFlags.fromBind;
+            if (this.$state & 2 /* isBound */) {
                 if (this.$scope === scope) {
                     return;
                 }
                 this.$unbind(flags);
             }
+            // add isBinding flag
+            this.$state |= 1 /* isBinding */;
             this.$scope = scope;
-            const bindables = this.$bindables;
-            for (let i = 0, ii = bindables.length; i < ii; ++i) {
-                bindables[i].$bind(flags, scope);
+            let current = this.$bindableHead;
+            while (current !== null) {
+                current.$bind(flags, scope);
+                current = current.$nextBind;
             }
-            this.$isBound = true;
-        }
-        $addNodes() {
-            this.requiresNodeAdd = false;
-            this.$nodes.insertBefore(this.location);
-        }
-        $removeNodes() {
-            this.requiresNodeAdd = true;
-            this.$nodes.remove();
-            if (this.isFree) {
-                this.isFree = false;
-                return this.factory.tryReturnToCache(this);
-            }
-            return false;
-        }
-        $attach(encapsulationSource, lifecycle) {
-            if (this.$isAttached) {
-                return;
-            }
-            const attachables = this.$attachables;
-            for (let i = 0, ii = attachables.length; i < ii; ++i) {
-                attachables[i].$attach(encapsulationSource, lifecycle);
-            }
-            if (this.requiresNodeAdd) {
-                lifecycle.queueAddNodes(this);
-            }
-            this.$isAttached = true;
-        }
-        $detach(lifecycle) {
-            if (this.$isAttached) {
-                lifecycle.queueRemoveNodes(this);
-                const attachables = this.$attachables;
-                let i = attachables.length;
-                while (i--) {
-                    attachables[i].$detach(lifecycle);
-                }
-                this.$isAttached = false;
-            }
+            // add isBound flag and remove isBinding flag
+            this.$state |= 2 /* isBound */;
+            this.$state &= ~1 /* isBinding */;
         }
         $unbind(flags) {
-            if (this.$isBound) {
-                const bindables = this.$bindables;
-                let i = bindables.length;
-                while (i--) {
-                    bindables[i].$unbind(flags);
+            if (this.$state & 2 /* isBound */) {
+                // add isUnbinding flag
+                this.$state |= 32 /* isUnbinding */;
+                flags |= BindingFlags.fromUnbind;
+                let current = this.$bindableTail;
+                while (current !== null) {
+                    current.$unbind(flags);
+                    current = current.$prevBind;
                 }
-                this.$isBound = false;
+                // remove isBound and isUnbinding flags
+                this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
                 this.$scope = null;
             }
         }
+        $attach(encapsulationSource, lifecycle) {
+            if (this.$state & 8 /* isAttached */) {
+                return;
+            }
+            // add isAttaching flag
+            this.$state |= 4 /* isAttaching */;
+            let current = this.$attachableHead;
+            while (current !== null) {
+                current.$attach(encapsulationSource, lifecycle);
+                current = current.$nextAttach;
+            }
+            if (this.$state & 128 /* needsMount */) {
+                lifecycle.queueMount(this);
+            }
+            // add isAttached flag, remove isAttaching flag
+            this.$state |= 8 /* isAttached */;
+            this.$state &= ~4 /* isAttaching */;
+        }
+        $detach(lifecycle) {
+            if (this.$state & 8 /* isAttached */) {
+                // add isDetaching flag
+                this.$state |= 16 /* isDetaching */;
+                lifecycle.queueUnmount(this);
+                let current = this.$attachableTail;
+                while (current !== null) {
+                    current.$detach(lifecycle);
+                    current = current.$prevAttach;
+                }
+                // remove isAttached and isDetaching flags
+                this.$state &= ~(8 /* isAttached */ | 16 /* isDetaching */);
+            }
+        }
+        $mount() {
+            this.$state &= ~128 /* needsMount */;
+            this.$nodes.insertBefore(this.location);
+        }
+        $unmount() {
+            this.$state |= 128 /* needsMount */;
+            this.$nodes.remove();
+            if (this.isFree) {
+                this.isFree = false;
+                if (this.cache.tryReturnToCache(this)) {
+                    this.$state |= 64 /* isCached */;
+                    return true;
+                }
+            }
+            return false;
+        }
         $cache() {
-            const attachables = this.$attachables;
-            for (let i = 0, ii = attachables.length; i < ii; ++i) {
-                attachables[i].$cache();
+            let current = this.$attachableTail;
+            while (current !== null) {
+                current.$cache();
+                current = current.$prevAttach;
             }
         }
     }
@@ -6669,25 +7352,167 @@ var au = (function (exports) {
         }
         create() {
             const cache = this.cache;
+            let view;
             if (cache !== null && cache.length > 0) {
-                return cache.pop();
+                view = cache.pop();
+                view.$state &= ~64 /* isCached */;
+                return view;
             }
-            return new View(this, this.template);
+            view = new View(this);
+            this.template.render(view);
+            if (!view.$nodes) {
+                throw Reporter.error(90);
+            }
+            return view;
         }
     }
     ViewFactory.maxCacheSize = 0xFFFF;
     function lockedBind(flags) {
-        if (this.$isBound) {
+        if (this.$state & 2 /* isBound */) {
             return;
         }
+        flags |= BindingFlags.fromBind;
         const lockedScope = this.$scope;
-        const bindables = this.$bindables;
-        for (let i = 0, ii = bindables.length; i < ii; ++i) {
-            bindables[i].$bind(flags, lockedScope);
+        let current = this.$bindableHead;
+        while (current !== null) {
+            current.$bind(flags, lockedScope);
+            current = current.$nextBind;
         }
-        this.$isBound = true;
+        this.$state |= 2 /* isBound */;
     }
 
+    const IRenderingEngine = DI.createInterface()
+        .withDefault(x => x.singleton(RenderingEngine));
+    const defaultCompilerName = 'default';
+    let RenderingEngine = 
+    /*@internal*/
+    class RenderingEngine {
+        constructor(container, changeSet, observerLocator, eventManager, parser, templateCompilers) {
+            this.container = container;
+            this.changeSet = changeSet;
+            this.observerLocator = observerLocator;
+            this.eventManager = eventManager;
+            this.parser = parser;
+            this.templateLookup = new Map();
+            this.factoryLookup = new Map();
+            this.behaviorLookup = new Map();
+            this.compilers = templateCompilers.reduce((acc, item) => {
+                acc[item.name] = item;
+                return acc;
+            }, Object.create(null));
+        }
+        getElementTemplate(definition, componentType) {
+            if (!definition) {
+                return null;
+            }
+            let found = this.templateLookup.get(definition);
+            if (!found) {
+                found = this.templateFromSource(definition);
+                //If the element has a view, support Recursive Components by adding self to own view template container.
+                if (found.renderContext !== null && componentType) {
+                    componentType.register(found.renderContext);
+                }
+                this.templateLookup.set(definition, found);
+            }
+            return found;
+        }
+        getViewFactory(definition, parentContext) {
+            if (!definition) {
+                return null;
+            }
+            let factory = this.factoryLookup.get(definition);
+            if (!factory) {
+                const validSource = buildTemplateDefinition(null, definition);
+                const template = this.templateFromSource(validSource, parentContext);
+                factory = new ViewFactory(validSource.name, template);
+                factory.setCacheSize(validSource.cache, true);
+                this.factoryLookup.set(definition, factory);
+            }
+            return factory;
+        }
+        applyRuntimeBehavior(Type, instance) {
+            let found = this.behaviorLookup.get(Type);
+            if (!found) {
+                found = RuntimeBehavior.create(Type, instance);
+                this.behaviorLookup.set(Type, found);
+            }
+            found.applyTo(instance, this.changeSet);
+        }
+        createRenderer(context) {
+            return new Renderer(context, this.observerLocator, this.eventManager, this.parser, this);
+        }
+        templateFromSource(definition, parentContext) {
+            parentContext = parentContext || this.container;
+            if (definition && definition.template) {
+                if (definition.build.required) {
+                    const compilerName = definition.build.compiler || defaultCompilerName;
+                    const compiler = this.compilers[compilerName];
+                    if (!compiler) {
+                        throw Reporter.error(20, compilerName);
+                    }
+                    definition = compiler.compile(definition, new RuntimeCompilationResources(parentContext), ViewCompileFlags.surrogate);
+                }
+                return new CompiledTemplate(this, parentContext, definition);
+            }
+            return noViewTemplate;
+        }
+    };
+    RenderingEngine = __decorate([
+        inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
+        /*@internal*/
+    ], RenderingEngine);
+    /*@internal*/
+    class RuntimeCompilationResources {
+        constructor(context) {
+            this.context = context;
+        }
+        find(kind, name) {
+            const key = kind.keyFrom(name);
+            const resolver = this.context.getResolver(key, false);
+            if (resolver !== null && resolver.getFactory) {
+                const factory = resolver.getFactory(this.context);
+                if (factory !== null) {
+                    return factory.type.description || null;
+                }
+            }
+            return null;
+        }
+        create(kind, name) {
+            const key = kind.keyFrom(name);
+            if (this.context.has(key, false)) {
+                return this.context.get(key) || null;
+            }
+            return null;
+        }
+    }
+    // This is the main implementation of ITemplate.
+    // It is used to create instances of IView based on a compiled TemplateDefinition.
+    // TemplateDefinitions are hand-coded today, but will ultimately be the output of the
+    // TemplateCompiler either through a JIT or AOT process.
+    // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
+    // and create instances of it on demand.
+    /*@internal*/
+    class CompiledTemplate {
+        constructor(renderingEngine, parentRenderContext, templateDefinition) {
+            this.templateDefinition = templateDefinition;
+            this.factory = NodeSequenceFactory.createFor(templateDefinition.template);
+            this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
+        }
+        render(renderable, host, parts) {
+            const nodes = renderable.$nodes = this.factory.createNodeSequence();
+            renderable.$context = this.renderContext;
+            this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, parts);
+        }
+    }
+    // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
+    /*@internal*/
+    const noViewTemplate = {
+        renderContext: null,
+        render(renderable) {
+            renderable.$nodes = NodeSequence.empty;
+            renderable.$context = null;
+        }
+    };
     function createRenderContext(renderingEngine, parentRenderContext, dependencies) {
         const context = parentRenderContext.createChild();
         const renderableProvider = new InstanceProvider();
@@ -6774,462 +7599,29 @@ var au = (function (exports) {
             this.replacements = null;
         }
     }
-
-    // This is the main implementation of ITemplate.
-    // It is used to create instances of IView based on a compiled TemplateDefinition.
-    // TemplateDefinitions are hand-coded today, but will ultimately be the output of the
-    // TemplateCompiler either through a JIT or AOT process.
-    // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
-    // and create instances of it on demand.
-    /*@internal*/
-    class CompiledTemplate {
-        constructor(renderingEngine, parentRenderContext, templateDefinition) {
-            this.templateDefinition = templateDefinition;
-            this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
-            this.createNodeSequence = DOM.createNodeSequenceFactory(templateDefinition.template);
+    const IRenderable = DI.createInterface().noDefault();
+    function addBindable(renderable, bindable) {
+        bindable.$prevBind = renderable.$bindableTail;
+        bindable.$nextBind = null;
+        if (renderable.$bindableTail === null) {
+            renderable.$bindableHead = bindable;
         }
-        createFor(renderable, host, replacements) {
-            const nodes = this.createNodeSequence();
-            this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, replacements);
-            return nodes;
+        else {
+            renderable.$bindableTail.$nextBind = bindable;
         }
+        renderable.$bindableTail = bindable;
     }
-    // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
-    /*@internal*/
-    const noViewTemplate = {
-        renderContext: null,
-        createFor(renderable) {
-            return NodeSequence.empty;
+    function addAttachable(renderable, attachable) {
+        attachable.$prevAttach = renderable.$attachableTail;
+        attachable.$nextAttach = null;
+        if (renderable.$attachableTail === null) {
+            renderable.$attachableHead = attachable;
         }
-    };
-
-    const ITemplateCompiler = DI.createInterface().noDefault();
-
-    var ViewCompileFlags;
-    (function (ViewCompileFlags) {
-        ViewCompileFlags[ViewCompileFlags["none"] = 1] = "none";
-        ViewCompileFlags[ViewCompileFlags["surrogate"] = 2] = "surrogate";
-        ViewCompileFlags[ViewCompileFlags["shadowDOM"] = 4] = "shadowDOM";
-    })(ViewCompileFlags || (ViewCompileFlags = {}));
-
-    const IRenderingEngine = DI.createInterface()
-        .withDefault(x => x.singleton(RenderingEngine));
-    const defaultCompilerName = 'default';
-    let RenderingEngine = 
-    /*@internal*/
-    class RenderingEngine {
-        constructor(container, changeSet, observerLocator, eventManager, parser, templateCompilers) {
-            this.container = container;
-            this.changeSet = changeSet;
-            this.observerLocator = observerLocator;
-            this.eventManager = eventManager;
-            this.parser = parser;
-            this.templateLookup = new Map();
-            this.factoryLookup = new Map();
-            this.behaviorLookup = new Map();
-            this.compilers = templateCompilers.reduce((acc, item) => {
-                acc[item.name] = item;
-                return acc;
-            }, Object.create(null));
+        else {
+            renderable.$attachableTail.$nextAttach = attachable;
         }
-        getElementTemplate(definition, componentType) {
-            if (!definition) {
-                return null;
-            }
-            let found = this.templateLookup.get(definition);
-            if (!found) {
-                found = this.templateFromSource(definition);
-                //If the element has a view, support Recursive Components by adding self to own view template container.
-                if (found.renderContext !== null && componentType) {
-                    componentType.register(found.renderContext);
-                }
-                this.templateLookup.set(definition, found);
-            }
-            return found;
-        }
-        getViewFactory(definition, parentContext) {
-            if (!definition) {
-                return null;
-            }
-            let found = this.factoryLookup.get(definition);
-            if (!found) {
-                const validSource = createDefinition(definition);
-                found = this.factoryFromSource(validSource, parentContext);
-                this.factoryLookup.set(definition, found);
-            }
-            return found;
-        }
-        applyRuntimeBehavior(type, instance) {
-            let found = this.behaviorLookup.get(type);
-            if (!found) {
-                found = RuntimeBehavior.create(type, instance);
-                this.behaviorLookup.set(type, found);
-            }
-            found.applyTo(instance, this.changeSet);
-        }
-        createRenderer(context) {
-            return new Renderer(context, this.observerLocator, this.eventManager, this.parser, this);
-        }
-        factoryFromSource(definition, parentContext) {
-            const template = this.templateFromSource(definition, parentContext);
-            const factory = new ViewFactory(definition.name, template);
-            factory.setCacheSize(definition.cache, true);
-            return factory;
-        }
-        templateFromSource(definition, parentContext) {
-            parentContext = parentContext || this.container;
-            if (definition && definition.template) {
-                if (definition.build.required) {
-                    const compilerName = definition.build.compiler || defaultCompilerName;
-                    const compiler = this.compilers[compilerName];
-                    if (!compiler) {
-                        throw Reporter.error(20, compilerName);
-                    }
-                    definition = compiler.compile(definition, new RuntimeCompilationResources(parentContext), ViewCompileFlags.surrogate);
-                }
-                return new CompiledTemplate(this, parentContext, definition);
-            }
-            return noViewTemplate;
-        }
-    };
-    RenderingEngine = __decorate([
-        inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
-        /*@internal*/
-    ], RenderingEngine);
-    /*@internal*/
-    function createDefinition(definition) {
-        return {
-            name: definition.name || 'Unnamed Template',
-            template: definition.template,
-            cache: definition.cache || 0,
-            build: definition.build || {
-                required: false
-            },
-            bindables: definition.bindables || PLATFORM.emptyObject,
-            instructions: definition.instructions ? PLATFORM.toArray(definition.instructions) : PLATFORM.emptyArray,
-            dependencies: definition.dependencies ? PLATFORM.toArray(definition.dependencies) : PLATFORM.emptyArray,
-            surrogates: definition.surrogates ? PLATFORM.toArray(definition.surrogates) : PLATFORM.emptyArray,
-            containerless: definition.containerless || false,
-            shadowOptions: definition.shadowOptions || null,
-            hasSlots: definition.hasSlots || false
-        };
+        renderable.$attachableTail = attachable;
     }
-    /*@internal*/
-    class RuntimeCompilationResources {
-        constructor(context) {
-            this.context = context;
-        }
-        find(kind, name) {
-            const key = kind.keyFrom(name);
-            const resolver = this.context.getResolver(key, false);
-            if (resolver !== null && resolver.getFactory) {
-                const factory = resolver.getFactory(this.context);
-                if (factory !== null) {
-                    return factory.type.description || null;
-                }
-            }
-            return null;
-        }
-        create(kind, name) {
-            const key = kind.keyFrom(name);
-            if (this.context.has(key, false)) {
-                return this.context.get(key) || null;
-            }
-            return null;
-        }
-    }
-
-    var LifecycleFlags;
-    (function (LifecycleFlags) {
-        LifecycleFlags[LifecycleFlags["none"] = 1] = "none";
-        LifecycleFlags[LifecycleFlags["noTasks"] = 2] = "noTasks";
-        LifecycleFlags[LifecycleFlags["unbindAfterDetached"] = 4] = "unbindAfterDetached";
-    })(LifecycleFlags || (LifecycleFlags = {}));
-    class AggregateLifecycleTask {
-        constructor() {
-            this.done = true;
-            /*@internal*/
-            this.owner = null;
-            this.tasks = [];
-            this.waiter = null;
-            this.resolve = null;
-        }
-        addTask(task) {
-            if (!task.done) {
-                this.done = false;
-                this.tasks.push(task);
-                task.wait().then(() => this.tryComplete());
-            }
-        }
-        canCancel() {
-            if (this.done) {
-                return false;
-            }
-            return this.tasks.every(x => x.canCancel());
-        }
-        cancel() {
-            if (this.canCancel()) {
-                this.tasks.forEach(x => x.cancel());
-                this.done = false;
-            }
-        }
-        wait() {
-            if (this.waiter === null) {
-                if (this.done) {
-                    this.waiter = Promise.resolve();
-                }
-                else {
-                    // tslint:disable-next-line:promise-must-complete
-                    this.waiter = new Promise((resolve) => this.resolve = resolve);
-                }
-            }
-            return this.waiter;
-        }
-        tryComplete() {
-            if (this.done) {
-                return;
-            }
-            if (this.tasks.every(x => x.done)) {
-                this.complete(true);
-            }
-        }
-        complete(notCancelled) {
-            this.done = true;
-            if (notCancelled && this.owner !== null) {
-                this.owner.processAll();
-            }
-            if (this.resolve !== null) {
-                this.resolve();
-            }
-        }
-    }
-    /*@internal*/
-    class AttachLifecycleController {
-        constructor(changeSet, flags, parent = null, encapsulationSource = null) {
-            this.changeSet = changeSet;
-            this.flags = flags;
-            this.parent = parent;
-            this.encapsulationSource = encapsulationSource;
-            this.task = null;
-            this.addNodesTail = this.addNodesHead = this;
-            this.attachedTail = this.attachedHead = this;
-        }
-        attach(requestor) {
-            requestor.$attach(this.encapsulationSource, this);
-            return this;
-        }
-        queueAddNodes(requestor) {
-            this.addNodesTail.$nextAddNodes = requestor;
-            this.addNodesTail = requestor;
-        }
-        queueAttachedCallback(requestor) {
-            this.attachedTail.$nextAttached = requestor;
-            this.attachedTail = requestor;
-        }
-        registerTask(task) {
-            if (this.parent !== null) {
-                this.parent.registerTask(task);
-            }
-            else {
-                if (this.task === null) {
-                    this.task = new AggregateLifecycleTask();
-                }
-                this.task.addTask(task);
-            }
-        }
-        createChild() {
-            const lifecycle = new AttachLifecycleController(this.changeSet, this.flags, this);
-            this.queueAddNodes(lifecycle);
-            this.queueAttachedCallback(lifecycle);
-            return lifecycle;
-        }
-        end() {
-            if (this.task !== null && !this.task.done) {
-                this.task.owner = this;
-                return this.task;
-            }
-            this.processAll();
-            return Lifecycle.done;
-        }
-        /*@internal*/
-        processAll() {
-            this.changeSet.flushChanges();
-            this.processAddNodes();
-            this.processAttachedCallbacks();
-        }
-        /*@internal*/
-        $addNodes() {
-            if (this.parent !== null) {
-                this.processAddNodes();
-            }
-        }
-        /*@internal*/
-        attached() {
-            if (this.parent !== null) {
-                this.processAttachedCallbacks();
-            }
-        }
-        processAddNodes() {
-            let currentAddNodes = this.addNodesHead;
-            let nextAddNodes;
-            while (currentAddNodes) {
-                currentAddNodes.$addNodes();
-                nextAddNodes = currentAddNodes.$nextAddNodes;
-                currentAddNodes.$nextAddNodes = null;
-                currentAddNodes = nextAddNodes;
-            }
-        }
-        processAttachedCallbacks() {
-            let currentAttached = this.attachedHead;
-            let nextAttached;
-            while (currentAttached) {
-                currentAttached.attached();
-                nextAttached = currentAttached.$nextAttached;
-                currentAttached.$nextAttached = null;
-                currentAttached = nextAttached;
-            }
-        }
-    }
-    /*@internal*/
-    class DetachLifecycleController {
-        constructor(changeSet, flags, parent = null) {
-            this.changeSet = changeSet;
-            this.flags = flags;
-            this.parent = parent;
-            this.task = null;
-            this.allowNodeRemoves = true;
-            this.detachedTail = this.detachedHead = this;
-            this.removeNodesTail = this.removeNodesHead = this;
-        }
-        detach(requestor) {
-            this.allowNodeRemoves = true;
-            if (requestor.$isAttached) {
-                requestor.$detach(this);
-            }
-            else if (isNodeRemovable(requestor)) {
-                this.queueRemoveNodes(requestor);
-            }
-            return this;
-        }
-        queueRemoveNodes(requestor) {
-            if (this.allowNodeRemoves) {
-                this.removeNodesTail.$nextRemoveNodes = requestor;
-                this.removeNodesTail = requestor;
-                // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
-                // Just to reduce the amount of potential things to track down and check if something fails.
-                // When everything is working and tested, we can add this optimization (and others) back in.
-                //this.allowNodeRemoves = false; // only remove roots
-            }
-        }
-        queueDetachedCallback(requestor) {
-            this.detachedTail.$nextDetached = requestor;
-            this.detachedTail = requestor;
-        }
-        registerTask(task) {
-            if (this.parent !== null) {
-                this.parent.registerTask(task);
-            }
-            else {
-                if (this.task === null) {
-                    this.task = new AggregateLifecycleTask();
-                }
-                this.task.addTask(task);
-            }
-        }
-        createChild() {
-            const lifecycle = new DetachLifecycleController(this.changeSet, this.flags, this);
-            this.queueRemoveNodes(lifecycle);
-            this.queueDetachedCallback(lifecycle);
-            return lifecycle;
-        }
-        end() {
-            if (this.task !== null && !this.task.done) {
-                this.task.owner = this;
-                return this.task;
-            }
-            this.processAll();
-            return Lifecycle.done;
-        }
-        /*@internal*/
-        $removeNodes() {
-            if (this.parent !== null) {
-                this.processRemoveNodes();
-            }
-        }
-        /*@internal*/
-        detached() {
-            if (this.parent !== null) {
-                this.processDetachedCallbacks();
-            }
-        }
-        /*@internal*/
-        processAll() {
-            this.changeSet.flushChanges();
-            this.processRemoveNodes();
-            this.processDetachedCallbacks();
-        }
-        processRemoveNodes() {
-            let currentRemoveNodes = this.removeNodesHead;
-            if (this.flags & LifecycleFlags.unbindAfterDetached) {
-                while (currentRemoveNodes) {
-                    currentRemoveNodes.$removeNodes();
-                    currentRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
-                }
-            }
-            else {
-                let nextRemoveNodes;
-                while (currentRemoveNodes) {
-                    currentRemoveNodes.$removeNodes();
-                    nextRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
-                    currentRemoveNodes.$nextRemoveNodes = null;
-                    currentRemoveNodes = nextRemoveNodes;
-                }
-            }
-        }
-        processDetachedCallbacks() {
-            let currentDetached = this.detachedHead;
-            let nextDetached;
-            while (currentDetached) {
-                currentDetached.detached();
-                nextDetached = currentDetached.$nextDetached;
-                currentDetached.$nextDetached = null;
-                currentDetached = nextDetached;
-            }
-            if (this.flags & LifecycleFlags.unbindAfterDetached) {
-                let currentRemoveNodes = this.removeNodesHead;
-                let nextRemoveNodes;
-                while (currentRemoveNodes) {
-                    if (isUnbindable(currentRemoveNodes)) {
-                        currentRemoveNodes.$unbind(BindingFlags.fromUnbind);
-                    }
-                    nextRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
-                    currentRemoveNodes.$nextRemoveNodes = null;
-                    currentRemoveNodes = nextRemoveNodes;
-                }
-            }
-        }
-    }
-    function isNodeRemovable(requestor) {
-        return '$removeNodes' in requestor;
-    }
-    function isUnbindable(requestor) {
-        return '$unbind' in requestor;
-    }
-    const Lifecycle = {
-        beginAttach(changeSet, encapsulationSource, flags) {
-            return new AttachLifecycleController(changeSet, flags, null, encapsulationSource);
-        },
-        beginDetach(changeSet, flags) {
-            return new DetachLifecycleController(changeSet, flags);
-        },
-        done: {
-            done: true,
-            canCancel() { return false; },
-            // tslint:disable-next-line:no-empty
-            cancel() { },
-            wait() { return Promise.resolve(); }
-        }
-    };
 
     class CompositionCoordinator {
         constructor(changeSet) {
@@ -7462,7 +7854,7 @@ var au = (function (exports) {
         resolveView(subject) {
             const view = this.provideViewFor(subject);
             if (view) {
-                view.mount(this.$projector.host);
+                view.hold(this.$projector.host);
                 view.lockScope(this.renderable.$scope);
                 return view;
             }
@@ -7472,17 +7864,17 @@ var au = (function (exports) {
             if (!subject) {
                 return null;
             }
-            if ('template' in subject) { // Raw Template Definition
-                return this.renderingEngine.getViewFactory(subject, this.renderable.$context).create();
+            if ('lockScope' in subject) { // IView
+                return subject;
+            }
+            if ('createView' in subject) { // RenderPlan
+                return subject.createView(this.renderingEngine, this.renderable.$context);
             }
             if ('create' in subject) { // IViewFactory
                 return subject.create();
             }
-            if ('createView' in subject) { // PotentialRenderable
-                return subject.createView(this.renderingEngine, this.renderable.$context);
-            }
-            if ('lockScope' in subject) { // IView
-                return subject;
+            if ('template' in subject) { // Raw Template Definition
+                return this.renderingEngine.getViewFactory(subject, this.renderable.$context).create();
             }
             // Constructable (Custom Element Constructor)
             return createElement(subject, this.properties, this.$projector.children).createView(this.renderingEngine, this.renderable.$context);
@@ -7534,7 +7926,7 @@ var au = (function (exports) {
             this.coordinator.caching();
         }
         valueChanged(newValue, oldValue, flags) {
-            if ((flags & BindingFlags.fromFlushChanges) > 0) {
+            if (flags & BindingFlags.fromFlushChanges) {
                 const view = this.updateView();
                 this.coordinator.compose(view);
             }
@@ -7563,7 +7955,7 @@ var au = (function (exports) {
             if (view === null) {
                 view = factory.create();
             }
-            view.mount(this.location);
+            view.hold(this.location);
             return view;
         }
     };
@@ -7587,7 +7979,6 @@ var au = (function (exports) {
         inject(IViewFactory)
     ], Else);
 
-    const batchedChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.fromBind;
     let Repeat = class Repeat {
         constructor(changeSet, location, renderable, factory) {
             this.changeSet = changeSet;
@@ -7600,7 +7991,14 @@ var au = (function (exports) {
             this.hasPendingInstanceMutation = false;
         }
         bound(flags) {
-            this.forOf = this.renderable.$bindables.find(b => b.target === this).sourceExpression;
+            let current = this.renderable.$bindableHead;
+            while (current !== null) {
+                if (current.target === this && current.targetProperty === 'items') {
+                    this.forOf = current.sourceExpression;
+                    break;
+                }
+                current = current.$nextBind;
+            }
             this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
             this.processViews(null, flags);
             this.checkCollectionObserver();
@@ -7609,7 +8007,7 @@ var au = (function (exports) {
             const { views, location } = this;
             for (let i = 0, ii = views.length; i < ii; ++i) {
                 const view = views[i];
-                view.mount(location);
+                view.hold(location);
                 view.$attach(encapsulationSource, lifecycle);
             }
         }
@@ -7641,7 +8039,7 @@ var au = (function (exports) {
         // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
         processViews(indexMap, flags) {
             const views = this.views;
-            if (this.$isBound) {
+            if (this.$state & 2 /* isBound */) {
                 const { local, $scope, factory, forOf, items } = this;
                 const oldLength = views.length;
                 const newLength = forOf.count(items);
@@ -7689,13 +8087,13 @@ var au = (function (exports) {
                     });
                 }
             }
-            if (this.$isAttached) {
+            if (this.$state & 8 /* isAttached */) {
                 const { location } = this;
                 const lifecycle = Lifecycle.beginAttach(this.changeSet, this.encapsulationSource, LifecycleFlags.none);
                 if (indexMap === null) {
                     for (let i = 0, ii = views.length; i < ii; ++i) {
                         const view = views[i];
-                        view.mount(location);
+                        view.hold(location);
                         lifecycle.attach(view);
                     }
                 }
@@ -7703,7 +8101,7 @@ var au = (function (exports) {
                     for (let i = 0, ii = views.length; i < ii; ++i) {
                         if (indexMap[i] !== i) {
                             const view = views[i];
-                            view.mount(location);
+                            view.hold(location);
                             lifecycle.attach(view);
                         }
                     }
@@ -7713,7 +8111,7 @@ var au = (function (exports) {
         }
         checkCollectionObserver() {
             const oldObserver = this.observer;
-            if (this.$isBound) {
+            if (this.$state & 2 /* isBound */) {
                 const newObserver = this.observer = getCollectionObserver(this.changeSet, this.items);
                 if (oldObserver !== newObserver) {
                     if (oldObserver) {
@@ -7741,7 +8139,7 @@ var au = (function (exports) {
         constructor(factory, location) {
             this.factory = factory;
             this.currentView = this.factory.create();
-            this.currentView.mount(location);
+            this.currentView.hold(location);
         }
         binding(flags) {
             this.currentView.$bind(flags, this.$scope);
@@ -7767,7 +8165,7 @@ var au = (function (exports) {
             this.value = null;
             this.currentView = null;
             this.currentView = this.factory.create();
-            this.currentView.mount(location);
+            this.currentView.hold(location);
         }
         valueChanged() {
             this.bindChild(BindingFlags.fromBindableHandler);
@@ -7874,14 +8272,14 @@ var au = (function (exports) {
         enableMapObservation: enableMapObservation,
         disableMapObservation: disableMapObservation,
         nativeSet: nativeSet,
-        nativeMapDelete: nativeDelete$1,
-        nativeMapClear: nativeClear$1,
+        nativeMapDelete: nativeDelete,
+        nativeMapClear: nativeClear,
         get SetObserver () { return SetObserver; },
         enableSetObservation: enableSetObservation,
         disableSetObservation: disableSetObservation,
         nativeAdd: nativeAdd,
-        nativeSetDelete: nativeDelete,
-        nativeSetClear: nativeClear,
+        nativeSetDelete: nativeDelete$1,
+        nativeSetClear: nativeClear$1,
         get AttrBindingBehavior () { return AttrBindingBehavior; },
         BindingModeBehavior: BindingModeBehavior,
         get OneTimeBindingBehavior () { return OneTimeBindingBehavior; },
@@ -7945,12 +8343,9 @@ var au = (function (exports) {
         BindingContext: BindingContext,
         Scope: Scope,
         OverrideContext: OverrideContext,
-        get BindingFlags () { return BindingFlags; },
         get BindingMode () { return BindingMode; },
         get Binding () { return Binding; },
         Call: Call,
-        IChangeSet: IChangeSet,
-        ChangeSet: ChangeSet,
         collectionObserver: collectionObserver,
         get CollectionLengthObserver () { return CollectionLengthObserver; },
         computed: computed,
@@ -7973,8 +8368,10 @@ var au = (function (exports) {
         EventManager: EventManager,
         IExpressionParser: IExpressionParser,
         ExpressionParser: ExpressionParser,
+        MultiInterpolationBinding: MultiInterpolationBinding,
+        get InterpolationBinding () { return InterpolationBinding; },
+        get LetBinding () { return LetBinding; },
         Listener: Listener,
-        get MutationKind () { return MutationKind; },
         IObserverLocator: IObserverLocator,
         get ObserverLocator () { return ObserverLocator; },
         getCollectionObserver: getCollectionObserver,
@@ -8011,46 +8408,60 @@ var au = (function (exports) {
         useShadowDOM: useShadowDOM,
         containerless: containerless,
         CustomElementResource: CustomElementResource,
-        createCustomElementDescription: createCustomElementDescription,
         ShadowDOMProjector: ShadowDOMProjector,
         ContainerlessProjector: ContainerlessProjector,
         HostProjector: HostProjector,
-        ITargetedInstruction: ITargetedInstruction,
-        isTargetedInstruction: isTargetedInstruction,
-        get LifecycleFlags () { return LifecycleFlags; },
-        AggregateLifecycleTask: AggregateLifecycleTask,
-        AttachLifecycleController: AttachLifecycleController,
-        DetachLifecycleController: DetachLifecycleController,
-        Lifecycle: Lifecycle,
-        createRenderContext: createRenderContext,
-        InstanceProvider: InstanceProvider,
-        ViewFactoryProvider: ViewFactoryProvider,
+        createElement: createElement,
+        RenderPlan: RenderPlan,
         renderStrategy: renderStrategy,
         RenderStrategyResource: RenderStrategyResource,
         Renderer: Renderer,
-        IRenderable: IRenderable,
         IRenderingEngine: IRenderingEngine,
         get RenderingEngine () { return RenderingEngine; },
-        createDefinition: createDefinition,
         RuntimeCompilationResources: RuntimeCompilationResources,
+        CompiledTemplate: CompiledTemplate,
+        noViewTemplate: noViewTemplate,
+        createRenderContext: createRenderContext,
+        InstanceProvider: InstanceProvider,
+        ViewFactoryProvider: ViewFactoryProvider,
+        IRenderable: IRenderable,
+        addBindable: addBindable,
+        addAttachable: addAttachable,
         RuntimeBehavior: RuntimeBehavior,
         get ChildrenObserver () { return ChildrenObserver; },
         findElements: findElements,
         ITemplateCompiler: ITemplateCompiler,
         get ViewCompileFlags () { return ViewCompileFlags; },
-        CompiledTemplate: CompiledTemplate,
-        noViewTemplate: noViewTemplate,
         IViewFactory: IViewFactory,
         View: View,
         ViewFactory: ViewFactory,
         Aurelia: Aurelia,
-        AuMarker: AuMarker,
+        ITargetedInstruction: ITargetedInstruction,
+        isTargetedInstruction: isTargetedInstruction,
+        ELEMENT_NODE: ELEMENT_NODE,
+        ATTRIBUTE_NODE: ATTRIBUTE_NODE,
+        TEXT_NODE: TEXT_NODE,
+        COMMENT_NODE: COMMENT_NODE,
+        DOCUMENT_FRAGMENT_NODE: DOCUMENT_FRAGMENT_NODE,
         INode: INode,
         IRenderLocation: IRenderLocation,
         DOM: DOM,
         NodeSequence: NodeSequence,
         TextNodeSequence: TextNodeSequence,
-        FragmentNodeSequence: FragmentNodeSequence
+        FragmentNodeSequence: FragmentNodeSequence,
+        NodeSequenceFactory: NodeSequenceFactory,
+        AuMarker: AuMarker,
+        get LifecycleFlags () { return LifecycleFlags; },
+        AggregateLifecycleTask: AggregateLifecycleTask,
+        AttachLifecycleController: AttachLifecycleController,
+        DetachLifecycleController: DetachLifecycleController,
+        Lifecycle: Lifecycle,
+        BindLifecycle: BindLifecycle,
+        get BindingFlags () { return BindingFlags; },
+        IChangeSet: IChangeSet,
+        ChangeSet: ChangeSet,
+        LinkedChangeList: LinkedChangeList,
+        get MutationKind () { return MutationKind; }
     });
 
     class AttrSyntax {
@@ -8505,18 +8916,18 @@ var au = (function (exports) {
     /*@internal*/
     function parse(state, access, minPrecedence, bindingType) {
         if (state.index === 0) {
-            if ((bindingType & 2048 /* Interpolation */) > 0) {
+            if (bindingType & 2048 /* Interpolation */) {
                 // tslint:disable-next-line:no-any
                 return parseInterpolation(state);
             }
             nextToken(state);
-            if ((state.currentToken & 1048576 /* ExpressionTerminal */) > 0) {
+            if (state.currentToken & 1048576 /* ExpressionTerminal */) {
                 throw Reporter.error(100 /* InvalidExpressionStart */, { state });
             }
         }
         state.assignable = 448 /* Binary */ > minPrecedence;
         let result = undefined;
-        if ((state.currentToken & 32768 /* UnaryOp */) > 0) {
+        if (state.currentToken & 32768 /* UnaryOp */) {
             /** parseUnaryExpression
              * https://tc39.github.io/ecma262/#sec-unary-operators
              *
@@ -8580,7 +8991,7 @@ var au = (function (exports) {
                             }
                             continue;
                         }
-                        else if ((state.currentToken & 524288 /* AccessScopeTerminal */) > 0) {
+                        else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
                             const ancestor = access & 511 /* Ancestor */;
                             result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThis(ancestor);
                             access = 512 /* This */;
@@ -8592,7 +9003,7 @@ var au = (function (exports) {
                     } while (state.currentToken === 3077 /* ParentScope */);
                 // falls through
                 case 1024 /* Identifier */: // identifier
-                    if ((bindingType & 512 /* IsIterator */) > 0) {
+                    if (bindingType & 512 /* IsIterator */) {
                         result = new BindingIdentifier(state.tokenValue);
                     }
                     else {
@@ -8656,7 +9067,7 @@ var au = (function (exports) {
                         throw Reporter.error(101 /* UnconsumedToken */, { state });
                     }
             }
-            if ((bindingType & 512 /* IsIterator */) > 0) {
+            if (bindingType & 512 /* IsIterator */) {
                 // tslint:disable-next-line:no-any
                 return parseForOfStatement(state, result);
             }
@@ -8706,7 +9117,7 @@ var au = (function (exports) {
                             }
                             continue;
                         }
-                        if ((access & 1024 /* Scope */) > 0) {
+                        if (access & 1024 /* Scope */) {
                             result = new AccessScope(name, result.ancestor);
                         }
                         else { // if it's not $Scope, it's $Member
@@ -8731,10 +9142,10 @@ var au = (function (exports) {
                             }
                         }
                         consume(state, 1835018 /* CloseParen */);
-                        if ((access & 1024 /* Scope */) > 0) {
+                        if (access & 1024 /* Scope */) {
                             result = new CallScope(name, args, result.ancestor);
                         }
-                        else if ((access & 2048 /* Member */) > 0) {
+                        else if (access & 2048 /* Member */) {
                             result = new CallMember(result, name, args);
                         }
                         else {
@@ -8865,7 +9276,7 @@ var au = (function (exports) {
             result = new BindingBehavior(result, name, args);
         }
         if (state.currentToken !== 1572864 /* EOF */) {
-            if ((bindingType & 2048 /* Interpolation */) > 0) {
+            if (bindingType & 2048 /* Interpolation */) {
                 // tslint:disable-next-line:no-any
                 return result;
             }
@@ -8919,7 +9330,7 @@ var au = (function (exports) {
             }
         }
         consume(state, 1835021 /* CloseBracket */);
-        if ((bindingType & 512 /* IsIterator */) > 0) {
+        if (bindingType & 512 /* IsIterator */) {
             return new ArrayBindingPattern(elements);
         }
         else {
@@ -8967,12 +9378,12 @@ var au = (function (exports) {
         while (state.currentToken !== 1835017 /* CloseBrace */) {
             keys.push(state.tokenValue);
             // Literal = mandatory colon
-            if ((state.currentToken & 12288 /* StringOrNumericLiteral */) > 0) {
+            if (state.currentToken & 12288 /* StringOrNumericLiteral */) {
                 nextToken(state);
                 consume(state, 1572878 /* Colon */);
                 values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
             }
-            else if ((state.currentToken & 3072 /* IdentifierName */) > 0) {
+            else if (state.currentToken & 3072 /* IdentifierName */) {
                 // IdentifierName = optional colon
                 const { currentChar, currentToken, index } = state;
                 nextToken(state);
@@ -8995,7 +9406,7 @@ var au = (function (exports) {
             }
         }
         consume(state, 1835017 /* CloseBrace */);
-        if ((bindingType & 512 /* IsIterator */) > 0) {
+        if (bindingType & 512 /* IsIterator */) {
             return new ObjectBindingPattern(keys, values);
         }
         else {
@@ -9421,9 +9832,9 @@ var au = (function (exports) {
     CharScanners[125 /* CloseBrace */] = returnToken(1835017 /* CloseBrace */);
 
     const domParser = DOM.createElement('div');
-    const marker = DOM.createElement('au-marker');
-    marker.classList.add('au');
-    const createMarker = marker.cloneNode.bind(marker, false);
+    const marker$1 = DOM.createElement('au-marker');
+    marker$1.classList.add('au');
+    const createMarker = marker$1.cloneNode.bind(marker$1, false);
     class ElementSyntax {
         constructor(node, name, $content, $children, $attributes) {
             this.node = node;
@@ -9847,7 +10258,7 @@ var au = (function (exports) {
             this.setToMarker(marker);
         }
         lift(instruction) {
-            const template = instruction.def.template = DOM.createTemplate();
+            const template = instruction.def.template = DOM.createElement('template');
             const node = this.node;
             if (this.isTemplate) {
                 // copy remaining attributes over to the newly created template
@@ -9869,7 +10280,11 @@ var au = (function (exports) {
             return this.semanticModel.getTemplateElementSymbol(this.semanticModel.elParser.parse(template), this, instruction.def, null);
         }
         addInstructions(instructions) {
-            this.$root.definition.instructions.push(instructions);
+            const def = this.$root.definition;
+            if (def.instructions === PLATFORM.emptyArray) {
+                def.instructions = [];
+            }
+            def.instructions.push(instructions);
         }
         setToMarker(marker) {
             this._$content = null;

@@ -1,18 +1,17 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { INode } from '../dom';
-import { IChangeSet } from './change-set';
-import { IBindingTargetAccessor } from './observation';
-export interface XLinkAttributeAccessor extends IBindingTargetAccessor<Element, string, string> {
+import { IHTMLElement, INode } from '../dom';
+import { IBindingTargetAccessor, IChangeSet } from '../observation';
+export interface XLinkAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, string, string> {
 }
 export declare class XLinkAttributeAccessor implements XLinkAttributeAccessor {
     changeSet: IChangeSet;
-    obj: Element;
+    obj: IHTMLElement;
     propertyKey: string;
     attributeName: string;
     currentValue: string;
     oldValue: string;
     defaultValue: string;
-    constructor(changeSet: IChangeSet, obj: Element, propertyKey: string, attributeName: string);
+    constructor(changeSet: IChangeSet, obj: IHTMLElement, propertyKey: string, attributeName: string);
     getValue(): string;
     setValueCore(newValue: string): void;
 }
@@ -29,18 +28,18 @@ export declare class DataAttributeAccessor implements DataAttributeAccessor {
     getValue(): string;
     setValueCore(newValue: string): void;
 }
-export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLElement, 'style', string | IIndexable> {
+export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, 'style', string | IIndexable> {
 }
 export declare class StyleAttributeAccessor implements StyleAttributeAccessor {
     changeSet: IChangeSet;
-    obj: HTMLElement;
+    obj: IHTMLElement;
     currentValue: string | IIndexable;
     oldValue: string | IIndexable;
     defaultValue: string | IIndexable;
     propertyKey: 'style';
     styles: IIndexable;
     version: number;
-    constructor(changeSet: IChangeSet, obj: HTMLElement);
+    constructor(changeSet: IChangeSet, obj: IHTMLElement);
     getValue(): string;
     _setProperty(style: string, value: string): void;
     setValueCore(newValue: string | IIndexable): void;

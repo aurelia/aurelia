@@ -454,18 +454,18 @@ this.au.jit = (function (exports,kernel,runtime) {
   /*@internal*/
   function parse(state, access, minPrecedence, bindingType) {
       if (state.index === 0) {
-          if ((bindingType & 2048 /* Interpolation */) > 0) {
+          if (bindingType & 2048 /* Interpolation */) {
               // tslint:disable-next-line:no-any
               return parseInterpolation(state);
           }
           nextToken(state);
-          if ((state.currentToken & 1048576 /* ExpressionTerminal */) > 0) {
+          if (state.currentToken & 1048576 /* ExpressionTerminal */) {
               throw kernel.Reporter.error(100 /* InvalidExpressionStart */, { state });
           }
       }
       state.assignable = 448 /* Binary */ > minPrecedence;
       let result = undefined;
-      if ((state.currentToken & 32768 /* UnaryOp */) > 0) {
+      if (state.currentToken & 32768 /* UnaryOp */) {
           /** parseUnaryExpression
            * https://tc39.github.io/ecma262/#sec-unary-operators
            *
@@ -529,7 +529,7 @@ this.au.jit = (function (exports,kernel,runtime) {
                           }
                           continue;
                       }
-                      else if ((state.currentToken & 524288 /* AccessScopeTerminal */) > 0) {
+                      else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
                           const ancestor = access & 511 /* Ancestor */;
                           result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new runtime.AccessThis(ancestor);
                           access = 512 /* This */;
@@ -541,7 +541,7 @@ this.au.jit = (function (exports,kernel,runtime) {
                   } while (state.currentToken === 3077 /* ParentScope */);
               // falls through
               case 1024 /* Identifier */: // identifier
-                  if ((bindingType & 512 /* IsIterator */) > 0) {
+                  if (bindingType & 512 /* IsIterator */) {
                       result = new runtime.BindingIdentifier(state.tokenValue);
                   }
                   else {
@@ -605,7 +605,7 @@ this.au.jit = (function (exports,kernel,runtime) {
                       throw kernel.Reporter.error(101 /* UnconsumedToken */, { state });
                   }
           }
-          if ((bindingType & 512 /* IsIterator */) > 0) {
+          if (bindingType & 512 /* IsIterator */) {
               // tslint:disable-next-line:no-any
               return parseForOfStatement(state, result);
           }
@@ -655,7 +655,7 @@ this.au.jit = (function (exports,kernel,runtime) {
                           }
                           continue;
                       }
-                      if ((access & 1024 /* Scope */) > 0) {
+                      if (access & 1024 /* Scope */) {
                           result = new runtime.AccessScope(name, result.ancestor);
                       }
                       else { // if it's not $Scope, it's $Member
@@ -680,10 +680,10 @@ this.au.jit = (function (exports,kernel,runtime) {
                           }
                       }
                       consume(state, 1835018 /* CloseParen */);
-                      if ((access & 1024 /* Scope */) > 0) {
+                      if (access & 1024 /* Scope */) {
                           result = new runtime.CallScope(name, args, result.ancestor);
                       }
-                      else if ((access & 2048 /* Member */) > 0) {
+                      else if (access & 2048 /* Member */) {
                           result = new runtime.CallMember(result, name, args);
                       }
                       else {
@@ -814,7 +814,7 @@ this.au.jit = (function (exports,kernel,runtime) {
           result = new runtime.BindingBehavior(result, name, args);
       }
       if (state.currentToken !== 1572864 /* EOF */) {
-          if ((bindingType & 2048 /* Interpolation */) > 0) {
+          if (bindingType & 2048 /* Interpolation */) {
               // tslint:disable-next-line:no-any
               return result;
           }
@@ -868,7 +868,7 @@ this.au.jit = (function (exports,kernel,runtime) {
           }
       }
       consume(state, 1835021 /* CloseBracket */);
-      if ((bindingType & 512 /* IsIterator */) > 0) {
+      if (bindingType & 512 /* IsIterator */) {
           return new runtime.ArrayBindingPattern(elements);
       }
       else {
@@ -916,12 +916,12 @@ this.au.jit = (function (exports,kernel,runtime) {
       while (state.currentToken !== 1835017 /* CloseBrace */) {
           keys.push(state.tokenValue);
           // Literal = mandatory colon
-          if ((state.currentToken & 12288 /* StringOrNumericLiteral */) > 0) {
+          if (state.currentToken & 12288 /* StringOrNumericLiteral */) {
               nextToken(state);
               consume(state, 1572878 /* Colon */);
               values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
           }
-          else if ((state.currentToken & 3072 /* IdentifierName */) > 0) {
+          else if (state.currentToken & 3072 /* IdentifierName */) {
               // IdentifierName = optional colon
               const { currentChar, currentToken, index } = state;
               nextToken(state);
@@ -944,7 +944,7 @@ this.au.jit = (function (exports,kernel,runtime) {
           }
       }
       consume(state, 1835017 /* CloseBrace */);
-      if ((bindingType & 512 /* IsIterator */) > 0) {
+      if (bindingType & 512 /* IsIterator */) {
           return new runtime.ObjectBindingPattern(keys, values);
       }
       else {
@@ -1796,7 +1796,7 @@ this.au.jit = (function (exports,kernel,runtime) {
           this.setToMarker(marker);
       }
       lift(instruction) {
-          const template = instruction.def.template = runtime.DOM.createTemplate();
+          const template = instruction.def.template = runtime.DOM.createElement('template');
           const node = this.node;
           if (this.isTemplate) {
               // copy remaining attributes over to the newly created template
@@ -1818,7 +1818,11 @@ this.au.jit = (function (exports,kernel,runtime) {
           return this.semanticModel.getTemplateElementSymbol(this.semanticModel.elParser.parse(template), this, instruction.def, null);
       }
       addInstructions(instructions) {
-          this.$root.definition.instructions.push(instructions);
+          const def = this.$root.definition;
+          if (def.instructions === kernel.PLATFORM.emptyArray) {
+              def.instructions = [];
+          }
+          def.instructions.push(instructions);
       }
       setToMarker(marker) {
           this._$content = null;

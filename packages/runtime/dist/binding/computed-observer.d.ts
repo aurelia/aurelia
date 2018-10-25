@@ -1,6 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { IChangeSet } from './change-set';
-import { IBindingTargetObserver, IObservable, IPropertySubscriber } from './observation';
+import { IBindingTargetObserver, IChangeSet, IObservable, IPropertySubscriber } from '../observation';
 export interface ComputedOverrides {
     static?: boolean;
     volatile?: boolean;

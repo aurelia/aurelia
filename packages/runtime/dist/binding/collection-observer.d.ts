@@ -1,5 +1,4 @@
-import { BindingFlags } from './binding-flags';
-import { Collection, CollectionKind, IBindingTargetObserver, IPropertySubscriber } from './observation';
+import { BindingFlags, Collection, CollectionKind, IBindingTargetObserver, IPropertySubscriber } from '../observation';
 export declare function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator;
 export interface CollectionLengthObserver extends IBindingTargetObserver<any, string> {
 }

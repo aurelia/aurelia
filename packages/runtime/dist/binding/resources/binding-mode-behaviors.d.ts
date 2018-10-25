@@ -1,6 +1,5 @@
+import { BindingFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
-import { IScope } from '../binding-context';
-import { BindingFlags } from '../binding-flags';
 import { BindingMode } from '../binding-mode';
 export declare type WithMode = {
     mode: BindingMode;

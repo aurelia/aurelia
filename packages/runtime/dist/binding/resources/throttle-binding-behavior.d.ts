@@ -1,6 +1,5 @@
+import { BindingFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
-import { IScope } from '../binding-context';
-import { BindingFlags } from '../binding-flags';
 import { Call } from '../call';
 import { Listener } from '../listener';
 export declare type ThrottleableBinding = (Binding | Call | Listener) & {

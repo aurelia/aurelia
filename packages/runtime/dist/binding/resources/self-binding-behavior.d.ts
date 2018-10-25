@@ -1,5 +1,4 @@
-import { IScope } from '../binding-context';
-import { BindingFlags } from '../binding-flags';
+import { BindingFlags, IScope } from '../../observation';
 import { Listener } from '../listener';
 export declare type SelfableBinding = Listener & {
     selfEventCallSource: Listener['callSource'];

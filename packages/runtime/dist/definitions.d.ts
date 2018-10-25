@@ -1,10 +1,16 @@
-import { Immutable } from '@aurelia/kernel';
-import { ForOfStatement, Interpolation, IsBindingBehavior } from '../binding/ast';
-import { BindingMode } from '../binding/binding-mode';
-import { DelegationStrategy } from '../binding/event-manager';
-import { INode } from '../dom';
-import { ResourceDescription } from '../resource';
-import { IBindableDescription } from './bindable';
+import { Immutable, Omit } from '@aurelia/kernel';
+import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
+import { BindingMode } from './binding/binding-mode';
+import { DelegationStrategy } from './binding/event-manager';
+import { INode } from './dom';
+import { ResourceDescription } from './resource';
+export declare type BindableSource = Omit<IBindableDescription, 'property'>;
+export interface IBindableDescription {
+    mode?: BindingMode;
+    callback?: string;
+    attribute?: string;
+    property?: string;
+}
 export declare const enum TargetedInstructionType {
     textBinding = "a",
     interpolation = "b",
@@ -43,12 +49,22 @@ export interface ITemplateDefinition {
 export declare type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 export declare type TemplatePartDefinitions = Record<string, Immutable<ITemplateDefinition>>;
 export declare type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
+export interface IAttributeDefinition {
+    name: string;
+    defaultBindingMode?: BindingMode;
+    aliases?: string[];
+    isTemplateController?: boolean;
+    bindables?: Record<string, IBindableDescription>;
+}
+export declare type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
 export declare const ITargetedInstruction: import("@aurelia/kernel/dist/di").IDefaultableInterfaceSymbol<ITargetedInstruction>;
 export interface ITargetedInstruction {
     type: TargetedInstructionType;
 }
 export declare type TargetedInstruction = ITextBindingInstruction | IInterpolationInstruction | IPropertyBindingInstruction | IIteratorBindingInstruction | IListenerBindingInstruction | ICallBindingInstruction | IRefBindingInstruction | IStylePropertyBindingInstruction | ISetPropertyInstruction | ISetAttributeInstruction | IHydrateElementInstruction | IHydrateAttributeInstruction | IHydrateTemplateController | IRenderStrategyInstruction | ILetElementInstruction;
-export declare function isTargetedInstruction(value: any): value is TargetedInstruction;
+export declare function isTargetedInstruction(value: {
+    type?: string;
+}): value is TargetedInstruction;
 export interface ITextBindingInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.textBinding;
     from: string | Interpolation;
@@ -98,28 +114,28 @@ export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
 }
 export interface ISetPropertyInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.setProperty;
-    value: any;
+    value: unknown;
     to: string;
 }
 export interface ISetAttributeInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.setAttribute;
-    value: any;
+    value: unknown;
     to: string;
 }
 export interface IHydrateElementInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.hydrateElement;
-    res: any;
+    res: string;
     instructions: TargetedInstruction[];
     parts?: Record<string, ITemplateDefinition>;
 }
 export interface IHydrateAttributeInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.hydrateAttribute;
-    res: any;
+    res: string;
     instructions: TargetedInstruction[];
 }
 export interface IHydrateTemplateController extends ITargetedInstruction {
     type: TargetedInstructionType.hydrateTemplateController;
-    res: any;
+    res: string;
     instructions: TargetedInstruction[];
     def: ITemplateDefinition;
     link?: boolean;
@@ -138,4 +154,4 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
     from: string | IsBindingBehavior | Interpolation;
     to: string;
 }
-//# sourceMappingURL=instructions.d.ts.map
+//# sourceMappingURL=definitions.d.ts.map

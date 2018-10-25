@@ -1,8 +1,7 @@
-import { IChangeSet } from '../../binding';
-import { BindingFlags } from '../../binding/binding-flags';
 import { INode, IRenderLocation } from '../../dom';
+import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { BindingFlags, IChangeSet } from '../../observation';
 import { ICustomAttribute } from '../custom-attribute';
-import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
 export interface If extends ICustomAttribute {

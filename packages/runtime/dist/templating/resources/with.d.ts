@@ -1,7 +1,7 @@
-import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
+import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { BindingFlags } from '../../observation';
 import { ICustomAttribute } from '../custom-attribute';
-import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
 import { IViewFactory } from '../view';
 export interface With extends ICustomAttribute {
 }

@@ -1,17 +1,18 @@
 import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
 import { INode } from '../dom';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IAccessor, IScope } from '../observation';
 import { IsBindingBehavior, StrictAny } from './ast';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
-import { IAccessor } from './observation';
 import { IObserverLocator } from './observer-locator';
 export interface Call extends IConnectableBinding {
 }
 export declare class Call {
     sourceExpression: IsBindingBehavior;
     locator: IServiceLocator;
-    $isBound: boolean;
+    $nextBind: IBindScope;
+    $prevBind: IBindScope;
+    $state: LifecycleState;
     $scope: IScope;
     targetObserver: IAccessor;
     constructor(sourceExpression: IsBindingBehavior, target: INode, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator);

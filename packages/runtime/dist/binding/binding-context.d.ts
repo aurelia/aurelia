@@ -1,31 +1,6 @@
-import { IIndexable } from '@aurelia/kernel';
-import { StrictPrimitive } from './ast';
-import { IBindScope, ObservedCollection, PropertyObserver } from './observation';
-export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj = Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> {
-}
-export declare type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj = Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> = {
-    [P in TKey]: PropertyObserver;
-} & {
-    getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver;
-};
-export interface IBindingContext {
-    [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
-    readonly $synthetic?: true;
-    readonly $observers?: ObserversLookup<IOverrideContext>;
-    getObservers(): ObserversLookup<IOverrideContext>;
-}
-export interface IOverrideContext {
-    [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
-    readonly $synthetic?: true;
-    readonly $observers?: ObserversLookup<IOverrideContext>;
-    readonly bindingContext: IBindingContext | IBindScope;
-    readonly parentOverrideContext: IOverrideContext | null;
-    getObservers(): ObserversLookup<IOverrideContext>;
-}
-export interface IScope {
-    readonly bindingContext: IBindingContext | IBindScope;
-    readonly overrideContext: IOverrideContext;
-}
+import { IIndexable, StrictPrimitive } from '@aurelia/kernel';
+import { IBindScope } from '../lifecycle';
+import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup } from '../observation';
 export declare class BindingContext implements IBindingContext {
     [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
     readonly $synthetic: true;

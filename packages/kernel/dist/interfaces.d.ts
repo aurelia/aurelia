@@ -33,4 +33,5 @@ export declare type Writable<T> = {
 export declare type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export declare type Primitive = undefined | null | number | boolean | symbol | string;
 export declare type Unwrap<T> = T extends (infer U)[] ? U : T extends (...args: any[]) => infer U ? U : T extends Promise<infer U> ? U : T;
+export declare type StrictPrimitive = string | number | boolean | null | undefined;
 //# sourceMappingURL=interfaces.d.ts.map

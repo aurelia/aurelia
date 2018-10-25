@@ -1,10 +1,10 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { BindingFlags, IExpression, IScope } from '.';
-import { Interpolation } from './ast';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IBindingTargetAccessor, IScope } from '../observation';
+import { IExpression, Interpolation } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { BindingMode } from './binding-mode';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
-import { IBindingTargetAccessor } from './observation';
 import { IObserverLocator } from './observer-locator';
 export declare class MultiInterpolationBinding implements IBinding {
     observerLocator: IObserverLocator;
@@ -13,7 +13,9 @@ export declare class MultiInterpolationBinding implements IBinding {
     targetProperty: string;
     mode: BindingMode;
     locator: IServiceLocator;
-    $isBound: boolean;
+    $nextBind: IBindScope;
+    $prevBind: IBindScope;
+    $state: LifecycleState;
     $scope: IScope;
     parts: InterpolationBinding[];
     constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, locator: IServiceLocator);
@@ -32,7 +34,6 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     locator: IServiceLocator;
     isFirst: boolean;
     $scope: IScope;
-    $isBound: boolean;
     targetObserver: IBindingTargetAccessor;
     constructor(sourceExpression: IExpression, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
     updateTarget(value: any, flags: BindingFlags): void;

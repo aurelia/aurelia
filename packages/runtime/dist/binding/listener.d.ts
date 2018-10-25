@@ -1,9 +1,9 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
+import { IBindScope, LifecycleState } from '../lifecycle';
+import { BindingFlags, IScope } from '../observation';
 import { IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
 export interface Listener extends IConnectableBinding {
@@ -16,7 +16,9 @@ export declare class Listener implements IBinding {
     preventDefault: boolean;
     private eventManager;
     locator: IServiceLocator;
-    $isBound: boolean;
+    $nextBind: IBindScope;
+    $prevBind: IBindScope;
+    $state: LifecycleState;
     $scope: IScope;
     private handler;
     constructor(targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: INode, preventDefault: boolean, eventManager: IEventManager, locator: IServiceLocator);

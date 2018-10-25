@@ -1,15 +1,13 @@
 import { Constructable, Immutable } from '@aurelia/kernel';
-import { IChangeSet } from '../../binding';
-import { BindingFlags } from '../../binding/binding-flags';
+import { IHydrateElementInstruction, TemplateDefinition } from '../../definitions';
 import { INode } from '../../dom';
-import { PotentialRenderable } from '../create-element';
+import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { BindingFlags, IChangeSet } from '../../observation';
+import { RenderPlan } from '../create-element';
 import { ICustomElement } from '../custom-element';
-import { IHydrateElementInstruction, TemplateDefinition } from '../instructions';
-import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
-import { IRenderable } from '../renderable';
-import { IRenderingEngine } from '../rendering-engine';
+import { IRenderable, IRenderingEngine } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
-declare type Subject = IViewFactory | IView | PotentialRenderable | Constructable | TemplateDefinition;
+declare type Subject = IViewFactory | IView | RenderPlan | Constructable | TemplateDefinition;
 export interface Compose extends ICustomElement {
 }
 export declare class Compose {

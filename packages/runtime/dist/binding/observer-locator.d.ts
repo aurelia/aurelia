@@ -1,9 +1,7 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { IBindingContext, IOverrideContext } from './binding-context';
-import { IChangeSet } from './change-set';
+import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, IChangeSet, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet, IOverrideContext } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IEventManager } from './event-manager';
-import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet } from './observation';
 import { ISVGAnalyzer } from './svg-analyzer';
 export interface IObjectObservationAdapter {
     getObserver(object: IObservable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;

@@ -1,6 +1,5 @@
+import { BindingFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
-import { IScope } from '../binding-context';
-import { BindingFlags } from '../binding-flags';
 import { ISignaler } from '../signaler';
 export declare type SignalableBinding = Binding & {
     signal: string | string[];

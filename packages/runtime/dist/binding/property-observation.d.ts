@@ -1,6 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags } from './binding-flags';
-import { IAccessor, IPropertyObserver, IPropertySubscriber, ISubscribable, MutationKind } from './observation';
+import { BindingFlags, IAccessor, IPropertyObserver, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 export declare class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.instance> {
     getValue: () => undefined | number;
     setValue: () => void;

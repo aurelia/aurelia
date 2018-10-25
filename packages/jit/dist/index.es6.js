@@ -453,18 +453,18 @@ function parseCore(input, bindingType) {
 /*@internal*/
 function parse(state, access, minPrecedence, bindingType) {
     if (state.index === 0) {
-        if ((bindingType & 2048 /* Interpolation */) > 0) {
+        if (bindingType & 2048 /* Interpolation */) {
             // tslint:disable-next-line:no-any
             return parseInterpolation(state);
         }
         nextToken(state);
-        if ((state.currentToken & 1048576 /* ExpressionTerminal */) > 0) {
+        if (state.currentToken & 1048576 /* ExpressionTerminal */) {
             throw Reporter.error(100 /* InvalidExpressionStart */, { state });
         }
     }
     state.assignable = 448 /* Binary */ > minPrecedence;
     let result = undefined;
-    if ((state.currentToken & 32768 /* UnaryOp */) > 0) {
+    if (state.currentToken & 32768 /* UnaryOp */) {
         /** parseUnaryExpression
          * https://tc39.github.io/ecma262/#sec-unary-operators
          *
@@ -528,7 +528,7 @@ function parse(state, access, minPrecedence, bindingType) {
                         }
                         continue;
                     }
-                    else if ((state.currentToken & 524288 /* AccessScopeTerminal */) > 0) {
+                    else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
                         const ancestor = access & 511 /* Ancestor */;
                         result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThis(ancestor);
                         access = 512 /* This */;
@@ -540,7 +540,7 @@ function parse(state, access, minPrecedence, bindingType) {
                 } while (state.currentToken === 3077 /* ParentScope */);
             // falls through
             case 1024 /* Identifier */: // identifier
-                if ((bindingType & 512 /* IsIterator */) > 0) {
+                if (bindingType & 512 /* IsIterator */) {
                     result = new BindingIdentifier(state.tokenValue);
                 }
                 else {
@@ -604,7 +604,7 @@ function parse(state, access, minPrecedence, bindingType) {
                     throw Reporter.error(101 /* UnconsumedToken */, { state });
                 }
         }
-        if ((bindingType & 512 /* IsIterator */) > 0) {
+        if (bindingType & 512 /* IsIterator */) {
             // tslint:disable-next-line:no-any
             return parseForOfStatement(state, result);
         }
@@ -654,7 +654,7 @@ function parse(state, access, minPrecedence, bindingType) {
                         }
                         continue;
                     }
-                    if ((access & 1024 /* Scope */) > 0) {
+                    if (access & 1024 /* Scope */) {
                         result = new AccessScope(name, result.ancestor);
                     }
                     else { // if it's not $Scope, it's $Member
@@ -679,10 +679,10 @@ function parse(state, access, minPrecedence, bindingType) {
                         }
                     }
                     consume(state, 1835018 /* CloseParen */);
-                    if ((access & 1024 /* Scope */) > 0) {
+                    if (access & 1024 /* Scope */) {
                         result = new CallScope(name, args, result.ancestor);
                     }
-                    else if ((access & 2048 /* Member */) > 0) {
+                    else if (access & 2048 /* Member */) {
                         result = new CallMember(result, name, args);
                     }
                     else {
@@ -813,7 +813,7 @@ function parse(state, access, minPrecedence, bindingType) {
         result = new BindingBehavior(result, name, args);
     }
     if (state.currentToken !== 1572864 /* EOF */) {
-        if ((bindingType & 2048 /* Interpolation */) > 0) {
+        if (bindingType & 2048 /* Interpolation */) {
             // tslint:disable-next-line:no-any
             return result;
         }
@@ -867,7 +867,7 @@ function parseArrayLiteralExpression(state, access, bindingType) {
         }
     }
     consume(state, 1835021 /* CloseBracket */);
-    if ((bindingType & 512 /* IsIterator */) > 0) {
+    if (bindingType & 512 /* IsIterator */) {
         return new ArrayBindingPattern(elements);
     }
     else {
@@ -915,12 +915,12 @@ function parseObjectLiteralExpression(state, bindingType) {
     while (state.currentToken !== 1835017 /* CloseBrace */) {
         keys.push(state.tokenValue);
         // Literal = mandatory colon
-        if ((state.currentToken & 12288 /* StringOrNumericLiteral */) > 0) {
+        if (state.currentToken & 12288 /* StringOrNumericLiteral */) {
             nextToken(state);
             consume(state, 1572878 /* Colon */);
             values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
         }
-        else if ((state.currentToken & 3072 /* IdentifierName */) > 0) {
+        else if (state.currentToken & 3072 /* IdentifierName */) {
             // IdentifierName = optional colon
             const { currentChar, currentToken, index } = state;
             nextToken(state);
@@ -943,7 +943,7 @@ function parseObjectLiteralExpression(state, bindingType) {
         }
     }
     consume(state, 1835017 /* CloseBrace */);
-    if ((bindingType & 512 /* IsIterator */) > 0) {
+    if (bindingType & 512 /* IsIterator */) {
         return new ObjectBindingPattern(keys, values);
     }
     else {
@@ -1795,7 +1795,7 @@ class ElementSymbol {
         this.setToMarker(marker);
     }
     lift(instruction) {
-        const template = instruction.def.template = DOM.createTemplate();
+        const template = instruction.def.template = DOM.createElement('template');
         const node = this.node;
         if (this.isTemplate) {
             // copy remaining attributes over to the newly created template
@@ -1817,7 +1817,11 @@ class ElementSymbol {
         return this.semanticModel.getTemplateElementSymbol(this.semanticModel.elParser.parse(template), this, instruction.def, null);
     }
     addInstructions(instructions) {
-        this.$root.definition.instructions.push(instructions);
+        const def = this.$root.definition;
+        if (def.instructions === PLATFORM.emptyArray) {
+            def.instructions = [];
+        }
+        def.instructions.push(instructions);
     }
     setToMarker(marker) {
         this._$content = null;

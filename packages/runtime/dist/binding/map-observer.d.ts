@@ -1,5 +1,4 @@
-import { IChangeSet } from './change-set';
-import { CollectionKind, ICollectionObserver, IObservedMap } from './observation';
+import { CollectionKind, IChangeSet, ICollectionObserver, IObservedMap } from '../observation';
 export declare const nativeSet: (key: any, value: any) => Map<any, any>;
 export declare const nativeClear: () => void;
 export declare const nativeDelete: (key: any) => boolean;

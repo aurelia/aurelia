@@ -1,6 +1,5 @@
+import { BindingFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
-import { IScope } from '../binding-context';
-import { BindingFlags } from '../binding-flags';
 import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from '../element-observation';
 import { IEventSubscriber } from '../event-manager';
 import { IObserverLocator } from '../observer-locator';

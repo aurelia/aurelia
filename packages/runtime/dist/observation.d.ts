@@ -1,12 +1,72 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
-import { INode } from '../dom';
-import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
-export interface IBindScope {
-    readonly $isBound: boolean;
-    $bind(flags: BindingFlags, scope: IScope): void;
-    $unbind(flags: BindingFlags): void;
+export declare enum BindingFlags {
+    none = 0,
+    mustEvaluate = 32768,
+    mutation = 3,
+    isCollectionMutation = 1,
+    isInstanceMutation = 2,
+    update = 28,
+    updateTargetObserver = 4,
+    updateTargetInstance = 8,
+    updateSourceExpression = 16,
+    from = 8160,
+    fromFlushChanges = 32,
+    fromStartTask = 64,
+    fromStopTask = 128,
+    fromBind = 256,
+    fromUnbind = 512,
+    fromDOMEvent = 1024,
+    fromObserverSetter = 2048,
+    fromBindableHandler = 4096
 }
+export interface ILinkedNode {
+}
+/**
+ * Describes a type that tracks changes and can flush those changes in some way
+ */
+export interface IChangeTracker extends ILinkedNode {
+    hasChanges?: boolean;
+    flushChanges(): void;
+}
+/**
+ * Represents a set of ChangeTrackers (typically observers) containing changes that can be flushed in some way (e.g. by calling subscribers).
+ *
+ * The LinkedChangeList itself also implements the IChangeTracker interface, allowing sets of changes to be grouped together and composed into a tree.
+ */
+export interface IChangeSet extends IChangeTracker {
+    /**
+     * A promise that resolves when the current set of changes has been flushed.
+     * This is the same promise that is returned from `add`
+     */
+    readonly flushed: Promise<void>;
+    /**
+     * Indicates whether this LinkedChangeList is currently flushing changes
+     */
+    readonly flushing: boolean;
+    /**
+     * The number of ChangeTrackers that this set contains
+     */
+    readonly size: number;
+    /**
+     * Flushes the changes for all ChangeTrackers currently present in this set.
+     */
+    flushChanges(): void;
+    /**
+     * Returns this set of ChangeTrackers as an array.
+     */
+    toArray(): IChangeTracker[];
+    /**
+     * Adds a ChangeTracker to the set. Similar to how a normal Set behaves, adding the same item multiple times has the same effect as adding it once.
+     *
+     * @returns A promise that resolves when the changes have been flushed.
+     */
+    add(changeTracker: IChangeTracker): Promise<void>;
+    /**
+     * Returns true if the specified ChangeTracker is present in the set.
+     */
+    has(changeTracker: IChangeTracker): boolean;
+}
+export declare const IChangeSet: import("@aurelia/kernel/dist/di").InterfaceSymbol<IChangeSet>;
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
@@ -27,10 +87,6 @@ export interface IBindingTargetObserver<TObj = any, TProp = keyof TObj, TValue =
     unbind?(flags: BindingFlags): void;
 }
 export declare type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
-export declare type IObservable = (IIndexable | string | Node | INode | Collection) & {
-    readonly $synthetic?: false;
-    $observers?: Record<string, AccessorOrObserver>;
-};
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
  *
@@ -39,13 +95,6 @@ export declare type IObservable = (IIndexable | string | Node | INode | Collecti
 export declare type IndexMap = number[] & {
     deletedItems?: any[];
 };
-/**
- * Describes a type that tracks changes and can flush those changes in some way
- */
-export interface IChangeTracker {
-    hasChanges?: boolean;
-    flushChanges(): void;
-}
 /**
  * Mostly just a marker enum to help with typings (specifically to reduce duplication)
  */
@@ -223,5 +272,34 @@ export interface ICollectionObserver<T extends CollectionKind> extends IDisposab
     getLengthObserver(): IBindingTargetObserver;
 }
 export declare type CollectionObserver = ICollectionObserver<CollectionKind>;
+export interface IBindingContext {
+    [key: string]: unknown;
+    readonly $synthetic?: true;
+    readonly $observers?: ObserversLookup<IOverrideContext>;
+    getObservers?(): ObserversLookup<IOverrideContext>;
+}
+export interface IOverrideContext {
+    [key: string]: unknown;
+    readonly $synthetic?: true;
+    readonly $observers?: ObserversLookup<IOverrideContext>;
+    readonly bindingContext: IBindingContext;
+    readonly parentOverrideContext: IOverrideContext | null;
+    getObservers(): ObserversLookup<IOverrideContext>;
+}
+export interface IScope {
+    readonly bindingContext: IBindingContext;
+    readonly overrideContext: IOverrideContext;
+}
+export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj = Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> {
+}
+export declare type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj = Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> = {
+    [P in TKey]: PropertyObserver;
+} & {
+    getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver;
+};
+export declare type IObservable = IIndexable & {
+    readonly $synthetic?: false;
+    $observers?: Record<string, AccessorOrObserver>;
+};
 export {};
 //# sourceMappingURL=observation.d.ts.map

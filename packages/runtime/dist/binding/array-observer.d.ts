@@ -1,5 +1,4 @@
-import { IChangeSet } from './change-set';
-import { CollectionKind, ICollectionObserver, IObservedArray } from './observation';
+import { CollectionKind, IChangeSet, ICollectionObserver, IObservedArray } from '../observation';
 export declare const nativePush: (...items: any[]) => number;
 export declare const nativeUnshift: (...items: any[]) => number;
 export declare const nativePop: () => any;

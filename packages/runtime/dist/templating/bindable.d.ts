@@ -1,15 +1,24 @@
-import { Omit } from '@aurelia/kernel';
-import { BindingMode } from '../binding/binding-mode';
-export declare type BindableSource = Omit<IBindableDescription, 'property'>;
-export interface IBindableDescription {
-    mode?: BindingMode;
-    callback?: string;
-    attribute?: string;
-    property?: string;
-}
+import { Constructable } from '@aurelia/kernel';
+import { BindableSource, IBindableDescription } from '../definitions';
+declare type WithBindables = {
+    bindables: Record<string, IBindableDescription>;
+};
+declare type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string) => void;
 /**
  * Decorator: Specifies custom behavior for a bindable property.
- * @param configOrTarget The overrides.
+ * @param config The overrides
  */
-export declare function bindable(configOrTarget?: BindableSource | Object, key?: any, descriptor?: any): any;
+export declare function bindable(config?: BindableSource): BindableDecorator;
+/**
+ * Decorator: Specifies a bindable property on a class.
+ * @param prop The property name
+ */
+export declare function bindable(prop: string): ClassDecorator;
+/**
+ * Decorator: Specifies a bindable property on a class.
+ * @param target The class
+ * @param prop The property name
+ */
+export declare function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string): void;
+export {};
 //# sourceMappingURL=bindable.d.ts.map

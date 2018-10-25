@@ -1,8 +1,10 @@
-import { BindingFlags, CollectionObserver, ForOfStatement, IBatchedCollectionSubscriber, IChangeSet, IObservedArray, IScope, ObservedCollection, SetterObserver } from '../../binding';
+import { ForOfStatement } from '../../binding/ast';
+import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
+import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { BindingFlags, CollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { ICustomAttribute } from '../custom-attribute';
-import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
-import { IRenderable } from '../renderable';
+import { IRenderable } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {
 }
@@ -12,8 +14,6 @@ export declare class Repeat<T extends ObservedCollection = IObservedArray> {
     renderable: IRenderable;
     factory: IViewFactory;
     items: T;
-    $isAttached: boolean;
-    $isBound: boolean;
     $scope: IScope;
     $observers: {
         items: SetterObserver;

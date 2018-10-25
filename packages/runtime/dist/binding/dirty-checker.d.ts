@@ -1,4 +1,4 @@
-import { IBindingTargetAccessor, IBindingTargetObserver, IObservable } from './observation';
+import { IBindingTargetAccessor, IBindingTargetObserver, IObservable } from '../observation';
 export interface IDirtyChecker {
     createProperty(obj: IObservable, propertyName: string): IBindingTargetAccessor;
 }

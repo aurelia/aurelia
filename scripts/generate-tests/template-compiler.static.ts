@@ -23,7 +23,7 @@ import {
 import project from '../project';
 import { join } from 'path';
 
-const outFile = join(`${project.path}`, 'packages', 'jit', 'test', 'integration', 'template-compiler.generated.spec.ts');
+const outFile = join(`${project.path}`, 'packages', 'jit', 'test', 'generated', 'template-compiler.static.spec.ts');
 
 const describeCalls: Statement[] = [];
 

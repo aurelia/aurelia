@@ -11,3 +11,5 @@ const unitTestContext: any = (require as any).context('./unit', true, /\.spec\.t
 unitTestContext.keys().forEach(unitTestContext);
 const integrationTestContext = require.context('./integration', true, /\.spec\.ts$/);
 integrationTestContext.keys().forEach(integrationTestContext);
+const generatedTestContext = require.context('./generated', true, /\.spec\.ts$/);
+generatedTestContext.keys().forEach(integrationTestContext);

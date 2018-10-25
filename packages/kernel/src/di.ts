@@ -7,7 +7,7 @@ export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IConta
 
 export type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Function;
 
-export type InterfaceSymbol<T> = (target: Injectable, property: string, index: number) => any;
+export type InterfaceSymbol<T> = (target: Injectable<T>, property: string, index: number) => any;
 
 export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
   withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T>;
@@ -32,11 +32,15 @@ export interface IFactory<T = any> {
 export interface IServiceLocator {
   has(key: any, searchAncestors: boolean): boolean;
 
-  get<T>(key: Key<T>): T;
-  get<T extends Constructable>(key: T): InstanceType<T>;
+  get<K>(key: Constructable<unknown> | Key<unknown> | K):
+    K extends InterfaceSymbol<infer T> ? T :
+    K extends Constructable ? InstanceType<K> :
+    K;
 
-  getAll<T>(key: Key<T>): ReadonlyArray<T>;
-  getAll<T extends Constructable>(key: T): ReadonlyArray<InstanceType<T>>;
+  getAll<K>(key: Constructable<unknown> | Key<unknown> | K):
+    K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> :
+    K extends Constructable ? ReadonlyArray<InstanceType<K>> :
+    ReadonlyArray<K>;
 }
 
 export interface IRegistry {

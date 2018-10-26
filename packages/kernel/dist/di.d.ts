@@ -1,7 +1,7 @@
 import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
 export declare type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 export declare type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Function;
-export declare type InterfaceSymbol<T> = (target: Injectable, property: string, index: number) => any;
+export declare type InterfaceSymbol<T> = (target: Injectable<T>, property: string, index: number) => any;
 export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
     withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T>;
     noDefault(): InterfaceSymbol<T>;
@@ -20,10 +20,8 @@ export interface IFactory<T = any> {
 }
 export interface IServiceLocator {
     has(key: any, searchAncestors: boolean): boolean;
-    get<T>(key: Key<T>): T;
-    get<T extends Constructable>(key: T): InstanceType<T>;
-    getAll<T>(key: Key<T>): ReadonlyArray<T>;
-    getAll<T extends Constructable>(key: T): ReadonlyArray<InstanceType<T>>;
+    get<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolver<infer T1> ? T1 extends Constructable ? InstanceType<T1> : T1 : K;
+    getAll<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> : K extends Constructable ? ReadonlyArray<InstanceType<K>> : K extends IResolver<infer T1> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> : ReadonlyArray<K>;
 }
 export interface IRegistry {
     register(container: IContainer): void;

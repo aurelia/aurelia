@@ -190,7 +190,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
   public create<TSource, TType extends IResourceType<TSource>>(kind: IResourceKind<TSource, TType>, name: string): InstanceType<TType> | null {
     const key = kind.keyFrom(name);
     if (this.context.has(key, false)) {
-      return this.context.get(key) || null;
+      return this.context.get<any>(key) || null;
     }
     return null;
   }

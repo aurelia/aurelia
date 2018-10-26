@@ -336,9 +336,13 @@ export function $test(name: string, markup: string, expectedAfterStart: string, 
     $createComponent('App'),
     $app(),
     $start(),
-    $expectHostTextContent(expectedAfterStart, 'after start'),
+    $expectHostTextContent(expectedAfterStart, 'after start #1'),
     $stop(),
-    $expectHostTextContent(expectedAfterStop, 'after stop')
+    $expectHostTextContent(expectedAfterStop, 'after stop #1'),
+    $start(),
+    $expectHostTextContent(expectedAfterStart, 'after start #2'),
+    $stop(),
+    $expectHostTextContent(expectedAfterStop, 'after stop #2')
   );
 }
 

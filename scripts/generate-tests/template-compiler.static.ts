@@ -1,4 +1,4 @@
-import { SyntaxKind, Statement, createReturn } from 'typescript';
+import { SyntaxKind, Statement, createReturn, createIdentifier, createLiteral, PropertyDeclaration, createExpressionStatement } from 'typescript';
 import {
   emit,
   $classProperty,
@@ -18,626 +18,384 @@ import {
   $div,
   $createAurelia,
   $app,
-  $start
+  $start,
+  $it,
+  $destructureObject,
+  $call,
+  $const,
+  $customElement,
+  $createComponent,
+  $expectHostTextContent,
+  $stop,
+  $accessProperty
 } from './util';
 import project from '../project';
 import { join } from 'path';
 
 const outFile = join(`${project.path}`, 'packages', 'jit', 'test', 'generated', 'template-compiler.static.spec.ts');
 
-const describeCalls: Statement[] = [];
-
-const leafValues = [
-  // first 4 basic leafs
-  {
-    variant: '01',
-    name: '"a"',
-    notName: '"b"',
-    template: 'a',
-    notTemplate: 'b',
-    members: [],
-    expectedAfterStart: 'a',
-    expectedAfterStop: '',
-    isNotVariant: false
-  },
-  {
-    variant: '02',
-    name: '"a"',
-    notName: '${notMsg}',
-    template: 'a',
-    notTemplate: '${notMsg}',
-    members: [
-      $classProperty('notMsg', SyntaxKind.StringKeyword, 'b')
-    ],
-    expectedAfterStart: 'a',
-    expectedAfterStop: '',
-    isNotVariant: true
-  },
-  {
-    variant: '03',
-    name: '${msg}',
-    notName: '"b"',
-    template: '${msg}',
-    notTemplate: 'b',
-    members: [
-      $classProperty('msg', SyntaxKind.StringKeyword, 'a')
-    ],
-    expectedAfterStart: 'a',
-    expectedAfterStop: '',
-    isNotVariant: false
-  },
-  {
-    variant: '04',
-    name: '${msg}',
-    notName: '${notMsg}',
-    template: '${msg}',
-    notTemplate: '${notMsg}',
-    members: [
-      $classProperty('msg', SyntaxKind.StringKeyword, 'a'),
-      $classProperty('notMsg', SyntaxKind.StringKeyword, 'b')
-    ],
-    expectedAfterStart: 'a',
-    expectedAfterStop: '',
-    isNotVariant: true
-  },
-  // 4 same leafs wrapped in div.repeat
-  {
-    variant: '05',
-    name: 'div.repeat x3 > "a"',
-    notName: 'div.repeat x3 > "b"',
-    template: $attr($div, `repeat.for="i of 3"`)('a'),
-    notTemplate: $attr($div, `repeat.for="i of 3"`)('b'),
-    members: [],
-    expectedAfterStart: 'aaa',
-    expectedAfterStop: '',
-    isNotVariant: false
-  },
-  {
-    variant: '06',
-    name: 'div.repeat x3 > "a"',
-    notName: 'div.repeat x3 > ${notMsg}',
-    template: $attr($div, `repeat.for="i of 3"`)('a'),
-    notTemplate: $attr($div, `repeat.for="i of 3"`)('${notMsg}'),
-    members: [
-      $classProperty('notMsg', SyntaxKind.StringKeyword, 'b')
-    ],
-    expectedAfterStart: 'aaa',
-    expectedAfterStop: '',
-    isNotVariant: true
-  },
-  {
-    variant: '07',
-    name: 'div.repeat x3 > ${msg}',
-    notName: 'div.repeat x3 > "b"',
-    template: $attr($div, `repeat.for="i of 3"`)('${msg}'),
-    notTemplate: $attr($div, `repeat.for="i of 3"`)('b'),
-    members: [
-      $classProperty('msg', SyntaxKind.StringKeyword, 'a')
-    ],
-    expectedAfterStart: 'aaa',
-    expectedAfterStop: '',
-    isNotVariant: false
-  },
-  {
-    variant: '08',
-    name: 'div.repeat x3 > ${msg}',
-    notName: 'div.repeat x3 > ${notMsg}',
-    template: $attr($div, `repeat.for="i of 3"`)('${msg}'),
-    notTemplate: $attr($div, `repeat.for="i of 3"`)('${notMsg}'),
-    members: [
-      $classProperty('msg', SyntaxKind.StringKeyword, 'a'),
-      $classProperty('notMsg', SyntaxKind.StringKeyword, 'b')
-    ],
-    expectedAfterStart: 'aaa',
-    expectedAfterStop: '',
-    isNotVariant: true
-  },
-  // 4 same leafs wrapped in template.repeat
-  {
-    variant: '09',
-    name: 'tpl.repeat x3 > "a"',
-    notName: 'tpl.repeat x3 > "b"',
-    template: $attr($tpl, `repeat.for="i of 3"`)('a'),
-    notTemplate: $attr($tpl, `repeat.for="i of 3"`)('b'),
-    members: [],
-    expectedAfterStart: 'aaa',
-    expectedAfterStop: '',
-    isNotVariant: false
-  },
-  {
-    variant: '10',
-    name: 'tpl.repeat x3 > "a"',
-    notName: 'tpl.repeat x3 > ${notMsg}',
-    template: $attr($tpl, `repeat.for="i of 3"`)('a'),
-    notTemplate: $attr($tpl, `repeat.for="i of 3"`)('${notMsg}'),
-    members: [
-      $classProperty('notMsg', SyntaxKind.StringKeyword, 'b')
-    ],
-    expectedAfterStart: 'aaa',
-    expectedAfterStop: '',
-    isNotVariant: true
-  },
-  {
-    variant: '11',
-    name: 'tpl.repeat x3 > ${msg}',
-    notName: 'tpl.repeat x3 > "b"',
-    template: $attr($tpl, `repeat.for="i of 3"`)('${msg}'),
-    notTemplate: $attr($tpl, `repeat.for="i of 3"`)('b'),
-    members: [
-      $classProperty('msg', SyntaxKind.StringKeyword, 'a')
-    ],
-    expectedAfterStart: 'aaa',
-    expectedAfterStop: '',
-    isNotVariant: false
-  },
-  {
-    variant: '12',
-    name: 'tpl.repeat x3 > ${msg}',
-    notName: 'tpl.repeat x3 > ${notMsg}',
-    template: $attr($tpl, `repeat.for="i of 3"`)('${msg}'),
-    notTemplate: $attr($tpl, `repeat.for="i of 3"`)('${notMsg}'),
-    members: [
-      $classProperty('msg', SyntaxKind.StringKeyword, 'a'),
-      $classProperty('notMsg', SyntaxKind.StringKeyword, 'b')
-    ],
-    expectedAfterStart: 'aaa',
-    expectedAfterStop: '',
-    isNotVariant: true
-  }
-];
-
-for (const $create of [$div, $tpl]) {
-  for (const leafValue of leafValues) {
-    const {
-      variant,
-      name,
-      notName,
-      template,
-      notTemplate,
-      members,
-      expectedAfterStart,
-      expectedAfterStop,
-      isNotVariant
-    } = leafValue;
-
-    const itCalls: Statement[] = [];
-    if (!isNotVariant) {
-      // prevent test duplication by not generating tests that don't use the "not" variant
-      itCalls.push(
-        // the variants here are just an aid in organizing/finding tests and grouping them
-        // the "10x" here are variants that have "not" variant parallels, which have the same
-        // last 2 digits but start with 2xx, e.g. 101 has a "not" variant parallel that's 201
-        // also note that the second digit is another psuedo-group in itself (mostly to do with nesting depth / type)
-        $test(
-          `$${variant}$001 ${name}`,
-          $create(template),
-          expectedAfterStart,
-          expectedAfterStop,
-          ...members
-        ),
-        // 101-102: single-nested if or else
-        $test(
-          `$${variant}$101 ${$create.$name}.if.true > ${name}`,
-          $create(
-            $attr($create, `if.bind="true"`)(template)
-          ),
-          expectedAfterStart,
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$102 (${$create.$name}.if.false > "") + (${$create.$name}.else > ${name})`,
-          $create(
-            $attr($create, `if.bind="false"`)(``) +
-            $attr($create, `else`)(template)
-          ),
-          expectedAfterStart,
-          expectedAfterStop,
-          ...members
-        ),
-        // 103-104: single-nested if or else + sibling repeat
-        $test(
-          `$${variant}$103 ${$create.$name}.if.true +> ${$create.$name}.repeat x3 > ${name}`,
-          $create(
-            $attr($create, `if.bind="true"`, `repeat.for="i of 3"`)(template)
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$104 (${$create.$name}.if.false > "") + (${$create.$name}.else +> ${$create.$name}.repeat x3 > ${name})`,
-          $create(
-            $attr($create, `if.bind="false"`)(``) +
-            $attr($create, `else`, `repeat.for="i of 3"`)(template)
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        // 105: sibling repeat + single-nested if
-        $test(
-          `$${variant}$105 ${$create.$name}.repeat x3 +> ${$create.$name}.if.true > ${name}`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`, `if.bind="true"`)(template)
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        // 106-107: parent repeat + single-nested if or else
-        $test(
-          `$${variant}$106 ${$create.$name}.repeat x3 > ${$create.$name}.if.true > ${name}`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`)(
-              $attr($create, `if.bind="true"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$107 (${$create.$name}.if.false > "") + (${$create.$name}.else)`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`)(
-              $attr($create, `if.bind="false"`)(``) +
-              $attr($create, `else`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        // 12x: double-nested if or else (skip a number each because the "not" variants are twice as many)
-        $test(
-          `$${variant}$121 ${$create.$name}.if.true > ${$create.$name}.if.true > ${name}`,
-          $create(
-            $attr($create, `if.bind="true"`)(
-              $attr($create, `if.bind="true"`)(template)
-            )
-          ),
-          expectedAfterStart,
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$123 ${$create.$name}.if.true > (${$create.$name}.if.false > "") : (${$create.$name}.else > ${name})`,
-          $create(
-            $attr($create, `if.bind="true"`)(
-              $attr($create, `if.bind="false"`)(``) +
-              $attr($create, `else`)(template)
-            )
-          ),
-          expectedAfterStart,
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$125 ${$create.$name}.else > ${$create.$name}.else > ${name}`,
-          $create(
-            $attr($create, `if.bind="false"`)(``) +
-            $attr($create, `else`)(
-              $attr($create, `if.bind="false"`)(``) +
-              $attr($create, `else`)(template)
-            )
-          ),
-          expectedAfterStart,
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$127 (${$create.$name}.if.false > "") + (${$create.$name}.else > ${$create.$name}.if.true > ${name})`,
-          $create(
-            $attr($create, `if.bind="false"`)(``) +
-            $attr($create, `else`)(
-              $attr($create, `if.bind="true"`)(template)
-            )
-          ),
-          expectedAfterStart,
-          expectedAfterStop,
-          ...members
-        ),
-        $test(                        // this super-fancy "+>" syntax means it's sibling template controllers :) (just to give these tests a distinguishing name, since outcome is / should be identical)
-          `$${variant}$128 (${$create.$name}.if.false > "") + (${$create.$name}.else +> ${$create.$name}.if.true > ${name})`,
-          $create(
-            $attr($create, `if.bind="false"`)(``) +
-            $attr($create, `else`, `if.bind="true"`)(template)
-          ),
-          expectedAfterStart,
-          expectedAfterStop,
-          ...members
-        ),
-        // 14x: parent repeat + double-nested if or else
-        $test(
-          `$${variant}$141 ${$create.$name}.repeat x3 > (${$create.$name}.if.true > ${$create.$name}.if.true > ${name})`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`)(
-              $attr($create, `if.bind="true"`)(
-                $attr($create, `if.bind="true"`)(template)
-              )
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$143 ${$create.$name}.repeat x3 > (${$create.$name}.if.true > (${$create.$name}.if.false > "") : (${$create.$name}.else > ${name}))`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`)(
-              $attr($create, `if.bind="true"`)(
-                $attr($create, `if.bind="false"`)(``) +
-                $attr($create, `else`)(template)
-              )
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$145 ${$create.$name}.repeat x3 > (${$create.$name}.else > ${$create.$name}.else > ${name})`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`)(
-              $attr($create, `if.bind="false"`)(``) +
-              $attr($create, `else`)(
-                $attr($create, `if.bind="false"`)(``) +
-                $attr($create, `else`)(template)
-              )
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$147 ${$create.$name}.repeat x3 > ((${$create.$name}.if.false > "") + (${$create.$name}.else > ${$create.$name}.if.true > ${name}))`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`)(
-              $attr($create, `if.bind="false"`)(``) +
-              $attr($create, `else`)(
-                $attr($create, `if.bind="true"`)(template)
-              )
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$148 ${$create.$name}.repeat x3 > ((${$create.$name}.if.false > "") + (${$create.$name}.else +> ${$create.$name}.if.true > ${name}))`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`)(
-              $attr($create, `if.bind="false"`)(``) +
-              $attr($create, `else`, `if.bind="true"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        // 16x: sibling repeat + double-nested if
-        $test(
-          `$${variant}$161 ${$create.$name}.repeat x3 +> (${$create.$name}.if.true > ${$create.$name}.if.true > ${name})`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`, `if.bind="true"`)(
-              $attr($create, `if.bind="true"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$162 ${$create.$name}.if.true +> (${$create.$name}.repeat x3 > ${$create.$name}.if.true > ${name})`,
-          $create(
-            $attr($create, `if.bind="true"`, `repeat.for="i of 3"`)(
-              $attr($create, `if.bind="true"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$163 ${$create.$name}.if.true > (${$create.$name}.repeat x3 +> (${$create.$name}.if.true > ${name}))`,
-          $create(
-            $attr($create, `if.bind="true"`)(
-              $attr($create, `repeat.for="i of 3"`, `if.bind="true"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$164 ${$create.$name}.if.true +> (${$create.$name}.if.true +> ${$create.$name}.repeat x3 > ${name})`,
-          $create(
-            $attr($create, `if.bind="true"`)(
-              $attr($create, `if.bind="true"`, `repeat.for="i of 3"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(3),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$165 ${$create.$name}.repeat x3 +> (${$create.$name}.if.true > (${$create.$name}.repeat x3 +> (${$create.$name}.if.true > ${name})))`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`, `if.bind="true"`)(
-              $attr($create, `repeat.for="i of 3"`, `if.bind="true"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(9),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$166 ${$create.$name}.if.true +> (${$create.$name}.repeat x3 > (${$create.$name}.repeat x3 +> (${$create.$name}.if.true > ${name})))`,
-          $create(
-            $attr($create, `if.bind="true"`, `repeat.for="i of 3"`)(
-              $attr($create, `repeat.for="i of 3"`, `if.bind="true"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(9),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$167 ${$create.$name}.repeat x3 +> (${$create.$name}.if.true > (${$create.$name}.if.true +> ${$create.$name}.repeat x3 > ${name}))`,
-          $create(
-            $attr($create, `repeat.for="i of 3"`, `if.bind="true"`)(
-              $attr($create, `if.bind="true"`, `repeat.for="i of 3"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(9),
-          expectedAfterStop,
-          ...members
-        ),
-        $test(
-          `$${variant}$168 ${$create.$name}.if.true +> (${$create.$name}.repeat x3 > (${$create.$name}.if.true +> ${$create.$name}.repeat x3 > ${name}))`,
-          $create(
-            $attr($create, `if.bind="true"`, `repeat.for="i of 3"`)(
-              $attr($create, `if.bind="true"`, `repeat.for="i of 3"`)(template)
-            )
-          ),
-          expectedAfterStart.repeat(9),
-          expectedAfterStop,
-          ...members
-        )
-      );
-    }
-    itCalls.push(
-      // 20x: single-nested if or else
-      $test(
-        `$${variant}$201 (${$create.$name}.if.true > ${name}) + (else > ${notName})`,
-        $create(
-          $attr($create, `if.bind="true"`)(template) +
-          $attr($create, `else`)(notTemplate)
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      ),
-      $test(
-        `$${variant}$202 (${$create.$name}.if.false > ${notName}) + (${$create.$name}.else > ${name})`,
-        $create(
-          $attr($create, `if.bind="false"`)(notTemplate) +
-          $attr($create, `else`)(template)
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      ),
-      // 22x: double-nested if or else
-      $test(
-        `$${variant}$221 ${$create.$name}.if.true > ((${$create.$name}.if.true > ${name}) + (else > ${notName}))`,
-        $create(
-          $attr($create, `if.bind="true"`)(
-            $attr($create, `if.bind="true"`)(template) +
-            $attr($create, `else`)(notTemplate)
-          )
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      ),
-      $test(
-        `$${variant}$222 (${$create.$name}.if.true > ((${$create.$name}.if.true > ${name}) + (else > ${notName}))) + (else > ${notName})`,
-        $create(
-          $attr($create, `if.bind="true"`)(
-            $attr($create, `if.bind="true"`)(template) +
-            $attr($create, `else`)(notTemplate)
-          ) +
-          $attr($create, `else`)(notTemplate)
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      ),
-      $test(
-        `$${variant}$223 ${$create.$name}.if.true > ((${$create.$name}.if.false > ${notName}) + (else > ${name}))`,
-        $create(
-          $attr($create, `if.bind="true"`)(
-            $attr($create, `if.bind="false"`)(notTemplate) +
-            $attr($create, `else`)(template)
-          )
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      ),
-      $test(
-        `$${variant}$224 (${$create.$name}.if.true > ((${$create.$name}.if.false > ${notName}) + (else > ${name}))) + (else > ${notName})`,
-        $create(
-          $attr($create, `if.bind="true"`)(
-            $attr($create, `if.bind="false"`)(notTemplate) +
-            $attr($create, `else`)(template)
-          ) +
-          $attr($create, `else`)(notTemplate)
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      ),
-      $test(
-        `$${variant}$225 (${$create.$name}.if.false > "") + (${$create.$name}.else > (if.bind="false" > ${notName}) + (${$create.$name}.else > ${name}))`,
-        $create(
-          $attr($create, `if.bind="false"`)(``) +
-          $attr($create, `else`)(
-            $attr($create, `if.bind="false"`)(notTemplate) +
-            $attr($create, `else`)(template)
-          )
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      ),
-      $test(
-        `$${variant}$226 (${$create.$name}.if.false > ${notName}) + (${$create.$name}.else > (if.bind="false" > ${notName}) + (${$create.$name}.else > ${name}))`,
-        $create(
-          $attr($create, `if.bind="false"`)(notTemplate) +
-          $attr($create, `else`)(
-            $attr($create, `if.bind="false"`)(notTemplate) +
-            $attr($create, `else`)(template)
-          )
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      ),
-      $test(
-        `$${variant}$227 (${$create.$name}.if.false > ${notName}) + (${$create.$name}.else > (if.bind="true" > ${name}))`,
-        $create(
-          $attr($create, `if.bind="false"`)(notTemplate) +
-          $attr($create, `else`)(
-            $attr($create, `if.bind="true"`)(template)
-          )
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      ),
-      $test(
-        `$${variant}$228 (${$create.$name}.if.false > ${notName}) + (${$create.$name}.else +> ${$create.$name}.if.true > ${name})`,
-        $create(
-          $attr($create, `if.bind="false"`)(notTemplate) +
-          $attr($create, `else`, `if.bind="true"`)(template)
-        ),
-        expectedAfterStart,
-        expectedAfterStop,
-        ...members
-      )
-    );
-
-    describeCalls.push(
-      $describe(`$${variant}$xxx template=${name}, notTemplate=${notTemplate} (${$create.$name})`,
-      ...itCalls)
-    );
-  }
+interface Identifiable {
+  id: string;
+}
+interface TextBinding extends Identifiable {
+  markup: string;
+  value: string;
+  properties: PropertyDeclaration[];
+  opposite?: TextBinding;
+  isDuplicate?: boolean;
+}
+interface TplCtrl extends Identifiable {
+  attr: string;
+  value: any;
+  properties: PropertyDeclaration[];
+  opposite?: TplCtrl;
+  isDuplicate?: boolean;
+}
+interface Tag extends Identifiable {
+  name: string;
+  isDuplicate?: boolean;
 }
 
+const tags = [
+  { id: 'tag$01', name: 'div' },
+  { id: 'tag$02', name: 'template', isDuplicate: true }
+  // template is a duplicate so raw textBindings don't use it (double nested template with nothing on it doesn't work)
+];
+
+const text$01_1: TextBinding = {
+  id: 'text$01',
+  markup: 'a',
+  value: 'a',
+  properties: []
+};
+const text$01_2: TextBinding = {
+  id: 'text$01',
+  markup: 'b',
+  value: 'b',
+  properties: []
+};
+text$01_1.opposite = text$01_2;
+text$01_2.opposite = text$01_1;
+
+const text$02_1: TextBinding = {
+  id: 'text$02',
+  markup: 'a',
+  value: 'a',
+  properties: [],
+  isDuplicate: true
+};
+const text$02_2: TextBinding = {
+  id: 'text$02',
+  markup: '${notMsg}',
+  value: 'b',
+  properties: [$classProperty('notMsg', SyntaxKind.StringKeyword, 'b')]
+};
+text$02_1.opposite = text$02_2;
+text$02_2.opposite = text$02_1;
+
+const text$03_1: TextBinding = {
+  id: 'text$03',
+  markup: '${msg}',
+  value: 'a',
+  properties: [$classProperty('msg', SyntaxKind.StringKeyword, 'a')]
+};
+const text$03_2: TextBinding = {
+  id: 'text$03',
+  markup: '${notMsg}',
+  value: 'b',
+  properties: [$classProperty('notMsg', SyntaxKind.StringKeyword, 'b')]
+};
+text$03_1.opposite = text$03_2;
+text$03_2.opposite = text$03_1;
+
+const text$04_1: TextBinding = {
+  id: 'text$04',
+  markup: '${msg}',
+  value: 'a',
+  properties: [$classProperty('msg', SyntaxKind.StringKeyword, 'a')],
+  isDuplicate: true
+};
+const text$04_2: TextBinding = {
+  id: 'text$04',
+  markup: '${notMsg}',
+  value: 'b',
+  properties: [$classProperty('notMsg', SyntaxKind.StringKeyword, 'b')]
+};
+text$04_1.opposite = text$04_2;
+text$04_2.opposite = text$04_1;
+
+const texts = [text$01_1, text$02_1, text$03_1, text$04_1];
+
+const if$01_1: TplCtrl = {
+  id: 'if$01',
+  value: true,
+  attr: 'if.bind="true"',
+  properties: []
+};
+const if$01_2: TplCtrl = {
+  id: 'if$01',
+  value: false,
+  attr: 'else',
+  properties: []
+};
+if$01_1.opposite = if$01_2;
+if$01_2.opposite = if$01_1;
+
+const if$02_1: TplCtrl = {
+  id: 'if$02',
+  value: false,
+  attr: 'if.bind="false"',
+  properties: []
+};
+const if$02_2: TplCtrl = {
+  id: 'if$02',
+  value: true,
+  attr: 'else',
+  properties: []
+};
+if$02_1.opposite = if$02_2;
+if$02_2.opposite = if$02_1;
+
+const ifElses = [if$01_1, if$02_1];
+
+const repeat$11_1: TplCtrl = {
+  id: 'repeat$11',
+  value: 1,
+  attr: 'repeat.for="i of 1"',
+  properties: []
+}
+const repeat$11_2: TplCtrl = {
+  id: 'repeat$11',
+  value: 0,
+  attr: 'repeat.for="i of 0"',
+  properties: []
+}
+repeat$11_1.opposite = repeat$11_2;
+repeat$11_2.opposite = repeat$11_1;
+
+const repeat$12_1: TplCtrl = {
+  id: 'repeat$12',
+  value: 3,
+  attr: 'repeat.for="i of 3"',
+  properties: []
+}
+const repeat$12_2: TplCtrl = {
+  id: 'repeat$12',
+  value: 0,
+  attr: 'repeat.for="i of 0"',
+  properties: []
+}
+repeat$12_1.opposite = repeat$12_2;
+repeat$12_2.opposite = repeat$12_1;
+
+const repeats = [repeat$11_1, repeat$12_1];
+
+function $createTest(markup: string, expected: string, properties: PropertyDeclaration[], ids: Identifiable[]) {
+  const setup: Statement = $destructureObject($call(createIdentifier('setup')), 'au', 'host');
+  const name: Statement = $const('name', createLiteral('app'));
+  const createComponent: Statement = $createComponent('App');
+  const app: Statement = $app();
+  const customElement: Statement = $customElement('App', ...properties);
+  const test = $it(
+    ids.map(i => i.id).join(' ')+' _',
+    setup,
+    $const('template', createLiteral(`<template>${markup}</template>`)),
+    name,
+    null,
+    customElement,
+    createComponent,
+    app,
+    createExpressionStatement(
+      $call($accessProperty('console', 'log'), createLiteral('template'), createIdentifier('template'))
+    ),
+    createExpressionStatement(
+      $call($accessProperty('console', 'log'), createLiteral('expected'), createLiteral(expected))
+    ),
+    $start(),
+    createExpressionStatement(
+      $call($accessProperty('console', 'log'), createLiteral('after start $1'),$accessProperty('host', 'outerHTML'))
+    ),
+    $expectHostTextContent(expected, 'after start #1'),
+    $stop(),
+    createExpressionStatement(
+      $call($accessProperty('console', 'log'), createLiteral('after stop $1'),$accessProperty('host', 'outerHTML'))
+    ),
+    $expectHostTextContent('', 'after stop #1'),
+
+    $start(),
+    createExpressionStatement(
+      $call($accessProperty('console', 'log'), createLiteral('after start $2'),$accessProperty('host', 'outerHTML'))
+    ),
+    $expectHostTextContent(expected, 'after start #2'),
+    $stop(),
+    $stop(),
+    createExpressionStatement(
+      $call($accessProperty('console', 'log'), createLiteral('after stop $2'),$accessProperty('host', 'outerHTML'))
+    ),
+    $expectHostTextContent('', 'after stop #2')
+  );
+  return test;
+}
+
+function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]) {
+  const tests: Statement[] = [];
+
+  for (const tag of tags) {
+    const $tag = tag.name;
+
+    for (const textBinding of textBindings) {
+
+      const ifText = textBinding;
+      const elseText = textBinding.opposite;
+
+      if (!ifText.isDuplicate) {
+        if (!tag.isDuplicate) {
+          // interpolation wrapped in div
+          tests.push($createTest(
+            `<${$tag}>${ifText.markup}</${$tag}>`,
+            ifText.value, ifText.properties, [tag, ifText])
+          );
+        } else {
+          // non-wrapped interpolation
+          tests.push($createTest(
+            ifText.markup,
+            ifText.value, ifText.properties, [tag, ifText])
+          );
+        }
+      }
+
+      for (const ifElsePair of ifElsePairs) {
+
+        const $if = ifElsePair;
+        const $else = ifElsePair.opposite;
+
+        const expected = $if.value ? ifText.value : elseText.value;
+        const properties = [...ifText.properties, ...elseText.properties, ...$if.properties, ...$else.properties];
+
+        // if (has content) + else (has content)
+        const $fullIfElse =
+          `<${$tag} ${$if.attr}>${ifText.markup}</${$tag}>` +
+          `<${$tag} ${$else.attr}>${elseText.markup}</${$tag}>`;
+
+        // if (has content)
+        const $onlyIf =
+          `<${$tag} ${$if.attr}>${ifText.markup}</${$tag}>`;
+
+        // if (has content) + else (has NO content)
+        const $ifEmptyElse =
+          `<${$tag} ${$if.attr}>${ifText.markup}</${$tag}>` +
+          `<${$tag} ${$else.attr}></${$tag}>`;
+
+        // if (has NO content) + else (has content)
+        const $onlyElse =
+          `<${$tag} ${$if.attr}></${$tag}>` +
+          `<${$tag} ${$else.attr}>${elseText.markup}</${$tag}>`;
+
+        // use the full variant for every combination
+        tests.push($createTest($fullIfElse, expected, properties, [tag, ifText, $if, {id:'variant$01'}]));
+
+        // the only-if variants only make sense to have when the template has no else (prevent absolute test duplication)
+        if (!$else.value) {
+          tests.push($createTest($onlyIf, expected, properties, [tag, ifText, $if, {id:'variant$02'}]));
+
+          tests.push($createTest($ifEmptyElse, expected, properties, [tag, ifText, $if, {id:'variant$03'}]));
+        }
+
+        // the only-else variant only makes sense to have when the template's if branch is false (prevent absolute test duplication)
+        if (!$if.value) {
+          tests.push($createTest($onlyElse, expected, properties, [tag, ifText, $if, {id:'variant$04'}]));
+        }
+
+        for (const $repeat of repeaters) {
+          // only work with number or arrays as the repeaters value;
+          // for a number we repeat the text content n times
+          // otherwise we use the array values directly
+          const $expected = typeof $repeat.value === 'number'
+            ? expected.repeat($repeat.value)
+            : $repeat.value.join('');
+
+          // identical to the if/else tests one level up, but wrapped in the repeater
+          tests.push($createTest(
+            `<${$tag} ${$repeat.attr}>${$fullIfElse}</${$tag}>`,
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$01'}])
+          );
+
+          const $repeatIfText = `<${$tag} ${$repeat.attr}>${ifText.markup}</${$tag}>`;
+          const $repeatElseText = `<${$tag} ${$repeat.attr}>${elseText.markup}</${$tag}>`;
+
+          // the inverse of the fullIfElse wrapped by repeater (repeater wrapped by if/else)
+          tests.push($createTest(
+            `<${$tag} ${$if.attr}>${$repeatIfText}</${$tag}>` +
+            `<${$tag} ${$else.attr}>${$repeatElseText}</${$tag}>`,
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$02'}])
+          );
+          // same as the test above but with the template controllers on the same element
+          tests.push($createTest(
+            `<${$tag} ${$if.attr} ${$repeat.attr}>${ifText.markup}</${$tag}>` +
+            `<${$tag} ${$else.attr} ${$repeat.attr}>${elseText.markup}</${$tag}>`,
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$03'}])
+          );
+
+          // same concept as the !$else.value branch one level up, once wrapped with a repeater,
+          // and once where the repeater is wrapped by the if (2x the number of tests due to testing
+          // both placements, and some additional tests for testing template controllers on same elements)
+          if (!$else.value) {
+            tests.push($createTest(
+              `<${$tag} ${$repeat.attr}>${$onlyIf}<${$tag}>`,
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$04'}])
+            );
+            // same as test above, but template controllers on same element
+            tests.push($createTest(
+              `<${$tag} ${$repeat.attr} ${$if.attr}>${ifText.markup}<${$tag}>`,
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$05'}])
+            );
+            tests.push($createTest(
+              `<${$tag} ${$if.attr}>${$repeatIfText}</${$tag}>`,
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$06'}])
+            );
+            // same as test above, but template controllers on same element
+            tests.push($createTest(
+              `<${$tag} ${$if.attr} ${$repeat.attr}>${ifText.markup}</${$tag}>`,
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$07'}])
+            );
+
+            tests.push($createTest(
+              `<${$tag} ${$repeat.attr}>${$ifEmptyElse}<${$tag}>`,
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$08'}])
+            );
+            tests.push($createTest(
+              `<${$tag} ${$if.attr}>${$repeatIfText}</${$tag}>` +
+              `<${$tag} ${$else.attr}></${$tag}>`,
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09'}])
+            );
+          }
+
+          // same concept as the !$if.value branch one level up, once wrapped with a repeater,
+          // and once where the repeater is wrapped by the else (2x the number of tests due to testing
+          // both placements)
+          if (!$if.value) {
+            tests.push($createTest(
+              `<${$tag} ${$repeat.attr}>${$onlyElse}<${$tag}>`,
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$08'}])
+            );
+            tests.push($createTest(
+              `<${$tag} ${$if.attr}></${$tag}>` +
+              `<${$tag} ${$else.attr}>${$repeatElseText}</${$tag}>`,
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09'}])
+            );
+            // same as test above, but template controllers on same element
+            tests.push($createTest(
+              `<${$tag} ${$if.attr}></${$tag}>` +
+              `<${$tag} ${$else.attr} ${$repeat.attr}>${elseText.markup}</${$tag}>`,
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$10'}])
+            );
+          }
+        }
+      }
+    }
+  }
+  return tests;
+}
 
 const nodes = [
   $import('chai', 'expect'),
@@ -645,7 +403,7 @@ const nodes = [
   $import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia'),
   $import('../../src/index', 'BasicConfiguration'),
   null,
-  $describe(
+  $describeOnly(
     'template-compiler.generated',
     $functionDeclaration(
       'setup',
@@ -655,7 +413,7 @@ const nodes = [
       $createHost(),
       createReturn($object('au', 'host'))
     ),
-    ...describeCalls
+    ...generateTests(tags, texts, ifElses, repeats)
   )
 ];
 

@@ -458,21 +458,27 @@ export class NodeSequenceFactory {
   private readonly Type: Constructable<INodeSequence>;
   constructor(fragment: IDocumentFragment) {
     const childNodes = fragment.childNodes;
-    if (childNodes.length === 2) {
-      const target = childNodes[0];
-      if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
-        const text = childNodes[1];
-        if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
-          this.deepClone = false;
-          this.node = <ICloneableNode>text;
-          this.Type = TextNodeSequence;
-          return;
+    switch (childNodes.length) {
+      case 0:
+        this.createNodeSequence = () => NodeSequence.empty;
+        return;
+      case 2:
+        const target = childNodes[0];
+        if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
+          const text = childNodes[1];
+          if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
+            this.deepClone = false;
+            this.node = <ICloneableNode>text;
+            this.Type = TextNodeSequence;
+            return;
+          }
         }
-      }
+      // falls through if not returned
+      default:
+        this.deepClone = true;
+        this.node = <ICloneableNode>fragment;
+        this.Type = FragmentNodeSequence;
     }
-    this.deepClone = true;
-    this.node = <ICloneableNode>fragment;
-    this.Type = FragmentNodeSequence;
   }
 
   public static createFor(markupOrNode: string | INode): NodeSequenceFactory {

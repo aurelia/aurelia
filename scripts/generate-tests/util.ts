@@ -103,8 +103,21 @@ export function $const(name: string, expr: Expression) {
     )
   );
 }
-export function $accessProperty(object: string, prop: string) {
-  return createPropertyAccess(createIdentifier(object), createIdentifier(prop));
+export function $accessProperty(expr: Expression, ...props: string[]);
+export function $accessProperty(object: string, ...props: string[]);
+export function $accessProperty(objectOrExpr: string | Expression, ...props: string[]) {
+  if (props.length === 0) {
+    if (typeof objectOrExpr === 'string') {
+      return createIdentifier(objectOrExpr);
+    } else {
+      return objectOrExpr;
+    }
+  }
+  if (typeof objectOrExpr === 'string') {
+    return props.slice(1).reduce((acc, cur) => createPropertyAccess(acc, createIdentifier(cur)), createPropertyAccess(createIdentifier(objectOrExpr), createIdentifier(props[0])));
+  } else {
+    return props.slice(1).reduce((acc, cur) => createPropertyAccess(acc, createIdentifier(cur)), createPropertyAccess(objectOrExpr, createIdentifier(props[0])));
+  }
 }
 export function $call(expr: Expression, ...args: Expression[]): Expression {
   return createCall(expr, [], args);
@@ -317,6 +330,9 @@ export function $expect(left: Expression, right: Expression, msg: string, ...ass
 }
 export function $expectHostTextContent(toEqual: string, msg: string) {
   return $expect($accessProperty('host', 'textContent'), createLiteral(toEqual), msg, 'to', 'equal');
+}
+export function $expectEqual(actual: string, expected: string, msg: string) {
+  return $expect($accessProperty(actual), $accessProperty(expected), msg, 'to', 'equal');
 }
 export function $functionDeclaration(name: string, ...statements: Statement[]) {
   return createFunctionDeclaration([], [], undefined, createIdentifier(name), [], [], undefined, createBlock(statements, true));

@@ -3,7 +3,7 @@ import { DI } from "../../../kernel/src/index";
 import { CustomElementResource, DOM, Aurelia } from "../../../runtime/src/index";
 import { BasicConfiguration } from "../../src/index";
 
-describe.only("template-compiler.generated", function template_compiler_generated() {
+describe("template-compiler.generated", function template_compiler_generated() {
     function setup() {
         const container = DI.createContainer();
         container.register(BasicConfiguration);
@@ -7174,6 +7174,31 @@ describe.only("template-compiler.generated", function template_compiler_generate
         au.start();
         console.log("after start $2", host.outerHTML);
         expect(host.textContent).to.equal("bbb", "after start #2");
+        au.stop();
+        au.stop();
+        console.log("after stop $2", host.outerHTML);
+        expect(host.textContent).to.equal("", "after stop #2");
+    });
+    it("tag$02 text$04 if$02 repeat$12 variant$10 _d", function tag$02_text$04_if$02_repeat$12_variant$10__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\" repeat.for=\"i of 3\">${msg}</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+        });
+        const component = new App();
+        au.app({ host, component });
+        console.log("template", template);
+        console.log("expected", "aaa");
+        au.start();
+        console.log("after start $1", host.outerHTML);
+        expect(host.textContent).to.equal("aaa", "after start #1");
+        au.stop();
+        console.log("after stop $1", host.outerHTML);
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        console.log("after start $2", host.outerHTML);
+        expect(host.textContent).to.equal("aaa", "after start #2");
         au.stop();
         au.stop();
         console.log("after stop $2", host.outerHTML);

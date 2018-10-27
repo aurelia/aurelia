@@ -6,6 +6,10 @@ export const TEXT_NODE = 3;
 export const COMMENT_NODE = 8;
 export const DOCUMENT_FRAGMENT_NODE = 11;
 
+function isRenderLocation(node: INode): node is IRenderLocation {
+  return node.textContent === 'au-loc';
+}
+
 export interface INodeLike {
   readonly firstChild: INode | null;
   readonly lastChild: INode | null;
@@ -140,11 +144,14 @@ export const DOM = {
     return (<any>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
   },
   convertToRenderLocation(node: INode): IRenderLocation {
-    if (node.parentNode === null) {
+    if (isRenderLocation(node)) {
+      return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
+    }
+    if ((<any>node).parentNode === null) {
       throw Reporter.error(52);
     }
-    const location = document.createComment('au-loc');
-    (<any>node).parentNode.replaceChild(location, node);
+    const location = <IRenderLocation>document.createComment('au-loc');
+    DOM.replaceNode(location, node);
     return location;
   },
   createComment(text: string): IComment {
@@ -310,22 +317,46 @@ export class FragmentNodeSequence implements INodeSequence {
   public childNodes: INode[];
 
   private fragment: IDocumentFragment;
+  private targets: ArrayLike<INode>;
 
   constructor(fragment: IDocumentFragment) {
     this.fragment = fragment;
+    // tslint:disable-next-line:no-any
+    const targetNodeList = (<any>fragment).querySelectorAll('.au');
+    let i = 0;
+    let ii = targetNodeList.length;
+    const targets = this.targets = Array(ii);
+    while (i < ii) {
+      const target = targetNodeList[i];
+      if (target.nodeName === 'AU-MARKER') {
+        targets[i] = DOM.convertToRenderLocation(target);
+      } else {
+        targets[i] = target;
+      }
+      ++i;
+    }
+    const childNodeList = fragment.childNodes;
+    i = 0;
+    ii = childNodeList.length;
+    const childNodes = this.childNodes = Array(ii);
+    while (i < ii) {
+      childNodes[i] = childNodeList[i] as Writable<INode>;
+      ++i;
+    }
+
     this.firstChild = fragment.firstChild;
     this.lastChild = fragment.lastChild;
-    this.childNodes = PLATFORM.toArray(fragment.childNodes);
   }
 
   public findTargets(): ArrayLike<INode> {
     // tslint:disable-next-line:no-any
-    return (<any>this.fragment).querySelectorAll('.au');
+    return this.targets;
   }
 
-  public insertBefore(refNode: INode): void {
+  public insertBefore(refNode: IRenderLocation): void {
     // tslint:disable-next-line:no-any
     (<any>refNode).parentNode.insertBefore(this.fragment, refNode);
+
   }
 
   public appendTo(parent: INode): void {
@@ -372,7 +403,7 @@ export class NodeSequenceFactory {
     const childNodes = fragment.childNodes;
     if (childNodes.length === 2) {
       const target = childNodes[0];
-      if (target.nodeName === 'AU-MARKER') {
+      if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
         const text = childNodes[1];
         if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
           this.deepClone = false;

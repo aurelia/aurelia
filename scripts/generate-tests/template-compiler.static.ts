@@ -69,12 +69,14 @@ interface Tag extends Identifiable {
   isTemplate?: boolean;
 }
 
-const tags = [
+const tags: Tag[] = [
   { id: 'tag$01', name: 'div' },
   // template is a duplicate so raw textBindings don't use it (double nested template with nothing on it doesn't work)
   { id: 'tag$02', name: 'template', isTemplate: true },
   { id: 'tag$03', name: 'template', elName: 'foo', isCustom: true },
-  { id: 'tag$04', name: 'template', elName: 'foo', isCustom: true, containerless: true }
+  { id: 'tag$04', name: 'template', elName: 'foo', isCustom: true, containerless: true },
+  { id: 'tag$05', name: 'template', elName: 'foo', isCustom: true, shadowMode: 'open' },
+  { id: 'tag$06', name: 'template', elName: 'foo', isCustom: true, shadowMode: 'closed' }
 ];
 
 const text$01_1: TextBinding = {
@@ -326,7 +328,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
               undefined,
               undefined,
               createObjectLiteral([
-                createPropertyAssignment(createIdentifier('shadowOptions'), createLiteral(shadowMode))
+                createPropertyAssignment(createIdentifier('mode'), createLiteral(shadowMode))
               ])
             )
           );
@@ -365,7 +367,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           // binding with custom element
           staticTests.push($createTest(
             `<${tag.elName} ${ifText.variable}.bind="${ifText.variable}"></${tag.elName}>`,
-            ifText.value, ifText.properties, [tag, ifText], registerCustomElement(ifText.markup, tag.containerless || null, null))
+            ifText.value, ifText.properties, [tag, ifText], registerCustomElement(ifText.markup, tag.containerless || null, tag.shadowMode || null))
           );
         } else {
           // interpolation wrapped in div
@@ -376,7 +378,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
         }
       }
       if (tag.isCustom) {
-        resources.push(...registerCustomElement(ifText.markup + elseText.markup + '${item}', tag.containerless || null, null));
+        resources.push(...registerCustomElement(ifText.markup + elseText.markup + '${item}', tag.containerless || null, tag.shadowMode || null));
         ifText.markup = `<${tag.elName} ${ifText.variable}.bind="${ifText.variable}"></${tag.elName}>`;
         elseText.markup = `<${tag.elName} ${elseText.variable}.bind="${elseText.variable}"></${tag.elName}>`;
       }

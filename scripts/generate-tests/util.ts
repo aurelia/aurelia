@@ -48,7 +48,8 @@ import {
   createBindingElement,
   createReturn,
   createClassExpression,
-  createBinary
+  createBinary,
+  Decorator
 } from 'typescript';
 
 export function emit(path: string, ...nodes: Node[]): void {
@@ -180,13 +181,13 @@ export function $object(...names: string[]) {
   const props = names.map(n => createShorthandPropertyAssignment(createIdentifier(n)));
   return createObjectLiteral(props);
 }
-export function $app() {
+export function $callAuApp() {
   return createExpressionStatement($call($accessProperty('au', 'app'), $object('host', 'component')));
 }
-export function $start() {
+export function $callAuStart() {
   return createExpressionStatement($call($accessProperty('au', 'start')));
 }
-export function $stop() {
+export function $callAuStop() {
   return createExpressionStatement($call($accessProperty('au', 'stop')));
 }
 export function $createComponent(type: string, ...args: Expression[]) {
@@ -285,33 +286,41 @@ export function $import(path: string, ...names: string[]) {
       createLiteral(path)
   );
 }
-export function $resource(name: string, kind: string, args: Expression[], members: ClassElement[]) {
-  return $const(
-    name,
-    $call(
-      $accessProperty(kind, 'define'),
-      ...args,
-      createClassExpression(
-        [],
-        undefined,
-        [],
-        [],
-        members
-      )
+export function $resource(kind: string, args: Expression[], members: ClassElement[], name: string) {
+  const callExpr = $call(
+    $accessProperty(kind, 'define'),
+    ...args,
+    createClassExpression(
+      [],
+      undefined,
+      [],
+      [],
+      members
     )
   );
+  return $const(name, callExpr);
 }
 export function $customElement(name: string, ...members: ClassElement[]) {
-  return $resource(name, 'CustomElementResource', [$object('name', 'template')], members);
+  return <Statement>$resource('CustomElementResource', [$object('name', 'template')], members, name);
 }
-export function $classProperty(name: string, type: SyntaxKind, value: any) {
+export function $classProperty(name: string, value: any, ...decorators: Decorator[]) {
   return createProperty(
-    [],
+    decorators,
     [],
     createIdentifier(name),
     undefined,
     undefined,
     createLiteral(value)
+  );
+}
+export function $bindableProperty(name: string) {
+  return createProperty(
+    [createDecorator(createIdentifier('bindable'))],
+    [],
+    createIdentifier(name),
+    undefined,
+    undefined,
+    undefined
   );
 }
 export function $destructureObject(initializer: Expression, ...names: string[]) {
@@ -337,6 +346,23 @@ export function $expectEqual(actual: string, expected: string, msg: string) {
 export function $functionDeclaration(name: string, ...statements: Statement[]) {
   return createFunctionDeclaration([], [], undefined, createIdentifier(name), [], [], undefined, createBlock(statements, true));
 }
+export function $bindable(prop: string, attr?: string) {
+  return createPropertyAssignment(
+    createIdentifier(prop),
+    createObjectLiteral(
+      [
+        createPropertyAssignment(
+          createIdentifier('attribute'),
+          createLiteral(attr || prop)
+        ),
+        createPropertyAssignment(
+          createIdentifier('property'),
+          createLiteral(prop)
+        )
+      ]
+    )
+  )
+}
 
 export function $test(name: string, markup: string, expectedAfterStart: string, expectedAfterStop: string, ...customElMembers: ClassElement[]) {
   return $it(
@@ -350,14 +376,14 @@ export function $test(name: string, markup: string, expectedAfterStart: string, 
     null,
     $customElement('App', ...customElMembers),
     $createComponent('App'),
-    $app(),
-    $start(),
+    $callAuApp(),
+    $callAuStart(),
     $expectHostTextContent(expectedAfterStart, 'after start #1'),
-    $stop(),
+    $callAuStop(),
     $expectHostTextContent(expectedAfterStop, 'after stop #1'),
-    $start(),
+    $callAuStart(),
     $expectHostTextContent(expectedAfterStart, 'after start #2'),
-    $stop(),
+    $callAuStop(),
     $expectHostTextContent(expectedAfterStop, 'after stop #2')
   );
 }

@@ -1,4 +1,4 @@
-import { SyntaxKind, Statement, createReturn, createIdentifier, createLiteral, PropertyDeclaration, createExpressionStatement } from 'typescript';
+import { SyntaxKind, Statement, createReturn, createIdentifier, createLiteral, PropertyDeclaration, createExpressionStatement, createObjectLiteral, createPropertyAssignment, createProperty, createModifier } from 'typescript';
 import {
   emit,
   $classProperty,
@@ -17,8 +17,8 @@ import {
   $object,
   $div,
   $createAurelia,
-  $app,
-  $start,
+  $callAuApp,
+  $callAuStart,
   $it,
   $destructureObject,
   $call,
@@ -26,9 +26,12 @@ import {
   $customElement,
   $createComponent,
   $expectHostTextContent,
-  $stop,
+  $callAuStop,
   $accessProperty,
-  $expectEqual
+  $expectEqual,
+  $resource,
+  $bindableProperty,
+  $bindable
 } from './util';
 import project from '../project';
 import { join } from 'path';
@@ -59,13 +62,19 @@ interface TplCtrl extends Identifiable {
 }
 interface Tag extends Identifiable {
   name: string;
-  isDuplicate?: boolean;
+  elName?: string;
+  isCustom?: boolean;
+  containerless?: boolean;
+  shadowMode?: 'open' | 'closed';
+  isTemplate?: boolean;
 }
 
 const tags = [
   { id: 'tag$01', name: 'div' },
-  { id: 'tag$02', name: 'template', isDuplicate: true }
   // template is a duplicate so raw textBindings don't use it (double nested template with nothing on it doesn't work)
+  { id: 'tag$02', name: 'template', isTemplate: true },
+  { id: 'tag$03', name: 'template', elName: 'foo', isCustom: true },
+  { id: 'tag$04', name: 'template', elName: 'foo', isCustom: true, containerless: true }
 ];
 
 const text$01_1: TextBinding = {
@@ -98,7 +107,7 @@ const text$02_2: TextBinding = {
   markup: '${notMsg}',
   variable: 'notMsg',
   value: 'b',
-  properties: [$classProperty('notMsg', SyntaxKind.StringKeyword, 'b')]
+  properties: [$classProperty('notMsg', 'b')]
 };
 text$02_1.opposite = text$02_2;
 text$02_2.opposite = text$02_1;
@@ -108,14 +117,14 @@ const text$03_1: TextBinding = {
   markup: '${msg}',
   variable: 'msg',
   value: 'a',
-  properties: [$classProperty('msg', SyntaxKind.StringKeyword, 'a')]
+  properties: [$classProperty('msg', 'a')]
 };
 const text$03_2: TextBinding = {
   id: 'text$03',
   markup: '${notMsg}',
   variable: 'notMsg',
   value: 'b',
-  properties: [$classProperty('notMsg', SyntaxKind.StringKeyword, 'b')]
+  properties: [$classProperty('notMsg', 'b')]
 };
 text$03_1.opposite = text$03_2;
 text$03_2.opposite = text$03_1;
@@ -125,7 +134,7 @@ const text$04_1: TextBinding = {
   markup: '${msg}',
   variable: 'msg',
   value: 'a',
-  properties: [$classProperty('msg', SyntaxKind.StringKeyword, 'a')],
+  properties: [$classProperty('msg', 'a')],
   isDuplicate: true
 };
 const text$04_2: TextBinding = {
@@ -133,7 +142,7 @@ const text$04_2: TextBinding = {
   markup: '${notMsg}',
   variable: 'notMsg',
   value: 'b',
-  properties: [$classProperty('notMsg', SyntaxKind.StringKeyword, 'b')]
+  properties: [$classProperty('notMsg', 'b')]
 };
 text$04_1.opposite = text$04_2;
 text$04_2.opposite = text$04_1;
@@ -221,32 +230,31 @@ repeat$13_2.opposite = repeat$13_1;
 
 const repeats = [repeat$11_1, repeat$12_1, repeat$13_1];
 
-function $createTest(markup: string, expectedText: string, properties: PropertyDeclaration[], ids: Identifiable[]) {
-  const setup: Statement = $destructureObject($call(createIdentifier('setup')), 'au', 'host');
-  const name: Statement = $const('name', createLiteral('app'));
-  const createComponent: Statement = $createComponent('App');
-  const app: Statement = $app();
-  const customElement: Statement = $customElement('App', ...properties);
+function $createTest(markup: string, expectedText: string, properties: PropertyDeclaration[], ids: Identifiable[], resources: Statement[]) {
   const test = $it(
-    ids.map(i => i.id).join(' ')+' _',
-    setup,
+    // test title
+    ids.map(i => i.id).join(' ') + ' _',
+    // "arrange" phase
+    $destructureObject($call(createIdentifier('setup')), 'au', 'host'),
     $const('template', createLiteral(`<template>${markup}</template>`)),
-    name,
-    null,
-    customElement,
-    createComponent,
-    app,
-    $start(),
+    $const('name', createLiteral('app')),
+    null, // empty line
+    ...resources,
+    $customElement('App', ...properties),
+    $createComponent('App'),
+    // multiple "act" + "assert" phases
+    $callAuApp(),
+    $callAuStart(),
     $const('outerHtmlAfterStart1', $accessProperty('host', 'outerHTML')),
     $expectHostTextContent(expectedText, 'after start #1'),
-    $stop(),
+    $callAuStop(),
     $const('outerHtmlAfterStop1', $accessProperty('host', 'outerHTML')),
     $expectHostTextContent('', 'after stop #1'),
 
-    $start(),
+    $callAuStart(),
     $const('outerHtmlAfterStart2', $accessProperty('host', 'outerHTML')),
     $expectHostTextContent(expectedText, 'after start #2'),
-    $stop(),
+    $callAuStop(),
     $const('outerHtmlAfterStop2', $accessProperty('host', 'outerHTML')),
     $expectHostTextContent('', 'after stop #2'),
     // Verify that starting/stopping multiple times results in the exact same html each time
@@ -254,6 +262,14 @@ function $createTest(markup: string, expectedText: string, properties: PropertyD
     $expectEqual('outerHtmlAfterStop1', 'outerHtmlAfterStop2', 'outerHTML after stop #1 / #2')
   );
   return test;
+}
+
+function $(tag: Tag, attributes: Pick<TplCtrl, 'attr'>[], inner: string) {
+  if (attributes.length > 0) {
+    return `<${tag.name} ${attributes.map(c => c.attr).join(' ')}>${inner}</${tag.name}>`;
+  } else {
+    return `<${tag.name}>${inner}</${tag.name}>`;
+  }
 }
 
 function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]) {
@@ -265,27 +281,104 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
   const ifElseRepeatDoubleTests: Statement[] = tests['static.if-else.repeat.double'] = [];
 
   for (const tag of tags) {
-    const $tag = tag.name;
 
     for (const textBinding of textBindings) {
 
-      const ifText = textBinding;
-      const elseText = textBinding.opposite;
+      const ifText = { ...textBinding };
+      const elseText = { ...textBinding.opposite };
+      ifText.opposite = elseText;
+      elseText.opposite = ifText;
+
+      const resources = [];
+
+      function registerCustomElement(markup: string, containerless: boolean | null, shadowMode: 'open' | 'closed' | null) {
+        const className = tag.elName.slice(0, 1).toUpperCase() + tag.elName.slice(1);
+        const bindables = [ifText, elseText].map(t => $bindable(t.variable));
+        bindables.push($bindable('item'));
+        const statics = [
+          createProperty(
+            [],
+            [createModifier(SyntaxKind.StaticKeyword)],
+            createIdentifier('bindables'),
+            undefined,
+            undefined,
+            createObjectLiteral(bindables)
+          )
+        ];
+        if (containerless !== null) {
+          statics.push(
+            createProperty(
+              [],
+              [createModifier(SyntaxKind.StaticKeyword)],
+              createIdentifier('containerless'),
+              undefined,
+              undefined,
+              createLiteral(true)
+            )
+          );
+        }
+        if (shadowMode !== null) {
+          statics.push(
+            createProperty(
+              [],
+              [createModifier(SyntaxKind.StaticKeyword)],
+              createIdentifier('shadowOptions'),
+              undefined,
+              undefined,
+              createObjectLiteral([
+                createPropertyAssignment(createIdentifier('shadowOptions'), createLiteral(shadowMode))
+              ])
+            )
+          );
+        }
+        return [
+          $resource(
+            'CustomElementResource', [
+              createObjectLiteral([
+                createPropertyAssignment(createIdentifier('name'), createLiteral(tag.elName)),
+                createPropertyAssignment(createIdentifier('template'), createLiteral(`<template>${markup}</template>`))
+              ])
+            ], [
+              ...statics,
+              ...[ifText, elseText].map(t => $classProperty(t.variable, '')),
+              $classProperty('item', '')
+            ],
+            className
+          ),
+          createExpressionStatement($call($accessProperty('au', 'register'), createIdentifier(className)))
+        ];
+      }
+      if (tag.isCustom) {
+        if (ifText.static || elseText.static) {
+          continue;
+        }
+      }
 
       if (!ifText.isDuplicate) {
-        if (!tag.isDuplicate) {
-          // interpolation wrapped in div
-          staticTests.push($createTest(
-            `<${$tag}>${ifText.markup}</${$tag}>`,
-            ifText.value, ifText.properties, [tag, ifText])
-          );
-        } else {
+        if (tag.isTemplate) {
           // non-wrapped interpolation
           staticTests.push($createTest(
             ifText.markup,
-            ifText.value, ifText.properties, [tag, ifText])
+            ifText.value, ifText.properties, [tag, ifText], [])
+          );
+        } else if (tag.isCustom) {
+          // binding with custom element
+          staticTests.push($createTest(
+            `<${tag.elName} ${ifText.variable}.bind="${ifText.variable}"></${tag.elName}>`,
+            ifText.value, ifText.properties, [tag, ifText], registerCustomElement(ifText.markup, tag.containerless || null, null))
+          );
+        } else {
+          // interpolation wrapped in div
+          staticTests.push($createTest(
+            $(tag, [], ifText.markup),
+            ifText.value, ifText.properties, [tag, ifText], [])
           );
         }
+      }
+      if (tag.isCustom) {
+        resources.push(...registerCustomElement(ifText.markup + elseText.markup + '${item}', tag.containerless || null, null));
+        ifText.markup = `<${tag.elName} ${ifText.variable}.bind="${ifText.variable}"></${tag.elName}>`;
+        elseText.markup = `<${tag.elName} ${elseText.variable}.bind="${elseText.variable}"></${tag.elName}>`;
       }
 
       for (const ifElsePair of ifElsePairs) {
@@ -296,62 +389,290 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
         const expected = $if.value ? ifText.value : elseText.value;
         const properties = [...ifText.properties, ...elseText.properties, ...$if.properties, ...$else.properties];
 
-        // if (has content) + else (has content)
-        const $fullIfElse =
-          `<${$tag} ${$if.attr}>${ifText.markup}</${$tag}>` +
-          `<${$tag} ${$else.attr}>${elseText.markup}</${$tag}>`;
-        // note: the double variant (as they are written here) should have no impact
-        // on the expected value since the if that shares the element with the else, will be nested
-        // inside the else, giving it two opposing conditions and thus never display (the second if has empty content to
-        // ensure we don't need extra logic and this extra test is a cheap addition)
-        // the point of testing this is to verify just that: with a conflicting if/else, the content should never render
-        const $doubleFullIfElse =
-          `<${$tag} ${$if.attr}>${ifText.markup}</${$tag}>` +
-          `<${$tag} ${$else.attr} ${$if.attr}>${elseText.markup}</${$tag}>` +
-          `<${$tag} ${$if.attr}></${$tag}>` +
-          `<${$tag} ${$else.attr}>${elseText.markup}</${$tag}>`;
+        const branchId = $if.value === true ? 'if' : 'else';
+        const ifMarkupExpected = $if.value === true ? ifText.value : '';
+        const elseMarkupExpected = $else.value === true ? elseText.value : '';
 
-        // if (has content)
-        const $onlyIf =
-          `<${$tag} ${$if.attr}>${ifText.markup}</${$tag}>`;
+        // only if branch
+        if (!tag.isCustom || $if.value === true) {
+          ifElseTests.push($createTest(
+            $(tag, [$if], ifText.markup),
+            ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$if], ''),
+            ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:'double$01'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$if], ifText.markup),
+            ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:'double$02'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$if], ifText.markup),
+            ifMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:'double$03'}], resources)
+          );
 
-        // if (has content) + else (has NO content)
-        const $ifEmptyElse =
-          `<${$tag} ${$if.attr}>${ifText.markup}</${$tag}>` +
-          `<${$tag} ${$else.attr}></${$tag}>`;
-        const $doubleIfEmptyElse =
-          `<${$tag} ${$if.attr}>${ifText.markup}</${$tag}>` +
-          `<${$tag} ${$else.attr} ${$if.attr}></${$tag}>` +
-          `<${$tag} ${$if.attr}></${$tag}>` +
-          `<${$tag} ${$else.attr}></${$tag}>`;
-
-        // if (has NO content) + else (has content)
-        const $onlyElse =
-          `<${$tag} ${$if.attr}></${$tag}>` +
-          `<${$tag} ${$else.attr}>${elseText.markup}</${$tag}>`;
-        const $doubleOnlyElse =
-          `<${$tag} ${$if.attr}></${$tag}>` +
-          `<${$tag} ${$else.attr} ${$if.attr}>${elseText.markup}</${$tag}>` +
-          `<${$tag} ${$if.attr}></${$tag}>` +
-          `<${$tag} ${$else.attr}>${elseText.markup}</${$tag}>`;
-
-        // use the full variant for every combination
-        ifElseTests.push($createTest($fullIfElse, expected, properties, [tag, ifText, $if, {id:'variant$01'}]));
-        ifElseDoubleTests.push($createTest($doubleFullIfElse, expected, properties, [tag, ifText, $if, {id:'variant$01$double'}]));
-
-        // the only-if variants only make sense to have when the template has no else (prevent absolute test duplication)
-        if (!$else.value) {
-          ifElseTests.push($createTest($onlyIf, expected, properties, [tag, ifText, $if, {id:'variant$02'}]));
-
-          ifElseTests.push($createTest($ifEmptyElse, expected, properties, [tag, ifText, $if, {id:'variant$03'}]));
-          ifElseDoubleTests.push($createTest($doubleIfEmptyElse, expected, properties, [tag, ifText, $if, {id:'variant$03$double'}]));
+          // only if branch (nested)
+          ifElseTests.push($createTest(
+            $(tag, [$if], $(tag, [$if], ifText.markup)),
+            ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], $(tag, [$if], ifText.markup)) +
+            $(tag, [$if], ''),
+            ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$01'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], $(tag, [$if], ifText.markup)) +
+            $(tag, [$if], $(tag, [$if], '')),
+            ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$02'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$if], $(tag, [$if], ifText.markup)),
+            ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$03'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], $(tag, [$if], '')) +
+            $(tag, [$if], $(tag, [$if], ifText.markup)),
+            ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$04'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], $(tag, [$if], ifText.markup)) +
+            $(tag, [$if], $(tag, [$if], ifText.markup)),
+            ifMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$05'}], resources)
+          );
         }
 
-        // the only-else variant only makes sense to have when the template's if branch is false (prevent absolute test duplication)
-        if (!$if.value) {
-          ifElseTests.push($createTest($onlyElse, expected, properties, [tag, ifText, $if, {id:'variant$04'}]));
-          ifElseDoubleTests.push($createTest($doubleOnlyElse, expected, properties, [tag, ifText, $if, {id:'variant$04$double'}]));
+        if (!tag.isCustom || $else.value === true) {
+          // only else branch
+          ifElseTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$else], elseText.markup),
+            elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$02`}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$else], elseText.markup) +
+            $(tag, [$if], '') +
+            $(tag, [$else], ''),
+            elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$02`}, {id:'double$01'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$else], '') +
+            $(tag, [$if], '') +
+            $(tag, [$else], elseText.markup),
+            elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$02`}, {id:'double$02'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$else], elseText.markup) +
+            $(tag, [$if], '') +
+            $(tag, [$else], elseText.markup),
+            elseMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id:`${branchId}$02`}, {id:'double$03'}], resources)
+          );
+
+          // only else branch (nested)
+          ifElseTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$else],
+              $(tag, [$if], '') +
+              $(tag, [$else], elseText.markup)
+            ),
+            elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$03`}, {id:`nested$01`}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$else],
+              $(tag, [$if], '') +
+              $(tag, [$else], elseText.markup)
+            ) +
+            $(tag, [$if], '') +
+            $(tag, [$else], ''),
+            elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$03`}, {id:`nested$01`}, {id:'double$01'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$else],
+              $(tag, [$if], '') +
+              $(tag, [$else], elseText.markup)
+            ) +
+            $(tag, [$if], '') +
+            $(tag, [$else],
+              $(tag, [$if], '') +
+              $(tag, [$else], '')
+            ),
+            elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$03`}, {id:`nested$01`}, {id:'double$01'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$else],
+              $(tag, [$if], '') +
+              $(tag, [$else], '')
+            ) +
+            $(tag, [$if], '') +
+            $(tag, [$else],
+              $(tag, [$if], '') +
+              $(tag, [$else], elseText.markup)
+            ),
+            elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$03`}, {id:`nested$01`}, {id:'double$02'}], resources)
+          );
+          ifElseDoubleTests.push($createTest(
+            $(tag, [$if], '') +
+            $(tag, [$else],
+              $(tag, [$if], '') +
+              $(tag, [$else], elseText.markup)
+            ) +
+            $(tag, [$if], '') +
+            $(tag, [$else],
+              $(tag, [$if], '') +
+              $(tag, [$else], elseText.markup)
+            ),
+            elseMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id:`${branchId}$03`}, {id:`nested$01`}, {id:'double$03'}], resources)
+          );
         }
+
+        // if + else branch
+        ifElseTests.push($createTest(
+          $(tag, [$if], ifText.markup) +
+          $(tag, [$else], elseText.markup),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$04`}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if], ifText.markup) +
+          $(tag, [$else], elseText.markup) +
+          $(tag, [$if], '') +
+          $(tag, [$else], ''),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$04`}, {id:'double$01'}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if], '') +
+          $(tag, [$else], '') +
+          $(tag, [$if], ifText.markup) +
+          $(tag, [$else], elseText.markup),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$04`}, {id:'double$02'}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if], ifText.markup) +
+          $(tag, [$else], elseText.markup) +
+          $(tag, [$if], ifText.markup) +
+          $(tag, [$else], elseText.markup),
+          expected.repeat(2), properties, [tag, ifText, $if, {id:`${branchId}$04`}, {id:'double$03'}], resources)
+        );
+
+        // if + else branch (nested)
+        ifElseTests.push($createTest(
+          $(tag, [$if],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ) +
+          $(tag, [$else],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$05`}, {id:`nested$01`}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ) +
+          $(tag, [$else],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ) +
+          $(tag, [$if], '') +
+          $(tag, [$else], ''),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$05`}, {id:`nested$01`}, {id:'double$01'}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ) +
+          $(tag, [$else],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ) +
+          $(tag, [$if], '') +
+          $(tag, [$else],
+            $(tag, [$if], '') +
+            $(tag, [$else], '')
+          ),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$05`}, {id:`nested$01`}, {id:'double$01'}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if], '') +
+          $(tag, [$else],
+            $(tag, [$if], '') +
+            $(tag, [$else], '')
+          ) +
+          $(tag, [$if],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ) +
+          $(tag, [$else],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$05`}, {id:`nested$01`}, {id:'double$02'}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ) +
+          $(tag, [$else],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ) +
+          $(tag, [$if],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ) +
+          $(tag, [$else],
+            $(tag, [$if], ifText.markup) +
+            $(tag, [$else], elseText.markup)
+          ),
+          expected.repeat(2), properties, [tag, ifText, $if, {id:`${branchId}$05`}, {id:`nested$01`}, {id:'double$03'}], resources)
+        );
+
+        // if + else branch (same element)
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if], ifText.markup) +
+          $(tag, [$else, $if], elseText.markup) + // never renders
+          $(tag, [$if], '') +
+          $(tag, [$else], elseText.markup),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$06`}, {id:'sibling$01'}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if], '') +
+          $(tag, [$else, $if], '') + // never renders
+          $(tag, [$if], ifText.markup) +
+          $(tag, [$else], elseText.markup),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$06`}, {id:'sibling$02'}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if], '') +
+          $(tag, [$else, $if], elseText.markup) + // never renders
+          $(tag, [$if], ifText.markup) +
+          $(tag, [$else], elseText.markup),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$06`}, {id:'sibling$03'}], resources)
+        );
+        ifElseDoubleTests.push($createTest(
+          $(tag, [$if], ifText.markup) +
+          $(tag, [$else, $if], elseText.markup) + // never renders
+          $(tag, [$else, $if], ifText.markup) + // never renders
+          $(tag, [$if], '') +
+          $(tag, [$else], elseText.markup),
+          expected, properties, [tag, ifText, $if, {id:`${branchId}$06`}, {id:'sibling$04'}], resources)
+        );
+
+
 
         for (const $repeat of repeaters) {
           // only work with number or arrays as the repeaters value;
@@ -365,139 +686,189 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           const $expected = isArray ? $repeat.value.join('') : expected.repeat($repeat.value);
           const ifVarRegex = new RegExp(ifText.variable || '', 'g');
           const elseVarRegex = new RegExp(elseText.variable || '', 'g');
-          function fixup(markup: string) {
+          function fixup(text: TextBinding) {
             // if the repeater is an array (not a number), replace the interpolation expression from the textBinding
             // with the property specified by the repeat's variable
             // this is a bit lazy, probably need to refactor this eventually anyway
-            return isArray ? markup.replace(ifVarRegex, $repeat.prop).replace(elseVarRegex, $repeat.prop) : markup;
+            return isArray ? text.markup.replace(ifVarRegex, $repeat.prop).replace(elseVarRegex, $repeat.prop) : text.markup;
           }
           // identical to the if/else tests one level up, but wrapped in the repeater
           ifElseRepeatTests.push($createTest(
-            `<${$tag} ${$repeat.attr}>${fixup($fullIfElse)}</${$tag}>`,
-            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$01'}])
+            $(tag, [$repeat],
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else], fixup(elseText))
+            ),
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$01'}], resources)
           );
           ifElseRepeatDoubleTests.push($createTest(
-            `<${$tag} ${$repeat.attr}>${fixup($doubleFullIfElse)}</${$tag}>`,
-            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$01$double'}])
+            $(tag, [$repeat],
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else, $if], fixup(elseText)) +
+              $(tag, [$if], '') +
+              $(tag, [$else], fixup(elseText))
+            ),
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$01$double'}], resources)
           );
-
-          const $repeatIfText = `<${$tag} ${$repeat.attr}>${fixup(ifText.markup)}</${$tag}>`;
-          const $repeatElseText = `<${$tag} ${$repeat.attr}>${fixup(elseText.markup)}</${$tag}>`;
 
           // the inverse of the fullIfElse wrapped by repeater (repeater wrapped by if/else)
           ifElseRepeatTests.push($createTest(
-            `<${$tag} ${$if.attr}>${fixup($repeatIfText)}</${$tag}>` +
-            `<${$tag} ${$else.attr}>${fixup($repeatElseText)}</${$tag}>`,
-            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$02'}])
+            $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
+            $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$02'}], resources)
           );
           ifElseRepeatDoubleTests.push($createTest(
-            `<${$tag} ${$if.attr}>${fixup($repeatIfText)}</${$tag}>` +
-            `<${$tag} ${$else.attr} ${$if.attr}>${fixup($repeatElseText)}</${$tag}>` +
-            `<${$tag} ${$if.attr}></${$tag}>` +
-            `<${$tag} ${$else.attr}>${fixup($repeatElseText)}</${$tag}>`,
-            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$02$double'}])
+            $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
+            $(tag, [$else, $if], $(tag, [$repeat], fixup(elseText))) +
+            $(tag, [$if], '') +
+            $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$02$double'}], resources)
           );
           // same as the test above but with the template controllers on the same element
           ifElseRepeatTests.push($createTest(
-            `<${$tag} ${$if.attr} ${$repeat.attr}>${fixup(ifText.markup)}</${$tag}>` +
-            `<${$tag} ${$else.attr} ${$repeat.attr}>${fixup(elseText.markup)}</${$tag}>`,
-            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$03'}])
+            $(tag, [$if, $repeat], fixup(ifText)) +
+            $(tag, [$else, $repeat], fixup(elseText)),
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$03'}], resources)
           );
           ifElseRepeatDoubleTests.push($createTest(
-            `<${$tag} ${$if.attr} ${$repeat.attr}>${fixup(ifText.markup)}</${$tag}>` +
-            `<${$tag} ${$else.attr} ${$if.attr} ${$repeat.attr}>${fixup(elseText.markup)}</${$tag}>` +
-            `<${$tag} ${$if.attr} ${$repeat.attr}></${$tag}>` +
-            `<${$tag} ${$else.attr} ${$repeat.attr}>${fixup(elseText.markup)}</${$tag}>`,
-            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$03$double$01'}])
+            $(tag, [$if, $repeat], fixup(ifText)) +
+            $(tag, [$else, $if, $repeat], fixup(elseText)) +
+            $(tag, [$if, $repeat], '') +
+            $(tag, [$else, $repeat], fixup(elseText)),
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$03$double$01'}], resources)
           );
           ifElseRepeatDoubleTests.push($createTest(
-            `<${$tag} ${$if.attr} ${$repeat.attr}>${fixup(ifText.markup)}</${$tag}>` +
-            `<${$tag} ${$else.attr} ${$repeat.attr} ${$if.attr}>${fixup(elseText.markup)}</${$tag}>` +
-            `<${$tag} ${$if.attr} ${$repeat.attr}></${$tag}>` +
-            `<${$tag} ${$else.attr} ${$repeat.attr}>${fixup(elseText.markup)}</${$tag}>`,
-            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$03$double$02'}])
+            $(tag, [$if, $repeat], fixup(ifText)) +
+            $(tag, [$else, $repeat, $if], fixup(elseText)) +
+            $(tag, [$if, $repeat], '') +
+            $(tag, [$else, $repeat], fixup(elseText)),
+            $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$03$double$02'}], resources)
           );
 
-          // same concept as the !$else.value branch one level up, once wrapped with a repeater,
-          // and once where the repeater is wrapped by the if (2x the number of tests due to testing
-          // both placements, and some additional tests for testing template controllers on same elements)
           if (!$else.value) {
             ifElseRepeatTests.push($createTest(
-              `<${$tag} ${$repeat.attr}>${fixup($onlyIf)}<${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$04'}])
+              $(tag, [$repeat], $(tag, [$if], fixup(ifText))),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$04'}], resources)
             );
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($createTest(
-              `<${$tag} ${$repeat.attr} ${$if.attr}>${fixup(ifText.markup)}<${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$05'}])
+              $(tag, [$repeat, $if], fixup(ifText)),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$05'}], resources)
             );
             ifElseRepeatTests.push($createTest(
-              `<${$tag} ${$if.attr}>${fixup($repeatIfText)}</${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$06'}])
+              $(tag, [$if], $(tag, [$repeat], fixup(ifText))),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$06'}], resources)
             );
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($createTest(
-              `<${$tag} ${$if.attr} ${$repeat.attr}>${fixup(ifText.markup)}</${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$07'}])
+              $(tag, [$if, $repeat], fixup(ifText)),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$07'}], resources)
             );
 
             ifElseRepeatTests.push($createTest(
-              `<${$tag} ${$repeat.attr}>${fixup($ifEmptyElse)}<${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$08'}])
+              $(tag, [$repeat],
+                $(tag, [$if], fixup(ifText)) +
+                $(tag, [$else], fixup(elseText))
+              ),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$08'}], resources)
             );
             ifElseRepeatTests.push($createTest(
-              `<${$tag} ${$if.attr}>${fixup($repeatIfText)}</${$tag}>` +
-              `<${$tag} ${$else.attr}></${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09'}])
+              $(tag, [$repeat],
+                $(tag, [$if], fixup(ifText)) +
+                $(tag, [$else], '')
+              ),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$08$empty'}], resources)
+            );
+            ifElseRepeatTests.push($createTest(
+              $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
+              $(tag, [$else], $(tag, [$repeat], fixup(ifText))),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09'}], resources)
+            );
+            ifElseRepeatTests.push($createTest(
+              $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
+              $(tag, [$else], ''),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09$empty'}], resources)
             );
             ifElseRepeatDoubleTests.push($createTest(
-              `<${$tag} ${$if.attr}>${fixup($repeatIfText)}</${$tag}>` +
-              `<${$tag} ${$else.attr} ${$if.attr}></${$tag}>` +
-              `<${$tag} ${$if.attr}></${$tag}>` +
-              `<${$tag} ${$else.attr}></${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09$double'}])
+              $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
+              $(tag, [$else, $if], $(tag, [$repeat], fixup(ifText))) +
+              $(tag, [$if], '') +
+              $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09$double$01'}], resources)
+            );
+            ifElseRepeatDoubleTests.push($createTest(
+              $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
+              $(tag, [$else, $if], $(tag, [$repeat], fixup(ifText))) +
+              $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
+              $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $expected.repeat(2), properties, [tag, ifText, $if, $repeat, {id:'variant$09$double$02'}], resources)
             );
           }
 
-          // same concept as the !$if.value branch one level up, once wrapped with a repeater,
-          // and once where the repeater is wrapped by the else (2x the number of tests due to testing
-          // both placements)
           if (!$if.value) {
             ifElseRepeatTests.push($createTest(
-              `<${$tag} ${$repeat.attr}>${fixup($onlyElse)}<${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$10'}])
+              $(tag, [$repeat],
+                $(tag, [$if], fixup(ifText)) +
+                $(tag, [$else], fixup(elseText))
+              ),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$10'}], resources)
             );
             ifElseRepeatTests.push($createTest(
-              `<${$tag} ${$if.attr}></${$tag}>` +
-              `<${$tag} ${$else.attr}>${fixup($repeatElseText)}</${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11'}])
+              $(tag, [$repeat],
+                $(tag, [$if], '') +
+                $(tag, [$else], fixup(elseText))
+              ),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$10$empty'}], resources)
+            );
+            ifElseRepeatTests.push($createTest(
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11'}], resources)
+            );
+            ifElseRepeatTests.push($createTest(
+              $(tag, [$if], '') +
+              $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11$empty'}], resources)
             );
             ifElseRepeatDoubleTests.push($createTest(
-              `<${$tag} ${$if.attr}></${$tag}>` +
-              `<${$tag} ${$else.attr}>${fixup($repeatElseText)}</${$tag}>` +
-              `<${$tag} ${$if.attr} ${$else.attr}></${$tag}>` +
-              `<${$tag} ${$else.attr}></${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11$double'}])
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else], $(tag, [$repeat], fixup(elseText))) +
+              $(tag, [$if, $else], fixup(elseText)) +
+              $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $expected.repeat(2), properties, [tag, ifText, $if, $repeat, {id:'variant$11$double$01'}], resources)
+            );
+            ifElseRepeatDoubleTests.push($createTest(
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else], $(tag, [$repeat], fixup(elseText))) +
+              $(tag, [$if, $else], fixup(elseText)) +
+              $(tag, [$else], ''),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11$double$02'}], resources)
+            );
+            ifElseRepeatDoubleTests.push($createTest(
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else], '') +
+              $(tag, [$if, $else], fixup(elseText)) +
+              $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11$double$03'}], resources)
             );
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($createTest(
-              `<${$tag} ${$if.attr}></${$tag}>` +
-              `<${$tag} ${$else.attr} ${$repeat.attr}>${fixup(elseText.markup)}</${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$12'}])
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else, $repeat], fixup(elseText)),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$12'}], resources)
             );
             ifElseRepeatDoubleTests.push($createTest(
-              `<${$tag} ${$if.attr}></${$tag}>` +
-              `<${$tag} ${$else.attr} ${$repeat.attr} ${$if.attr}>${fixup(elseText.markup)}</${$tag}>` +
-              `<${$tag} ${$if.attr}></${$tag}>` +
-              `<${$tag} ${$else.attr} ${$repeat.attr}>${fixup(elseText.markup)}</${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$12$double$01'}])
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else, $repeat, $if], fixup(elseText)) +
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else, $repeat], fixup(elseText)),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$12$double$01'}], resources)
             );
             ifElseRepeatDoubleTests.push($createTest(
-              `<${$tag} ${$if.attr}></${$tag}>` +
-              `<${$tag} ${$else.attr} ${$if.attr} ${$repeat.attr}>${fixup(elseText.markup)}</${$tag}>` +
-              `<${$tag} ${$if.attr}></${$tag}>` +
-              `<${$tag} ${$else.attr} ${$repeat.attr}>${fixup(elseText.markup)}</${$tag}>`,
-              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$12$double$02'}])
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else, $if, $repeat], fixup(elseText)) +
+              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$else, $repeat], fixup(elseText)),
+              $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$12$double$02'}], resources)
             );
           }
         }
@@ -514,7 +885,7 @@ function generateAndEmit() {
     const nodes = [
       $import('chai', 'expect'),
       $import('../../../kernel/src/index', 'DI'),
-      $import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia'),
+      $import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode'),
       $import('../../src/index', 'BasicConfiguration'),
       null,
       $describe(

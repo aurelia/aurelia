@@ -141,7 +141,14 @@ export const DOM = {
     (<any>parent).appendChild(child);
   },
   attachShadow(host: IElement, options: ShadowRootInit): IDocumentFragment {
-    return (<any>host).attachShadow(options);
+    // we're creating a new host to become the shadow root and then migrate
+    // the child nodes from the custom element to the shadow root (the custom element
+    // itself is left behind - do we want to include it?)
+    // the migration is needed because attachShadow does not work on custom elements
+    const newHost = DOM.createElement('div');
+    const root = (<any>newHost).attachShadow(options);
+    DOM.migrateChildNodes(host, root);
+    return root;
   },
   cloneNode<T extends INode = INode>(node: T, deep?: boolean): T {
     return (<any>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false

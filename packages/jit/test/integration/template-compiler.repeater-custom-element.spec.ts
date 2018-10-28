@@ -218,6 +218,9 @@ describe('', () => {
     expect(component.$children.length).to.equal(11);
     expect(childrenChangedCount).to.equal(110);
     expect(childrenCount).to.equal(1100 + 110*2 + 11*2);
+
+    au.stop();
+    expect(host.textContent).to.equal('');
   });
 
 })

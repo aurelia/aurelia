@@ -1,4 +1,4 @@
-import { SyntaxKind, Statement, createReturn, createIdentifier, createLiteral, PropertyDeclaration, createExpressionStatement, createObjectLiteral, createPropertyAssignment, createProperty, createModifier } from 'typescript';
+import { SyntaxKind, Statement, createReturn, createIdentifier, createLiteral, PropertyDeclaration, createExpressionStatement, createObjectLiteral, createPropertyAssignment, createProperty, createModifier, createParameter } from 'typescript';
 import {
   emit,
   $classProperty,
@@ -31,7 +31,8 @@ import {
   $expectEqual,
   $resource,
   $bindableProperty,
-  $bindable
+  $bindable,
+  $param
 } from './util';
 import project from '../project';
 import { join } from 'path';
@@ -238,30 +239,20 @@ function $createTest(markup: string, expectedText: string, properties: PropertyD
     ids.map(i => i.id).join(' ') + ' _',
     // "arrange" phase
     $destructureObject($call(createIdentifier('setup')), 'au', 'host'),
-    $const('template', createLiteral(`<template>${markup}</template>`)),
-    $const('name', createLiteral('app')),
     null, // empty line
     ...resources,
-    $customElement('App', ...properties),
+    $customElement('App', `<template>${markup}</template>`, ...properties),
     $createComponent('App'),
     // multiple "act" + "assert" phases
     $callAuApp(),
-    $callAuStart(),
-    $const('outerHtmlAfterStart1', $accessProperty('host', 'outerHTML')),
-    $expectHostTextContent(expectedText, 'after start #1'),
-    $callAuStop(),
-    $const('outerHtmlAfterStop1', $accessProperty('host', 'outerHTML')),
-    $expectHostTextContent('', 'after stop #1'),
-
-    $callAuStart(),
-    $const('outerHtmlAfterStart2', $accessProperty('host', 'outerHTML')),
-    $expectHostTextContent(expectedText, 'after start #2'),
-    $callAuStop(),
-    $const('outerHtmlAfterStop2', $accessProperty('host', 'outerHTML')),
-    $expectHostTextContent('', 'after stop #2'),
-    // Verify that starting/stopping multiple times results in the exact same html each time
-    $expectEqual('outerHtmlAfterStart1', 'outerHtmlAfterStart2', 'outerHTML after start #1 / #2'),
-    $expectEqual('outerHtmlAfterStop1', 'outerHtmlAfterStop2', 'outerHTML after stop #1 / #2')
+    createExpressionStatement(
+      $call(
+        createIdentifier('verify'),
+        createIdentifier('au'),
+        createIdentifier('host'),
+        createLiteral(expectedText)
+      )
+    )
   );
   return test;
 }
@@ -894,11 +885,40 @@ function generateAndEmit() {
         `generated.template-compiler.${suffix}`,
         $functionDeclaration(
           'setup',
-          $createContainer(),
-          $register('BasicConfiguration'),
-          $createAurelia('au'),
-          $createHost(),
-          createReturn($object('au', 'host'))
+          [
+            $createContainer(),
+            $register('BasicConfiguration'),
+            $createAurelia('au'),
+            $createHost(),
+            createReturn($object('au', 'host'))
+          ],
+          []
+        ),
+        $functionDeclaration(
+          'verify',
+          [
+            $callAuStart(),
+            $const('outerHtmlAfterStart1', $accessProperty('host', 'outerHTML')),
+            $expectHostTextContent(createIdentifier('expected'), 'after start #1'),
+            $callAuStop(),
+            $const('outerHtmlAfterStop1', $accessProperty('host', 'outerHTML')),
+            $expectHostTextContent('', 'after stop #1'),
+
+            $callAuStart(),
+            $const('outerHtmlAfterStart2', $accessProperty('host', 'outerHTML')),
+            $expectHostTextContent(createIdentifier('expected'), 'after start #2'),
+            $callAuStop(),
+            $const('outerHtmlAfterStop2', $accessProperty('host', 'outerHTML')),
+            $expectHostTextContent('', 'after stop #2'),
+            // Verify that starting/stopping multiple times results in the exact same html each time
+            $expectEqual('outerHtmlAfterStart1', 'outerHtmlAfterStart2', 'outerHTML after start #1 / #2'),
+            $expectEqual('outerHtmlAfterStop1', 'outerHtmlAfterStop2', 'outerHTML after stop #1 / #2')
+          ],
+          [
+            $param('au'),
+            $param('host'),
+            $param('expected')
+          ]
         ),
         ...tests
       )

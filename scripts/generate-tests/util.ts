@@ -49,7 +49,10 @@ import {
   createReturn,
   createClassExpression,
   createBinary,
-  Decorator
+  Decorator,
+  Identifier,
+  ParameterDeclaration,
+  createParameter
 } from 'typescript';
 
 export function emit(path: string, ...nodes: Node[]): void {
@@ -135,7 +138,7 @@ export function $testFunction(type: string, title: string, ...statements: Statem
       createFunctionExpression(
         [],
         undefined,
-        createIdentifier(name),
+        undefined,
         [],
         [],
         undefined,
@@ -192,6 +195,20 @@ export function $callAuStop() {
 }
 export function $createComponent(type: string, ...args: Expression[]) {
   return $const('component', createNew(createIdentifier(type), [], args));
+}
+export function $createApp(type: string, ...args: Expression[]) {
+  return $const('component', createNew(createIdentifier('App'), [], args));
+}
+export function $param(name: string) {
+  return createParameter(
+    [],
+    [],
+    undefined,
+    createIdentifier(name),
+    undefined,
+    undefined,
+    undefined
+  )
 }
 export function $hydrateComponent() {
   return createExpressionStatement(
@@ -300,8 +317,14 @@ export function $resource(kind: string, args: Expression[], members: ClassElemen
   );
   return $const(name, callExpr);
 }
-export function $customElement(name: string, ...members: ClassElement[]) {
-  return <Statement>$resource('CustomElementResource', [$object('name', 'template')], members, name);
+export function $customElement(name: string, template: string, ...members: ClassElement[]) {
+  return <Statement>$resource('CustomElementResource',
+  [
+     createObjectLiteral([
+       createPropertyAssignment(createIdentifier('name'), createLiteral(name.toLowerCase())),
+       createPropertyAssignment(createIdentifier('template'), createLiteral(template))
+     ])
+  ], members, name);
 }
 export function $classProperty(name: string, value: any, ...decorators: Decorator[]) {
   return createProperty(
@@ -337,14 +360,14 @@ export function $expect(left: Expression, right: Expression, msg: string, ...ass
   left = asserts.reduce((l, cur) => createPropertyAccess(l, cur), $call(createIdentifier('expect'), left));
   return createExpressionStatement($call(left, right, createLiteral(msg)));
 }
-export function $expectHostTextContent(toEqual: string, msg: string) {
-  return $expect($accessProperty('host', 'textContent'), createLiteral(toEqual), msg, 'to', 'equal');
+export function $expectHostTextContent(toEqual: string | Identifier, msg: string) {
+  return $expect($accessProperty('host', 'textContent'), typeof toEqual === 'string' ? createLiteral(toEqual) : toEqual, msg, 'to', 'equal');
 }
 export function $expectEqual(actual: string, expected: string, msg: string) {
   return $expect($accessProperty(actual), $accessProperty(expected), msg, 'to', 'equal');
 }
-export function $functionDeclaration(name: string, ...statements: Statement[]) {
-  return createFunctionDeclaration([], [], undefined, createIdentifier(name), [], [], undefined, createBlock(statements, true));
+export function $functionDeclaration(name: string, statements: Statement[], parameters: ParameterDeclaration[]) {
+  return createFunctionDeclaration([], [], undefined, createIdentifier(name), [], parameters, undefined, createBlock(statements, true));
 }
 export function $bindable(prop: string, attr?: string) {
   return createPropertyAssignment(
@@ -371,10 +394,8 @@ export function $test(name: string, markup: string, expectedAfterStart: string, 
       $call(createIdentifier('setup')),
       'au', 'host'
     ),
-    $const('name', createLiteral('app')),
-    $const('template', createLiteral(markup)),
     null,
-    $customElement('App', ...customElMembers),
+    $customElement('App', markup, ...customElMembers),
     $createComponent('App'),
     $callAuApp(),
     $callAuStart(),

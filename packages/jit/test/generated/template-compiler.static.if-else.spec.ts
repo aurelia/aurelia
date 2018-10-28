@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { DI } from "../../../kernel/src/index";
-import { CustomElementResource, DOM, Aurelia } from "../../../runtime/src/index";
+import { CustomElementResource, DOM, Aurelia, BindingMode } from "../../../runtime/src/index";
 import { BasicConfiguration } from "../../src/index";
 
 describe("generated.template-compiler.static.if-else", function generated_template_compiler_static_if_else() {
@@ -11,30 +11,7 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         const host = DOM.createElement("div");
         return { au, host };
     }
-    it("tag$01 text$01 if$01 variant$01 _", function tag$01_text$01_if$01_variant$01__() {
-        const { au, host } = setup();
-        const template = "<template><div if.bind=\"true\">a</div><div else>b</div></template>";
-        const name = "app";
-        const App = CustomElementResource.define({ name, template }, class {
-        });
-        const component = new App();
-        au.app({ host, component });
-        au.start();
-        const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #1");
-        au.stop();
-        const outerHtmlAfterStop1 = host.outerHTML;
-        expect(host.textContent).to.equal("", "after stop #1");
-        au.start();
-        const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #2");
-        au.stop();
-        const outerHtmlAfterStop2 = host.outerHTML;
-        expect(host.textContent).to.equal("", "after stop #2");
-        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
-        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
-    });
-    it("tag$01 text$01 if$01 variant$02 _", function tag$01_text$01_if$01_variant$02__() {
+    it("tag$01 text$01 if$01 if$01 _", function tag$01_text$01_if$01_if$01__() {
         const { au, host } = setup();
         const template = "<template><div if.bind=\"true\">a</div></template>";
         const name = "app";
@@ -57,9 +34,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$01 if$01 variant$03 _", function tag$01_text$01_if$01_variant$03__() {
+    it("tag$01 text$01 if$01 if$01 nested$01 _", function tag$01_text$01_if$01_if$01_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"true\">a</div><div else></div></template>";
+        const template = "<template><div if.bind=\"true\"><div if.bind=\"true\">a</div></div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
         });
@@ -80,9 +57,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$01 if$02 variant$01 _", function tag$01_text$01_if$02_variant$01__() {
+    it("tag$01 text$01 if$01 if$02 _", function tag$01_text$01_if$01_if$02__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"false\">a</div><div else>b</div></template>";
+        const template = "<template><div if.bind=\"true\"></div><div else>b</div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
         });
@@ -90,20 +67,135 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$01 if$02 variant$04 _", function tag$01_text$01_if$02_variant$04__() {
+    it("tag$01 text$01 if$01 if$03 nested$01 _", function tag$01_text$01_if$01_if$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\"></div><div else><div if.bind=\"true\"></div><div else>b</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$01 if$01 if$04 _", function tag$01_text$01_if$01_if$04__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\">a</div><div else>b</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$01 if$01 if$05 nested$01 _", function tag$01_text$01_if$01_if$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\"><div if.bind=\"true\">a</div><div else>b</div></div><div else><div if.bind=\"true\">a</div><div else>b</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$01 if$02 else$01 _", function tag$01_text$01_if$02_else$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\">a</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$01 if$02 else$01 nested$01 _", function tag$01_text$01_if$02_else$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"><div if.bind=\"false\">a</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$01 if$02 else$02 _", function tag$01_text$01_if$02_else$02__() {
         const { au, host } = setup();
         const template = "<template><div if.bind=\"false\"></div><div else>b</div></template>";
         const name = "app";
@@ -126,7 +218,172 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$02 if$01 variant$01 _", function tag$01_text$02_if$01_variant$01__() {
+    it("tag$01 text$01 if$02 else$03 nested$01 _", function tag$01_text$01_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"></div><div else><div if.bind=\"false\"></div><div else>b</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$01 if$02 else$04 _", function tag$01_text$01_if$02_else$04__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\">a</div><div else>b</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$01 if$02 else$05 nested$01 _", function tag$01_text$01_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"><div if.bind=\"false\">a</div><div else>b</div></div><div else><div if.bind=\"false\">a</div><div else>b</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$02 if$01 if$01 _", function tag$01_text$02_if$01_if$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\">a</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$02 if$01 if$01 nested$01 _", function tag$01_text$02_if$01_if$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\"><div if.bind=\"true\">a</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$02 if$01 if$02 _", function tag$01_text$02_if$01_if$02__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\"></div><div else>${notMsg}</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$02 if$01 if$03 nested$01 _", function tag$01_text$02_if$01_if$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\"></div><div else><div if.bind=\"true\"></div><div else>${notMsg}</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$02 if$01 if$04 _", function tag$01_text$02_if$01_if$04__() {
         const { au, host } = setup();
         const template = "<template><div if.bind=\"true\">a</div><div else>${notMsg}</div></template>";
         const name = "app";
@@ -150,9 +407,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$02 if$01 variant$02 _", function tag$01_text$02_if$01_variant$02__() {
+    it("tag$01 text$02 if$01 if$05 nested$01 _", function tag$01_text$02_if$01_if$05_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"true\">a</div></template>";
+        const template = "<template><div if.bind=\"true\"><div if.bind=\"true\">a</div><div else>${notMsg}</div></div><div else><div if.bind=\"true\">a</div><div else>${notMsg}</div></div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             notMsg = "b";
@@ -174,9 +431,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$02 if$01 variant$03 _", function tag$01_text$02_if$01_variant$03__() {
+    it("tag$01 text$02 if$02 else$01 _", function tag$01_text$02_if$02_else$01__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"true\">a</div><div else></div></template>";
+        const template = "<template><div if.bind=\"false\">a</div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             notMsg = "b";
@@ -185,20 +442,92 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$02 if$02 variant$01 _", function tag$01_text$02_if$02_variant$01__() {
+    it("tag$01 text$02 if$02 else$01 nested$01 _", function tag$01_text$02_if$02_else$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"><div if.bind=\"false\">a</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$02 if$02 else$02 _", function tag$01_text$02_if$02_else$02__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"></div><div else>${notMsg}</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$02 if$02 else$03 nested$01 _", function tag$01_text$02_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"></div><div else><div if.bind=\"false\"></div><div else>${notMsg}</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$02 if$02 else$04 _", function tag$01_text$02_if$02_else$04__() {
         const { au, host } = setup();
         const template = "<template><div if.bind=\"false\">a</div><div else>${notMsg}</div></template>";
         const name = "app";
@@ -222,9 +551,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$02 if$02 variant$04 _", function tag$01_text$02_if$02_variant$04__() {
+    it("tag$01 text$02 if$02 else$05 nested$01 _", function tag$01_text$02_if$02_else$05_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"false\"></div><div else>${notMsg}</div></template>";
+        const template = "<template><div if.bind=\"false\"><div if.bind=\"false\">a</div><div else>${notMsg}</div></div><div else><div if.bind=\"false\">a</div><div else>${notMsg}</div></div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             notMsg = "b";
@@ -246,32 +575,7 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$03 if$01 variant$01 _", function tag$01_text$03_if$01_variant$01__() {
-        const { au, host } = setup();
-        const template = "<template><div if.bind=\"true\">${msg}</div><div else>${notMsg}</div></template>";
-        const name = "app";
-        const App = CustomElementResource.define({ name, template }, class {
-            msg = "a";
-            notMsg = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        au.start();
-        const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #1");
-        au.stop();
-        const outerHtmlAfterStop1 = host.outerHTML;
-        expect(host.textContent).to.equal("", "after stop #1");
-        au.start();
-        const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #2");
-        au.stop();
-        const outerHtmlAfterStop2 = host.outerHTML;
-        expect(host.textContent).to.equal("", "after stop #2");
-        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
-        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
-    });
-    it("tag$01 text$03 if$01 variant$02 _", function tag$01_text$03_if$01_variant$02__() {
+    it("tag$01 text$03 if$01 if$01 _", function tag$01_text$03_if$01_if$01__() {
         const { au, host } = setup();
         const template = "<template><div if.bind=\"true\">${msg}</div></template>";
         const name = "app";
@@ -296,9 +600,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$03 if$01 variant$03 _", function tag$01_text$03_if$01_variant$03__() {
+    it("tag$01 text$03 if$01 if$01 nested$01 _", function tag$01_text$03_if$01_if$01_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"true\">${msg}</div><div else></div></template>";
+        const template = "<template><div if.bind=\"true\"><div if.bind=\"true\">${msg}</div></div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -321,9 +625,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$03 if$02 variant$01 _", function tag$01_text$03_if$02_variant$01__() {
+    it("tag$01 text$03 if$01 if$02 _", function tag$01_text$03_if$01_if$02__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"false\">${msg}</div><div else>${notMsg}</div></template>";
+        const template = "<template><div if.bind=\"true\"></div><div else>${notMsg}</div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -333,22 +637,22 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$03 if$02 variant$04 _", function tag$01_text$03_if$02_variant$04__() {
+    it("tag$01 text$03 if$01 if$03 nested$01 _", function tag$01_text$03_if$01_if$03_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"false\"></div><div else>${notMsg}</div></template>";
+        const template = "<template><div if.bind=\"true\"></div><div else><div if.bind=\"true\"></div><div else>${notMsg}</div></div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -358,20 +662,20 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$04 if$01 variant$01 _", function tag$01_text$04_if$01_variant$01__() {
+    it("tag$01 text$03 if$01 if$04 _", function tag$01_text$03_if$01_if$04__() {
         const { au, host } = setup();
         const template = "<template><div if.bind=\"true\">${msg}</div><div else>${notMsg}</div></template>";
         const name = "app";
@@ -396,9 +700,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$04 if$01 variant$02 _", function tag$01_text$04_if$01_variant$02__() {
+    it("tag$01 text$03 if$01 if$05 nested$01 _", function tag$01_text$03_if$01_if$05_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"true\">${msg}</div></template>";
+        const template = "<template><div if.bind=\"true\"><div if.bind=\"true\">${msg}</div><div else>${notMsg}</div></div><div else><div if.bind=\"true\">${msg}</div><div else>${notMsg}</div></div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -421,9 +725,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$04 if$01 variant$03 _", function tag$01_text$04_if$01_variant$03__() {
+    it("tag$01 text$03 if$02 else$01 _", function tag$01_text$03_if$02_else$01__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"true\">${msg}</div><div else></div></template>";
+        const template = "<template><div if.bind=\"false\">${msg}</div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -433,22 +737,22 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$04 if$02 variant$01 _", function tag$01_text$04_if$02_variant$01__() {
+    it("tag$01 text$03 if$02 else$01 nested$01 _", function tag$01_text$03_if$02_else$01_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><div if.bind=\"false\">${msg}</div><div else>${notMsg}</div></template>";
+        const template = "<template><div if.bind=\"false\"><div if.bind=\"false\">${msg}</div></div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -458,20 +762,20 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$01 text$04 if$02 variant$04 _", function tag$01_text$04_if$02_variant$04__() {
+    it("tag$01 text$03 if$02 else$02 _", function tag$01_text$03_if$02_else$02__() {
         const { au, host } = setup();
         const template = "<template><div if.bind=\"false\"></div><div else>${notMsg}</div></template>";
         const name = "app";
@@ -496,11 +800,88 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$01 if$01 variant$01 _", function tag$02_text$01_if$01_variant$01__() {
+    it("tag$01 text$03 if$02 else$03 nested$01 _", function tag$01_text$03_if$02_else$03_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"true\">a</template><template else>b</template></template>";
+        const template = "<template><div if.bind=\"false\"></div><div else><div if.bind=\"false\"></div><div else>${notMsg}</div></div></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$03 if$02 else$04 _", function tag$01_text$03_if$02_else$04__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\">${msg}</div><div else>${notMsg}</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$03 if$02 else$05 nested$01 _", function tag$01_text$03_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"><div if.bind=\"false\">${msg}</div><div else>${notMsg}</div></div><div else><div if.bind=\"false\">${msg}</div><div else>${notMsg}</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$01 if$01 _", function tag$01_text$04_if$01_if$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\">${msg}</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
         });
         const component = new App();
         au.app({ host, component });
@@ -519,7 +900,282 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$01 if$01 variant$02 _", function tag$02_text$01_if$01_variant$02__() {
+    it("tag$01 text$04 if$01 if$01 nested$01 _", function tag$01_text$04_if$01_if$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\"><div if.bind=\"true\">${msg}</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$01 if$02 _", function tag$01_text$04_if$01_if$02__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\"></div><div else>${notMsg}</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$01 if$03 nested$01 _", function tag$01_text$04_if$01_if$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\"></div><div else><div if.bind=\"true\"></div><div else>${notMsg}</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$01 if$04 _", function tag$01_text$04_if$01_if$04__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\">${msg}</div><div else>${notMsg}</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$01 if$05 nested$01 _", function tag$01_text$04_if$01_if$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"true\"><div if.bind=\"true\">${msg}</div><div else>${notMsg}</div></div><div else><div if.bind=\"true\">${msg}</div><div else>${notMsg}</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$02 else$01 _", function tag$01_text$04_if$02_else$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\">${msg}</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$02 else$01 nested$01 _", function tag$01_text$04_if$02_else$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"><div if.bind=\"false\">${msg}</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$02 else$02 _", function tag$01_text$04_if$02_else$02__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"></div><div else>${notMsg}</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$02 else$03 nested$01 _", function tag$01_text$04_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"></div><div else><div if.bind=\"false\"></div><div else>${notMsg}</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$02 else$04 _", function tag$01_text$04_if$02_else$04__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\">${msg}</div><div else>${notMsg}</div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$01 text$04 if$02 else$05 nested$01 _", function tag$01_text$04_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><div if.bind=\"false\"><div if.bind=\"false\">${msg}</div><div else>${notMsg}</div></div><div else><div if.bind=\"false\">${msg}</div><div else>${notMsg}</div></div></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$01 if$01 if$01 _", function tag$02_text$01_if$01_if$01__() {
         const { au, host } = setup();
         const template = "<template><template if.bind=\"true\">a</template></template>";
         const name = "app";
@@ -542,9 +1198,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$01 if$01 variant$03 _", function tag$02_text$01_if$01_variant$03__() {
+    it("tag$02 text$01 if$01 if$01 nested$01 _", function tag$02_text$01_if$01_if$01_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"true\">a</template><template else></template></template>";
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\">a</template></template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
         });
@@ -565,9 +1221,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$01 if$02 variant$01 _", function tag$02_text$01_if$02_variant$01__() {
+    it("tag$02 text$01 if$01 if$02 _", function tag$02_text$01_if$01_if$02__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"false\">a</template><template else>b</template></template>";
+        const template = "<template><template if.bind=\"true\"></template><template else>b</template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
         });
@@ -575,20 +1231,135 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$01 if$02 variant$04 _", function tag$02_text$01_if$02_variant$04__() {
+    it("tag$02 text$01 if$01 if$03 nested$01 _", function tag$02_text$01_if$01_if$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else>b</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$01 if$01 if$04 _", function tag$02_text$01_if$01_if$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\">a</template><template else>b</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$01 if$01 if$05 nested$01 _", function tag$02_text$01_if$01_if$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\">a</template><template else>b</template></template><template else><template if.bind=\"true\">a</template><template else>b</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$01 if$02 else$01 _", function tag$02_text$01_if$02_else$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\">a</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$01 if$02 else$01 nested$01 _", function tag$02_text$01_if$02_else$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\">a</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$01 if$02 else$02 _", function tag$02_text$01_if$02_else$02__() {
         const { au, host } = setup();
         const template = "<template><template if.bind=\"false\"></template><template else>b</template></template>";
         const name = "app";
@@ -611,7 +1382,172 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$02 if$01 variant$01 _", function tag$02_text$02_if$01_variant$01__() {
+    it("tag$02 text$01 if$02 else$03 nested$01 _", function tag$02_text$01_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else>b</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$01 if$02 else$04 _", function tag$02_text$01_if$02_else$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\">a</template><template else>b</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$01 if$02 else$05 nested$01 _", function tag$02_text$01_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\">a</template><template else>b</template></template><template else><template if.bind=\"false\">a</template><template else>b</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$02 if$01 if$01 _", function tag$02_text$02_if$01_if$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\">a</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$02 if$01 if$01 nested$01 _", function tag$02_text$02_if$01_if$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\">a</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$02 if$01 if$02 _", function tag$02_text$02_if$01_if$02__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"></template><template else>${notMsg}</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$02 if$01 if$03 nested$01 _", function tag$02_text$02_if$01_if$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else>${notMsg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$02 if$01 if$04 _", function tag$02_text$02_if$01_if$04__() {
         const { au, host } = setup();
         const template = "<template><template if.bind=\"true\">a</template><template else>${notMsg}</template></template>";
         const name = "app";
@@ -635,9 +1571,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$02 if$01 variant$02 _", function tag$02_text$02_if$01_variant$02__() {
+    it("tag$02 text$02 if$01 if$05 nested$01 _", function tag$02_text$02_if$01_if$05_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"true\">a</template></template>";
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\">a</template><template else>${notMsg}</template></template><template else><template if.bind=\"true\">a</template><template else>${notMsg}</template></template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             notMsg = "b";
@@ -659,9 +1595,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$02 if$01 variant$03 _", function tag$02_text$02_if$01_variant$03__() {
+    it("tag$02 text$02 if$02 else$01 _", function tag$02_text$02_if$02_else$01__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"true\">a</template><template else></template></template>";
+        const template = "<template><template if.bind=\"false\">a</template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             notMsg = "b";
@@ -670,20 +1606,92 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$02 if$02 variant$01 _", function tag$02_text$02_if$02_variant$01__() {
+    it("tag$02 text$02 if$02 else$01 nested$01 _", function tag$02_text$02_if$02_else$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\">a</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$02 if$02 else$02 _", function tag$02_text$02_if$02_else$02__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else>${notMsg}</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$02 if$02 else$03 nested$01 _", function tag$02_text$02_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else>${notMsg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$02 if$02 else$04 _", function tag$02_text$02_if$02_else$04__() {
         const { au, host } = setup();
         const template = "<template><template if.bind=\"false\">a</template><template else>${notMsg}</template></template>";
         const name = "app";
@@ -707,9 +1715,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$02 if$02 variant$04 _", function tag$02_text$02_if$02_variant$04__() {
+    it("tag$02 text$02 if$02 else$05 nested$01 _", function tag$02_text$02_if$02_else$05_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"false\"></template><template else>${notMsg}</template></template>";
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\">a</template><template else>${notMsg}</template></template><template else><template if.bind=\"false\">a</template><template else>${notMsg}</template></template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             notMsg = "b";
@@ -731,32 +1739,7 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$03 if$01 variant$01 _", function tag$02_text$03_if$01_variant$01__() {
-        const { au, host } = setup();
-        const template = "<template><template if.bind=\"true\">${msg}</template><template else>${notMsg}</template></template>";
-        const name = "app";
-        const App = CustomElementResource.define({ name, template }, class {
-            msg = "a";
-            notMsg = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        au.start();
-        const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #1");
-        au.stop();
-        const outerHtmlAfterStop1 = host.outerHTML;
-        expect(host.textContent).to.equal("", "after stop #1");
-        au.start();
-        const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #2");
-        au.stop();
-        const outerHtmlAfterStop2 = host.outerHTML;
-        expect(host.textContent).to.equal("", "after stop #2");
-        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
-        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
-    });
-    it("tag$02 text$03 if$01 variant$02 _", function tag$02_text$03_if$01_variant$02__() {
+    it("tag$02 text$03 if$01 if$01 _", function tag$02_text$03_if$01_if$01__() {
         const { au, host } = setup();
         const template = "<template><template if.bind=\"true\">${msg}</template></template>";
         const name = "app";
@@ -781,9 +1764,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$03 if$01 variant$03 _", function tag$02_text$03_if$01_variant$03__() {
+    it("tag$02 text$03 if$01 if$01 nested$01 _", function tag$02_text$03_if$01_if$01_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"true\">${msg}</template><template else></template></template>";
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\">${msg}</template></template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -806,9 +1789,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$03 if$02 variant$01 _", function tag$02_text$03_if$02_variant$01__() {
+    it("tag$02 text$03 if$01 if$02 _", function tag$02_text$03_if$01_if$02__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"false\">${msg}</template><template else>${notMsg}</template></template>";
+        const template = "<template><template if.bind=\"true\"></template><template else>${notMsg}</template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -818,22 +1801,22 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$03 if$02 variant$04 _", function tag$02_text$03_if$02_variant$04__() {
+    it("tag$02 text$03 if$01 if$03 nested$01 _", function tag$02_text$03_if$01_if$03_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"false\"></template><template else>${notMsg}</template></template>";
+        const template = "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else>${notMsg}</template></template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -843,20 +1826,20 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("b", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$04 if$01 variant$01 _", function tag$02_text$04_if$01_variant$01__() {
+    it("tag$02 text$03 if$01 if$04 _", function tag$02_text$03_if$01_if$04__() {
         const { au, host } = setup();
         const template = "<template><template if.bind=\"true\">${msg}</template><template else>${notMsg}</template></template>";
         const name = "app";
@@ -881,9 +1864,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$04 if$01 variant$02 _", function tag$02_text$04_if$01_variant$02__() {
+    it("tag$02 text$03 if$01 if$05 nested$01 _", function tag$02_text$03_if$01_if$05_nested$01__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"true\">${msg}</template></template>";
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\">${msg}</template><template else>${notMsg}</template></template><template else><template if.bind=\"true\">${msg}</template><template else>${notMsg}</template></template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -906,9 +1889,9 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$04 if$01 variant$03 _", function tag$02_text$04_if$01_variant$03__() {
+    it("tag$02 text$03 if$02 else$01 _", function tag$02_text$03_if$02_else$01__() {
         const { au, host } = setup();
-        const template = "<template><template if.bind=\"true\">${msg}</template><template else></template></template>";
+        const template = "<template><template if.bind=\"false\">${msg}</template></template>";
         const name = "app";
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
@@ -918,20 +1901,95 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         au.app({ host, component });
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #1");
+        expect(host.textContent).to.equal("", "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal("a", "after start #2");
+        expect(host.textContent).to.equal("", "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         expect(host.textContent).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$04 if$02 variant$01 _", function tag$02_text$04_if$02_variant$01__() {
+    it("tag$02 text$03 if$02 else$01 nested$01 _", function tag$02_text$03_if$02_else$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\">${msg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$03 if$02 else$02 _", function tag$02_text$03_if$02_else$02__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else>${notMsg}</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$03 if$02 else$03 nested$01 _", function tag$02_text$03_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else>${notMsg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$03 if$02 else$04 _", function tag$02_text$03_if$02_else$04__() {
         const { au, host } = setup();
         const template = "<template><template if.bind=\"false\">${msg}</template><template else>${notMsg}</template></template>";
         const name = "app";
@@ -956,10 +2014,1350 @@ describe("generated.template-compiler.static.if-else", function generated_templa
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     });
-    it("tag$02 text$04 if$02 variant$04 _", function tag$02_text$04_if$02_variant$04__() {
+    it("tag$02 text$03 if$02 else$05 nested$01 _", function tag$02_text$03_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\">${msg}</template><template else>${notMsg}</template></template><template else><template if.bind=\"false\">${msg}</template><template else>${notMsg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$01 if$01 _", function tag$02_text$04_if$01_if$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\">${msg}</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$01 if$01 nested$01 _", function tag$02_text$04_if$01_if$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\">${msg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$01 if$02 _", function tag$02_text$04_if$01_if$02__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"></template><template else>${notMsg}</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$01 if$03 nested$01 _", function tag$02_text$04_if$01_if$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else>${notMsg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$01 if$04 _", function tag$02_text$04_if$01_if$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\">${msg}</template><template else>${notMsg}</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$01 if$05 nested$01 _", function tag$02_text$04_if$01_if$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\">${msg}</template><template else>${notMsg}</template></template><template else><template if.bind=\"true\">${msg}</template><template else>${notMsg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$02 else$01 _", function tag$02_text$04_if$02_else$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\">${msg}</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$02 else$01 nested$01 _", function tag$02_text$04_if$02_else$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\">${msg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$02 else$02 _", function tag$02_text$04_if$02_else$02__() {
         const { au, host } = setup();
         const template = "<template><template if.bind=\"false\"></template><template else>${notMsg}</template></template>";
         const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$02 else$03 nested$01 _", function tag$02_text$04_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else>${notMsg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$02 else$04 _", function tag$02_text$04_if$02_else$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\">${msg}</template><template else>${notMsg}</template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$02 text$04 if$02 else$05 nested$01 _", function tag$02_text$04_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\">${msg}</template><template else>${notMsg}</template></template><template else><template if.bind=\"false\">${msg}</template><template else>${notMsg}</template></template></template>";
+        const name = "app";
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$03 if$01 if$01 _", function tag$03_text$03_if$01_if$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$03 if$01 if$01 nested$01 _", function tag$03_text$03_if$01_if$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$03 if$01 if$04 _", function tag$03_text$03_if$01_if$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$03 if$01 if$05 nested$01 _", function tag$03_text$03_if$01_if$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$03 if$02 else$02 _", function tag$03_text$03_if$02_else$02__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$03 if$02 else$03 nested$01 _", function tag$03_text$03_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$03 if$02 else$04 _", function tag$03_text$03_if$02_else$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$03 if$02 else$05 nested$01 _", function tag$03_text$03_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$04 if$01 if$01 _", function tag$03_text$04_if$01_if$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$04 if$01 if$01 nested$01 _", function tag$03_text$04_if$01_if$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$04 if$01 if$04 _", function tag$03_text$04_if$01_if$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$04 if$01 if$05 nested$01 _", function tag$03_text$04_if$01_if$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$04 if$02 else$02 _", function tag$03_text$04_if$02_else$02__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$04 if$02 else$03 nested$01 _", function tag$03_text$04_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$04 if$02 else$04 _", function tag$03_text$04_if$02_else$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$03 text$04 if$02 else$05 nested$01 _", function tag$03_text$04_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$03 if$01 if$01 _", function tag$04_text$03_if$01_if$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$03 if$01 if$01 nested$01 _", function tag$04_text$03_if$01_if$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$03 if$01 if$04 _", function tag$04_text$03_if$01_if$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$03 if$01 if$05 nested$01 _", function tag$04_text$03_if$01_if$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$03 if$02 else$02 _", function tag$04_text$03_if$02_else$02__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$03 if$02 else$03 nested$01 _", function tag$04_text$03_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$03 if$02 else$04 _", function tag$04_text$03_if$02_else$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$03 if$02 else$05 nested$01 _", function tag$04_text$03_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$04 if$01 if$01 _", function tag$04_text$04_if$01_if$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$04 if$01 if$01 nested$01 _", function tag$04_text$04_if$01_if$01_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$04 if$01 if$04 _", function tag$04_text$04_if$01_if$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$04 if$01 if$05 nested$01 _", function tag$04_text$04_if$01_if$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("a", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$04 if$02 else$02 _", function tag$04_text$04_if$02_else$02__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$04 if$02 else$03 nested$01 _", function tag$04_text$04_if$02_else$03_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$04 if$02 else$04 _", function tag$04_text$04_if$02_else$04__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
+        const App = CustomElementResource.define({ name, template }, class {
+            msg = "a";
+            notMsg = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        au.start();
+        const outerHtmlAfterStart1 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #1");
+        au.stop();
+        const outerHtmlAfterStop1 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #1");
+        au.start();
+        const outerHtmlAfterStart2 = host.outerHTML;
+        expect(host.textContent).to.equal("b", "after start #2");
+        au.stop();
+        const outerHtmlAfterStop2 = host.outerHTML;
+        expect(host.textContent).to.equal("", "after stop #2");
+        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+    });
+    it("tag$04 text$04 if$02 else$05 nested$01 _", function tag$04_text$04_if$02_else$05_nested$01__() {
+        const { au, host } = setup();
+        const template = "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo notMsg.bind=\"notMsg\"></foo></template></template></template>";
+        const name = "app";
+        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${notMsg}${item}</template>" }, class {
+            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static containerless = true;
+            msg = "";
+            notMsg = "";
+            item = "";
+        });
+        au.register(Foo);
         const App = CustomElementResource.define({ name, template }, class {
             msg = "a";
             notMsg = "b";

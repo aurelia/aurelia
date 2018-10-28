@@ -155,6 +155,10 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
 
   this.$state = LifecycleState.needsMount;
   this.$scope = Scope.create(this, null);
+  // Defining the property ensures the correct runtime behavior is applied - we can't actually get the projector here because the ContainerlessProjector
+  // needs the element to be rendered first. It seems like a decent requirement for rendering to be done before either the ChildrenObserver or
+  // ContainerlessProjector is used, but still this is necessarily a complete and utter hack that we should aim to solve in a cleaner way.
+  this.$projector = undefined;
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 

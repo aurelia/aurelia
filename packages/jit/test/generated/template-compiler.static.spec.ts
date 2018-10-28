@@ -110,9 +110,9 @@ describe("generated.template-compiler.static", function generated_template_compi
         const template = "<template><foo msg.bind=\"msg\"></foo></template>";
         const name = "app";
         const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}</template>" }, class {
-            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
-            notMsg = "";
+            not = "";
             item = "";
         });
         au.register(Foo);
@@ -141,10 +141,10 @@ describe("generated.template-compiler.static", function generated_template_compi
         const template = "<template><foo msg.bind=\"msg\"></foo></template>";
         const name = "app";
         const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}</template>" }, class {
-            static bindables = { msg: { attribute: "msg", property: "msg" }, notMsg: { attribute: "notMsg", property: "notMsg" }, item: { attribute: "item", property: "item" } };
+            static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
-            notMsg = "";
+            not = "";
             item = "";
         });
         au.register(Foo);

@@ -104,10 +104,10 @@ const text$02_1: TextBinding = {
 };
 const text$02_2: TextBinding = {
   id: 'text$02',
-  markup: '${notMsg}',
-  variable: 'notMsg',
+  markup: '${not}',
+  variable: 'not',
   value: 'b',
-  properties: [$classProperty('notMsg', 'b')]
+  properties: [$classProperty('not', 'b')]
 };
 text$02_1.opposite = text$02_2;
 text$02_2.opposite = text$02_1;
@@ -121,10 +121,10 @@ const text$03_1: TextBinding = {
 };
 const text$03_2: TextBinding = {
   id: 'text$03',
-  markup: '${notMsg}',
-  variable: 'notMsg',
+  markup: '${not}',
+  variable: 'not',
   value: 'b',
-  properties: [$classProperty('notMsg', 'b')]
+  properties: [$classProperty('not', 'b')]
 };
 text$03_1.opposite = text$03_2;
 text$03_2.opposite = text$03_1;
@@ -139,10 +139,10 @@ const text$04_1: TextBinding = {
 };
 const text$04_2: TextBinding = {
   id: 'text$04',
-  markup: '${notMsg}',
-  variable: 'notMsg',
+  markup: '${not}',
+  variable: 'not',
   value: 'b',
-  properties: [$classProperty('notMsg', 'b')]
+  properties: [$classProperty('not', 'b')]
 };
 text$04_1.opposite = text$04_2;
 text$04_2.opposite = text$04_1;

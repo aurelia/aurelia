@@ -1,6 +1,7 @@
-import { customElement, bindable } from "@aurelia/runtime";
+import { customElement, bindable, CustomElementResource, DOM, Aurelia } from "@aurelia/runtime";
 import { setupAndStart, tearDown, setup } from "./prepare";
 import { expect } from "chai";
+import { BasicConfiguration } from '../../src';
 
 
 const spec = 'template-compiler.repeater-custom-element';
@@ -158,6 +159,65 @@ describe('', () => {
     expect(host.textContent).to.equal('abcabcabcabcabcabcabcabcabc');
 
     tearDown(au, cs, host);
+  });
+
+  // repeater with custom element and children observer
+  it('12.', async () => {
+    let childrenCount = 0;
+    let childrenChangedCount = 0;
+    const FooEl = CustomElementResource.define({
+      name: 'foo-el',
+      template: `<template>\${txt}<foo-el if.bind="cur<max" cnt.bind="cnt" max.bind="max" cur.bind="cur+1" txt.bind="txt" repeat.for="i of cnt"></foo-el></template>`
+    }, class {
+      static shadowOptions = { mode: 'open' };
+      static bindables = {
+        cnt: { property: 'cnt', attribute: 'cnt' },
+        max: { property: 'max', attribute: 'max' },
+        cur: { property: 'cur', attribute: 'cur' },
+        txt: { property: 'txt', attribute: 'txt' }
+      }
+      $children;
+      attached() {
+        childrenCount += this.$children.length;
+      }
+      $childrenChanged() {
+        childrenChangedCount++;
+      }
+    });
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo-el cnt.bind="cnt" max.bind="max" cur="0" txt.bind="txt" repeat.for="i of cnt" ref.bind="'foo'+i"></foo-el></template>`
+    }, class {
+      static shadowOptions = { mode: 'open' };
+      cnt = 10;
+      max = 3;
+      txt = 'a';
+      $children;
+    });
+    const host = DOM.createElement('div');
+    const au = new Aurelia();
+    au.register(BasicConfiguration);
+    au.register(FooEl);
+    const component = new App();
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent.length).to.equal(1110);
+    expect(host.textContent).to.equal('a'.repeat(1110));
+
+    expect(childrenChangedCount).to.equal(0);
+
+    expect(childrenCount).to.equal(1100);
+    expect(component.$children.length).to.equal(10);
+
+    component.cnt = 11;
+
+    await Promise.resolve();
+
+    expect(component.$children.length).to.equal(11);
+    expect(childrenChangedCount).to.equal(110);
+    expect(childrenCount).to.equal(1100 + 110*2 + 11*2);
   });
 
 })

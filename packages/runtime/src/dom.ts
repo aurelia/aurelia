@@ -467,6 +467,7 @@ export class NodeSequenceFactory {
         if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
           const text = childNodes[1];
           if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
+            text.textContent = '';
             this.deepClone = false;
             this.node = <ICloneableNode>text;
             this.Type = TextNodeSequence;

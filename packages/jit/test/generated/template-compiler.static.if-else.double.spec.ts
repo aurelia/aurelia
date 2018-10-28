@@ -3877,14 +3877,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -3894,14 +3894,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -3911,14 +3911,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -3928,14 +3928,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$01 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -3945,14 +3945,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$01 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -3962,14 +3962,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$01 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -3979,14 +3979,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$01 nested$01 double$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -3996,14 +3996,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$01 nested$01 double$05 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4013,14 +4013,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4030,14 +4030,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4047,14 +4047,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4064,14 +4064,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4081,14 +4081,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4098,14 +4098,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4115,14 +4115,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4132,14 +4132,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4149,14 +4149,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4166,14 +4166,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4183,14 +4183,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$01 if$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4200,14 +4200,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$02 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4217,14 +4217,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$02 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4234,14 +4234,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$02 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4251,14 +4251,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4268,14 +4268,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4285,14 +4285,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$03 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4302,14 +4302,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$03 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4319,14 +4319,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4336,14 +4336,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4353,14 +4353,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4370,14 +4370,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4387,14 +4387,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4404,14 +4404,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4421,14 +4421,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4438,14 +4438,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4455,14 +4455,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4472,14 +4472,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4489,14 +4489,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$03 if$02 else$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4506,14 +4506,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4523,14 +4523,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4540,14 +4540,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4557,14 +4557,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$01 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4574,14 +4574,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$01 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4591,14 +4591,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$01 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4608,14 +4608,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$01 nested$01 double$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4625,14 +4625,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$01 nested$01 double$05 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4642,14 +4642,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4659,14 +4659,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4676,14 +4676,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4693,14 +4693,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4710,14 +4710,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4727,14 +4727,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4744,14 +4744,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4761,14 +4761,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4778,14 +4778,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4795,14 +4795,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4812,14 +4812,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$01 if$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4829,14 +4829,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$02 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4846,14 +4846,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$02 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4863,14 +4863,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$02 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4880,14 +4880,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4897,14 +4897,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4914,14 +4914,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$03 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4931,14 +4931,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$03 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4948,14 +4948,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4965,14 +4965,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4982,14 +4982,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4999,14 +4999,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5016,14 +5016,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5033,14 +5033,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5050,14 +5050,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5067,14 +5067,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5084,14 +5084,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5101,14 +5101,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5118,14 +5118,14 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$03 text$04 if$02 else$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5135,15 +5135,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5153,15 +5153,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5171,15 +5171,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5189,15 +5189,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$01 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5207,15 +5207,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$01 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5225,15 +5225,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$01 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5243,15 +5243,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$01 nested$01 double$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5261,15 +5261,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$01 nested$01 double$05 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5279,15 +5279,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5297,15 +5297,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5315,15 +5315,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5333,15 +5333,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5351,15 +5351,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5369,15 +5369,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5387,15 +5387,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5405,15 +5405,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5423,15 +5423,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5441,15 +5441,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5459,15 +5459,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$01 if$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5477,15 +5477,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$02 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5495,15 +5495,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$02 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5513,15 +5513,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$02 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5531,15 +5531,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5549,15 +5549,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5567,15 +5567,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$03 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5585,15 +5585,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$03 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5603,15 +5603,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5621,15 +5621,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5639,15 +5639,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5657,15 +5657,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5675,15 +5675,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5693,15 +5693,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5711,15 +5711,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5729,15 +5729,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5747,15 +5747,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5765,15 +5765,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5783,15 +5783,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$03 if$02 else$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5801,15 +5801,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5819,15 +5819,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5837,15 +5837,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5855,15 +5855,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$01 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5873,15 +5873,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$01 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5891,15 +5891,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$01 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5909,15 +5909,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$01 nested$01 double$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5927,15 +5927,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$01 nested$01 double$05 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5945,15 +5945,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5963,15 +5963,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5981,15 +5981,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5999,15 +5999,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6017,15 +6017,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6035,15 +6035,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6053,15 +6053,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6071,15 +6071,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6089,15 +6089,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6107,15 +6107,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6125,15 +6125,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$01 if$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6143,15 +6143,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$02 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6161,15 +6161,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$02 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6179,15 +6179,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$02 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6197,15 +6197,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6215,15 +6215,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6233,15 +6233,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$03 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6251,15 +6251,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$03 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6269,15 +6269,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6287,15 +6287,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6305,15 +6305,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6323,15 +6323,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6341,15 +6341,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6359,15 +6359,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6377,15 +6377,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6395,15 +6395,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6413,15 +6413,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6431,15 +6431,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6449,15 +6449,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$04 text$04 if$02 else$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6467,15 +6467,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6485,15 +6485,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6503,15 +6503,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6521,15 +6521,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$01 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6539,15 +6539,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$01 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6557,15 +6557,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$01 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6575,15 +6575,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$01 nested$01 double$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6593,15 +6593,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$01 nested$01 double$05 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6611,15 +6611,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6629,15 +6629,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6647,15 +6647,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6665,15 +6665,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6683,15 +6683,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6701,15 +6701,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6719,15 +6719,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6737,15 +6737,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6755,15 +6755,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6773,15 +6773,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6791,15 +6791,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$01 if$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6809,15 +6809,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$02 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6827,15 +6827,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$02 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6845,15 +6845,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$02 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6863,15 +6863,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6881,15 +6881,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6899,15 +6899,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$03 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6917,15 +6917,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$03 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6935,15 +6935,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6953,15 +6953,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6971,15 +6971,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6989,15 +6989,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7007,15 +7007,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7025,15 +7025,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7043,15 +7043,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7061,15 +7061,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7079,15 +7079,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7097,15 +7097,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7115,15 +7115,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$03 if$02 else$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7133,15 +7133,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7151,15 +7151,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7169,15 +7169,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7187,15 +7187,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$01 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7205,15 +7205,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$01 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7223,15 +7223,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$01 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7241,15 +7241,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$01 nested$01 double$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7259,15 +7259,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$01 nested$01 double$05 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7277,15 +7277,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7295,15 +7295,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7313,15 +7313,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7331,15 +7331,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7349,15 +7349,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7367,15 +7367,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7385,15 +7385,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7403,15 +7403,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7421,15 +7421,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7439,15 +7439,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7457,15 +7457,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$01 if$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7475,15 +7475,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$02 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7493,15 +7493,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$02 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7511,15 +7511,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$02 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7529,15 +7529,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7547,15 +7547,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7565,15 +7565,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$03 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7583,15 +7583,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$03 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7601,15 +7601,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7619,15 +7619,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7637,15 +7637,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7655,15 +7655,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7673,15 +7673,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7691,15 +7691,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7709,15 +7709,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7727,15 +7727,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7745,15 +7745,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7763,15 +7763,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7781,15 +7781,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$05 text$04 if$02 else$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7799,15 +7799,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7817,15 +7817,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7835,15 +7835,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7853,15 +7853,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$01 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7871,15 +7871,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$01 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7889,15 +7889,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$01 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7907,15 +7907,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$01 nested$01 double$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7925,15 +7925,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$01 nested$01 double$05 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7943,15 +7943,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7961,15 +7961,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7979,15 +7979,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7997,15 +7997,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8015,15 +8015,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8033,15 +8033,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8051,15 +8051,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8069,15 +8069,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8087,15 +8087,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8105,15 +8105,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8123,15 +8123,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$01 if$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8141,15 +8141,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$02 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8159,15 +8159,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$02 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8177,15 +8177,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$02 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8195,15 +8195,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8213,15 +8213,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8231,15 +8231,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$03 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8249,15 +8249,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$03 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8267,15 +8267,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8285,15 +8285,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8303,15 +8303,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8321,15 +8321,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8339,15 +8339,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8357,15 +8357,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8375,15 +8375,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8393,15 +8393,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8411,15 +8411,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8429,15 +8429,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8447,15 +8447,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$03 if$02 else$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8465,15 +8465,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8483,15 +8483,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8501,15 +8501,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8519,15 +8519,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$01 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8537,15 +8537,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$01 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8555,15 +8555,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$01 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8573,15 +8573,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$01 nested$01 double$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8591,15 +8591,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$01 nested$01 double$05 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8609,15 +8609,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8627,15 +8627,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8645,15 +8645,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8663,15 +8663,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8681,15 +8681,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8699,15 +8699,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else><template if.bind=\"true\"></template><template else></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8717,15 +8717,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8735,15 +8735,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8753,15 +8753,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8771,15 +8771,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8789,15 +8789,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$01 if$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"true\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"true\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"true\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8807,15 +8807,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$02 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8825,15 +8825,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$02 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8843,15 +8843,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$02 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8861,15 +8861,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8879,15 +8879,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$03 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8897,15 +8897,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$03 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8915,15 +8915,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$03 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8933,15 +8933,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$04 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8951,15 +8951,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$04 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8969,15 +8969,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$04 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8987,15 +8987,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -9005,15 +9005,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$05 nested$01 double$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -9023,15 +9023,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$05 nested$01 double$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template if.bind=\"false\"></template><template else></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -9041,15 +9041,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$05 nested$01 double$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template><template else><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template><template else><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -9059,15 +9059,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$06 sibling$01 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -9077,15 +9077,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$06 sibling$02 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -9095,15 +9095,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$06 sibling$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -9113,15 +9113,15 @@ describe("generated.template-compiler.static.if-else.double", function () {
     });
     it("tag$06 text$04 if$02 else$06 sibling$04 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template else if.bind=\"false\"><foo not.bind=\"not\"></foo></template><template else if.bind=\"false\"><foo msg.bind=\"msg\"></foo></template><template if.bind=\"false\"></template><template else><foo not.bind=\"not\"></foo></template></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template else if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });

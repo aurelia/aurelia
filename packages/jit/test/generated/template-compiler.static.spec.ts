@@ -63,14 +63,14 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$03 text$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><foo msg.bind=\"msg\"></foo></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();
@@ -79,15 +79,15 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$04 text$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><foo msg.bind=\"msg\"></foo></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();
@@ -96,15 +96,15 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$05 text$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><foo msg.bind=\"msg\"></foo></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();
@@ -113,15 +113,15 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$06 text$03 _", function () {
         const { au, host } = setup();
-        const Foo = CustomElementResource.define({ name: "foo", template: "<template>${msg}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = { msg: { attribute: "msg", property: "msg" }, not: { attribute: "not", property: "not" }, item: { attribute: "item", property: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
-        au.register(Foo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><foo msg.bind=\"msg\"></foo></template>" }, class {
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();

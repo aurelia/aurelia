@@ -36,6 +36,7 @@ import {
 } from './util';
 import project from '../project';
 import { join } from 'path';
+import { PLATFORM } from '../../packages/kernel/src/platform';
 
 function outFile(suffix: string) {
   return join(`${project.path}`, 'packages', 'jit', 'test', 'generated', `template-compiler.${suffix}.spec.ts`);
@@ -74,10 +75,10 @@ const tags: Tag[] = [
   { id: 'tag$01', name: 'div' },
   // template is a duplicate so raw textBindings don't use it (double nested template with nothing on it doesn't work)
   { id: 'tag$02', name: 'template', isTemplate: true },
-  { id: 'tag$03', name: 'template', elName: 'foo', isCustom: true },
-  { id: 'tag$04', name: 'template', elName: 'foo', isCustom: true, containerless: true },
-  { id: 'tag$05', name: 'template', elName: 'foo', isCustom: true, shadowMode: 'open' },
-  { id: 'tag$06', name: 'template', elName: 'foo', isCustom: true, shadowMode: 'closed' }
+  { id: 'tag$03', name: 'template', elName: 'MyFoo', isCustom: true },
+  { id: 'tag$04', name: 'template', elName: 'MyFoo', isCustom: true, containerless: true },
+  { id: 'tag$05', name: 'template', elName: 'MyFoo', isCustom: true, shadowMode: 'open' },
+  { id: 'tag$06', name: 'template', elName: 'MyFoo', isCustom: true, shadowMode: 'closed' }
 ];
 
 const text$01_1: TextBinding = {
@@ -285,7 +286,6 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
       const resources = [];
 
       function registerCustomElement(markup: string, containerless: boolean | null, shadowMode: 'open' | 'closed' | null) {
-        const className = tag.elName.slice(0, 1).toUpperCase() + tag.elName.slice(1);
         const bindables = [ifText, elseText].map(t => $bindable(t.variable));
         bindables.push($bindable('item'));
         const statics = [
@@ -328,7 +328,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           $resource(
             'CustomElementResource', [
               createObjectLiteral([
-                createPropertyAssignment(createIdentifier('name'), createLiteral(tag.elName)),
+                createPropertyAssignment(createIdentifier('name'), createLiteral(PLATFORM.kebabCase(tag.elName))),
                 createPropertyAssignment(createIdentifier('template'), createLiteral(`<template>${markup}</template>`))
               ])
             ], [
@@ -336,9 +336,9 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
               ...[ifText, elseText].map(t => $classProperty(t.variable, '')),
               $classProperty('item', '')
             ],
-            className
+            tag.elName
           ),
-          createExpressionStatement($call($accessProperty('au', 'register'), createIdentifier(className)))
+          createExpressionStatement($call($accessProperty('au', 'register'), createIdentifier(tag.elName)))
         ];
       }
       if (tag.isCustom) {
@@ -356,8 +356,9 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           );
         } else if (tag.isCustom) {
           // binding with custom element
+          const $tag = PLATFORM.kebabCase(tag.elName);
           staticTests.push($createTest(
-            `<${tag.elName} ${ifText.variable}.bind="${ifText.variable}"></${tag.elName}>`,
+            `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`,
             ifText.value, ifText.properties, [tag, ifText], registerCustomElement(ifText.markup, tag.containerless || null, tag.shadowMode || null))
           );
         } else {
@@ -369,9 +370,10 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
         }
       }
       if (tag.isCustom) {
+        const $tag = PLATFORM.kebabCase(tag.elName);
         resources.push(...registerCustomElement(ifText.markup + elseText.markup + '${item}', tag.containerless || null, tag.shadowMode || null));
-        ifText.markup = `<${tag.elName} ${ifText.variable}.bind="${ifText.variable}"></${tag.elName}>`;
-        elseText.markup = `<${tag.elName} ${elseText.variable}.bind="${elseText.variable}"></${tag.elName}>`;
+        ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`;
+        elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"></${$tag}>`;
       }
 
       for (const ifElsePair of ifElsePairs) {

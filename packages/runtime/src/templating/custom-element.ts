@@ -155,7 +155,6 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
 
   this.$state = LifecycleState.needsMount;
   this.$scope = Scope.create(this, null);
-  this.$projector = determineProjector(this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
@@ -163,11 +162,14 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
     const result = this.render(host, options.parts);
 
     if (result && 'getElementTemplate' in result) {
-      result.getElementTemplate(renderingEngine, Type).render(this, host, options.parts);
+      const template = result.getElementTemplate(renderingEngine, Type);
+      template.render(this, host, options.parts);
     }
   } else {
-    renderingEngine.getElementTemplate(description, Type).render(this, host, options.parts);
+    const template = renderingEngine.getElementTemplate(description, Type);
+    template.render(this, host, options.parts);
   }
+  this.$projector = determineProjector(this, host, description);
 
   if (this.$behavior.hooks & LifecycleHooks.hasCreated) {
     this.created();

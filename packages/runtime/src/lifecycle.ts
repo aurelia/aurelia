@@ -694,7 +694,7 @@ export const Lifecycle = {
   // TODO: this is just a temporary fix to get certain tests to pass.
   // When there is better test coverage in complex lifecycle scenarios,
   // this needs to be properly handled without abusing a global object
-  attach: <AttachLifecycleController>null,
+  /*@internal*/attach: <IAttachLifecycleController>null,
 
   beginAttach(changeSet: IChangeSet, encapsulationSource: INode, flags: LifecycleFlags): IAttachLifecycleController {
     if (Lifecycle.attach === null) {
@@ -704,7 +704,7 @@ export const Lifecycle = {
     }
   },
 
-  detach: <DetachLifecycleController>null,
+  /*@internal*/detach: <IDetachLifecycleController>null,
 
   beginDetach(changeSet: IChangeSet, flags: LifecycleFlags): IDetachLifecycleController {
     if (Lifecycle.detach === null) {

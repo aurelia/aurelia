@@ -52,7 +52,17 @@ import {
   Decorator,
   Identifier,
   ParameterDeclaration,
-  createParameter
+  createParameter,
+  ObjectLiteralExpression,
+  PropertyAssignment,
+  ArrayLiteralExpression,
+  createArrayLiteral,
+  createNoSubstitutionTemplateLiteral,
+  VariableStatement,
+  VariableDeclaration,
+  ObjectLiteralElementLike,
+  PropertyAccessExpression,
+  ReturnStatement
 } from 'typescript';
 
 export function emit(path: string, ...nodes: Node[]): void {
@@ -98,106 +108,170 @@ export function $name(input: string) {
   return value;
 }
 
-export function $const(name: string, expr: Expression) {
-  return createVariableStatement(
-    [],
-    createVariableDeclarationList(
-      [createVariableDeclaration(createIdentifier(name), undefined, expr)],
-      NodeFlags.Const
-    )
-  );
-}
-export function $accessProperty(expr: Expression, ...props: string[]);
-export function $accessProperty(object: string, ...props: string[]);
-export function $accessProperty(objectOrExpr: string | Expression, ...props: string[]) {
-  if (props.length === 0) {
-    if (typeof objectOrExpr === 'string') {
-      return createIdentifier(objectOrExpr);
-    } else {
-      return objectOrExpr;
-    }
-  }
-  if (typeof objectOrExpr === 'string') {
-    return props.slice(1).reduce((acc, cur) => createPropertyAccess(acc, createIdentifier(cur)), createPropertyAccess(createIdentifier(objectOrExpr), createIdentifier(props[0])));
-  } else {
-    return props.slice(1).reduce((acc, cur) => createPropertyAccess(acc, createIdentifier(cur)), createPropertyAccess(objectOrExpr, createIdentifier(props[0])));
-  }
-}
-export function $call(expr: Expression, ...args: Expression[]): Expression {
-  return createCall(expr, [], args);
-}
-export function $createContainer() {
-  return $const('container', $call($accessProperty('DI', 'createContainer')));
-}
-export function $testFunction(type: string, title: string, ...statements: Statement[]) {
-  const name = $name(title);
-  return createExpressionStatement(
-    $call(
-      createIdentifier(type),
-      createLiteral(title),
-      createFunctionExpression(
-        [],
-        undefined,
-        undefined,
-        [],
-        [],
-        undefined,
-        createBlock(statements, true)
-      )
-    )
-  );
+export function $id(name: string): Identifier;
+export function $id(id: Identifier): Identifier;
+export function $id(nameOrId: string | Identifier): Identifier;
+export function $id(expr: Expression): Expression;
+export function $id(nameOrExpr: string | Expression): Identifier | Expression;
+export function $id(idOrExpr: Identifier | Expression): Identifier | Expression;
+export function $id(nameOrExprOrId: string | Expression | Identifier): Expression | Identifier;
+export function $id(nameOrExprOrId: string | Expression | Identifier): Expression | Identifier {
+  return typeof nameOrExprOrId === 'string' ? createIdentifier(nameOrExprOrId) : nameOrExprOrId;
 }
 
-export function $describeOnly(title: string, ...statements: Statement[]) {
-  return $testFunction('describe.only', title, ...statements);
+export function $access(name: string): Identifier;
+export function $access(path: [string | Expression | Identifier, ...(string | Identifier)[]]): PropertyAccessExpression;
+export function $access(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): PropertyAccessExpression | Identifier;
+export function $access(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): PropertyAccessExpression | Identifier {
+  if (Array.isArray(nameOrPath)) {
+    let left = $id(nameOrPath[0]);
+    const rest = <(string | Identifier)[]>nameOrPath.slice(1);
+    rest.forEach(name => {
+      left = createPropertyAccess(left, $id(name));
+    });
+    return left as PropertyAccessExpression;
+  } else {
+    return createIdentifier(nameOrPath);
+  }
 }
-export function $describe(title: string, ...statements: Statement[]) {
-  return $testFunction('describe', title, ...statements);
+
+export function $call(name: string, variablesOrExpressions?: (string | Expression | Identifier)[]): Expression;
+export function $call(path: [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Expression;
+export function $call(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Expression;
+export function $call(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions: (string | Expression | Identifier)[] = []): Expression {
+  const left = $access(nameOrPath);
+  const args: Expression[] = [];
+
+  variablesOrExpressions.forEach(varOrExpr => {
+    if (typeof varOrExpr === 'string') {
+      args.push(createIdentifier(varOrExpr));
+    } else {
+      args.push(varOrExpr);
+    }
+  });
+  return createCall(left, [], args);
 }
-export function $it(title: string, ...statements: Statement[]) {
-  return $testFunction('it', title, ...statements);
+
+export function $$call(name: string, variablesOrExpressions?: (string | Expression | Identifier)[]): Statement;
+export function $$call(path: [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Statement;
+export function $$call(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Statement;
+export function $$call(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions: (string | Expression | Identifier)[] = []): Statement {
+  return createExpressionStatement($call(nameOrPath, variablesOrExpressions));
 }
-export function $xit(title: string, ...statements: Statement[]) {
-  return $testFunction('xit', title, ...statements);
+
+export function $new(name: string, variablesOrExpressions?: (string | Expression | Identifier)[]): Expression;
+export function $new(path: [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Expression;
+export function $new(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Expression;
+export function $new(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions: (string | Expression | Identifier)[] = []): Expression {
+  const left = $access(nameOrPath);
+  const args: Expression[] = [];
+
+  variablesOrExpressions.forEach(varOrExpr => {
+    if (typeof varOrExpr === 'string') {
+      args.push(createIdentifier(varOrExpr));
+    } else {
+      args.push(varOrExpr);
+    }
+  });
+  return createNew(left, [], args);
 }
-export function $register(...names: string[]) {
-  return createExpressionStatement(
-    $call($accessProperty('container', 'register'), ...names.map(n => createIdentifier(n)))
-  );
+
+export function $$new(variable: string, name: string, variablesOrExpressions?: (string | Expression | Identifier)[]): Statement;
+export function $$new(variable: string, path: [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Statement;
+export function $$new(variable: string, nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Statement;
+export function $$new(variable: string, nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions: (string | Expression | Identifier)[] = []): Statement {
+  return $$const(variable, $new(nameOrPath, variablesOrExpressions));
 }
-export function $createAurelia(name: string) {
-  return $const(name, createNew(createIdentifier('Aurelia'), [], [createIdentifier('container')]));
+
+export function $$const(name: string, initializer: Expression): VariableStatement;
+export function $$const(names: string[], initializer: Expression): VariableStatement;
+export function $$const(nameOrNames: string | string[], initializer: Expression): VariableStatement {
+  let declaration: VariableDeclaration;
+  if (Array.isArray(nameOrNames)) {
+    const elements = nameOrNames.map(n => createBindingElement(undefined, undefined, n));
+    declaration = createVariableDeclaration(createObjectBindingPattern(elements), undefined, initializer)
+  } else {
+    declaration = createVariableDeclaration(createIdentifier(nameOrNames), undefined, initializer);
+  }
+  return createVariableStatement([], createVariableDeclarationList([declaration], NodeFlags.Const));
 }
-export function $createChangeSet(name: string) {
-  return $const(name, $call(
-    $accessProperty('container', 'get'),
-    createIdentifier('IChangeSet')
-  ));
+
+export function $expression(value: any, multiline: number = 0, level: number = 0): Expression {
+
+  function $objectLiteral(obj: any, $multiline: number, $level: number): ObjectLiteralExpression {
+    const properties: ObjectLiteralElementLike[] = [];
+    Object.keys(obj).forEach(key => {
+      const identifier = createIdentifier(key);
+      const value = obj[key];
+      if (key === value) {
+        properties.push(createShorthandPropertyAssignment(identifier))
+      } else {
+        const initializer = $expression(obj[key], $multiline, $level + 1);
+        properties.push(createPropertyAssignment(identifier, initializer));
+      }
+    });
+    return createObjectLiteral(properties, $multiline > $level);
+  }
+
+  function $arrayLiteral(arr: any[], $multiline: number, $level: number): ArrayLiteralExpression {
+    const expressions: Expression[] = [];
+    arr.forEach(value => {
+      expressions.push($expression(value, $multiline, $level + 1));
+    });
+    return createArrayLiteral(expressions, $multiline > $level);
+  }
+
+  switch (Object.prototype.toString.call(value)) {
+    case '[object Undefined]':
+      return createIdentifier('undefined');
+    case '[object Null]':
+      return createIdentifier('null');
+    case '[object Number]':
+    case '[object Boolean]':
+    case '[object String]':
+      return createLiteral(value)
+    case '[object Array]':
+      return $arrayLiteral(value, multiline, level);
+    case '[object Object]':
+    default:
+      return $objectLiteral(value, multiline, level);
+  }
 }
-export function $createRenderingEngine(name: string) {
-  return $const(name, $call(
-    $accessProperty('container', 'get'),
-    createIdentifier('IRenderingEngine')
-  ));
+
+export function $$return(value: any): ReturnStatement {
+  return createReturn($expression(value))
 }
-export function $object(...names: string[]) {
-  const props = names.map(n => createShorthandPropertyAssignment(createIdentifier(n)));
-  return createObjectLiteral(props);
+
+export function $property(name: string, value?: any, isStatic?: boolean) {
+  const modifiers = [];
+  if (isStatic === true) {
+    modifiers.push(createModifier(SyntaxKind.StaticKeyword));
+  }
+  if (arguments.length === 1) {
+    return createProperty([], modifiers, $id(name), undefined, undefined, undefined);
+  } else {
+    return createProperty([], modifiers, $id(name), undefined, undefined, $expression(value));
+  }
 }
-export function $callAuApp() {
-  return createExpressionStatement($call($accessProperty('au', 'app'), $object('host', 'component')));
+export function $class(elements: ReadonlyArray<ClassElement>) {
+  return createClassExpression([], undefined, [], [], elements)
 }
-export function $callAuStart() {
-  return createExpressionStatement($call($accessProperty('au', 'start')));
+export function $functionExpr(statements: Statement[]): Expression {
+  return createFunctionExpression(
+    [],
+    undefined,
+    undefined,
+    [],
+    [],
+    undefined,
+    createBlock(statements, true)
+  )
 }
-export function $callAuStop() {
-  return createExpressionStatement($call($accessProperty('au', 'stop')));
+export function $$functionExpr(name: string, args: Expression[]): Statement {
+  return createExpressionStatement($call(name, args));
 }
-export function $createComponent(type: string, ...args: Expression[]) {
-  return $const('component', createNew(createIdentifier(type), [], args));
-}
-export function $createApp(type: string, ...args: Expression[]) {
-  return $const('component', createNew(createIdentifier('App'), [], args));
+export function $$functionDecl(name: string, statements: Statement[], parameters: ParameterDeclaration[]): Statement {
+  return createFunctionDeclaration([], [], undefined, createIdentifier(name), [], parameters, undefined, createBlock(statements, true));
 }
 export function $param(name: string) {
   return createParameter(
@@ -210,90 +284,7 @@ export function $param(name: string) {
     undefined
   )
 }
-export function $hydrateComponent() {
-  return createExpressionStatement(
-    $call(
-      $accessProperty('component', '$hydrate'),
-      createIdentifier('re'),
-      createIdentifier('host')
-    )
-  );
-}
-export function $bindComponent() {
-  return createExpressionStatement(
-    $call(
-      $accessProperty('component', '$bind'),
-      createBinary(
-        $accessProperty('BindingFlags', 'fromStartTask'),
-        SyntaxKind.BarToken,
-        $accessProperty('BindingFlags', 'fromBind')
-      )
-    )
-  );
-}
-export function $attachComponent() {
-  return [
-    $const(
-      'a$lifecycle',
-      $call(
-        $accessProperty('Lifecycle', 'beginAttach'),
-        createIdentifier('cs'),
-        createIdentifier('host'),
-        $accessProperty('LifecycleFlags', 'none')
-      )
-    ),
-    createExpressionStatement(
-      $call(
-        $accessProperty('a$lifecycle', 'attach'),
-        createIdentifier('component')
-      )
-    ),
-    createExpressionStatement(
-      $call(
-        $accessProperty('a$lifecycle', 'end')
-      )
-    )
-  ];
-}
-export function $detachComponent() {
-  return [
-    $const(
-      'd$lifecycle',
-      $call(
-        $accessProperty('Lifecycle', 'beginDetach'),
-        createIdentifier('cs'),
-        $accessProperty('LifecycleFlags', 'noTasks')
-      )
-    ),
-    createExpressionStatement(
-      $call(
-        $accessProperty('d$lifecycle', 'detach'),
-        createIdentifier('component')
-      )
-    ),
-    createExpressionStatement(
-      $call(
-        $accessProperty('d$lifecycle', 'end')
-      )
-    )
-  ];
-}
-export function $unbindComponent() {
-  return createExpressionStatement(
-    $call(
-      $accessProperty('component', '$unbind'),
-      createBinary(
-        $accessProperty('BindingFlags', 'fromStopTask'),
-        SyntaxKind.BarToken,
-        $accessProperty('BindingFlags', 'fromUnbind')
-      )
-    )
-  );
-}
-export function $createHost() {
-  return $const('host', $call($accessProperty('DOM', 'createElement'), createLiteral('div')));
-}
-export function $import(path: string, ...names: string[]) {
+export function $$import(path: string, ...names: string[]) {
   return createImportDeclaration(
     [],
     [],
@@ -303,112 +294,6 @@ export function $import(path: string, ...names: string[]) {
       createLiteral(path)
   );
 }
-export function $resource(kind: string, args: Expression[], members: ClassElement[], name: string) {
-  const callExpr = $call(
-    $accessProperty(kind, 'define'),
-    ...args,
-    createClassExpression(
-      [],
-      undefined,
-      [],
-      [],
-      members
-    )
-  );
-  return $const(name, callExpr);
-}
-export function $customElement(name: string, template: string, ...members: ClassElement[]) {
-  return <Statement>$resource('CustomElementResource',
-  [
-     createObjectLiteral([
-       createPropertyAssignment(createIdentifier('name'), createLiteral(name.toLowerCase())),
-       createPropertyAssignment(createIdentifier('template'), createLiteral(template))
-     ])
-  ], members, name);
-}
-export function $classProperty(name: string, value: any, ...decorators: Decorator[]) {
-  return createProperty(
-    decorators,
-    [],
-    createIdentifier(name),
-    undefined,
-    undefined,
-    createLiteral(value)
-  );
-}
-export function $bindableProperty(name: string) {
-  return createProperty(
-    [createDecorator(createIdentifier('bindable'))],
-    [],
-    createIdentifier(name),
-    undefined,
-    undefined,
-    undefined
-  );
-}
-export function $destructureObject(initializer: Expression, ...names: string[]) {
-  const elements = names.map(n => createBindingElement(undefined, undefined, n));
-  return createVariableStatement(
-    [],
-    createVariableDeclarationList(
-      [createVariableDeclaration(createObjectBindingPattern(elements), undefined, initializer)],
-      NodeFlags.Const
-    )
-  );
-}
-export function $expect(left: Expression, right: Expression, msg: string, ...asserts: string[]) {
-  left = asserts.reduce((l, cur) => createPropertyAccess(l, cur), $call(createIdentifier('expect'), left));
-  return createExpressionStatement($call(left, right, createLiteral(msg)));
-}
-export function $expectHostTextContent(toEqual: string | Identifier, msg: string) {
-  return $expect($accessProperty('host', 'textContent'), typeof toEqual === 'string' ? createLiteral(toEqual) : toEqual, msg, 'to', 'equal');
-}
-export function $expectEqual(actual: string, expected: string, msg: string) {
-  return $expect($accessProperty(actual), $accessProperty(expected), msg, 'to', 'equal');
-}
-export function $functionDeclaration(name: string, statements: Statement[], parameters: ParameterDeclaration[]) {
-  return createFunctionDeclaration([], [], undefined, createIdentifier(name), [], parameters, undefined, createBlock(statements, true));
-}
-export function $bindable(prop: string, attr?: string) {
-  return createPropertyAssignment(
-    createIdentifier(prop),
-    createObjectLiteral(
-      [
-        createPropertyAssignment(
-          createIdentifier('attribute'),
-          createLiteral(attr || prop)
-        ),
-        createPropertyAssignment(
-          createIdentifier('property'),
-          createLiteral(prop)
-        )
-      ]
-    )
-  )
-}
-
-export function $test(name: string, markup: string, expectedAfterStart: string, expectedAfterStop: string, ...customElMembers: ClassElement[]) {
-  return $it(
-    name,
-    $destructureObject(
-      $call(createIdentifier('setup')),
-      'au', 'host'
-    ),
-    null,
-    $customElement('App', markup, ...customElMembers),
-    $createComponent('App'),
-    $callAuApp(),
-    $callAuStart(),
-    $expectHostTextContent(expectedAfterStart, 'after start #1'),
-    $callAuStop(),
-    $expectHostTextContent(expectedAfterStop, 'after stop #1'),
-    $callAuStart(),
-    $expectHostTextContent(expectedAfterStart, 'after start #2'),
-    $callAuStop(),
-    $expectHostTextContent(expectedAfterStop, 'after stop #2')
-  );
-}
-
 export function $element(name: string, inner: string, ...attributes: string[]) {
   return attributes.length
     ? `<${name} ${attributes.join(' ')}>${inner}</${name}>`
@@ -431,3 +316,4 @@ export function $attr(create: CreateElement, ...attributes: string[]): CreateEle
   createWrapped.$name = this.$name;
   return createWrapped;
 }
+

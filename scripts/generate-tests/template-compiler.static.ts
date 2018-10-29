@@ -1,42 +1,24 @@
-import { SyntaxKind, Statement, createReturn, createIdentifier, createLiteral, PropertyDeclaration, createExpressionStatement, createObjectLiteral, createPropertyAssignment, createProperty, createModifier, createParameter } from 'typescript';
+import { Statement, PropertyDeclaration } from 'typescript';
 import {
   emit,
-  $classProperty,
-  $test,
-  $tpl,
-  $attr,
-  $describe,
-  $import,
-  $describeOnly,
-  $functionDeclaration,
-  $createContainer,
-  $register,
-  $createChangeSet,
-  $createRenderingEngine,
-  $createHost,
-  $object,
-  $div,
-  $createAurelia,
-  $callAuApp,
-  $callAuStart,
-  $it,
-  $destructureObject,
+  $property,
+  $$import,
+  $$functionDecl,
   $call,
-  $const,
-  $customElement,
-  $createComponent,
-  $expectHostTextContent,
-  $callAuStop,
-  $accessProperty,
-  $expectEqual,
-  $resource,
-  $bindableProperty,
-  $bindable,
-  $param
+  $$const,
+  $param,
+  $$call,
+  $expression,
+  $$new,
+  $$return,
+  $access,
+  $class,
+  $$functionExpr,
+  $functionExpr
 } from './util';
 import project from '../project';
 import { join } from 'path';
-import { PLATFORM } from '../../packages/kernel/src/platform';
+import { PLATFORM } from '../../packages/kernel/src/index';
 
 function outFile(suffix: string) {
   return join(`${project.path}`, 'packages', 'jit', 'test', 'generated', `template-compiler.${suffix}.spec.ts`);
@@ -108,45 +90,45 @@ const text$02_1: TextBinding = {
 };
 const text$02_2: TextBinding = {
   id: 'text$02',
-  markup: '${not}',
+  markup: '\${not}',
   variable: 'not',
   value: 'b',
-  properties: [$classProperty('not', 'b')]
+  properties: [$property('not', 'b')]
 };
 text$02_1.opposite = text$02_2;
 text$02_2.opposite = text$02_1;
 
 const text$03_1: TextBinding = {
   id: 'text$03',
-  markup: '${msg}',
+  markup: '\${msg}',
   variable: 'msg',
   value: 'a',
-  properties: [$classProperty('msg', 'a')]
+  properties: [$property('msg', 'a')]
 };
 const text$03_2: TextBinding = {
   id: 'text$03',
-  markup: '${not}',
+  markup: '\${not}',
   variable: 'not',
   value: 'b',
-  properties: [$classProperty('not', 'b')]
+  properties: [$property('not', 'b')]
 };
 text$03_1.opposite = text$03_2;
 text$03_2.opposite = text$03_1;
 
 const text$04_1: TextBinding = {
   id: 'text$04',
-  markup: '${msg}',
+  markup: '\${msg}',
   variable: 'msg',
   value: 'a',
-  properties: [$classProperty('msg', 'a')],
+  properties: [$property('msg', 'a')],
   isDuplicate: true
 };
 const text$04_2: TextBinding = {
   id: 'text$04',
-  markup: '${not}',
+  markup: '\${not}',
   variable: 'not',
   value: 'b',
-  properties: [$classProperty('not', 'b')]
+  properties: [$property('not', 'b')]
 };
 text$04_1.opposite = text$04_2;
 text$04_2.opposite = text$04_1;
@@ -234,38 +216,6 @@ repeat$13_2.opposite = repeat$13_1;
 
 const repeats = [repeat$11_1, repeat$12_1, repeat$13_1];
 
-function $createTest(markup: string, expectedText: string, properties: PropertyDeclaration[], ids: Identifiable[], resources: Statement[]) {
-  const test = $it(
-    // test title
-    ids.map(i => i.id).join(' ') + ' _',
-    // "arrange" phase
-    $destructureObject($call(createIdentifier('setup')), 'au', 'host'),
-    null, // empty line
-    ...resources,
-    $customElement('App', `<template>${markup}</template>`, ...properties),
-    $createComponent('App'),
-    // multiple "act" + "assert" phases
-    $callAuApp(),
-    createExpressionStatement(
-      $call(
-        createIdentifier('verify'),
-        createIdentifier('au'),
-        createIdentifier('host'),
-        createLiteral(expectedText)
-      )
-    )
-  );
-  return test;
-}
-
-function $(tag: Tag, attributes: Pick<TplCtrl, 'attr'>[], inner: string) {
-  if (attributes.length > 0) {
-    return `<${tag.name} ${attributes.map(c => c.attr).join(' ')}>${inner}</${tag.name}>`;
-  } else {
-    return `<${tag.name}>${inner}</${tag.name}>`;
-  }
-}
-
 function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]) {
   const tests: Record<string, Statement[]> = {};
   const staticTests: Statement[] = tests['static'] = [];
@@ -286,59 +236,26 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
       const resources = [];
 
       function registerCustomElement(markup: string, containerless: boolean | null, shadowMode: 'open' | 'closed' | null) {
-        const bindables = [ifText, elseText].map(t => $bindable(t.variable));
-        bindables.push($bindable('item'));
-        const statics = [
-          createProperty(
-            [],
-            [createModifier(SyntaxKind.StaticKeyword)],
-            createIdentifier('bindables'),
-            undefined,
-            undefined,
-            createObjectLiteral(bindables)
-          )
-        ];
-        if (containerless !== null) {
-          statics.push(
-            createProperty(
-              [],
-              [createModifier(SyntaxKind.StaticKeyword)],
-              createIdentifier('containerless'),
-              undefined,
-              undefined,
-              createLiteral(true)
-            )
-          );
-        }
-        if (shadowMode !== null) {
-          statics.push(
-            createProperty(
-              [],
-              [createModifier(SyntaxKind.StaticKeyword)],
-              createIdentifier('shadowOptions'),
-              undefined,
-              undefined,
-              createObjectLiteral([
-                createPropertyAssignment(createIdentifier('mode'), createLiteral(shadowMode))
-              ])
-            )
-          );
-        }
         return [
-          $resource(
-            'CustomElementResource', [
-              createObjectLiteral([
-                createPropertyAssignment(createIdentifier('name'), createLiteral(PLATFORM.kebabCase(tag.elName))),
-                createPropertyAssignment(createIdentifier('template'), createLiteral(`<template>${markup}</template>`))
-              ])
-            ], [
-              ...statics,
-              ...[ifText, elseText].map(t => $classProperty(t.variable, '')),
-              $classProperty('item', '')
-            ],
-            tag.elName
-          ),
-          createExpressionStatement($call($accessProperty('au', 'register'), createIdentifier(tag.elName)))
+          $$const(tag.elName, $call('CustomElementResource.define', [
+            $expression({
+              name: PLATFORM.kebabCase(tag.elName),
+              template: `<template>${markup}</template>`
+            }),
+            $class([
+              $property('bindables', {
+                [ifText.variable]: { property: ifText.variable, attribute: ifText.variable },
+                [elseText.variable]: { property: elseText.variable, attribute: elseText.variable },
+                item: { property: 'item', attribute: 'item' }
+              }, true),
+              ...containerless !== null ? [$property('containerless', true, true)] : [],
+              ...shadowMode !== null ? [$property('shadowOptions', { mode: shadowMode }, true)] : [],
+              $property(ifText.variable, ''),
+              $property(elseText.variable, ''),
+              $property('item', '')
+            ])
+          ])),
+          $$call('au.register', [tag.elName])
         ];
       }
       if (tag.isCustom) {
@@ -350,20 +267,20 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
       if (!ifText.isDuplicate) {
         if (tag.isTemplate) {
           // non-wrapped interpolation
-          staticTests.push($createTest(
+          staticTests.push($$test(
             ifText.markup,
             ifText.value, ifText.properties, [tag, ifText], [])
           );
         } else if (tag.isCustom) {
           // binding with custom element
           const $tag = PLATFORM.kebabCase(tag.elName);
-          staticTests.push($createTest(
+          staticTests.push($$test(
             `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`,
             ifText.value, ifText.properties, [tag, ifText], registerCustomElement(ifText.markup, tag.containerless || null, tag.shadowMode || null))
           );
         } else {
           // interpolation wrapped in div
-          staticTests.push($createTest(
+          staticTests.push($$test(
             $(tag, [], ifText.markup),
             ifText.value, ifText.properties, [tag, ifText], [])
           );
@@ -371,7 +288,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
       }
       if (tag.isCustom) {
         const $tag = PLATFORM.kebabCase(tag.elName);
-        resources.push(...registerCustomElement(ifText.markup + elseText.markup + '${item}', tag.containerless || null, tag.shadowMode || null));
+        resources.push(...registerCustomElement(ifText.markup + elseText.markup + '\${item}', tag.containerless || null, tag.shadowMode || null));
         ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`;
         elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"></${$tag}>`;
       }
@@ -390,52 +307,52 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
 
         // only if branch
         if (!tag.isCustom || $if.value === true) {
-          ifElseTests.push($createTest(
+          ifElseTests.push($$test(
             $(tag, [$if], ifText.markup),
             ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], ifText.markup) +
             $(tag, [$if], ''),
             ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:'double$01'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$if], ifText.markup),
             ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:'double$02'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], ifText.markup) +
             $(tag, [$if], ifText.markup),
             ifMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:'double$03'}], resources)
           );
 
           // only if branch (nested)
-          ifElseTests.push($createTest(
+          ifElseTests.push($$test(
             $(tag, [$if], $(tag, [$if], ifText.markup)),
             ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$if], ifText.markup)) +
             $(tag, [$if], ''),
             ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$01'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$if], ifText.markup)) +
             $(tag, [$if], $(tag, [$if], '')),
             ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$02'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$if], $(tag, [$if], ifText.markup)),
             ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$03'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$if], '')) +
             $(tag, [$if], $(tag, [$if], ifText.markup)),
             ifMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$04'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$if], ifText.markup)) +
             $(tag, [$if], $(tag, [$if], ifText.markup)),
             ifMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id:`${branchId}$01`}, {id:`nested$01`}, {id:'double$05'}], resources)
@@ -444,26 +361,26 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
 
         if (!tag.isCustom || $else.value === true) {
           // only else branch
-          ifElseTests.push($createTest(
+          ifElseTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else], elseText.markup),
             elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$02`}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else], elseText.markup) +
             $(tag, [$if], '') +
             $(tag, [$else], ''),
             elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$02`}, {id:'double$01'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else], '') +
             $(tag, [$if], '') +
             $(tag, [$else], elseText.markup),
             elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$02`}, {id:'double$02'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else], elseText.markup) +
             $(tag, [$if], '') +
@@ -472,7 +389,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           );
 
           // only else branch (nested)
-          ifElseTests.push($createTest(
+          ifElseTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else],
               $(tag, [$if], '') +
@@ -480,7 +397,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
             ),
             elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$03`}, {id:`nested$01`}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else],
               $(tag, [$if], '') +
@@ -490,7 +407,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
             $(tag, [$else], ''),
             elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$03`}, {id:`nested$01`}, {id:'double$01'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else],
               $(tag, [$if], '') +
@@ -503,7 +420,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
             ),
             elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$03`}, {id:`nested$01`}, {id:'double$01'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else],
               $(tag, [$if], '') +
@@ -516,7 +433,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
             ),
             elseMarkupExpected, properties, [tag, ifText, $if, {id:`${branchId}$03`}, {id:`nested$01`}, {id:'double$02'}], resources)
           );
-          ifElseDoubleTests.push($createTest(
+          ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else],
               $(tag, [$if], '') +
@@ -532,26 +449,26 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
         }
 
         // if + else branch
-        ifElseTests.push($createTest(
+        ifElseTests.push($$test(
           $(tag, [$if], ifText.markup) +
           $(tag, [$else], elseText.markup),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$04`}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if], ifText.markup) +
           $(tag, [$else], elseText.markup) +
           $(tag, [$if], '') +
           $(tag, [$else], ''),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$04`}, {id:'double$01'}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if], '') +
           $(tag, [$else], '') +
           $(tag, [$if], ifText.markup) +
           $(tag, [$else], elseText.markup),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$04`}, {id:'double$02'}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if], ifText.markup) +
           $(tag, [$else], elseText.markup) +
           $(tag, [$if], ifText.markup) +
@@ -560,7 +477,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
         );
 
         // if + else branch (nested)
-        ifElseTests.push($createTest(
+        ifElseTests.push($$test(
           $(tag, [$if],
             $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup)
@@ -571,7 +488,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           ),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$05`}, {id:`nested$01`}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if],
             $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup)
@@ -584,7 +501,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           $(tag, [$else], ''),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$05`}, {id:`nested$01`}, {id:'double$01'}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if],
             $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup)
@@ -600,7 +517,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           ),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$05`}, {id:`nested$01`}, {id:'double$01'}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if], '') +
           $(tag, [$else],
             $(tag, [$if], '') +
@@ -616,7 +533,7 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           ),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$05`}, {id:`nested$01`}, {id:'double$02'}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if],
             $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup)
@@ -637,28 +554,28 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
         );
 
         // if + else branch (same element)
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if], ifText.markup) +
           $(tag, [$else, $if], elseText.markup) + // never renders
           $(tag, [$if], '') +
           $(tag, [$else], elseText.markup),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$06`}, {id:'sibling$01'}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if], '') +
           $(tag, [$else, $if], '') + // never renders
           $(tag, [$if], ifText.markup) +
           $(tag, [$else], elseText.markup),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$06`}, {id:'sibling$02'}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if], '') +
           $(tag, [$else, $if], elseText.markup) + // never renders
           $(tag, [$if], ifText.markup) +
           $(tag, [$else], elseText.markup),
           expected, properties, [tag, ifText, $if, {id:`${branchId}$06`}, {id:'sibling$03'}], resources)
         );
-        ifElseDoubleTests.push($createTest(
+        ifElseDoubleTests.push($$test(
           $(tag, [$if], ifText.markup) +
           $(tag, [$else, $if], elseText.markup) + // never renders
           $(tag, [$else, $if], ifText.markup) + // never renders
@@ -688,14 +605,14 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
             return isArray ? text.markup.replace(ifVarRegex, $repeat.prop).replace(elseVarRegex, $repeat.prop) : text.markup;
           }
           // identical to the if/else tests one level up, but wrapped in the repeater
-          ifElseRepeatTests.push($createTest(
+          ifElseRepeatTests.push($$test(
             $(tag, [$repeat],
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else], fixup(elseText))
             ),
             $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$01'}], resources)
           );
-          ifElseRepeatDoubleTests.push($createTest(
+          ifElseRepeatDoubleTests.push($$test(
             $(tag, [$repeat],
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else, $if], fixup(elseText)) +
@@ -706,12 +623,12 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           );
 
           // the inverse of the fullIfElse wrapped by repeater (repeater wrapped by if/else)
-          ifElseRepeatTests.push($createTest(
+          ifElseRepeatTests.push($$test(
             $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
             $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
             $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$02'}], resources)
           );
-          ifElseRepeatDoubleTests.push($createTest(
+          ifElseRepeatDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
             $(tag, [$else, $if], $(tag, [$repeat], fixup(elseText))) +
             $(tag, [$if], '') +
@@ -719,19 +636,19 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
             $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$02$double'}], resources)
           );
           // same as the test above but with the template controllers on the same element
-          ifElseRepeatTests.push($createTest(
+          ifElseRepeatTests.push($$test(
             $(tag, [$if, $repeat], fixup(ifText)) +
             $(tag, [$else, $repeat], fixup(elseText)),
             $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$03'}], resources)
           );
-          ifElseRepeatDoubleTests.push($createTest(
+          ifElseRepeatDoubleTests.push($$test(
             $(tag, [$if, $repeat], fixup(ifText)) +
             $(tag, [$else, $if, $repeat], fixup(elseText)) +
             $(tag, [$if, $repeat], '') +
             $(tag, [$else, $repeat], fixup(elseText)),
             $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$03$double$01'}], resources)
           );
-          ifElseRepeatDoubleTests.push($createTest(
+          ifElseRepeatDoubleTests.push($$test(
             $(tag, [$if, $repeat], fixup(ifText)) +
             $(tag, [$else, $repeat, $if], fixup(elseText)) +
             $(tag, [$if, $repeat], '') +
@@ -740,57 +657,57 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           );
 
           if (!$else.value) {
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$repeat], $(tag, [$if], fixup(ifText))),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$04'}], resources)
             );
             // same as test above, but template controllers on same element
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$repeat, $if], fixup(ifText)),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$05'}], resources)
             );
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$06'}], resources)
             );
             // same as test above, but template controllers on same element
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$if, $repeat], fixup(ifText)),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$07'}], resources)
             );
 
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$repeat],
                 $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], fixup(elseText))
               ),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$08'}], resources)
             );
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$repeat],
                 $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], '')
               ),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$08$empty'}], resources)
             );
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$else], $(tag, [$repeat], fixup(ifText))),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09'}], resources)
             );
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$else], ''),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09$empty'}], resources)
             );
-            ifElseRepeatDoubleTests.push($createTest(
+            ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$else, $if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$if], '') +
               $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$09$double$01'}], resources)
             );
-            ifElseRepeatDoubleTests.push($createTest(
+            ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$else, $if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
@@ -800,45 +717,45 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
           }
 
           if (!$if.value) {
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$repeat],
                 $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], fixup(elseText))
               ),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$10'}], resources)
             );
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$repeat],
                 $(tag, [$if], '') +
                 $(tag, [$else], fixup(elseText))
               ),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$10$empty'}], resources)
             );
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11'}], resources)
             );
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$if], '') +
               $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11$empty'}], resources)
             );
-            ifElseRepeatDoubleTests.push($createTest(
+            ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else], $(tag, [$repeat], fixup(elseText))) +
               $(tag, [$if, $else], fixup(elseText)) +
               $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
               $expected.repeat(2), properties, [tag, ifText, $if, $repeat, {id:'variant$11$double$01'}], resources)
             );
-            ifElseRepeatDoubleTests.push($createTest(
+            ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else], $(tag, [$repeat], fixup(elseText))) +
               $(tag, [$if, $else], fixup(elseText)) +
               $(tag, [$else], ''),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11$double$02'}], resources)
             );
-            ifElseRepeatDoubleTests.push($createTest(
+            ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else], '') +
               $(tag, [$if, $else], fixup(elseText)) +
@@ -846,19 +763,19 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$11$double$03'}], resources)
             );
             // same as test above, but template controllers on same element
-            ifElseRepeatTests.push($createTest(
+            ifElseRepeatTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else, $repeat], fixup(elseText)),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$12'}], resources)
             );
-            ifElseRepeatDoubleTests.push($createTest(
+            ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else, $repeat, $if], fixup(elseText)) +
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else, $repeat], fixup(elseText)),
               $expected, properties, [tag, ifText, $if, $repeat, {id:'variant$12$double$01'}], resources)
             );
-            ifElseRepeatDoubleTests.push($createTest(
+            ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else, $if, $repeat], fixup(elseText)) +
               $(tag, [$if], fixup(ifText)) +
@@ -873,57 +790,83 @@ function generateTests(tags: Tag[], textBindings: TextBinding[], ifElsePairs: Tp
   return tests;
 }
 
+
+function $(tag: Tag, attributes: Pick<TplCtrl, 'attr'>[], inner: string) {
+  if (attributes.length > 0) {
+    return `<${tag.name} ${attributes.map(c => c.attr).join(' ')}>${inner}</${tag.name}>`;
+  } else {
+    return `<${tag.name}>${inner}</${tag.name}>`;
+  }
+}
+
+function $$test(markup: string, expectedText: string, properties: PropertyDeclaration[], ids: Identifiable[], resources: Statement[]) {
+  const test = $$functionExpr('it', [
+    $expression(ids.map(i => i.id).join(' ') + ' _'),
+    $functionExpr([
+      $$const(['au', 'host'], $call('setup')),
+      null,
+      ...resources,
+      $$const('App', $call('CustomElementResource.define', [
+        $expression({ name: 'app', template: `<template>${markup}</template>` }),
+        $class(properties)
+      ])),
+      $$new('component', 'App'),
+      $$call('au.app', [$expression({ host: 'host', component: 'component' })]),
+      $$call('verify', ['au', 'host', $expression(expectedText)])
+    ])
+  ]);
+  return test;
+}
+
 function generateAndEmit() {
   const testsRecord = generateTests(tags, texts, ifElses, repeats);
   for (const suffix in testsRecord) {
     const tests = testsRecord[suffix];
     const nodes = [
-      $import('chai', 'expect'),
-      $import('../../../kernel/src/index', 'DI'),
-      $import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode'),
-      $import('../../src/index', 'BasicConfiguration'),
+      $$import('chai', 'expect'),
+      $$import('../../../kernel/src/index', 'DI'),
+      $$import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode'),
+      $$import('../../src/index', 'BasicConfiguration'),
       null,
-      $describe(
-        `generated.template-compiler.${suffix}`,
-        $functionDeclaration(
-          'setup',
-          [
-            $createContainer(),
-            $register('BasicConfiguration'),
-            $createAurelia('au'),
-            $createHost(),
-            createReturn($object('au', 'host'))
-          ],
-          []
-        ),
-        $functionDeclaration(
-          'verify',
-          [
-            $callAuStart(),
-            $const('outerHtmlAfterStart1', $accessProperty('host', 'outerHTML')),
-            $expectHostTextContent(createIdentifier('expected'), 'after start #1'),
-            $callAuStop(),
-            $const('outerHtmlAfterStop1', $accessProperty('host', 'outerHTML')),
-            $expectHostTextContent('', 'after stop #1'),
+      $$functionExpr('describe', [
+        $expression(`generated.template-compiler.${suffix}`),
+        $functionExpr([
+          $$functionDecl('setup', [
+              $$const('container', $call('DI.createContainer')),
+              $$call('container.register', ['BasicConfiguration']),
+              $$new('au', 'Aurelia', ['container']),
+              $$const('host', $call('DOM.createElement', [$expression('div')])),
+              $$return({ au: 'au', host: 'host' })
+            ],
+            []
+          ),
+          $$functionDecl('verify', [
+              $$call('au.start'),
+              $$const('outerHtmlAfterStart1', $access('host.outerHTML')),
+              $$call([$call('expect', [$access('host.textContent')]), 'to.equal'], ['expected', $expression('after start #1')]),
+              $$call('au.stop'),
+              $$const('outerHtmlAfterStop1', $access('host.outerHTML')),
+              $$call([$call('expect', [$access('host.textContent')]), 'to.equal'], [$expression(''), $expression('after stop #1')]),
 
-            $callAuStart(),
-            $const('outerHtmlAfterStart2', $accessProperty('host', 'outerHTML')),
-            $expectHostTextContent(createIdentifier('expected'), 'after start #2'),
-            $callAuStop(),
-            $const('outerHtmlAfterStop2', $accessProperty('host', 'outerHTML')),
-            $expectHostTextContent('', 'after stop #2'),
-            // Verify that starting/stopping multiple times results in the exact same html each time
-            $expectEqual('outerHtmlAfterStart1', 'outerHtmlAfterStart2', 'outerHTML after start #1 / #2'),
-            $expectEqual('outerHtmlAfterStop1', 'outerHtmlAfterStop2', 'outerHTML after stop #1 / #2')
-          ],
-          [
-            $param('au'),
-            $param('host'),
-            $param('expected')
-          ]
-        ),
-        ...tests
-      )
+              $$call('au.start'),
+              $$const('outerHtmlAfterStart2', $access('host.outerHTML')),
+              $$call([$call('expect', [$access('host.textContent')]), 'to.equal'], ['expected', $expression('after start #2')]),
+              $$call('au.stop'),
+              $$const('outerHtmlAfterStop2', $access('host.outerHTML')),
+              $$call([$call('expect', [$access('host.textContent')]), 'to.equal'], [$expression(''), $expression('after stop #2')]),
+              // Verify that starting/stopping multiple times results in the exact same html each time
+              $$call([$call('expect', ['outerHtmlAfterStart1']), 'to.equal'], ['outerHtmlAfterStart2', $expression('outerHTML after start #1 / #2')]),
+              $$call([$call('expect', ['outerHtmlAfterStop1']), 'to.equal'], ['outerHtmlAfterStop2', $expression('outerHTML after stop #1 / #2')])
+            ],
+            [
+              $param('au'),
+              $param('host'),
+              $param('expected')
+            ]
+          ),
+          ...tests
+        ])
+      ])
     ];
 
     emit(outFile(suffix), ...nodes);
@@ -931,3 +874,4 @@ function generateAndEmit() {
 }
 
 generateAndEmit();
+

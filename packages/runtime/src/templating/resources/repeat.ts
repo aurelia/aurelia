@@ -129,7 +129,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
       } else {
         forOf.iterate(items, (arr, i, item) => {
           const view = views[i];
-          if (indexMap[i] === i) {
+          if (indexMap[i] === i && !!view.$scope) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
           } else {
             view.$bind(flags, Scope.fromParent($scope, BindingContext.create(local, item)));

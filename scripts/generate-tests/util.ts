@@ -62,7 +62,8 @@ import {
   VariableDeclaration,
   ObjectLiteralElementLike,
   PropertyAccessExpression,
-  ReturnStatement
+  ReturnStatement,
+  createMethod
 } from 'typescript';
 
 export function emit(path: string, ...nodes: Node[]): void {
@@ -159,6 +160,34 @@ export function $$call(nameOrPath: string | [string | Expression | Identifier, .
   return createExpressionStatement($call(nameOrPath, variablesOrExpressions));
 }
 
+export function $assign(leftName: string, rightName: string): Expression;
+export function $assign(leftPath: [string | Expression | Identifier, ...(string | Identifier)[]], rightName: string): Expression;
+export function $assign(leftNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], rightName: string): Expression;
+export function $assign(leftName: string, rightPath: [string | Expression | Identifier, ...(string | Identifier)[]]): Expression;
+export function $assign(leftPath: [string | Expression | Identifier, ...(string | Identifier)[]], rightPath: [string | Expression | Identifier, ...(string | Identifier)[]]): Expression;
+export function $assign(leftNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], rightPath: [string | Expression | Identifier, ...(string | Identifier)[]]): Expression;
+export function $assign(leftName: string, rightNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): Expression;
+export function $assign(leftPath: [string | Expression | Identifier, ...(string | Identifier)[]], rightNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): Expression;
+export function $assign(leftNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], rightNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): Expression;
+export function $assign(leftNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], rightNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): Expression {
+  const left = $access(leftNameOrPath);
+  const right = $access(rightNameOrPath);
+  return createAssignment(left, right);
+}
+
+export function $$assign(leftName: string, rightName: string): Statement;
+export function $$assign(leftPath: [string | Expression | Identifier, ...(string | Identifier)[]], rightName: string): Statement;
+export function $$assign(leftNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], rightName: string): Statement;
+export function $$assign(leftName: string, rightPath: [string | Expression | Identifier, ...(string | Identifier)[]]): Statement;
+export function $$assign(leftPath: [string | Expression | Identifier, ...(string | Identifier)[]], rightPath: [string | Expression | Identifier, ...(string | Identifier)[]]): Statement;
+export function $$assign(leftNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], rightPath: [string | Expression | Identifier, ...(string | Identifier)[]]): Statement;
+export function $$assign(leftName: string, rightNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): Statement;
+export function $$assign(leftPath: [string | Expression | Identifier, ...(string | Identifier)[]], rightNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): Statement;
+export function $$assign(leftNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], rightNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): Statement;
+export function $$assign(leftNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], rightNameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): Statement {
+  return createExpressionStatement($assign(leftNameOrPath, rightNameOrPath));
+}
+
 export function $new(name: string, variablesOrExpressions?: (string | Expression | Identifier)[]): Expression;
 export function $new(path: [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Expression;
 export function $new(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Expression;
@@ -233,8 +262,13 @@ export function $expression(value: any, multiline: number = 0, level: number = 0
     case '[object Array]':
       return $arrayLiteral(value, multiline, level);
     case '[object Object]':
-    default:
       return $objectLiteral(value, multiline, level);
+    default:
+      if (typeof value === 'function') {
+        return $id(value.name);
+      } else {
+        return $objectLiteral(value, multiline, level);
+      }
   }
 }
 
@@ -250,7 +284,18 @@ export function $property(name: string, value?: any, isStatic?: boolean) {
   if (arguments.length === 1) {
     return createProperty([], modifiers, $id(name), undefined, undefined, undefined);
   } else {
-    return createProperty([], modifiers, $id(name), undefined, undefined, $expression(value));
+    return createProperty([], modifiers, $id(name), undefined, undefined, value && value.escapedText ? value : $expression(value));
+  }
+}
+export function $method(name: string, statements: Statement[], params?: ParameterDeclaration[], isStatic?: boolean) {
+  const modifiers = [];
+  if (isStatic === true) {
+    modifiers.push(createModifier(SyntaxKind.StaticKeyword));
+  }
+  if (arguments.length === 2) {
+    return createMethod([], modifiers, undefined, $id(name), undefined, undefined, [], undefined, createBlock(statements, true));
+  } else {
+    return createMethod([], modifiers, undefined, $id(name), undefined, undefined, params, undefined, createBlock(statements, true));
   }
 }
 export function $class(elements: ReadonlyArray<ClassElement>) {

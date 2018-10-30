@@ -228,7 +228,7 @@ describe(`View`, () => {
           expect(sut.$scope).to.equal(scope, 'sut.$scope');
           expect(sut).to.have.$state.isBound();
           if (sut.$nodes.firstChild) {
-            expect(sut.$nodes.firstChild.textContent).to.equal('', 'sut.$nodes.firstChild.textContent');
+            expect(sut.$nodes.firstChild.textContent).to.equal('foo', 'sut.$nodes.firstChild.textContent');
           }
 
           // TODO: verify short-circuit if already bound (now we can only tell by debugging or looking at the coverage report, not very clean)
@@ -246,7 +246,7 @@ describe(`View`, () => {
           expect(sut.$scope).to.equal(scope, 'sut.$scope');
           expect(sut).to.have.$state.isBound();
           if (sut.$nodes.firstChild) {
-            expect(sut.$nodes.firstChild.textContent).to.equal('', 'sut.$nodes.firstChild.textContent');
+            expect(sut.$nodes.firstChild.textContent).to.equal('foo', 'sut.$nodes.firstChild.textContent');
             cs.flushChanges();
             expect(sut.$nodes.firstChild.textContent).to.equal('foo', 'sut.$nodes.firstChild.textContent');
             if (sut.$attachableHead) {

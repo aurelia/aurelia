@@ -120,7 +120,7 @@ function generateAndEmit() {
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
               $hook('attaching', $$call('this.items.push', [$expression(3)]), false, ['', '']),
-              $hook('attached', $$call('this.items.push', [$expression(4)]), false, ['  3', '12345     3']),
+              $hook('attached', $$call('this.items.push', [$expression(4)]), false, ['123', '12345678123']),
               $hook('detaching', $$call('this.items.push', [$expression(5)]), false, ['123', '12345678123']),
               $hook('detached', $$call('this.items.push', [$expression(6)])),
               $hook('unbinding', $$call('this.items.push', [$expression(7)])),
@@ -202,7 +202,7 @@ function generateAndEmit() {
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
               $hook('attaching', $$call('this.items.push', [$expression(3)]), false, ['', '']),
-              $hook('attached', $$call('this.items.push', [$expression(4)]), false, [' ', '3 3']), // todo: fix this
+              $hook('attached', $$call('this.items.push', [$expression(4)]), false, ['2', '363']),
               $hook('detaching', $$call('this.items.push', [$expression(5)]), false, ['2', '363']),
               $hook('detached', $$call('this.items.push', [$expression(6)])),
               $hook('unbinding', $$call('this.items.push', [$expression(7)])),

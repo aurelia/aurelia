@@ -105,7 +105,7 @@ describe("generated.template-compiler.mutations.basic", function () {
             }
             attached() {
                 this.items.push(4);
-                expect(this.el.textContent).to.equal(this.cycled ? "12345     3" : "  3", "this.el.textContent during attached() before mutation");
+                expect(this.el.textContent).to.equal(this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation");
             }
             detaching() {
                 this.items.push(5);
@@ -237,7 +237,7 @@ describe("generated.template-compiler.mutations.basic", function () {
             }
             attached() {
                 this.items.push(4);
-                expect(this.el.textContent).to.equal(this.cycled ? "3 3" : " ", "this.el.textContent during attached() before mutation");
+                expect(this.el.textContent).to.equal(this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation");
             }
             detaching() {
                 this.items.push(5);

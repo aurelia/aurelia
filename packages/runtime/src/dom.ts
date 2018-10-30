@@ -6,6 +6,10 @@ export const TEXT_NODE = 3;
 export const COMMENT_NODE = 8;
 export const DOCUMENT_FRAGMENT_NODE = 11;
 
+function isRenderLocation(node: INode): node is IRenderLocation {
+  return node.textContent === 'au-end';
+}
+
 export interface INodeLike {
   readonly firstChild: INode | null;
   readonly lastChild: INode | null;
@@ -64,7 +68,10 @@ export interface IDocumentFragment extends INode {
 }
 
 export const IRenderLocation = DI.createInterface<IRenderLocation>().noDefault();
-export interface IRenderLocation extends INode { }
+export interface IRenderLocation extends INode {
+  $start?: IRenderLocation;
+  $nodes?: INodeSequence | typeof PLATFORM['emptyObject'];
+}
 
 /**
  * Represents a DocumentFragment
@@ -140,12 +147,19 @@ export const DOM = {
     return (<any>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
   },
   convertToRenderLocation(node: INode): IRenderLocation {
-    if (node.parentNode === null) {
+    if (isRenderLocation(node)) {
+      return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
+    }
+    if ((<any>node).parentNode === null) {
       throw Reporter.error(52);
     }
-    const location = document.createComment('au-loc');
-    (<any>node).parentNode.replaceChild(location, node);
-    return location;
+    const locationEnd = <IRenderLocation>document.createComment('au-end');
+    const locationStart = <IRenderLocation>document.createComment('au-start');
+    DOM.replaceNode(locationEnd, node);
+    DOM.insertBefore(locationStart, locationEnd);
+    locationEnd.$start = locationStart;
+    locationStart.$nodes = null;
+    return locationEnd;
   },
   createComment(text: string): IComment {
     return <IComment>document.createComment(text);
@@ -310,47 +324,121 @@ export class FragmentNodeSequence implements INodeSequence {
   public childNodes: INode[];
 
   private fragment: IDocumentFragment;
+  private targets: ArrayLike<INode>;
+
+  private start: IRenderLocation;
+  private end: IRenderLocation;
 
   constructor(fragment: IDocumentFragment) {
     this.fragment = fragment;
+    // tslint:disable-next-line:no-any
+    const targetNodeList = (<any>fragment).querySelectorAll('.au');
+    let i = 0;
+    let ii = targetNodeList.length;
+    const targets = this.targets = Array(ii);
+    while (i < ii) {
+      // eagerly convert all markers to IRenderLocations (otherwise the renderer
+      // will do it anyway) and store them in the target list (since the comments
+      // can't be queried)
+      const target = targetNodeList[i];
+      if (target.nodeName === 'AU-MARKER') {
+        // note the renderer will still call this method, but it will just return the
+        // location if it sees it's already a location
+        targets[i] = DOM.convertToRenderLocation(target);
+      } else {
+        // also store non-markers for consistent ordering
+        targets[i] = target;
+      }
+      ++i;
+    }
+    const childNodeList = fragment.childNodes;
+    i = 0;
+    ii = childNodeList.length;
+    const childNodes = this.childNodes = Array(ii);
+    while (i < ii) {
+      childNodes[i] = childNodeList[i] as Writable<INode>;
+      ++i;
+    }
+
     this.firstChild = fragment.firstChild;
     this.lastChild = fragment.lastChild;
-    this.childNodes = PLATFORM.toArray(fragment.childNodes);
+
+    this.start = this.end = null;
   }
 
   public findTargets(): ArrayLike<INode> {
     // tslint:disable-next-line:no-any
-    return (<any>this.fragment).querySelectorAll('.au');
+    return this.targets;
   }
 
-  public insertBefore(refNode: INode): void {
+  public insertBefore(refNode: IRenderLocation): void {
     // tslint:disable-next-line:no-any
     (<any>refNode).parentNode.insertBefore(this.fragment, refNode);
+    // internally we could generally assume that this is an IRenderLocation,
+    // but since this is also public API we still need to double check
+    // (or horrible things might happen)
+    if (isRenderLocation(refNode)) {
+      this.end = refNode;
+      const start = this.start = refNode.$start;
+      if (start.$nodes === null) {
+        start.$nodes = this;
+      } else {
+        // if more than one NodeSequence uses the same RenderLocation, it's an child
+        // of a repeater (or something similar) and we shouldn't remove all nodes between
+        // start - end since that would always remove all items from a repeater, even
+        // when only one is removed
+        // so we set $nodes to PLATFORM.emptyObject to 1) tell other sequences that it's
+        // occupied and 2) prevent start.$nodes === this from ever evaluating to true
+        // during remove()
+        start.$nodes = PLATFORM.emptyObject;
+      }
+    }
   }
 
   public appendTo(parent: INode): void {
     // tslint:disable-next-line:no-any
     (<any>parent).appendChild(this.fragment);
+    // this can never be a RenderLocation, and if for whatever reason we moved
+    // from a RenderLocation to a host, make sure "start" and "end" are null
+    this.start = this.end = null;
   }
 
   public remove(): void {
     const fragment = this.fragment;
-    let current = this.firstChild;
-
-    if (current.parentNode !== fragment) {
-      const end = this.lastChild;
+    if (this.start !== null && this.start.$nodes === this) {
+      // if we're between a valid "start" and "end" (e.g. if/else, containerless, or a
+      // repeater with a single item) then simply remove everything in-between (but not
+      // the comments themselves as they belong to the parent)
+      const end = this.end;
       let next: INode;
-
-      while (current !== null) {
+      let current = this.start.nextSibling;
+      while (current !== end) {
         next = current.nextSibling;
         // tslint:disable-next-line:no-any
         (<any>fragment).appendChild(current);
-
-        if (current === end) {
-          break;
-        }
-
         current = next;
+      }
+      this.start.$nodes = null;
+      this.start = this.end = null;
+    } else {
+      // otherwise just remove from first to last child in the regular way
+      let current = this.firstChild;
+
+      if (current.parentNode !== fragment) {
+        const end = this.lastChild;
+        let next: INode;
+
+        while (current !== null) {
+          next = current.nextSibling;
+          // tslint:disable-next-line:no-any
+          (<any>fragment).appendChild(current);
+
+          if (current === end) {
+            break;
+          }
+
+          current = next;
+        }
       }
     }
   }
@@ -370,21 +458,28 @@ export class NodeSequenceFactory {
   private readonly Type: Constructable<INodeSequence>;
   constructor(fragment: IDocumentFragment) {
     const childNodes = fragment.childNodes;
-    if (childNodes.length === 2) {
-      const target = childNodes[0];
-      if (target.nodeName === 'AU-MARKER') {
-        const text = childNodes[1];
-        if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
-          this.deepClone = false;
-          this.node = <ICloneableNode>text;
-          this.Type = TextNodeSequence;
-          return;
+    switch (childNodes.length) {
+      case 0:
+        this.createNodeSequence = () => NodeSequence.empty;
+        return;
+      case 2:
+        const target = childNodes[0];
+        if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
+          const text = childNodes[1];
+          if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
+            text.textContent = '';
+            this.deepClone = false;
+            this.node = <ICloneableNode>text;
+            this.Type = TextNodeSequence;
+            return;
+          }
         }
-      }
+      // falls through if not returned
+      default:
+        this.deepClone = true;
+        this.node = <ICloneableNode>fragment;
+        this.Type = FragmentNodeSequence;
     }
-    this.deepClone = true;
-    this.node = <ICloneableNode>fragment;
-    this.Type = FragmentNodeSequence;
   }
 
   public static createFor(markupOrNode: string | INode): NodeSequenceFactory {

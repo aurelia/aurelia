@@ -165,7 +165,11 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compileCustomElement($el: ElementSymbol): void {
     if ($el.$attributes.length === 0) {
       $el.addInstructions([new HydrateElementInstruction($el.definition.name, <any>PLATFORM.emptyArray)]);
-      $el.makeTarget();
+      if ($el.definition.containerless) {
+        $el.replaceNodeWithMarker();
+      } else {
+        $el.makeTarget();
+      }
       return;
     }
     const attributeInstructions: TargetedInstruction[] = [];
@@ -206,7 +210,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
     $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
-    $el.makeTarget();
+    if ($el.definition.containerless) {
+      $el.replaceNodeWithMarker();
+    } else {
+      $el.makeTarget();
+    }
   }
 
   private compileCustomAttribute($attr: AttributeSymbol): HydrateAttributeInstruction {

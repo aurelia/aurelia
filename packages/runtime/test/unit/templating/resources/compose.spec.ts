@@ -209,8 +209,7 @@ describe('The "compose" custom element', () => {
           waitForCompositionEnd(element, () => {
             expect(unbindCalled).to.be.true;
             expect(detachCalled).to.be.true;
-            expect(location.previousSibling)
-              .to.be.equal(null);
+            expect(location.previousSibling).to.equal(location.$start);
           }, done);
 
           element.subject = producer.create(value);

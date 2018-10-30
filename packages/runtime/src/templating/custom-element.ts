@@ -155,7 +155,10 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
 
   this.$state = LifecycleState.needsMount;
   this.$scope = Scope.create(this, null);
-  this.$projector = determineProjector(this, host, description);
+  // Defining the property ensures the correct runtime behavior is applied - we can't actually get the projector here because the ContainerlessProjector
+  // needs the element to be rendered first. It seems like a decent requirement for rendering to be done before either the ChildrenObserver or
+  // ContainerlessProjector is used, but still this is necessarily a complete and utter hack that we should aim to solve in a cleaner way.
+  this.$projector = undefined;
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
@@ -163,11 +166,14 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
     const result = this.render(host, options.parts);
 
     if (result && 'getElementTemplate' in result) {
-      result.getElementTemplate(renderingEngine, Type).render(this, host, options.parts);
+      const template = result.getElementTemplate(renderingEngine, Type);
+      template.render(this, host, options.parts);
     }
   } else {
-    renderingEngine.getElementTemplate(description, Type).render(this, host, options.parts);
+    const template = renderingEngine.getElementTemplate(description, Type);
+    template.render(this, host, options.parts);
   }
+  this.$projector = determineProjector(this, host, description);
 
   if (this.$behavior.hooks & LifecycleHooks.hasCreated) {
     this.created();
@@ -431,8 +437,10 @@ export class ContainerlessProjector implements IElementProjector {
 }
 
 export class HostProjector implements IElementProjector {
+  private readonly isAppHost: boolean;
   constructor($customElement: ICustomElement, public host: ICustomElementHost) {
     host.$customElement = $customElement;
+    this.isAppHost = host.hasOwnProperty('$au');
   }
 
   get children(): ArrayLike<INode> {
@@ -449,12 +457,18 @@ export class HostProjector implements IElementProjector {
 
   public project(nodes: INodeSequence): void {
     nodes.appendTo(this.host);
-    this.project = PLATFORM.noop;
+    if (!this.isAppHost) {
+      this.project = PLATFORM.noop;
+    }
   }
 
   public take(nodes: INodeSequence): void {
     // No special behavior is required because the host element removal
     // will result in the projected nodes being removed, since they are children.
+    if (this.isAppHost) {
+      // The only exception to that is the app host, which is not part of a removable node sequence
+      nodes.remove();
+    }
   }
 }
 

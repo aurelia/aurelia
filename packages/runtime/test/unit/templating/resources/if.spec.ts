@@ -75,7 +75,7 @@ describe('The "if" template controller', () => {
 
     const child = getCurrentView(ifAttr);
     expect(child).to.be.null;
-    expect(location.previousSibling).to.be.null;
+    expect(location.previousSibling).to.equal(location.$start);
 
     ifView = ifAttr['ifView'] as IView;
     expect(ifView).to.not.have.$state.isAttached();

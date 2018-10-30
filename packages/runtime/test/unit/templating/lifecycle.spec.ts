@@ -407,18 +407,20 @@ describe(`DetachLifecycleController `, () => {
 
             verifyRemoveNodesCalls(count, count, mock);
 
-            // TODO: when the "only remove root node" (or same flavor thereof) is enabled again in the DetachLifecycleController
-            verifyDetachedCalls(count * 2, count, mock);
-
-            if (sut.flags === LifecycleFlags.unbindAfterDetached) {
-              verifyUnbindCalls(count * 3, count, mock);
-            }
-            // the commented-out assertion further below should replace the assertion directly below
-            // verifyDetachedCalls(count + 1, count, mock);
+            // Note: the commented-out assertions are for when the "only remove root nodes" behavior is disabled
+            // we're leaving them in here just in case we need to test with that optimization disabled again
+            // This can of course be removed once everything has stabilized and we're ready for releasing
+            // verifyDetachedCalls(count * 2, count, mock);
 
             // if (sut.flags === LifecycleFlags.unbindAfterDetached) {
-            //   verifyUnbindCalls(count * 2 + 1, count, mock);
+            //   verifyUnbindCalls(count * 3, count, mock);
             // }
+            // the commented-out assertion further below should replace the assertion directly below
+            verifyDetachedCalls(count + 1, count, mock);
+
+            if (sut.flags === LifecycleFlags.unbindAfterDetached) {
+              verifyUnbindCalls(count * 2 + 1, count, mock);
+            }
           }
         ],
         ($1, $2) => [
@@ -448,19 +450,20 @@ describe(`DetachLifecycleController `, () => {
             verifyCompleteAsyncWorkCalls(count * 2, count, mock);
             verifyRemoveNodesCalls(count * 4, count, mock);
 
-            // TODO: when the "only remove root node" (or same flavor thereof) is enabled again in the DetachLifecycleController
-            // the commented-out assertion further below should replace the assertion directly below
-            verifyDetachedCalls(count * 5, count, mock);
-
-            if (sut.flags === LifecycleFlags.unbindAfterDetached) {
-              verifyUnbindCalls(count * 6, count, mock);
-            }
-
-            // verifyDetachedCalls(count * 4 + 1, count, mock);
+            // Note: the commented-out assertions are for when the "only remove root nodes" behavior is disabled
+            // we're leaving them in here just in case we need to test with that optimization disabled again
+            // This can of course be removed once everything has stabilized and we're ready for releasing
+            // verifyDetachedCalls(count * 5, count, mock);
 
             // if (sut.flags === LifecycleFlags.unbindAfterDetached) {
-            //   verifyUnbindCalls(count * 5 + 1, count, mock);
+            //   verifyUnbindCalls(count * 6, count, mock);
             // }
+
+            verifyDetachedCalls(count * 4 + 1, count, mock);
+
+            if (sut.flags === LifecycleFlags.unbindAfterDetached) {
+              verifyUnbindCalls(count * 5 + 1, count, mock);
+            }
           }
         ],
         ($1, $2) => [
@@ -491,18 +494,19 @@ describe(`DetachLifecycleController `, () => {
             verifyCancelAsyncWorkCalls(count * 2, count, mock);
             verifyRemoveNodesCalls(count * 4, count, mock);
 
-            // TODO: when the "only remove root node" (or same flavor thereof) is enabled again in the DetachLifecycleController
-            // the commented-out assertion further below should replace the assertion directly below
-            verifyDetachedCalls(count * 5, count, mock);
-
-            if (sut.flags === LifecycleFlags.unbindAfterDetached) {
-              verifyUnbindCalls(count * 6, count, mock);
-            }
-            // verifyDetachedCalls(count * 4 + 1, count, mock);
+            // Note: the commented-out assertions are for when the "only remove root nodes" behavior is disabled
+            // we're leaving them in here just in case we need to test with that optimization disabled again
+            // This can of course be removed once everything has stabilized and we're ready for releasing
+            // verifyDetachedCalls(count * 5, count, mock);
 
             // if (sut.flags === LifecycleFlags.unbindAfterDetached) {
-            //   verifyUnbindCalls(count * 5 + 1, count, mock);
+            //   verifyUnbindCalls(count * 6, count, mock);
             // }
+            verifyDetachedCalls(count * 4 + 1, count, mock);
+
+            if (sut.flags === LifecycleFlags.unbindAfterDetached) {
+              verifyUnbindCalls(count * 5 + 1, count, mock);
+            }
           }
         ]
       ]

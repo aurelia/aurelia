@@ -418,30 +418,55 @@ export class AggregateLifecycleTask implements ILifecycleTask {
 
 /*@internal*/
 export class LifecycleController implements ILifecycleController {
-  public $nextMount: ILifecycleMount = null;
-  public $nextAttached: ILifecycleAttached = null;
+  public $nextMount: ILifecycleMount;
+  public $nextAttached: ILifecycleAttached;
 
-  public $nextUnmount: ILifecycleUnmount = null;
-  public $nextDetached: ILifecycleDetached = null;
+  public $nextUnmount: ILifecycleUnmount;
+  public $nextDetached: ILifecycleDetached;
 
-  private attachedHead: ILifecycleAttached = this;
-  private attachedTail: ILifecycleAttached = this;
-  private mountHead: ILifecycleMount = this;
-  private mountTail: ILifecycleMount = this;
-  private task: AggregateLifecycleTask = null;
+  public attachedHead: ILifecycleAttached;
+  public attachedTail: ILifecycleAttached;
+  public mountHead: ILifecycleMount;
+  public mountTail: ILifecycleMount;
 
-  private detachedHead: ILifecycleDetached = this; //LOL
-  private detachedTail: ILifecycleDetached = this;
-  private unmountHead: ILifecycleUnmount = this;
-  private unmountTail: ILifecycleUnmount = this;
-  private allowUnmount: boolean = true;
+  public detachedHead: ILifecycleDetached; //LOL
+  public detachedTail: ILifecycleDetached;
+  public unmountHead: ILifecycleUnmount;
+  public unmountTail: ILifecycleUnmount;
+  public allowUnmount: boolean;
+
+  public readonly changeSet: IChangeSet;
+  public readonly flags: LifecycleFlags;
+  public readonly encapsulationSource: INode;
+  public task: AggregateLifecycleTask;
 
   constructor(
-    public readonly changeSet: IChangeSet,
-    public readonly flags: LifecycleFlags,
-    private parent: LifecycleController = null,
-    private encapsulationSource: INode = null
-  ) { }
+    changeSet: IChangeSet,
+    flags: LifecycleFlags,
+    encapsulationSource?: INode
+  ) {
+    this.$nextMount = null;
+    this.$nextAttached = null;
+
+    this.$nextUnmount = null;
+    this.$nextDetached = null;
+
+    this.attachedHead = null;
+    this.attachedTail = null;
+    this.mountHead = null;
+    this.mountTail = null;
+
+    this.detachedHead = null;
+    this.detachedTail = null;
+    this.unmountHead = null;
+    this.unmountTail = null;
+
+    this.allowUnmount = true;
+    this.changeSet = changeSet;
+    this.flags = flags;
+    this.encapsulationSource = encapsulationSource === undefined ? null : encapsulationSource;
+    this.task = null;
+  }
 
   public attach(requestor: IAttach): ILifecycleController {
     requestor.$attach(this.encapsulationSource, this);
@@ -449,24 +474,28 @@ export class LifecycleController implements ILifecycleController {
   }
 
   public queueMount(requestor: ILifecycleMount): void {
-    this.mountTail.$nextMount = requestor;
+    if (this.mountHead === null) {
+      this.mountHead = requestor;
+    } else {
+      this.mountTail.$nextMount = requestor;
+    }
     this.mountTail = requestor;
   }
 
   public queueAttachedCallback(requestor: ILifecycleAttached): void {
-    this.attachedTail.$nextAttached = requestor;
+    if (this.attachedHead === null) {
+      this.attachedHead = requestor;
+    } else {
+      this.attachedTail.$nextAttached = requestor;
+    }
     this.attachedTail = requestor;
   }
 
   public registerTask(task: ILifecycleTask): void {
-    if (this.parent !== null) {
-      this.parent.registerTask(task);
-    } else {
-      if (this.task === null) {
-        this.task = new AggregateLifecycleTask();
-      }
-      this.task.addTask(task);
+    if (this.task === null) {
+      this.task = new AggregateLifecycleTask();
     }
+    this.task.addTask(task);
   }
 
   public endAttach(): ILifecycleTask {
@@ -489,20 +518,6 @@ export class LifecycleController implements ILifecycleController {
     this.processAttachedCallbacks();
   }
 
-  /*@internal*/
-  public $mount(): void {
-    if (this.parent !== null) {
-      this.processMounts();
-    }
-  }
-
-  /*@internal*/
-  public attached(): void {
-    if (this.parent !== null) {
-      this.processAttachedCallbacks();
-    }
-  }
-
   public detach(requestor: IAttach): ILifecycleController {
     this.allowUnmount = true;
 
@@ -517,14 +532,22 @@ export class LifecycleController implements ILifecycleController {
 
   public queueUnmount(requestor: ILifecycleUnmount): void {
     if (this.allowUnmount) {
-      this.unmountTail.$nextUnmount = requestor;
+      if (this.unmountHead === null) {
+        this.unmountHead = requestor;
+      } else {
+        this.unmountTail.$nextUnmount = requestor;
+      }
       this.unmountTail = requestor;
       this.allowUnmount = false; // only remove roots
     }
   }
 
   public queueDetachedCallback(requestor: ILifecycleDetached): void {
-    this.detachedTail.$nextDetached = requestor;
+    if (this.detachedHead === null) {
+      this.detachedHead = requestor;
+    } else {
+      this.detachedTail.$nextDetached = requestor;
+    }
     this.detachedTail = requestor;
   }
 
@@ -539,18 +562,6 @@ export class LifecycleController implements ILifecycleController {
     return Lifecycle.done;
   }
 
-  public $unmount(): void {
-    if (this.parent !== null) {
-      this.processUnmounts();
-    }
-  }
-
-  public detached(): void {
-    if (this.parent !== null) {
-      this.processDetachedCallbacks();
-    }
-  }
-
   public processAllDetach(): void {
     Lifecycle.detach = this;
     this.changeSet.flushChanges();
@@ -561,6 +572,7 @@ export class LifecycleController implements ILifecycleController {
 
   private processMounts(): void {
     let currentMount = this.mountHead;
+    this.mountHead = this.mountTail = null;
     let nextMount: typeof currentMount;
 
     while (currentMount) {
@@ -573,6 +585,7 @@ export class LifecycleController implements ILifecycleController {
 
   private processAttachedCallbacks(): void {
     let currentAttached = this.attachedHead;
+    this.attachedHead = this.attachedTail = null;
     let nextAttached: typeof currentAttached;
 
     while (currentAttached) {
@@ -592,6 +605,7 @@ export class LifecycleController implements ILifecycleController {
         currentUnmount = currentUnmount.$nextUnmount;
       }
     } else {
+      this.unmountHead = this.unmountTail = null;
       let nextUnmount: typeof currentUnmount;
 
       while (currentUnmount) {
@@ -605,6 +619,7 @@ export class LifecycleController implements ILifecycleController {
 
   private processDetachedCallbacks(): void {
     let currentDetached = this.detachedHead;
+    this.detachedHead = this.detachedTail = null;
     let nextDetached: typeof currentDetached;
 
     while (currentDetached) {
@@ -648,7 +663,7 @@ export const Lifecycle = {
 
   beginAttach(changeSet: IChangeSet, encapsulationSource: INode, flags: LifecycleFlags): ILifecycleController {
     if (Lifecycle.attach === null) {
-      return new LifecycleController(changeSet, flags, null, encapsulationSource);
+      return new LifecycleController(changeSet, flags, encapsulationSource);
     } else {
       return Lifecycle.attach;
     }

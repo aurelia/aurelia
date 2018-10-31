@@ -1,6 +1,6 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { INode } from '../../dom';
-import { AggregateLifecycleTask, IAttachLifecycle, IDetachLifecycle, ILifecycleTask, Lifecycle, LifecycleFlags } from '../../lifecycle';
+import { AggregateLifecycleTask, ILifecycleTask, Lifecycle, LifecycleFlags, ILifecycle } from '../../lifecycle';
 import { BindingFlags, IChangeSet, IScope } from '../../observation';
 import { IView } from '../view';
 
@@ -47,7 +47,7 @@ export class CompositionCoordinator {
     }
   }
 
-  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+  public attaching(encapsulationSource: INode, lifecycle: ILifecycle): void {
     this.encapsulationSource = encapsulationSource;
     this.isAttached = true;
 
@@ -56,7 +56,7 @@ export class CompositionCoordinator {
     }
   }
 
-  public detaching(lifecycle: IDetachLifecycle): void {
+  public detaching(lifecycle: ILifecycle): void {
     this.isAttached = false;
 
     if (this.currentView !== null) {
@@ -139,7 +139,7 @@ export class CompositionCoordinator {
 
     return Lifecycle.beginDetach(this.changeSet, detachFlags | LifecycleFlags.unbindAfterDetached)
       .detach(this.currentView)
-      .end();
+      .endDetach();
   }
 
   private bindAndAttachCurrentView(): ILifecycleTask {
@@ -154,7 +154,7 @@ export class CompositionCoordinator {
     if (this.isAttached) {
       return Lifecycle.beginAttach(this.changeSet, this.encapsulationSource, LifecycleFlags.none)
         .attach(this.currentView)
-        .end();
+        .endAttach();
     }
 
     return Lifecycle.done;

@@ -1,6 +1,6 @@
 import { DI, Reporter } from '@aurelia/kernel';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IAttachLifecycle, IBindScope, IDetachLifecycle, IMountable, LifecycleState } from '../lifecycle';
+import { IAttach, ILifecycle, IBindScope, IMountable, LifecycleState } from '../lifecycle';
 import { BindingFlags, IScope } from '../observation';
 import { IRenderable, IRenderContext, ITemplate } from './rendering-engine';
 
@@ -129,7 +129,7 @@ export class View implements IView {
     }
   }
 
-  public $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+  public $attach(encapsulationSource: INode, lifecycle: ILifecycle): void {
     if (this.$state & LifecycleState.isAttached) {
       return;
     }
@@ -151,7 +151,7 @@ export class View implements IView {
     this.$state &= ~LifecycleState.isAttaching;
   }
 
-  public $detach(lifecycle: IDetachLifecycle): void {
+  public $detach(lifecycle: ILifecycle): void {
     if (this.$state & LifecycleState.isAttached) {
       // add isDetaching flag
       this.$state |= LifecycleState.isDetaching;

@@ -12,7 +12,7 @@ import {
 import { Scope } from '../binding/binding-context';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
-import { BindLifecycle, IAttach, IAttachLifecycle, IBindSelf, IDetachLifecycle, ILifecycleHooks, ILifecycleState, IMountable, LifecycleHooks, LifecycleState } from '../lifecycle';
+import { BindLifecycle, IAttach, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleState, IMountable, LifecycleHooks, LifecycleState } from '../lifecycle';
 import { BindingFlags } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
@@ -245,7 +245,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
   }
 }
 
-function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle: ILifecycle): void {
   if (this.$state & LifecycleState.isAttached) {
     return;
   }
@@ -275,7 +275,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   }
 }
 
-function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLifecycle): void {
+function detach(this: IInternalCustomElementImplementation, lifecycle: ILifecycle): void {
   if (this.$state & LifecycleState.isAttached) {
     // add isDetaching flag
     this.$state |= LifecycleState.isDetaching;

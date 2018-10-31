@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
-import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { ILifecycle } from '../../lifecycle';
 import { BindingFlags, IChangeSet } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
@@ -32,11 +32,11 @@ export class If {
     this.coordinator.binding(flags, this.$scope);
   }
 
-  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+  public attaching(encapsulationSource: INode, lifecycle: ILifecycle): void {
     this.coordinator.attaching(encapsulationSource, lifecycle);
   }
 
-  public detaching(lifecycle: IDetachLifecycle): void {
+  public detaching(lifecycle: ILifecycle): void {
     this.coordinator.detaching(lifecycle);
   }
 

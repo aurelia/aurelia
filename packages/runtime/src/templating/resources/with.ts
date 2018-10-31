@@ -1,7 +1,7 @@
 import { inject } from '@aurelia/kernel';
 import { Scope } from '../../binding/binding-context';
 import { IRenderLocation } from '../../dom';
-import { IAttachLifecycle, IDetachLifecycle, LifecycleState } from '../../lifecycle';
+import { ILifecycle, LifecycleState } from '../../lifecycle';
 import { BindingFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
@@ -30,11 +30,11 @@ export class With {
     this.bindChild(flags);
   }
 
-  public attaching(encapsulationSource: any, lifecycle: IAttachLifecycle): void {
+  public attaching(encapsulationSource: any, lifecycle: ILifecycle): void {
     this.currentView.$attach(encapsulationSource, lifecycle);
   }
 
-  public detaching(lifecycle: IDetachLifecycle): void {
+  public detaching(lifecycle: ILifecycle): void {
     this.currentView.$detach(lifecycle);
   }
 

@@ -4,7 +4,7 @@ We love our developer community and want to see that each and every developer ha
 
 ## Aurelia is doing something it should not, or is not doing something it should, and I can show you
 
-Some people feel like they need to submit code to contribute, but helping us identify bugs or gaps in functionality is one of the best ways you can help. If you think you've found a bug, or if you have a feature request, please submit an issue on Github and follow the instructions in the issue template. We prioritize high-quality issues, so **be sure toinclude a description and a working exampleof the current behavior** as well as a description of the desired behavio when you submit your issue.
+Some people feel like they need to submit code to contribute, but helping us identify bugs or gaps in functionality is one of the best ways you can help. If you think you've found a bug, or if you have a feature request, please [submit an issue on Github](https://github.com/aurelia/aurelia/issues/new/choose) and follow the instructions in the issue template. We prioritize high-quality issues, so **be sure to include a description and a working exampleof the current behavior** as well as a description of the desired behavio when you submit your issue.
 
 ## Aurelia is doing something it should not, or is not doing something it should, but I can't show you
 

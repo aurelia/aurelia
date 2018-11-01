@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { tearDown, setupAndStart, cleanup, defineCustomElement } from './prepare';
 import { baseSuite } from './template-compiler.base';
-import { IContainer, Constructable } from '@aurelia/kernel';
-import { Aurelia, IChangeSet, ICustomElementType } from '@aurelia/runtime';
+import { IContainer, Constructable } from '../../../kernel/src/index';;
+import { Aurelia, ICustomElementType, Lifecycle } from '../../../runtime/src/index';;
 
 const spec = 'template-compiler.if-else';
 
@@ -13,35 +13,35 @@ describe(spec, () => {
 
   //if - shows and hides
   it('01.', () => {
-    const { au, host, cs, component } = setupAndStart(`<template><div if.bind="foo">bar</div></template>`, null);
+    const { au, host, component } = setupAndStart(`<template><div if.bind="foo">bar</div></template>`, null);
     component.foo = true;
-    cs.flushChanges();
+    Lifecycle.flush()
     expect(host.textContent).to.equal('bar');
     component.foo = false;
-    cs.flushChanges();
+    Lifecycle.flush()
     expect(host.textContent).to.equal('');
-    tearDown(au, cs, host);
+    tearDown(au, host);
   });
 
   //if - shows and hides - toggles else
   it('02.', () => {
-    const { au, host, cs, component } = setupAndStart(`<template><div if.bind="foo">bar</div><div else>baz</div></template>`, null);
+    const { au, host, component } = setupAndStart(`<template><div if.bind="foo">bar</div><div else>baz</div></template>`, null);
     component.foo = true;
-    cs.flushChanges();
+    Lifecycle.flush()
     expect(host.innerText).to.equal('bar');
     component.foo = false;
-    cs.flushChanges();
+    Lifecycle.flush()
     expect(host.innerText).to.equal('baz');
     component.foo = true;
-    cs.flushChanges();
+    Lifecycle.flush()
     expect(host.innerText).to.equal('bar');
-    tearDown(au, cs, host);
+    tearDown(au, host);
   });
 
 });
 
 type TApp = Constructable<{ ifText: string; elseText: string; show: boolean; }> & ICustomElementType;
-const suite = baseSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, InstanceType<TApp>>(spec);
+const suite = baseSuite.clone<IContainer, Aurelia, null, HTMLElement, TApp, InstanceType<TApp>>(spec);
 
 suite.addDataSlot('e').addData('app').setFactory(ctx => {
   const { a: container } = ctx;
@@ -88,7 +88,7 @@ suite.addActionSlot('act')
 
   expect(host.textContent).to.equal('1');
 
-  cs.flushChanges();
+  Lifecycle.flush()
 
   expect(host.textContent).to.equal('2');
 });

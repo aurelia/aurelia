@@ -1,19 +1,20 @@
 import { expect } from "chai";
 import { defineCustomElement } from "./prepare";
 import {
-  IChangeSet, bindable, Aurelia, ViewFactory, View, IView,
+  bindable, Aurelia, ViewFactory, View, IView,
   RenderPlan, IViewFactory, CompiledTemplate, IRenderingEngine, DOM
 } from "../../../runtime/src/index";
 import { baseSuite } from "./template-compiler.base";
 import { IContainer } from "@aurelia/kernel";
 import { trimFull, createElement } from "./util";
+import { Lifecycle } from '../../../runtime/src/index';
 
 const spec = 'template-compiler.compose';
 
 const suite = baseSuite.clone<
     /*a*/IContainer,
     /*b*/Aurelia,
-    /*c*/IChangeSet,
+    /*c*/null,
     /*d*/HTMLElement, // host
     /*e*/any, // component
     /*f*/any, // subject
@@ -139,7 +140,7 @@ suite.addActionSlot('test')
     const component = new $App();
     component.sub = subject;
     au.app({ host, component }).start();
-    cs.flushChanges();
+    Lifecycle.flush()
     if (subject instanceof Promise) {
       expect(trimFull(host.textContent)).to.equal('');
       await subject
@@ -150,4 +151,4 @@ suite.addActionSlot('test')
   });
 
 suite.load();
-suite.run();
+suite.xrun();

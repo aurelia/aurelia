@@ -137,7 +137,7 @@ describe(`Repeat`, () => {
 
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute2, host.textContent`);
 
-        cs.flushChanges();
+        Lifecycle.flush()
 
         expect(sut.$scope.bindingContext.show).to.equal(show);
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute2, host.textContent`);
@@ -165,7 +165,7 @@ describe(`Repeat`, () => {
       ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
         sut.$scope.bindingContext.show = !sut.$scope.bindingContext.show;
 
-        cs.flushChanges();
+        Lifecycle.flush()
 
         expect(sut.$scope.bindingContext.show).not.to.equal(show);
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute3, host.textContent`);
@@ -178,7 +178,7 @@ describe(`Repeat`, () => {
         sut.$scope.bindingContext.show = !sut.$scope.bindingContext.show;
         expect(sut.$scope.bindingContext.show).to.equal(show);
 
-        cs.flushChanges();
+        Lifecycle.flush()
 
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute3, host.textContent`);
 
@@ -192,7 +192,7 @@ describe(`Repeat`, () => {
       //   sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
       //   verifyViewBindingContexts(sut.views, newItems);
 
-      //   cs.flushChanges();
+      //   Lifecycle.flush()
 
       //   expect(sut.views.length).to.equal(1, `execute3, sut.views.length`);
       //   expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? 'a' : 'b', `execute3, host.textContent`);
@@ -202,7 +202,7 @@ describe(`Repeat`, () => {
       // ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
       //   sut.items.push({if:'a',else:'b'});
 
-      //   cs.flushChanges();
+      //   Lifecycle.flush()
       //   verifyViewBindingContexts(sut.views, sut.items);
 
       //   expect(sut.views.length).to.equal(count + 1, `execute3, sut.views.length`);

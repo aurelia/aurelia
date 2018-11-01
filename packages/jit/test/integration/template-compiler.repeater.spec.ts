@@ -2,11 +2,11 @@ import { PLATFORM, IContainer } from "@aurelia/kernel";
 import { expect } from "chai";
 import { tearDown, defineCustomElement } from "./prepare";
 import { baseSuite } from "./template-compiler.base";
-import { Aurelia, IChangeSet } from "@aurelia/runtime";
+import { Aurelia, Lifecycle } from '../../../runtime/src/index';;
 
 const spec = 'template-compiler.repeater';
 
-const suite = baseSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, [string, string, string, (component: any) => void], string>(spec);
+const suite = baseSuite.clone<IContainer, Aurelia, null, HTMLElement, [string, string, string, (component: any) => void], string>(spec);
 
 suite.addDataSlot('e')
   .addData('01').setValue([`[a,b,c]`,             `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}])
@@ -50,7 +50,7 @@ suite.addActionSlot('setup')
 
     au.stop();
 
-    expect(cs.size).to.equal(0);
+    expect(Lifecycle.flushDepth).to.equal(0);
     expect(host.textContent).to.equal('');
   });
 

@@ -1,13 +1,13 @@
 import { expect } from "chai";
 import { defineCustomElement } from "./prepare";
-import { IChangeSet, bindable, Aurelia } from "@aurelia/runtime";
+import { Lifecycle, bindable, Aurelia } from '../../../runtime/src/index';;
 import { baseSuite } from "./template-compiler.base";
 import { IContainer } from "@aurelia/kernel";
 import { trimFull } from "./util";
 
 const spec = 'template-compiler.repeater-if-else';
 
-const parentSuite = baseSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, any, string, [any[], string, string], string, number, any>(spec);
+const parentSuite = baseSuite.clone<IContainer, Aurelia, null, HTMLElement, any, string, [any[], string, string], string, number, any>(spec);
 
 // repeater + if + custom element
 parentSuite.addDataSlot('f') // Template (custom element)
@@ -264,23 +264,23 @@ parentSuite.addActionSlot('setup')
     const $App = defineCustomElement('app', markup, App);
     const component = new $App();
     au.app({ host, component }).start();
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
 
     ctx.e = component;
   });
 
-const mutations = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, any, string, [any[], string, string], string, number, any>();
-const removals = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, any, string, [any[], string, string], string, number, any>();
-const additions = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, any, string, [any[], string, string], string, number, any>();
+const mutations = parentSuite.clone<IContainer, Aurelia, null, HTMLElement, any, string, [any[], string, string], string, number, any>();
+const removals = parentSuite.clone<IContainer, Aurelia, null, HTMLElement, any, string, [any[], string, string], string, number, any>();
+const additions = parentSuite.clone<IContainer, Aurelia, null, HTMLElement, any, string, [any[], string, string], string, number, any>();
 
 mutations.addActionSlot('mutate') // Tests/assertions
   // swap the if/else
   .addAction('01', ctx => {
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.display = true;
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal(ifText.repeat(count));
   })
@@ -288,9 +288,9 @@ mutations.addActionSlot('mutate') // Tests/assertions
   .addAction('02', ctx => {
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.display = true;
-    cs.flushChanges();
+    Lifecycle.flush()
     component.display = false;
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
   })
@@ -298,7 +298,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
   .addAction('03', ctx => {
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal('13'.repeat(count));
   })
@@ -309,7 +309,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
     component.items[0].else = 6;
     component.items[1].if = 7;
     component.items[1].else = 8;
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal(('68' + elseText.slice(2)).repeat(count));
   })
@@ -317,7 +317,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
   .addAction('05', ctx => {
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.reverse();
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal((elseText.split('').reverse().join('')).repeat(count));
   })
@@ -326,7 +326,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.reverse();
     component.display = true;
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal((ifText.split('').reverse().join('')).repeat(count));
   });
@@ -337,7 +337,7 @@ removals.addActionSlot('remove')
   .addAction('01', ctx => {
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 'a', else: 'b'}];
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal('b'.repeat(count));
   })
@@ -346,7 +346,7 @@ removals.addActionSlot('remove')
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 'a', else: 'b'}];
     component.display = true;
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal('a'.repeat(count));
   })
@@ -354,7 +354,7 @@ removals.addActionSlot('remove')
   .addAction('03', ctx => {
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.pop();
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal(elseText.slice(0, -1).repeat(count));
   })
@@ -363,7 +363,7 @@ removals.addActionSlot('remove')
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.pop();
     component.display = true;
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal(ifText.slice(0, -1).repeat(count));
   });
@@ -374,7 +374,7 @@ additions.addActionSlot('add')
   .addAction('01', ctx => {
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = component.items.slice().concat({if: 'x', else: 'y'});
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal((elseText+'y').repeat(count));
   })
@@ -383,7 +383,7 @@ additions.addActionSlot('add')
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}];
     component.display = true;
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal('ace'.repeat(count));
   })
@@ -391,7 +391,7 @@ additions.addActionSlot('add')
   .addAction('03', ctx => {
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.push({if: 5, else: 6});
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal((elseText + '6').repeat(count));
   })
@@ -400,7 +400,7 @@ additions.addActionSlot('add')
     const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.push({if: 5, else: 6});
     component.display = true;
-    cs.flushChanges();
+    Lifecycle.flush()
 
     expect(trimFull(host.textContent)).to.equal((ifText + '5').repeat(count));
   })
@@ -410,7 +410,7 @@ for (const suite of [mutations, removals, additions]) {
     .addAction(null, ctx => {
       const { b: au, c: cs, d: host } = ctx;
       au.stop();
-      expect(cs.size).to.equal(0);
+      expect(Lifecycle.flushDepth).to.equal(0);
       expect(trimFull(host.textContent)).to.equal('');
     });
 

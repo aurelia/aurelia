@@ -1,5 +1,5 @@
 import { Primitive } from "@aurelia/kernel";
-import { SelectValueObserver } from "@aurelia/runtime";
+import { SelectValueObserver, Lifecycle } from '../../../runtime/src/index';;
 import { tearDown, cleanup } from "./prepare";
 import { expect } from "chai";
 import { h } from "./util";
@@ -15,7 +15,7 @@ describe('template-compiler.select', () => {
 
     //works with multiple toView bindings
     it('01.', () => {
-      const { au, host, cs, observerLocator, component } = setup(
+      const { au, host, observerLocator, component } = setup(
         `<template>
           <select id="select1" value.to-view="selectedValue">
             <option>1</option>
@@ -42,7 +42,7 @@ describe('template-compiler.select', () => {
       // expect(select1.value).to.equal('1');
       // expect(select2.value).to.equal('1');
       // expect(select3.value).to.equal('3');
-      // cs.flushChanges();
+      // Lifecycle.flush()
       // after flush changes, view model value should propagate to <select/>s
       expect(select1.value).to.equal('2');
       expect(select2.value).to.equal('2');
@@ -53,18 +53,18 @@ describe('template-compiler.select', () => {
       expect(observer3.currentValue).to.equal('2');
 
       // expect no state changes after flushing
-      cs.flushChanges();
+      Lifecycle.flush()
       expect(select1.value).to.equal('2');
       expect(select2.value).to.equal('2');
       expect(select3.value).to.equal('3');
       expect(observer3.currentValue).to.equal('2');
 
-      tearDown(au, cs, host);
+      tearDown(au, host);
     });
 
     //works with mixed of multiple binding: twoWay + toView
     it('02.', () => {
-      const { au, host, cs, observerLocator, component } = setup(
+      const { au, host, observerLocator, component } = setup(
         `<template>
           <select id="select1" value.to-view="selectedValue">
             <option>1</option>
@@ -92,7 +92,7 @@ describe('template-compiler.select', () => {
       // expect(select1.value).to.equal('1');
       // expect(select2.value).to.equal('1');
       // expect(select3.value).to.equal('3');
-      // cs.flushChanges();
+      // Lifecycle.flush()
       expect(component.selectedValue).to.equal('2');
 
       // Verify observer 3 will take the view model value, regardless valid value from view model
@@ -110,12 +110,12 @@ describe('template-compiler.select', () => {
       expect(observer3.currentValue).to.equal('1');
 
       // expect no state changes after flushing
-      cs.flushChanges();
+      Lifecycle.flush()
       expect(component.selectedValue).to.equal('1');
       expect(observer1.currentValue).to.equal('1');
       expect(observer3.currentValue).to.equal('1');
 
-      tearDown(au, cs, host);
+      tearDown(au, host);
     });
   });
 
@@ -124,7 +124,7 @@ describe('template-compiler.select', () => {
 
     //works with multiple toView bindings without pre-selection
     it('01.', () => {
-      const { au, host, cs, observerLocator, component } = setupAndStart(
+      const { au, host, observerLocator, component } = setupAndStart(
         `<template>
           <select id="select1" multiple value.to-view="selectedValues">
             <option id="o11">1</option>
@@ -159,29 +159,29 @@ describe('template-compiler.select', () => {
       expect(observer1.currentValue).to.equal(component.selectedValues);
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);
-      cs.flushChanges();
+      Lifecycle.flush()
       const options = host.querySelectorAll('option');
       options.forEach(option => {
         expect(option.selected).to.be[component.selectedValues.includes(option.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
-      cs.flushChanges();
+      Lifecycle.flush()
       options.forEach(option => {
         expect(option.selected).to.be.false;
       });
 
       // expect no state changes after flushing
-      cs.flushChanges();
+      Lifecycle.flush()
       options.forEach(option => {
         expect(option.selected).to.be.false;
       });
 
-      tearDown(au, cs, host);
+      tearDown(au, host);
     });
 
     //works with mixed of two-way + to-view bindings with pre-selection
     it('02.', () => {
-      const { au, host, cs, observerLocator, component } = setupAndStart(
+      const { au, host, observerLocator, component } = setupAndStart(
         `<template>
           <select id="select1" multiple value.to-view="selectedValues">
             <option id="o11">1</option>
@@ -216,13 +216,13 @@ describe('template-compiler.select', () => {
       expect(observer1.currentValue).to.equal(component.selectedValues);
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);
-      cs.flushChanges();
+      Lifecycle.flush()
       const options = host.querySelectorAll('option');
       options.forEach(option => {
         expect(option.selected).to.be[component.selectedValues.includes(option.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
-      cs.flushChanges();
+      Lifecycle.flush()
       options.forEach(option => {
         expect(option.selected).to.be.false;
       });
@@ -237,19 +237,19 @@ describe('template-compiler.select', () => {
       });
 
       // expect no state changes after flushing
-      cs.flushChanges();
+      Lifecycle.flush()
       expect(component.selectedValues.toString()).to.equal(['8', '9', '10', '11', '12'].toString());
       [].forEach.call(select2.options, (option: HTMLOptionElement) => {
         option.selected = true;
       });
 
-      tearDown(au, cs, host);
+      tearDown(au, host);
     });
   });
 
   //toViewBinding - select single
   it('03.', () => {
-    const { au, host, cs, component } = setupAndStart(
+    const { au, host, component } = setupAndStart(
       <any>template(null,
         select(
           { 'value.to-view': 'selectedValue' },
@@ -260,15 +260,15 @@ describe('template-compiler.select', () => {
    expect(host.firstElementChild['value']).to.equal('1');
     component.selectedValue = '2';
     expect(host.firstElementChild['value']).to.equal('1');
-    cs.flushChanges();
+    Lifecycle.flush()
     expect(host.firstElementChild['value']).to.equal('2');
     expect(host.firstElementChild.childNodes.item(1)['selected']).to.be.true;
-    tearDown(au, cs, host);
+    tearDown(au, host);
   });
 
   //twoWayBinding - select single
   it('04.', () => {
-    const { au, host, cs, component } = setupAndStart(
+    const { au, host, component } = setupAndStart(
       <any>h('template',
         null,
         h('select',
@@ -282,7 +282,7 @@ describe('template-compiler.select', () => {
     expect(component.selectedValue).to.be.undefined;
     host.firstChild.dispatchEvent(new CustomEvent('change'));
     expect(component.selectedValue).to.equal('2');
-    tearDown(au, cs, host);
+    tearDown(au, host);
   });
 
   function template(attrs: Record<string, any> | null, ...children: Element[]) {

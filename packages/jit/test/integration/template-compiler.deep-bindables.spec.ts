@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { defineCustomElement, createCustomElement, TestConfiguration } from "./prepare";
-import { IChangeSet, bindable, Aurelia, ICustomElementType, DOM, IObserverLocator } from "@aurelia/runtime";
+import { Lifecycle, bindable, Aurelia, ICustomElementType, DOM, IObserverLocator } from '../../../runtime/src/index';
 import { baseSuite } from "./template-compiler.base";
 import { IContainer, Constructable, DI } from "@aurelia/kernel";
 import { trimFull } from "./util";
@@ -14,7 +14,7 @@ type TFooC = Constructable<{ c1: string; c2: string; c3: string }> & ICustomElem
 type TApp = Constructable<{ $1: string; $2: string; $3: string }> & ICustomElementType & TFooA & TFooB & TFooC;
 
 // #region parentSuite
-const parentSuite = baseSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const parentSuite = baseSuite.clone<IContainer, Aurelia, null, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
 parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
   const { a: container } = ctx;
@@ -106,8 +106,8 @@ parentSuite.addDataSlot('h').addData('foo-c').setFactory(ctx => {
 // #endregion
 
 // #region basic
-const nonWrappedBasic = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
-const wrappedBasic = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const nonWrappedBasic = parentSuite.clone<IContainer, Aurelia, null, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const wrappedBasic = parentSuite.clone<IContainer, Aurelia, null, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
 wrappedBasic.addActionSlot('wrap in div')
   .addAction('setup', ctx => {
@@ -153,7 +153,7 @@ for (const suite of [nonWrappedBasic, wrappedBasic]) {
       const { a: container, b: au, c: cs, d: host, e: app, f: fooA, g: fooB, h: fooC } = ctx;
 
       au.stop();
-      expect(cs.size).to.equal(0);
+      expect(Lifecycle.flushDepth).to.equal(0);
       //expect(host.textContent).to.equal('');
     });
 
@@ -163,7 +163,7 @@ for (const suite of [nonWrappedBasic, wrappedBasic]) {
 // #endregion
 
 // #region noBindables
-const noBindables = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const noBindables = parentSuite.clone<IContainer, Aurelia, null, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 noBindables.addActionSlot('remove bindables')
   .addAction('setup', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
@@ -230,7 +230,7 @@ noBindables.run();
 // #endregion
 
 // #region duplicated
-const duplicated = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const duplicated = parentSuite.clone<IContainer, Aurelia, null, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 duplicated.addActionSlot('duplicate')
   .addAction('setup', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
@@ -272,7 +272,7 @@ duplicated.run();
 // #endregion
 
 // #region staticTemplateCtrl
-const staticTemplateCtrl = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const staticTemplateCtrl = parentSuite.clone<IContainer, Aurelia, null, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
 staticTemplateCtrl.addActionSlot('static template controller')
   .addAction('prepend if+repeat', ctx => {
@@ -361,7 +361,7 @@ staticTemplateCtrl.run();
 // #endregion
 
 // #region boundTemplateCtrl
-const boundTemplateCtrl = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const boundTemplateCtrl = parentSuite.clone<IContainer, Aurelia, null, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
 boundTemplateCtrl.addActionSlot('bound template controller')
   .addAction('prepend if+repeat', ctx => {

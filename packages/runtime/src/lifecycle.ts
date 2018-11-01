@@ -437,29 +437,27 @@ export const Lifecycle = {
         currentDetached = nextDetached;
       }
     }
-  }
-}
+  },
 
-export const BindLifecycle = {
   boundDepth: 0,
   boundHead: <ILifecycleBound>null,
   boundTail: <ILifecycleBound>null,
   queueBound(requestor: ILifecycleBound, flags: BindingFlags): void {
     requestor.$boundFlags = flags;
     requestor.$nextBound = null;
-    if (BindLifecycle.boundHead === null) {
-      BindLifecycle.boundHead = requestor;
+    if (Lifecycle.boundHead === null) {
+      Lifecycle.boundHead = requestor;
     } else {
-      BindLifecycle.boundTail.$nextBound = requestor;
+      Lifecycle.boundTail.$nextBound = requestor;
     }
-    BindLifecycle.boundTail = requestor;
-    ++BindLifecycle.boundDepth;
+    Lifecycle.boundTail = requestor;
+    ++Lifecycle.boundDepth;
   },
   unqueueBound(): void {
-    if (--BindLifecycle.boundDepth === 0) {
-      let current = BindLifecycle.boundHead;
+    if (--Lifecycle.boundDepth === 0) {
+      let current = Lifecycle.boundHead;
       let next: ILifecycleBound;
-      BindLifecycle.boundHead = BindLifecycle.boundTail = null;
+      Lifecycle.boundHead = Lifecycle.boundTail = null;
       while (current !== null) {
         current.bound(current.$boundFlags);
         next = current.$nextBound;
@@ -476,19 +474,19 @@ export const BindLifecycle = {
   queueUnbound(requestor: ILifecycleUnbound, flags: BindingFlags): void {
     requestor.$unboundFlags = flags;
     requestor.$nextUnbound = null;
-    if (BindLifecycle.unboundHead === null) {
-      BindLifecycle.unboundHead = requestor;
+    if (Lifecycle.unboundHead === null) {
+      Lifecycle.unboundHead = requestor;
     } else {
-      BindLifecycle.unboundTail.$nextUnbound = requestor;
+      Lifecycle.unboundTail.$nextUnbound = requestor;
     }
-    BindLifecycle.unboundTail = requestor;
-    ++BindLifecycle.unboundDepth;
+    Lifecycle.unboundTail = requestor;
+    ++Lifecycle.unboundDepth;
   },
   unqueueUnbound(): void {
-    if (--BindLifecycle.unboundDepth === 0) {
-      let current = BindLifecycle.unboundHead;
+    if (--Lifecycle.unboundDepth === 0) {
+      let current = Lifecycle.unboundHead;
       let next: ILifecycleUnbound;
-      BindLifecycle.unboundHead = BindLifecycle.unboundTail = null;
+      Lifecycle.unboundHead = Lifecycle.unboundTail = null;
       while (current !== null) {
         current.unbound(current.$unboundFlags);
         next = current.$nextUnbound;

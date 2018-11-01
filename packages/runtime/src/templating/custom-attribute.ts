@@ -12,7 +12,7 @@ import {
 import { BindingMode } from '../binding/binding-mode';
 import { IAttributeDefinition } from '../definitions';
 import { INode } from '../dom';
-import { BindLifecycle, IAttach, IBindScope, ILifecycleHooks, ILifecycleState, LifecycleHooks, LifecycleState, Lifecycle } from '../lifecycle';
+import { IAttach, IBindScope, ILifecycleHooks, ILifecycleState, LifecycleHooks, LifecycleState, Lifecycle } from '../lifecycle';
 import { BindingFlags, IScope } from '../observation';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
@@ -128,7 +128,7 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
   const hooks = this.$behavior.hooks;
 
   if (hooks & LifecycleHooks.hasBound) {
-    BindLifecycle.queueBound(this, flags);
+    Lifecycle.queueBound(this, flags);
   }
 
   this.$scope = scope;
@@ -142,7 +142,7 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
   this.$state &= ~LifecycleState.isBinding;
 
   if (hooks & LifecycleHooks.hasBound) {
-    BindLifecycle.unqueueBound();
+    Lifecycle.unqueueBound();
   }
 }
 
@@ -155,7 +155,7 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
     flags |= BindingFlags.fromUnbind;
 
     if (hooks & LifecycleHooks.hasUnbound) {
-      BindLifecycle.queueUnbound(this, flags);
+      Lifecycle.queueUnbound(this, flags);
     }
 
     if (hooks & LifecycleHooks.hasUnbinding) {
@@ -166,7 +166,7 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
     this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
 
     if (hooks & LifecycleHooks.hasUnbound) {
-      BindLifecycle.unqueueUnbound();
+      Lifecycle.unqueueUnbound();
     }
   }
 }

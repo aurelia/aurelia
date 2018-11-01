@@ -4,7 +4,7 @@ We love our developer community and want to see that each and every developer ha
 
 ## Aurelia is doing something it should not, or is not doing something it should, and I can show you
 
-Some people feel like they need to submit code to contribute, but helping us identify bugs or gaps in functionality is one of the best ways you can help. If you think you've found a bug, or if you have a feature request, please [submit an issue on Github](https://github.com/aurelia/aurelia/issues/new/choose) and follow the instructions in the issue template. We prioritize high-quality issues, so **be sure to include a description and a working example of the current behavior** as well as a description of the desired behavio when you submit your issue.
+Some people feel like they need to submit code to contribute, but helping us identify bugs or gaps in functionality is one of the best ways you can help. If you think you've found a bug, or if you have a feature request, please [submit an issue on Github](https://github.com/aurelia/aurelia/issues/new/choose) and follow the instructions in the issue template. We prioritize high-quality issues, so **be sure to include a description and a working example of the current behavior** as well as a description of the desired behavior when you submit your issue.
 
 ## Aurelia is doing something it should not, or is not doing something it should, but I can't show you
 
@@ -12,7 +12,7 @@ Sometimes you will encounter an issue in your application, but when you try to r
 
 ## I'm trying to fix a bug or add a feature, but I'm not sure I'm doing it right
 
-We love it when Aurelia developers take the time to dive into the Aurelia codebase. Good on you! However, there's a lot of complicated code and we know first hand how intimidating that can be. For quick questions and discussions that will help you get on the right path, head over to our official Discord and post your question in the appropriate channel. We'll do our best to keep you on the right track.
+We love it when Aurelia developers take the time to dive into the Aurelia codebase. Good on you! However, there's a lot of complicated code and we know firsthand how intimidating that can be. For quick questions and discussions that will help you get on the right path, head over to our official Discord and post your question in the appropriate channel. We'll do our best to keep you on the right track.
 
 ## I want a bug fixed or a feature added but I don't think I can handle it
 

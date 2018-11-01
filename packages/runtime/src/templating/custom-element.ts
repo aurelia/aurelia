@@ -12,7 +12,7 @@ import {
 import { Scope } from '../binding/binding-context';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
-import { BindLifecycle, IAttach, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleState, IMountable, LifecycleHooks, LifecycleState } from '../lifecycle';
+import { BindLifecycle, IAttach, IBindSelf, ILifecycleHooks, ILifecycleState, IMountable, LifecycleHooks, LifecycleState, Lifecycle } from '../lifecycle';
 import { BindingFlags } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
@@ -245,7 +245,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
   }
 }
 
-function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle: ILifecycle): void {
+function attach(this: IInternalCustomElementImplementation): void {
   if (this.$state & LifecycleState.isAttached) {
     return;
   }
@@ -253,43 +253,42 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   this.$state |= LifecycleState.isAttaching;
 
   const hooks = this.$behavior.hooks;
-  encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
 
   if (hooks & LifecycleHooks.hasAttaching) {
-    this.attaching(encapsulationSource, lifecycle);
+    this.attaching();
   }
 
   let current = this.$attachableHead;
   while (current !== null) {
-    current.$attach(encapsulationSource, lifecycle);
+    current.$attach();
     current = current.$nextAttach;
   }
 
-  lifecycle.queueMount(this);
+  Lifecycle.queueMount(this);
   // add isAttached flag, remove isAttaching flag
   this.$state |= LifecycleState.isAttached;
   this.$state &= ~LifecycleState.isAttaching;
 
   if (hooks & LifecycleHooks.hasAttached) {
-    lifecycle.queueAttachedCallback(<Required<typeof this>>this);
+    Lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
 }
 
-function detach(this: IInternalCustomElementImplementation, lifecycle: ILifecycle): void {
+function detach(this: IInternalCustomElementImplementation): void {
   if (this.$state & LifecycleState.isAttached) {
     // add isDetaching flag
     this.$state |= LifecycleState.isDetaching;
 
     const hooks = this.$behavior.hooks;
     if (hooks & LifecycleHooks.hasDetaching) {
-      this.detaching(lifecycle);
+      this.detaching();
     }
 
-    lifecycle.queueUnmount(this);
+    Lifecycle.queueUnmount(this);
 
     let current = this.$attachableTail;
     while (current !== null) {
-      current.$detach(lifecycle);
+      current.$detach();
       current = current.$prevAttach;
     }
 
@@ -297,7 +296,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle: ILifecycl
     this.$state &= ~(LifecycleState.isAttached | LifecycleState.isDetaching);
 
     if (hooks & LifecycleHooks.hasDetached) {
-      lifecycle.queueDetachedCallback(<Required<typeof this>>this);
+      Lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
   }
 }

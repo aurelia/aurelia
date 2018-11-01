@@ -12,7 +12,7 @@ import {
 import { BindingMode } from '../binding/binding-mode';
 import { IAttributeDefinition } from '../definitions';
 import { INode } from '../dom';
-import { BindLifecycle, IAttach, IBindScope, ILifecycle, ILifecycleHooks, ILifecycleState, LifecycleHooks, LifecycleState } from '../lifecycle';
+import { BindLifecycle, IAttach, IBindScope, ILifecycleHooks, ILifecycleState, LifecycleHooks, LifecycleState, Lifecycle } from '../lifecycle';
 import { BindingFlags, IScope } from '../observation';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
@@ -171,7 +171,7 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
   }
 }
 
-function attach(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: ILifecycle): void {
+function attach(this: IInternalCustomAttributeImplementation): void {
   if (this.$state & LifecycleState.isAttached) {
     return;
   }
@@ -181,7 +181,7 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
   const hooks = this.$behavior.hooks;
 
   if (hooks & LifecycleHooks.hasAttaching) {
-    this.attaching(encapsulationSource, lifecycle);
+    this.attaching();
   }
 
   // add isAttached flag, remove isAttaching flag
@@ -189,25 +189,25 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
   this.$state &= ~LifecycleState.isAttaching;
 
   if (hooks & LifecycleHooks.hasAttached) {
-    lifecycle.queueAttachedCallback(<Required<typeof this>>this);
+    Lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
 }
 
-function detach(this: IInternalCustomAttributeImplementation, lifecycle: ILifecycle): void {
+function detach(this: IInternalCustomAttributeImplementation): void {
   if (this.$state & LifecycleState.isAttached) {
     // add isDetaching flag
     this.$state |= LifecycleState.isDetaching;
 
     const hooks = this.$behavior.hooks;
     if (hooks & LifecycleHooks.hasDetaching) {
-      this.detaching(lifecycle);
+      this.detaching();
     }
 
     // remove isAttached and isDetaching flags
     this.$state &= ~(LifecycleState.isAttached | LifecycleState.isDetaching);
 
     if (hooks & LifecycleHooks.hasDetached) {
-      lifecycle.queueDetachedCallback(<Required<typeof this>>this);
+      Lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
   }
 }

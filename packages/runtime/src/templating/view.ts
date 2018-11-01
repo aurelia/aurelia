@@ -1,6 +1,6 @@
 import { DI, Reporter } from '@aurelia/kernel';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, ILifecycle, IBindScope, IMountable, LifecycleState } from '../lifecycle';
+import { IAttach, IBindScope, IMountable, LifecycleState, Lifecycle } from '../lifecycle';
 import { BindingFlags, IScope } from '../observation';
 import { IRenderable, IRenderContext, ITemplate } from './rendering-engine';
 
@@ -129,7 +129,7 @@ export class View implements IView {
     }
   }
 
-  public $attach(encapsulationSource: INode, lifecycle: ILifecycle): void {
+  public $attach(): void {
     if (this.$state & LifecycleState.isAttached) {
       return;
     }
@@ -138,12 +138,12 @@ export class View implements IView {
 
     let current = this.$attachableHead;
     while (current !== null) {
-      current.$attach(encapsulationSource, lifecycle);
+      current.$attach();
       current = current.$nextAttach;
     }
 
     if (this.$state & LifecycleState.needsMount) {
-      lifecycle.queueMount(this);
+      Lifecycle.queueMount(this);
     }
 
     // add isAttached flag, remove isAttaching flag
@@ -151,16 +151,16 @@ export class View implements IView {
     this.$state &= ~LifecycleState.isAttaching;
   }
 
-  public $detach(lifecycle: ILifecycle): void {
+  public $detach(): void {
     if (this.$state & LifecycleState.isAttached) {
       // add isDetaching flag
       this.$state |= LifecycleState.isDetaching;
 
-      lifecycle.queueUnmount(this);
+      Lifecycle.queueUnmount(this);
 
       let current = this.$attachableTail;
       while (current !== null) {
-        current.$detach(lifecycle);
+        current.$detach();
         current = current.$prevAttach;
       }
 

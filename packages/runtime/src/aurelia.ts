@@ -43,18 +43,19 @@ export class Aurelia {
       component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
 
       const cs = this.container.get(IChangeSet);
-      const lifecycle = Lifecycle.beginAttach(cs, config.host);
-      lifecycle.attach(component);
-      lifecycle.endAttach();
+      Lifecycle.changeSet = cs;
+
+      Lifecycle.beginAttach();
+      component.$attach()
+      Lifecycle.endAttach();
     };
 
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      const cs = this.container.get(IChangeSet);
-      const lifecycle = Lifecycle.beginDetach(cs);
-      lifecycle.detach(component);
-      lifecycle.endDetach();
+      Lifecycle.beginDetach();
+      component.$detach();
+      Lifecycle.endDetach();
 
       const flags = BindingFlags.fromStopTask | BindingFlags.fromUnbind;
 

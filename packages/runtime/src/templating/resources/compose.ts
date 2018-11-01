@@ -7,7 +7,6 @@ import {
   TemplateDefinition
 } from '../../definitions';
 import { INode } from '../../dom';
-import { ILifecycle } from '../../lifecycle';
 import { BindingFlags, IChangeSet } from '../../observation';
 import { bindable } from '../bindable';
 import { createElement, RenderPlan } from '../create-element';
@@ -63,12 +62,12 @@ export class Compose {
     this.coordinator.binding(flags, this.$scope);
   }
 
-  public attaching(encapsulationSource: INode, lifecycle: ILifecycle): void {
-    this.coordinator.attaching(encapsulationSource, lifecycle);
+  public attaching(): void {
+    this.coordinator.attaching();
   }
 
-  public detaching(lifecycle: ILifecycle): void {
-    this.coordinator.detaching(lifecycle);
+  public detaching(): void {
+    this.coordinator.detaching();
   }
 
   public unbinding(flags: BindingFlags): void {

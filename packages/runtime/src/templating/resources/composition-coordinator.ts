@@ -1,6 +1,6 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { INode } from '../../dom';
-import { Lifecycle, ILifecycle } from '../../lifecycle';
+import { Lifecycle } from '../../lifecycle';
 import { BindingFlags, IChangeSet, IScope } from '../../observation';
 import { IView } from '../view';
 
@@ -28,20 +28,19 @@ export class CompositionCoordinator {
     }
   }
 
-  public attaching(encapsulationSource: INode, lifecycle: ILifecycle): void {
-    this.encapsulationSource = encapsulationSource;
+  public attaching(): void {
     this.isAttached = true;
 
     if (this.currentView !== null) {
-      this.currentView.$attach(encapsulationSource, lifecycle);
+      this.currentView.$attach();
     }
   }
 
-  public detaching(lifecycle: ILifecycle): void {
+  public detaching(): void {
     this.isAttached = false;
 
     if (this.currentView !== null) {
-      this.currentView.$detach(lifecycle);
+      this.currentView.$detach();
     }
   }
 
@@ -64,9 +63,9 @@ export class CompositionCoordinator {
     }
 
     if (this.currentView !== null) {
-      Lifecycle.beginDetach(this.changeSet)
-        .detach(this.currentView)
-        .endDetach();
+      Lifecycle.beginDetach();
+      this.currentView.$detach();
+      Lifecycle.endDetach();
 
       this.currentView.$unbind(BindingFlags.fromUnbind);
     }
@@ -79,9 +78,9 @@ export class CompositionCoordinator {
       }
 
       if (this.isAttached) {
-        Lifecycle.beginAttach(this.changeSet, this.encapsulationSource)
-          .attach(this.currentView)
-          .endAttach();
+        Lifecycle.beginAttach();
+        this.currentView.$attach();
+        Lifecycle.endAttach();
       }
     }
 

@@ -5,7 +5,7 @@ import { BindingContext, Scope } from '../../binding/binding-context';
 import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
-import { ILifecycle, Lifecycle, LifecycleState } from '../../lifecycle';
+import { Lifecycle, LifecycleState } from '../../lifecycle';
 import { BindingFlags, CollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
@@ -54,22 +54,26 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     this.processViews(null, flags);
   }
 
-  public attaching(encapsulationSource: INode, lifecycle: ILifecycle): void {
+  public attaching(): void {
     const { views, location } = this;
+    Lifecycle.beginAttach();
     for (let i = 0, ii = views.length; i < ii; ++i) {
       const view = views[i];
       view.hold(location);
-      view.$attach(encapsulationSource, lifecycle);
+      view.$attach();
     }
+    Lifecycle.endAttach();
   }
 
-  public detaching(lifecycle: ILifecycle): void {
+  public detaching(): void {
     const { views } = this;
+    Lifecycle.beginDetach();
     for (let i = 0, ii = views.length; i < ii; ++i) {
       const view = views[i];
-      view.$detach(lifecycle);
+      view.$detach();
       view.release();
     }
+    Lifecycle.endDetach();
   }
 
   public unbound(flags: BindingFlags): void {
@@ -106,12 +110,12 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           views[i] = factory.create();
         }
       } else if (newLength < oldLength) {
-        const lifecycle = Lifecycle.beginDetach(this.changeSet);
+        Lifecycle.beginDetach();
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
           view.release();
-          lifecycle.detach(view);
+          view.$detach();
         }
-        lifecycle.endDetach();
+        Lifecycle.endDetach();
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
           view.$unbind(flags | BindingFlags.fromUnbind);
         }
@@ -146,23 +150,23 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
     if (this.$state & LifecycleState.isAttached) {
       const { location } = this;
-      const lifecycle = Lifecycle.beginAttach(this.changeSet, this.encapsulationSource);
+      Lifecycle.beginAttach();
       if (indexMap === null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           const view = views[i];
           view.hold(location);
-          lifecycle.attach(view);
+          view.$attach();
         }
       } else {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           if (indexMap[i] !== i) {
             const view = views[i];
             view.hold(location);
-            lifecycle.attach(view);
+            view.$attach();
           }
         }
       }
-      lifecycle.endAttach();
+      Lifecycle.endAttach();
     }
   }
 

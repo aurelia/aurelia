@@ -311,7 +311,9 @@ export declare class AggregateLifecycleTask implements ILifecycleTask {
     private complete;
 }
 export declare const Lifecycle: {
+    attach: IAttachLifecycleController;
     beginAttach(changeSet: IChangeSet, encapsulationSource: INode, flags: LifecycleFlags): IAttachLifecycleController;
+    detach: IDetachLifecycleController;
     beginDetach(changeSet: IChangeSet, flags: LifecycleFlags): IDetachLifecycleController;
     done: {
         done: boolean;

@@ -25,6 +25,7 @@ export declare class Repeat<T extends ObservedCollection = IObservedArray> {
     forOf: ForOfStatement;
     local: string;
     constructor(changeSet: IChangeSet, location: IRenderLocation, renderable: IRenderable, factory: IViewFactory);
+    binding(flags: BindingFlags): void;
     bound(flags: BindingFlags): void;
     attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
     detaching(lifecycle: IDetachLifecycle): void;

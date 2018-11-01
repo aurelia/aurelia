@@ -10,7 +10,7 @@ export declare class With {
     value: any;
     private currentView;
     constructor(factory: IViewFactory, location: IRenderLocation);
-    valueChanged(): void;
+    valueChanged(this: With): void;
     binding(flags: BindingFlags): void;
     attaching(encapsulationSource: any, lifecycle: IAttachLifecycle): void;
     detaching(lifecycle: IDetachLifecycle): void;

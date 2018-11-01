@@ -1,4 +1,4 @@
-import { IContainer, IResolver } from '@aurelia/kernel';
+import { IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
 export declare const ELEMENT_NODE = 1;
 export declare const ATTRIBUTE_NODE = 2;
 export declare const TEXT_NODE = 3;
@@ -54,6 +54,8 @@ export interface IDocumentFragment extends INode {
 }
 export declare const IRenderLocation: import("@aurelia/kernel/dist/di").InterfaceSymbol<IRenderLocation>;
 export interface IRenderLocation extends INode {
+    $start?: IRenderLocation;
+    $nodes?: INodeSequence | typeof PLATFORM['emptyObject'];
 }
 /**
  * Represents a DocumentFragment

@@ -1971,7 +1971,12 @@ let TemplateCompiler = class TemplateCompiler {
     compileCustomElement($el) {
         if ($el.$attributes.length === 0) {
             $el.addInstructions([new HydrateElementInstruction($el.definition.name, PLATFORM.emptyArray)]);
-            $el.makeTarget();
+            if ($el.definition.containerless) {
+                $el.replaceNodeWithMarker();
+            }
+            else {
+                $el.makeTarget();
+            }
             return;
         }
         const attributeInstructions = [];
@@ -2017,7 +2022,12 @@ let TemplateCompiler = class TemplateCompiler {
             }
         }
         $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
-        $el.makeTarget();
+        if ($el.definition.containerless) {
+            $el.replaceNodeWithMarker();
+        }
+        else {
+            $el.makeTarget();
+        }
     }
     compileCustomAttribute($attr) {
         const childInstructions = [];

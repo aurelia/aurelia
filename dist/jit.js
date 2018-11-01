@@ -1972,7 +1972,12 @@ this.au.jit = (function (exports,kernel,runtime) {
       compileCustomElement($el) {
           if ($el.$attributes.length === 0) {
               $el.addInstructions([new HydrateElementInstruction($el.definition.name, kernel.PLATFORM.emptyArray)]);
-              $el.makeTarget();
+              if ($el.definition.containerless) {
+                  $el.replaceNodeWithMarker();
+              }
+              else {
+                  $el.makeTarget();
+              }
               return;
           }
           const attributeInstructions = [];
@@ -2018,7 +2023,12 @@ this.au.jit = (function (exports,kernel,runtime) {
               }
           }
           $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
-          $el.makeTarget();
+          if ($el.definition.containerless) {
+              $el.replaceNodeWithMarker();
+          }
+          else {
+              $el.makeTarget();
+          }
       }
       compileCustomAttribute($attr) {
           const childInstructions = [];

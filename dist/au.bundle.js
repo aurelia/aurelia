@@ -794,6 +794,9 @@ var au = (function (exports) {
     const TEXT_NODE = 3;
     const COMMENT_NODE = 8;
     const DOCUMENT_FRAGMENT_NODE = 11;
+    function isRenderLocation(node) {
+        return node.textContent === 'au-end';
+    }
     const INode = DI.createInterface().noDefault();
     const IRenderLocation = DI.createInterface().noDefault();
     // tslint:disable:no-any
@@ -836,12 +839,19 @@ var au = (function (exports) {
             return node.cloneNode(deep !== false); // use true unless the caller explicitly passes in false
         },
         convertToRenderLocation(node) {
+            if (isRenderLocation(node)) {
+                return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
+            }
             if (node.parentNode === null) {
                 throw Reporter.error(52);
             }
-            const location = document.createComment('au-loc');
-            node.parentNode.replaceChild(location, node);
-            return location;
+            const locationEnd = document.createComment('au-end');
+            const locationStart = document.createComment('au-start');
+            DOM.replaceNode(locationEnd, node);
+            DOM.insertBefore(locationStart, locationEnd);
+            locationEnd.$start = locationStart;
+            locationStart.$nodes = null;
+            return locationEnd;
         },
         createComment(text) {
             return document.createComment(text);
@@ -990,36 +1000,107 @@ var au = (function (exports) {
     class FragmentNodeSequence {
         constructor(fragment) {
             this.fragment = fragment;
+            // tslint:disable-next-line:no-any
+            const targetNodeList = fragment.querySelectorAll('.au');
+            let i = 0;
+            let ii = targetNodeList.length;
+            const targets = this.targets = Array(ii);
+            while (i < ii) {
+                // eagerly convert all markers to IRenderLocations (otherwise the renderer
+                // will do it anyway) and store them in the target list (since the comments
+                // can't be queried)
+                const target = targetNodeList[i];
+                if (target.nodeName === 'AU-MARKER') {
+                    // note the renderer will still call this method, but it will just return the
+                    // location if it sees it's already a location
+                    targets[i] = DOM.convertToRenderLocation(target);
+                }
+                else {
+                    // also store non-markers for consistent ordering
+                    targets[i] = target;
+                }
+                ++i;
+            }
+            const childNodeList = fragment.childNodes;
+            i = 0;
+            ii = childNodeList.length;
+            const childNodes = this.childNodes = Array(ii);
+            while (i < ii) {
+                childNodes[i] = childNodeList[i];
+                ++i;
+            }
             this.firstChild = fragment.firstChild;
             this.lastChild = fragment.lastChild;
-            this.childNodes = PLATFORM.toArray(fragment.childNodes);
+            this.start = this.end = null;
         }
         findTargets() {
             // tslint:disable-next-line:no-any
-            return this.fragment.querySelectorAll('.au');
+            return this.targets;
         }
         insertBefore(refNode) {
             // tslint:disable-next-line:no-any
             refNode.parentNode.insertBefore(this.fragment, refNode);
+            // internally we could generally assume that this is an IRenderLocation,
+            // but since this is also public API we still need to double check
+            // (or horrible things might happen)
+            if (isRenderLocation(refNode)) {
+                this.end = refNode;
+                const start = this.start = refNode.$start;
+                if (start.$nodes === null) {
+                    start.$nodes = this;
+                }
+                else {
+                    // if more than one NodeSequence uses the same RenderLocation, it's an child
+                    // of a repeater (or something similar) and we shouldn't remove all nodes between
+                    // start - end since that would always remove all items from a repeater, even
+                    // when only one is removed
+                    // so we set $nodes to PLATFORM.emptyObject to 1) tell other sequences that it's
+                    // occupied and 2) prevent start.$nodes === this from ever evaluating to true
+                    // during remove()
+                    start.$nodes = PLATFORM.emptyObject;
+                }
+            }
         }
         appendTo(parent) {
             // tslint:disable-next-line:no-any
             parent.appendChild(this.fragment);
+            // this can never be a RenderLocation, and if for whatever reason we moved
+            // from a RenderLocation to a host, make sure "start" and "end" are null
+            this.start = this.end = null;
         }
         remove() {
             const fragment = this.fragment;
-            let current = this.firstChild;
-            if (current.parentNode !== fragment) {
-                const end = this.lastChild;
+            if (this.start !== null && this.start.$nodes === this) {
+                // if we're between a valid "start" and "end" (e.g. if/else, containerless, or a
+                // repeater with a single item) then simply remove everything in-between (but not
+                // the comments themselves as they belong to the parent)
+                const end = this.end;
                 let next;
-                while (current !== null) {
+                let current = this.start.nextSibling;
+                while (current !== end) {
                     next = current.nextSibling;
                     // tslint:disable-next-line:no-any
                     fragment.appendChild(current);
-                    if (current === end) {
-                        break;
-                    }
                     current = next;
+                }
+                this.start.$nodes = null;
+                this.start = this.end = null;
+            }
+            else {
+                // otherwise just remove from first to last child in the regular way
+                let current = this.firstChild;
+                if (current.parentNode !== fragment) {
+                    const end = this.lastChild;
+                    let next;
+                    while (current !== null) {
+                        next = current.nextSibling;
+                        // tslint:disable-next-line:no-any
+                        fragment.appendChild(current);
+                        if (current === end) {
+                            break;
+                        }
+                        current = next;
+                    }
                 }
             }
         }
@@ -1027,21 +1108,28 @@ var au = (function (exports) {
     class NodeSequenceFactory {
         constructor(fragment) {
             const childNodes = fragment.childNodes;
-            if (childNodes.length === 2) {
-                const target = childNodes[0];
-                if (target.nodeName === 'AU-MARKER') {
-                    const text = childNodes[1];
-                    if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
-                        this.deepClone = false;
-                        this.node = text;
-                        this.Type = TextNodeSequence;
-                        return;
+            switch (childNodes.length) {
+                case 0:
+                    this.createNodeSequence = () => NodeSequence.empty;
+                    return;
+                case 2:
+                    const target = childNodes[0];
+                    if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
+                        const text = childNodes[1];
+                        if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
+                            text.textContent = '';
+                            this.deepClone = false;
+                            this.node = text;
+                            this.Type = TextNodeSequence;
+                            return;
+                        }
                     }
-                }
+                // falls through if not returned
+                default:
+                    this.deepClone = true;
+                    this.node = fragment;
+                    this.Type = FragmentNodeSequence;
             }
-            this.deepClone = true;
-            this.node = fragment;
-            this.Type = FragmentNodeSequence;
         }
         static createFor(markupOrNode) {
             const fragment = DOM.createDocumentFragment(markupOrNode);
@@ -1370,7 +1458,7 @@ var au = (function (exports) {
         newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
         if (currentValue !== newValue) {
             this.currentValue = newValue;
-            if (flags & BindingFlags.fromFlushChanges) {
+            if (flags & (BindingFlags.fromFlushChanges | BindingFlags.fromBind)) {
                 this.setValueCore(newValue, flags);
             }
             else {
@@ -6119,7 +6207,9 @@ var au = (function (exports) {
         }
         /*@internal*/
         processAll() {
+            Lifecycle.attach = this;
             this.changeSet.flushChanges();
+            Lifecycle.attach = null;
             this.processMounts();
             this.processAttachedCallbacks();
         }
@@ -6187,10 +6277,7 @@ var au = (function (exports) {
             if (this.allowUnmount) {
                 this.unmountTail.$nextUnmount = requestor;
                 this.unmountTail = requestor;
-                // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
-                // Just to reduce the amount of potential things to track down and check if something fails.
-                // When everything is working and tested, we can add this optimization (and others) back in.
-                //this.allowUnmount = false; // only remove roots
+                this.allowUnmount = false; // only remove roots
             }
         }
         queueDetachedCallback(requestor) {
@@ -6236,7 +6323,9 @@ var au = (function (exports) {
         }
         /*@internal*/
         processAll() {
+            Lifecycle.detach = this;
             this.changeSet.flushChanges();
+            Lifecycle.detach = null;
             this.processUnmounts();
             this.processDetachedCallbacks();
         }
@@ -6288,11 +6377,26 @@ var au = (function (exports) {
         return '$unbind' in requestor;
     }
     const Lifecycle = {
+        // TODO: this is just a temporary fix to get certain tests to pass.
+        // When there is better test coverage in complex lifecycle scenarios,
+        // this needs to be properly handled without abusing a global object
+        /*@internal*/ attach: null,
         beginAttach(changeSet, encapsulationSource, flags) {
-            return new AttachLifecycleController(changeSet, flags, null, encapsulationSource);
+            if (Lifecycle.attach === null) {
+                return new AttachLifecycleController(changeSet, flags, null, encapsulationSource);
+            }
+            else {
+                return Lifecycle.attach;
+            }
         },
+        /*@internal*/ detach: null,
         beginDetach(changeSet, flags) {
-            return new DetachLifecycleController(changeSet, flags);
+            if (Lifecycle.detach === null) {
+                return new DetachLifecycleController(changeSet, flags);
+            }
+            else {
+                return Lifecycle.detach;
+            }
         },
         done: {
             done: true,
@@ -6435,17 +6539,23 @@ var au = (function (exports) {
         this.$prevAttach = this.$nextAttach = null;
         this.$state = 128 /* needsMount */;
         this.$scope = Scope.create(this, null);
-        this.$projector = determineProjector(this, host, description);
+        // Defining the property ensures the correct runtime behavior is applied - we can't actually get the projector here because the ContainerlessProjector
+        // needs the element to be rendered first. It seems like a decent requirement for rendering to be done before either the ChildrenObserver or
+        // ContainerlessProjector is used, but still this is necessarily a complete and utter hack that we should aim to solve in a cleaner way.
+        this.$projector = undefined;
         renderingEngine.applyRuntimeBehavior(Type, this);
         if (this.$behavior.hooks & 1024 /* hasRender */) {
             const result = this.render(host, options.parts);
             if (result && 'getElementTemplate' in result) {
-                result.getElementTemplate(renderingEngine, Type).render(this, host, options.parts);
+                const template = result.getElementTemplate(renderingEngine, Type);
+                template.render(this, host, options.parts);
             }
         }
         else {
-            renderingEngine.getElementTemplate(description, Type).render(this, host, options.parts);
+            const template = renderingEngine.getElementTemplate(description, Type);
+            template.render(this, host, options.parts);
         }
+        this.$projector = determineProjector(this, host, description);
         if (this.$behavior.hooks & 2 /* hasCreated */) {
             this.created();
         }
@@ -6640,6 +6750,7 @@ var au = (function (exports) {
         constructor($customElement, host) {
             this.host = host;
             host.$customElement = $customElement;
+            this.isAppHost = host.hasOwnProperty('$au');
         }
         get children() {
             return PLATFORM.emptyArray;
@@ -6652,11 +6763,17 @@ var au = (function (exports) {
         }
         project(nodes) {
             nodes.appendTo(this.host);
-            this.project = PLATFORM.noop;
+            if (!this.isAppHost) {
+                this.project = PLATFORM.noop;
+            }
         }
         take(nodes) {
             // No special behavior is required because the host element removal
             // will result in the projected nodes being removed, since they are children.
+            if (this.isAppHost) {
+                // The only exception to that is the app host, which is not part of a removable node sequence
+                nodes.remove();
+            }
         }
     }
     // TODO
@@ -7990,6 +8107,9 @@ var au = (function (exports) {
             this.observer = null;
             this.hasPendingInstanceMutation = false;
         }
+        binding(flags) {
+            this.checkCollectionObserver();
+        }
         bound(flags) {
             let current = this.renderable.$bindableHead;
             while (current !== null) {
@@ -8001,7 +8121,6 @@ var au = (function (exports) {
             }
             this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
             this.processViews(null, flags);
-            this.checkCollectionObserver();
         }
         attaching(encapsulationSource, lifecycle) {
             const { views, location } = this;
@@ -8078,7 +8197,7 @@ var au = (function (exports) {
                 else {
                     forOf.iterate(items, (arr, i, item) => {
                         const view = views[i];
-                        if (indexMap[i] === i) {
+                        if (indexMap[i] === i && !!view.$scope) {
                             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
                         }
                         else {
@@ -8111,15 +8230,15 @@ var au = (function (exports) {
         }
         checkCollectionObserver() {
             const oldObserver = this.observer;
-            if (this.$state & 2 /* isBound */) {
+            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
                 const newObserver = this.observer = getCollectionObserver(this.changeSet, this.items);
                 if (oldObserver !== newObserver) {
                     if (oldObserver) {
                         oldObserver.unsubscribeBatched(this);
                     }
-                    if (newObserver) {
-                        newObserver.subscribeBatched(this);
-                    }
+                }
+                if (newObserver) {
+                    newObserver.subscribeBatched(this);
                 }
             }
             else if (oldObserver) {
@@ -8168,7 +8287,9 @@ var au = (function (exports) {
             this.currentView.hold(location);
         }
         valueChanged() {
-            this.bindChild(BindingFlags.fromBindableHandler);
+            if (this.$state & 2 /* isBound */) {
+                this.bindChild(BindingFlags.fromBindableHandler);
+            }
         }
         binding(flags) {
             this.bindChild(flags);
@@ -8212,28 +8333,37 @@ var au = (function (exports) {
         }
         app(config) {
             const component = config.component;
+            const host = config.host;
             const startTask = () => {
+                host.$au = this;
                 if (!this.components.includes(component)) {
                     this._root = component;
                     this.components.push(component);
-                    component.$hydrate(this.container.get(IRenderingEngine), config.host);
+                    const re = this.container.get(IRenderingEngine);
+                    component.$hydrate(re, host);
                 }
                 component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
-                Lifecycle.beginAttach(this.container.get(IChangeSet), config.host, LifecycleFlags.none)
-                    .attach(component)
-                    .end();
+                const cs = this.container.get(IChangeSet);
+                const lifecycle = Lifecycle.beginAttach(cs, config.host, LifecycleFlags.none);
+                lifecycle.attach(component);
+                lifecycle.end();
             };
             this.startTasks.push(startTask);
             this.stopTasks.push(() => {
-                const task = Lifecycle.beginDetach(this.container.get(IChangeSet), LifecycleFlags.noTasks)
-                    .detach(component)
-                    .end();
+                const cs = this.container.get(IChangeSet);
+                const lifecycle = Lifecycle.beginDetach(cs, LifecycleFlags.noTasks);
+                lifecycle.detach(component);
+                const task = lifecycle.end();
                 const flags = BindingFlags.fromStopTask | BindingFlags.fromUnbind;
                 if (task.done) {
                     component.$unbind(flags);
+                    host.$au = null;
                 }
                 else {
-                    task.wait().then(() => component.$unbind(flags));
+                    task.wait().then(() => {
+                        component.$unbind(flags);
+                        host.$au = null;
+                    });
                 }
             });
             if (this.isStarted) {
@@ -8245,13 +8375,17 @@ var au = (function (exports) {
             return this._root;
         }
         start() {
-            this.startTasks.forEach(x => x());
+            for (const runStartTask of this.startTasks) {
+                runStartTask();
+            }
             this.isStarted = true;
             return this;
         }
         stop() {
             this.isStarted = false;
-            this.stopTasks.forEach(x => x());
+            for (const runStopTask of this.stopTasks) {
+                runStopTask();
+            }
             return this;
         }
     }
@@ -10434,7 +10568,12 @@ var au = (function (exports) {
         compileCustomElement($el) {
             if ($el.$attributes.length === 0) {
                 $el.addInstructions([new HydrateElementInstruction($el.definition.name, PLATFORM.emptyArray)]);
-                $el.makeTarget();
+                if ($el.definition.containerless) {
+                    $el.replaceNodeWithMarker();
+                }
+                else {
+                    $el.makeTarget();
+                }
                 return;
             }
             const attributeInstructions = [];
@@ -10480,7 +10619,12 @@ var au = (function (exports) {
                 }
             }
             $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
-            $el.makeTarget();
+            if ($el.definition.containerless) {
+                $el.replaceNodeWithMarker();
+            }
+            else {
+                $el.makeTarget();
+            }
         }
         compileCustomAttribute($attr) {
             const childInstructions = [];

@@ -74,6 +74,7 @@ export declare class ContainerlessProjector implements IElementProjector {
 }
 export declare class HostProjector implements IElementProjector {
     host: ICustomElementHost;
+    private readonly isAppHost;
     constructor($customElement: ICustomElement, host: ICustomElementHost);
     readonly children: ArrayLike<INode>;
     subscribeToChildrenChange(callback: () => void): void;

@@ -29,7 +29,15 @@ export const enum Hooks {
   hasCaching             = 0b100000000000
 }
 
-export interface ILifecycleCreated {
+export interface IHooks {
+  $hooks?: Hooks;
+}
+
+export interface IState {
+  $state?: State;
+}
+
+export interface ILifecycleCreated extends IHooks, IState {
   /**
    * Called at the end of `$hydrate`.
    *
@@ -49,7 +57,7 @@ export interface ILifecycleCreated {
   created?(): void;
 }
 
-export interface ILifecycleBinding {
+export interface ILifecycleBinding extends IHooks, IState {
   /**
    * Called at the start of `$bind`, before this instance and its children (if any) are bound.
    *
@@ -70,7 +78,7 @@ export interface ILifecycleBinding {
   binding?(flags: BindingFlags): void;
 }
 
-export interface ILifecycleBound {
+export interface ILifecycleBound extends IHooks, IState {
   /*@internal*/$boundFlags?: BindingFlags;
   /*@internal*/$nextBound?: ILifecycleBound;
 
@@ -94,7 +102,7 @@ export interface ILifecycleBound {
   bound?(flags: BindingFlags): void;
 }
 
-export interface ILifecycleUnbinding {
+export interface ILifecycleUnbinding extends IHooks, IState {
   /**
    * Called at the start of `$unbind`, before this instance and its children (if any) are unbound.
    *
@@ -116,7 +124,7 @@ export interface ILifecycleUnbinding {
   unbinding?(flags: BindingFlags): void;
 }
 
-export interface ILifecycleUnbound {
+export interface ILifecycleUnbound extends IHooks, IState {
   /*@internal*/$unboundFlags?: BindingFlags;
   /*@internal*/$nextUnbound?: ILifecycleUnbound;
 
@@ -142,7 +150,7 @@ export interface ILifecycleUnbound {
   unbound?(flags: BindingFlags): void;
 }
 
-export interface ILifecycleAttaching {
+export interface ILifecycleAttaching extends IHooks, IState {
   /**
    * Called at the start of `$attach`, before this instance and its children (if any) are attached.
    *
@@ -161,7 +169,7 @@ export interface ILifecycleAttaching {
   attaching?(): void;
 }
 
-export interface ILifecycleAttached {
+export interface ILifecycleAttached extends IHooks, IState {
   /*@internal*/$nextAttached?: ILifecycleAttached;
 
   /**
@@ -180,7 +188,7 @@ export interface ILifecycleAttached {
   attached?(): void;
 }
 
-export interface ILifecycleDetaching {
+export interface ILifecycleDetaching extends IHooks, IState {
   /**
    * Called at the start of `$detach`, before this instance and its children (if any) are detached.
    *
@@ -197,7 +205,7 @@ export interface ILifecycleDetaching {
   detaching?(): void;
 }
 
-export interface ILifecycleDetached {
+export interface ILifecycleDetached extends IHooks, IState {
   /*@internal*/$nextDetached?: ILifecycleDetached;
 
   /**
@@ -215,7 +223,7 @@ export interface ILifecycleDetached {
   detached?(): void;
 }
 
-export interface ILifecycleCaching {
+export interface ILifecycleCaching extends IHooks, IState {
   /**
    * Called during `$unmount` (which happens during `$detach`), specifically after the
    * `$nodes` are removed from the DOM, but before the view is actually added to the cache.
@@ -234,7 +242,7 @@ export interface ILifecycleCaching {
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface IHooks extends
+export interface ILifecycleHooks extends
   ILifecycleCreated,
   ILifecycleBinding,
   ILifecycleBound,
@@ -246,15 +254,11 @@ export interface IHooks extends
   ILifecycleDetached,
   ILifecycleCaching { }
 
-export interface IState {
-  $state: State;
-}
-
 export interface ILifecycleCache {
   $cache(): void;
 }
 
-export interface ICachable extends ILifecycleCache, IState { }
+export interface ICachable extends ILifecycleCache { }
 
 export interface ILifecycleAttach {
   $attach(): void;
@@ -290,7 +294,7 @@ export interface ILifecycleUnmount {
    */
   $unmount(): boolean | void;
 }
-export interface IMountable extends ILifecycleMount, ILifecycleUnmount, IState { }
+export interface IMountable extends ILifecycleMount, ILifecycleUnmount { }
 
 export interface ILifecycleUnbind {
   $unbind(flags: BindingFlags): void;
@@ -308,7 +312,7 @@ export interface ILifecycleBindScope {
   $bind(flags: BindingFlags, scope: IScope): void;
 }
 
-export interface IBind extends ILifecycleBind, ILifecycleUnbind, IState {
+export interface IBind extends ILifecycleBind, ILifecycleUnbind {
   /*@internal*/$nextBind: IBindSelf | IBindScope;
   /*@internal*/$prevBind: IBindSelf | IBindScope;
 }

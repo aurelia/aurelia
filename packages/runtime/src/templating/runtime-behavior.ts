@@ -22,42 +22,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   public static create(Component: ICustomElementType | ICustomAttributeType, instance: ICustomAttribute | ICustomElement): RuntimeBehavior {
     const behavior = new RuntimeBehavior();
 
-    // Pre-setting the properties for the lifecycle queues (to null) is to help generate
-    // fewer variations in property declaration order and makes it easier for the browser
-    // to perform optimizations via generated hidden classes.
-    // It also allows us to perform strict null checks which is more efficient than falsey
-    // value coercion
     behavior.bindables = Component.description.bindables;
-    behavior.hooks = 0;
-    if ('created' in instance) behavior.hooks |= Hooks.hasCreated;
-    if ('binding' in instance) behavior.hooks |= Hooks.hasBinding;
-    if ('bound' in instance) {
-      behavior.hooks |= Hooks.hasBound;
-      instance['$boundFlags'] = 0;
-      instance['$nextBound'] = null;
-    }
-    if ('attaching' in instance) behavior.hooks |= Hooks.hasAttaching;
-    if ('attached' in instance) {
-      behavior.hooks |= Hooks.hasAttached;
-      instance['$nextAttached'] = null;
-    }
-    if ('detaching' in instance) behavior.hooks |= Hooks.hasDetaching;
-    if ('detached' in instance) {
-      behavior.hooks |= Hooks.hasDetached;
-      instance['$nextDetached'] = null;
-    }
-    if ('unbinding' in instance) behavior.hooks |= Hooks.hasUnbinding;
-    if ('unbound' in instance) {
-      behavior.hooks |= Hooks.hasUnbound;
-      instance['$unboundFlags'] = 0;
-      instance['$nextUnbound'] = null;
-    }
-    if ('render' in instance) behavior.hooks |= Hooks.hasRender;
-    if ('caching' in instance) behavior.hooks |= Hooks.hasCaching;
-    if (behavior.hooks === 0) behavior.hooks |= Hooks.none;
-    if ('$mount' in Component.prototype) {
-      instance['$nextMount'] = null;
-    }
 
     return behavior;
   }
@@ -83,7 +48,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     });
   }
 
-  private applyToCore(instance: (ICustomAttribute | ICustomElement) & { $behavior?: IRuntimeBehavior }): IIndexable {
+  private applyToCore(instance: ICustomAttribute | ICustomElement): IIndexable {
     const observers = {};
     const bindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
@@ -104,8 +69,6 @@ export class RuntimeBehavior implements IRuntimeBehavior {
       enumerable: false,
       value: observers
     });
-
-    instance.$behavior = this;
 
     return observers;
   }

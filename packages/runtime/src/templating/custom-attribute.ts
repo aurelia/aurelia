@@ -1,18 +1,7 @@
-import {
-  Constructable,
-  Decoratable,
-  Decorated,
-  IContainer,
-  Immutable,
-  Omit,
-  PLATFORM,
-  Registration,
-  Writable
-} from '@aurelia/kernel';
+import { Constructable, Decoratable, Decorated, IContainer, Immutable, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
 import { IAttributeDefinition } from '../definitions';
-import { INode } from '../dom';
-import { IAttach, IBindScope, IHooks, IState, Hooks, State, Lifecycle } from '../lifecycle';
+import { Hooks, IAttach, IBindScope, ILifecycleHooks, IState, Lifecycle, State } from '../lifecycle';
 import { BindingFlags, IScope } from '../observation';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
@@ -22,16 +11,11 @@ export interface ICustomAttributeType extends
   IResourceType<IAttributeDefinition, ICustomAttribute>,
   Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
 
-type OptionalHooks = IHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
+type OptionalHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
 type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & IState;
 
 export interface ICustomAttribute extends IBindScope, IAttach, OptionalHooks, RequiredLifecycleProperties {
   $hydrate(renderingEngine: IRenderingEngine): void;
-}
-
-/*@internal*/
-export interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
-  $behavior: IRuntimeBehavior;
 }
 
 type CustomAttributeDecorator = <T extends Constructable>(target: Decoratable<ICustomAttribute, T>) => Decorated<ICustomAttribute, T> & ICustomAttributeType;
@@ -67,26 +51,63 @@ export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICusto
   },
 
   define<T extends Constructable>(nameOrSource: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
-    const Type = ctor as Writable<ICustomAttributeType> & T;
-    const proto: ICustomAttribute = Type.prototype;
+    const Type = ctor as T & Writable<ICustomAttributeType>;
     const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, <T & ICustomAttributeType>Type);
+    const proto: Writable<ICustomAttribute> = Type.prototype;
 
     Type.kind = CustomAttributeResource;
     Type.description = description;
     Type.register = register;
 
-    proto.$hydrate = hydrate;
-    proto.$bind = bind;
-    proto.$attach = attach;
-    proto.$detach = detach;
-    proto.$unbind = unbind;
-    proto.$cache = cache;
+    proto.$hydrate = $hydrate;
+    proto.$bind = $bind;
+    proto.$attach = $attach;
+    proto.$detach = $detach;
+    proto.$unbind = $unbind;
+    proto.$cache = $cache;
+
+    proto.$prevBind = null;
+    proto.$nextBind = null;
+    proto.$prevAttach = null;
+    proto.$nextAttach = null;
+
+    proto.$scope = null;
+    proto.$hooks = 0;
+    proto.$state = 0;
+
+    if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
+    if ('bound' in proto) {
+      proto.$hooks |= Hooks.hasBound;
+      proto.$boundFlags = 0;
+      proto.$nextBound = null;
+    }
+
+    if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
+    if ('unbound' in proto) {
+      proto.$hooks |= Hooks.hasUnbound;
+      proto.$unboundFlags = 0;
+      proto.$nextUnbound = null;
+    }
+
+    if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
+    if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
+    if ('attached' in proto) {
+      proto.$hooks |= Hooks.hasAttached;
+      proto.$nextAttached = null;
+    }
+    if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
+    if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
+    if ('detached' in proto) {
+      proto.$hooks |= Hooks.hasDetached;
+      proto.$nextDetached = null;
+    }
 
     return <ICustomAttributeType & T>Type;
   }
 };
 
-function register(this: ICustomAttributeType, container: IContainer): void {
+/*@internal*/
+export function register(this: ICustomAttributeType, container: IContainer): void {
   const description = this.description;
   const resourceKey = CustomAttributeResource.keyFrom(description.name);
   const aliases = description.aliases;
@@ -99,20 +120,19 @@ function register(this: ICustomAttributeType, container: IContainer): void {
   }
 }
 
-function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
+/*@internal*/
+export function $hydrate(this: Writable<ICustomAttribute>, renderingEngine: IRenderingEngine): void {
   const Type = this.constructor as ICustomAttributeType;
-
-  this.$state = State.none;
-  this.$scope = null;
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
-  if (this.$behavior.hooks & Hooks.hasCreated) {
+  if (this.$hooks & Hooks.hasCreated) {
     this.created();
   }
 }
 
-function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope): void {
+/*@internal*/
+export function $bind(this: Writable<ICustomAttribute>, flags: BindingFlags, scope: IScope): void {
   flags |= BindingFlags.fromBind;
 
   if (this.$state & State.isBound) {
@@ -125,7 +145,7 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
   // add isBinding flag
   this.$state |= State.isBinding;
 
-  const hooks = this.$behavior.hooks;
+  const hooks = this.$hooks;
 
   if (hooks & Hooks.hasBound) {
     Lifecycle.queueBound(this, flags);
@@ -146,12 +166,13 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
   }
 }
 
-function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
+/*@internal*/
+export function $unbind(this: Writable<ICustomAttribute>, flags: BindingFlags): void {
   if (this.$state & State.isBound) {
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
-    const hooks = this.$behavior.hooks;
+    const hooks = this.$hooks;
     flags |= BindingFlags.fromUnbind;
 
     if (hooks & Hooks.hasUnbound) {
@@ -171,14 +192,15 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
   }
 }
 
-function attach(this: IInternalCustomAttributeImplementation): void {
+/*@internal*/
+export function $attach(this: Writable<ICustomAttribute>): void {
   if (this.$state & State.isAttached) {
     return;
   }
   // add isAttaching flag
   this.$state |= State.isAttaching;
 
-  const hooks = this.$behavior.hooks;
+  const hooks = this.$hooks;
 
   if (hooks & Hooks.hasAttaching) {
     this.attaching();
@@ -193,12 +215,13 @@ function attach(this: IInternalCustomAttributeImplementation): void {
   }
 }
 
-function detach(this: IInternalCustomAttributeImplementation): void {
+/*@internal*/
+export function $detach(this: Writable<ICustomAttribute>): void {
   if (this.$state & State.isAttached) {
     // add isDetaching flag
     this.$state |= State.isDetaching;
 
-    const hooks = this.$behavior.hooks;
+    const hooks = this.$hooks;
     if (hooks & Hooks.hasDetaching) {
       this.detaching();
     }
@@ -212,8 +235,9 @@ function detach(this: IInternalCustomAttributeImplementation): void {
   }
 }
 
-function cache(this: IInternalCustomAttributeImplementation): void {
-  if (this.$behavior.hooks & Hooks.hasCaching) {
+/*@internal*/
+export function $cache(this: Writable<ICustomAttribute>): void {
+  if (this.$hooks & Hooks.hasCaching) {
     this.caching();
   }
 }

@@ -1,18 +1,8 @@
-import {
-  Constructable,
-  Decoratable,
-  Decorated,
-  IContainer,
-  Immutable,
-  PLATFORM,
-  Registration,
-  Reporter,
-  Writable
-} from '@aurelia/kernel';
+import { Constructable, Decoratable, Decorated, IContainer, Immutable, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { Scope } from '../binding/binding-context';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IBindSelf, IHooks, IState, IMountable, Hooks, State, Lifecycle } from '../lifecycle';
+import { Hooks, IAttach, IBindSelf, ILifecycleHooks, IMountable, IState, Lifecycle, State } from '../lifecycle';
 import { BindingFlags } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
@@ -25,7 +15,7 @@ export interface ICustomElementType extends
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
-export interface ICustomElement extends IHooks, ILifecycleRender, IBindSelf, IAttach, IMountable, IState, IRenderable {
+export interface ICustomElement extends ILifecycleHooks, ILifecycleRender, IBindSelf, IAttach, IMountable, IState, IRenderable {
   readonly $projector: IElementProjector;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
@@ -36,10 +26,6 @@ export interface ICustomElementHost extends IRenderLocation {
 
 export type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
 
-/*@internal*/
-export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
-  $behavior: IRuntimeBehavior;
-}
 
 type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T> & ICustomElementType;
 /**
@@ -126,43 +112,83 @@ export const CustomElementResource: ICustomElementResource = {
     Type.description = description;
     Type.register = register;
 
-    proto.$hydrate = hydrate;
-    proto.$bind = bind;
-    proto.$attach = attach;
-    proto.$detach = detach;
-    proto.$unbind = unbind;
-    proto.$cache = cache;
-    proto.$mount = mount;
-    proto.$unmount = unmount;
+    proto.$hydrate = $hydrate;
+    proto.$bind = $bind;
+    proto.$attach = $attach;
+    proto.$detach = $detach;
+    proto.$unbind = $unbind;
+    proto.$cache = $cache;
+
+    proto.$prevBind = null;
+    proto.$nextBind = null;
+    proto.$prevAttach = null;
+    proto.$nextAttach = null;
+
+    proto.$scope = null;
+    proto.$hooks = 0;
+    proto.$state = State.needsMount;
+
+    proto.$bindableHead = null;
+    proto.$bindableTail = null;
+    proto.$attachableHead = null;
+    proto.$attachableTail = null;
+
+    proto.$mount = $mount;
+    proto.$unmount = $unmount;
+
+    proto.$nextMount = null;
+    proto.$nextUnmount = null;
+
+    proto.$projector = null;
+
+    if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
+    if ('bound' in proto) {
+      proto.$hooks |= Hooks.hasBound;
+      proto.$boundFlags = 0;
+      proto.$nextBound = null;
+    }
+
+    if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
+    if ('unbound' in proto) {
+      proto.$hooks |= Hooks.hasUnbound;
+      proto.$unboundFlags = 0;
+      proto.$nextUnbound = null;
+    }
+
+    if ('render' in proto) proto.$hooks |= Hooks.hasRender;
+    if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
+    if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
+    if ('attached' in proto) {
+      proto.$hooks |= Hooks.hasAttached;
+      proto.$nextAttached = null;
+    }
+    if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
+    if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
+    if ('detached' in proto) {
+      proto.$hooks |= Hooks.hasDetached;
+      proto.$nextDetached = null;
+    }
 
     return <ICustomElementType & T>Type;
   }
 };
 
-function register(this: ICustomElementType, container: IContainer): void {
+/*@internal*/
+export function register(this: ICustomElementType, container: IContainer): void {
   const resourceKey = CustomElementResource.keyFrom(this.description.name);
   container.register(Registration.transient(resourceKey, this));
 }
 
-function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+/*@internal*/
+export function $hydrate(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
-  this.$bindableHead = this.$bindableTail = null;
-  this.$prevBind = this.$nextBind = null;
-  this.$attachableHead = this.$attachableTail = null;
-  this.$prevAttach = this.$nextAttach = null;
-
-  this.$state = State.needsMount;
   this.$scope = Scope.create(this, null);
-  // Defining the property ensures the correct runtime behavior is applied - we can't actually get the projector here because the ContainerlessProjector
-  // needs the element to be rendered first. It seems like a decent requirement for rendering to be done before either the ChildrenObserver or
-  // ContainerlessProjector is used, but still this is necessarily a complete and utter hack that we should aim to solve in a cleaner way.
-  this.$projector = undefined;
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
-  if (this.$behavior.hooks & Hooks.hasRender) {
+  if (this.$hooks & Hooks.hasRender) {
     const result = this.render(host, options.parts);
 
     if (result && 'getElementTemplate' in result) {
@@ -175,19 +201,20 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   }
   this.$projector = determineProjector(this, host, description);
 
-  if (this.$behavior.hooks & Hooks.hasCreated) {
+  if (this.$hooks & Hooks.hasCreated) {
     this.created();
   }
 }
 
-function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
+/*@internal*/
+export function $bind(this: Writable<ICustomElement>, flags: BindingFlags): void {
   if (this.$state & State.isBound) {
     return;
   }
   // add isBinding flag
   this.$state |= State.isBinding;
 
-  const hooks = this.$behavior.hooks;
+  const hooks = this.$hooks;
   flags |= BindingFlags.fromBind;
 
   if (hooks & Hooks.hasBound) {
@@ -214,12 +241,13 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   }
 }
 
-function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
+/*@internal*/
+export function $unbind(this: Writable<ICustomElement>, flags: BindingFlags): void {
   if (this.$state & State.isBound) {
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
-    const hooks = this.$behavior.hooks;
+    const hooks = this.$hooks;
     flags |= BindingFlags.fromUnbind;
 
     if (hooks & Hooks.hasUnbound) {
@@ -245,14 +273,15 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
   }
 }
 
-function attach(this: IInternalCustomElementImplementation): void {
+/*@internal*/
+export function $attach(this: Writable<ICustomElement>): void {
   if (this.$state & State.isAttached) {
     return;
   }
   // add isAttaching flag
   this.$state |= State.isAttaching;
 
-  const hooks = this.$behavior.hooks;
+  const hooks = this.$hooks;
 
   if (hooks & Hooks.hasAttaching) {
     this.attaching();
@@ -274,12 +303,13 @@ function attach(this: IInternalCustomElementImplementation): void {
   }
 }
 
-function detach(this: IInternalCustomElementImplementation): void {
+/*@internal*/
+export function $detach(this: Writable<ICustomElement>): void {
   if (this.$state & State.isAttached) {
     // add isDetaching flag
     this.$state |= State.isDetaching;
 
-    const hooks = this.$behavior.hooks;
+    const hooks = this.$hooks;
     if (hooks & Hooks.hasDetaching) {
       this.detaching();
     }
@@ -301,8 +331,9 @@ function detach(this: IInternalCustomElementImplementation): void {
   }
 }
 
-function cache(this: IInternalCustomElementImplementation): void {
-  if (this.$behavior.hooks & Hooks.hasCaching) {
+/*@internal*/
+export function $cache(this: Writable<ICustomElement>): void {
+  if (this.$hooks & Hooks.hasCaching) {
     this.caching();
   }
 
@@ -313,13 +344,17 @@ function cache(this: IInternalCustomElementImplementation): void {
   }
 }
 
-function mount(this: IInternalCustomElementImplementation): void {
+/*@internal*/
+export function $mount(this: Writable<ICustomElement>): void {
   this.$projector.project(this.$nodes);
 }
 
-function unmount(this: IInternalCustomElementImplementation): void {
+/*@internal*/
+export function $unmount(this: Writable<ICustomElement>): void {
   this.$projector.take(this.$nodes);
 }
+
+// tslint:enable:align
 
 export interface IElementProjector {
   readonly host: ICustomElementHost;

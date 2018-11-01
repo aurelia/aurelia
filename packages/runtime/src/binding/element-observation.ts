@@ -2,7 +2,7 @@ import { IIndexable, Primitive } from '@aurelia/kernel';
 import { DOM, IElement, IInputElement, INode, INodeObserver } from '../dom';
 import {
   BindingFlags, CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver,
-  IChangeSet, ICollectionObserver, IndexMap,  IObserversLookup, IPropertySubscriber
+  ICollectionObserver, IndexMap,  IObserversLookup, IPropertySubscriber
 } from '../observation';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
@@ -49,7 +49,6 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
   public flushChanges: () => void;
 
   constructor(
-    public changeSet: IChangeSet,
     public obj: INode,
     public propertyKey: string,
     public handler: IEventSubscriber
@@ -148,7 +147,6 @@ export class CheckedObserver implements CheckedObserver {
   private valueObserver: ValueAttributeObserver | SetterObserver;
 
   constructor(
-    public changeSet: IChangeSet,
     public obj: IInternalInputElement,
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
@@ -316,7 +314,6 @@ export class SelectValueObserver implements SelectValueObserver {
   private nodeObserver: INodeObserver;
 
   constructor(
-    public changeSet: IChangeSet,
     public obj: ISelectElement,
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator

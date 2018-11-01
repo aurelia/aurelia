@@ -1,5 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, CollectionKind, IChangeSet, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
+import { BindingFlags, CollectionKind, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
 import { collectionObserver } from './collection-observer';
 // tslint:disable:no-reserved-keywords
 const proto = Array.prototype;
@@ -324,18 +324,16 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 @collectionObserver(CollectionKind.array)
 export class ArrayObserver implements ArrayObserver {
   public resetIndexMap: () => void;
-  public changeSet: IChangeSet;
 
   public collection: IObservedArray;
 
-  constructor(changeSet: IChangeSet, array: IObservedArray) {
-    this.changeSet = changeSet;
+  constructor(array: IObservedArray) {
     array.$observer = this;
     this.collection = array;
     this.resetIndexMap();
   }
 }
 
-export function getArrayObserver(changeSet: IChangeSet, array: IObservedArray): ArrayObserver {
-  return (array.$observer as ArrayObserver) || new ArrayObserver(changeSet, array);
+export function getArrayObserver(array: IObservedArray): ArrayObserver {
+  return (array.$observer as ArrayObserver) || new ArrayObserver(array);
 }

@@ -6,8 +6,7 @@ import {
   TargetedInstruction,
   TemplateDefinition
 } from '../../definitions';
-import { INode } from '../../dom';
-import { BindingFlags, IChangeSet } from '../../observation';
+import { BindingFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { createElement, RenderPlan } from '../create-element';
 import { customElement, ICustomElement } from '../custom-element';
@@ -26,7 +25,7 @@ type Subject = IViewFactory | IView | RenderPlan | Constructable | TemplateDefin
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
-@inject(IChangeSet, IRenderable, ITargetedInstruction, IRenderingEngine)
+@inject(IRenderable, ITargetedInstruction, IRenderingEngine)
 export class Compose {
   @bindable public subject: Subject | Promise<Subject> = null;
   @bindable public composing: boolean = false;
@@ -36,12 +35,11 @@ export class Compose {
   private lastSubject: Subject | Promise<Subject> = null;
 
   constructor(
-    public readonly changeSet: IChangeSet,
     private renderable: IRenderable,
     instruction: Immutable<IHydrateElementInstruction>,
     private renderingEngine: IRenderingEngine
   ) {
-    this.coordinator = new CompositionCoordinator(this.changeSet);
+    this.coordinator = new CompositionCoordinator();
     this.coordinator.onSwapComplete = () => {
       this.composing = false;
     };

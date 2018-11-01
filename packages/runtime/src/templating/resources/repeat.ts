@@ -6,7 +6,7 @@ import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
 import { Lifecycle, LifecycleState } from '../../lifecycle';
-import { BindingFlags, CollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IObservedArray, IScope, ObservedCollection } from '../../observation';
+import { BindingFlags, CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 import { IRenderable } from '../rendering-engine';
@@ -14,7 +14,7 @@ import { IView, IViewFactory } from '../view';
 
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}
 
-@inject(IChangeSet, IRenderLocation, IRenderable, IViewFactory)
+@inject(IRenderLocation, IRenderable, IViewFactory)
 @templateController('repeat')
 export class Repeat<T extends ObservedCollection = IObservedArray> {
   @bindable public items: T;
@@ -31,7 +31,6 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public local: string;
 
   constructor(
-    public changeSet: IChangeSet,
     public location: IRenderLocation,
     public renderable: IRenderable,
     public factory: IViewFactory) { }
@@ -173,7 +172,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   private checkCollectionObserver(): void {
     const oldObserver = this.observer;
     if (this.$state & (LifecycleState.isBound | LifecycleState.isBinding)) {
-      const newObserver = this.observer = getCollectionObserver(this.changeSet, this.items);
+      const newObserver = this.observer = getCollectionObserver(this.items);
       if (oldObserver !== newObserver) {
         if (oldObserver) {
           oldObserver.unsubscribeBatched(this);

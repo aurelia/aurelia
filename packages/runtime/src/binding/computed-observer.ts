@@ -1,8 +1,9 @@
 import { IIndexable, PLATFORM, Primitive, Reporter } from '@aurelia/kernel';
-import { BindingFlags, IBindingTargetAccessor, IBindingTargetObserver, IChangeSet, IObservable, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
+import { BindingFlags, IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
 import { subscriberCollection } from './subscriber-collection';
+import { Lifecycle } from '../lifecycle';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -29,7 +30,6 @@ const computedOverrideDefaults: ComputedOverrides = { static: false, volatile: f
 export function createComputedObserver(
   observerLocator: IObserverLocator,
   dirtyChecker: IDirtyChecker,
-  changeSet: IChangeSet,
   // tslint:disable-next-line:no-reserved-keywords
   instance: IObservable & { constructor: Function & ComputedLookup },
   propertyName: string,
@@ -48,15 +48,15 @@ export function createComputedObserver(
       if (overrides.volatile) {
         return noProxy
           ? dirtyChecker.createProperty(instance, propertyName)
-          : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
+          : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator);
       }
 
-      return new CustomSetterObserver(instance, propertyName, descriptor, changeSet);
+      return new CustomSetterObserver(instance, propertyName, descriptor);
     }
 
     return noProxy
       ? dirtyChecker.createProperty(instance, propertyName)
-      : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
+      : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator);
   }
 
   throw Reporter.error(18, propertyName);
@@ -72,7 +72,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   public currentValue: IIndexable | Primitive;
   public oldValue: IIndexable | Primitive;
 
-  constructor(public obj: IObservable, public propertyKey: string, private descriptor: PropertyDescriptor, private changeSet: IChangeSet) { }
+  constructor(public obj: IObservable, public propertyKey: string, private descriptor: PropertyDescriptor) { }
 
   public getValue(): IIndexable | Primitive {
     return this.obj[this.propertyKey];
@@ -115,7 +115,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
 
         if (oldValue !== newValue) {
           that.oldValue = oldValue;
-          that.changeSet.add(that);
+          Lifecycle.queueFlush(that);
 
           that.currentValue = newValue;
         }
@@ -136,15 +136,14 @@ export class GetterObserver implements GetterObserver {
   public dispose: () => void;
   private controller: GetterController;
 
-  constructor(private overrides: ComputedOverrides, public obj: IObservable, public propertyKey: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private changeSet: IChangeSet) {
+  constructor(private overrides: ComputedOverrides, public obj: IObservable, public propertyKey: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator) {
     this.controller = new GetterController(
       overrides,
       obj,
       propertyKey,
       descriptor,
       this,
-      observerLocator,
-      changeSet
+      observerLocator
     );
   }
 
@@ -191,8 +190,7 @@ export class GetterController {
     private propertyName: string,
     descriptor: PropertyDescriptor,
     private owner: GetterObserver,
-    observerLocator: IObserverLocator,
-    private changeSet: IChangeSet
+    observerLocator: IObserverLocator
   ) {
     const proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
     const getter = descriptor.get;
@@ -254,7 +252,7 @@ export class GetterController {
   }
 
   public handleChange(): void {
-    this.changeSet.add(this.owner);
+    Lifecycle.queueFlush(this.owner);
   }
 
   private unsubscribeAllDependencies(): void {

@@ -1,6 +1,6 @@
 import { Omit } from '@aurelia/kernel';
 import { INode } from './dom';
-import { BindingFlags, IChangeSet, IScope } from './observation';
+import { BindingFlags, IScope, IChangeTracker } from './observation';
 
 export const enum LifecycleState {
   none                  = 0b00000000000,
@@ -317,55 +317,44 @@ export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope { 
 
 export interface IBindSelf extends Omit<IBind, '$bind'>, ILifecycleBindSelf { }
 
+const marker = Object.freeze(Object.create(null));
+
 export const Lifecycle = {
-  $nextMount: <ILifecycleMount>null,
-  $nextAttached: <ILifecycleAttached>null,
-
-  $nextUnmount: <ILifecycleUnmount>null,
-  $nextDetached: <ILifecycleDetached>null,
-
-  attachedHead: <ILifecycleAttached>null,
-  attachedTail: <ILifecycleAttached>null,
-  mountHead: <ILifecycleMount>null,
-  mountTail: <ILifecycleMount>null,
-
-  detachedHead: <ILifecycleDetached>null, //LOL
-  detachedTail: <ILifecycleDetached>null,
-  unmountHead: <ILifecycleUnmount>null,
-  unmountTail: <ILifecycleUnmount>null,
-
-  changeSet: <IChangeSet>null,
   encapsulationSource: <INode>null,
 
+  mountHead: <ILifecycleMount>null,
+  mountTail: <ILifecycleMount>null,
   queueMount(requestor: ILifecycleMount): void {
-    if (this.mountHead === null) {
-      this.mountHead = requestor;
+    if (Lifecycle.mountHead === null) {
+      Lifecycle.mountHead = requestor;
     } else {
-      this.mountTail.$nextMount = requestor;
+      Lifecycle.mountTail.$nextMount = requestor;
     }
-    this.mountTail = requestor;
+    Lifecycle.mountTail = requestor;
   },
 
   queueAttachedCallback(requestor: ILifecycleAttached): void {
-    if (this.attachedHead === null) {
-      this.attachedHead = requestor;
+    if (Lifecycle.attachedHead === null) {
+      Lifecycle.attachedHead = requestor;
     } else {
-      this.attachedTail.$nextAttached = requestor;
+      Lifecycle.attachedTail.$nextAttached = requestor;
     }
-    this.attachedTail = requestor;
+    Lifecycle.attachedTail = requestor;
   },
 
   attachDepth: 0,
+  attachedHead: <ILifecycleAttached>null,
+  attachedTail: <ILifecycleAttached>null,
   beginAttach(): void {
     ++Lifecycle.attachDepth;
   },
 
   endAttach(): void {
     if (--Lifecycle.attachDepth === 0) {
-      this.changeSet.flushChanges();
+      Lifecycle.flush();
 
-      let currentMount = this.mountHead;
-      this.mountHead = this.mountTail = null;
+      let currentMount = Lifecycle.mountHead;
+      Lifecycle.mountHead = Lifecycle.mountTail = null;
       let nextMount: typeof currentMount;
 
       while (currentMount) {
@@ -375,8 +364,8 @@ export const Lifecycle = {
         currentMount = nextMount;
       }
 
-      let currentAttached = this.attachedHead;
-      this.attachedHead = this.attachedTail = null;
+      let currentAttached = Lifecycle.attachedHead;
+      Lifecycle.attachedHead = Lifecycle.attachedTail = null;
       let nextAttached: typeof currentAttached;
 
       while (currentAttached) {
@@ -388,35 +377,39 @@ export const Lifecycle = {
     }
   },
 
+  unmountHead: <ILifecycleUnmount>null,
+  unmountTail: <ILifecycleUnmount>null,
   queueUnmount(requestor: ILifecycleUnmount): void {
-    if (this.unmountHead === null) {
-      this.unmountHead = requestor;
+    if (Lifecycle.unmountHead === null) {
+      Lifecycle.unmountHead = requestor;
     } else {
-      this.unmountTail.$nextUnmount = requestor;
+      Lifecycle.unmountTail.$nextUnmount = requestor;
     }
-    this.unmountTail = requestor;
+    Lifecycle.unmountTail = requestor;
   },
 
   queueDetachedCallback(requestor: ILifecycleDetached): void {
-    if (this.detachedHead === null) {
-      this.detachedHead = requestor;
+    if (Lifecycle.detachedHead === null) {
+      Lifecycle.detachedHead = requestor;
     } else {
-      this.detachedTail.$nextDetached = requestor;
+      Lifecycle.detachedTail.$nextDetached = requestor;
     }
-    this.detachedTail = requestor;
+    Lifecycle.detachedTail = requestor;
   },
 
   detachDepth: 0,
+  detachedHead: <ILifecycleDetached>null, //LOL
+  detachedTail: <ILifecycleDetached>null,
   beginDetach(): void {
     ++Lifecycle.detachDepth;
   },
 
   endDetach(): void {
     if (--Lifecycle.detachDepth === 0) {
-      this.changeSet.flushChanges();
+      Lifecycle.flush();
 
-      let currentUnmount = this.unmountHead;
-      this.unmountHead = this.unmountTail = null;
+      let currentUnmount = Lifecycle.unmountHead;
+      Lifecycle.unmountHead = Lifecycle.unmountTail = null;
       let nextUnmount: typeof currentUnmount;
 
       while (currentUnmount) {
@@ -426,8 +419,8 @@ export const Lifecycle = {
         currentUnmount = nextUnmount;
       }
 
-      let currentDetached = this.detachedHead;
-      this.detachedHead = this.detachedTail = null;
+      let currentDetached = Lifecycle.detachedHead;
+      Lifecycle.detachedHead = Lifecycle.detachedTail = null;
       let nextDetached: typeof currentDetached;
 
       while (currentDetached) {
@@ -468,6 +461,7 @@ export const Lifecycle = {
       }
     }
   },
+
   unboundDepth: 0,
   unboundHead: <ILifecycleUnbound>null,
   unboundTail: <ILifecycleUnbound>null,
@@ -491,6 +485,45 @@ export const Lifecycle = {
         current.unbound(current.$unboundFlags);
         next = current.$nextUnbound;
         current.$nextUnbound = null;
+        current = next;
+      }
+    }
+  },
+
+
+  flushed: <Promise<void>>null,
+  promise: Promise.resolve(),
+  flushDepth: 0,
+  flushHead: <IChangeTracker>null,
+  flushTail: <IChangeTracker>null,
+  queueFlush(requestor: IChangeTracker): Promise<void> {
+    if (Lifecycle.flushDepth === 0) {
+      Lifecycle.flushed = Lifecycle.promise.then(Lifecycle.flush);
+    }
+    if (requestor.$nextFlush) {
+      return Lifecycle.flushed;
+    }
+    requestor.$nextFlush = marker;
+    if (Lifecycle.flushTail === null) {
+      Lifecycle.flushHead = requestor;
+    } else {
+      Lifecycle.flushTail.$nextFlush = requestor;
+    }
+    Lifecycle.flushTail = requestor;
+    ++Lifecycle.flushDepth;
+    return Lifecycle.flushed;
+  },
+
+  flush(): void {
+    while (Lifecycle.flushDepth > 0) {
+      let current = Lifecycle.flushHead;
+      Lifecycle.flushHead = Lifecycle.flushTail = null;
+      let next: typeof current;
+      Lifecycle.flushDepth = 0;
+      while (current && current !== marker) {
+        next = current.$nextFlush;
+        current.$nextFlush = null;
+        current.flushChanges();
         current = next;
       }
     }

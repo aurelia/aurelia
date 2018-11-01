@@ -1,19 +1,15 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { INode } from '../../dom';
 import { Lifecycle } from '../../lifecycle';
-import { BindingFlags, IChangeSet, IScope } from '../../observation';
+import { BindingFlags, IScope } from '../../observation';
 import { IView } from '../view';
 
 export class CompositionCoordinator {
   public onSwapComplete: () => void = PLATFORM.noop;
 
   private currentView: IView = null;
-  private encapsulationSource: INode;
   private scope: IScope;
   private isBound: boolean = false;
   private isAttached: boolean = false;
-
-  constructor(public readonly changeSet: IChangeSet) {}
 
   public compose(value: IView): void {
     this.swap(value);

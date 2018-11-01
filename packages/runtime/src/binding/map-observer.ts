@@ -1,5 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, CollectionKind, IChangeSet, ICollectionObserver, IObservedMap } from '../observation';
+import { BindingFlags, CollectionKind, ICollectionObserver, IObservedMap } from '../observation';
 import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
 // tslint:disable:no-reserved-keywords
@@ -111,18 +111,16 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 @collectionObserver(CollectionKind.map)
 export class MapObserver implements MapObserver {
   public resetIndexMap: () => void;
-  public changeSet: IChangeSet;
 
   public collection: IObservedMap;
 
-  constructor(changeSet: IChangeSet, map: IObservedMap) {
-    this.changeSet = changeSet;
+  constructor(map: IObservedMap) {
     map.$observer = this;
     this.collection = map;
     this.resetIndexMap();
   }
 }
 
-export function getMapObserver(changeSet: IChangeSet, map: IObservedMap): MapObserver {
-  return (map.$observer as MapObserver) || new MapObserver(changeSet, map);
+export function getMapObserver(map: IObservedMap): MapObserver {
+  return (map.$observer as MapObserver) || new MapObserver(map);
 }

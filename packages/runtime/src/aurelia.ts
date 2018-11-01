@@ -1,6 +1,6 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
 import { Lifecycle } from './lifecycle';
-import { BindingFlags, IChangeSet } from './observation';
+import { BindingFlags } from './observation';
 import { ICustomElement } from './templating/custom-element';
 import { IRenderingEngine } from './templating/rendering-engine';
 
@@ -41,9 +41,6 @@ export class Aurelia {
       }
 
       component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
-
-      const cs = this.container.get(IChangeSet);
-      Lifecycle.changeSet = cs;
 
       Lifecycle.beginAttach();
       component.$attach()

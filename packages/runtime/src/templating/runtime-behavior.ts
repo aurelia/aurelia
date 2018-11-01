@@ -3,8 +3,8 @@ import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
 import { BindableDefinitions } from '../definitions';
 import { INode } from '../dom';
-import { LifecycleHooks } from '../lifecycle';
-import { BindingFlags, IAccessor, IChangeSet, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
+import { LifecycleHooks, Lifecycle } from '../lifecycle';
+import { BindingFlags, IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './custom-element';
 
@@ -62,18 +62,18 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     return behavior;
   }
 
-  public applyTo(instance: ICustomAttribute | ICustomElement, changeSet: IChangeSet): void {
+  public applyTo(instance: ICustomAttribute | ICustomElement): void {
     if ('$projector' in instance) {
-      this.applyToElement(changeSet, instance);
+      this.applyToElement(instance);
     } else {
-      this.applyToCore(changeSet, instance);
+      this.applyToCore(instance);
     }
   }
 
-  private applyToElement(changeSet: IChangeSet, instance: ICustomElement): void {
-    const observers = this.applyToCore(changeSet, instance);
+  private applyToElement(instance: ICustomElement): void {
+    const observers = this.applyToCore(instance);
 
-    observers.$children = new ChildrenObserver(changeSet, instance);
+    observers.$children = new ChildrenObserver(instance);
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
@@ -83,7 +83,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     });
   }
 
-  private applyToCore(changeSet: IChangeSet, instance: (ICustomAttribute | ICustomElement) & { $behavior?: IRuntimeBehavior }): IIndexable {
+  private applyToCore(instance: (ICustomAttribute | ICustomElement) & { $behavior?: IRuntimeBehavior }): IIndexable {
     const observers = {};
     const bindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
@@ -132,7 +132,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   private children: ICustomElement[] = null;
   private observing: boolean = false;
 
-  constructor(private changeSet: IChangeSet, private customElement: ICustomElement & { $childrenChanged?(): void }) { }
+  constructor(private customElement: ICustomElement & { $childrenChanged?(): void }) { }
 
   public getValue(): ICustomElement[] {
     if (!this.observing) {
@@ -166,7 +166,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
       this.customElement.$childrenChanged();
     }
 
-    this.changeSet.add(this);
+    Lifecycle.queueFlush(this);
     this.hasChanges = true;
   }
 }

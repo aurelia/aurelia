@@ -1,9 +1,9 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, IBindingTargetAccessor, IChangeSet, MutationKind } from '../observation';
+import { BindingFlags, IBindingTargetAccessor, MutationKind } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
+import { Lifecycle } from '../lifecycle';
 
 type BindingTargetAccessor = IBindingTargetAccessor & {
-  changeSet: IChangeSet;
   currentFlags: BindingFlags;
   oldValue?: IIndexable | Primitive;
   defaultValue: Primitive | IIndexable;
@@ -20,7 +20,7 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
       this.setValueCore(newValue, flags);
     } else {
       this.currentFlags = flags;
-      return this.changeSet.add(this);
+      return Lifecycle.queueFlush(this);
     }
   }
   return Promise.resolve();
@@ -45,8 +45,6 @@ function dispose(this: BindingTargetAccessor): void {
 
   this.obj = null;
   this.propertyKey = '';
-
-  this.changeSet = null;
 }
 
 export function targetObserver(defaultValue: Primitive | IIndexable = null): ClassDecorator {
@@ -64,6 +62,5 @@ export function targetObserver(defaultValue: Primitive | IIndexable = null): Cla
     proto.setValue = proto.setValue || setValue;
     proto.flushChanges = proto.flushChanges || flushChanges;
     proto.dispose = proto.dispose || dispose;
-    proto.changeSet = null;
   };
 }

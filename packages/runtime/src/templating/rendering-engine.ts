@@ -5,7 +5,7 @@ import { IObserverLocator } from '../binding/observer-locator';
 import { IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
 import { IAttach, IBindScope, ILifecycleState } from '../lifecycle';
-import { IChangeSet, IScope } from '../observation';
+import { IScope } from '../observation';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
@@ -61,7 +61,7 @@ export interface ILifecycleRender {
   render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
 }
 
-@inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
+@inject(IContainer, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
   private templateLookup: Map<TemplateDefinition, ITemplate> = new Map();
@@ -71,7 +71,6 @@ export class RenderingEngine implements IRenderingEngine {
 
   constructor(
     private container: IContainer,
-    private changeSet: IChangeSet,
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
     private parser: IExpressionParser,
@@ -133,7 +132,7 @@ export class RenderingEngine implements IRenderingEngine {
       this.behaviorLookup.set(Type, found);
     }
 
-    found.applyTo(instance, this.changeSet);
+    found.applyTo(instance);
   }
 
   public createRenderer(context: IRenderContext): IRenderer {

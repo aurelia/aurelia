@@ -4,6 +4,7 @@ import {
   IPropertySubscriber, ISubscriberCollection, MutationKind, MutationKindToBatchedSubscriber,
   MutationKindToSubscriber, SubscriberFlags
 } from '../observation';
+import { Lifecycle } from '../lifecycle';
 
 export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
   return function(target: Function): void {
@@ -149,7 +150,7 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
       }
     }
   }
-  this.changeSet.add(this);
+  Lifecycle.queueFlush(this);
 }
 
 function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>): boolean {

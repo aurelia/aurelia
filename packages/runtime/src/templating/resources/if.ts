@@ -1,14 +1,15 @@
 import { inject } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
-import { BindingFlags, IChangeSet } from '../../observation';
+import { BindingFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
+import { Lifecycle } from '../../lifecycle';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')
-@inject(IChangeSet, IViewFactory, IRenderLocation)
+@inject(IViewFactory, IRenderLocation)
 export class If {
   @bindable public value: boolean = false;
 
@@ -19,10 +20,9 @@ export class If {
   public coordinator: CompositionCoordinator;
 
   constructor(
-    public readonly changeSet: IChangeSet,
     public ifFactory: IViewFactory,
     public location: IRenderLocation) {
-    this.coordinator = new CompositionCoordinator(this.changeSet);
+    this.coordinator = new CompositionCoordinator();
   }
 
   public binding(flags: BindingFlags): void {
@@ -60,7 +60,7 @@ export class If {
       const view = this.updateView();
       this.coordinator.compose(view);
     } else {
-      this.changeSet.add(this);
+      Lifecycle.queueFlush(this);
     }
   }
 

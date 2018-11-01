@@ -1,4 +1,5 @@
 import { Constructable, Immutable, inject } from '@aurelia/kernel';
+import { customElement } from '../../custom-element';
 import {
   IHydrateElementInstruction,
   ITargetedInstruction,
@@ -6,11 +7,10 @@ import {
   TargetedInstruction,
   TemplateDefinition
 } from '../../definitions';
+import { ICustomElement, IRenderable, IRenderingEngine } from '../../lifecycle-render';
 import { BindingFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { createElement, RenderPlan } from '../create-element';
-import { customElement, ICustomElement } from '../custom-element';
-import { IRenderable, IRenderingEngine } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
 

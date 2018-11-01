@@ -1,8 +1,8 @@
 import { DI, Reporter } from '@aurelia/kernel';
-import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IBindScope, IMountable, State, Lifecycle } from '../lifecycle';
+import { INodeSequence, IRenderLocation } from '../dom';
+import { IAttach, IBindScope, IMountable, Lifecycle, State } from '../lifecycle';
+import { IRenderable, IRenderContext, ITemplate } from '../lifecycle-render';
 import { BindingFlags, IScope } from '../observation';
-import { IRenderable, IRenderContext, ITemplate } from './rendering-engine';
 
 export type RenderCallback = (view: IView) => void;
 

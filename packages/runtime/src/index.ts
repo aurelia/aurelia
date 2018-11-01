@@ -42,19 +42,17 @@ export * from './templating/resources/replaceable';
 export * from './templating/resources/with';
 
 export * from './templating/bindable';
-export * from './templating/custom-attribute';
-export * from './templating/custom-element';
 export * from './templating/create-element';
-export * from './templating/render-strategy';
-export * from './templating/renderer';
-export * from './templating/rendering-engine';
-export * from './templating/runtime-behavior';
-export * from './templating/template-compiler';
 export * from './templating/view';
 
 export * from './aurelia';
+export * from './custom-attribute';
+export * from './custom-element';
 export * from './definitions';
 export * from './dom';
+export * from './lifecycle-attach';
+export * from './lifecycle-bind';
+export * from './lifecycle-render';
 export * from './lifecycle';
 export * from './observation';
 export * from './resource';

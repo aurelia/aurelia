@@ -1,6 +1,6 @@
 import { Omit } from '@aurelia/kernel';
 import { INode } from './dom';
-import { BindingFlags, IScope, IChangeTracker } from './observation';
+import { BindingFlags, IChangeTracker, IScope } from './observation';
 
 export const enum State {
   none                  = 0b00000000000,
@@ -297,18 +297,22 @@ export interface ILifecycleUnmount {
 export interface IMountable extends ILifecycleMount, ILifecycleUnmount { }
 
 export interface ILifecycleUnbind {
+  $state?: State;
   $unbind(flags: BindingFlags): void;
 }
 
 export interface ILifecycleBind {
+  $state?: State;
   $bind(flags: BindingFlags, scope?: IScope): void;
 }
 
 export interface ILifecycleBindSelf {
+  $state?: State;
   $bind(flags: BindingFlags): void;
 }
 
 export interface ILifecycleBindScope {
+  $state?: State;
   $bind(flags: BindingFlags, scope: IScope): void;
 }
 
@@ -493,7 +497,6 @@ export const Lifecycle = {
       }
     }
   },
-
 
   flushed: <Promise<void>>null,
   promise: Promise.resolve(),

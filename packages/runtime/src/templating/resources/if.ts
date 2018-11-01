@@ -1,11 +1,12 @@
 import { inject } from '@aurelia/kernel';
-import { INode, IRenderLocation } from '../../dom';
+import { templateController } from '../../custom-attribute';
+import { IRenderLocation } from '../../dom';
+import { Lifecycle } from '../../lifecycle';
+import { ICustomAttribute } from '../../lifecycle-render';
 import { BindingFlags } from '../../observation';
 import { bindable } from '../bindable';
-import { ICustomAttribute, templateController } from '../custom-attribute';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
-import { Lifecycle } from '../../lifecycle';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')

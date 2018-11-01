@@ -36,6 +36,10 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     public renderable: IRenderable,
     public factory: IViewFactory) { }
 
+  public binding(flags: BindingFlags): void {
+    this.checkCollectionObserver();
+  }
+
   public bound(flags: BindingFlags): void {
     let current = this.renderable.$bindableHead;
     while (current !== null) {
@@ -48,7 +52,6 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
 
     this.processViews(null, flags);
-    this.checkCollectionObserver();
   }
 
   public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
@@ -129,7 +132,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
       } else {
         forOf.iterate(items, (arr, i, item) => {
           const view = views[i];
-          if (indexMap[i] === i) {
+          if (indexMap[i] === i && !!view.$scope) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
           } else {
             view.$bind(flags, Scope.fromParent($scope, BindingContext.create(local, item)));
@@ -162,15 +165,15 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
   private checkCollectionObserver(): void {
     const oldObserver = this.observer;
-    if (this.$state & LifecycleState.isBound) {
+    if (this.$state & (LifecycleState.isBound | LifecycleState.isBinding)) {
       const newObserver = this.observer = getCollectionObserver(this.changeSet, this.items);
       if (oldObserver !== newObserver) {
         if (oldObserver) {
           oldObserver.unsubscribeBatched(this);
         }
-        if (newObserver) {
-          newObserver.subscribeBatched(this);
-        }
+      }
+      if (newObserver) {
+        newObserver.subscribeBatched(this);
       }
     } else if (oldObserver) {
       oldObserver.unsubscribeBatched(this);

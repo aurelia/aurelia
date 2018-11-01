@@ -491,7 +491,9 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
 
   /*@internal*/
   public processAll(): void {
+    Lifecycle.attach = this;
     this.changeSet.flushChanges();
+    Lifecycle.attach = null;
     this.processMounts();
     this.processAttachedCallbacks();
   }
@@ -571,10 +573,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     if (this.allowUnmount) {
       this.unmountTail.$nextUnmount = requestor;
       this.unmountTail = requestor;
-      // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
-      // Just to reduce the amount of potential things to track down and check if something fails.
-      // When everything is working and tested, we can add this optimization (and others) back in.
-      //this.allowUnmount = false; // only remove roots
+      this.allowUnmount = false; // only remove roots
     }
   }
 
@@ -628,7 +627,9 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
 
   /*@internal*/
   public processAll(): void {
+    Lifecycle.detach = this;
     this.changeSet.flushChanges();
+    Lifecycle.detach = null;
     this.processUnmounts();
     this.processDetachedCallbacks();
   }
@@ -690,12 +691,27 @@ function isUnbindable(requestor: object): requestor is ILifecycleUnbind {
 }
 
 export const Lifecycle = {
+  // TODO: this is just a temporary fix to get certain tests to pass.
+  // When there is better test coverage in complex lifecycle scenarios,
+  // this needs to be properly handled without abusing a global object
+  /*@internal*/attach: <IAttachLifecycleController>null,
+
   beginAttach(changeSet: IChangeSet, encapsulationSource: INode, flags: LifecycleFlags): IAttachLifecycleController {
-    return new AttachLifecycleController(changeSet, flags, null, encapsulationSource);
+    if (Lifecycle.attach === null) {
+      return new AttachLifecycleController(changeSet, flags, null, encapsulationSource);
+    } else {
+      return Lifecycle.attach;
+    }
   },
 
+  /*@internal*/detach: <IDetachLifecycleController>null,
+
   beginDetach(changeSet: IChangeSet, flags: LifecycleFlags): IDetachLifecycleController {
-    return new DetachLifecycleController(changeSet, flags);
+    if (Lifecycle.detach === null) {
+      return new DetachLifecycleController(changeSet, flags);
+    } else {
+      return Lifecycle.detach;
+    }
   },
 
   done: {

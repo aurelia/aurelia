@@ -65,8 +65,10 @@ describe(`determineProjector`, () => {
     expect(sut.$projector['childNodes'].length).to.equal(0);
     expect(host.parentNode).to.be.null;
     expect(parent.firstChild).to.be.instanceof(Comment);
-    expect(parent.firstChild.textContent).to.equal('au-loc');
-    expect(parent.firstChild['$customElement']).to.equal(sut);
+    expect(parent.firstChild.textContent).to.equal('au-start');
+    expect(parent.lastChild).to.be.instanceof(Comment);
+    expect(parent.lastChild.textContent).to.equal('au-end');
+    expect(parent.firstChild.nextSibling['$customElement']).to.equal(sut);
     expect(sut.$projector.children).to.equal(sut.$projector['childNodes']);
   });
 
@@ -91,8 +93,10 @@ describe(`determineProjector`, () => {
     expect(sut.$projector['childNodes'][0]).to.equal(child);
     expect(host.parentNode).to.be.null;
     expect(parent.firstChild).to.be.instanceof(Comment);
-    expect(parent.firstChild.textContent).to.equal('au-loc');
-    expect(parent.firstChild['$customElement']).to.equal(sut);
+    expect(parent.firstChild.textContent).to.equal('au-start');
+    expect(parent.lastChild).to.be.instanceof(Comment);
+    expect(parent.lastChild.textContent).to.equal('au-end');
+    expect(parent.firstChild.nextSibling['$customElement']).to.equal(sut);
     expect(sut.$projector.children).to.equal(sut.$projector['childNodes']);
   });
 

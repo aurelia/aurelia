@@ -29,37 +29,43 @@ export class Aurelia {
 
   public app(config: ISinglePageApp): this {
     const component: ICustomElement = config.component;
+    const host = config.host;
 
     const startTask = () => {
+      host.$au = this;
       if (!this.components.includes(component)) {
         this._root = component;
         this.components.push(component);
-        component.$hydrate(
-          this.container.get(IRenderingEngine),
-          config.host
-        );
+        const re = this.container.get(IRenderingEngine);
+        component.$hydrate(re, host);
       }
 
       component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
 
-      Lifecycle.beginAttach(this.container.get(IChangeSet), config.host, LifecycleFlags.none)
-        .attach(component)
-        .end();
+      const cs = this.container.get(IChangeSet);
+      const lifecycle = Lifecycle.beginAttach(cs, config.host, LifecycleFlags.none);
+      lifecycle.attach(component);
+      lifecycle.end();
     };
 
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      const task = Lifecycle.beginDetach(this.container.get(IChangeSet), LifecycleFlags.noTasks)
-        .detach(component)
-        .end();
+      const cs = this.container.get(IChangeSet);
+      const lifecycle = Lifecycle.beginDetach(cs, LifecycleFlags.noTasks);
+      lifecycle.detach(component);
+      const task = lifecycle.end();
 
       const flags = BindingFlags.fromStopTask | BindingFlags.fromUnbind;
 
       if (task.done) {
         component.$unbind(flags);
+        host.$au = null;
       } else {
-        task.wait().then(() => component.$unbind(flags));
+        task.wait().then(() => {
+          component.$unbind(flags);
+          host.$au = null;
+        });
       }
     });
 
@@ -75,14 +81,18 @@ export class Aurelia {
   }
 
   public start(): this {
-    this.startTasks.forEach(x => x());
+    for (const runStartTask of this.startTasks) {
+      runStartTask();
+    }
     this.isStarted = true;
     return this;
   }
 
   public stop(): this {
     this.isStarted = false;
-    this.stopTasks.forEach(x => x());
+    for (const runStopTask of this.stopTasks) {
+      runStopTask();
+    }
     return this;
   }
 }

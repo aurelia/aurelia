@@ -1,7 +1,7 @@
 import { inject } from '@aurelia/kernel';
 import { Scope } from '../../binding/binding-context';
 import { IRenderLocation } from '../../dom';
-import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
+import { IAttachLifecycle, IDetachLifecycle, LifecycleState } from '../../lifecycle';
 import { BindingFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
@@ -20,8 +20,10 @@ export class With {
     this.currentView.hold(location);
   }
 
-  public valueChanged(): void {
-    this.bindChild(BindingFlags.fromBindableHandler);
+  public valueChanged(this: With): void {
+    if (this.$state & LifecycleState.isBound) {
+      this.bindChild(BindingFlags.fromBindableHandler);
+    }
   }
 
   public binding(flags: BindingFlags): void {

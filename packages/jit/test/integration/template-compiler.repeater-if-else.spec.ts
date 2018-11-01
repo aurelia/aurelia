@@ -164,32 +164,30 @@ parentSuite.addDataSlot('f') // Template (custom element)
         </div>
       </div>
     </template>`)
-  // TODO: throws code 253
-  // .addData('14').setValue(
-  //   `<template>
-  //     <div repeat.for="item of items" with.bind="item">
-  //       <div if.bind="display">
-  //         \${if}
-  //       </div>
-  //       <div else>
-  //         \${else}
-  //       </div>
-  //     </div>
-  //   </template>`)
-  // TODO: throws code 253
-  // .addData('15').setValue(
-  //   `<template>
-  //     <div repeat.for="item of items">
-  //       <div with.bind="item">
-  //         <div if.bind="display">
-  //           \${if}
-  //         </div>
-  //         <div else>
-  //           \${else}
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </template>`)
+  .addData('14').setValue(
+    `<template>
+      <div repeat.for="item of items" with.bind="item">
+        <div if.bind="display">
+          \${if}
+        </div>
+        <div else>
+          \${else}
+        </div>
+      </div>
+    </template>`)
+  .addData('15').setValue(
+    `<template>
+      <div repeat.for="item of items">
+        <div with.bind="item">
+          <div if.bind="display">
+            \${if}
+          </div>
+          <div else>
+            \${else}
+          </div>
+        </div>
+      </div>
+    </template>`)
 
 parentSuite.addDataSlot('g') // Items (initial)
   .addData('01').setFactory(c => [[{if: 1,   else: 2},   {if: 3,   else: 4}                                              ], '13',   '24'])

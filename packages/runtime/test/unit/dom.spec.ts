@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
 import { expect } from 'chai';
-import { DOM, INode, FragmentNodeSequence, NodeSequenceFactory } from '../../src/index';
+import { DOM, INode, FragmentNodeSequence, NodeSequenceFactory, NodeSequence } from '../../src/index';
 
 function wrap(inner: string, tag: string): string {
   if (tag.length === 0) {
@@ -47,20 +47,24 @@ describe('NodeSequenceFactory', () => {
           it(`should create a factory that returns the correct markup for "${markup}"`, () => {
             const factory = NodeSequenceFactory.createFor(markup);
             const view = factory.createNodeSequence();
-            const fragment = <DocumentFragment>view['fragment'];
-            let parsedMarkup = '';
-            const childCount = fragment.childNodes.length;
-            let i = 0;
-            while (i < childCount) {
-              const child = fragment.childNodes.item(i);
-              if (child['outerHTML']) {
-                parsedMarkup += child['outerHTML'];
-              } else {
-                parsedMarkup += child['textContent'];
+            if (markup.length === 0) {
+              expect(view).to.equal(NodeSequence.empty);
+            } else {
+              const fragment = <DocumentFragment>view['fragment'];
+              let parsedMarkup = '';
+              const childCount = fragment.childNodes.length;
+              let i = 0;
+              while (i < childCount) {
+                const child = fragment.childNodes.item(i);
+                if (child['outerHTML']) {
+                  parsedMarkup += child['outerHTML'];
+                } else {
+                  parsedMarkup += child['textContent'];
+                }
+                i++;
               }
-              i++;
+              expect(parsedMarkup).to.equal(markup);
             }
-            expect(parsedMarkup).to.equal(markup);
           });
 
           it(`should create a factory that always returns a view with a different fragment instance for "${markup}"`, () => {
@@ -69,8 +73,14 @@ describe('NodeSequenceFactory', () => {
             const fragment2 = factory.createNodeSequence()['fragment'];
             const fragment3 = factory.createNodeSequence()['fragment'];
 
-            if (fragment1 === fragment2 || fragment1 === fragment3 || fragment2 === fragment3) {
-              throw new Error('Expected all fragments to be different instances');
+            if (markup.length === 0) {
+              if (!(fragment1 === undefined && fragment2 === undefined && fragment3 === undefined)) {
+                throw new Error('Expected all fragments to be undefined');
+              }
+            } else {
+              if (fragment1 === fragment2 || fragment1 === fragment3 || fragment2 === fragment3) {
+                throw new Error('Expected all fragments to be different instances');
+              }
             }
           });
         }
@@ -602,13 +612,16 @@ describe('DOM', () => {
       return {node, childNode};
     }
 
-    it('should replace the provided node with a comment node', () => {
+    it('should replace the provided node with two comment nodes', () => {
       const {node, childNode} = createTestNodes();
       const location = DOM.convertToRenderLocation(childNode);
       expect(location instanceof Comment).to.be.true;
+      expect(location.$start instanceof Comment).to.be.true;
       expect(childNode === location).to.be.false;
-      expect(node.childNodes.length).to.equal(1);
-      expect(node.firstChild === location).to.be.true;
+      expect(node.childNodes.length).to.equal(2);
+      expect(node.firstChild === location).to.be.false;
+      expect(node.firstChild === location.$start).to.be.true;
+      expect(node.lastChild === location).to.be.true;
     });
   });
 

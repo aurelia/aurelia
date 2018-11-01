@@ -12,7 +12,7 @@ import {
 import { BindingMode } from '../binding/binding-mode';
 import { IAttributeDefinition } from '../definitions';
 import { INode } from '../dom';
-import { IAttach, IBindScope, ILifecycleHooks, ILifecycleState, LifecycleHooks, LifecycleState, Lifecycle } from '../lifecycle';
+import { IAttach, IBindScope, ILifecycleHooks, IState, LifecycleHooks, State, Lifecycle } from '../lifecycle';
 import { BindingFlags, IScope } from '../observation';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IRenderable, IRenderingEngine } from './rendering-engine';
@@ -23,7 +23,7 @@ export interface ICustomAttributeType extends
   Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
 
 type OptionalLifecycleHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
-type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & ILifecycleState;
+type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & IState;
 
 export interface ICustomAttribute extends IBindScope, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {
   $hydrate(renderingEngine: IRenderingEngine): void;
@@ -102,7 +102,7 @@ function register(this: ICustomAttributeType, container: IContainer): void {
 function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
   const Type = this.constructor as ICustomAttributeType;
 
-  this.$state = LifecycleState.none;
+  this.$state = State.none;
   this.$scope = null;
 
   renderingEngine.applyRuntimeBehavior(Type, this);
@@ -115,7 +115,7 @@ function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: 
 function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope): void {
   flags |= BindingFlags.fromBind;
 
-  if (this.$state & LifecycleState.isBound) {
+  if (this.$state & State.isBound) {
     if (this.$scope === scope) {
       return;
     }
@@ -123,7 +123,7 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
     this.$unbind(flags);
   }
   // add isBinding flag
-  this.$state |= LifecycleState.isBinding;
+  this.$state |= State.isBinding;
 
   const hooks = this.$behavior.hooks;
 
@@ -138,8 +138,8 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
   }
 
   // add isBound flag and remove isBinding flag
-  this.$state |= LifecycleState.isBound;
-  this.$state &= ~LifecycleState.isBinding;
+  this.$state |= State.isBound;
+  this.$state &= ~State.isBinding;
 
   if (hooks & LifecycleHooks.hasBound) {
     Lifecycle.unqueueBound();
@@ -147,9 +147,9 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
 }
 
 function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
-  if (this.$state & LifecycleState.isBound) {
+  if (this.$state & State.isBound) {
     // add isUnbinding flag
-    this.$state |= LifecycleState.isUnbinding;
+    this.$state |= State.isUnbinding;
 
     const hooks = this.$behavior.hooks;
     flags |= BindingFlags.fromUnbind;
@@ -163,7 +163,7 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
     }
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
+    this.$state &= ~(State.isBound | State.isUnbinding);
 
     if (hooks & LifecycleHooks.hasUnbound) {
       Lifecycle.unqueueUnbound();
@@ -172,11 +172,11 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
 }
 
 function attach(this: IInternalCustomAttributeImplementation): void {
-  if (this.$state & LifecycleState.isAttached) {
+  if (this.$state & State.isAttached) {
     return;
   }
   // add isAttaching flag
-  this.$state |= LifecycleState.isAttaching;
+  this.$state |= State.isAttaching;
 
   const hooks = this.$behavior.hooks;
 
@@ -185,8 +185,8 @@ function attach(this: IInternalCustomAttributeImplementation): void {
   }
 
   // add isAttached flag, remove isAttaching flag
-  this.$state |= LifecycleState.isAttached;
-  this.$state &= ~LifecycleState.isAttaching;
+  this.$state |= State.isAttached;
+  this.$state &= ~State.isAttaching;
 
   if (hooks & LifecycleHooks.hasAttached) {
     Lifecycle.queueAttachedCallback(<Required<typeof this>>this);
@@ -194,9 +194,9 @@ function attach(this: IInternalCustomAttributeImplementation): void {
 }
 
 function detach(this: IInternalCustomAttributeImplementation): void {
-  if (this.$state & LifecycleState.isAttached) {
+  if (this.$state & State.isAttached) {
     // add isDetaching flag
-    this.$state |= LifecycleState.isDetaching;
+    this.$state |= State.isDetaching;
 
     const hooks = this.$behavior.hooks;
     if (hooks & LifecycleHooks.hasDetaching) {
@@ -204,7 +204,7 @@ function detach(this: IInternalCustomAttributeImplementation): void {
     }
 
     // remove isAttached and isDetaching flags
-    this.$state &= ~(LifecycleState.isAttached | LifecycleState.isDetaching);
+    this.$state &= ~(State.isAttached | State.isDetaching);
 
     if (hooks & LifecycleHooks.hasDetached) {
       Lifecycle.queueDetachedCallback(<Required<typeof this>>this);

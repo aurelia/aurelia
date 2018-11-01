@@ -12,7 +12,7 @@ import {
 import { Scope } from '../binding/binding-context';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IBindSelf, ILifecycleHooks, ILifecycleState, IMountable, LifecycleHooks, LifecycleState, Lifecycle } from '../lifecycle';
+import { IAttach, IBindSelf, ILifecycleHooks, IState, IMountable, LifecycleHooks, State, Lifecycle } from '../lifecycle';
 import { BindingFlags } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { buildTemplateDefinition } from './definition-builder';
@@ -25,7 +25,7 @@ export interface ICustomElementType extends
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
-export interface ICustomElement extends ILifecycleHooks, ILifecycleRender, IBindSelf, IAttach, IMountable, ILifecycleState, IRenderable {
+export interface ICustomElement extends ILifecycleHooks, ILifecycleRender, IBindSelf, IAttach, IMountable, IState, IRenderable {
   readonly $projector: IElementProjector;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
@@ -153,7 +153,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   this.$attachableHead = this.$attachableTail = null;
   this.$prevAttach = this.$nextAttach = null;
 
-  this.$state = LifecycleState.needsMount;
+  this.$state = State.needsMount;
   this.$scope = Scope.create(this, null);
   // Defining the property ensures the correct runtime behavior is applied - we can't actually get the projector here because the ContainerlessProjector
   // needs the element to be rendered first. It seems like a decent requirement for rendering to be done before either the ChildrenObserver or
@@ -181,11 +181,11 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
 }
 
 function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
-  if (this.$state & LifecycleState.isBound) {
+  if (this.$state & State.isBound) {
     return;
   }
   // add isBinding flag
-  this.$state |= LifecycleState.isBinding;
+  this.$state |= State.isBinding;
 
   const hooks = this.$behavior.hooks;
   flags |= BindingFlags.fromBind;
@@ -206,8 +206,8 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   }
 
   // add isBound flag and remove isBinding flag
-  this.$state |= LifecycleState.isBound;
-  this.$state &= ~LifecycleState.isBinding;
+  this.$state |= State.isBound;
+  this.$state &= ~State.isBinding;
 
   if (hooks & LifecycleHooks.hasBound) {
     Lifecycle.unqueueBound();
@@ -215,9 +215,9 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
 }
 
 function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
-  if (this.$state & LifecycleState.isBound) {
+  if (this.$state & State.isBound) {
     // add isUnbinding flag
-    this.$state |= LifecycleState.isUnbinding;
+    this.$state |= State.isUnbinding;
 
     const hooks = this.$behavior.hooks;
     flags |= BindingFlags.fromUnbind;
@@ -237,7 +237,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
     }
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
+    this.$state &= ~(State.isBound | State.isUnbinding);
 
     if (hooks & LifecycleHooks.hasUnbound) {
       Lifecycle.unqueueUnbound();
@@ -246,11 +246,11 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
 }
 
 function attach(this: IInternalCustomElementImplementation): void {
-  if (this.$state & LifecycleState.isAttached) {
+  if (this.$state & State.isAttached) {
     return;
   }
   // add isAttaching flag
-  this.$state |= LifecycleState.isAttaching;
+  this.$state |= State.isAttaching;
 
   const hooks = this.$behavior.hooks;
 
@@ -266,8 +266,8 @@ function attach(this: IInternalCustomElementImplementation): void {
 
   Lifecycle.queueMount(this);
   // add isAttached flag, remove isAttaching flag
-  this.$state |= LifecycleState.isAttached;
-  this.$state &= ~LifecycleState.isAttaching;
+  this.$state |= State.isAttached;
+  this.$state &= ~State.isAttaching;
 
   if (hooks & LifecycleHooks.hasAttached) {
     Lifecycle.queueAttachedCallback(<Required<typeof this>>this);
@@ -275,9 +275,9 @@ function attach(this: IInternalCustomElementImplementation): void {
 }
 
 function detach(this: IInternalCustomElementImplementation): void {
-  if (this.$state & LifecycleState.isAttached) {
+  if (this.$state & State.isAttached) {
     // add isDetaching flag
-    this.$state |= LifecycleState.isDetaching;
+    this.$state |= State.isDetaching;
 
     const hooks = this.$behavior.hooks;
     if (hooks & LifecycleHooks.hasDetaching) {
@@ -293,7 +293,7 @@ function detach(this: IInternalCustomElementImplementation): void {
     }
 
     // remove isAttached and isDetaching flags
-    this.$state &= ~(LifecycleState.isAttached | LifecycleState.isDetaching);
+    this.$state &= ~(State.isAttached | State.isDetaching);
 
     if (hooks & LifecycleHooks.hasDetached) {
       Lifecycle.queueDetachedCallback(<Required<typeof this>>this);
@@ -423,14 +423,14 @@ export class ContainerlessProjector implements IElementProjector {
   }
 
   public project(nodes: INodeSequence): void {
-    if (this.$customElement.$state & LifecycleState.needsMount) {
-      this.$customElement.$state &= ~LifecycleState.needsMount;
+    if (this.$customElement.$state & State.needsMount) {
+      this.$customElement.$state &= ~State.needsMount;
       nodes.insertBefore(this.host);
     }
   }
 
   public take(nodes: INodeSequence): void {
-    this.$customElement.$state |= LifecycleState.needsMount;
+    this.$customElement.$state |= State.needsMount;
     nodes.remove();
   }
 }

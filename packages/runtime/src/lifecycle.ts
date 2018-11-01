@@ -2,7 +2,7 @@ import { Omit } from '@aurelia/kernel';
 import { INode } from './dom';
 import { BindingFlags, IScope, IChangeTracker } from './observation';
 
-export const enum LifecycleState {
+export const enum State {
   none                  = 0b00000000000,
   isBinding             = 0b00000000001,
   isBound               = 0b00000000010,
@@ -246,15 +246,15 @@ export interface ILifecycleHooks extends
   ILifecycleDetached,
   ILifecycleCaching { }
 
-export interface ILifecycleState {
-  $state: LifecycleState;
+export interface IState {
+  $state: State;
 }
 
 export interface ILifecycleCache {
   $cache(): void;
 }
 
-export interface ICachable extends ILifecycleCache, ILifecycleState { }
+export interface ICachable extends ILifecycleCache, IState { }
 
 export interface ILifecycleAttach {
   $attach(): void;
@@ -290,7 +290,7 @@ export interface ILifecycleUnmount {
    */
   $unmount(): boolean | void;
 }
-export interface IMountable extends ILifecycleMount, ILifecycleUnmount, ILifecycleState { }
+export interface IMountable extends ILifecycleMount, ILifecycleUnmount, IState { }
 
 export interface ILifecycleUnbind {
   $unbind(flags: BindingFlags): void;
@@ -308,7 +308,7 @@ export interface ILifecycleBindScope {
   $bind(flags: BindingFlags, scope: IScope): void;
 }
 
-export interface IBind extends ILifecycleBind, ILifecycleUnbind, ILifecycleState {
+export interface IBind extends ILifecycleBind, ILifecycleUnbind, IState {
   /*@internal*/$nextBind: IBindSelf | IBindScope;
   /*@internal*/$prevBind: IBindSelf | IBindScope;
 }

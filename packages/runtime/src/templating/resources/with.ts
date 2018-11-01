@@ -1,7 +1,7 @@
 import { inject } from '@aurelia/kernel';
 import { Scope } from '../../binding/binding-context';
 import { IRenderLocation } from '../../dom';
-import { LifecycleState } from '../../lifecycle';
+import { State } from '../../lifecycle';
 import { BindingFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
@@ -21,7 +21,7 @@ export class With {
   }
 
   public valueChanged(this: With): void {
-    if (this.$state & LifecycleState.isBound) {
+    if (this.$state & State.isBound) {
       this.bindChild(BindingFlags.fromBindableHandler);
     }
   }

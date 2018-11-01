@@ -5,7 +5,7 @@ import { BindingContext, Scope } from '../../binding/binding-context';
 import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
-import { Lifecycle, LifecycleState } from '../../lifecycle';
+import { Lifecycle, State } from '../../lifecycle';
 import { BindingFlags, CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
@@ -99,7 +99,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
   private processViews(indexMap: number[] | null, flags: BindingFlags): void {
     const views = this.views;
-    if (this.$state & LifecycleState.isBound) {
+    if (this.$state & State.isBound) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
       const newLength = forOf.count(items);
@@ -147,7 +147,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
       }
     }
 
-    if (this.$state & LifecycleState.isAttached) {
+    if (this.$state & State.isAttached) {
       const { location } = this;
       Lifecycle.beginAttach();
       if (indexMap === null) {
@@ -171,7 +171,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
   private checkCollectionObserver(): void {
     const oldObserver = this.observer;
-    if (this.$state & (LifecycleState.isBound | LifecycleState.isBinding)) {
+    if (this.$state & (State.isBound | State.isBinding)) {
       const newObserver = this.observer = getCollectionObserver(this.items);
       if (oldObserver !== newObserver) {
         if (oldObserver) {

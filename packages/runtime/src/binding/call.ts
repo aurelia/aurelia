@@ -1,6 +1,6 @@
 import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { IBindScope, LifecycleState } from '../lifecycle';
+import { IBindScope, State } from '../lifecycle';
 import { BindingFlags, IAccessor, IScope } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IConnectableBinding } from './connectable';
@@ -11,7 +11,7 @@ export class Call {
   public $nextBind: IBindScope = null;
   public $prevBind: IBindScope = null;
 
-  public $state: LifecycleState = LifecycleState.none;
+  public $state: State = State.none;
   public $scope: IScope;
 
   public targetObserver: IAccessor;
@@ -38,7 +38,7 @@ export class Call {
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$state & LifecycleState.isBound) {
+    if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
       }
@@ -46,7 +46,7 @@ export class Call {
       this.$unbind(flags | BindingFlags.fromBind);
     }
     // add isBinding flag
-    this.$state |= LifecycleState.isBinding;
+    this.$state |= State.isBinding;
 
     this.$scope = scope;
 
@@ -58,16 +58,16 @@ export class Call {
     this.targetObserver.setValue($args => this.callSource($args), flags);
 
     // add isBound flag and remove isBinding flag
-    this.$state |= LifecycleState.isBound;
-    this.$state &= ~LifecycleState.isBinding;
+    this.$state |= State.isBound;
+    this.$state &= ~State.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (!(this.$state & LifecycleState.isBound)) {
+    if (!(this.$state & State.isBound)) {
       return;
     }
     // add isUnbinding flag
-    this.$state |= LifecycleState.isUnbinding;
+    this.$state |= State.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
@@ -78,7 +78,7 @@ export class Call {
     this.targetObserver.setValue(null, flags);
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
+    this.$state &= ~(State.isBound | State.isUnbinding);
   }
   // tslint:disable:no-empty no-any
   public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }

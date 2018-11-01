@@ -4,7 +4,7 @@ import { IExpressionParser } from '../binding/expression-parser';
 import { IObserverLocator } from '../binding/observer-locator';
 import { IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
-import { IAttach, IBindScope, ILifecycleState } from '../lifecycle';
+import { IAttach, IBindScope, IState } from '../lifecycle';
 import { IScope } from '../observation';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
@@ -374,7 +374,7 @@ export interface IAttachables {
 /**
  * An object containing the necessary information to render something for display.
  */
-export interface IRenderable extends IBindables, IAttachables, ILifecycleState {
+export interface IRenderable extends IBindables, IAttachables, IState {
 
   /**
    * The (dependency) context of this instance.

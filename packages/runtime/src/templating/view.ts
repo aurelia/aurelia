@@ -1,6 +1,6 @@
 import { DI, Reporter } from '@aurelia/kernel';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IBindScope, IMountable, LifecycleState, Lifecycle } from '../lifecycle';
+import { IAttach, IBindScope, IMountable, State, Lifecycle } from '../lifecycle';
 import { BindingFlags, IScope } from '../observation';
 import { IRenderable, IRenderContext, ITemplate } from './rendering-engine';
 
@@ -49,7 +49,7 @@ export class View implements IView {
   // Pre-setting to null for performance (see RuntimeBehavior.create())
   public $nextMount: IMountable = null;
 
-  public $state: LifecycleState = LifecycleState.none;
+  public $state: State = State.none;
   public $scope: IScope = null;
   public $nodes: INodeSequence;
   public $context: IRenderContext;
@@ -65,9 +65,9 @@ export class View implements IView {
     this.location = location;
     const lastChild = this.$nodes.lastChild;
     if (lastChild && lastChild.nextSibling === location) {
-      this.$state &= ~LifecycleState.needsMount;
+      this.$state &= ~State.needsMount;
     } else {
-      this.$state |= LifecycleState.needsMount;
+      this.$state |= State.needsMount;
     }
   }
 
@@ -78,7 +78,7 @@ export class View implements IView {
 
   public release(): boolean {
     this.isFree = true;
-    if (this.$state & LifecycleState.isAttached) {
+    if (this.$state & State.isAttached) {
       return this.cache.canReturnToCache(this);
     }
 
@@ -88,7 +88,7 @@ export class View implements IView {
   public $bind(flags: BindingFlags, scope: IScope): void {
     flags |= BindingFlags.fromBind;
 
-    if (this.$state & LifecycleState.isBound) {
+    if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
       }
@@ -96,7 +96,7 @@ export class View implements IView {
       this.$unbind(flags);
     }
     // add isBinding flag
-    this.$state |= LifecycleState.isBinding;
+    this.$state |= State.isBinding;
 
     this.$scope = scope;
     let current = this.$bindableHead;
@@ -106,14 +106,14 @@ export class View implements IView {
     }
 
     // add isBound flag and remove isBinding flag
-    this.$state |= LifecycleState.isBound;
-    this.$state &= ~LifecycleState.isBinding;
+    this.$state |= State.isBound;
+    this.$state &= ~State.isBinding;
   }
 
   public $unbind(flags: BindingFlags): void {
-    if (this.$state & LifecycleState.isBound) {
+    if (this.$state & State.isBound) {
       // add isUnbinding flag
-      this.$state |= LifecycleState.isUnbinding;
+      this.$state |= State.isUnbinding;
 
       flags |= BindingFlags.fromUnbind;
 
@@ -124,17 +124,17 @@ export class View implements IView {
       }
 
       // remove isBound and isUnbinding flags
-      this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
+      this.$state &= ~(State.isBound | State.isUnbinding);
       this.$scope = null;
     }
   }
 
   public $attach(): void {
-    if (this.$state & LifecycleState.isAttached) {
+    if (this.$state & State.isAttached) {
       return;
     }
     // add isAttaching flag
-    this.$state |= LifecycleState.isAttaching;
+    this.$state |= State.isAttaching;
 
     let current = this.$attachableHead;
     while (current !== null) {
@@ -142,19 +142,19 @@ export class View implements IView {
       current = current.$nextAttach;
     }
 
-    if (this.$state & LifecycleState.needsMount) {
+    if (this.$state & State.needsMount) {
       Lifecycle.queueMount(this);
     }
 
     // add isAttached flag, remove isAttaching flag
-    this.$state |= LifecycleState.isAttached;
-    this.$state &= ~LifecycleState.isAttaching;
+    this.$state |= State.isAttached;
+    this.$state &= ~State.isAttaching;
   }
 
   public $detach(): void {
-    if (this.$state & LifecycleState.isAttached) {
+    if (this.$state & State.isAttached) {
       // add isDetaching flag
-      this.$state |= LifecycleState.isDetaching;
+      this.$state |= State.isDetaching;
 
       Lifecycle.queueUnmount(this);
 
@@ -165,23 +165,23 @@ export class View implements IView {
       }
 
       // remove isAttached and isDetaching flags
-      this.$state &= ~(LifecycleState.isAttached | LifecycleState.isDetaching);
+      this.$state &= ~(State.isAttached | State.isDetaching);
     }
   }
 
   public $mount(): void {
-    this.$state &= ~LifecycleState.needsMount;
+    this.$state &= ~State.needsMount;
     this.$nodes.insertBefore(this.location);
   }
 
   public $unmount(): boolean {
-    this.$state |= LifecycleState.needsMount;
+    this.$state |= State.needsMount;
     this.$nodes.remove();
 
     if (this.isFree) {
       this.isFree = false;
       if (this.cache.tryReturnToCache(this)) {
-        this.$state |= LifecycleState.isCached;
+        this.$state |= State.isCached;
         return true;
       }
     }
@@ -249,7 +249,7 @@ export class ViewFactory implements IViewFactory {
 
     if (cache !== null && cache.length > 0) {
       view = cache.pop();
-      view.$state &= ~LifecycleState.isCached;
+      view.$state &= ~State.isCached;
       return view;
     }
 
@@ -263,7 +263,7 @@ export class ViewFactory implements IViewFactory {
 }
 
 function lockedBind(this: View, flags: BindingFlags): void {
-  if (this.$state & LifecycleState.isBound) {
+  if (this.$state & State.isBound) {
     return;
   }
 
@@ -275,5 +275,5 @@ function lockedBind(this: View, flags: BindingFlags): void {
     current = current.$nextBind;
   }
 
-  this.$state |= LifecycleState.isBound;
+  this.$state |= State.isBound;
 }

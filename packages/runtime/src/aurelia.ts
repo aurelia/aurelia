@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
-import { Lifecycle, LifecycleFlags } from './lifecycle';
+import { Lifecycle } from './lifecycle';
 import { BindingFlags, IChangeSet } from './observation';
 import { ICustomElement } from './templating/custom-element';
 import { IRenderingEngine } from './templating/rendering-engine';
@@ -43,7 +43,7 @@ export class Aurelia {
       component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
 
       const cs = this.container.get(IChangeSet);
-      const lifecycle = Lifecycle.beginAttach(cs, config.host, LifecycleFlags.none);
+      const lifecycle = Lifecycle.beginAttach(cs, config.host);
       lifecycle.attach(component);
       lifecycle.endAttach();
     };
@@ -52,21 +52,14 @@ export class Aurelia {
 
     this.stopTasks.push(() => {
       const cs = this.container.get(IChangeSet);
-      const lifecycle = Lifecycle.beginDetach(cs, LifecycleFlags.noTasks);
+      const lifecycle = Lifecycle.beginDetach(cs);
       lifecycle.detach(component);
-      const task = lifecycle.endDetach();
+      lifecycle.endDetach();
 
       const flags = BindingFlags.fromStopTask | BindingFlags.fromUnbind;
 
-      if (task.done) {
-        component.$unbind(flags);
-        host.$au = null;
-      } else {
-        task.wait().then(() => {
-          component.$unbind(flags);
-          host.$au = null;
-        });
-      }
+      component.$unbind(flags);
+      host.$au = null;
     });
 
     if (this.isStarted) {

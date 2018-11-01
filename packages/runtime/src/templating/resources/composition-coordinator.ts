@@ -1,15 +1,13 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { INode } from '../../dom';
-import { AggregateLifecycleTask, ILifecycleTask, Lifecycle, LifecycleFlags, ILifecycle } from '../../lifecycle';
+import { Lifecycle, ILifecycle } from '../../lifecycle';
 import { BindingFlags, IChangeSet, IScope } from '../../observation';
 import { IView } from '../view';
 
 export class CompositionCoordinator {
   public onSwapComplete: () => void = PLATFORM.noop;
 
-  private queue: (IView | PromiseSwap)[] = null;
   private currentView: IView = null;
-  private swapTask: ILifecycleTask = Lifecycle.done;
   private encapsulationSource: INode;
   private scope: IScope;
   private isBound: boolean = false;
@@ -17,25 +15,8 @@ export class CompositionCoordinator {
 
   constructor(public readonly changeSet: IChangeSet) {}
 
-  public compose(value: IView | Promise<IView>): void {
-    if (this.swapTask.done) {
-      if (value instanceof Promise) {
-        this.enqueue(new PromiseSwap(this, value));
-        this.processNext();
-      } else {
-        this.swap(value);
-      }
-    } else {
-      if (value instanceof Promise) {
-        this.enqueue(new PromiseSwap(this, value));
-      } else {
-        this.enqueue(value);
-      }
-
-      if (this.swapTask.canCancel()) {
-        this.swapTask.cancel();
-      }
-    }
+  public compose(value: IView): void {
+    this.swap(value);
   }
 
   public binding(flags: BindingFlags, scope: IScope): void {
@@ -76,137 +57,34 @@ export class CompositionCoordinator {
     this.currentView = null;
   }
 
-  private enqueue(view: IView | PromiseSwap): void {
-    if (this.queue === null) {
-      this.queue = [];
-    }
-
-    this.queue.push(view);
-  }
 
   private swap(view: IView): void {
     if (this.currentView === view) {
       return;
     }
 
-    const swapTask = new AggregateLifecycleTask();
+    if (this.currentView !== null) {
+      Lifecycle.beginDetach(this.changeSet)
+        .detach(this.currentView)
+        .endDetach();
 
-    swapTask.addTask(
-      this.detachAndUnbindCurrentView(
-        this.isAttached
-          ? LifecycleFlags.none
-          : LifecycleFlags.noTasks
-      )
-    );
+      this.currentView.$unbind(BindingFlags.fromUnbind);
+    }
 
     this.currentView = view;
 
-    swapTask.addTask(
-      this.bindAndAttachCurrentView()
-    );
-
-    if (swapTask.done) {
-      this.swapTask = Lifecycle.done;
-      this.onSwapComplete();
-    } else {
-      this.swapTask = swapTask;
-      this.swapTask.wait().then(() => {
-        this.onSwapComplete();
-        this.processNext();
-      });
-    }
-  }
-
-  private processNext(): void {
-    if (this.queue !== null && this.queue.length > 0) {
-      const next = this.queue.pop();
-      this.queue.length = 0;
-
-      if (PromiseSwap.is(next)) {
-        this.swapTask = next.start();
-      } else {
-        this.swap(next);
+    if (this.currentView !== null) {
+      if (this.isBound) {
+        this.currentView.$bind(BindingFlags.fromBindableHandler, this.scope);
       }
-    } else {
-      this.swapTask = Lifecycle.done;
-    }
-  }
 
-  private detachAndUnbindCurrentView(detachFlags: LifecycleFlags): ILifecycleTask {
-    if (this.currentView === null) {
-      return Lifecycle.done;
+      if (this.isAttached) {
+        Lifecycle.beginAttach(this.changeSet, this.encapsulationSource)
+          .attach(this.currentView)
+          .endAttach();
+      }
     }
 
-    return Lifecycle.beginDetach(this.changeSet, detachFlags | LifecycleFlags.unbindAfterDetached)
-      .detach(this.currentView)
-      .endDetach();
-  }
-
-  private bindAndAttachCurrentView(): ILifecycleTask {
-    if (this.currentView === null) {
-      return Lifecycle.done;
-    }
-
-    if (this.isBound) {
-      this.currentView.$bind(BindingFlags.fromBindableHandler, this.scope);
-    }
-
-    if (this.isAttached) {
-      return Lifecycle.beginAttach(this.changeSet, this.encapsulationSource, LifecycleFlags.none)
-        .attach(this.currentView)
-        .endAttach();
-    }
-
-    return Lifecycle.done;
-  }
-}
-
-class PromiseSwap implements ILifecycleTask {
-  public done: boolean = false;
-  private isCancelled: boolean = false;
-
-  constructor(
-    private coordinator: CompositionCoordinator,
-    private promise: Promise<IView>
-  ) {}
-
-  public static is(object: object): object is PromiseSwap {
-    return 'start' in object;
-  }
-
-  public start(): ILifecycleTask {
-    if (this.isCancelled) {
-      return Lifecycle.done;
-    }
-
-    this.promise = this.promise.then(x => {
-      this.onResolve(x);
-      return x;
-    });
-
-    return this;
-  }
-
-  public canCancel(): boolean {
-    return !this.done;
-  }
-
-  public cancel(): void {
-    if (this.canCancel()) {
-      this.isCancelled = true;
-    }
-  }
-
-  public wait(): Promise<void> {
-    return this.promise as any;
-  }
-
-  private onResolve(value: any): void {
-    if (this.isCancelled) {
-      return;
-    }
-
-    this.done = true;
-    this.coordinator.compose(value);
+    this.onSwapComplete();
   }
 }

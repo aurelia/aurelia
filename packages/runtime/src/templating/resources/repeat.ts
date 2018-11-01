@@ -5,7 +5,7 @@ import { BindingContext, Scope } from '../../binding/binding-context';
 import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
-import { ILifecycle, Lifecycle, LifecycleFlags, LifecycleState } from '../../lifecycle';
+import { ILifecycle, Lifecycle, LifecycleState } from '../../lifecycle';
 import { BindingFlags, CollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
@@ -106,12 +106,15 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           views[i] = factory.create();
         }
       } else if (newLength < oldLength) {
-        const lifecycle = Lifecycle.beginDetach(this.changeSet, LifecycleFlags.unbindAfterDetached);
+        const lifecycle = Lifecycle.beginDetach(this.changeSet);
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
           view.release();
           lifecycle.detach(view);
         }
         lifecycle.endDetach();
+        for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+          view.$unbind(flags | BindingFlags.fromUnbind);
+        }
         views.length = newLength;
         if (newLength === 0) {
           return;
@@ -143,7 +146,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
     if (this.$state & LifecycleState.isAttached) {
       const { location } = this;
-      const lifecycle = Lifecycle.beginAttach(this.changeSet, this.encapsulationSource, LifecycleFlags.none);
+      const lifecycle = Lifecycle.beginAttach(this.changeSet, this.encapsulationSource);
       if (indexMap === null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           const view = views[i];

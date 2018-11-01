@@ -14,12 +14,6 @@ export const enum LifecycleState {
   needsMount            = 0b00010000000
 }
 
-export enum LifecycleFlags {
-  none                = 0b001,
-  noTasks             = 0b010,
-  unbindAfterDetached = 0b100,
-}
-
 export const enum LifecycleHooks {
   none                   = 0b000000000001,
   hasCreated             = 0b000000000010,
@@ -323,98 +317,20 @@ export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope { 
 
 export interface IBindSelf extends Omit<IBind, '$bind'>, ILifecycleBindSelf { }
 
-export interface ILifecycleTask {
-  readonly done: boolean;
-  canCancel(): boolean;
-  cancel(): void;
-  wait(): Promise<void>;
-}
-
 export interface ILifecycleController {
   detach(requestor: IAttach): ILifecycleController;
-  endDetach(): ILifecycleTask;
+  endDetach(): void;
   attach(requestor: IAttach): ILifecycleController;
-  endAttach(): ILifecycleTask;
+  endAttach(): void;
 }
 
 export interface ILifecycle {
-  readonly flags: LifecycleFlags;
-  registerTask(task: ILifecycleTask): void;
   queueUnmount(requestor: ILifecycleUnmount): void;
   queueDetachedCallback(requestor: ILifecycleDetached): void;
   queueMount(requestor: ILifecycleMount): void;
   queueAttachedCallback(requestor: ILifecycleAttached): void;
 }
 
-export class AggregateLifecycleTask implements ILifecycleTask {
-  public done: boolean = true;
-
-  /*@internal*/
-  public owner: LifecycleController = null;
-
-  private tasks: ILifecycleTask[] = [];
-  private waiter: Promise<void> = null;
-  private resolve: () => void = null;
-
-  public addTask(task: ILifecycleTask): void {
-    if (!task.done) {
-      this.done = false;
-      this.tasks.push(task);
-      task.wait().then(() => this.tryComplete());
-    }
-  }
-
-  public canCancel(): boolean {
-    if (this.done) {
-      return false;
-    }
-
-    return this.tasks.every(x => x.canCancel());
-  }
-
-  public cancel(): void {
-    if (this.canCancel()) {
-      this.tasks.forEach(x => x.cancel());
-      this.done = false;
-    }
-  }
-
-  public wait(): Promise<void> {
-    if (this.waiter === null) {
-      if (this.done) {
-        this.waiter = Promise.resolve();
-      } else {
-        // tslint:disable-next-line:promise-must-complete
-        this.waiter = new Promise((resolve) => this.resolve = resolve);
-      }
-    }
-
-    return this.waiter;
-  }
-
-  private tryComplete(): void {
-    if (this.done) {
-      return;
-    }
-
-    if (this.tasks.every(x => x.done)) {
-      this.complete(true);
-    }
-  }
-
-  private complete(notCancelled: boolean): void {
-    this.done = true;
-
-    if (notCancelled && this.owner !== null) {
-      this.owner.processAllDetach();
-      this.owner.processAllAttach();
-    }
-
-    if (this.resolve !== null) {
-      this.resolve();
-    }
-  }
-}
 
 /*@internal*/
 export class LifecycleController implements ILifecycleController {
@@ -433,16 +349,12 @@ export class LifecycleController implements ILifecycleController {
   public detachedTail: ILifecycleDetached;
   public unmountHead: ILifecycleUnmount;
   public unmountTail: ILifecycleUnmount;
-  public allowUnmount: boolean;
 
   public readonly changeSet: IChangeSet;
-  public readonly flags: LifecycleFlags;
   public readonly encapsulationSource: INode;
-  public task: AggregateLifecycleTask;
 
   constructor(
     changeSet: IChangeSet,
-    flags: LifecycleFlags,
     encapsulationSource?: INode
   ) {
     this.$nextMount = null;
@@ -461,11 +373,8 @@ export class LifecycleController implements ILifecycleController {
     this.unmountHead = null;
     this.unmountTail = null;
 
-    this.allowUnmount = true;
     this.changeSet = changeSet;
-    this.flags = flags;
     this.encapsulationSource = encapsulationSource === undefined ? null : encapsulationSource;
-    this.task = null;
   }
 
   public attach(requestor: IAttach): ILifecycleController {
@@ -491,86 +400,11 @@ export class LifecycleController implements ILifecycleController {
     this.attachedTail = requestor;
   }
 
-  public registerTask(task: ILifecycleTask): void {
-    if (this.task === null) {
-      this.task = new AggregateLifecycleTask();
-    }
-    this.task.addTask(task);
-  }
-
-  public endAttach(): ILifecycleTask {
-    if (this.task !== null && !this.task.done) {
-      this.task.owner = this;
-      return this.task;
-    }
-
-    this.processAllAttach();
-
-    return Lifecycle.done;
-  }
-
-  /*@internal*/
-  public processAllAttach(): void {
+  public endAttach(): void {
     Lifecycle.attach = this;
     this.changeSet.flushChanges();
     Lifecycle.attach = null;
-    this.processMounts();
-    this.processAttachedCallbacks();
-  }
 
-  public detach(requestor: IAttach): ILifecycleController {
-    this.allowUnmount = true;
-
-    if (requestor.$state & LifecycleState.isAttached) {
-      requestor.$detach(this);
-    } else if (isUnmountable(requestor)) {
-      this.queueUnmount(requestor);
-    }
-
-    return this;
-  }
-
-  public queueUnmount(requestor: ILifecycleUnmount): void {
-    if (this.allowUnmount) {
-      if (this.unmountHead === null) {
-        this.unmountHead = requestor;
-      } else {
-        this.unmountTail.$nextUnmount = requestor;
-      }
-      this.unmountTail = requestor;
-      this.allowUnmount = false; // only remove roots
-    }
-  }
-
-  public queueDetachedCallback(requestor: ILifecycleDetached): void {
-    if (this.detachedHead === null) {
-      this.detachedHead = requestor;
-    } else {
-      this.detachedTail.$nextDetached = requestor;
-    }
-    this.detachedTail = requestor;
-  }
-
-  public endDetach(): ILifecycleTask {
-    if (this.task !== null && !this.task.done) {
-      this.task.owner = this;
-      return this.task;
-    }
-
-    this.processAllDetach();
-
-    return Lifecycle.done;
-  }
-
-  public processAllDetach(): void {
-    Lifecycle.detach = this;
-    this.changeSet.flushChanges();
-    Lifecycle.detach = null;
-    this.processUnmounts();
-    this.processDetachedCallbacks();
-  }
-
-  private processMounts(): void {
     let currentMount = this.mountHead;
     this.mountHead = this.mountTail = null;
     let nextMount: typeof currentMount;
@@ -581,9 +415,7 @@ export class LifecycleController implements ILifecycleController {
       currentMount.$nextMount = null;
       currentMount = nextMount;
     }
-  }
 
-  private processAttachedCallbacks(): void {
     let currentAttached = this.attachedHead;
     this.attachedHead = this.attachedTail = null;
     let nextAttached: typeof currentAttached;
@@ -596,28 +428,51 @@ export class LifecycleController implements ILifecycleController {
     }
   }
 
-  private processUnmounts(): void {
-    let currentUnmount = this.unmountHead;
 
-    if (this.flags & LifecycleFlags.unbindAfterDetached) {
-      while (currentUnmount) {
-        currentUnmount.$unmount();
-        currentUnmount = currentUnmount.$nextUnmount;
-      }
-    } else {
-      this.unmountHead = this.unmountTail = null;
-      let nextUnmount: typeof currentUnmount;
-
-      while (currentUnmount) {
-        currentUnmount.$unmount();
-        nextUnmount = currentUnmount.$nextUnmount;
-        currentUnmount.$nextUnmount = null;
-        currentUnmount = nextUnmount;
-      }
+  public detach(requestor: IAttach): ILifecycleController {
+    if (requestor.$state & LifecycleState.isAttached) {
+      requestor.$detach(this);
+    } else if (isUnmountable(requestor)) {
+      this.queueUnmount(requestor);
     }
+
+    return this;
   }
 
-  private processDetachedCallbacks(): void {
+  public queueUnmount(requestor: ILifecycleUnmount): void {
+    if (this.unmountHead === null) {
+      this.unmountHead = requestor;
+    } else {
+      this.unmountTail.$nextUnmount = requestor;
+    }
+    this.unmountTail = requestor;
+  }
+
+  public queueDetachedCallback(requestor: ILifecycleDetached): void {
+    if (this.detachedHead === null) {
+      this.detachedHead = requestor;
+    } else {
+      this.detachedTail.$nextDetached = requestor;
+    }
+    this.detachedTail = requestor;
+  }
+
+  public endDetach(): void {
+    Lifecycle.detach = this;
+    this.changeSet.flushChanges();
+    Lifecycle.detach = null;
+
+    let currentUnmount = this.unmountHead;
+    this.unmountHead = this.unmountTail = null;
+    let nextUnmount: typeof currentUnmount;
+
+    while (currentUnmount) {
+      currentUnmount.$unmount();
+      nextUnmount = currentUnmount.$nextUnmount;
+      currentUnmount.$nextUnmount = null;
+      currentUnmount = nextUnmount;
+    }
+
     let currentDetached = this.detachedHead;
     this.detachedHead = this.detachedTail = null;
     let nextDetached: typeof currentDetached;
@@ -628,32 +483,13 @@ export class LifecycleController implements ILifecycleController {
       currentDetached.$nextDetached = null;
       currentDetached = nextDetached;
     }
-
-    if (this.flags & LifecycleFlags.unbindAfterDetached) {
-      let currentUnmount = this.unmountHead;
-      let nextUnmount: typeof currentUnmount;
-
-      while (currentUnmount) {
-        if (isUnbindable(currentUnmount)) {
-          currentUnmount.$unbind(BindingFlags.fromUnbind);
-        }
-
-        nextUnmount = currentUnmount.$nextUnmount;
-        currentUnmount.$nextUnmount = null;
-        currentUnmount = nextUnmount;
-      }
-    }
   }
 }
-
 
 function isUnmountable(requestor: object): requestor is ILifecycleUnmount {
   return '$unmount' in requestor;
 }
 
-function isUnbindable(requestor: object): requestor is ILifecycleUnbind {
-  return '$unbind' in requestor;
-}
 
 export const Lifecycle = {
   // TODO: this is just a temporary fix to get certain tests to pass.
@@ -661,9 +497,9 @@ export const Lifecycle = {
   // this needs to be properly handled without abusing a global object
   /*@internal*/attach: <ILifecycleController>null,
 
-  beginAttach(changeSet: IChangeSet, encapsulationSource: INode, flags: LifecycleFlags): ILifecycleController {
+  beginAttach(changeSet: IChangeSet, encapsulationSource: INode): ILifecycleController {
     if (Lifecycle.attach === null) {
-      return new LifecycleController(changeSet, flags, encapsulationSource);
+      return new LifecycleController(changeSet, encapsulationSource);
     } else {
       return Lifecycle.attach;
     }
@@ -671,9 +507,9 @@ export const Lifecycle = {
 
   /*@internal*/detach: <ILifecycleController>null,
 
-  beginDetach(changeSet: IChangeSet, flags: LifecycleFlags): ILifecycleController {
+  beginDetach(changeSet: IChangeSet): ILifecycleController {
     if (Lifecycle.detach === null) {
-      return new LifecycleController(changeSet, flags, null);
+      return new LifecycleController(changeSet, null);
     } else {
       return Lifecycle.detach;
     }

@@ -3,19 +3,19 @@ import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
 import { BindableDefinitions } from '../definitions';
 import { INode } from '../dom';
-import { LifecycleHooks, Lifecycle } from '../lifecycle';
+import { Hooks, Lifecycle } from '../lifecycle';
 import { BindingFlags, IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './custom-element';
 
 export interface IRuntimeBehavior {
-  readonly hooks: LifecycleHooks;
+  readonly hooks: Hooks;
 }
 
 /** @internal */
 export class RuntimeBehavior implements IRuntimeBehavior {
   public bindables: BindableDefinitions;
-  public hooks: LifecycleHooks;
+  public hooks: Hooks;
 
   private constructor() {}
 
@@ -29,32 +29,32 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     // value coercion
     behavior.bindables = Component.description.bindables;
     behavior.hooks = 0;
-    if ('created' in instance) behavior.hooks |= LifecycleHooks.hasCreated;
-    if ('binding' in instance) behavior.hooks |= LifecycleHooks.hasBinding;
+    if ('created' in instance) behavior.hooks |= Hooks.hasCreated;
+    if ('binding' in instance) behavior.hooks |= Hooks.hasBinding;
     if ('bound' in instance) {
-      behavior.hooks |= LifecycleHooks.hasBound;
+      behavior.hooks |= Hooks.hasBound;
       instance['$boundFlags'] = 0;
       instance['$nextBound'] = null;
     }
-    if ('attaching' in instance) behavior.hooks |= LifecycleHooks.hasAttaching;
+    if ('attaching' in instance) behavior.hooks |= Hooks.hasAttaching;
     if ('attached' in instance) {
-      behavior.hooks |= LifecycleHooks.hasAttached;
+      behavior.hooks |= Hooks.hasAttached;
       instance['$nextAttached'] = null;
     }
-    if ('detaching' in instance) behavior.hooks |= LifecycleHooks.hasDetaching;
+    if ('detaching' in instance) behavior.hooks |= Hooks.hasDetaching;
     if ('detached' in instance) {
-      behavior.hooks |= LifecycleHooks.hasDetached;
+      behavior.hooks |= Hooks.hasDetached;
       instance['$nextDetached'] = null;
     }
-    if ('unbinding' in instance) behavior.hooks |= LifecycleHooks.hasUnbinding;
+    if ('unbinding' in instance) behavior.hooks |= Hooks.hasUnbinding;
     if ('unbound' in instance) {
-      behavior.hooks |= LifecycleHooks.hasUnbound;
+      behavior.hooks |= Hooks.hasUnbound;
       instance['$unboundFlags'] = 0;
       instance['$nextUnbound'] = null;
     }
-    if ('render' in instance) behavior.hooks |= LifecycleHooks.hasRender;
-    if ('caching' in instance) behavior.hooks |= LifecycleHooks.hasCaching;
-    if (behavior.hooks === 0) behavior.hooks |= LifecycleHooks.none;
+    if ('render' in instance) behavior.hooks |= Hooks.hasRender;
+    if ('caching' in instance) behavior.hooks |= Hooks.hasCaching;
+    if (behavior.hooks === 0) behavior.hooks |= Hooks.none;
     if ('$mount' in Component.prototype) {
       instance['$nextMount'] = null;
     }

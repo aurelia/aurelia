@@ -14,7 +14,7 @@ export const enum State {
   needsMount            = 0b00010000000
 }
 
-export const enum LifecycleHooks {
+export const enum Hooks {
   none                   = 0b000000000001,
   hasCreated             = 0b000000000010,
   hasBinding             = 0b000000000100,
@@ -234,7 +234,7 @@ export interface ILifecycleCaching {
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface ILifecycleHooks extends
+export interface IHooks extends
   ILifecycleCreated,
   ILifecycleBinding,
   ILifecycleBound,

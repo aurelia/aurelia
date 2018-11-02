@@ -164,12 +164,14 @@ export class Binding implements IPartialConnectableBinding {
   }
 
   public connect(flags: BindingFlags): void {
-    const { sourceExpression, $scope, $state } = this;
-    if ($state & State.isBound) {
-      this.updateTarget(sourceExpression.evaluate(flags | BindingFlags.mustEvaluate, $scope, this.locator), flags);
-    } else if (!($state & State.isBinding)) {
-      return;
+    if (this.$state & State.isBound) {
+      this.sourceExpression.connect(flags, this.$scope, this);
     }
-    sourceExpression.connect(flags, $scope, this);
+  }
+
+  public patch(flags: BindingFlags): void {
+    if (this.$state & State.isBound) {
+      this.updateTarget(this.sourceExpression.evaluate(flags | BindingFlags.mustEvaluate, this.$scope, this.locator), flags);
+    }
   }
 }

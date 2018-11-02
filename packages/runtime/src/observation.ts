@@ -1,8 +1,8 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
 
 export enum BindingFlags {
-  none                   = 0b000_00000000_000_00,
-  mustEvaluate           = 0b100_00000000_000_00,
+  none                   = 0b0000_00000000_000_00,
+  mustEvaluate           = 0b0001_00000000_000_00,
 
   mutation               = 0b0000_00000000_000_11,
   isCollectionMutation   = 0b0000_00000000_000_01,

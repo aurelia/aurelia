@@ -61,9 +61,8 @@ export class CompositionCoordinator {
     if (this.currentView !== null) {
       Lifecycle.beginDetach();
       this.currentView.$detach();
-      Lifecycle.endDetach();
-
       this.currentView.$unbind(BindingFlags.fromUnbind);
+      Lifecycle.endDetach();
     }
 
     this.currentView = view;

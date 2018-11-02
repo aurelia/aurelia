@@ -396,18 +396,31 @@ export const Lifecycle = {
 
   endAttach(): void {
     if (--Lifecycle.attachDepth === 0) {
+      // flush before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
       Lifecycle.flush();
 
       let currentMount = Lifecycle.mountHead;
+      const lastMount = Lifecycle.mountTail;
       Lifecycle.mountHead = Lifecycle.mountTail = null;
       let nextMount: typeof currentMount;
 
       while (currentMount) {
+        if (currentMount === lastMount) {
+          // patch all Binding.targetObserver.targets (DOM objects) synchronously just before mounting the root
+          Lifecycle.patch(BindingFlags.fromFlushChanges);
+        }
         currentMount.$mount();
         nextMount = currentMount.$nextMount;
         currentMount.$nextMount = null;
         currentMount = nextMount;
       }
+      // Connect all connect-queued bindings AFTER mounting is done, so that the DOM is visible asap,
+      // but connect BEFORE running the attached callbacks to ensure any changes made during those callbacks
+      // are still accounted for.
+      // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
+      // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
+      // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
+      Lifecycle.connect(BindingFlags.mustEvaluate);
 
       let currentAttached = Lifecycle.attachedHead;
       Lifecycle.attachedHead = Lifecycle.attachedTail = null;
@@ -571,8 +584,6 @@ export const Lifecycle = {
         current = next;
       }
     }
-    // TODO: pick a better moment to connect (e.g. after mounting / raf)
-    Lifecycle.connect();
   },
 
   connectHead: <IConnectableBinding>null,
@@ -588,15 +599,26 @@ export const Lifecycle = {
     Lifecycle.connectTail = requestor;
   },
 
-  connect(): void {
+  connect(flags: BindingFlags): void {
+    // if we're telling the lifecycle to perform the connect calls, assume it's the last call
+    // and reset the linked list
     let current = Lifecycle.connectHead;
     Lifecycle.connectHead = Lifecycle.connectTail = null;
     let next: typeof current;
     while (current !== null) {
-      current.connect(current.$connectFlags);
+      current.connect(current.$connectFlags | flags);
       next = current.$nextConnect;
       current.$nextConnect = null;
       current = next;
+    }
+  },
+
+  patch(flags: BindingFlags): void {
+    // otherwise keep the links intact because we still need to connect at a later point in time
+    let current = Lifecycle.connectHead;
+    while (current !== null) {
+      current.patch(current.$connectFlags | flags);
+      current = current.$nextConnect;
     }
   }
 };

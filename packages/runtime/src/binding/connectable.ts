@@ -34,6 +34,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding {
   addObserver(observer: IBindingTargetObserver): void;
   unobserve(all?: boolean): void;
   connect(flags: BindingFlags): void;
+  patch(flags: BindingFlags): void;
 }
 
 /*@internal*/

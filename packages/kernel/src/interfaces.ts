@@ -1,5 +1,5 @@
 export interface ICallable {
-  call(...args: any[]): any;
+  call(...args: unknown[]): unknown;
 }
 
 export interface IDisposable {
@@ -7,24 +7,21 @@ export interface IDisposable {
 }
 
 export type Constructable<T = {}> = {
-  // tslint:disable-next-line:no-any
-  new(...args: any[]): T;
+  new(...args: unknown[]): T;
 };
 
 export type Decoratable<TOptional, TRequired> = Function & {
   readonly prototype: Partial<TOptional> & Required<TRequired>;
-  // tslint:disable-next-line:no-any
-  new(...args: any[]): Partial<TOptional> & Required<TRequired>;
+  new(...args: unknown[]): Partial<TOptional> & Required<TRequired>;
 };
 export type Decorated<TOptional, TRequired> = Function & {
   readonly prototype: Required<TOptional> & Required<TRequired>;
-  // tslint:disable-next-line:no-any
-  new(...args: any[]): any;
+  new(...args: unknown[]): unknown;
 };
 
-export type Injectable<T = {}> = Constructable<T> & { inject?: any[] };
+export type Injectable<T = {}> = Constructable<T> & { inject?: unknown[] };
 
-export type IIndexable<T extends object = object> = T & { [key: string]: any };
+export type IIndexable<T extends object = object> = T & { [key: string]: unknown };
 
 export type ImmutableObject<T> =
     T extends [infer A1, infer B1, infer C1, infer D1, infer E1, infer F1, infer G] ? ImmutableArray<[A1, B1, C1, D1, E1, F1, G]> :
@@ -35,14 +32,14 @@ export type ImmutableObject<T> =
     T extends [infer A6, infer B6]                                                  ? ImmutableArray<[A6, B6]> :
     T extends [infer A7]                                                            ? ImmutableArray<[A7]> :
     T extends (infer A)[]              ? ImmutableArray<A> :
-    T extends any[]                    ? ImmutableArray<T[number]> :
+    T extends unknown[]                ? ImmutableArray<T[number]> :
     T extends Map<infer U1, infer V1>  ? ReadonlyMap<Immutable<U1>, Immutable<V1>> :
     T extends Set<infer U2>            ? ReadonlySet<Immutable<U2>> :
     T extends Record<string, infer V2> ? Record<string, Immutable<V2>> :
     T extends object                   ? Immutable<T> :
     T;
 
-export interface ImmutableArray<T> extends ReadonlyArray<ImmutableObject<T>> {};
+export interface ImmutableArray<T> extends ReadonlyArray<ImmutableObject<T>> {}
 
 export type Immutable<T> = {
     readonly [K in keyof T]: ImmutableObject<T[K]>
@@ -56,10 +53,13 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export type Primitive = undefined | null | number | boolean | symbol | string;
 
+// https://github.com/palantir/tslint/issues/4235
+// tslint:disable:no-shadowed-variable
 export type Unwrap<T> =
     T extends (infer U)[] ? U :
-    T extends (...args: any[]) => infer U ? U :
+    T extends (...args: unknown[]) => infer U ? U :
     T extends Promise<infer U> ? U :
     T;
+// tslint:enable:no-shadowed-variable
 
 export type StrictPrimitive = string | number | boolean | null | undefined;

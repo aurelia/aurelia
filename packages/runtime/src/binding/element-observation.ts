@@ -118,7 +118,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
 ValueAttributeObserver.prototype.propertyKey = '';
 ValueAttributeObserver.prototype.handler = null;
 
-const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlushChanges | LifecycleFlags.updateTargetInstance;
+const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance;
 
 interface IInternalInputElement extends IInputElement {
   matcher?: typeof defaultMatcher;

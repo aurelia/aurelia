@@ -82,11 +82,11 @@ export class CustomSetterObserver implements CustomSetterObserver {
     this.obj[this.propertyKey] = newValue;
   }
 
-  public flush(): void {
+  public flush(flags: LifecycleFlags): void {
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
-    this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlushChanges);
+    this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {
@@ -154,12 +154,12 @@ export class GetterObserver implements GetterObserver {
   // tslint:disable-next-line:no-empty
   public setValue(newValue: IIndexable | Primitive): void { }
 
-  public flush(): void {
+  public flush(flags: LifecycleFlags): void {
     const oldValue = this.controller.value;
     const newValue = this.controller.getValueAndCollectDependencies();
 
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
     }
   }
 

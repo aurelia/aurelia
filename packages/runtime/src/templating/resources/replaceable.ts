@@ -13,19 +13,19 @@ export class Replaceable {
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {
     this.currentView = this.factory.create();
-    this.currentView.hold(location);
+    this.currentView.hold(location, LifecycleFlags.fromCreate);
   }
 
   public binding(flags: LifecycleFlags): void {
     this.currentView.$bind(flags, this.$scope);
   }
 
-  public attaching(): void {
-    this.currentView.$attach();
+  public attaching(flags: LifecycleFlags): void {
+    this.currentView.$attach(flags);
   }
 
-  public detaching(): void {
-    this.currentView.$detach();
+  public detaching(flags: LifecycleFlags): void {
+    this.currentView.$detach(flags);
   }
 
   public unbinding(flags: LifecycleFlags): void {

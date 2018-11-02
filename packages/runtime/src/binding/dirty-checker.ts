@@ -45,7 +45,7 @@ export class DirtyChecker {
       const current = tracked[i];
 
       if (current.isDirty()) {
-        current.flush();
+        current.flush(LifecycleFlags.fromFlush);
       }
     }
 
@@ -81,11 +81,11 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     this.obj[this.propertyKey] = newValue;
   }
 
-  public flush(): void {
+  public flush(flags: LifecycleFlags): void {
     const oldValue = this.oldValue;
     const newValue = this.getValue();
 
-    this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlushChanges);
+    this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
 
     this.oldValue = newValue;
   }

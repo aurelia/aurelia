@@ -27,56 +27,56 @@ export class If {
   }
 
   public binding(flags: LifecycleFlags): void {
-    const view = this.updateView();
-    this.coordinator.compose(view);
+    const view = this.updateView(flags);
+    this.coordinator.compose(view, flags);
     this.coordinator.binding(flags, this.$scope);
   }
 
-  public attaching(): void {
-    this.coordinator.attaching();
+  public attaching(flags: LifecycleFlags): void {
+    this.coordinator.attaching(flags);
   }
 
-  public detaching(): void {
-    this.coordinator.detaching();
+  public detaching(flags: LifecycleFlags): void {
+    this.coordinator.detaching(flags);
   }
 
   public unbinding(flags: LifecycleFlags): void {
     this.coordinator.unbinding(flags);
   }
 
-  public caching(): void {
-    if (this.ifView !== null && this.ifView.release()) {
+  public caching(flags: LifecycleFlags): void {
+    if (this.ifView !== null && this.ifView.release(flags)) {
       this.ifView = null;
     }
 
-    if (this.elseView !== null && this.elseView.release()) {
+    if (this.elseView !== null && this.elseView.release(flags)) {
       this.elseView = null;
     }
 
-    this.coordinator.caching();
+    this.coordinator.caching(flags);
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
-    if (flags & LifecycleFlags.fromFlushChanges) {
-      const view = this.updateView();
-      this.coordinator.compose(view);
+    if (flags & LifecycleFlags.fromFlush) {
+      const view = this.updateView(flags);
+      this.coordinator.compose(view, flags);
     } else {
       Lifecycle.queueFlush(this);
     }
   }
 
-  public flush(): void {
-    const view = this.updateView();
-    this.coordinator.compose(view);
+  public flush(flags: LifecycleFlags): void {
+    const view = this.updateView(flags);
+    this.coordinator.compose(view, flags);
   }
 
-  private updateView(): IView {
+  private updateView(flags: LifecycleFlags): IView {
     let view: IView;
 
     if (this.value) {
-      view = this.ifView = this.ensureView(this.ifView, this.ifFactory);
+      view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
     } else if (this.elseFactory !== null) {
-      view = this.elseView  = this.ensureView(this.elseView, this.elseFactory);
+      view = this.elseView  = this.ensureView(this.elseView, this.elseFactory, flags);
     } else {
       view = null;
     }
@@ -84,12 +84,12 @@ export class If {
     return view;
   }
 
-  private ensureView(view: IView, factory: IViewFactory): IView {
+  private ensureView(view: IView, factory: IViewFactory, flags: LifecycleFlags): IView {
     if (view === null) {
       view = factory.create();
     }
 
-    view.hold(this.location);
+    view.hold(this.location, flags);
 
     return view;
   }

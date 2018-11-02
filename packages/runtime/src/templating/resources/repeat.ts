@@ -53,21 +53,21 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     this.processViews(null, flags);
   }
 
-  public attaching(): void {
+  public attaching(flags: LifecycleFlags): void {
     const { views, location } = this;
     for (let i = 0, ii = views.length; i < ii; ++i) {
       const view = views[i];
-      view.hold(location);
-      view.$attach();
+      view.hold(location, flags);
+      view.$attach(flags);
     }
   }
 
-  public detaching(): void {
+  public detaching(flags: LifecycleFlags): void {
     const { views } = this;
     for (let i = 0, ii = views.length; i < ii; ++i) {
       const view = views[i];
-      view.$detach();
-      view.release();
+      view.$detach(flags);
+      view.release(flags);
     }
   }
 
@@ -89,7 +89,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
   // called by a CollectionObserver (async)
   public handleBatchedChange(indexMap: number[] | null): void {
-    this.processViews(indexMap, LifecycleFlags.fromFlushChanges | LifecycleFlags.updateTargetInstance);
+    this.processViews(indexMap, LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
   }
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
@@ -107,10 +107,10 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
       } else if (newLength < oldLength) {
         Lifecycle.beginDetach();
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
-          view.release();
-          view.$detach();
+          view.release(flags);
+          view.$detach(flags);
         }
-        Lifecycle.endDetach();
+        Lifecycle.endDetach(flags);
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
           view.$unbind(flags | LifecycleFlags.fromUnbind);
         }
@@ -149,19 +149,19 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
       if (indexMap === null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           const view = views[i];
-          view.hold(location);
-          view.$attach();
+          view.hold(location, flags);
+          view.$attach(flags);
         }
       } else {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           if (indexMap[i] !== i) {
             const view = views[i];
-            view.hold(location);
-            view.$attach();
+            view.hold(location, flags);
+            view.$attach(flags);
           }
         }
       }
-      Lifecycle.endAttach();
+      Lifecycle.endAttach(flags);
     }
   }
 

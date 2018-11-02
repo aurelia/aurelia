@@ -597,8 +597,8 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
 
   public setValue(newValue: unknown): void { /* do nothing */ }
 
-  public flush(this: ChildrenObserver & IChildrenObserver): void {
-    this.callSubscribers(this.children, undefined, LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlushChanges);
+  public flush(this: ChildrenObserver & IChildrenObserver, flags: LifecycleFlags): void {
+    this.callSubscribers(this.children, undefined, flags | LifecycleFlags.updateTargetInstance);
     this.hasChanges = false;
   }
 

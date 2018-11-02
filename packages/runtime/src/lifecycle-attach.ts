@@ -1,21 +1,23 @@
 import { Writable } from '@aurelia/kernel';
 import { Hooks, Lifecycle, State } from './lifecycle';
 import { ICustomAttribute, ICustomElement } from './lifecycle-render';
+import { LifecycleFlags } from './observation';
 import { IView } from './templating/view';
 
 /*@internal*/
-export function $attachAttribute(this: Writable<ICustomAttribute>): void {
+export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     return;
   }
   Lifecycle.beginAttach();
   // add isAttaching flag
   this.$state |= State.isAttaching;
+  flags |= LifecycleFlags.fromAttach;
 
   const hooks = this.$hooks;
 
   if (hooks & Hooks.hasAttaching) {
-    this.attaching();
+    this.attaching(flags);
   }
 
   // add isAttached flag, remove isAttaching flag
@@ -25,27 +27,28 @@ export function $attachAttribute(this: Writable<ICustomAttribute>): void {
   if (hooks & Hooks.hasAttached) {
     Lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
-  Lifecycle.endAttach();
+  Lifecycle.endAttach(flags);
 }
 
 /*@internal*/
-export function $attachElement(this: Writable<ICustomElement>): void {
+export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     return;
   }
   Lifecycle.beginAttach();
   // add isAttaching flag
   this.$state |= State.isAttaching;
+  flags |= LifecycleFlags.fromAttach;
 
   const hooks = this.$hooks;
 
   if (hooks & Hooks.hasAttaching) {
-    this.attaching();
+    this.attaching(flags);
   }
 
   let current = this.$attachableHead;
   while (current !== null) {
-    current.$attach();
+    current.$attach(flags);
     current = current.$nextAttach;
   }
 
@@ -57,20 +60,21 @@ export function $attachElement(this: Writable<ICustomElement>): void {
   if (hooks & Hooks.hasAttached) {
     Lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
-  Lifecycle.endAttach();
+  Lifecycle.endAttach(flags);
 }
 
 /*@internal*/
-export function $attachView(this: Writable<IView>): void {
+export function $attachView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     return;
   }
   // add isAttaching flag
   this.$state |= State.isAttaching;
+  flags |= LifecycleFlags.fromAttach;
 
   let current = this.$attachableHead;
   while (current !== null) {
-    current.$attach();
+    current.$attach(flags);
     current = current.$nextAttach;
   }
 
@@ -84,15 +88,16 @@ export function $attachView(this: Writable<IView>): void {
 }
 
 /*@internal*/
-export function $detachAttribute(this: Writable<ICustomAttribute>): void {
+export function $detachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     Lifecycle.beginDetach();
     // add isDetaching flag
     this.$state |= State.isDetaching;
+    flags |= LifecycleFlags.fromDetach;
 
     const hooks = this.$hooks;
     if (hooks & Hooks.hasDetaching) {
-      this.detaching();
+      this.detaching(flags);
     }
 
     // remove isAttached and isDetaching flags
@@ -101,27 +106,28 @@ export function $detachAttribute(this: Writable<ICustomAttribute>): void {
     if (hooks & Hooks.hasDetached) {
       Lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
-    Lifecycle.endDetach();
+    Lifecycle.endDetach(flags);
   }
 }
 
 /*@internal*/
-export function $detachElement(this: Writable<ICustomElement>): void {
+export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     Lifecycle.beginDetach();
     // add isDetaching flag
     this.$state |= State.isDetaching;
+    flags |= LifecycleFlags.fromDetach;
 
     const hooks = this.$hooks;
     if (hooks & Hooks.hasDetaching) {
-      this.detaching();
+      this.detaching(flags);
     }
 
     Lifecycle.queueUnmount(this);
 
     let current = this.$attachableTail;
     while (current !== null) {
-      current.$detach();
+      current.$detach(flags);
       current = current.$prevAttach;
     }
 
@@ -131,21 +137,22 @@ export function $detachElement(this: Writable<ICustomElement>): void {
     if (hooks & Hooks.hasDetached) {
       Lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
-    Lifecycle.endDetach();
+    Lifecycle.endDetach(flags);
   }
 }
 
 /*@internal*/
-export function $detachView(this: Writable<IView>): void {
+export function $detachView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     // add isDetaching flag
     this.$state |= State.isDetaching;
+    flags |= LifecycleFlags.fromDetach;
 
     Lifecycle.queueUnmount(this);
 
     let current = this.$attachableTail;
     while (current !== null) {
-      current.$detach();
+      current.$detach(flags);
       current = current.$prevAttach;
     }
 
@@ -155,52 +162,55 @@ export function $detachView(this: Writable<IView>): void {
 }
 
 /*@internal*/
-export function $cacheAttribute(this: Writable<ICustomAttribute>): void {
+export function $cacheAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
+  flags |= LifecycleFlags.fromCache;
   if (this.$hooks & Hooks.hasCaching) {
-    this.caching();
+    this.caching(flags);
   }
 }
 
 /*@internal*/
-export function $cacheElement(this: Writable<ICustomElement>): void {
+export function $cacheElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
+  flags |= LifecycleFlags.fromCache;
   if (this.$hooks & Hooks.hasCaching) {
-    this.caching();
+    this.caching(flags);
   }
 
   let current = this.$attachableTail;
   while (current !== null) {
-    current.$cache();
+    current.$cache(flags);
     current = current.$prevAttach;
   }
 }
 
 /*@internal*/
-export function $cacheView(this: Writable<IView>): void {
+export function $cacheView(this: Writable<IView>, flags: LifecycleFlags): void {
+  flags |= LifecycleFlags.fromCache;
   let current = this.$attachableTail;
   while (current !== null) {
-    current.$cache();
+    current.$cache(flags);
     current = current.$prevAttach;
   }
 }
 
 /*@internal*/
-export function $mountElement(this: Writable<ICustomElement>): void {
+export function $mountElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   this.$projector.project(this.$nodes);
 }
 
 /*@internal*/
-export function $unmountElement(this: Writable<ICustomElement>): void {
+export function $unmountElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   this.$projector.take(this.$nodes);
 }
 
 /*@internal*/
-export function $mountView(this: Writable<IView>): void {
+export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
   this.$state &= ~State.needsMount;
   this.$nodes.insertBefore(this.location);
 }
 
 /*@internal*/
-export function $unmountView(this: Writable<IView>): boolean {
+export function $unmountView(this: Writable<IView>, flags: LifecycleFlags): boolean {
   this.$state |= State.needsMount;
   this.$nodes.remove();
 

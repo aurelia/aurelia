@@ -56,16 +56,16 @@ export class Compose {
   }
 
   public binding(flags: LifecycleFlags): void {
-    this.startComposition(this.subject);
+    this.startComposition(this.subject, undefined, flags);
     this.coordinator.binding(flags, this.$scope);
   }
 
-  public attaching(): void {
-    this.coordinator.attaching();
+  public attaching(flags: LifecycleFlags): void {
+    this.coordinator.attaching(flags);
   }
 
-  public detaching(): void {
-    this.coordinator.detaching();
+  public detaching(flags: LifecycleFlags): void {
+    this.coordinator.detaching(flags);
   }
 
   public unbinding(flags: LifecycleFlags): void {
@@ -73,15 +73,15 @@ export class Compose {
     this.coordinator.unbinding(flags);
   }
 
-  public caching(): void {
-    this.coordinator.caching();
+  public caching(flags: LifecycleFlags): void {
+    this.coordinator.caching(flags);
   }
 
-  public subjectChanged(newValue: any): void {
-    this.startComposition(newValue);
+  public subjectChanged(newValue: any, previousValue: any, flags: LifecycleFlags): void {
+    this.startComposition(newValue, previousValue, flags);
   }
 
-  private startComposition(subject: any): void {
+  private startComposition(subject: any, previousSubject: any, flags: LifecycleFlags): void {
     if (this.lastSubject === subject) {
       return;
     }
@@ -89,20 +89,20 @@ export class Compose {
     this.lastSubject = subject;
 
     if (subject instanceof Promise) {
-      subject = subject.then(x => this.resolveView(x));
+      subject = subject.then(x => this.resolveView(x, flags));
     } else {
-      subject = this.resolveView(subject);
+      subject = this.resolveView(subject, flags);
     }
 
     this.composing = true;
-    this.coordinator.compose(subject);
+    this.coordinator.compose(subject, flags);
   }
 
-  private resolveView(subject: Subject): IView {
+  private resolveView(subject: Subject, flags: LifecycleFlags): IView {
     const view = this.provideViewFor(subject);
 
     if (view) {
-      view.hold(this.$projector.host);
+      view.hold(this.$projector.host, flags);
       view.lockScope(this.renderable.$scope);
       return view;
     }

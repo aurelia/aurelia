@@ -70,7 +70,7 @@ export interface ILifecycleBinding extends IHooks, IState {
    * - `flags & LifecycleFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
    * - `flags & LifecycleFlags.fromBind`: this is a normal `$bind` lifecycle
    * - `flags & LifecycleFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-   * - `flags & LifecycleFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
+   * - `flags & LifecycleFlags.fromFlush` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
    *
    * @description
    * This is the first "create" lifecycle hook of the hooks that can occur multiple times per instance,
@@ -94,7 +94,7 @@ export interface ILifecycleBound extends IHooks, IState {
    * - `flags & LifecycleFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
    * - `flags & LifecycleFlags.fromBind`: this is a normal `$bind` lifecycle
    * - `flags & LifecycleFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-   * - `flags & LifecycleFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
+   * - `flags & LifecycleFlags.fromFlush` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
    *
    * @description
    * This is the second "create" lifecycle hook (after `binding`) of the hooks that can occur multiple times per instance,
@@ -167,10 +167,11 @@ export interface ILifecycleAttaching extends IHooks, IState {
    * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
    * the nodes are added to the DOM.
    */
-  attaching?(): void;
+  attaching?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleAttached extends IHooks, IState {
+  /*@internal*/$attachedFlags?: LifecycleFlags;
   /*@internal*/$nextAttached?: ILifecycleAttached;
 
   /**
@@ -186,7 +187,7 @@ export interface ILifecycleAttached extends IHooks, IState {
    * This instance and its children (if any) can be assumed
    * to be fully initialized, bound, rendered, added to the DOM and ready for use.
    */
-  attached?(): void;
+  attached?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleDetaching extends IHooks, IState {
@@ -203,10 +204,11 @@ export interface ILifecycleDetaching extends IHooks, IState {
    * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
    * the nodes are removed from the DOM.
    */
-  detaching?(): void;
+  detaching?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleDetached extends IHooks, IState {
+  /*@internal*/$detachedFlags?: LifecycleFlags;
   /*@internal*/$nextDetached?: ILifecycleDetached;
 
   /**
@@ -221,7 +223,7 @@ export interface ILifecycleDetached extends IHooks, IState {
    *
    * If no `$unbind` lifecycle is queued, this is the last opportunity to make state changes before the lifecycle ends.
    */
-  detached?(): void;
+  detached?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleCaching extends IHooks, IState {
@@ -237,7 +239,7 @@ export interface ILifecycleCaching extends IHooks, IState {
    * Usually this hook is not invoked unless you explicitly set the cache size to to something greater than zero
    * on the resource description.
    */
-  caching?(): void;
+  caching?(flags: LifecycleFlags): void;
 }
 
 /**
@@ -256,17 +258,17 @@ export interface ILifecycleHooks extends
   ILifecycleCaching { }
 
 export interface ILifecycleCache {
-  $cache(): void;
+  $cache(flags: LifecycleFlags): void;
 }
 
 export interface ICachable extends ILifecycleCache { }
 
 export interface ILifecycleAttach {
-  $attach(): void;
+  $attach(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleDetach {
-  $detach(): void;
+  $detach(flags: LifecycleFlags): void;
 }
 
 export interface IAttach extends ILifecycleAttach, ILifecycleDetach, ICachable {
@@ -275,15 +277,17 @@ export interface IAttach extends ILifecycleAttach, ILifecycleDetach, ICachable {
 }
 
 export interface ILifecycleMount {
+  /*@internal*/$mountFlags?: LifecycleFlags;
   /*@internal*/$nextMount?: ILifecycleMount;
 
   /**
    * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
    */
-  $mount(): void;
+  $mount(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleUnmount {
+  /*@internal*/$unmountFlags?: LifecycleFlags;
   /*@internal*/$nextUnmount?: ILifecycleUnmount;
 
   /**
@@ -293,7 +297,7 @@ export interface ILifecycleUnmount {
    * - `false` if the cache (typically ViewFactory) did not allow the instance to be cached.
    * - `undefined` (void) if the instance does not support caching. Functionally equivalent to `false`
    */
-  $unmount(): boolean | void;
+  $unmount(flags: LifecycleFlags): boolean | void;
 }
 export interface IMountable extends ILifecycleMount, ILifecycleUnmount { }
 
@@ -394,10 +398,10 @@ export const Lifecycle = {
     ++Lifecycle.attachDepth;
   },
 
-  endAttach(): void {
+  endAttach(flags: LifecycleFlags): void {
     if (--Lifecycle.attachDepth === 0) {
       // flush before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
-      Lifecycle.flush();
+      Lifecycle.flush(flags | LifecycleFlags.fromSyncFlush);
 
       let currentMount = Lifecycle.mountHead;
       const lastMount = Lifecycle.mountTail;
@@ -407,9 +411,9 @@ export const Lifecycle = {
       while (currentMount) {
         if (currentMount === lastMount) {
           // patch all Binding.targetObserver.targets (DOM objects) synchronously just before mounting the root
-          Lifecycle.patch(LifecycleFlags.fromFlushChanges);
+          Lifecycle.patch(LifecycleFlags.fromFlush);
         }
-        currentMount.$mount();
+        currentMount.$mount(flags);
         nextMount = currentMount.$nextMount;
         currentMount.$nextMount = null;
         currentMount = nextMount;
@@ -427,7 +431,7 @@ export const Lifecycle = {
       let nextAttached: typeof currentAttached;
 
       while (currentAttached) {
-        currentAttached.attached();
+        currentAttached.attached(flags);
         nextAttached = currentAttached.$nextAttached;
         currentAttached.$nextAttached = null;
         currentAttached = nextAttached;
@@ -462,16 +466,16 @@ export const Lifecycle = {
     ++Lifecycle.detachDepth;
   },
 
-  endDetach(): void {
+  endDetach(flags: LifecycleFlags): void {
     if (--Lifecycle.detachDepth === 0) {
-      Lifecycle.flush();
+      Lifecycle.flush(flags | LifecycleFlags.fromSyncFlush);
 
       let currentUnmount = Lifecycle.unmountHead;
       Lifecycle.unmountHead = Lifecycle.unmountTail = null;
       let nextUnmount: typeof currentUnmount;
 
       while (currentUnmount) {
-        currentUnmount.$unmount();
+        currentUnmount.$unmount(flags);
         nextUnmount = currentUnmount.$nextUnmount;
         currentUnmount.$nextUnmount = null;
         currentUnmount = nextUnmount;
@@ -482,7 +486,7 @@ export const Lifecycle = {
       let nextDetached: typeof currentDetached;
 
       while (currentDetached) {
-        currentDetached.detached();
+        currentDetached.detached(flags);
         nextDetached = currentDetached.$nextDetached;
         currentDetached.$nextDetached = null;
         currentDetached = nextDetached;
@@ -555,7 +559,7 @@ export const Lifecycle = {
   flushTail: <IChangeTracker>null,
   queueFlush(requestor: IChangeTracker): Promise<void> {
     if (Lifecycle.flushDepth === 0) {
-      Lifecycle.flushed = Lifecycle.promise.then(Lifecycle.flush);
+      Lifecycle.flushed = Lifecycle.promise.then(() => Lifecycle.flush(LifecycleFlags.fromAsyncFlush));
     }
     if (requestor.$nextFlush) {
       return Lifecycle.flushed;
@@ -571,7 +575,7 @@ export const Lifecycle = {
     return Lifecycle.flushed;
   },
 
-  flush(): void {
+  flush(flags: LifecycleFlags): void {
     while (Lifecycle.flushDepth > 0) {
       let current = Lifecycle.flushHead;
       Lifecycle.flushHead = Lifecycle.flushTail = null;
@@ -580,7 +584,7 @@ export const Lifecycle = {
       while (current && current !== marker) {
         next = current.$nextFlush;
         current.$nextFlush = null;
-        current.flush();
+        current.flush(flags);
         current = next;
       }
     }

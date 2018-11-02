@@ -11,8 +11,8 @@ export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
   readonly isFree: boolean;
   readonly location: IRenderLocation;
 
-  hold(location: IRenderLocation): void;
-  release(): boolean;
+  hold(location: IRenderLocation, flags: LifecycleFlags): void;
+  release(flags: LifecycleFlags): boolean;
 
   lockScope(scope: IScope): void;
 }
@@ -48,8 +48,10 @@ export class View implements IView {
   public $nextAttach: IAttach = null;
   public $prevAttach: IAttach = null;
 
-  // Pre-setting to null for performance (see RuntimeBehavior.create())
   public $nextMount: IMountable = null;
+  public $mountFlags: LifecycleFlags = 0;
+  public $nextUnmount: IMountable = null;
+  public $unmountFlags: LifecycleFlags = 0;
 
   public $state: State = State.none;
   public $scope: IScope = null;
@@ -60,7 +62,7 @@ export class View implements IView {
 
   constructor(public cache: IViewCache) {}
 
-  public hold(location: IRenderLocation): void {
+  public hold(location: IRenderLocation, flags: LifecycleFlags): void {
     if (!location.parentNode) { // unmet invariant: location must be a child of some other node
       throw Reporter.error(60); // TODO: organize error codes
     }
@@ -78,13 +80,13 @@ export class View implements IView {
     this.$bind = lockedBind;
   }
 
-  public release(): any {
+  public release(flags: LifecycleFlags): any {
     this.isFree = true;
     if (this.$state & State.isAttached) {
       return this.cache.canReturnToCache(this);
     }
 
-    return this.$unmount();
+    return this.$unmount(flags);
   }
 }
 
@@ -126,7 +128,7 @@ export class ViewFactory implements IViewFactory {
 
   public tryReturnToCache(view: View): boolean {
     if (this.canReturnToCache(view)) {
-      view.$cache();
+      view.$cache(LifecycleFlags.none);
       this.cache.push(view);
       return true;
     }

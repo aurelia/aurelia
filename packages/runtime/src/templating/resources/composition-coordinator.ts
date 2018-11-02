@@ -1,6 +1,6 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { Lifecycle } from '../../lifecycle';
-import { LifecycleFlags, IScope } from '../../observation';
+import { IScope, LifecycleFlags } from '../../observation';
 import { IView } from '../view';
 
 export class CompositionCoordinator {
@@ -11,8 +11,8 @@ export class CompositionCoordinator {
   private isBound: boolean = false;
   private isAttached: boolean = false;
 
-  public compose(value: IView): void {
-    this.swap(value);
+  public compose(value: IView, flags: LifecycleFlags): void {
+    this.swap(value, flags);
   }
 
   public binding(flags: LifecycleFlags, scope: IScope): void {
@@ -24,19 +24,19 @@ export class CompositionCoordinator {
     }
   }
 
-  public attaching(): void {
+  public attaching(flags: LifecycleFlags): void {
     this.isAttached = true;
 
     if (this.currentView !== null) {
-      this.currentView.$attach();
+      this.currentView.$attach(flags);
     }
   }
 
-  public detaching(): void {
+  public detaching(flags: LifecycleFlags): void {
     this.isAttached = false;
 
     if (this.currentView !== null) {
-      this.currentView.$detach();
+      this.currentView.$detach(flags);
     }
   }
 
@@ -48,34 +48,33 @@ export class CompositionCoordinator {
     }
   }
 
-  public caching(): void {
+  public caching(flags: LifecycleFlags): void {
     this.currentView = null;
   }
 
-
-  private swap(view: IView): void {
+  private swap(view: IView, flags: LifecycleFlags): void {
     if (this.currentView === view) {
       return;
     }
 
     if (this.currentView !== null) {
       Lifecycle.beginDetach();
-      this.currentView.$detach();
-      this.currentView.$unbind(LifecycleFlags.fromUnbind);
-      Lifecycle.endDetach();
+      this.currentView.$detach(flags);
+      this.currentView.$unbind(flags);
+      Lifecycle.endDetach(flags);
     }
 
     this.currentView = view;
 
     if (this.currentView !== null) {
       if (this.isBound) {
-        this.currentView.$bind(LifecycleFlags.fromBindableHandler, this.scope);
+        this.currentView.$bind(flags, this.scope);
       }
 
       if (this.isAttached) {
         Lifecycle.beginAttach();
-        this.currentView.$attach();
-        Lifecycle.endAttach();
+        this.currentView.$attach(flags);
+        Lifecycle.endAttach(flags);
       }
     }
 

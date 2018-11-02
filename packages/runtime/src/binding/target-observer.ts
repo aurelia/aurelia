@@ -7,7 +7,7 @@ type BindingTargetAccessor = IBindingTargetAccessor & {
   currentFlags: LifecycleFlags;
   oldValue?: IIndexable | Primitive;
   defaultValue: Primitive | IIndexable;
-  flush(): void;
+  flush(flags: LifecycleFlags): void;
   setValueCore(value: Primitive | IIndexable, flags: LifecycleFlags): void;
 };
 
@@ -16,7 +16,7 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
     this.currentValue = newValue;
-    if (flags & (LifecycleFlags.fromFlushChanges | LifecycleFlags.fromBind)) {
+    if (flags & (LifecycleFlags.fromFlush | LifecycleFlags.fromBind)) {
       this.setValueCore(newValue, flags);
     } else {
       this.currentFlags = flags;
@@ -26,14 +26,12 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
   return Promise.resolve();
 }
 
-const defaultFlushChangesFlags = LifecycleFlags.fromFlushChanges | LifecycleFlags.updateTargetInstance;
-
-function flush(this: BindingTargetAccessor): void {
+function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
   const currentValue = this.currentValue;
   // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
   // in which case the target doesn't need to be updated
   if (this.oldValue !== currentValue) {
-    this.setValueCore(currentValue, this.currentFlags | defaultFlushChangesFlags);
+    this.setValueCore(currentValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
     this.oldValue = this.currentValue;
   }
 }

@@ -40,13 +40,13 @@ export class Aurelia {
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach();
+      component.$attach(LifecycleFlags.fromStartTask);
     };
 
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      component.$detach();
+      component.$detach(LifecycleFlags.fromStopTask);
       component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
       host.$au = null;
     });

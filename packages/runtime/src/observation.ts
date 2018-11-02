@@ -1,27 +1,30 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
 
 export enum LifecycleFlags {
-  none                   = 0b0000_00000000_000_00,
-  mustEvaluate           = 0b0001_00000000_000_00,
-
-  mutation               = 0b0000_00000000_000_11,
-  isCollectionMutation   = 0b0000_00000000_000_01,
-  isInstanceMutation     = 0b0000_00000000_000_10,
-
-  update                 = 0b0000_00000000_111_00,
-  updateTargetObserver   = 0b0000_00000000_001_00,
-  updateTargetInstance   = 0b0000_00000000_010_00,
-  updateSourceExpression = 0b0000_00000000_100_00,
-
-  from                   = 0b0000_11111111_000_00,
-  fromFlushChanges       = 0b0000_00000001_000_00,
-  fromStartTask          = 0b0000_00000010_000_00,
-  fromStopTask           = 0b0000_00000100_000_00,
-  fromBind               = 0b0000_00001000_000_00,
-  fromUnbind             = 0b0000_00010000_000_00,
-  fromDOMEvent           = 0b0000_00100000_000_00,
-  fromObserverSetter     = 0b0000_01000000_000_00,
-  fromBindableHandler    = 0b0000_10000000_000_00,
+  none                   = 0b0000_0000000000000_000_00,
+  mustEvaluate           = 0b0001_0000000000000_000_00,
+  mutation               = 0b0000_0000000000000_000_11,
+  isCollectionMutation   = 0b0000_0000000000000_000_01,
+  isInstanceMutation     = 0b0000_0000000000000_000_10,
+  update                 = 0b0000_0000000000000_111_00,
+  updateTargetObserver   = 0b0000_0000000000000_001_00,
+  updateTargetInstance   = 0b0000_0000000000000_010_00,
+  updateSourceExpression = 0b0000_0000000000000_100_00,
+  from                   = 0b0000_1111111111111_000_00,
+  fromFlush              = 0b0000_0000000000011_000_00,
+  fromAsyncFlush         = 0b0000_0000000000001_000_00,
+  fromSyncFlush          = 0b0000_0000000000010_000_00,
+  fromStartTask          = 0b0000_0000000000100_000_00,
+  fromStopTask           = 0b0000_0000000001000_000_00,
+  fromBind               = 0b0000_0000000010000_000_00,
+  fromUnbind             = 0b0000_0000000100000_000_00,
+  fromAttach             = 0b0000_0000001000000_000_00,
+  fromDetach             = 0b0000_0000010000000_000_00,
+  fromCache              = 0b0000_0000100000000_000_00,
+  fromCreate             = 0b0000_0001000000000_000_00,
+  fromDOMEvent           = 0b0000_0010000000000_000_00,
+  fromObserverSetter     = 0b0000_0100000000000_000_00,
+  fromBindableHandler    = 0b0000_1000000000000_000_00,
 }
 
 /*@internal*/
@@ -40,7 +43,7 @@ export const enum SubscriberFlags {
 export interface IChangeTracker {
   $nextFlush?: IChangeTracker;
   hasChanges?: boolean;
-  flush(): void;
+  flush(flags: LifecycleFlags): void;
 }
 
 /**
@@ -230,7 +233,7 @@ export interface IBatchedSubscriberCollection<T extends MutationKind> extends IB
 
   callBatchedSubscribers: MutationKindToBatchedNotifier<T>;
 
-  /*@internal*/flush(): void;
+  /*@internal*/flush(flags: LifecycleFlags): void;
   hasBatchedSubscribers(): boolean;
   hasBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;
   removeBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;

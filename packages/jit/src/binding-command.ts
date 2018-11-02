@@ -26,8 +26,8 @@ export interface IBindingCommand {
 
 export type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
 
-export function bindingCommand(nameOrSource: string | IBindingCommandSource) {
-  return function<T extends Constructable>(target: T) {
+export function bindingCommand(nameOrSource: string | IBindingCommandSource): any {
+  return function<T extends Constructable>(target: T): T & IResourceType<IBindingCommandSource, IBindingCommand> {
     return BindingCommandResource.define(nameOrSource, target);
   };
 }
@@ -39,17 +39,18 @@ export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindi
     return `${this.name}:${name}`;
   },
 
+  // tslint:disable-next-line:no-reserved-keywords
   isType<T extends Constructable>(type: T): type is T & IBindingCommandType {
-    return (type as any).kind === this;
+    return (type as T & {kind?: unknown}).kind === this;
   },
 
   define<T extends Constructable>(nameOrSource: string | IBindingCommandSource, ctor: T): T & IBindingCommandType {
     const description = typeof nameOrSource === 'string' ? { name: nameOrSource, target: null } : nameOrSource;
-    const Type: T & IBindingCommandType = ctor as any;
+    const Type = ctor as T & IBindingCommandType;
 
     (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
     (Type as Writable<IBindingCommandType>).description = description;
-    Type.register = function(container: IContainer) {
+    Type.register = function(container: IContainer): void {
       container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
     };
 

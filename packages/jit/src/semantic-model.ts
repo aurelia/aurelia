@@ -1,5 +1,5 @@
 import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
-import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, IBindableDescription, IAttributeDefinition, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
+import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, IAttributeDefinition, IBindableDescription, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
 import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { BindingCommandResource,  IBindingCommand } from './binding-command';
 import { Char } from './common';
@@ -54,7 +54,7 @@ export class SemanticModel {
     exprParser?: IExpressionParser): SemanticModel {
 
     if ('get' in attrParser) {
-      const locator = attrParser as IServiceLocator;
+      const locator = attrParser;
       attrParser = locator.get<IAttributeParser>(IAttributeParser);
       elParser = locator.get<IElementParser>(IElementParser);
       exprParser = locator.get<IExpressionParser>(IExpressionParser);
@@ -68,8 +68,8 @@ export class SemanticModel {
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <IAttributeDefinition>this.resources.find(CustomAttributeResource, name) || null;
-    return this.attrDefCache[name] = definition;
+    const definition = <IAttributeDefinition>this.resources.find(CustomAttributeResource, name);
+    return this.attrDefCache[name] = definition === undefined ? null : definition;
   }
 
   public getElementDefinition(name: string): ITemplateDefinition {
@@ -77,8 +77,8 @@ export class SemanticModel {
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <ITemplateDefinition>this.resources.find(CustomElementResource, name) || null;
-    return this.elDefCache[name] = definition;
+    const definition = <ITemplateDefinition>this.resources.find(CustomElementResource, name);
+    return this.elDefCache[name] = definition === undefined ? null : definition;
   }
 
   public getBindingCommand(name: string): IBindingCommand {
@@ -86,8 +86,8 @@ export class SemanticModel {
     if (existing !== undefined) {
       return existing;
     }
-    const instance = this.resources.create(BindingCommandResource, name) || null;
-    return this.commandCache[name] = instance;
+    const instance = this.resources.create(BindingCommandResource, name);
+    return this.commandCache[name] = instance === undefined ? null : instance;
   }
 
   public getAttributeSymbol(syntax: AttrSyntax, element: ElementSymbol): AttributeSymbol {
@@ -191,15 +191,16 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
       const b = bindables[prop];
       if (b.property === syntax.target) {
         this.to = b.property;
-        this.mode =  (b.mode && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
+        this.mode =  (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
         this.bindable = b as Immutable<Required<IBindableDescription>>;
         this.isAttributeBindable = true;
         break;
       }
     }
     if (!this.isAttributeBindable) {
+      const defaultBindingMode = $parent.definition.defaultBindingMode;
       this.to = syntax.target;
-      this.mode = $parent.definition.defaultBindingMode || BindingMode.toView;
+      this.mode = defaultBindingMode === undefined ? BindingMode.toView : defaultBindingMode;
     }
   }
 }
@@ -278,14 +279,15 @@ export class AttributeSymbol implements IAttributeSymbol {
         for (const prop in bindables) {
           const b = bindables[prop];
           this.to = b.property;
-          this.mode =  (b.mode && b.mode !== BindingMode.default) ? b.mode : (definition.defaultBindingMode || BindingMode.toView);
+          this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : (definition.defaultBindingMode || BindingMode.toView);
           this.bindable = b as Immutable<Required<IBindableDescription>>;
           this.isBindable = this.isAttributeBindable = true;
           break;
         }
         if (!this.isAttributeBindable) {
+          const defaultBindingMode = definition.defaultBindingMode;
           this.to = 'value';
-          this.mode = definition.defaultBindingMode || BindingMode.toView;
+          this.mode = defaultBindingMode === undefined ? BindingMode.toView : defaultBindingMode;
           this.isBindable = this.isAttributeBindable = this.isDefaultAttributeBindable = true;
         }
       }
@@ -295,7 +297,7 @@ export class AttributeSymbol implements IAttributeSymbol {
         const b = bindables[prop];
         if (b.attribute === syntax.target) {
           this.to = b.property;
-          this.mode = (b.mode && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
+          this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
           this.bindable = b as Immutable<Required<IBindableDescription>>;
           this.isBindable = this.isElementBindable = true;
           break;
@@ -357,13 +359,15 @@ export class ElementSymbol {
     const siblings = this.$parent.$children;
     for (let i = 0, ii = siblings.length; i < ii; ++i) {
       if (siblings[i] === this) {
-        return siblings[i + 1] || null;
+        const nextSibling = siblings[i + 1];
+        return nextSibling === undefined ? null : nextSibling;
       }
     }
     return null;
   }
   public get firstChild(): ElementSymbol {
-    return this.$children[0] || null;
+    const firstChild = this.$children[0];
+    return firstChild === undefined ? null : firstChild;
   }
   public get componentRoot(): ElementSymbol {
     return this.semanticModel.root;

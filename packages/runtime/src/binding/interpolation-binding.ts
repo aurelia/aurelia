@@ -74,6 +74,7 @@ export interface InterpolationBinding extends IConnectableBinding {}
 @connectable()
 export class InterpolationBinding implements IPartialConnectableBinding {
   public $scope: IScope;
+  public $state: State = State.none;
 
   public targetObserver: IBindingTargetAccessor;
 

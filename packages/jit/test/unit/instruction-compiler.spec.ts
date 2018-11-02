@@ -2,7 +2,7 @@ import { ParserRegistration, AttributeSymbol, bindingCommand, IBindingCommand, B
 import {
   IExpressionParser, INode, TargetedInstructionType, BindingType, IRenderable,
   IRenderStrategyInstruction, renderStrategy, IRenderStrategy, Aurelia,
-  IChangeSet, CustomElementResource, IEventManager, Listener, IExpression,
+  CustomElementResource, IEventManager, Listener, IExpression,
   DelegationStrategy, AttributeDefinition, ElementDefinition, TargetedInstruction, addBindable
 } from "../../../runtime/src";
 import { IIndexable, DI, IContainer, IServiceLocator, inject } from "../../../kernel/src";

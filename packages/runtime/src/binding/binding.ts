@@ -1,5 +1,5 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
-import { IBindScope, State } from '../lifecycle';
+import { IBindScope, State, Lifecycle } from '../lifecycle';
 import { AccessorOrObserver, BindingFlags, IBindingTargetObserver, IScope } from '../observation';
 import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { BindingMode } from './binding-mode';
@@ -25,6 +25,8 @@ export interface Binding extends IConnectableBinding {}
 
 @connectable()
 export class Binding implements IPartialConnectableBinding {
+  public $nextConnect: IConnectableBinding = null;
+  public $connectFlags: BindingFlags = 0;
   public $nextBind: IBindScope = null;
   public $prevBind: IBindScope = null;
 
@@ -121,10 +123,10 @@ export class Binding implements IPartialConnectableBinding {
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
     if (mode & toViewOrOneTime) {
-      targetObserver.setValue(sourceExpression.evaluate(flags, scope, this.locator), flags);
+      this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
     }
     if (mode & toView) {
-      sourceExpression.connect(flags, scope, this);
+      Lifecycle.queueConnect(this, flags);
     }
     if (mode & fromView) {
       targetObserver.subscribe(this);
@@ -159,5 +161,15 @@ export class Binding implements IPartialConnectableBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
+  }
+
+  public connect(flags: BindingFlags): void {
+    const { sourceExpression, $scope, $state } = this;
+    if ($state & State.isBound) {
+      this.updateTarget(sourceExpression.evaluate(flags | BindingFlags.mustEvaluate, $scope, this.locator), flags);
+    } else if (!($state & State.isBinding)) {
+      return;
+    }
+    sourceExpression.connect(flags, $scope, this);
   }
 }

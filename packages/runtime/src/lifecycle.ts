@@ -1,6 +1,7 @@
 import { Omit } from '@aurelia/kernel';
 import { INode } from './dom';
 import { BindingFlags, IChangeTracker, IScope } from './observation';
+import { IConnectableBinding } from './binding/connectable';
 
 export const enum State {
   none                  = 0b00000000000,
@@ -533,6 +534,33 @@ export const Lifecycle = {
         current.flush();
         current = next;
       }
+    }
+    // TODO: pick a better moment to connect (e.g. after mounting / raf)
+    Lifecycle.connect();
+  },
+
+  connectHead: <IConnectableBinding>null,
+  connectTail: <IConnectableBinding>null,
+  queueConnect(requestor: IConnectableBinding, flags: BindingFlags): void {
+    requestor.$nextConnect = null;
+    requestor.$connectFlags = flags;
+    if (Lifecycle.connectTail === null) {
+      Lifecycle.connectHead = requestor;
+    } else {
+      Lifecycle.connectTail.$nextConnect = requestor;
+    }
+    Lifecycle.connectTail = requestor;
+  },
+
+  connect(): void {
+    let current = Lifecycle.connectHead;
+    Lifecycle.connectHead = Lifecycle.connectTail = null;
+    let next: typeof current;
+    while (current !== null) {
+      current.connect(current.$connectFlags);
+      next = current.$nextConnect;
+      current.$nextConnect = null;
+      current = next;
     }
   }
 };

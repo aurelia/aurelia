@@ -328,6 +328,42 @@ export interface IBindSelf extends Omit<IBind, '$bind'>, ILifecycleBindSelf { }
 
 const marker = Object.freeze(Object.create(null));
 
+/*
+ * Note: the lifecycle object ensures that certain callbacks are executed in a particular order that may
+ * deviate from the order in which the component tree is walked.
+ * The component tree is always walked in a top-down recursive fashion, for example:
+ * {
+ *   path: "1",
+ *   children: [
+ *     { path: "1.1", children: [
+ *       { path: "1.1.1" },
+ *       { path: "1.1.2" }
+ *     ]},
+ *     { path: "1.2", children: [
+ *       { path: "1.2.1" },
+ *       { path: "1.2.2" }
+ *     ]}
+ *   ]
+ * }
+ * The call chain would be: 1 -> 1.1 -> 1.1.1 -> 1.1.2 -> 1.2 -> 1.2.1 -> 1.2.2
+ *
+ * During mounting, for example, we want to mount the root component *last* (so that the DOM doesn't need to be updated
+ * for each mount operation), and we want to invoke the detached callbacks in the same order that the components were mounted.
+ * But all mounts need to happen before any of the detach callbacks are invoked, so we store the components in a LinkedList
+ * whose execution is deferred until all the normal $attach/$detach calls have occurred.
+ * In the example of attach, the call chains would look like this:
+ * $attach: 1 -> 1.1 -> 1.1.1 -> 1.1.2 -> 1.2 -> 1.2.1 -> 1.2.2
+ * $mount: 1.1.1 -> 1.1.2 -> 1.1 -> 1.2.1 -> 1.2.2 -> 1.2 -> 1
+ * attached: 1.1.1 -> 1.1.2 -> 1.1 -> 1.2.1 -> 1.2.2 -> 1.2 -> 1
+ *
+ * Instead of (without the lifecycles):
+ * $attach: 1, $mount: 1, detached: 1 -> $attach: 1.1, $mount: 1.1, detached: 1.1 -> etc..
+ *
+ * Furthermore, the lifecycle object tracks the call depth so that it will automatically run a list of operations
+ * when the top-most component finishes execution, and components themselves don't need to worry about where in the
+ * tree they reside.
+ */
+
 export const Lifecycle = {
   encapsulationSource: <INode>null,
 

@@ -143,7 +143,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      */
     const op = TokenValues[state.currentToken & Token.Type] as UnaryOperator;
     nextToken(state);
-    result = new Unary(op, parse(state, access, Precedence.LeftHandSide, bindingType) as IsLeftHandSide);
+    result = new Unary(op, parse(state, access, Precedence.LeftHandSide, bindingType));
     state.assignable = false;
   } else {
     /** parsePrimaryExpression
@@ -714,7 +714,8 @@ function scanIdentifier(state: ParserState): Token {
   // run to the next non-idPart
   while (IdParts[nextChar(state)]);
 
-  return KeywordLookup[state.tokenValue = state.tokenRaw] || Token.Identifier;
+  const token: Token|undefined = KeywordLookup[state.tokenValue = state.tokenRaw];
+  return token === undefined ? Token.Identifier : token;
 }
 
 function scanNumber(state: ParserState, isFloat: boolean): Token {

@@ -14,9 +14,10 @@ interface IMessageInfo {
 }
 
 export const Reporter: typeof RuntimeReporter = {...RuntimeReporter,
-  write(code: number, ...params: any[]): void {
+  write(code: number, ...params: unknown[]): void {
     const info = getMessageInfoForCode(code);
 
+    // tslint:disable:no-console
     switch (info.type) {
       case MessageType.debug:
         console.debug(info.message, ...params);
@@ -30,11 +31,12 @@ export const Reporter: typeof RuntimeReporter = {...RuntimeReporter,
       case MessageType.error:
         throw this.error(code, ...params);
     }
+    // tslint:enable:no-console
   },
-  error(code: number, ...params: any[]): Error {
+  error(code: number, ...params: unknown[]): Error {
     const info = getMessageInfoForCode(code);
     const error = new Error(info.message);
-    (<any>error).data = params;
+    (<Error & {data: unknown}>error).data = params;
     return error;
   }};
 

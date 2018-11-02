@@ -1,8 +1,8 @@
-import { BindingContext as RuntimeContext, IScope } from '@aurelia/runtime';
+import { BindingContext as RuntimeContext, IBindingContext, IScope } from '@aurelia/runtime';
 
 export const BindingContext = {
   ...RuntimeContext,
-  createScopeForTest(bindingContext: any, parentBindingContext?: any): IScope {
+  createScopeForTest(bindingContext: IBindingContext, parentBindingContext?: IBindingContext): IScope {
     if (parentBindingContext) {
       return {
         bindingContext,

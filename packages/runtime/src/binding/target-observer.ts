@@ -7,7 +7,7 @@ type BindingTargetAccessor = IBindingTargetAccessor & {
   currentFlags: BindingFlags;
   oldValue?: IIndexable | Primitive;
   defaultValue: Primitive | IIndexable;
-  flushChanges(): void;
+  flush(): void;
   setValueCore(value: Primitive | IIndexable, flags: BindingFlags): void;
 };
 
@@ -28,7 +28,7 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
 
 const defaultFlushChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
 
-function flushChanges(this: BindingTargetAccessor): void {
+function flush(this: BindingTargetAccessor): void {
   const currentValue = this.currentValue;
   // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
   // in which case the target doesn't need to be updated
@@ -60,7 +60,7 @@ export function targetObserver(defaultValue: Primitive | IIndexable = null): Cla
     proto.propertyKey = '';
 
     proto.setValue = proto.setValue || setValue;
-    proto.flushChanges = proto.flushChanges || flushChanges;
+    proto.flush = proto.flush || flush;
     proto.dispose = proto.dispose || dispose;
   };
 }

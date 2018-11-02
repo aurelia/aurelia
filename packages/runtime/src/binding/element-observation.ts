@@ -46,7 +46,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
   public oldValue: Primitive | IIndexable;
   public defaultValue: Primitive | IIndexable;
 
-  public flushChanges: () => void;
+  public flush: () => void;
 
   constructor(
     public obj: INode,
@@ -61,7 +61,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
       const nodeType = obj['type'];
       this.defaultValue = inputValueDefaults[nodeType || 'text'];
       if (nodeType === 'file') {
-        this.flushChanges = this.flushFileChanges;
+        this.flush = this.flushFileChanges;
       }
     } else {
       this.defaultValue = '';
@@ -141,7 +141,7 @@ export class CheckedObserver implements CheckedObserver {
   public oldValue: Primitive | IIndexable;
   public defaultValue: Primitive | IIndexable;
 
-  public flushChanges: () => void;
+  public flush: () => void;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver | SetterObserver;
@@ -308,7 +308,7 @@ export class SelectValueObserver implements SelectValueObserver {
   public oldValue: Primitive | IIndexable | UntypedArray;
   public defaultValue: Primitive | UntypedArray;
 
-  public flushChanges: () => void;
+  public flush: () => void;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private nodeObserver: INodeObserver;

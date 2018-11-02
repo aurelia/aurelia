@@ -530,7 +530,7 @@ export const Lifecycle = {
       while (current && current !== marker) {
         next = current.$nextFlush;
         current.$nextFlush = null;
-        current.flushChanges();
+        current.flush();
         current = next;
       }
     }

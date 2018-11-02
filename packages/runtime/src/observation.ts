@@ -40,7 +40,7 @@ export const enum SubscriberFlags {
 export interface IChangeTracker {
   $nextFlush?: IChangeTracker;
   hasChanges?: boolean;
-  flushChanges(): void;
+  flush(): void;
 }
 
 /**
@@ -230,7 +230,7 @@ export interface IBatchedSubscriberCollection<T extends MutationKind> extends IB
 
   callBatchedSubscribers: MutationKindToBatchedNotifier<T>;
 
-  /*@internal*/flushChanges(): void;
+  /*@internal*/flush(): void;
   hasBatchedSubscribers(): boolean;
   hasBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;
   removeBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;

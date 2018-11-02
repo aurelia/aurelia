@@ -65,7 +65,7 @@ export class If {
     }
   }
 
-  public flushChanges(): void {
+  public flush(): void {
     const view = this.updateView();
     this.coordinator.compose(view);
   }

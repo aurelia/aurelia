@@ -5,7 +5,7 @@ import {
 import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';
 
-function flushChanges(this: CollectionObserver): void {
+function flush(this: CollectionObserver): void {
   this.callBatchedSubscribers(this.indexMap);
   this.resetIndexMap();
 }
@@ -52,7 +52,7 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
     proto.lengthPropertyName = kind & CollectionKind.indexed ? 'length' : 'size';
     proto.collectionKind = kind;
     proto.resetIndexMap = kind & CollectionKind.indexed ? resetIndexMapIndexed : resetIndexMapKeyed;
-    proto.flushChanges = flushChanges;
+    proto.flush = flush;
     proto.dispose = dispose;
     proto.getLengthObserver = getLengthObserver;
 

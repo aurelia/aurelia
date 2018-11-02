@@ -45,7 +45,7 @@ export class DirtyChecker {
       const current = tracked[i];
 
       if (current.isDirty()) {
-        current.flushChanges();
+        current.flush();
       }
     }
 
@@ -81,7 +81,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     this.obj[this.propertyKey] = newValue;
   }
 
-  public flushChanges(): void {
+  public flush(): void {
     const oldValue = this.oldValue;
     const newValue = this.getValue();
 

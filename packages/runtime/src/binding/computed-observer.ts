@@ -82,7 +82,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
     this.obj[this.propertyKey] = newValue;
   }
 
-  public flushChanges(): void {
+  public flush(): void {
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
@@ -154,7 +154,7 @@ export class GetterObserver implements GetterObserver {
   // tslint:disable-next-line:no-empty
   public setValue(newValue: IIndexable | Primitive): void { }
 
-  public flushChanges(): void {
+  public flush(): void {
     const oldValue = this.controller.value;
     const newValue = this.controller.getValueAndCollectDependencies();
 

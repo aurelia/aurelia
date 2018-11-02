@@ -7,6 +7,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>): void {
   if (this.$state & State.isAttached) {
     return;
   }
+  Lifecycle.beginAttach();
   // add isAttaching flag
   this.$state |= State.isAttaching;
 
@@ -23,6 +24,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>): void {
   if (hooks & Hooks.hasAttached) {
     Lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
+  Lifecycle.endAttach();
 }
 
 /*@internal*/
@@ -30,6 +32,7 @@ export function $attachElement(this: Writable<ICustomElement>): void {
   if (this.$state & State.isAttached) {
     return;
   }
+  Lifecycle.beginAttach();
   // add isAttaching flag
   this.$state |= State.isAttaching;
 
@@ -53,11 +56,13 @@ export function $attachElement(this: Writable<ICustomElement>): void {
   if (hooks & Hooks.hasAttached) {
     Lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
+  Lifecycle.endAttach();
 }
 
 /*@internal*/
 export function $detachAttribute(this: Writable<ICustomAttribute>): void {
   if (this.$state & State.isAttached) {
+    Lifecycle.beginDetach();
     // add isDetaching flag
     this.$state |= State.isDetaching;
 
@@ -72,12 +77,14 @@ export function $detachAttribute(this: Writable<ICustomAttribute>): void {
     if (hooks & Hooks.hasDetached) {
       Lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
+    Lifecycle.endDetach();
   }
 }
 
 /*@internal*/
 export function $detachElement(this: Writable<ICustomElement>): void {
   if (this.$state & State.isAttached) {
+    Lifecycle.beginDetach();
     // add isDetaching flag
     this.$state |= State.isDetaching;
 
@@ -100,6 +107,7 @@ export function $detachElement(this: Writable<ICustomElement>): void {
     if (hooks & Hooks.hasDetached) {
       Lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
+    Lifecycle.endDetach();
   }
 }
 

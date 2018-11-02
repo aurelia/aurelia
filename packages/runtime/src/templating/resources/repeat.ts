@@ -55,24 +55,20 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
   public attaching(): void {
     const { views, location } = this;
-    Lifecycle.beginAttach();
     for (let i = 0, ii = views.length; i < ii; ++i) {
       const view = views[i];
       view.hold(location);
       view.$attach();
     }
-    Lifecycle.endAttach();
   }
 
   public detaching(): void {
     const { views } = this;
-    Lifecycle.beginDetach();
     for (let i = 0, ii = views.length; i < ii; ++i) {
       const view = views[i];
       view.$detach();
       view.release();
     }
-    Lifecycle.endDetach();
   }
 
   public unbound(flags: BindingFlags): void {

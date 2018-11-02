@@ -65,14 +65,12 @@ export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICusto
     if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
     if ('bound' in proto) {
       proto.$hooks |= Hooks.hasBound;
-      proto.$boundFlags = 0;
       proto.$nextBound = null;
     }
 
     if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
     if ('unbound' in proto) {
       proto.$hooks |= Hooks.hasUnbound;
-      proto.$unboundFlags = 0;
       proto.$nextUnbound = null;
     }
 
@@ -80,14 +78,12 @@ export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICusto
     if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
     if ('attached' in proto) {
       proto.$hooks |= Hooks.hasAttached;
-      proto.$attachedFlags = 0;
       proto.$nextAttached = null;
     }
     if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
     if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
     if ('detached' in proto) {
       proto.$hooks |= Hooks.hasDetached;
-      proto.$detachedFlags = 0;
       proto.$nextDetached = null;
     }
 

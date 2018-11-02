@@ -111,9 +111,11 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           view.$detach(flags);
         }
         Lifecycle.endDetach(flags);
+        Lifecycle.beginUnbind();
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
-          view.$unbind(flags | LifecycleFlags.fromUnbind);
+          view.$unbind(flags);
         }
+        Lifecycle.endUnbind(flags);
         views.length = newLength;
         if (newLength === 0) {
           return;
@@ -122,6 +124,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
         return;
       }
 
+      Lifecycle.beginBind();
       if (indexMap === null) {
         forOf.iterate(items, (arr, i, item) => {
           const view = views[i];
@@ -141,6 +144,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           }
         });
       }
+      Lifecycle.endBind(flags);
     }
 
     if (this.$state & State.isAttached) {

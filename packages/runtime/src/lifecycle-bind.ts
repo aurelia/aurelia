@@ -1,7 +1,7 @@
 import { Writable } from '@aurelia/kernel';
 import { Hooks, Lifecycle, State } from './lifecycle';
 import { ICustomAttribute, ICustomElement } from './lifecycle-render';
-import { LifecycleFlags, IScope } from './observation';
+import { IScope, LifecycleFlags } from './observation';
 import { IView } from './templating/view';
 
 /*@internal*/
@@ -15,13 +15,14 @@ export function $bindAttribute(this: Writable<ICustomAttribute>, flags: Lifecycl
 
     this.$unbind(flags);
   }
+  Lifecycle.beginBind();
   // add isBinding flag
   this.$state |= State.isBinding;
 
   const hooks = this.$hooks;
 
   if (hooks & Hooks.hasBound) {
-    Lifecycle.queueBound(this, flags);
+    Lifecycle.queueBound(this);
   }
 
   this.$scope = scope;
@@ -34,9 +35,7 @@ export function $bindAttribute(this: Writable<ICustomAttribute>, flags: Lifecycl
   this.$state |= State.isBound;
   this.$state &= ~State.isBinding;
 
-  if (hooks & Hooks.hasBound) {
-    Lifecycle.unqueueBound();
-  }
+  Lifecycle.endBind(flags);
 }
 
 /*@internal*/
@@ -44,6 +43,7 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
   if (this.$state & State.isBound) {
     return;
   }
+  Lifecycle.beginBind();
   // add isBinding flag
   this.$state |= State.isBinding;
 
@@ -51,7 +51,7 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
   flags |= LifecycleFlags.fromBind;
 
   if (hooks & Hooks.hasBound) {
-    Lifecycle.queueBound(this, flags);
+    Lifecycle.queueBound(this);
   }
 
   if (hooks & Hooks.hasBinding) {
@@ -69,9 +69,7 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
   this.$state |= State.isBound;
   this.$state &= ~State.isBinding;
 
-  if (hooks & Hooks.hasBound) {
-    Lifecycle.unqueueBound();
-  }
+  Lifecycle.endBind(flags);
 }
 
 /*@internal*/
@@ -103,6 +101,7 @@ export function $bindView(this: Writable<IView>, flags: LifecycleFlags, scope: I
 /*@internal*/
 export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
+    Lifecycle.beginUnbind();
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
@@ -110,7 +109,7 @@ export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
     flags |= LifecycleFlags.fromUnbind;
 
     if (hooks & Hooks.hasUnbound) {
-      Lifecycle.queueUnbound(this, flags);
+      Lifecycle.queueUnbound(this);
     }
 
     if (hooks & Hooks.hasUnbinding) {
@@ -120,15 +119,14 @@ export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
 
-    if (hooks & Hooks.hasUnbound) {
-      Lifecycle.unqueueUnbound();
-    }
+    Lifecycle.endUnbind(flags);
   }
 }
 
 /*@internal*/
 export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
+    Lifecycle.beginUnbind();
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
@@ -136,7 +134,7 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleF
     flags |= LifecycleFlags.fromUnbind;
 
     if (hooks & Hooks.hasUnbound) {
-      Lifecycle.queueUnbound(this, flags);
+      Lifecycle.queueUnbound(this);
     }
 
     if (hooks & Hooks.hasUnbinding) {
@@ -152,9 +150,7 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleF
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
 
-    if (hooks & Hooks.hasUnbound) {
-      Lifecycle.unqueueUnbound();
-    }
+    Lifecycle.endUnbind(flags);
   }
 }
 

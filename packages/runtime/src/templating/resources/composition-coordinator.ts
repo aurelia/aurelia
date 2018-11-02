@@ -58,19 +58,26 @@ export class CompositionCoordinator {
     }
 
     if (this.currentView !== null) {
-      Lifecycle.beginDetach();
-      this.currentView.$detach(flags);
-      this.currentView.$unbind(flags);
-      Lifecycle.endDetach(flags);
+      if (this.isAttached) {
+        Lifecycle.beginDetach();
+        this.currentView.$detach(flags);
+        Lifecycle.endDetach(flags);
+      }
+      if (this.isBound) {
+        Lifecycle.beginUnbind();
+        this.currentView.$unbind(flags);
+        Lifecycle.endUnbind(flags);
+      }
     }
 
     this.currentView = view;
 
     if (this.currentView !== null) {
       if (this.isBound) {
+        Lifecycle.beginBind();
         this.currentView.$bind(flags, this.scope);
+        Lifecycle.endBind(flags);
       }
-
       if (this.isAttached) {
         Lifecycle.beginAttach();
         this.currentView.$attach(flags);

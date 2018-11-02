@@ -1,7 +1,7 @@
 import { Omit } from '@aurelia/kernel';
-import { INode } from './dom';
-import { LifecycleFlags, IChangeTracker, IScope } from './observation';
 import { IConnectableBinding } from './binding/connectable';
+import { INode } from './dom';
+import { IChangeTracker, IScope, LifecycleFlags } from './observation';
 
 export const enum State {
   none                  = 0b00000000000,
@@ -80,7 +80,6 @@ export interface ILifecycleBinding extends IHooks, IState {
 }
 
 export interface ILifecycleBound extends IHooks, IState {
-  /*@internal*/$boundFlags?: LifecycleFlags;
   /*@internal*/$nextBound?: ILifecycleBound;
 
   /**
@@ -126,7 +125,6 @@ export interface ILifecycleUnbinding extends IHooks, IState {
 }
 
 export interface ILifecycleUnbound extends IHooks, IState {
-  /*@internal*/$unboundFlags?: LifecycleFlags;
   /*@internal*/$nextUnbound?: ILifecycleUnbound;
 
   /**
@@ -171,7 +169,6 @@ export interface ILifecycleAttaching extends IHooks, IState {
 }
 
 export interface ILifecycleAttached extends IHooks, IState {
-  /*@internal*/$attachedFlags?: LifecycleFlags;
   /*@internal*/$nextAttached?: ILifecycleAttached;
 
   /**
@@ -208,7 +205,6 @@ export interface ILifecycleDetaching extends IHooks, IState {
 }
 
 export interface ILifecycleDetached extends IHooks, IState {
-  /*@internal*/$detachedFlags?: LifecycleFlags;
   /*@internal*/$nextDetached?: ILifecycleDetached;
 
   /**
@@ -277,7 +273,6 @@ export interface IAttach extends ILifecycleAttach, ILifecycleDetach, ICachable {
 }
 
 export interface ILifecycleMount {
-  /*@internal*/$mountFlags?: LifecycleFlags;
   /*@internal*/$nextMount?: ILifecycleMount;
 
   /**
@@ -287,7 +282,6 @@ export interface ILifecycleMount {
 }
 
 export interface ILifecycleUnmount {
-  /*@internal*/$unmountFlags?: LifecycleFlags;
   /*@internal*/$nextUnmount?: ILifecycleUnmount;
 
   /**
@@ -494,11 +488,14 @@ export const Lifecycle = {
     }
   },
 
-  boundDepth: 0,
+  bindDepth: 0,
   boundHead: <ILifecycleBound>null,
   boundTail: <ILifecycleBound>null,
-  queueBound(requestor: ILifecycleBound, flags: LifecycleFlags): void {
-    requestor.$boundFlags = flags;
+  beginBind(): void {
+    ++Lifecycle.bindDepth;
+  },
+
+  queueBound(requestor: ILifecycleBound): void {
     requestor.$nextBound = null;
     if (Lifecycle.boundHead === null) {
       Lifecycle.boundHead = requestor;
@@ -506,29 +503,29 @@ export const Lifecycle = {
       Lifecycle.boundTail.$nextBound = requestor;
     }
     Lifecycle.boundTail = requestor;
-    ++Lifecycle.boundDepth;
   },
-  unqueueBound(): void {
-    if (--Lifecycle.boundDepth === 0) {
+  endBind(flags: LifecycleFlags): void {
+    if (--Lifecycle.bindDepth === 0) {
       let current = Lifecycle.boundHead;
       let next: ILifecycleBound;
       Lifecycle.boundHead = Lifecycle.boundTail = null;
       while (current !== null) {
-        current.bound(current.$boundFlags);
+        current.bound(flags);
         next = current.$nextBound;
-        // Note: we're intentionally not resetting $boundFlags because it's not an object reference
-        // so it can't cause memory leaks. Save some cycles. It's somewhat unclean, but it's fine really.
         current.$nextBound = null;
         current = next;
       }
     }
   },
 
-  unboundDepth: 0,
+  unbindDepth: 0,
   unboundHead: <ILifecycleUnbound>null,
   unboundTail: <ILifecycleUnbound>null,
-  queueUnbound(requestor: ILifecycleUnbound, flags: LifecycleFlags): void {
-    requestor.$unboundFlags = flags;
+  beginUnbind(): void {
+    ++Lifecycle.unbindDepth;
+  },
+
+  queueUnbound(requestor: ILifecycleUnbound): void {
     requestor.$nextUnbound = null;
     if (Lifecycle.unboundHead === null) {
       Lifecycle.unboundHead = requestor;
@@ -536,15 +533,14 @@ export const Lifecycle = {
       Lifecycle.unboundTail.$nextUnbound = requestor;
     }
     Lifecycle.unboundTail = requestor;
-    ++Lifecycle.unboundDepth;
   },
-  unqueueUnbound(): void {
-    if (--Lifecycle.unboundDepth === 0) {
+  endUnbind(flags: LifecycleFlags): void {
+    if (--Lifecycle.unbindDepth === 0) {
       let current = Lifecycle.unboundHead;
       let next: ILifecycleUnbound;
       Lifecycle.unboundHead = Lifecycle.unboundTail = null;
       while (current !== null) {
-        current.unbound(current.$unboundFlags);
+        current.unbound(flags);
         next = current.$nextUnbound;
         current.$nextUnbound = null;
         current = next;

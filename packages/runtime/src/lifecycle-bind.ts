@@ -2,6 +2,7 @@ import { Writable } from '@aurelia/kernel';
 import { Hooks, Lifecycle, State } from './lifecycle';
 import { ICustomAttribute, ICustomElement } from './lifecycle-render';
 import { BindingFlags, IScope } from './observation';
+import { IView } from './templating/view';
 
 /*@internal*/
 export function $bindAttribute(this: Writable<ICustomAttribute>, flags: BindingFlags, scope: IScope): void {
@@ -74,6 +75,32 @@ export function $bindElement(this: Writable<ICustomElement>, flags: BindingFlags
 }
 
 /*@internal*/
+export function $bindView(this: Writable<IView>, flags: BindingFlags, scope: IScope): void {
+  flags |= BindingFlags.fromBind;
+
+  if (this.$state & State.isBound) {
+    if (this.$scope === scope) {
+      return;
+    }
+
+    this.$unbind(flags);
+  }
+  // add isBinding flag
+  this.$state |= State.isBinding;
+
+  this.$scope = scope;
+  let current = this.$bindableHead;
+  while (current !== null) {
+    current.$bind(flags, scope);
+    current = current.$nextBind;
+  }
+
+  // add isBound flag and remove isBinding flag
+  this.$state |= State.isBound;
+  this.$state &= ~State.isBinding;
+}
+
+/*@internal*/
 export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: BindingFlags): void {
   if (this.$state & State.isBound) {
     // add isUnbinding flag
@@ -128,5 +155,25 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: BindingFla
     if (hooks & Hooks.hasUnbound) {
       Lifecycle.unqueueUnbound();
     }
+  }
+}
+
+/*@internal*/
+export function $unbindView(this: Writable<IView>, flags: BindingFlags): void {
+  if (this.$state & State.isBound) {
+    // add isUnbinding flag
+    this.$state |= State.isUnbinding;
+
+    flags |= BindingFlags.fromUnbind;
+
+    let current = this.$bindableTail;
+    while (current !== null) {
+      current.$unbind(flags);
+      current = current.$prevBind;
+    }
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.$scope = null;
   }
 }

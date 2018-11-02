@@ -3,28 +3,30 @@ import { INodeSequence, IRenderLocation } from '../dom';
 import { IAttach, IBindScope, IMountable, Lifecycle, State } from '../lifecycle';
 import { IRenderable, IRenderContext, ITemplate } from '../lifecycle-render';
 import { BindingFlags, IScope } from '../observation';
-
-export type RenderCallback = (view: IView) => void;
+import { $unbindView, $bindView } from '../lifecycle-bind';
+import { $attachView, $cacheView, $unmountView, $detachView, $mountView } from '../lifecycle-attach';
 
 export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
   readonly cache: IViewCache;
+  readonly isFree: boolean;
+  readonly location: IRenderLocation;
 
   hold(location: IRenderLocation): void;
   release(): boolean;
 
   lockScope(scope: IScope): void;
 }
-
-export interface IViewFactory extends IViewCache {
-  readonly name: string;
-  create(): IView;
-}
-
 export interface IViewCache {
   readonly isCaching: boolean;
   setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
   canReturnToCache(view: IView): boolean;
   tryReturnToCache(view: IView): boolean;
+}
+
+
+export interface IViewFactory extends IViewCache {
+  readonly name: string;
+  create(): IView;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>().noDefault();
@@ -54,7 +56,7 @@ export class View implements IView {
   public $nodes: INodeSequence;
   public $context: IRenderContext;
   public location: IRenderLocation;
-  private isFree: boolean = false;
+  public isFree: boolean = false;
 
   constructor(public cache: IViewCache) {}
 
@@ -76,124 +78,13 @@ export class View implements IView {
     this.$bind = lockedBind;
   }
 
-  public release(): boolean {
+  public release(): any {
     this.isFree = true;
     if (this.$state & State.isAttached) {
       return this.cache.canReturnToCache(this);
     }
 
     return this.$unmount();
-  }
-
-  public $bind(flags: BindingFlags, scope: IScope): void {
-    flags |= BindingFlags.fromBind;
-
-    if (this.$state & State.isBound) {
-      if (this.$scope === scope) {
-        return;
-      }
-
-      this.$unbind(flags);
-    }
-    // add isBinding flag
-    this.$state |= State.isBinding;
-
-    this.$scope = scope;
-    let current = this.$bindableHead;
-    while (current !== null) {
-      current.$bind(flags, scope);
-      current = current.$nextBind;
-    }
-
-    // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
-  }
-
-  public $unbind(flags: BindingFlags): void {
-    if (this.$state & State.isBound) {
-      // add isUnbinding flag
-      this.$state |= State.isUnbinding;
-
-      flags |= BindingFlags.fromUnbind;
-
-      let current = this.$bindableTail;
-      while (current !== null) {
-        current.$unbind(flags);
-        current = current.$prevBind;
-      }
-
-      // remove isBound and isUnbinding flags
-      this.$state &= ~(State.isBound | State.isUnbinding);
-      this.$scope = null;
-    }
-  }
-
-  public $attach(): void {
-    if (this.$state & State.isAttached) {
-      return;
-    }
-    // add isAttaching flag
-    this.$state |= State.isAttaching;
-
-    let current = this.$attachableHead;
-    while (current !== null) {
-      current.$attach();
-      current = current.$nextAttach;
-    }
-
-    if (this.$state & State.needsMount) {
-      Lifecycle.queueMount(this);
-    }
-
-    // add isAttached flag, remove isAttaching flag
-    this.$state |= State.isAttached;
-    this.$state &= ~State.isAttaching;
-  }
-
-  public $detach(): void {
-    if (this.$state & State.isAttached) {
-      // add isDetaching flag
-      this.$state |= State.isDetaching;
-
-      Lifecycle.queueUnmount(this);
-
-      let current = this.$attachableTail;
-      while (current !== null) {
-        current.$detach();
-        current = current.$prevAttach;
-      }
-
-      // remove isAttached and isDetaching flags
-      this.$state &= ~(State.isAttached | State.isDetaching);
-    }
-  }
-
-  public $mount(): void {
-    this.$state &= ~State.needsMount;
-    this.$nodes.insertBefore(this.location);
-  }
-
-  public $unmount(): boolean {
-    this.$state |= State.needsMount;
-    this.$nodes.remove();
-
-    if (this.isFree) {
-      this.isFree = false;
-      if (this.cache.tryReturnToCache(this)) {
-        this.$state |= State.isCached;
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public $cache(): void {
-    let current = this.$attachableTail;
-    while (current !== null) {
-      current.$cache();
-      current = current.$prevAttach;
-    }
   }
 }
 
@@ -277,3 +168,13 @@ function lockedBind(this: View, flags: BindingFlags): void {
 
   this.$state |= State.isBound;
 }
+
+((proto: IView): void => {
+  proto.$bind = $bindView;
+  proto.$unbind = $unbindView;
+  proto.$attach = $attachView;
+  proto.$detach = $detachView;
+  proto.$cache = $cacheView;
+  proto.$mount = $mountView;
+  proto.$unmount = $unmountView;
+})(View.prototype);

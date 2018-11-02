@@ -1,4 +1,4 @@
-import { BindingFlags, IScope } from '../../observation';
+import { LifecycleFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingMode } from '../binding-mode';
@@ -10,12 +10,12 @@ export type WithMode = { mode: BindingMode, originalMode?: BindingMode };
 export abstract class BindingModeBehavior {
   constructor(private mode: BindingMode) {}
 
-  public bind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode) {
     binding.originalMode = binding.mode;
     binding.mode = this.mode;
   }
 
-  public unbind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode) {
     binding.mode = binding.originalMode;
     binding.originalMode = null;
   }

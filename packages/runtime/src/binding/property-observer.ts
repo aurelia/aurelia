@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { BindingFlags, IPropertySubscriber, MutationKind, PropertyObserver } from '../observation';
+import { LifecycleFlags, IPropertySubscriber, MutationKind, PropertyObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 const defineProperty = Reflect.defineProperty;
@@ -19,7 +19,7 @@ function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): voi
     const { obj, propertyKey } = this;
     this.currentValue = obj[propertyKey];
     observedPropertyDescriptor.get = () => this.getValue();
-    observedPropertyDescriptor.set = value => this.setValue(value, BindingFlags.updateTargetInstance);
+    observedPropertyDescriptor.set = value => this.setValue(value, LifecycleFlags.updateTargetInstance);
     if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
       Reporter.write(1, propertyKey, obj);
     }

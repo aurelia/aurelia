@@ -3,7 +3,7 @@ import { templateController } from '../../custom-attribute';
 import { IRenderLocation } from '../../dom';
 import { Lifecycle } from '../../lifecycle';
 import { ICustomAttribute } from '../../lifecycle-render';
-import { BindingFlags } from '../../observation';
+import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
@@ -26,7 +26,7 @@ export class If {
     this.coordinator = new CompositionCoordinator();
   }
 
-  public binding(flags: BindingFlags): void {
+  public binding(flags: LifecycleFlags): void {
     const view = this.updateView();
     this.coordinator.compose(view);
     this.coordinator.binding(flags, this.$scope);
@@ -40,7 +40,7 @@ export class If {
     this.coordinator.detaching();
   }
 
-  public unbinding(flags: BindingFlags): void {
+  public unbinding(flags: LifecycleFlags): void {
     this.coordinator.unbinding(flags);
   }
 
@@ -56,8 +56,8 @@ export class If {
     this.coordinator.caching();
   }
 
-  public valueChanged(newValue: boolean, oldValue: boolean, flags: BindingFlags): void {
-    if (flags & BindingFlags.fromFlushChanges) {
+  public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
+    if (flags & LifecycleFlags.fromFlushChanges) {
       const view = this.updateView();
       this.coordinator.compose(view);
     } else {

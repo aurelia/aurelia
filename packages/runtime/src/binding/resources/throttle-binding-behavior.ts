@@ -1,4 +1,4 @@
-import { BindingFlags, IScope } from '../../observation';
+import { LifecycleFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingMode } from '../binding-mode';
@@ -41,7 +41,7 @@ export function throttle(this: ThrottleableBinding, newValue: any) {
 
 @bindingBehavior('throttle')
 export class ThrottleBindingBehavior {
-  public bind(flags: BindingFlags, scope: IScope, binding: ThrottleableBinding, delay = 200) {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding, delay = 200) {
     let methodToThrottle: string;
 
     if (binding instanceof Binding) {
@@ -71,7 +71,7 @@ export class ThrottleBindingBehavior {
     };
   }
 
-  public unbind(flags: BindingFlags, scope: IScope, binding: ThrottleableBinding) {
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding) {
     // restore the state of the binding.
     let methodToRestore = binding.throttledMethod.originalName;
     binding[methodToRestore] = binding.throttledMethod;

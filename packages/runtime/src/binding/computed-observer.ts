@@ -1,5 +1,5 @@
 import { IIndexable, PLATFORM, Primitive, Reporter } from '@aurelia/kernel';
-import { BindingFlags, IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
+import { LifecycleFlags, IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
 import { subscriberCollection } from './subscriber-collection';
@@ -86,7 +86,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
-    this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
+    this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlushChanges);
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {
@@ -159,7 +159,7 @@ export class GetterObserver implements GetterObserver {
     const newValue = this.controller.getValueAndCollectDependencies();
 
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance);
+      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance);
     }
   }
 

@@ -1,6 +1,6 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
 
-export enum BindingFlags {
+export enum LifecycleFlags {
   none                   = 0b0000_00000000_000_00,
   mustEvaluate           = 0b0001_00000000_000_00,
 
@@ -48,7 +48,7 @@ export interface IChangeTracker {
  */
 export interface IAccessor<TValue = any> {
   getValue(): TValue;
-  setValue(newValue: TValue, flags: BindingFlags): void;
+  setValue(newValue: TValue, flags: LifecycleFlags): void;
 }
 
 /**
@@ -73,8 +73,8 @@ export interface IBindingTargetObserver<
           ISubscribable<MutationKind.instance>,
           ISubscriberCollection<MutationKind.instance> {
 
-  bind?(flags: BindingFlags): void;
-  unbind?(flags: BindingFlags): void;
+  bind?(flags: LifecycleFlags): void;
+  unbind?(flags: LifecycleFlags): void;
 }
 
 export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
@@ -118,7 +118,7 @@ export interface ICollectionChangeTracker<T extends Collection> extends IChangeT
 /**
  * Represents a (subscriber) function that can be called by a PropertyChangeNotifier
  */
-export type IPropertyChangeHandler<TValue = any> = (newValue: TValue, previousValue: TValue, flags: BindingFlags) => void;
+export type IPropertyChangeHandler<TValue = any> = (newValue: TValue, previousValue: TValue, flags: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations on a property
  */
@@ -127,12 +127,12 @@ export interface IPropertyChangeNotifier extends IPropertyChangeHandler {}
 /**
  * Describes a (subscriber) type that has a function conforming to the IPropertyChangeHandler interface
  */
-export interface IPropertySubscriber<TValue = any> { handleChange(newValue: TValue, previousValue: TValue, flags: BindingFlags): void; }
+export interface IPropertySubscriber<TValue = any> { handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void; }
 
 /**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
  */
-export type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags?: BindingFlags) => void;
+export type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags?: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations in a collection
  */
@@ -150,7 +150,7 @@ export interface IBatchedCollectionChangeNotifier extends IBatchedCollectionChan
 /**
  * Describes a (subscriber) type that has a function conforming to the ICollectionChangeHandler interface
  */
-export interface ICollectionSubscriber { handleChange(origin: string, args: IArguments | null, flags: BindingFlags): void; }
+export interface ICollectionSubscriber { handleChange(origin: string, args: IArguments | null, flags: LifecycleFlags): void; }
 /**
  * Describes a (subscriber) type that has a function conforming to the IBatchedCollectionChangeNotifier interface
  */

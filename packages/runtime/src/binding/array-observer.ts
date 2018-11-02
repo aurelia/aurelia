@@ -1,5 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, CollectionKind, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
+import { LifecycleFlags, CollectionKind, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
 import { collectionObserver } from './collection-observer';
 // tslint:disable:no-reserved-keywords
 const proto = Array.prototype;
@@ -28,7 +28,7 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
     this[i] = arguments[i - len]; o.indexMap[i] = - 2;
     i++;
   }
-  o.callSubscribers('push', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('push', arguments, LifecycleFlags.isCollectionMutation);
   return this.length;
 }
 
@@ -46,7 +46,7 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift> 
   }
   nativeUnshift.apply(o.indexMap, inserts);
   const len = nativeUnshift.apply(this, arguments);
-  o.callSubscribers('unshift', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('unshift', arguments, LifecycleFlags.isCollectionMutation);
   return len;
 }
 
@@ -64,7 +64,7 @@ function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativePop.call(indexMap);
-  o.callSubscribers('pop', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('pop', arguments, LifecycleFlags.isCollectionMutation);
   return element;
 }
 
@@ -81,7 +81,7 @@ function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativeShift.call(indexMap);
-  o.callSubscribers('shift', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('shift', arguments, LifecycleFlags.isCollectionMutation);
   return element;
 }
 
@@ -115,7 +115,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
     nativeSplice.call(indexMap, start, deleteCount);
   }
   const deleted = nativeSplice.apply(this, arguments);
-  o.callSubscribers('splice', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('splice', arguments, LifecycleFlags.isCollectionMutation);
   return deleted;
 }
 
@@ -136,7 +136,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
     this[upper] = lowerValue; o.indexMap[upper] = lowerIndex;
     lower++;
   }
-  o.callSubscribers('reverse', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('reverse', arguments, LifecycleFlags.isCollectionMutation);
   return this;
 }
 
@@ -163,7 +163,7 @@ function observeSort(this: IObservedArray, compareFn?: (a: IIndexable | Primitiv
     compareFn = sortCompare;
   }
   quickSort(this, o.indexMap, 0, i, compareFn);
-  o.callSubscribers('sort', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('sort', arguments, LifecycleFlags.isCollectionMutation);
   return this;
 }
 

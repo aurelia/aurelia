@@ -1,6 +1,6 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { IBindScope, State } from '../lifecycle';
-import { BindingFlags, IScope } from '../observation';
+import { LifecycleFlags, IScope } from '../observation';
 import { IExpression } from './ast';
 import { IBindingTarget } from './binding';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
@@ -28,12 +28,12 @@ export class LetBinding implements IPartialConnectableBinding {
     private toViewModel: boolean = false
   ) { }
 
-  public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
+  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
 
-    if (flags & BindingFlags.updateTargetInstance) {
+    if (flags & LifecycleFlags.updateTargetInstance) {
       const { target, targetProperty } = this;
       previousValue = target[targetProperty];
       newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
@@ -46,12 +46,12 @@ export class LetBinding implements IPartialConnectableBinding {
     throw Reporter.error(15, flags);
   }
 
-  public $bind(flags: BindingFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags | BindingFlags.fromBind);
+      this.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
@@ -64,7 +64,7 @@ export class LetBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, this);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(BindingFlags.fromBind, scope, this.locator);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(LifecycleFlags.fromBind, scope, this.locator);
     this.sourceExpression.connect(flags, scope, this);
 
     // add isBound flag and remove isBinding flag
@@ -72,7 +72,7 @@ export class LetBinding implements IPartialConnectableBinding {
     this.$state &= ~State.isBinding;
   }
 
-  public $unbind(flags: BindingFlags): void {
+  public $unbind(flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }

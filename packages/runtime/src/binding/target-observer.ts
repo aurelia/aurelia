@@ -1,22 +1,22 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, IBindingTargetAccessor, MutationKind } from '../observation';
+import { LifecycleFlags, IBindingTargetAccessor, MutationKind } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { Lifecycle } from '../lifecycle';
 
 type BindingTargetAccessor = IBindingTargetAccessor & {
-  currentFlags: BindingFlags;
+  currentFlags: LifecycleFlags;
   oldValue?: IIndexable | Primitive;
   defaultValue: Primitive | IIndexable;
   flush(): void;
-  setValueCore(value: Primitive | IIndexable, flags: BindingFlags): void;
+  setValueCore(value: Primitive | IIndexable, flags: LifecycleFlags): void;
 };
 
-function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable, flags: BindingFlags): Promise<void> {
+function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable, flags: LifecycleFlags): Promise<void> {
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
     this.currentValue = newValue;
-    if (flags & (BindingFlags.fromFlushChanges | BindingFlags.fromBind)) {
+    if (flags & (LifecycleFlags.fromFlushChanges | LifecycleFlags.fromBind)) {
       this.setValueCore(newValue, flags);
     } else {
       this.currentFlags = flags;
@@ -26,7 +26,7 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
   return Promise.resolve();
 }
 
-const defaultFlushChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
+const defaultFlushChangesFlags = LifecycleFlags.fromFlushChanges | LifecycleFlags.updateTargetInstance;
 
 function flush(this: BindingTargetAccessor): void {
   const currentValue = this.currentValue;

@@ -8,7 +8,7 @@ import { templateController } from '../../custom-attribute';
 import { INode, IRenderLocation } from '../../dom';
 import { Lifecycle, State } from '../../lifecycle';
 import { ICustomAttribute, IRenderable } from '../../lifecycle-render';
-import { BindingFlags, CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, ObservedCollection } from '../../observation';
+import { LifecycleFlags, CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { IView, IViewFactory } from '../view';
 
@@ -35,11 +35,11 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     public renderable: IRenderable,
     public factory: IViewFactory) { }
 
-  public binding(flags: BindingFlags): void {
+  public binding(flags: LifecycleFlags): void {
     this.checkCollectionObserver();
   }
 
-  public bound(flags: BindingFlags): void {
+  public bound(flags: LifecycleFlags): void {
     let current = this.renderable.$bindableHead;
     while (current !== null) {
       if ((<Binding>current).target === this && (<Binding>current).targetProperty === 'items') {
@@ -71,7 +71,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     }
   }
 
-  public unbound(flags: BindingFlags): void {
+  public unbound(flags: LifecycleFlags): void {
     this.checkCollectionObserver();
 
     const { views } = this;
@@ -82,18 +82,18 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   }
 
   // called by SetterObserver (sync)
-  public itemsChanged(newValue: T, oldValue: T, flags: BindingFlags): void {
+  public itemsChanged(newValue: T, oldValue: T, flags: LifecycleFlags): void {
     this.checkCollectionObserver();
-    this.processViews(null, flags | BindingFlags.updateTargetInstance);
+    this.processViews(null, flags | LifecycleFlags.updateTargetInstance);
   }
 
   // called by a CollectionObserver (async)
   public handleBatchedChange(indexMap: number[] | null): void {
-    this.processViews(indexMap, BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance);
+    this.processViews(indexMap, LifecycleFlags.fromFlushChanges | LifecycleFlags.updateTargetInstance);
   }
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
-  private processViews(indexMap: number[] | null, flags: BindingFlags): void {
+  private processViews(indexMap: number[] | null, flags: LifecycleFlags): void {
     const views = this.views;
     if (this.$state & State.isBound) {
       const { local, $scope, factory, forOf, items } = this;
@@ -112,7 +112,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
         }
         Lifecycle.endDetach();
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
-          view.$unbind(flags | BindingFlags.fromUnbind);
+          view.$unbind(flags | LifecycleFlags.fromUnbind);
         }
         views.length = newLength;
         if (newLength === 0) {

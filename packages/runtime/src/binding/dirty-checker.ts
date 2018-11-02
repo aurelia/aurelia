@@ -1,5 +1,5 @@
 import { DI, IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
+import { LifecycleFlags, IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
 import { propertyObserver } from './property-observer';
 
 export interface IDirtyChecker {
@@ -85,7 +85,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     const oldValue = this.oldValue;
     const newValue = this.getValue();
 
-    this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
+    this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlushChanges);
 
     this.oldValue = newValue;
   }

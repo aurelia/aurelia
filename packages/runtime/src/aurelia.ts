@@ -1,6 +1,6 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
 import { Lifecycle } from './lifecycle';
-import { BindingFlags } from './observation';
+import { LifecycleFlags } from './observation';
 import { ICustomElement, IRenderingEngine } from './lifecycle-render';
 
 export interface ISinglePageApp {
@@ -39,7 +39,7 @@ export class Aurelia {
         component.$hydrate(re, host);
       }
 
-      component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
+      component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
       component.$attach();
     };
 
@@ -47,7 +47,7 @@ export class Aurelia {
 
     this.stopTasks.push(() => {
       component.$detach();
-      component.$unbind(BindingFlags.fromStopTask | BindingFlags.fromUnbind);
+      component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
       host.$au = null;
     });
 

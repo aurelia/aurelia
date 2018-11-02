@@ -8,7 +8,7 @@ import {
   TemplateDefinition
 } from '../../definitions';
 import { ICustomElement, IRenderable, IRenderingEngine } from '../../lifecycle-render';
-import { BindingFlags } from '../../observation';
+import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { createElement, RenderPlan } from '../create-element';
 import { IView, IViewFactory } from '../view';
@@ -55,7 +55,7 @@ export class Compose {
       }, {});
   }
 
-  public binding(flags: BindingFlags): void {
+  public binding(flags: LifecycleFlags): void {
     this.startComposition(this.subject);
     this.coordinator.binding(flags, this.$scope);
   }
@@ -68,7 +68,7 @@ export class Compose {
     this.coordinator.detaching();
   }
 
-  public unbinding(flags: BindingFlags): void {
+  public unbinding(flags: LifecycleFlags): void {
     this.lastSubject = null;
     this.coordinator.unbinding(flags);
   }

@@ -1,5 +1,5 @@
 import { Decoratable, Decorated, IIndexable } from '@aurelia/kernel';
-import { IBindingTargetObserver, IPropertySubscriber, BindingFlags } from '../observation';
+import { IBindingTargetObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IObserverLocator } from './observer-locator';
@@ -27,14 +27,14 @@ export interface IPartialConnectableBinding extends IBinding, IPropertySubscribe
 
 export interface IConnectableBinding extends IPartialConnectableBinding {
   $nextConnect?: IConnectableBinding;
-  $connectFlags?: BindingFlags;
+  $connectFlags?: LifecycleFlags;
   observerSlots: number;
   version: number;
   observeProperty(obj: StrictAny, propertyName: StrictAny): void;
   addObserver(observer: IBindingTargetObserver): void;
   unobserve(all?: boolean): void;
-  connect(flags: BindingFlags): void;
-  patch(flags: BindingFlags): void;
+  connect(flags: LifecycleFlags): void;
+  patch(flags: LifecycleFlags): void;
 }
 
 /*@internal*/

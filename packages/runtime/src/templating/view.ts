@@ -2,7 +2,7 @@ import { DI, Reporter } from '@aurelia/kernel';
 import { INodeSequence, IRenderLocation } from '../dom';
 import { IAttach, IBindScope, IMountable, Lifecycle, State } from '../lifecycle';
 import { IRenderable, IRenderContext, ITemplate } from '../lifecycle-render';
-import { BindingFlags, IScope } from '../observation';
+import { LifecycleFlags, IScope } from '../observation';
 import { $unbindView, $bindView } from '../lifecycle-bind';
 import { $attachView, $cacheView, $unmountView, $detachView, $mountView } from '../lifecycle-attach';
 
@@ -153,12 +153,12 @@ export class ViewFactory implements IViewFactory {
   }
 }
 
-function lockedBind(this: View, flags: BindingFlags): void {
+function lockedBind(this: View, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     return;
   }
 
-  flags |= BindingFlags.fromBind;
+  flags |= LifecycleFlags.fromBind;
   const lockedScope = this.$scope;
   let current = this.$bindableHead;
   while (current !== null) {

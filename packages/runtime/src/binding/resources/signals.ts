@@ -1,5 +1,5 @@
 import { inject, Reporter } from '@aurelia/kernel';
-import { BindingFlags, IScope } from '../../observation';
+import { LifecycleFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { ISignaler } from '../signaler';
@@ -13,7 +13,7 @@ export type SignalableBinding = Binding & {
 export class SignalBindingBehavior {
   constructor(private signaler: ISignaler) {}
 
-  public bind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding) {
     if (!binding.updateTarget) {
       throw Reporter.error(11);
     }
@@ -37,7 +37,7 @@ export class SignalBindingBehavior {
     }
   }
 
-  public unbind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding) {
     let name = binding.signal;
     binding.signal = null;
 

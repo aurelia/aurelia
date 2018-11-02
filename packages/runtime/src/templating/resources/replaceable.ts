@@ -2,7 +2,7 @@ import { inject } from '@aurelia/kernel';
 import { templateController } from '../../custom-attribute';
 import { IRenderLocation } from '../../dom';
 import { ICustomAttribute } from '../../lifecycle-render';
-import { BindingFlags } from '../../observation';
+import { LifecycleFlags } from '../../observation';
 import { IView, IViewFactory } from '../view';
 
 export interface Replaceable extends ICustomAttribute {}
@@ -16,7 +16,7 @@ export class Replaceable {
     this.currentView.hold(location);
   }
 
-  public binding(flags: BindingFlags): void {
+  public binding(flags: LifecycleFlags): void {
     this.currentView.$bind(flags, this.$scope);
   }
 
@@ -28,7 +28,7 @@ export class Replaceable {
     this.currentView.$detach();
   }
 
-  public unbinding(flags: BindingFlags): void {
+  public unbinding(flags: LifecycleFlags): void {
     this.currentView.$unbind(flags);
   }
 }

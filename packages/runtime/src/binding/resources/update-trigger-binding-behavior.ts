@@ -1,5 +1,5 @@
 import { inject, Reporter } from '@aurelia/kernel';
-import { BindingFlags, IScope } from '../../observation';
+import { LifecycleFlags, IScope } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingMode } from '../binding-mode';
@@ -20,7 +20,7 @@ export type UpdateTriggerableBinding = Binding & {
 export class UpdateTriggerBindingBehavior {
   constructor(private observerLocator: IObserverLocator) {}
 
-  public bind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]) {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]) {
     if (events.length === 0) {
       throw Reporter.error(9);
     }
@@ -44,7 +44,7 @@ export class UpdateTriggerBindingBehavior {
     targetObserver.handler = new EventSubscriber(events);
   }
 
-  public unbind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding) {
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding) {
     // restore the state of the binding.
     binding.targetObserver.handler.dispose();
     binding.targetObserver.handler = binding.targetObserver.originalHandler;

@@ -1,12 +1,12 @@
 import { Writable } from '@aurelia/kernel';
 import { Hooks, Lifecycle, State } from './lifecycle';
 import { ICustomAttribute, ICustomElement } from './lifecycle-render';
-import { BindingFlags, IScope } from './observation';
+import { LifecycleFlags, IScope } from './observation';
 import { IView } from './templating/view';
 
 /*@internal*/
-export function $bindAttribute(this: Writable<ICustomAttribute>, flags: BindingFlags, scope: IScope): void {
-  flags |= BindingFlags.fromBind;
+export function $bindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, scope: IScope): void {
+  flags |= LifecycleFlags.fromBind;
 
   if (this.$state & State.isBound) {
     if (this.$scope === scope) {
@@ -40,7 +40,7 @@ export function $bindAttribute(this: Writable<ICustomAttribute>, flags: BindingF
 }
 
 /*@internal*/
-export function $bindElement(this: Writable<ICustomElement>, flags: BindingFlags): void {
+export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     return;
   }
@@ -48,7 +48,7 @@ export function $bindElement(this: Writable<ICustomElement>, flags: BindingFlags
   this.$state |= State.isBinding;
 
   const hooks = this.$hooks;
-  flags |= BindingFlags.fromBind;
+  flags |= LifecycleFlags.fromBind;
 
   if (hooks & Hooks.hasBound) {
     Lifecycle.queueBound(this, flags);
@@ -75,8 +75,8 @@ export function $bindElement(this: Writable<ICustomElement>, flags: BindingFlags
 }
 
 /*@internal*/
-export function $bindView(this: Writable<IView>, flags: BindingFlags, scope: IScope): void {
-  flags |= BindingFlags.fromBind;
+export function $bindView(this: Writable<IView>, flags: LifecycleFlags, scope: IScope): void {
+  flags |= LifecycleFlags.fromBind;
 
   if (this.$state & State.isBound) {
     if (this.$scope === scope) {
@@ -101,13 +101,13 @@ export function $bindView(this: Writable<IView>, flags: BindingFlags, scope: ISc
 }
 
 /*@internal*/
-export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: BindingFlags): void {
+export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
     const hooks = this.$hooks;
-    flags |= BindingFlags.fromUnbind;
+    flags |= LifecycleFlags.fromUnbind;
 
     if (hooks & Hooks.hasUnbound) {
       Lifecycle.queueUnbound(this, flags);
@@ -127,13 +127,13 @@ export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: Bindin
 }
 
 /*@internal*/
-export function $unbindElement(this: Writable<ICustomElement>, flags: BindingFlags): void {
+export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
     const hooks = this.$hooks;
-    flags |= BindingFlags.fromUnbind;
+    flags |= LifecycleFlags.fromUnbind;
 
     if (hooks & Hooks.hasUnbound) {
       Lifecycle.queueUnbound(this, flags);
@@ -159,12 +159,12 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: BindingFla
 }
 
 /*@internal*/
-export function $unbindView(this: Writable<IView>, flags: BindingFlags): void {
+export function $unbindView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
-    flags |= BindingFlags.fromUnbind;
+    flags |= LifecycleFlags.fromUnbind;
 
     let current = this.$bindableTail;
     while (current !== null) {

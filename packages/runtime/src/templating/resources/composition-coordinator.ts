@@ -1,6 +1,6 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { Lifecycle } from '../../lifecycle';
-import { BindingFlags, IScope } from '../../observation';
+import { LifecycleFlags, IScope } from '../../observation';
 import { IView } from '../view';
 
 export class CompositionCoordinator {
@@ -15,7 +15,7 @@ export class CompositionCoordinator {
     this.swap(value);
   }
 
-  public binding(flags: BindingFlags, scope: IScope): void {
+  public binding(flags: LifecycleFlags, scope: IScope): void {
     this.scope = scope;
     this.isBound = true;
 
@@ -40,7 +40,7 @@ export class CompositionCoordinator {
     }
   }
 
-  public unbinding(flags: BindingFlags): void {
+  public unbinding(flags: LifecycleFlags): void {
     this.isBound = false;
 
     if (this.currentView !== null) {
@@ -61,7 +61,7 @@ export class CompositionCoordinator {
     if (this.currentView !== null) {
       Lifecycle.beginDetach();
       this.currentView.$detach();
-      this.currentView.$unbind(BindingFlags.fromUnbind);
+      this.currentView.$unbind(LifecycleFlags.fromUnbind);
       Lifecycle.endDetach();
     }
 
@@ -69,7 +69,7 @@ export class CompositionCoordinator {
 
     if (this.currentView !== null) {
       if (this.isBound) {
-        this.currentView.$bind(BindingFlags.fromBindableHandler, this.scope);
+        this.currentView.$bind(LifecycleFlags.fromBindableHandler, this.scope);
       }
 
       if (this.isAttached) {

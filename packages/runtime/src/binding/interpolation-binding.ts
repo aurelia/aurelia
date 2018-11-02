@@ -1,6 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IBindScope, State } from '../lifecycle';
-import { BindingFlags, IBindingTargetAccessor, IScope } from '../observation';
+import { LifecycleFlags, IBindingTargetAccessor, IScope } from '../observation';
 import { IExpression, Interpolation } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { BindingMode } from './binding-mode';
@@ -40,7 +40,7 @@ export class MultiInterpolationBinding implements IBinding {
     }
   }
 
-  public $bind(flags: BindingFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -56,7 +56,7 @@ export class MultiInterpolationBinding implements IBinding {
     }
   }
 
-  public $unbind(flags: BindingFlags): void {
+  public $unbind(flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
@@ -91,11 +91,11 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
   }
 
-  public updateTarget(value: any, flags: BindingFlags): void {
-    this.targetObserver.setValue(value, flags | BindingFlags.updateTargetInstance);
+  public updateTarget(value: any, flags: LifecycleFlags): void {
+    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
-  public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
+  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
@@ -113,7 +113,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     }
   }
 
-  public $bind(flags: BindingFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -139,7 +139,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     }
   }
 
-  public $unbind(flags: BindingFlags): void {
+  public $unbind(flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }

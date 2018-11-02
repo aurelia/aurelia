@@ -16,7 +16,7 @@ import { subscriberCollection } from './binding/subscriber-collection';
 import { BindableDefinitions, buildTemplateDefinition, CustomElementConstructor, IAttributeDefinition, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, IRenderStrategyInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions, customElementBehavior, customAttributeKey, customElementKey } from './definitions';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from './dom';
 import { Hooks, IAttach, IBindScope, IBindSelf, ILifecycleHooks, IMountable, IState, Lifecycle, State } from './lifecycle';
-import { BindingFlags, IAccessor, IPropertySubscriber, IScope, ISubscribable, ISubscriberCollection, MutationKind } from './observation';
+import { LifecycleFlags, IAccessor, IPropertySubscriber, IScope, ISubscribable, ISubscriberCollection, MutationKind } from './observation';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from './resource';
 import { IViewFactory, ViewFactory } from './templating/view';
 
@@ -566,7 +566,7 @@ function createGetterSetter(instance: ICustomAttribute | ICustomElement, name: s
   Reflect.defineProperty(instance, name, {
     enumerable: true,
     get: function(): unknown { return this.$observers[name].getValue(); },
-    set: function(value: unknown): void { this.$observers[name].setValue(value, BindingFlags.updateTargetInstance); }
+    set: function(value: unknown): void { this.$observers[name].setValue(value, LifecycleFlags.updateTargetInstance); }
   });
 }
 
@@ -598,7 +598,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   public setValue(newValue: unknown): void { /* do nothing */ }
 
   public flush(this: ChildrenObserver & IChildrenObserver): void {
-    this.callSubscribers(this.children, undefined, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
+    this.callSubscribers(this.children, undefined, LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlushChanges);
     this.hasChanges = false;
   }
 

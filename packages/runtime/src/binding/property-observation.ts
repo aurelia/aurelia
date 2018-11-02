@@ -1,5 +1,5 @@
 import { IIndexable, PLATFORM, Primitive } from '@aurelia/kernel';
-import { BindingFlags, IAccessor, IPropertyObserver, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
+import { LifecycleFlags, IAccessor, IPropertyObserver, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { propertyObserver } from './property-observer';
 
 const noop = PLATFORM.noop;
@@ -60,11 +60,11 @@ export class SetterObserver implements SetterObserver {
   public getValue(): IIndexable | Primitive {
     return this.currentValue;
   }
-  public setValue(newValue: IIndexable | Primitive, flags: BindingFlags): void {
+  public setValue(newValue: IIndexable | Primitive, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
     if (currentValue !== newValue) {
       this.currentValue = newValue;
-      if (!(flags & BindingFlags.fromBind)) {
+      if (!(flags & LifecycleFlags.fromBind)) {
         this.callSubscribers(newValue, currentValue, flags);
       }
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -107,13 +107,13 @@ export class Observer implements Observer {
     return this.currentValue;
   }
 
-  public setValue(newValue: IIndexable | Primitive, flags: BindingFlags): void {
+  public setValue(newValue: IIndexable | Primitive, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
 
     if (currentValue !== newValue) {
       this.currentValue = newValue;
 
-      if (!(flags & BindingFlags.fromBind)) {
+      if (!(flags & LifecycleFlags.fromBind)) {
         const coercedValue = this.callback(newValue, currentValue);
 
         if (coercedValue !== undefined) {

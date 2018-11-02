@@ -1,5 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, CollectionKind, ICollectionObserver, IObservedMap } from '../observation';
+import { LifecycleFlags, CollectionKind, ICollectionObserver, IObservedMap } from '../observation';
 import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
 // tslint:disable:no-reserved-keywords
@@ -35,7 +35,7 @@ function observeSet(this: IObservedMap, key: IIndexable | Primitive, value: IInd
     return this;
   }
   o.indexMap[oldSize] = -2;
-  o.callSubscribers('set', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('set', arguments, LifecycleFlags.isCollectionMutation);
   return this;
 }
 
@@ -57,7 +57,7 @@ function observeClear(this: IObservedMap): ReturnType<typeof nativeClear>  {
     }
     nativeClear.call(this);
     indexMap.length = 0;
-    o.callSubscribers('clear', arguments, BindingFlags.isCollectionMutation);
+    o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
   }
   return undefined;
 }
@@ -84,7 +84,7 @@ function observeDelete(this: IObservedMap, value: IIndexable | Primitive): Retur
     }
     i++;
   }
-  o.callSubscribers('delete', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
   return false;
 }
 

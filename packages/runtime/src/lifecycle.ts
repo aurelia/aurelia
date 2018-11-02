@@ -1,6 +1,6 @@
 import { Omit } from '@aurelia/kernel';
 import { INode } from './dom';
-import { BindingFlags, IChangeTracker, IScope } from './observation';
+import { LifecycleFlags, IChangeTracker, IScope } from './observation';
 import { IConnectableBinding } from './binding/connectable';
 
 export const enum State {
@@ -67,20 +67,20 @@ export interface ILifecycleBinding extends IHooks, IState {
    *
    * @param flags Contextual information about the lifecycle, such as what triggered it.
    * Some uses for this hook:
-   * - `flags & BindingFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
-   * - `flags & BindingFlags.fromBind`: this is a normal `$bind` lifecycle
-   * - `flags & BindingFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-   * - `flags & BindingFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
+   * - `flags & LifecycleFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
+   * - `flags & LifecycleFlags.fromBind`: this is a normal `$bind` lifecycle
+   * - `flags & LifecycleFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
+   * - `flags & LifecycleFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
    *
    * @description
    * This is the first "create" lifecycle hook of the hooks that can occur multiple times per instance,
    * and the third lifecycle hook (after `render` and `created`) of the very first Lifecycle.
    */
-  binding?(flags: BindingFlags): void;
+  binding?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleBound extends IHooks, IState {
-  /*@internal*/$boundFlags?: BindingFlags;
+  /*@internal*/$boundFlags?: LifecycleFlags;
   /*@internal*/$nextBound?: ILifecycleBound;
 
   /**
@@ -91,16 +91,16 @@ export interface ILifecycleBound extends IHooks, IState {
    *
    * @param flags Contextual information about the lifecycle, such as what triggered it.
    * Some uses for this hook:
-   * - `flags & BindingFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
-   * - `flags & BindingFlags.fromBind`: this is a normal `$bind` lifecycle
-   * - `flags & BindingFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-   * - `flags & BindingFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
+   * - `flags & LifecycleFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
+   * - `flags & LifecycleFlags.fromBind`: this is a normal `$bind` lifecycle
+   * - `flags & LifecycleFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
+   * - `flags & LifecycleFlags.fromFlushChanges` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
    *
    * @description
    * This is the second "create" lifecycle hook (after `binding`) of the hooks that can occur multiple times per instance,
    * and the fourth lifecycle hook (after `render`, `created` and `binding`) of the very first Lifecycle.
    */
-  bound?(flags: BindingFlags): void;
+  bound?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleUnbinding extends IHooks, IState {
@@ -112,9 +112,9 @@ export interface ILifecycleUnbinding extends IHooks, IState {
    *
    * @param flags Contextual information about the lifecycle, such as what triggered it.
    * Some uses for this hook:
-   * - `flags & BindingFlags.fromBind`: the component is just switching scope
-   * - `flags & BindingFlags.fromUnbind`: the component is really disposing
-   * - `flags & BindingFlags.fromStopTask`: the Aurelia app is stopping
+   * - `flags & LifecycleFlags.fromBind`: the component is just switching scope
+   * - `flags & LifecycleFlags.fromUnbind`: the component is really disposing
+   * - `flags & LifecycleFlags.fromStopTask`: the Aurelia app is stopping
    *
    * @description
    * This is the fourth "cleanup" lifecycle hook (after `detaching`, `caching` and `detached`)
@@ -122,11 +122,11 @@ export interface ILifecycleUnbinding extends IHooks, IState {
    * Last opportunity to perform any source or target updates before the bindings are disconnected.
    *
    */
-  unbinding?(flags: BindingFlags): void;
+  unbinding?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleUnbound extends IHooks, IState {
-  /*@internal*/$unboundFlags?: BindingFlags;
+  /*@internal*/$unboundFlags?: LifecycleFlags;
   /*@internal*/$nextUnbound?: ILifecycleUnbound;
 
   /**
@@ -138,9 +138,9 @@ export interface ILifecycleUnbound extends IHooks, IState {
    *
    * @param flags Contextual information about the lifecycle, such as what triggered it.
    * Some uses for this hook:
-   * - `flags & BindingFlags.fromBind`: the component is just switching scope
-   * - `flags & BindingFlags.fromUnbind`: the component is really disposing
-   * - `flags & BindingFlags.fromStopTask`: the Aurelia app is stopping
+   * - `flags & LifecycleFlags.fromBind`: the component is just switching scope
+   * - `flags & LifecycleFlags.fromUnbind`: the component is really disposing
+   * - `flags & LifecycleFlags.fromStopTask`: the Aurelia app is stopping
    *
    * @description
    * This is the fifth (and last) "cleanup" lifecycle hook (after `detaching`, `caching`, `detached`
@@ -148,7 +148,7 @@ export interface ILifecycleUnbound extends IHooks, IState {
    *
    * The lifecycle either ends here, or starts at `$bind` again.
    */
-  unbound?(flags: BindingFlags): void;
+  unbound?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleAttaching extends IHooks, IState {
@@ -299,22 +299,22 @@ export interface IMountable extends ILifecycleMount, ILifecycleUnmount { }
 
 export interface ILifecycleUnbind {
   $state?: State;
-  $unbind(flags: BindingFlags): void;
+  $unbind(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleBind {
   $state?: State;
-  $bind(flags: BindingFlags, scope?: IScope): void;
+  $bind(flags: LifecycleFlags, scope?: IScope): void;
 }
 
 export interface ILifecycleBindSelf {
   $state?: State;
-  $bind(flags: BindingFlags): void;
+  $bind(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleBindScope {
   $state?: State;
-  $bind(flags: BindingFlags, scope: IScope): void;
+  $bind(flags: LifecycleFlags, scope: IScope): void;
 }
 
 export interface IBind extends ILifecycleBind, ILifecycleUnbind {
@@ -407,7 +407,7 @@ export const Lifecycle = {
       while (currentMount) {
         if (currentMount === lastMount) {
           // patch all Binding.targetObserver.targets (DOM objects) synchronously just before mounting the root
-          Lifecycle.patch(BindingFlags.fromFlushChanges);
+          Lifecycle.patch(LifecycleFlags.fromFlushChanges);
         }
         currentMount.$mount();
         nextMount = currentMount.$nextMount;
@@ -420,7 +420,7 @@ export const Lifecycle = {
       // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
       // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
       // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
-      Lifecycle.connect(BindingFlags.mustEvaluate);
+      Lifecycle.connect(LifecycleFlags.mustEvaluate);
 
       let currentAttached = Lifecycle.attachedHead;
       Lifecycle.attachedHead = Lifecycle.attachedTail = null;
@@ -493,7 +493,7 @@ export const Lifecycle = {
   boundDepth: 0,
   boundHead: <ILifecycleBound>null,
   boundTail: <ILifecycleBound>null,
-  queueBound(requestor: ILifecycleBound, flags: BindingFlags): void {
+  queueBound(requestor: ILifecycleBound, flags: LifecycleFlags): void {
     requestor.$boundFlags = flags;
     requestor.$nextBound = null;
     if (Lifecycle.boundHead === null) {
@@ -523,7 +523,7 @@ export const Lifecycle = {
   unboundDepth: 0,
   unboundHead: <ILifecycleUnbound>null,
   unboundTail: <ILifecycleUnbound>null,
-  queueUnbound(requestor: ILifecycleUnbound, flags: BindingFlags): void {
+  queueUnbound(requestor: ILifecycleUnbound, flags: LifecycleFlags): void {
     requestor.$unboundFlags = flags;
     requestor.$nextUnbound = null;
     if (Lifecycle.unboundHead === null) {
@@ -588,7 +588,7 @@ export const Lifecycle = {
 
   connectHead: <IConnectableBinding>null,
   connectTail: <IConnectableBinding>null,
-  queueConnect(requestor: IConnectableBinding, flags: BindingFlags): void {
+  queueConnect(requestor: IConnectableBinding, flags: LifecycleFlags): void {
     requestor.$nextConnect = null;
     requestor.$connectFlags = flags;
     if (Lifecycle.connectTail === null) {
@@ -599,7 +599,7 @@ export const Lifecycle = {
     Lifecycle.connectTail = requestor;
   },
 
-  connect(flags: BindingFlags): void {
+  connect(flags: LifecycleFlags): void {
     // if we're telling the lifecycle to perform the connect calls, assume it's the last call
     // and reset the linked list
     let current = Lifecycle.connectHead;
@@ -613,7 +613,7 @@ export const Lifecycle = {
     }
   },
 
-  patch(flags: BindingFlags): void {
+  patch(flags: LifecycleFlags): void {
     // otherwise keep the links intact because we still need to connect at a later point in time
     let current = Lifecycle.connectHead;
     while (current !== null) {

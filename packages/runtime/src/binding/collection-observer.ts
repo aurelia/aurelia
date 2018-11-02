@@ -1,5 +1,5 @@
 import {
-  BindingFlags, Collection, CollectionKind, CollectionObserver,
+  LifecycleFlags, Collection, CollectionKind, CollectionObserver,
   IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber, MutationKind
 } from '../observation';
 import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
@@ -69,7 +69,7 @@ export interface CollectionLengthObserver extends IBindingTargetObserver<any, st
 @targetObserver()
 export class CollectionLengthObserver implements CollectionLengthObserver {
   public currentValue: number;
-  public currentFlags: BindingFlags;
+  public currentFlags: LifecycleFlags;
 
   constructor(public obj: Collection, public propertyKey: 'length' | 'size') {
     this.currentValue = obj[propertyKey];

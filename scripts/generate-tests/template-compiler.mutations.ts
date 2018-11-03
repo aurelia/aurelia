@@ -33,7 +33,7 @@ function $hook(name: string, mutation: Statement | Statement[], flush?: boolean,
     ...expectedBeforeFlush ? [$$call(
       [$call('expect', ['this.el.textContent']), 'to.equal'],
       [createConditional($access('this.cycled'), $expression(expectedBeforeFlush[1]), $expression(expectedBeforeFlush[0])), $expression(`this.el.textContent during ${name}() before mutation${flush ? ' before flushChanges()' : ''}`)])] : [],
-    ...flush ? [$$call('this.$lifecycle.flush')] : [],
+    ...flush ? [$$call('this.$lifecycle.processFlushQueue')] : [],
     ...expectedAfterFlush ? [$$call(
       [$call('expect', ['this.el.textContent']), 'to.equal'],
       [createConditional($access('this.cycled'), $expression(expectedAfterFlush[1]), $expression(expectedAfterFlush[0])), $expression(`this.el.textContent during ${name}() after mutation${flush ? ' after flushChanges()' : ''}`)])] : []

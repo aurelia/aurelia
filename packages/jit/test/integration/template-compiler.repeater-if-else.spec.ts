@@ -265,7 +265,7 @@ parentSuite.addActionSlot('setup')
     const $App = defineCustomElement('app', markup, App);
     const component = new $App();
     au.app({ host, component }).start();
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
 
@@ -281,7 +281,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
   .addAction('01', ctx => {
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.display = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(ifText.repeat(count));
   })
@@ -289,9 +289,9 @@ mutations.addActionSlot('mutate') // Tests/assertions
   .addAction('02', ctx => {
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.display = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     component.display = false;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
   })
@@ -299,7 +299,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
   .addAction('03', ctx => {
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal('13'.repeat(count));
   })
@@ -310,7 +310,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
     component.items[0].else = 6;
     component.items[1].if = 7;
     component.items[1].else = 8;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(('68' + elseText.slice(2)).repeat(count));
   })
@@ -318,7 +318,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
   .addAction('05', ctx => {
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.reverse();
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((elseText.split('').reverse().join('')).repeat(count));
   })
@@ -327,7 +327,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.reverse();
     component.display = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((ifText.split('').reverse().join('')).repeat(count));
   });
@@ -338,7 +338,7 @@ removals.addActionSlot('remove')
   .addAction('01', ctx => {
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 'a', else: 'b'}];
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal('b'.repeat(count));
   })
@@ -347,7 +347,7 @@ removals.addActionSlot('remove')
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 'a', else: 'b'}];
     component.display = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal('a'.repeat(count));
   })
@@ -355,7 +355,7 @@ removals.addActionSlot('remove')
   .addAction('03', ctx => {
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.pop();
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(elseText.slice(0, -1).repeat(count));
   })
@@ -364,7 +364,7 @@ removals.addActionSlot('remove')
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.pop();
     component.display = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(ifText.slice(0, -1).repeat(count));
   });
@@ -375,7 +375,7 @@ additions.addActionSlot('add')
   .addAction('01', ctx => {
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = component.items.slice().concat({if: 'x', else: 'y'});
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((elseText+'y').repeat(count));
   })
@@ -384,7 +384,7 @@ additions.addActionSlot('add')
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}];
     component.display = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal('ace'.repeat(count));
   })
@@ -392,7 +392,7 @@ additions.addActionSlot('add')
   .addAction('03', ctx => {
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.push({if: 5, else: 6});
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((elseText + '6').repeat(count));
   })
@@ -401,7 +401,7 @@ additions.addActionSlot('add')
     const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.push({if: 5, else: 6});
     component.display = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((ifText + '5').repeat(count));
   })

@@ -15,7 +15,7 @@ describe('', () => {
     class Foo { }
     const { au, lifecycle, host, component } = setupAndStart(`<template><foo repeat.for="i of count"></foo></template>`, null, Foo);
     component.count = 3;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(host.textContent).to.equal('aaa');
 
@@ -30,7 +30,7 @@ describe('', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><foo text.bind="theText" repeat.for="i of count"></foo></template>`, null, Foo);
     component.count = 3;
     component.theText = 'a';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(host.textContent).to.equal('aaa');
 
@@ -45,7 +45,7 @@ describe('', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><foo text.bind="text" repeat.for="i of count"></foo></template>`, null, Foo);
     component.count = 3;
     component.text = 'a';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(host.textContent).to.equal('aaa');
 
@@ -61,7 +61,7 @@ describe('', () => {
 
     component.count = 3;
     component.theText = 'a';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(host.textContent).to.equal('undefinedundefinedundefined');
 
@@ -76,7 +76,7 @@ describe('', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><foo repeat.for="i of count" text.bind="text"></foo></template>`, null, Foo);
     component.count = 3;
     component.text = 'a';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(host.textContent).to.equal('undefinedundefinedundefined');
 
@@ -129,11 +129,11 @@ describe('', () => {
     expect(host.textContent).to.equal('abcabcabc');
 
     component.count = 1;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('abc');
 
     component.count = 3;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('abcabcabc');
 
     tearDown(au, lifecycle, host);
@@ -152,11 +152,11 @@ describe('', () => {
     expect(host.textContent).to.equal('abcabcabcabcabcabcabcabcabc');
 
     component.count = 1;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('abcabcabc');
 
     component.count = 3;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('abcabcabcabcabcabcabcabcabc');
 
     tearDown(au, lifecycle, host);

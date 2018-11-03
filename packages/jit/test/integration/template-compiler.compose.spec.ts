@@ -141,7 +141,7 @@ suite.addActionSlot('test')
     const component = new $App();
     component.sub = subject;
     au.app({ host, component }).start();
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     if (subject instanceof Promise) {
       expect(trimFull(host.textContent)).to.equal('');
       await subject

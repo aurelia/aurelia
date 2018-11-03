@@ -12,7 +12,7 @@ describe('template-compiler.binding-commands', () => {
   it('01.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template>\${message}</template>`, null);
     component.message = 'hello!';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.innerText).to.equal('hello!');
     tearDown(au, lifecycle, host);
   });
@@ -21,7 +21,7 @@ describe('template-compiler.binding-commands', () => {
   it('02.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template>\${\`\${message}\`}</template>`, null);
     component.message = 'hello!';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.innerText).to.equal('hello!');
     tearDown(au, lifecycle, host);
   });
@@ -30,7 +30,7 @@ describe('template-compiler.binding-commands', () => {
   it('03.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div style.bind="foo"></div></template>`, null);
     component.foo = 'color: green;';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect((<HTMLElement>host.firstElementChild).style.cssText).to.equal('color: green;');
     tearDown(au, lifecycle, host);
   });
@@ -39,7 +39,7 @@ describe('template-compiler.binding-commands', () => {
   it('04.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div style="\${foo}"></div></template>`, null);
     component.foo = 'color: green;';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect((<HTMLElement>host.firstElementChild).style.cssText).to.equal('color: green;');
     tearDown(au, lifecycle, host);
   });
@@ -48,7 +48,7 @@ describe('template-compiler.binding-commands', () => {
   it('05.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div class.bind="foo"></div></template>`, null);
     component.foo = 'foo bar';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect((<HTMLElement>host.firstElementChild).classList.toString()).to.equal('au foo bar');
     tearDown(au, lifecycle, host);
   });
@@ -57,7 +57,7 @@ describe('template-compiler.binding-commands', () => {
   it('06.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div class="\${foo}"></div></template>`, null);
     component.foo = 'foo bar';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect((<HTMLElement>host.firstElementChild).classList.toString()).to.equal('\${foo} au foo bar'); // TODO: fix this
     tearDown(au, lifecycle, host);
   });
@@ -66,7 +66,7 @@ describe('template-compiler.binding-commands', () => {
   it('07.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.one-time="message"></template>`, null);
     component.message = 'hello!';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstChild['value']).to.equal('');
     tearDown(au, lifecycle, host);
   });
@@ -75,7 +75,7 @@ describe('template-compiler.binding-commands', () => {
   it('08.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.to-view="message"></template>`, null);
     component.message = 'hello!';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstChild['value']).to.equal('hello!');
     tearDown(au, lifecycle, host);
   });
@@ -84,7 +84,7 @@ describe('template-compiler.binding-commands', () => {
   it('09.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.from-view="message"></template>`, null);
     component.message = 'hello!';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstChild['value']).to.equal('');
     host.firstChild['value'] = 'hello!';
     host.firstChild.dispatchEvent(new CustomEvent('change'));
@@ -112,7 +112,7 @@ describe('template-compiler.binding-commands', () => {
     expect(component.message).to.deep.equal({ foo: 'bar' });
     component.message = { bar: 'baz' };
     expect(host.firstChild['value']).to.equal('{"foo":"bar"}');
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstChild['value']).to.equal('{"bar":"baz"}');
     tearDown(au, lifecycle, host);
   });
@@ -121,7 +121,7 @@ describe('template-compiler.binding-commands', () => {
   it('12.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.to-view="message & oneTime"></template>`, null);
     component.message = 'hello!';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstChild['value']).to.equal('');
     tearDown(au, lifecycle, host);
   });
@@ -130,7 +130,7 @@ describe('template-compiler.binding-commands', () => {
   it('13.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.one-time="message & toView"></template>`, null);
     component.message = 'hello!';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstChild['value']).to.equal('hello!');
     tearDown(au, lifecycle, host);
   });
@@ -140,7 +140,7 @@ describe('template-compiler.binding-commands', () => {
   it('14.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.one-time="message & fromView"></template>`, null);
     component.message = 'hello!';
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstChild['value']).to.equal('');
     host.firstChild['value'] = 'hello!';
     host.firstChild.dispatchEvent(new CustomEvent('change'));
@@ -165,7 +165,7 @@ describe('template-compiler.binding-commands', () => {
     expect(host.firstChild['checked']).to.be.false;
     component.checked = true;
     expect(host.firstChild['checked']).to.be.false;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstChild['checked']).to.be.true;
     tearDown(au, lifecycle, host);
   });

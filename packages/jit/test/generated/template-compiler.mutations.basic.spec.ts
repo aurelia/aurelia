@@ -35,18 +35,18 @@ describe("generated.template-compiler.mutations.basic", function () {
             attaching() {
                 this.items.push(3);
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
             }
             attached() {
                 this.items.push(4);
                 expect(this.el.textContent).to.equal(this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "123456781234" : "1234", "this.el.textContent during attached() after mutation after flushChanges()");
             }
             detaching() {
                 this.items.push(5);
                 expect(this.el.textContent).to.equal(this.cycled ? "123456781234" : "1234", "this.el.textContent during detaching() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "1234567812345" : "12345", "this.el.textContent during detaching() after mutation after flushChanges()");
             }
             detached() {
@@ -59,7 +59,7 @@ describe("generated.template-compiler.mutations.basic", function () {
                 this.items.push(8);
                 this.cycled = true;
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
             }
         });
@@ -122,7 +122,7 @@ describe("generated.template-compiler.mutations.basic", function () {
                 this.items.push(8);
                 this.cycled = true;
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
             }
         });
@@ -167,18 +167,18 @@ describe("generated.template-compiler.mutations.basic", function () {
             attaching() {
                 this.items.push(3);
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
             }
             attached() {
                 this.items.push(4);
                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "24", "this.el.textContent during attached() after mutation after flushChanges()");
             }
             detaching() {
                 this.items.push(5);
                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "24", "this.el.textContent during detaching() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "24", "this.el.textContent during detaching() after mutation after flushChanges()");
             }
             detached() {
@@ -192,7 +192,7 @@ describe("generated.template-compiler.mutations.basic", function () {
                 this.cycled = true;
                 this.mod = 3;
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
             }
         });
@@ -257,7 +257,7 @@ describe("generated.template-compiler.mutations.basic", function () {
                 this.cycled = true;
                 this.mod = 3;
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
-                this.$lifecycle.flush();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
             }
         });

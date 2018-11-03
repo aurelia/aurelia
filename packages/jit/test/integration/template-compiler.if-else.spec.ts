@@ -16,10 +16,10 @@ describe(spec, () => {
   it('01.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div if.bind="foo">bar</div></template>`, null);
     component.foo = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('bar');
     component.foo = false;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('');
     tearDown(au, lifecycle, host);
   });
@@ -28,13 +28,13 @@ describe(spec, () => {
   it('02.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div if.bind="foo">bar</div><div else>baz</div></template>`, null);
     component.foo = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.innerText).to.equal('bar');
     component.foo = false;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.innerText).to.equal('baz');
     component.foo = true;
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.innerText).to.equal('bar');
     tearDown(au, lifecycle, host);
   });
@@ -89,7 +89,7 @@ suite.addActionSlot('act')
 
   expect(host.textContent).to.equal('1');
 
-  lifecycle.flush(LifecycleFlags.none);
+  lifecycle.processFlushQueue(LifecycleFlags.none);
 
   expect(host.textContent).to.equal('2');
 });

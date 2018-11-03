@@ -444,29 +444,164 @@ const marker = Object.freeze(Object.create(null));
 
 export interface IFlushLifecycle {
   processFlushQueue(flags: LifecycleFlags): void;
+
+  /**
+   * Queue a flush() callback to be executed either on the next promise tick or on the next
+   * bind lifecycle (if during startTask) or on the next attach lifecycle.
+   *
+   * This method is idempotent; adding the same item more than once has the same effect as
+   * adding it once.
+   *
+   * This queue is primarily used by DOM target observers and collection observers.
+   */
   enqueueFlush(requestor: IChangeTracker): Promise<void>;
 }
 
 export interface IBindLifecycle extends IFlushLifecycle {
+  /**
+   * Open up / expand a bind batch for enqueueing `bound` callbacks.
+   *
+   * When the top-most caller calls `endBind`, the `bound` callbacks will be invoked.
+   *
+   * Each `beginBind` *must* be matched by an `endBind`.
+   */
   beginBind(): void;
+
+  /**
+   * Add a `bound` callback to the queue, to be invoked when the current bind batch
+   * is ended via `endBind` by the top-most caller.
+   *
+   * This method is idempotent; adding the same item more than once has the same effect as
+   * adding it once.
+   */
   enqueueBound(requestor: ILifecycleBound): void;
+
+  /**
+   * Add a `connect` callback to the queue, to be invoked *after* mounting and *before*
+   * `detached` callbacks.
+   *
+   * This method is idempotent; adding the same item more than once has the same effect as
+   * adding it once.
+   */
   enqueueConnect(requestor: IConnectableBinding): void;
+
+  /**
+   * Close / shrink a bind batch for invoking queued `bound` callbacks.
+   * @param flags The flags that will be passed into the `bound` callbacks.
+   *
+   * Flags during bind are primarily for optimization purposes, and to control whether
+   * changes are batched or propagated synchronously.
+   * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`)
+   * This default will work, but is generally less efficient.
+   */
   endBind(flags: LifecycleFlags): void;
 
+  /**
+   * Open up / expand an unbind batch for enqueueing `unbound` callbacks.
+   *
+   * When the top-most caller calls `endUnbind`, the `unbound` callbacks will be invoked.
+   *
+   * Each `beginUnbind` *must* be matched by an `endUnbind`.
+   */
   beginUnbind(): void;
+
+  /**
+   * Add an `unbound` callback to the queue, to be invoked when the current unbind batch
+   * is ended via `endUnbind` by the top-most caller.
+   *
+   * This method is idempotent; adding the same item more than once has the same effect as
+   * adding it once.
+   */
   enqueueUnbound(requestor: ILifecycleUnbound): void;
+
+  /**
+   * Close / shrink an unbind batch for invoking queued `unbound` callbacks.
+   * @param flags The flags that will be passed into the `unbound` callbacks.
+   *
+   * Flags during unbind are primarily for optimization purposes, and to control whether
+   * changes are batched or propagated synchronously.
+   * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`)
+   * This default will work, but is generally less efficient.
+   */
   endUnbind(flags: LifecycleFlags): void;
 }
 
 export interface IAttachLifecycle extends IFlushLifecycle {
+  /**
+   * Open up / expand an attach batch for enqueueing `$mount` and `attached` callbacks.
+   *
+   * When the top-most caller calls `endAttach`, the `$mount` and `attached` callbacks
+   * will be invoked (in that order).
+   *
+   * Each `beginAttach` *must* be matched by an `endAttach`.
+   */
   beginAttach(): void;
+
+  /**
+   * Add a `$mount` callback to the queue, to be invoked when the current attach batch
+   * is ended via `endAttach` by the top-most caller.
+   *
+   * This method is idempotent; adding the same item more than once has the same effect as
+   * adding it once.
+   */
   enqueueMount(requestor: ILifecycleMount): void;
+
+  /**
+   * Add an `attached` callback to the queue, to be invoked when the current attach batch
+   * is ended via `endAttach` by the top-most caller.
+   *
+   * This method is idempotent; adding the same item more than once has the same effect as
+   * adding it once.
+   */
   enqueueAttached(requestor: ILifecycleAttached): void;
+
+  /**
+   * Close / shrink an attach batch for invoking queued `$mount` and `attached` callbacks.
+   * @param flags The flags that will be passed into the `$mount` and `attached` callbacks.
+   *
+   * Flags during attach are primarily for optimization purposes.
+   * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`)
+   * This default will work, but is generally less efficient.
+   */
   endAttach(flags: LifecycleFlags): void;
 
+  /**
+   * Open up / expand a detach batch for enqueueing `$unmount` and `detached` callbacks.
+   *
+   * When the top-most caller calls `endAttach`, the `$unmount` and `detached` callbacks
+   * will be invoked (in that order).
+   *
+   * Each `beginAttach` *must* be matched by an `endAttach`.
+   */
   beginDetach(): void;
+
+  /**
+   * Add a `$unmount` callback to the queue, to be invoked when the current detach batch
+   * is ended via `endAttach` by the top-most caller.
+   *
+   * This method is idempotent; adding the same item more than once has the same effect as
+   * adding it once.
+   */
   enqueueUnmount(requestor: ILifecycleUnmount): void;
+
+  /**
+   * Add a `detached` callback to the queue, to be invoked when the current detach batch
+   * is ended via `endAttach` by the top-most caller.
+   *
+   * This method is idempotent; adding the same item more than once has the same effect as
+   * adding it once.
+   */
   enqueueDetached(requestor: ILifecycleDetached): void;
+
+  /**
+   * Close / shrink a detach batch for invoking queued `$unmount` and `detached` callbacks.
+   * @param flags The flags that will be passed into the `$unmount` and `detached` callbacks.
+   *
+   * Flags during detach are primarily for optimization purposes, and to control whether a
+   * component should be unmounted or not (the default is to only unmount root nodes).
+   * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`).
+   * This default will work, but is generally less efficient.
+   */
   endDetach(flags: LifecycleFlags): void;
 }
 
@@ -516,12 +651,9 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public promise: Promise<void> = Promise.resolve();
 
   public enqueueFlush(requestor: IChangeTracker): Promise<void> {
-    // This method is idempotent; adding the same item more than once has the same effect as
-    // adding it once.
     // Queue a flush() callback; the depth is just for debugging / testing purposes and has
     // no effect on execution. flush() will automatically be invoked when the promise resolves,
     // or it can be manually invoked synchronously.
-    // This queue is primarily used by DOM target observers and collection observers.
     if (this.flushHead === null) {
       this.flushed = this.promise.then(() => this.processFlushQueue(LifecycleFlags.fromAsyncFlush));
     }
@@ -557,13 +689,10 @@ export class Lifecycle implements ILifecycle {
   }
 
   public beginBind(): void {
-    // open up / expand a bind batch; the very first caller will close it again with endBind
     ++this.bindDepth;
   }
 
   public enqueueBound(requestor: ILifecycleBound): void {
-    // This method is idempotent; adding the same item more than once has the same effect as
-    // adding it once.
     // build a standard singly linked list for bound callbacks
     if (requestor.$nextBound === null) {
       requestor.$nextBound = marker;
@@ -577,8 +706,6 @@ export class Lifecycle implements ILifecycle {
   }
 
   public enqueueConnect(requestor: IConnectableBinding): void {
-    // This method is idempotent; adding the same item more than once has the same effect as
-    // adding it once.
     // enqueue connect and patch calls in separate lists so that they can be invoked
     // independently from eachother
     // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path

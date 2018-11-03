@@ -54,7 +54,7 @@ describe('template-compiler.custom-elements', () => {
 
     expect(host.textContent).to.equal('undefined undefined');
 
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(host.textContent).to.equal('bi go');
 
@@ -68,7 +68,7 @@ describe('template-compiler.custom-elements', () => {
     expect(component.fullName).to.equal('bi undefined');
     component.lastName = 'go';
     expect(component.fullName).to.equal('bi go');
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('bi go');
     tearDown(au, lifecycle, host);
   });
@@ -267,7 +267,7 @@ describe('template-compiler.custom-elements', () => {
     expect(host.textContent).to.equal('w00t'.repeat(6));
     expect(lifecycle['flushDepth']).to.equal(6);
 
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('w00t00t'.repeat(6));
     tearDown(au, lifecycle, host);
   });

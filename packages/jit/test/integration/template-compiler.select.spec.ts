@@ -54,7 +54,7 @@ describe('template-compiler.select', () => {
       expect(observer3.currentValue).to.equal('2');
 
       // expect no state changes after flushing
-      lifecycle.flush(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LifecycleFlags.none);
       expect(select1.value).to.equal('2');
       expect(select2.value).to.equal('2');
       expect(select3.value).to.equal('3');
@@ -111,7 +111,7 @@ describe('template-compiler.select', () => {
       expect(observer3.currentValue).to.equal('1');
 
       // expect no state changes after flushing
-      lifecycle.flush(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LifecycleFlags.none);
       expect(component.selectedValue).to.equal('1');
       expect(observer1.currentValue).to.equal('1');
       expect(observer3.currentValue).to.equal('1');
@@ -160,19 +160,19 @@ describe('template-compiler.select', () => {
       expect(observer1.currentValue).to.equal(component.selectedValues);
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);
-      lifecycle.flush(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LifecycleFlags.none);
       const options = host.querySelectorAll('option');
       options.forEach(option => {
         expect(option.selected).to.be[component.selectedValues.includes(option.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
-      lifecycle.flush(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LifecycleFlags.none);
       options.forEach(option => {
         expect(option.selected).to.be.false;
       });
 
       // expect no state changes after flushing
-      lifecycle.flush(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LifecycleFlags.none);
       options.forEach(option => {
         expect(option.selected).to.be.false;
       });
@@ -217,13 +217,13 @@ describe('template-compiler.select', () => {
       expect(observer1.currentValue).to.equal(component.selectedValues);
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);
-      lifecycle.flush(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LifecycleFlags.none);
       const options = host.querySelectorAll('option');
       options.forEach(option => {
         expect(option.selected).to.be[component.selectedValues.includes(option.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
-      lifecycle.flush(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LifecycleFlags.none);
       options.forEach(option => {
         expect(option.selected).to.be.false;
       });
@@ -238,7 +238,7 @@ describe('template-compiler.select', () => {
       });
 
       // expect no state changes after flushing
-      lifecycle.flush(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LifecycleFlags.none);
       expect(component.selectedValues.toString()).to.equal(['8', '9', '10', '11', '12'].toString());
       [].forEach.call(select2.options, (option: HTMLOptionElement) => {
         option.selected = true;
@@ -261,7 +261,7 @@ describe('template-compiler.select', () => {
    expect(host.firstElementChild['value']).to.equal('1');
     component.selectedValue = '2';
     expect(host.firstElementChild['value']).to.equal('1');
-    lifecycle.flush(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstElementChild['value']).to.equal('2');
     expect(host.firstElementChild.childNodes.item(1)['selected']).to.be.true;
     tearDown(au, lifecycle, host);

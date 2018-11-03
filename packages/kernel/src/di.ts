@@ -517,7 +517,11 @@ export class Container implements IContainer {
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
     if (keyAsValue.register) {
-      return keyAsValue.register(handler, keyAsValue) || null;
+      const registrationResolver = keyAsValue.register(handler, keyAsValue);
+      if (!(registrationResolver && registrationResolver.resolve)) {
+        throw Reporter.error(40); // did not return a valid resolver from the static register method
+      }
+      return registrationResolver;
     }
 
     const resolver = new Resolver(keyAsValue, ResolverStrategy.singleton, keyAsValue);

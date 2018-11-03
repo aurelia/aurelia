@@ -443,7 +443,7 @@ const marker = Object.freeze(Object.create(null));
  */
 
 export interface IFlushLifecycle {
-  flush(flags: LifecycleFlags): void;
+  processFlushQueue(flags: LifecycleFlags): void;
   enqueueFlush(requestor: IChangeTracker): Promise<void>;
 }
 
@@ -516,8 +516,14 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public promise: Promise<void> = Promise.resolve();
 
   public enqueueFlush(requestor: IChangeTracker): Promise<void> {
+    // This method is idempotent; adding the same item more than once has the same effect as
+    // adding it once.
+    // Queue a flush() callback; the depth is just for debugging / testing purposes and has
+    // no effect on execution. flush() will automatically be invoked when the promise resolves,
+    // or it can be manually invoked synchronously.
+    // This queue is primarily used by DOM target observers and collection observers.
     if (this.flushHead === null) {
-      this.flushed = this.promise.then(() => this.flush(LifecycleFlags.fromAsyncFlush));
+      this.flushed = this.promise.then(() => this.processFlushQueue(LifecycleFlags.fromAsyncFlush));
     }
     if (requestor.$nextFlush === null) {
       requestor.$nextFlush = marker;
@@ -532,8 +538,10 @@ export class Lifecycle implements ILifecycle {
     return this.flushed;
   }
 
-  public flush(flags: LifecycleFlags): void {
+  public processFlushQueue(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromSyncFlush;
+    // flush callbacks may lead to additional bind operations, so keep looping until
+    // the flush head is null just in case
     while (this.flushHead !== null) {
       let current = this.flushHead;
       this.flushHead = this.flushTail = null;
@@ -549,10 +557,14 @@ export class Lifecycle implements ILifecycle {
   }
 
   public beginBind(): void {
+    // open up / expand a bind batch; the very first caller will close it again with endBind
     ++this.bindDepth;
   }
 
   public enqueueBound(requestor: ILifecycleBound): void {
+    // This method is idempotent; adding the same item more than once has the same effect as
+    // adding it once.
+    // build a standard singly linked list for bound callbacks
     if (requestor.$nextBound === null) {
       requestor.$nextBound = marker;
       if (this.boundHead === null) {
@@ -565,6 +577,14 @@ export class Lifecycle implements ILifecycle {
   }
 
   public enqueueConnect(requestor: IConnectableBinding): void {
+    // This method is idempotent; adding the same item more than once has the same effect as
+    // adding it once.
+    // enqueue connect and patch calls in separate lists so that they can be invoked
+    // independently from eachother
+    // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path
+    // (first get all the necessary integration tests working, then look for optimizations)
+
+    // build a standard singly linked list for connect callbacks
     if (requestor.$nextConnect === null) {
       requestor.$nextConnect = marker;
       if (this.connectTail === null) {
@@ -574,6 +594,7 @@ export class Lifecycle implements ILifecycle {
       }
       this.connectTail = requestor;
     }
+    // build a standard singly linked list for patch callbacks
     if (requestor.$nextPatch === null) {
       requestor.$nextPatch = marker;
       if (this.patchTail === null) {
@@ -585,7 +606,8 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
-  public connect(flags: LifecycleFlags): void {
+  public processConnectQueue(flags: LifecycleFlags): void {
+    // connects cannot lead to additional connects, so we don't need to loop here
     if (this.connectHead !== null) {
       let current = this.connectHead;
       this.connectHead = this.connectTail = null;
@@ -599,7 +621,14 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
-  public patch(flags: LifecycleFlags): void {
+  public processPatchQueue(flags: LifecycleFlags): void {
+    // flush before patching, but only if this is the initial bind;
+    // no DOM is attached yet so we can safely let everything propagate
+    if (flags & LifecycleFlags.fromStartTask) {
+      this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+    }
+    // patch callbacks may lead to additional bind operations, so keep looping until
+    // the patch head is null just in case
     while (this.patchHead !== null) {
       let current = this.patchHead;
       this.patchHead = this.patchTail = null;
@@ -614,12 +643,20 @@ export class Lifecycle implements ILifecycle {
   }
 
   public endBind(flags: LifecycleFlags): void {
+    // close / shrink a bind batch
     if (--this.bindDepth === 0) {
-      this.bind(flags);
+      this.processBindQueue(flags);
     }
   }
 
-  public bind(flags: LifecycleFlags): void {
+  public processBindQueue(flags: LifecycleFlags): void {
+    // flush before processing bound callbacks, but only if this is the initial bind;
+    // no DOM is attached yet so we can safely let everything propagate
+    if (flags & LifecycleFlags.fromStartTask) {
+      this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+    }
+    // bound callbacks may lead to additional bind operations, so keep looping until
+    // the bound head is null just in case
     while (this.boundHead !== null) {
       let current = this.boundHead;
       let next: ILifecycleBound;
@@ -634,10 +671,14 @@ export class Lifecycle implements ILifecycle {
   }
 
   public beginUnbind(): void {
+    // open up / expand an unbind batch; the very first caller will close it again with endUnbind
     ++this.unbindDepth;
   }
 
   public enqueueUnbound(requestor: ILifecycleUnbound): void {
+    // This method is idempotent; adding the same item more than once has the same effect as
+    // adding it once.
+    // build a standard singly linked list for unbound callbacks
     if (requestor.$nextUnbound === null) {
       requestor.$nextUnbound = marker;
       if (this.unboundHead === null) {
@@ -650,12 +691,15 @@ export class Lifecycle implements ILifecycle {
   }
 
   public endUnbind(flags: LifecycleFlags): void {
+    // close / shrink an unbind batch
     if (--this.unbindDepth === 0) {
-      this.unbind(flags);
+      this.processUnbindQueue(flags);
     }
   }
 
-  public unbind(flags: LifecycleFlags): void {
+  public processUnbindQueue(flags: LifecycleFlags): void {
+    // unbound callbacks may lead to additional unbind operations, so keep looping until
+    // the unbound head is null just in case
     while (this.unboundHead !== null) {
       let current = this.unboundHead;
       let next: ILifecycleUnbound;
@@ -670,10 +714,14 @@ export class Lifecycle implements ILifecycle {
   }
 
   public beginAttach(): void {
+    // open up / expand an attach batch; the very first caller will close it again with endAttach
     ++this.attachDepth;
   }
 
   public enqueueMount(requestor: ILifecycleMount): void {
+    // This method is idempotent; adding the same item more than once has the same effect as
+    // adding it once.
+    // build a standard singly linked list for mount callbacks
     if (requestor.$nextMount === null) {
       requestor.$nextMount = marker;
       if (this.mountHead === null) {
@@ -686,6 +734,9 @@ export class Lifecycle implements ILifecycle {
   }
 
   public enqueueAttached(requestor: ILifecycleAttached): void {
+    // This method is idempotent; adding the same item more than once has the same effect as
+    // adding it once.
+    // build a standard singly linked list for attached callbacks
     if (requestor.$nextAttached === null) {
       requestor.$nextAttached = marker;
       if (this.attachedHead === null) {
@@ -698,16 +749,17 @@ export class Lifecycle implements ILifecycle {
   }
 
   public endAttach(flags: LifecycleFlags): void {
+    // close / shrink an attach batch
     if (--this.attachDepth === 0) {
-      this.attach(flags);
+      this.processAttachQueue(flags);
     }
   }
 
-  public attach(flags: LifecycleFlags): void {
+  public processAttachQueue(flags: LifecycleFlags): void {
     // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
     // and the DOM is updated
-    this.flush(flags | LifecycleFlags.fromSyncFlush);
-    this.patch(flags | LifecycleFlags.fromSyncFlush);
+    this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+    this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
 
     if (this.mountHead !== null) {
       let currentMount = this.mountHead;
@@ -727,7 +779,7 @@ export class Lifecycle implements ILifecycle {
     // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
     // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
     // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
-    this.connect(LifecycleFlags.mustEvaluate);
+    this.processConnectQueue(LifecycleFlags.mustEvaluate);
 
     if (this.attachedHead !== null) {
       let currentAttached = this.attachedHead;
@@ -744,10 +796,14 @@ export class Lifecycle implements ILifecycle {
   }
 
   public beginDetach(): void {
+    // open up / expand a detach batch; the very first caller will close it again with endDetach
     ++this.detachDepth;
   }
 
   public enqueueUnmount(requestor: ILifecycleUnmount): void {
+    // This method is idempotent; adding the same item more than once has the same effect as
+    // adding it once.
+    // build a standard singly linked list for unmount callbacks
     if (requestor.$nextUnmount === null) {
       requestor.$nextUnmount = marker;
       if (this.unmountHead === null) {
@@ -760,6 +816,9 @@ export class Lifecycle implements ILifecycle {
   }
 
   public enqueueDetached(requestor: ILifecycleDetached): void {
+    // This method is idempotent; adding the same item more than once has the same effect as
+    // adding it once.
+    // build a standard singly linked list for detached callbacks
     if (requestor.$nextDetached === null) {
       requestor.$nextDetached = marker;
       if (this.detachedHead === null) {
@@ -772,13 +831,17 @@ export class Lifecycle implements ILifecycle {
   }
 
   public endDetach(flags: LifecycleFlags): void {
+    // close / shrink a detach batch
     if (--this.detachDepth === 0) {
-      this.detach(flags);
+      this.processDetachQueue(flags);
     }
   }
 
-  public detach(flags: LifecycleFlags): void {
-    this.flush(flags | LifecycleFlags.fromFlush);
+  public processDetachQueue(flags: LifecycleFlags): void {
+    // flush before unmounting to ensure batched collection changes propagate to the repeaters,
+    // which may lead to additional unmount operations
+    // TODO: be a little more efficient here (use a flag to not propagate DOM changes, etc)
+    this.processFlushQueue(flags | LifecycleFlags.fromFlush);
 
     if (this.unmountHead !== null) {
       let currentUnmount = this.unmountHead;

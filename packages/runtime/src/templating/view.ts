@@ -1,34 +1,10 @@
-import { DI, Reporter } from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import { INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IBindScope, ILifecycle, IMountable, State } from '../lifecycle';
+import { IAttach, IBindScope, ILifecycle, IMountable, IRenderContext, IView, IViewCache, IViewFactory, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
 import { $bindView, $unbindView } from './lifecycle-bind';
-import { IRenderable, IRenderContext, ITemplate } from './lifecycle-render';
-
-export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
-  readonly cache: IViewCache;
-  readonly isFree: boolean;
-  readonly location: IRenderLocation;
-
-  hold(location: IRenderLocation, flags: LifecycleFlags): void;
-  release(flags: LifecycleFlags): boolean;
-
-  lockScope(scope: IScope): void;
-}
-export interface IViewCache {
-  readonly isCaching: boolean;
-  setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
-  canReturnToCache(view: IView): boolean;
-  tryReturnToCache(view: IView): boolean;
-}
-
-export interface IViewFactory extends IViewCache {
-  readonly name: string;
-  create(): IView;
-}
-
-export const IViewFactory = DI.createInterface<IViewFactory>().noDefault();
+import { ITemplate } from './lifecycle-render';
 
 /*@internal*/
 export interface View extends IView {}

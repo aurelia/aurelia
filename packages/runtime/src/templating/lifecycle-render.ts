@@ -14,11 +14,11 @@ import { Observer } from '../binding/property-observation';
 import { Ref } from '../binding/ref';
 import { subscriberCollection } from '../binding/subscriber-collection';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
-import { Hooks, IAttach, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, IMountable, IState, State } from '../lifecycle';
+import { Hooks, IAttach, IAttachables, IBindables, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, IMountable, IRenderable, IRenderContext, IState, IViewFactory, State } from '../lifecycle';
 import { IAccessor, IPropertySubscriber, IScope, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { BindableDefinitions, buildTemplateDefinition, customAttributeKey, customElementBehavior, CustomElementConstructor, customElementKey, IAttributeDefinition, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, IRenderStrategyInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from './definitions';
-import { IViewFactory, ViewFactory } from './view';
+import { ViewFactory } from './view';
 
 export interface IRenderStrategy<TTarget = any, TInstruction extends IRenderStrategyInstruction = any> {
   render(renderable: IRenderable, target: TTarget, instruction: TInstruction): void;
@@ -211,52 +211,6 @@ function determineProjector(
   }
 
   return new HostProjector($customElement, host);
-}
-
-export const IRenderable = DI.createInterface<IRenderable>().noDefault();
-
-export interface IBindables {
-  /**
-   * The Bindings, Views, CustomElements, CustomAttributes and other bindable components that belong to this instance.
-   */
-  $bindableHead?: IBindScope;
-  $bindableTail?: IBindScope;
-}
-
-export interface IAttachables {
-
-  /**
-   * The Views, CustomElements, CustomAttributes and other attachable components that belong to this instance.
-   */
-  $attachableHead?: IAttach;
-  $attachableTail?: IAttach;
-}
-
-/**
- * An object containing the necessary information to render something for display.
- */
-export interface IRenderable extends IBindables, IAttachables, IState {
-
-  /**
-   * The (dependency) context of this instance.
-   *
-   * Contains any dependencies required by this instance or its children.
-   */
-  readonly $context: IRenderContext;
-
-  /**
-   * The nodes that represent the visible aspect of this instance.
-   *
-   * Typically this will be a sequence of `DOM` nodes contained in a `DocumentFragment`
-   */
-  readonly $nodes: INodeSequence;
-
-  /**
-   * The binding scope that the `$bindables` of this instance will be bound to.
-   *
-   * This includes the `BindingContext` which can be either a user-defined view model instance, or a synthetic view model instantiated by a `templateController`
-   */
-  readonly $scope: IScope;
 }
 
 export interface IRenderingEngine {
@@ -714,11 +668,6 @@ export const noViewTemplate: ITemplate = {
   }
 };
 
-export interface IRenderContext extends IServiceLocator {
-  createChild(): IRenderContext;
-  render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IRenderable, target: INode, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable;
-}
 
 /*@internal*/
 export type ExposedContext = IRenderContext & IDisposable & IContainer;

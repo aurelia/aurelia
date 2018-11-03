@@ -26,7 +26,7 @@ export interface Binding extends IConnectableBinding {}
 @connectable()
 export class Binding implements IPartialConnectableBinding {
   public $nextConnect: IConnectableBinding = null;
-  public $connectFlags: LifecycleFlags = 0;
+  public $nextPatch: IConnectableBinding = null;
   public $nextBind: IBindScope = null;
   public $prevBind: IBindScope = null;
 
@@ -129,7 +129,7 @@ export class Binding implements IPartialConnectableBinding {
       this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
     }
     if (mode & toView) {
-      this.$lifecycle.enqueueConnect(this, flags);
+      this.$lifecycle.enqueueConnect(this);
     }
     if (mode & fromView) {
       targetObserver.subscribe(this);
@@ -168,7 +168,7 @@ export class Binding implements IPartialConnectableBinding {
 
   public connect(flags: LifecycleFlags): void {
     if (this.$state & State.isBound) {
-      this.sourceExpression.connect(flags, this.$scope, this);
+      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
     }
   }
 

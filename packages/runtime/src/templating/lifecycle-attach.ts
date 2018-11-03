@@ -53,7 +53,10 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
     current = current.$nextAttach;
   }
 
-  lifecycle.enqueueMount(this);
+  if (!(this.$state & State.isMounted)) {
+    lifecycle.enqueueMount(this);
+  }
+
   // add isAttached flag, remove isAttaching flag
   this.$state |= State.isAttached;
   this.$state &= ~State.isAttaching;
@@ -79,7 +82,7 @@ export function $attachView(this: Writable<IView>, flags: LifecycleFlags): void 
     current = current.$nextAttach;
   }
 
-  if (this.$state & State.needsMount) {
+  if (!(this.$state & State.isMounted)) {
     this.$lifecycle.enqueueMount(this);
   }
 
@@ -126,7 +129,12 @@ export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleF
       this.detaching(flags);
     }
 
-    lifecycle.enqueueUnmount(this);
+    if (this.$state & State.isMounted) {
+      if ((flags ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.allowUnmount)) {
+        lifecycle.enqueueUnmount(this);
+        flags |= LifecycleFlags.parentUnmountQueued;
+      }
+    }
 
     let current = this.$attachableTail;
     while (current !== null) {
@@ -151,7 +159,12 @@ export function $detachView(this: Writable<IView>, flags: LifecycleFlags): void 
     this.$state |= State.isDetaching;
     flags |= LifecycleFlags.fromDetach;
 
-    this.$lifecycle.enqueueUnmount(this);
+    if (this.$state & State.isMounted) {
+      if ((flags ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.allowUnmount)) {
+        this.$lifecycle.enqueueUnmount(this);
+        flags |= LifecycleFlags.parentUnmountQueued;
+      }
+    }
 
     let current = this.$attachableTail;
     while (current !== null) {
@@ -198,22 +211,26 @@ export function $cacheView(this: Writable<IView>, flags: LifecycleFlags): void {
 
 /*@internal*/
 export function $mountElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
+  this.$state |= State.isMounted;
   this.$projector.project(this.$nodes);
 }
 
 /*@internal*/
 export function $unmountElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
+  this.$state &= ~State.isMounted;
   this.$projector.take(this.$nodes);
 }
 
 /*@internal*/
 export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
+  this.$state |= State.isMounted;
   this.$state &= ~State.needsMount;
   this.$nodes.insertBefore(this.location);
 }
 
 /*@internal*/
 export function $unmountView(this: Writable<IView>, flags: LifecycleFlags): boolean {
+  this.$state &= ~State.isMounted;
   this.$state |= State.needsMount;
   this.$nodes.remove();
 

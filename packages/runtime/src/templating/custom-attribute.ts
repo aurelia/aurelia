@@ -62,6 +62,10 @@ export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICusto
     proto.$hooks = 0;
     proto.$state = 0;
 
+    if ('flush' in proto) {
+      proto.$nextFlush = null;
+    }
+
     if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
     if ('bound' in proto) {
       proto.$hooks |= Hooks.hasBound;

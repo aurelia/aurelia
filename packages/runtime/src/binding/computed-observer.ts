@@ -68,6 +68,7 @@ export interface CustomSetterObserver extends IBindingTargetObserver { }
 // Used when the getter is dependent solely on changes that happen within the setter.
 @subscriberCollection(MutationKind.instance)
 export class CustomSetterObserver implements CustomSetterObserver {
+  public $nextFlush: this = null;
   public dispose: () => void;
   public observing: boolean = false;
   public currentValue: IIndexable | Primitive;

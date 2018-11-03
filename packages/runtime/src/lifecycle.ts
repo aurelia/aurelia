@@ -5,15 +5,16 @@ import { INode, INodeSequence, IRenderLocation } from './dom';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
 
 export const enum State {
-  none                  = 0b00000000000,
-  isBinding             = 0b00000000001,
-  isBound               = 0b00000000010,
-  isAttaching           = 0b00000000100,
-  isAttached            = 0b00000001000,
-  isDetaching           = 0b00000010000,
-  isUnbinding           = 0b00000100000,
-  isCached              = 0b00001000000,
-  needsMount            = 0b00010000000
+  none                  = 0b000000000000,
+  isBinding             = 0b000000000001,
+  isBound               = 0b000000000010,
+  isAttaching           = 0b000000000100,
+  isAttached            = 0b000000001000,
+  isMounted             = 0b000000010000,
+  isDetaching           = 0b000000100000,
+  isUnbinding           = 0b000001000000,
+  isCached              = 0b000010000000,
+  needsMount            = 0b000100000000
 }
 
 export const enum Hooks {
@@ -442,16 +443,14 @@ const marker = Object.freeze(Object.create(null));
  */
 
 export interface IFlushLifecycle {
-  enqueueFlush(requestor: IChangeTracker): Promise<void>;
   flush(flags: LifecycleFlags): void;
+  enqueueFlush(requestor: IChangeTracker): Promise<void>;
 }
 
 export interface IBindLifecycle extends IFlushLifecycle {
   beginBind(): void;
   enqueueBound(requestor: ILifecycleBound): void;
-  enqueueConnect(requestor: IConnectableBinding, flags: LifecycleFlags): void;
-  connect(flags: LifecycleFlags): void;
-  patch(flags: LifecycleFlags): void;
+  enqueueConnect(requestor: IConnectableBinding): void;
   endBind(flags: LifecycleFlags): void;
 
   beginUnbind(): void;
@@ -492,6 +491,9 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public connectHead: IConnectableBinding = null;
   /*@internal*/public connectTail: IConnectableBinding = null;
 
+  /*@internal*/public patchHead: IConnectableBinding = null;
+  /*@internal*/public patchTail: IConnectableBinding = null;
+
   /*@internal*/public boundHead: ILifecycleBound = null;
   /*@internal*/public boundTail: ILifecycleBound = null;
 
@@ -514,35 +516,35 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public promise: Promise<void> = Promise.resolve();
 
   public enqueueFlush(requestor: IChangeTracker): Promise<void> {
-    if (this.flushDepth === 0) {
+    if (this.flushHead === null) {
       this.flushed = this.promise.then(() => this.flush(LifecycleFlags.fromAsyncFlush));
     }
-    if (requestor.$nextFlush) {
-      return this.flushed;
+    if (requestor.$nextFlush === null) {
+      requestor.$nextFlush = marker;
+      if (this.flushTail === null) {
+        this.flushHead = requestor;
+      } else {
+        this.flushTail.$nextFlush = requestor;
+      }
+      this.flushTail = requestor;
+      ++this.flushDepth;
     }
-    requestor.$nextFlush = marker;
-    if (this.flushTail === null) {
-      this.flushHead = requestor;
-    } else {
-      this.flushTail.$nextFlush = requestor;
-    }
-    this.flushTail = requestor;
-    ++this.flushDepth;
     return this.flushed;
   }
 
   public flush(flags: LifecycleFlags): void {
-    while (this.flushDepth > 0) {
+    flags |= LifecycleFlags.fromSyncFlush;
+    while (this.flushHead !== null) {
       let current = this.flushHead;
       this.flushHead = this.flushTail = null;
-      let next: typeof current;
       this.flushDepth = 0;
-      while (current && current !== marker) {
+      let next: typeof current;
+      do {
         next = current.$nextFlush;
         current.$nextFlush = null;
         current.flush(flags);
         current = next;
-      }
+      } while (current !== marker);
     }
   }
 
@@ -551,59 +553,83 @@ export class Lifecycle implements ILifecycle {
   }
 
   public enqueueBound(requestor: ILifecycleBound): void {
-    requestor.$nextBound = null;
-    if (this.boundHead === null) {
-      this.boundHead = requestor;
-    } else {
-      this.boundTail.$nextBound = requestor;
+    if (requestor.$nextBound === null) {
+      requestor.$nextBound = marker;
+      if (this.boundHead === null) {
+        this.boundHead = requestor;
+      } else {
+        this.boundTail.$nextBound = requestor;
+      }
+      this.boundTail = requestor;
     }
-    this.boundTail = requestor;
   }
 
-  public enqueueConnect(requestor: IConnectableBinding, flags: LifecycleFlags): void {
-    requestor.$nextConnect = null;
-    if (this.connectTail === null) {
-      this.connectHead = requestor;
-    } else {
-      this.connectTail.$nextConnect = requestor;
+  public enqueueConnect(requestor: IConnectableBinding): void {
+    if (requestor.$nextConnect === null) {
+      requestor.$nextConnect = marker;
+      if (this.connectTail === null) {
+        this.connectHead = requestor;
+      } else {
+        this.connectTail.$nextConnect = requestor;
+      }
+      this.connectTail = requestor;
     }
-    this.connectTail = requestor;
+    if (requestor.$nextPatch === null) {
+      requestor.$nextPatch = marker;
+      if (this.patchTail === null) {
+        this.patchHead = requestor;
+      } else {
+        this.patchTail.$nextPatch = requestor;
+      }
+      this.patchTail = requestor;
+    }
   }
 
   public connect(flags: LifecycleFlags): void {
-    // if we're telling the lifecycle to perform the connect calls, assume it's the last call
-    // and reset the linked list
-    let current = this.connectHead;
-    this.connectHead = this.connectTail = null;
-    let next: typeof current;
-    while (current !== null) {
-      current.connect(flags);
-      next = current.$nextConnect;
-      current.$nextConnect = null;
-      current = next;
+    if (this.connectHead !== null) {
+      let current = this.connectHead;
+      this.connectHead = this.connectTail = null;
+      let next: typeof current;
+      do {
+        current.connect(flags);
+        next = current.$nextConnect;
+        current.$nextConnect = null;
+        current = next;
+      } while (current !== marker);
     }
   }
 
   public patch(flags: LifecycleFlags): void {
-    // otherwise keep the links intact because we still need to connect at a later point in time
-    let current = this.connectHead;
-    while (current !== null) {
-      current.patch(flags);
-      current = current.$nextConnect;
+    while (this.patchHead !== null) {
+      let current = this.patchHead;
+      this.patchHead = this.patchTail = null;
+      let next: typeof current;
+      do {
+        current.patch(flags);
+        next = current.$nextPatch;
+        current.$nextPatch = null;
+        current = next;
+      } while (current !== marker);
     }
   }
 
   public endBind(flags: LifecycleFlags): void {
     if (--this.bindDepth === 0) {
+      this.bind(flags);
+    }
+  }
+
+  public bind(flags: LifecycleFlags): void {
+    while (this.boundHead !== null) {
       let current = this.boundHead;
       let next: ILifecycleBound;
       this.boundHead = this.boundTail = null;
-      while (current !== null) {
+      do {
         current.bound(flags);
         next = current.$nextBound;
         current.$nextBound = null;
         current = next;
-      }
+      } while (current !== marker);
     }
   }
 
@@ -612,26 +638,34 @@ export class Lifecycle implements ILifecycle {
   }
 
   public enqueueUnbound(requestor: ILifecycleUnbound): void {
-    requestor.$nextUnbound = null;
-    if (this.unboundHead === null) {
-      this.unboundHead = requestor;
-    } else {
-      this.unboundTail.$nextUnbound = requestor;
+    if (requestor.$nextUnbound === null) {
+      requestor.$nextUnbound = marker;
+      if (this.unboundHead === null) {
+        this.unboundHead = requestor;
+      } else {
+        this.unboundTail.$nextUnbound = requestor;
+      }
+      this.unboundTail = requestor;
     }
-    this.unboundTail = requestor;
   }
 
   public endUnbind(flags: LifecycleFlags): void {
     if (--this.unbindDepth === 0) {
+      this.unbind(flags);
+    }
+  }
+
+  public unbind(flags: LifecycleFlags): void {
+    while (this.unboundHead !== null) {
       let current = this.unboundHead;
       let next: ILifecycleUnbound;
       this.unboundHead = this.unboundTail = null;
-      while (current !== null) {
+      do {
         current.unbound(flags);
         next = current.$nextUnbound;
         current.$nextUnbound = null;
         current = next;
-      }
+      } while (current !== marker);
     }
   }
 
@@ -640,61 +674,72 @@ export class Lifecycle implements ILifecycle {
   }
 
   public enqueueMount(requestor: ILifecycleMount): void {
-    if (this.mountHead === null) {
-      this.mountHead = requestor;
-    } else {
-      this.mountTail.$nextMount = requestor;
+    if (requestor.$nextMount === null) {
+      requestor.$nextMount = marker;
+      if (this.mountHead === null) {
+        this.mountHead = requestor;
+      } else {
+        this.mountTail.$nextMount = requestor;
+      }
+      this.mountTail = requestor;
     }
-    this.mountTail = requestor;
   }
 
   public enqueueAttached(requestor: ILifecycleAttached): void {
-    if (this.attachedHead === null) {
-      this.attachedHead = requestor;
-    } else {
-      this.attachedTail.$nextAttached = requestor;
+    if (requestor.$nextAttached === null) {
+      requestor.$nextAttached = marker;
+      if (this.attachedHead === null) {
+        this.attachedHead = requestor;
+      } else {
+        this.attachedTail.$nextAttached = requestor;
+      }
+      this.attachedTail = requestor;
     }
-    this.attachedTail = requestor;
   }
 
   public endAttach(flags: LifecycleFlags): void {
     if (--this.attachDepth === 0) {
-      // flush before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
-      this.flush(flags | LifecycleFlags.fromSyncFlush);
+      this.attach(flags);
+    }
+  }
 
+  public attach(flags: LifecycleFlags): void {
+    // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
+    // and the DOM is updated
+    this.flush(flags | LifecycleFlags.fromSyncFlush);
+    this.patch(flags | LifecycleFlags.fromSyncFlush);
+
+    if (this.mountHead !== null) {
       let currentMount = this.mountHead;
-      const lastMount = this.mountTail;
       this.mountHead = this.mountTail = null;
       let nextMount: typeof currentMount;
 
-      while (currentMount) {
-        if (currentMount === lastMount) {
-          // patch all Binding.targetObserver.targets (DOM objects) synchronously just before mounting the root
-          this.patch(LifecycleFlags.fromFlush);
-        }
+      do {
         currentMount.$mount(flags);
         nextMount = currentMount.$nextMount;
         currentMount.$nextMount = null;
         currentMount = nextMount;
-      }
-      // Connect all connect-queued bindings AFTER mounting is done, so that the DOM is visible asap,
-      // but connect BEFORE running the attached callbacks to ensure any changes made during those callbacks
-      // are still accounted for.
-      // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
-      // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
-      // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
-      this.connect(LifecycleFlags.mustEvaluate);
+      } while (currentMount !== marker);
+    }
+    // Connect all connect-queued bindings AFTER mounting is done, so that the DOM is visible asap,
+    // but connect BEFORE running the attached callbacks to ensure any changes made during those callbacks
+    // are still accounted for.
+    // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
+    // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
+    // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
+    this.connect(LifecycleFlags.mustEvaluate);
 
+    if (this.attachedHead !== null) {
       let currentAttached = this.attachedHead;
       this.attachedHead = this.attachedTail = null;
       let nextAttached: typeof currentAttached;
 
-      while (currentAttached) {
+      do {
         currentAttached.attached(flags);
         nextAttached = currentAttached.$nextAttached;
         currentAttached.$nextAttached = null;
         currentAttached = nextAttached;
-      }
+      } while (currentAttached !== marker);
     }
   }
 
@@ -703,48 +748,62 @@ export class Lifecycle implements ILifecycle {
   }
 
   public enqueueUnmount(requestor: ILifecycleUnmount): void {
-    if (this.unmountHead === null) {
-      this.unmountHead = requestor;
-    } else {
-      this.unmountTail.$nextUnmount = requestor;
+    if (requestor.$nextUnmount === null) {
+      requestor.$nextUnmount = marker;
+      if (this.unmountHead === null) {
+        this.unmountHead = requestor;
+      } else {
+        this.unmountTail.$nextUnmount = requestor;
+      }
+      this.unmountTail = requestor;
     }
-    this.unmountTail = requestor;
   }
 
   public enqueueDetached(requestor: ILifecycleDetached): void {
-    if (this.detachedHead === null) {
-      this.detachedHead = requestor;
-    } else {
-      this.detachedTail.$nextDetached = requestor;
+    if (requestor.$nextDetached === null) {
+      requestor.$nextDetached = marker;
+      if (this.detachedHead === null) {
+        this.detachedHead = requestor;
+      } else {
+        this.detachedTail.$nextDetached = requestor;
+      }
+      this.detachedTail = requestor;
     }
-    this.detachedTail = requestor;
   }
 
   public endDetach(flags: LifecycleFlags): void {
     if (--this.detachDepth === 0) {
-      this.flush(flags | LifecycleFlags.fromSyncFlush);
+      this.detach(flags);
+    }
+  }
 
+  public detach(flags: LifecycleFlags): void {
+    this.flush(flags | LifecycleFlags.fromFlush);
+
+    if (this.unmountHead !== null) {
       let currentUnmount = this.unmountHead;
       this.unmountHead = this.unmountTail = null;
       let nextUnmount: typeof currentUnmount;
 
-      while (currentUnmount) {
+      do {
         currentUnmount.$unmount(flags);
         nextUnmount = currentUnmount.$nextUnmount;
         currentUnmount.$nextUnmount = null;
         currentUnmount = nextUnmount;
-      }
+      } while (currentUnmount !== marker);
+    }
 
+    if (this.detachedHead !== null) {
       let currentDetached = this.detachedHead;
       this.detachedHead = this.detachedTail = null;
       let nextDetached: typeof currentDetached;
 
-      while (currentDetached) {
+      do {
         currentDetached.detached(flags);
         nextDetached = currentDetached.$nextDetached;
         currentDetached.$nextDetached = null;
         currentDetached = nextDetached;
-      }
+      } while (currentDetached !== marker);
     }
   }
 }
@@ -811,30 +870,31 @@ export class CompositionCoordinator {
     }
 
     const $lifecycle = this.$lifecycle;
-    if (this.currentView !== null) {
+    let currentView = this.currentView;
+    if (currentView !== null) {
       if (this.isAttached) {
         $lifecycle.beginDetach();
-        this.currentView.$detach(flags);
+        currentView.$detach(flags | LifecycleFlags.allowUnmount);
         $lifecycle.endDetach(flags);
       }
       if (this.isBound) {
         $lifecycle.beginUnbind();
-        this.currentView.$unbind(flags);
+        currentView.$unbind(flags);
         $lifecycle.endUnbind(flags);
       }
     }
 
-    this.currentView = view;
+    currentView = this.currentView = view;
 
-    if (this.currentView !== null) {
+    if (currentView !== null) {
       if (this.isBound) {
         $lifecycle.beginBind();
-        this.currentView.$bind(flags, this.scope);
+        currentView.$bind(flags, this.scope);
         $lifecycle.endBind(flags);
       }
       if (this.isAttached) {
         $lifecycle.beginAttach();
-        this.currentView.$attach(flags);
+        currentView.$attach(flags);
         $lifecycle.endAttach(flags);
       }
     }

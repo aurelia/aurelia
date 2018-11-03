@@ -8,6 +8,7 @@ type BindingTargetAccessor = IBindingTargetAccessor & {
   currentFlags: LifecycleFlags;
   oldValue?: IIndexable | Primitive;
   defaultValue: Primitive | IIndexable;
+  $nextFlush?: BindingTargetAccessor;
   flush(flags: LifecycleFlags): void;
   setValueCore(value: Primitive | IIndexable, flags: LifecycleFlags): void;
 };
@@ -50,6 +51,8 @@ export function targetObserver(defaultValue: Primitive | IIndexable = null): Cla
   return function(target: Function): void {
     subscriberCollection(MutationKind.instance)(target);
     const proto = <BindingTargetAccessor>target.prototype;
+
+    proto.$nextFlush = null;
 
     proto.currentValue = defaultValue;
     proto.oldValue = defaultValue;

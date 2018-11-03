@@ -46,6 +46,8 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
     batchedSubscriberCollection()(target);
     const proto = <CollectionObserver>target.prototype;
 
+    proto.$nextFlush = null;
+
     proto.collection = null;
     proto.indexMap = null;
     proto.hasChanges = false;

@@ -45,7 +45,7 @@ export class Aurelia {
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      component.$detach(LifecycleFlags.fromStopTask);
+      component.$detach(LifecycleFlags.fromStopTask | LifecycleFlags.allowUnmount);
       component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
       host.$au = null;
     });

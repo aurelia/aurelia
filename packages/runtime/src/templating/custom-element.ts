@@ -107,6 +107,10 @@ export const CustomElementResource: ICustomElementResource = {
 
     proto.$projector = null;
 
+    if ('flush' in proto) {
+      proto.$nextFlush = null;
+    }
+
     if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
     if ('bound' in proto) {
       proto.$hooks |= Hooks.hasBound;

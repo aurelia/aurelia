@@ -267,7 +267,7 @@ export class GetterController {
   }
 
   public handleChange(): void {
-    this.lifecycle.queueFlush(this.owner);
+    this.lifecycle.enqueueFlush(this.owner);
   }
 
   private unsubscribeAllDependencies(): void {

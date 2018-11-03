@@ -22,7 +22,7 @@ export function $bindAttribute(this: Writable<ICustomAttribute>, flags: Lifecycl
   const hooks = this.$hooks;
 
   if (hooks & Hooks.hasBound) {
-    lifecycle.queueBound(this);
+    lifecycle.enqueueBound(this);
   }
 
   this.$scope = scope;
@@ -52,7 +52,7 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
   flags |= LifecycleFlags.fromBind;
 
   if (hooks & Hooks.hasBound) {
-    lifecycle.queueBound(this);
+    lifecycle.enqueueBound(this);
   }
 
   if (hooks & Hooks.hasBinding) {
@@ -111,7 +111,7 @@ export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
     flags |= LifecycleFlags.fromUnbind;
 
     if (hooks & Hooks.hasUnbound) {
-      lifecycle.queueUnbound(this);
+      lifecycle.enqueueUnbound(this);
     }
 
     if (hooks & Hooks.hasUnbinding) {
@@ -137,7 +137,7 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleF
     flags |= LifecycleFlags.fromUnbind;
 
     if (hooks & Hooks.hasUnbound) {
-      lifecycle.queueUnbound(this);
+      lifecycle.enqueueUnbound(this);
     }
 
     if (hooks & Hooks.hasUnbinding) {

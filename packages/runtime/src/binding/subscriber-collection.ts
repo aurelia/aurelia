@@ -149,7 +149,7 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
       }
     }
   }
-  this.lifecycle.queueFlush(this);
+  this.lifecycle.enqueueFlush(this);
 }
 
 function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>): boolean {

@@ -57,7 +57,7 @@ export class If {
       const view = this.updateView(flags);
       this.coordinator.compose(view, flags);
     } else {
-      this.$lifecycle.queueFlush(this);
+      this.$lifecycle.enqueueFlush(this);
     }
   }
 

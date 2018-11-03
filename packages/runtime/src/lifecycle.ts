@@ -442,32 +442,32 @@ const marker = Object.freeze(Object.create(null));
  */
 
 export interface IFlushLifecycle {
-  queueFlush(requestor: IChangeTracker): Promise<void>;
+  enqueueFlush(requestor: IChangeTracker): Promise<void>;
   flush(flags: LifecycleFlags): void;
 }
 
 export interface IBindLifecycle extends IFlushLifecycle {
   beginBind(): void;
-  queueBound(requestor: ILifecycleBound): void;
-  queueConnect(requestor: IConnectableBinding, flags: LifecycleFlags): void;
+  enqueueBound(requestor: ILifecycleBound): void;
+  enqueueConnect(requestor: IConnectableBinding, flags: LifecycleFlags): void;
   connect(flags: LifecycleFlags): void;
   patch(flags: LifecycleFlags): void;
   endBind(flags: LifecycleFlags): void;
 
   beginUnbind(): void;
-  queueUnbound(requestor: ILifecycleUnbound): void;
+  enqueueUnbound(requestor: ILifecycleUnbound): void;
   endUnbind(flags: LifecycleFlags): void;
 }
 
 export interface IAttachLifecycle extends IFlushLifecycle {
   beginAttach(): void;
-  queueMount(requestor: ILifecycleMount): void;
-  queueAttachedCallback(requestor: ILifecycleAttached): void;
+  enqueueMount(requestor: ILifecycleMount): void;
+  enqueueAttached(requestor: ILifecycleAttached): void;
   endAttach(flags: LifecycleFlags): void;
 
   beginDetach(): void;
-  queueUnmount(requestor: ILifecycleUnmount): void;
-  queueDetachedCallback(requestor: ILifecycleDetached): void;
+  enqueueUnmount(requestor: ILifecycleUnmount): void;
+  enqueueDetached(requestor: ILifecycleDetached): void;
   endDetach(flags: LifecycleFlags): void;
 }
 
@@ -513,7 +513,7 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public flushed: Promise<void> = null;
   /*@internal*/public promise: Promise<void> = Promise.resolve();
 
-  public queueFlush(requestor: IChangeTracker): Promise<void> {
+  public enqueueFlush(requestor: IChangeTracker): Promise<void> {
     if (this.flushDepth === 0) {
       this.flushed = this.promise.then(() => this.flush(LifecycleFlags.fromAsyncFlush));
     }
@@ -550,7 +550,7 @@ export class Lifecycle implements ILifecycle {
     ++this.bindDepth;
   }
 
-  public queueBound(requestor: ILifecycleBound): void {
+  public enqueueBound(requestor: ILifecycleBound): void {
     requestor.$nextBound = null;
     if (this.boundHead === null) {
       this.boundHead = requestor;
@@ -560,7 +560,7 @@ export class Lifecycle implements ILifecycle {
     this.boundTail = requestor;
   }
 
-  public queueConnect(requestor: IConnectableBinding, flags: LifecycleFlags): void {
+  public enqueueConnect(requestor: IConnectableBinding, flags: LifecycleFlags): void {
     requestor.$nextConnect = null;
     if (this.connectTail === null) {
       this.connectHead = requestor;
@@ -611,7 +611,7 @@ export class Lifecycle implements ILifecycle {
     ++this.unbindDepth;
   }
 
-  public queueUnbound(requestor: ILifecycleUnbound): void {
+  public enqueueUnbound(requestor: ILifecycleUnbound): void {
     requestor.$nextUnbound = null;
     if (this.unboundHead === null) {
       this.unboundHead = requestor;
@@ -639,7 +639,7 @@ export class Lifecycle implements ILifecycle {
     ++this.attachDepth;
   }
 
-  public queueMount(requestor: ILifecycleMount): void {
+  public enqueueMount(requestor: ILifecycleMount): void {
     if (this.mountHead === null) {
       this.mountHead = requestor;
     } else {
@@ -648,7 +648,7 @@ export class Lifecycle implements ILifecycle {
     this.mountTail = requestor;
   }
 
-  public queueAttachedCallback(requestor: ILifecycleAttached): void {
+  public enqueueAttached(requestor: ILifecycleAttached): void {
     if (this.attachedHead === null) {
       this.attachedHead = requestor;
     } else {
@@ -702,7 +702,7 @@ export class Lifecycle implements ILifecycle {
     ++this.detachDepth;
   }
 
-  public queueUnmount(requestor: ILifecycleUnmount): void {
+  public enqueueUnmount(requestor: ILifecycleUnmount): void {
     if (this.unmountHead === null) {
       this.unmountHead = requestor;
     } else {
@@ -711,7 +711,7 @@ export class Lifecycle implements ILifecycle {
     this.unmountTail = requestor;
   }
 
-  public queueDetachedCallback(requestor: ILifecycleDetached): void {
+  public enqueueDetached(requestor: ILifecycleDetached): void {
     if (this.detachedHead === null) {
       this.detachedHead = requestor;
     } else {

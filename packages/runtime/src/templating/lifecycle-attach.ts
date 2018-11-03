@@ -25,7 +25,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
   this.$state &= ~State.isAttaching;
 
   if (hooks & Hooks.hasAttached) {
-    lifecycle.queueAttachedCallback(<Required<typeof this>>this);
+    lifecycle.enqueueAttached(<Required<typeof this>>this);
   }
   lifecycle.endAttach(flags);
 }
@@ -53,13 +53,13 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
     current = current.$nextAttach;
   }
 
-  lifecycle.queueMount(this);
+  lifecycle.enqueueMount(this);
   // add isAttached flag, remove isAttaching flag
   this.$state |= State.isAttached;
   this.$state &= ~State.isAttaching;
 
   if (hooks & Hooks.hasAttached) {
-    lifecycle.queueAttachedCallback(<Required<typeof this>>this);
+    lifecycle.enqueueAttached(<Required<typeof this>>this);
   }
   lifecycle.endAttach(flags);
 }
@@ -80,7 +80,7 @@ export function $attachView(this: Writable<IView>, flags: LifecycleFlags): void 
   }
 
   if (this.$state & State.needsMount) {
-    this.$lifecycle.queueMount(this);
+    this.$lifecycle.enqueueMount(this);
   }
 
   // add isAttached flag, remove isAttaching flag
@@ -106,7 +106,7 @@ export function $detachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
     this.$state &= ~(State.isAttached | State.isDetaching);
 
     if (hooks & Hooks.hasDetached) {
-      lifecycle.queueDetachedCallback(<Required<typeof this>>this);
+      lifecycle.enqueueDetached(<Required<typeof this>>this);
     }
     lifecycle.endDetach(flags);
   }
@@ -126,7 +126,7 @@ export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleF
       this.detaching(flags);
     }
 
-    lifecycle.queueUnmount(this);
+    lifecycle.enqueueUnmount(this);
 
     let current = this.$attachableTail;
     while (current !== null) {
@@ -138,7 +138,7 @@ export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleF
     this.$state &= ~(State.isAttached | State.isDetaching);
 
     if (hooks & Hooks.hasDetached) {
-      lifecycle.queueDetachedCallback(<Required<typeof this>>this);
+      lifecycle.enqueueDetached(<Required<typeof this>>this);
     }
     lifecycle.endDetach(flags);
   }
@@ -151,7 +151,7 @@ export function $detachView(this: Writable<IView>, flags: LifecycleFlags): void 
     this.$state |= State.isDetaching;
     flags |= LifecycleFlags.fromDetach;
 
-    this.$lifecycle.queueUnmount(this);
+    this.$lifecycle.enqueueUnmount(this);
 
     let current = this.$attachableTail;
     while (current !== null) {

@@ -576,7 +576,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
       this.customElement.$childrenChanged();
     }
 
-    this.lifecycle.queueFlush(this);
+    this.lifecycle.enqueueFlush(this);
     this.hasChanges = true;
   }
 }

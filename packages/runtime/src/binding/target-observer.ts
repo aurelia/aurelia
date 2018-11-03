@@ -21,7 +21,7 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
       this.setValueCore(newValue, flags);
     } else {
       this.currentFlags = flags;
-      return this.lifecycle.queueFlush(this);
+      return this.lifecycle.enqueueFlush(this);
     }
   }
   return Promise.resolve();

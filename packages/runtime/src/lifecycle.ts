@@ -614,70 +614,97 @@ export const IAttachLifecycle = ILifecycle as InterfaceSymbol<IAttachLifecycle>;
 
 /*@internal*/
 export class Lifecycle implements ILifecycle {
-  /*@internal*/public flushDepth: number = 0;
   /*@internal*/public bindDepth: number = 0;
   /*@internal*/public attachDepth: number = 0;
   /*@internal*/public detachDepth: number = 0;
   /*@internal*/public unbindDepth: number = 0;
 
-  /*@internal*/public flushHead: IChangeTracker = null;
-  /*@internal*/public flushTail: IChangeTracker = null;
+  /*@internal*/public flushHead: IChangeTracker = this;
+  /*@internal*/public flushTail: IChangeTracker = this;
 
-  /*@internal*/public connectHead: IConnectableBinding = null;
-  /*@internal*/public connectTail: IConnectableBinding = null;
+  /*@internal*/public connectHead: IConnectableBinding = <IConnectableBinding><unknown>this; // this cast is safe because we know exactly which properties we'll use
+  /*@internal*/public connectTail: IConnectableBinding = <IConnectableBinding><unknown>this;
 
-  /*@internal*/public patchHead: IConnectableBinding = null;
-  /*@internal*/public patchTail: IConnectableBinding = null;
+  /*@internal*/public patchHead: IConnectableBinding = <IConnectableBinding><unknown>this;
+  /*@internal*/public patchTail: IConnectableBinding = <IConnectableBinding><unknown>this;
 
-  /*@internal*/public boundHead: ILifecycleBound = null;
-  /*@internal*/public boundTail: ILifecycleBound = null;
+  /*@internal*/public boundHead: ILifecycleBound = this;
+  /*@internal*/public boundTail: ILifecycleBound = this;
 
-  /*@internal*/public mountHead: ILifecycleMount = null;
-  /*@internal*/public mountTail: ILifecycleMount = null;
+  /*@internal*/public mountHead: ILifecycleMount = this;
+  /*@internal*/public mountTail: ILifecycleMount = this;
 
-  /*@internal*/public attachedHead: ILifecycleAttached = null;
-  /*@internal*/public attachedTail: ILifecycleAttached = null;
+  /*@internal*/public attachedHead: ILifecycleAttached = this;
+  /*@internal*/public attachedTail: ILifecycleAttached = this;
 
-  /*@internal*/public unmountHead: ILifecycleUnmount = null;
-  /*@internal*/public unmountTail: ILifecycleUnmount = null;
+  /*@internal*/public unmountHead: ILifecycleUnmount = this;
+  /*@internal*/public unmountTail: ILifecycleUnmount = this;
 
-  /*@internal*/public detachedHead: ILifecycleDetached = null; //LOL
-  /*@internal*/public detachedTail: ILifecycleDetached = null;
+  /*@internal*/public detachedHead: ILifecycleDetached = this; //LOL
+  /*@internal*/public detachedTail: ILifecycleDetached = this;
 
-  /*@internal*/public unboundHead: ILifecycleUnbound = null;
-  /*@internal*/public unboundTail: ILifecycleUnbound = null;
+  /*@internal*/public unboundHead: ILifecycleUnbound = this;
+  /*@internal*/public unboundTail: ILifecycleUnbound = this;
 
   /*@internal*/public flushed: Promise<void> = null;
   /*@internal*/public promise: Promise<void> = Promise.resolve();
+
+  /*@internal*/public flushCount: number = 0;
+  /*@internal*/public connectCount: number = 0;
+  /*@internal*/public patchCount: number = 0;
+  /*@internal*/public boundCount: number = 0;
+  /*@internal*/public mountCount: number = 0;
+  /*@internal*/public attachedCount: number = 0;
+  /*@internal*/public unmountCount: number = 0;
+  /*@internal*/public detachedCount: number = 0;
+  /*@internal*/public unboundCount: number = 0;
+
+  // These are dummy properties to make the lifecycle conform to the interfaces
+  // of the components it manages. This allows the lifecycle itself to be the first link
+  // in the chain and removes the need for an additional null check on each addition.
+  /*@internal*/public $nextFlush: IChangeTracker = marker;
+  /*@internal*/public flush: IChangeTracker['flush'] = PLATFORM.noop;
+  /*@internal*/public $nextConnect: IConnectableBinding = marker;
+  /*@internal*/public connect: IConnectableBinding['connect'] = PLATFORM.noop;
+  /*@internal*/public $nextPatch: IConnectableBinding = marker;
+  /*@internal*/public patch: IConnectableBinding['patch'] = PLATFORM.noop;
+  /*@internal*/public $nextBound: ILifecycleBound = marker;
+  /*@internal*/public bound: ILifecycleBound['bound'] = PLATFORM.noop;
+  /*@internal*/public $nextMount: ILifecycleMount = marker;
+  /*@internal*/public $mount: ILifecycleMount['$mount'] = PLATFORM.noop;
+  /*@internal*/public $nextAttached: ILifecycleAttached = marker;
+  /*@internal*/public attached: ILifecycleAttached['attached'] = PLATFORM.noop;
+  /*@internal*/public $nextUnmount: ILifecycleUnmount = marker;
+  /*@internal*/public $unmount: ILifecycleUnmount['$unmount'] = PLATFORM.noop;
+  /*@internal*/public $nextDetached: ILifecycleDetached = marker;
+  /*@internal*/public detached: ILifecycleDetached['detached'] = PLATFORM.noop;
+  /*@internal*/public $nextUnbound: ILifecycleUnbound = marker;
+  /*@internal*/public unbound: ILifecycleUnbound['unbound'] = PLATFORM.noop;
 
   public enqueueFlush(requestor: IChangeTracker): Promise<void> {
     // Queue a flush() callback; the depth is just for debugging / testing purposes and has
     // no effect on execution. flush() will automatically be invoked when the promise resolves,
     // or it can be manually invoked synchronously.
-    if (this.flushHead === null) {
+    if (this.flushHead === this) {
       this.flushed = this.promise.then(() => this.processFlushQueue(LifecycleFlags.fromAsyncFlush));
     }
     if (requestor.$nextFlush === null) {
       requestor.$nextFlush = marker;
-      if (this.flushTail === null) {
-        this.flushHead = requestor;
-      } else {
-        this.flushTail.$nextFlush = requestor;
-      }
+      this.flushTail.$nextFlush = requestor;
       this.flushTail = requestor;
-      ++this.flushDepth;
+      ++this.flushCount;
     }
     return this.flushed;
   }
 
   public processFlushQueue(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromSyncFlush;
-    // flush callbacks may lead to additional bind operations, so keep looping until
-    // the flush head is null just in case
-    while (this.flushHead !== null) {
-      let current = this.flushHead;
-      this.flushHead = this.flushTail = null;
-      this.flushDepth = 0;
+    // flush callbacks may lead to additional flush operations, so keep looping until
+    // the flush head is back to `this` (though this will typically happen in the first iteration)
+    while (this.flushCount > 0) {
+      let current = this.flushHead.$nextFlush;
+      this.flushHead = this.flushTail = this;
+      this.flushCount = 0;
       let next: typeof current;
       do {
         next = current.$nextFlush;
@@ -696,12 +723,9 @@ export class Lifecycle implements ILifecycle {
     // build a standard singly linked list for bound callbacks
     if (requestor.$nextBound === null) {
       requestor.$nextBound = marker;
-      if (this.boundHead === null) {
-        this.boundHead = requestor;
-      } else {
-        this.boundTail.$nextBound = requestor;
-      }
+      this.boundTail.$nextBound = requestor;
       this.boundTail = requestor;
+      ++this.boundCount;
     }
   }
 
@@ -714,30 +738,25 @@ export class Lifecycle implements ILifecycle {
     // build a standard singly linked list for connect callbacks
     if (requestor.$nextConnect === null) {
       requestor.$nextConnect = marker;
-      if (this.connectTail === null) {
-        this.connectHead = requestor;
-      } else {
-        this.connectTail.$nextConnect = requestor;
-      }
+      this.connectTail.$nextConnect = requestor;
       this.connectTail = requestor;
+      ++this.connectCount;
     }
     // build a standard singly linked list for patch callbacks
     if (requestor.$nextPatch === null) {
       requestor.$nextPatch = marker;
-      if (this.patchTail === null) {
-        this.patchHead = requestor;
-      } else {
-        this.patchTail.$nextPatch = requestor;
-      }
+      this.patchTail.$nextPatch = requestor;
       this.patchTail = requestor;
+      ++this.patchCount;
     }
   }
 
   public processConnectQueue(flags: LifecycleFlags): void {
     // connects cannot lead to additional connects, so we don't need to loop here
-    if (this.connectHead !== null) {
-      let current = this.connectHead;
-      this.connectHead = this.connectTail = null;
+    if (this.connectCount > 0) {
+      this.connectCount = 0;
+      let current = this.connectHead.$nextConnect;
+      this.connectHead = this.connectTail = <IConnectableBinding><unknown>this;
       let next: typeof current;
       do {
         current.connect(flags);
@@ -755,10 +774,11 @@ export class Lifecycle implements ILifecycle {
       this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
     }
     // patch callbacks may lead to additional bind operations, so keep looping until
-    // the patch head is null just in case
-    while (this.patchHead !== null) {
-      let current = this.patchHead;
-      this.patchHead = this.patchTail = null;
+    // the patch head is back to `this` (though this will typically happen in the first iteration)
+    while (this.patchCount > 0) {
+      this.patchCount = 0;
+      let current = this.patchHead.$nextPatch;
+      this.patchHead = this.patchTail = <IConnectableBinding><unknown>this;
       let next: typeof current;
       do {
         current.patch(flags);
@@ -783,11 +803,12 @@ export class Lifecycle implements ILifecycle {
       this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
     }
     // bound callbacks may lead to additional bind operations, so keep looping until
-    // the bound head is null just in case
-    while (this.boundHead !== null) {
-      let current = this.boundHead;
+    // the bound head is back to `this` (though this will typically happen in the first iteration)
+    while (this.boundCount > 0) {
+      this.boundCount = 0;
+      let current = this.boundHead.$nextBound;
       let next: ILifecycleBound;
-      this.boundHead = this.boundTail = null;
+      this.boundHead = this.boundTail = this;
       do {
         current.bound(flags);
         next = current.$nextBound;
@@ -808,12 +829,9 @@ export class Lifecycle implements ILifecycle {
     // build a standard singly linked list for unbound callbacks
     if (requestor.$nextUnbound === null) {
       requestor.$nextUnbound = marker;
-      if (this.unboundHead === null) {
-        this.unboundHead = requestor;
-      } else {
-        this.unboundTail.$nextUnbound = requestor;
-      }
+      this.unboundTail.$nextUnbound = requestor;
       this.unboundTail = requestor;
+      ++this.unboundCount;
     }
   }
 
@@ -826,11 +844,12 @@ export class Lifecycle implements ILifecycle {
 
   public processUnbindQueue(flags: LifecycleFlags): void {
     // unbound callbacks may lead to additional unbind operations, so keep looping until
-    // the unbound head is null just in case
-    while (this.unboundHead !== null) {
-      let current = this.unboundHead;
+    // the unbound head is back to `this` (though this will typically happen in the first iteration)
+    while (this.unboundCount > 0) {
+      this.unboundCount = 0;
+      let current = this.unboundHead.$nextUnbound;
       let next: ILifecycleUnbound;
-      this.unboundHead = this.unboundTail = null;
+      this.unboundHead = this.unboundTail = this;
       do {
         current.unbound(flags);
         next = current.$nextUnbound;
@@ -851,12 +870,9 @@ export class Lifecycle implements ILifecycle {
     // build a standard singly linked list for mount callbacks
     if (requestor.$nextMount === null) {
       requestor.$nextMount = marker;
-      if (this.mountHead === null) {
-        this.mountHead = requestor;
-      } else {
-        this.mountTail.$nextMount = requestor;
-      }
+      this.mountTail.$nextMount = requestor;
       this.mountTail = requestor;
+      ++this.mountCount;
     }
   }
 
@@ -866,12 +882,9 @@ export class Lifecycle implements ILifecycle {
     // build a standard singly linked list for attached callbacks
     if (requestor.$nextAttached === null) {
       requestor.$nextAttached = marker;
-      if (this.attachedHead === null) {
-        this.attachedHead = requestor;
-      } else {
-        this.attachedTail.$nextAttached = requestor;
-      }
+      this.attachedTail.$nextAttached = requestor;
       this.attachedTail = requestor;
+      ++this.attachedCount;
     }
   }
 
@@ -888,9 +901,10 @@ export class Lifecycle implements ILifecycle {
     this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
     this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
 
-    if (this.mountHead !== null) {
-      let currentMount = this.mountHead;
-      this.mountHead = this.mountTail = null;
+    if (this.mountCount > 0) {
+      this.mountCount = 0;
+      let currentMount = this.mountHead.$nextMount;
+      this.mountHead = this.mountTail = this;
       let nextMount: typeof currentMount;
 
       do {
@@ -908,9 +922,10 @@ export class Lifecycle implements ILifecycle {
     // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
     this.processConnectQueue(LifecycleFlags.mustEvaluate);
 
-    if (this.attachedHead !== null) {
-      let currentAttached = this.attachedHead;
-      this.attachedHead = this.attachedTail = null;
+    if (this.attachedCount > 0) {
+      this.attachedCount = 0;
+      let currentAttached = this.attachedHead.$nextAttached;
+      this.attachedHead = this.attachedTail = this;
       let nextAttached: typeof currentAttached;
 
       do {
@@ -933,12 +948,9 @@ export class Lifecycle implements ILifecycle {
     // build a standard singly linked list for unmount callbacks
     if (requestor.$nextUnmount === null) {
       requestor.$nextUnmount = marker;
-      if (this.unmountHead === null) {
-        this.unmountHead = requestor;
-      } else {
-        this.unmountTail.$nextUnmount = requestor;
-      }
+      this.unmountTail.$nextUnmount = requestor;
       this.unmountTail = requestor;
+      ++this.unmountCount;
     }
   }
 
@@ -948,12 +960,9 @@ export class Lifecycle implements ILifecycle {
     // build a standard singly linked list for detached callbacks
     if (requestor.$nextDetached === null) {
       requestor.$nextDetached = marker;
-      if (this.detachedHead === null) {
-        this.detachedHead = requestor;
-      } else {
-        this.detachedTail.$nextDetached = requestor;
-      }
+      this.detachedTail.$nextDetached = requestor;
       this.detachedTail = requestor;
+      ++this.detachedCount;
     }
   }
 
@@ -970,9 +979,10 @@ export class Lifecycle implements ILifecycle {
     // TODO: be a little more efficient here (use a flag to not propagate DOM changes, etc)
     this.processFlushQueue(flags | LifecycleFlags.fromFlush);
 
-    if (this.unmountHead !== null) {
-      let currentUnmount = this.unmountHead;
-      this.unmountHead = this.unmountTail = null;
+    if (this.unmountCount > 0) {
+      this.unmountCount = 0;
+      let currentUnmount = this.unmountHead.$nextUnmount;
+      this.unmountHead = this.unmountTail = this;
       let nextUnmount: typeof currentUnmount;
 
       do {
@@ -983,9 +993,10 @@ export class Lifecycle implements ILifecycle {
       } while (currentUnmount !== marker);
     }
 
-    if (this.detachedHead !== null) {
-      let currentDetached = this.detachedHead;
-      this.detachedHead = this.detachedTail = null;
+    if (this.detachedCount > 0) {
+      this.detachedCount = 0;
+      let currentDetached = this.detachedHead.$nextDetached;
+      this.detachedHead = this.detachedTail = this;
       let nextDetached: typeof currentDetached;
 
       do {

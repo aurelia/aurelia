@@ -45,13 +45,13 @@ export * from './templating/bindable';
 export * from './templating/create-element';
 export * from './templating/custom-attribute';
 export * from './templating/custom-element';
-export * from './templating/definitions';
 export * from './templating/lifecycle-attach';
 export * from './templating/lifecycle-bind';
 export * from './templating/lifecycle-render';
 export * from './templating/view';
 
 export * from './aurelia';
+export * from './definitions';
 export * from './dom';
 export * from './lifecycle';
 export * from './observation';

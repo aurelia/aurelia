@@ -1,16 +1,16 @@
 import { Constructable, Immutable, inject } from '@aurelia/kernel';
-import { CompositionCoordinator, IRenderable, IView, IViewFactory } from '../../lifecycle';
-import { LifecycleFlags } from '../../observation';
-import { bindable } from '../bindable';
-import { createElement, RenderPlan } from '../create-element';
-import { customElement } from '../custom-element';
 import {
   IHydrateElementInstruction,
   ITargetedInstruction,
   ITemplateDefinition,
   TargetedInstruction,
   TemplateDefinition
-} from '../definitions';
+} from '../../definitions';
+import { CompositionCoordinator, IRenderable, IView, IViewFactory } from '../../lifecycle';
+import { LifecycleFlags } from '../../observation';
+import { bindable } from '../bindable';
+import { createElement, RenderPlan } from '../create-element';
+import { customElement } from '../custom-element';
 import { ICustomElement, IRenderingEngine } from '../lifecycle-render';
 
 const composeSource: ITemplateDefinition = {

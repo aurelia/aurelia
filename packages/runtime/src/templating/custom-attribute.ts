@@ -1,8 +1,8 @@
 import { Constructable, Decoratable, Decorated, IContainer, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
+import { customAttributeKey, customAttributeName, IAttributeDefinition } from '../definitions';
 import { Hooks } from '../lifecycle';
 import { IResourceKind, ResourceDescription } from '../resource';
-import { customAttributeKey, customAttributeName, IAttributeDefinition } from './definitions';
 import { $attachAttribute, $cacheAttribute, $detachAttribute } from './lifecycle-attach';
 import { $bindAttribute, $unbindAttribute } from './lifecycle-bind';
 import { $hydrateAttribute, ICustomAttribute, ICustomAttributeType } from './lifecycle-render';

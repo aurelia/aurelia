@@ -1,8 +1,8 @@
 import { DI, IContainer, IDisposable, Immutable, inject, InterfaceSymbol, IResolver, IServiceLocator, Omit, PLATFORM, Registration } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
+import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
-import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './templating/definitions';
 
 export const enum State {
   none                  = 0b00000000000,

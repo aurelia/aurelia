@@ -10,7 +10,7 @@ import { CompositionCoordinator } from './composition-coordinator';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')
-@inject(IViewFactory, IRenderLocation)
+@inject(IViewFactory, IRenderLocation, CompositionCoordinator)
 export class If {
   @bindable public value: boolean = false;
 
@@ -18,13 +18,11 @@ export class If {
 
   public ifView: IView = null;
   public elseView: IView = null;
-  public coordinator: CompositionCoordinator;
 
   constructor(
     public ifFactory: IViewFactory,
-    public location: IRenderLocation) {
-    this.coordinator = new CompositionCoordinator();
-  }
+    public location: IRenderLocation,
+    public coordinator: CompositionCoordinator) { }
 
   public binding(flags: LifecycleFlags): void {
     const view = this.updateView(flags);
@@ -61,7 +59,7 @@ export class If {
       const view = this.updateView(flags);
       this.coordinator.compose(view, flags);
     } else {
-      Lifecycle.queueFlush(this);
+      this.$lifecycle.queueFlush(this);
     }
   }
 

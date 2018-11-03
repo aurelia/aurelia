@@ -1,5 +1,5 @@
 import { Constructable, Decoratable, Decorated, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
-import { buildTemplateDefinition, ITemplateDefinition, customElementName, customElementKey, customElementBehavior } from './definitions';
+import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition } from './definitions';
 import { Hooks, State } from './lifecycle';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindElement, $unbindElement } from './lifecycle-bind';

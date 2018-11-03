@@ -1,5 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { LifecycleFlags, CollectionKind, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
 // tslint:disable:no-reserved-keywords
 const proto = Array.prototype;
@@ -327,13 +328,14 @@ export class ArrayObserver implements ArrayObserver {
 
   public collection: IObservedArray;
 
-  constructor(array: IObservedArray) {
+  constructor(lifecycle: ILifecycle, array: IObservedArray) {
+    this.lifecycle = lifecycle;
     array.$observer = this;
     this.collection = array;
     this.resetIndexMap();
   }
 }
 
-export function getArrayObserver(array: IObservedArray): ArrayObserver {
-  return (array.$observer as ArrayObserver) || new ArrayObserver(array);
+export function getArrayObserver(lifecycle: ILifecycle, array: IObservedArray): ArrayObserver {
+  return (array.$observer as ArrayObserver) || new ArrayObserver(lifecycle, array);
 }

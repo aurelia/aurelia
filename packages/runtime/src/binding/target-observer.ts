@@ -1,9 +1,10 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { LifecycleFlags, IBindingTargetAccessor, MutationKind } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { IBindingTargetAccessor, LifecycleFlags, MutationKind } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { Lifecycle } from '../lifecycle';
 
 type BindingTargetAccessor = IBindingTargetAccessor & {
+  lifecycle: ILifecycle;
   currentFlags: LifecycleFlags;
   oldValue?: IIndexable | Primitive;
   defaultValue: Primitive | IIndexable;
@@ -20,7 +21,7 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
       this.setValueCore(newValue, flags);
     } else {
       this.currentFlags = flags;
-      return Lifecycle.queueFlush(this);
+      return this.lifecycle.queueFlush(this);
     }
   }
   return Promise.resolve();

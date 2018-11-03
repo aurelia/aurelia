@@ -1,4 +1,4 @@
-import { all, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IResolver, IServiceLocator, Omit, PLATFORM, Reporter, Writable, Constructable, Registration } from '@aurelia/kernel';
+import { all, Constructable, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IResolver, IServiceLocator, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { Interpolation } from './binding/ast';
 import { Binding } from './binding/binding';
 import { Scope } from './binding/binding-context';
@@ -13,10 +13,10 @@ import { IObserverLocator } from './binding/observer-locator';
 import { Observer } from './binding/property-observation';
 import { Ref } from './binding/ref';
 import { subscriberCollection } from './binding/subscriber-collection';
-import { BindableDefinitions, buildTemplateDefinition, CustomElementConstructor, IAttributeDefinition, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, IRenderStrategyInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions, customElementBehavior, customAttributeKey, customElementKey } from './definitions';
+import { BindableDefinitions, buildTemplateDefinition, customAttributeKey, customElementBehavior, CustomElementConstructor, customElementKey, IAttributeDefinition, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, IRenderStrategyInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from './dom';
-import { Hooks, IAttach, IBindScope, IBindSelf, ILifecycleHooks, IMountable, IState, Lifecycle, State } from './lifecycle';
-import { LifecycleFlags, IAccessor, IPropertySubscriber, IScope, ISubscribable, ISubscriberCollection, MutationKind } from './observation';
+import { Hooks, IAttach, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, IMountable, IState, State } from './lifecycle';
+import { IAccessor, IPropertySubscriber, IScope, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from './observation';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from './resource';
 import { IViewFactory, ViewFactory } from './templating/view';
 
@@ -274,7 +274,7 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>()
 
 const defaultCompilerName = 'default';
 
-@inject(IContainer, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
+@inject(IContainer, ILifecycle, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
   private templateLookup: Map<TemplateDefinition, ITemplate> = new Map();
@@ -284,6 +284,7 @@ export class RenderingEngine implements IRenderingEngine {
 
   constructor(
     private container: IContainer,
+    private lifecycle: ILifecycle,
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
     private parser: IExpressionParser,
@@ -329,7 +330,7 @@ export class RenderingEngine implements IRenderingEngine {
     if (!factory) {
       const validSource = buildTemplateDefinition(null, definition)
       const template = this.templateFromSource(validSource, parentContext);
-      factory = new ViewFactory(validSource.name, template);
+      factory = new ViewFactory(validSource.name, template, this.lifecycle);
       factory.setCacheSize(validSource.cache, true);
       this.factoryLookup.set(definition, factory);
     }
@@ -345,7 +346,7 @@ export class RenderingEngine implements IRenderingEngine {
       this.behaviorLookup.set(Type, found);
     }
 
-    found.applyTo(instance);
+    found.applyTo(instance, this.lifecycle);
   }
 
   public createRenderer(context: IRenderContext): IRenderer {
@@ -515,18 +516,19 @@ export class RuntimeBehavior {
     return behavior;
   }
 
-  public applyTo(instance: ICustomAttribute | ICustomElement): void {
+  public applyTo(instance: ICustomAttribute | ICustomElement, lifecycle: ILifecycle): void {
+    instance.$lifecycle = lifecycle;
     if ('$projector' in instance) {
-      this.applyToElement(instance);
+      this.applyToElement(lifecycle, instance);
     } else {
       this.applyToCore(instance);
     }
   }
 
-  private applyToElement(instance: ICustomElement): void {
+  private applyToElement(lifecycle: ILifecycle, instance: ICustomElement): void {
     const observers = this.applyToCore(instance);
 
-    observers.$children = new ChildrenObserver(instance);
+    observers.$children = new ChildrenObserver(lifecycle, instance);
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
@@ -583,7 +585,10 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   private children: ICustomElement[] = null;
   private observing: boolean = false;
 
-  constructor(private customElement: ICustomElement & { $childrenChanged?(): void }) { }
+  constructor(
+    private lifecycle: ILifecycle,
+    private customElement: ICustomElement & { $childrenChanged?(): void }
+  ) { }
 
   public getValue(): ICustomElement[] {
     if (!this.observing) {
@@ -617,7 +622,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
       this.customElement.$childrenChanged();
     }
 
-    Lifecycle.queueFlush(this);
+    this.lifecycle.queueFlush(this);
     this.hasChanges = true;
   }
 }

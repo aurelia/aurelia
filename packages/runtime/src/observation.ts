@@ -1,4 +1,5 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
+import { ILifecycle } from './lifecycle';
 
 export enum LifecycleFlags {
   none                   = 0b0000_0000000000000_000_00,
@@ -231,6 +232,7 @@ export interface IBatchedSubscriberCollection<T extends MutationKind> extends IB
   /*@internal*/_batchedSubscriber2?: MutationKindToBatchedSubscriber<T>;
   /*@internal*/_batchedSubscribersRest?: MutationKindToBatchedSubscriber<T>[];
 
+  /*@internal*/lifecycle?: ILifecycle;
   callBatchedSubscribers: MutationKindToBatchedNotifier<T>;
 
   /*@internal*/flush(flags: LifecycleFlags): void;

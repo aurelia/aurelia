@@ -1,7 +1,7 @@
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IBindScope, State } from '../lifecycle';
-import { LifecycleFlags, IScope } from '../observation';
+import { IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
@@ -25,8 +25,7 @@ export class Listener implements IBinding {
     public target: INode,
     public preventDefault: boolean,
     private eventManager: IEventManager,
-    public locator: IServiceLocator
-  ) { }
+    public locator: IServiceLocator) { }
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;

@@ -1,6 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IBindScope, State } from '../lifecycle';
-import { LifecycleFlags, IScope } from '../observation';
+import { IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { IConnectableBinding } from './connectable';
@@ -17,8 +17,7 @@ export class Ref implements IBinding {
   constructor(
     public sourceExpression: IsBindingBehavior,
     public target: IBindingTarget,
-    public locator: IServiceLocator) {
-  }
+    public locator: IServiceLocator) { }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
     if (this.$state & State.isBound) {

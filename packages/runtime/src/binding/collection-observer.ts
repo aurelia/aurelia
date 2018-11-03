@@ -1,6 +1,6 @@
 import {
-  LifecycleFlags, Collection, CollectionKind, CollectionObserver,
-  IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber, MutationKind
+  Collection, CollectionKind, CollectionObserver, IBindingTargetObserver,
+  ICollectionObserver, IndexMap, IPropertySubscriber, LifecycleFlags, MutationKind
 } from '../observation';
 import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';

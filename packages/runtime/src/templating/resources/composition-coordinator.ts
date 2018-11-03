@@ -1,8 +1,9 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { Lifecycle } from '../../lifecycle';
+import { IContainer, inject, IResolver, PLATFORM, Registration } from '@aurelia/kernel';
+import { ILifecycle } from '../../lifecycle';
 import { IScope, LifecycleFlags } from '../../observation';
 import { IView } from '../view';
 
+@inject(ILifecycle)
 export class CompositionCoordinator {
   public onSwapComplete: () => void = PLATFORM.noop;
 
@@ -10,6 +11,12 @@ export class CompositionCoordinator {
   private scope: IScope;
   private isBound: boolean = false;
   private isAttached: boolean = false;
+
+  constructor(public readonly $lifecycle: ILifecycle) {}
+
+  public static register(container: IContainer): IResolver<CompositionCoordinator> {
+    return Registration.transient(this, this).register(container, this);
+  }
 
   public compose(value: IView, flags: LifecycleFlags): void {
     this.swap(value, flags);
@@ -57,16 +64,17 @@ export class CompositionCoordinator {
       return;
     }
 
+    const $lifecycle = this.$lifecycle;
     if (this.currentView !== null) {
       if (this.isAttached) {
-        Lifecycle.beginDetach();
+        $lifecycle.beginDetach();
         this.currentView.$detach(flags);
-        Lifecycle.endDetach(flags);
+        $lifecycle.endDetach(flags);
       }
       if (this.isBound) {
-        Lifecycle.beginUnbind();
+        $lifecycle.beginUnbind();
         this.currentView.$unbind(flags);
-        Lifecycle.endUnbind(flags);
+        $lifecycle.endUnbind(flags);
       }
     }
 
@@ -74,14 +82,14 @@ export class CompositionCoordinator {
 
     if (this.currentView !== null) {
       if (this.isBound) {
-        Lifecycle.beginBind();
+        $lifecycle.beginBind();
         this.currentView.$bind(flags, this.scope);
-        Lifecycle.endBind(flags);
+        $lifecycle.endBind(flags);
       }
       if (this.isAttached) {
-        Lifecycle.beginAttach();
+        $lifecycle.beginAttach();
         this.currentView.$attach(flags);
-        Lifecycle.endAttach(flags);
+        $lifecycle.endAttach(flags);
       }
     }
 

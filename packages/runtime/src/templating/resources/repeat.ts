@@ -6,9 +6,9 @@ import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
 import { templateController } from '../../custom-attribute';
 import { INode, IRenderLocation } from '../../dom';
-import { Lifecycle, State } from '../../lifecycle';
+import { State } from '../../lifecycle';
 import { ICustomAttribute, IRenderable } from '../../lifecycle-render';
-import { LifecycleFlags, CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, ObservedCollection } from '../../observation';
+import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { IView, IViewFactory } from '../view';
 
@@ -94,7 +94,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
   private processViews(indexMap: number[] | null, flags: LifecycleFlags): void {
-    const views = this.views;
+    const { views, $lifecycle } = this;
     if (this.$state & State.isBound) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
@@ -105,17 +105,17 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           views[i] = factory.create();
         }
       } else if (newLength < oldLength) {
-        Lifecycle.beginDetach();
+        $lifecycle.beginDetach();
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
           view.release(flags);
           view.$detach(flags);
         }
-        Lifecycle.endDetach(flags);
-        Lifecycle.beginUnbind();
+        $lifecycle.endDetach(flags);
+        $lifecycle.beginUnbind();
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
           view.$unbind(flags);
         }
-        Lifecycle.endUnbind(flags);
+        $lifecycle.endUnbind(flags);
         views.length = newLength;
         if (newLength === 0) {
           return;
@@ -124,7 +124,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
         return;
       }
 
-      Lifecycle.beginBind();
+      $lifecycle.beginBind();
       if (indexMap === null) {
         forOf.iterate(items, (arr, i, item) => {
           const view = views[i];
@@ -144,12 +144,12 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           }
         });
       }
-      Lifecycle.endBind(flags);
+      $lifecycle.endBind(flags);
     }
 
     if (this.$state & State.isAttached) {
       const { location } = this;
-      Lifecycle.beginAttach();
+      $lifecycle.beginAttach();
       if (indexMap === null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           const view = views[i];
@@ -165,14 +165,14 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           }
         }
       }
-      Lifecycle.endAttach(flags);
+      $lifecycle.endAttach(flags);
     }
   }
 
   private checkCollectionObserver(): void {
     const oldObserver = this.observer;
     if (this.$state & (State.isBound | State.isBinding)) {
-      const newObserver = this.observer = getCollectionObserver(this.items);
+      const newObserver = this.observer = getCollectionObserver(this.$lifecycle, this.items);
       if (oldObserver !== newObserver) {
         if (oldObserver) {
           oldObserver.unsubscribeBatched(this);

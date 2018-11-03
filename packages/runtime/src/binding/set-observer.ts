@@ -1,5 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { LifecycleFlags, CollectionKind, ICollectionObserver, IObservedSet } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { CollectionKind, ICollectionObserver, IObservedSet, LifecycleFlags } from '../observation';
 // tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
@@ -104,13 +105,14 @@ export class SetObserver implements SetObserver {
 
   public collection: IObservedSet;
 
-  constructor(set: IObservedSet) {
+  constructor(lifecycle: ILifecycle, set: IObservedSet) {
+    this.lifecycle = lifecycle;
     set.$observer = this;
     this.collection = set;
     this.resetIndexMap();
   }
 }
 
-export function getSetObserver(set: IObservedSet): SetObserver {
-  return (set.$observer as SetObserver) || new SetObserver(set);
+export function getSetObserver(lifecycle: ILifecycle, set: IObservedSet): SetObserver {
+  return (set.$observer as SetObserver) || new SetObserver(lifecycle, set);
 }

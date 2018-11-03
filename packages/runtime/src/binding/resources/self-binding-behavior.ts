@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { LifecycleFlags, IScope } from '../../observation';
+import { IScope, LifecycleFlags } from '../../observation';
 import { bindingBehavior } from '../binding-behavior';
 import { Listener } from '../listener';
 

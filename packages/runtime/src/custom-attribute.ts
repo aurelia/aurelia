@@ -1,11 +1,11 @@
 import { Constructable, Decoratable, Decorated, IContainer, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
 import { BindingMode } from './binding/binding-mode';
-import { IAttributeDefinition, customAttributeKey, customAttributeName } from './definitions';
-import { Hooks, Lifecycle, State } from './lifecycle';
+import { customAttributeKey, customAttributeName, IAttributeDefinition } from './definitions';
+import { Hooks } from './lifecycle';
+import { $attachAttribute, $cacheAttribute, $detachAttribute } from './lifecycle-attach';
+import { $bindAttribute, $unbindAttribute } from './lifecycle-bind';
 import { $hydrateAttribute, ICustomAttribute, ICustomAttributeType } from './lifecycle-render';
 import { IResourceKind, ResourceDescription } from './resource';
-import { $bindAttribute, $unbindAttribute } from './lifecycle-bind';
-import { $cacheAttribute, $attachAttribute, $detachAttribute } from './lifecycle-attach';
 
 type CustomAttributeDecorator = <T extends Constructable>(target: Decoratable<ICustomAttribute, T>) => Decorated<ICustomAttribute, T> & ICustomAttributeType;
 /**

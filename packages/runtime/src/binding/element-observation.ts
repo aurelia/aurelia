@@ -1,8 +1,9 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
 import { DOM, IElement, IInputElement, INode, INodeObserver } from '../dom';
+import { ILifecycle } from '../lifecycle';
 import {
-  LifecycleFlags, CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver,
-  ICollectionObserver, IndexMap,  IObserversLookup, IPropertySubscriber
+  CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver,
+  IndexMap, IObserversLookup,  IPropertySubscriber, LifecycleFlags
 } from '../observation';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
@@ -49,6 +50,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
   public flush: () => void;
 
   constructor(
+    public lifecycle: ILifecycle,
     public obj: INode,
     public propertyKey: string,
     public handler: IEventSubscriber
@@ -147,6 +149,7 @@ export class CheckedObserver implements CheckedObserver {
   private valueObserver: ValueAttributeObserver | SetterObserver;
 
   constructor(
+    public lifecycle: ILifecycle,
     public obj: IInternalInputElement,
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
@@ -314,6 +317,7 @@ export class SelectValueObserver implements SelectValueObserver {
   private nodeObserver: INodeObserver;
 
   constructor(
+    public lifecycle: ILifecycle,
     public obj: ISelectElement,
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator

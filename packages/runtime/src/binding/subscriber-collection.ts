@@ -1,10 +1,9 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
 import {
-  LifecycleFlags, IBatchedCollectionSubscriber, IBatchedSubscriberCollection, IndexMap,
-  IPropertySubscriber, ISubscriberCollection, MutationKind, MutationKindToBatchedSubscriber,
+  IBatchedCollectionSubscriber, IBatchedSubscriberCollection, IndexMap, IPropertySubscriber,
+  ISubscriberCollection, LifecycleFlags, MutationKind, MutationKindToBatchedSubscriber,
   MutationKindToSubscriber, SubscriberFlags
 } from '../observation';
-import { Lifecycle } from '../lifecycle';
 
 export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
   return function(target: Function): void {
@@ -150,7 +149,7 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
       }
     }
   }
-  Lifecycle.queueFlush(this);
+  this.lifecycle.queueFlush(this);
 }
 
 function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>): boolean {

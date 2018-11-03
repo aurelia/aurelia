@@ -1,10 +1,10 @@
 import { DI, Reporter } from '@aurelia/kernel';
 import { INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IBindScope, IMountable, Lifecycle, State } from '../lifecycle';
+import { IAttach, IBindScope, ILifecycle, IMountable, State } from '../lifecycle';
+import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from '../lifecycle-attach';
+import { $bindView, $unbindView } from '../lifecycle-bind';
 import { IRenderable, IRenderContext, ITemplate } from '../lifecycle-render';
-import { LifecycleFlags, IScope } from '../observation';
-import { $unbindView, $bindView } from '../lifecycle-bind';
-import { $attachView, $cacheView, $unmountView, $detachView, $mountView } from '../lifecycle-attach';
+import { IScope, LifecycleFlags } from '../observation';
 
 export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
   readonly cache: IViewCache;
@@ -22,7 +22,6 @@ export interface IViewCache {
   canReturnToCache(view: IView): boolean;
   tryReturnToCache(view: IView): boolean;
 }
-
 
 export interface IViewFactory extends IViewCache {
   readonly name: string;
@@ -60,7 +59,9 @@ export class View implements IView {
   public location: IRenderLocation;
   public isFree: boolean = false;
 
-  constructor(public cache: IViewCache) {}
+  constructor(
+    public readonly $lifecycle: ILifecycle,
+    public cache: IViewCache) {}
 
   public hold(location: IRenderLocation, flags: LifecycleFlags): void {
     if (!location.parentNode) { // unmet invariant: location must be a child of some other node
@@ -98,7 +99,11 @@ export class ViewFactory implements IViewFactory {
   private cacheSize: number = -1;
   private cache: View[] = null;
 
-  constructor(public name: string, private template: ITemplate) {}
+  constructor(
+    public name: string,
+    private template: ITemplate,
+    private lifecycle: ILifecycle
+  ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {
@@ -146,7 +151,7 @@ export class ViewFactory implements IViewFactory {
       return view;
     }
 
-    view = new View(this);
+    view = new View(this.lifecycle, this);
     this.template.render(view);
     if (!view.$nodes) {
       throw Reporter.error(90);

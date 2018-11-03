@@ -1,5 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { LifecycleFlags, CollectionKind, ICollectionObserver, IObservedMap } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
 import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
 // tslint:disable:no-reserved-keywords
@@ -111,16 +112,18 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 @collectionObserver(CollectionKind.map)
 export class MapObserver implements MapObserver {
   public resetIndexMap: () => void;
+  public lifecycle: ILifecycle;
 
   public collection: IObservedMap;
 
-  constructor(map: IObservedMap) {
+  constructor(lifecycle: ILifecycle, map: IObservedMap) {
+    this.lifecycle = lifecycle;
     map.$observer = this;
     this.collection = map;
     this.resetIndexMap();
   }
 }
 
-export function getMapObserver(map: IObservedMap): MapObserver {
-  return (map.$observer as MapObserver) || new MapObserver(map);
+export function getMapObserver(lifecycle: ILifecycle, map: IObservedMap): MapObserver {
+  return (map.$observer as MapObserver) || new MapObserver(lifecycle, map);
 }

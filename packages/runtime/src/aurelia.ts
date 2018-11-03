@@ -1,7 +1,6 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
-import { Lifecycle } from './lifecycle';
-import { LifecycleFlags } from './observation';
 import { ICustomElement, IRenderingEngine } from './lifecycle-render';
+import { LifecycleFlags } from './observation';
 
 export interface ISinglePageApp {
   host: any,

@@ -1,6 +1,6 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
-import { IBindScope, State, Lifecycle } from '../lifecycle';
-import { AccessorOrObserver, LifecycleFlags, IBindingTargetObserver, IScope } from '../observation';
+import { IBindScope, ILifecycle, State } from '../lifecycle';
+import { AccessorOrObserver, IBindingTargetObserver, IScope, LifecycleFlags } from '../observation';
 import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
@@ -32,6 +32,7 @@ export class Binding implements IPartialConnectableBinding {
 
   public $state: State = State.none;
   public $scope: IScope = null;
+  public $lifecycle: ILifecycle;
 
   public targetObserver: AccessorOrObserver;
 
@@ -41,7 +42,9 @@ export class Binding implements IPartialConnectableBinding {
     public targetProperty: string,
     public mode: BindingMode,
     public observerLocator: IObserverLocator,
-    public locator: IServiceLocator) { }
+    public locator: IServiceLocator) {
+    this.$lifecycle = locator.get(ILifecycle);
+  }
 
   public updateTarget(value: any, flags: LifecycleFlags): void {
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
@@ -126,7 +129,7 @@ export class Binding implements IPartialConnectableBinding {
       this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
     }
     if (mode & toView) {
-      Lifecycle.queueConnect(this, flags);
+      this.$lifecycle.queueConnect(this, flags);
     }
     if (mode & fromView) {
       targetObserver.subscribe(this);

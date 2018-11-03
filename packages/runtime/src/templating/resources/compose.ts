@@ -25,21 +25,20 @@ type Subject = IViewFactory | IView | RenderPlan | Constructable | TemplateDefin
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
-@inject(IRenderable, ITargetedInstruction, IRenderingEngine)
+@inject(IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator)
 export class Compose {
   @bindable public subject: Subject | Promise<Subject> = null;
   @bindable public composing: boolean = false;
 
   private properties: Record<string, TargetedInstruction> = null;
-  private coordinator: CompositionCoordinator;
   private lastSubject: Subject | Promise<Subject> = null;
 
   constructor(
     private renderable: IRenderable,
     instruction: Immutable<IHydrateElementInstruction>,
-    private renderingEngine: IRenderingEngine
+    private renderingEngine: IRenderingEngine,
+    private coordinator: CompositionCoordinator
   ) {
-    this.coordinator = new CompositionCoordinator();
     this.coordinator.onSwapComplete = () => {
       this.composing = false;
     };

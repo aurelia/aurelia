@@ -1,5 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
 import { DOM, IHTMLElement, INode } from '../dom';
+import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor } from '../observation';
 import { targetObserver } from './target-observer';
 
@@ -22,6 +23,7 @@ export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
   // called unless operating against a real HTML element.
 
   constructor(
+    public lifecycle: ILifecycle,
     public obj: IHTMLElement,
     public propertyKey: string,
     public attributeName: string) {
@@ -49,6 +51,7 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   public defaultValue: string;
 
   constructor(
+    public lifecycle: ILifecycle,
     public obj: INode,
     public propertyKey: string) {
 
@@ -82,6 +85,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
   public version: number;
 
   constructor(
+    public lifecycle: ILifecycle,
     public obj: IHTMLElement) {
 
     this.oldValue = this.currentValue = obj.style.cssText;
@@ -164,7 +168,9 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
   public version: number;
   public nameIndex: IIndexable;
 
-  constructor(public obj: INode) { }
+  constructor(
+    public lifecycle: ILifecycle,
+    public obj: INode) { }
 
   public getValue(): string {
     return this.currentValue;
@@ -223,7 +229,10 @@ export interface ElementPropertyAccessor extends IBindingTargetAccessor<IIndexab
 
 @targetObserver('')
 export class ElementPropertyAccessor implements ElementPropertyAccessor {
-  constructor(public obj: IIndexable, public propertyKey: string) { }
+  constructor(
+    public lifecycle: ILifecycle,
+    public obj: IIndexable,
+    public propertyKey: string) { }
 
   public getValue(): Primitive | IIndexable {
     return this.obj[this.propertyKey];

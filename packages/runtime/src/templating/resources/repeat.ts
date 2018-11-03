@@ -4,12 +4,12 @@ import { Binding } from '../../binding/binding';
 import { BindingContext, Scope } from '../../binding/binding-context';
 import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
-import { templateController } from '../../custom-attribute';
 import { INode, IRenderLocation } from '../../dom';
 import { State } from '../../lifecycle';
-import { ICustomAttribute, IRenderable } from '../../lifecycle-render';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
+import { templateController } from '../custom-attribute';
+import { ICustomAttribute, IRenderable } from '../lifecycle-render';
 import { IView, IViewFactory } from '../view';
 
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}

@@ -1,10 +1,10 @@
 // tslint:disable:no-reserved-keywords
 import { Constructable, DI, Immutable, Omit, PLATFORM } from '@aurelia/kernel';
-import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
-import { BindingMode } from './binding/binding-mode';
-import { DelegationStrategy } from './binding/event-manager';
-import { INode } from './dom';
-import { ResourceDescription } from './resource';
+import { ForOfStatement, Interpolation, IsBindingBehavior } from '../binding/ast';
+import { BindingMode } from '../binding/binding-mode';
+import { DelegationStrategy } from '../binding/event-manager';
+import { INode } from '../dom';
+import { ResourceDescription } from '../resource';
 
 /*@internal*/
 export const customElementName = 'custom-element';

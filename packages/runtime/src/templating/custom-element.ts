@@ -1,6 +1,6 @@
 import { Constructable, Decoratable, Decorated, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { Hooks, State } from '../lifecycle';
 import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition } from './definitions';
-import { Hooks, State } from './lifecycle';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindElement, $unbindElement } from './lifecycle-bind';
 import { $hydrateElement, defaultShadowOptions, ICustomElement, ICustomElementHost, ICustomElementResource, ICustomElementType } from './lifecycle-render';

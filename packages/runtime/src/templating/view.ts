@@ -1,10 +1,10 @@
 import { DI, Reporter } from '@aurelia/kernel';
 import { INodeSequence, IRenderLocation } from '../dom';
 import { IAttach, IBindScope, ILifecycle, IMountable, State } from '../lifecycle';
-import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from '../lifecycle-attach';
-import { $bindView, $unbindView } from '../lifecycle-bind';
-import { IRenderable, IRenderContext, ITemplate } from '../lifecycle-render';
 import { IScope, LifecycleFlags } from '../observation';
+import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
+import { $bindView, $unbindView } from './lifecycle-bind';
+import { IRenderable, IRenderContext, ITemplate } from './lifecycle-render';
 
 export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
   readonly cache: IViewCache;

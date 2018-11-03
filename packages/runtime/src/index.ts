@@ -43,16 +43,16 @@ export * from './templating/resources/with';
 
 export * from './templating/bindable';
 export * from './templating/create-element';
+export * from './templating/custom-attribute';
+export * from './templating/custom-element';
+export * from './templating/definitions';
+export * from './templating/lifecycle-attach';
+export * from './templating/lifecycle-bind';
+export * from './templating/lifecycle-render';
 export * from './templating/view';
 
 export * from './aurelia';
-export * from './custom-attribute';
-export * from './custom-element';
-export * from './definitions';
 export * from './dom';
-export * from './lifecycle-attach';
-export * from './lifecycle-bind';
-export * from './lifecycle-render';
 export * from './lifecycle';
 export * from './observation';
 export * from './resource';

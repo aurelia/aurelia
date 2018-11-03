@@ -1,10 +1,9 @@
 import { inject } from '@aurelia/kernel';
-import { templateController } from '../../custom-attribute';
 import { IRenderLocation } from '../../dom';
-import { Lifecycle } from '../../lifecycle';
-import { ICustomAttribute } from '../../lifecycle-render';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
+import { templateController } from '../custom-attribute';
+import { ICustomAttribute } from '../lifecycle-render';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
 

@@ -1,7 +1,7 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
-import { buildTemplateDefinition, isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
 import { DOM, INode } from '../dom';
-import { ICustomElementType, IRenderContext, IRenderingEngine, ITemplate } from '../lifecycle-render';
+import { buildTemplateDefinition, isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from './definitions';
+import { ICustomElementType, IRenderContext, IRenderingEngine, ITemplate } from './lifecycle-render';
 import { IView, IViewFactory } from './view';
 
 type ChildType = RenderPlan | string | INode;

@@ -483,7 +483,6 @@ export class Lifecycle implements ILifecycle {
 
   public queueConnect(requestor: IConnectableBinding, flags: LifecycleFlags): void {
     requestor.$nextConnect = null;
-    requestor.$connectFlags = flags;
     if (this.connectTail === null) {
       this.connectHead = requestor;
     } else {
@@ -499,7 +498,7 @@ export class Lifecycle implements ILifecycle {
     this.connectHead = this.connectTail = null;
     let next: typeof current;
     while (current !== null) {
-      current.connect(current.$connectFlags | flags);
+      current.connect(flags);
       next = current.$nextConnect;
       current.$nextConnect = null;
       current = next;
@@ -510,7 +509,7 @@ export class Lifecycle implements ILifecycle {
     // otherwise keep the links intact because we still need to connect at a later point in time
     let current = this.connectHead;
     while (current !== null) {
-      current.patch(current.$connectFlags | flags);
+      current.patch(flags);
       current = current.$nextConnect;
     }
   }

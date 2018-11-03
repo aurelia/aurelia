@@ -33,7 +33,7 @@ function $hook(name: string, mutation: Statement | Statement[], flush?: boolean,
     ...expectedBeforeFlush ? [$$call(
       [$call('expect', ['this.el.textContent']), 'to.equal'],
       [createConditional($access('this.cycled'), $expression(expectedBeforeFlush[1]), $expression(expectedBeforeFlush[0])), $expression(`this.el.textContent during ${name}() before mutation${flush ? ' before flushChanges()' : ''}`)])] : [],
-    ...flush ? [$$call('Lifecycle.flush')] : [],
+    ...flush ? [$$call('this.$lifecycle.flush')] : [],
     ...expectedAfterFlush ? [$$call(
       [$call('expect', ['this.el.textContent']), 'to.equal'],
       [createConditional($access('this.cycled'), $expression(expectedAfterFlush[1]), $expression(expectedAfterFlush[0])), $expression(`this.el.textContent during ${name}() after mutation${flush ? ' after flushChanges()' : ''}`)])] : []
@@ -74,6 +74,7 @@ function generateAndEmit() {
             $class([
               $property('items', $id('items')),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
               $property('inject', [class Element{}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
@@ -114,6 +115,7 @@ function generateAndEmit() {
             $class([
               $property('items', $id('items')),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
               $property('inject', [class Element{}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
@@ -155,6 +157,7 @@ function generateAndEmit() {
               $property('items', $id('items')),
               $property('mod', 2),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
               $property('inject', [class Element{}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
@@ -196,6 +199,7 @@ function generateAndEmit() {
               $property('items', $id('items')),
               $property('mod', 2),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
               $property('inject', [class Element{}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
@@ -229,7 +233,7 @@ function generateAndEmit() {
     const nodes = [
       $$import('chai', 'expect'),
       $$import('../../../kernel/src/index', 'DI'),
-      $$import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode', 'Lifecycle'),
+      $$import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode', 'ILifecycle'),
       $$import('../../src/index', 'BasicConfiguration'),
       null,
       $$functionExpr('describe', [

@@ -2,19 +2,20 @@ import { expect } from "chai";
 import { defineCustomElement } from "./prepare";
 import {
   bindable, Aurelia, ViewFactory, View, IView,
-  RenderPlan, IViewFactory, CompiledTemplate, IRenderingEngine, DOM
+  RenderPlan, IViewFactory, CompiledTemplate, IRenderingEngine, DOM, ILifecycle
 } from "../../../runtime/src/index";
 import { baseSuite } from "./template-compiler.base";
 import { IContainer } from "@aurelia/kernel";
 import { trimFull, createElement } from "./util";
 import { Lifecycle } from '../../../runtime/src/index';
+import { LifecycleFlags } from '../../../runtime/src/index';
 
 const spec = 'template-compiler.compose';
 
 const suite = baseSuite.clone<
     /*a*/IContainer,
     /*b*/Aurelia,
-    /*c*/null,
+    /*c*/ILifecycle,
     /*d*/HTMLElement, // host
     /*e*/any, // component
     /*f*/any, // subject
@@ -134,13 +135,13 @@ suite.addDataSlot('i') // app markup
 
 suite.addActionSlot('test')
   .addAsyncAction(null, async ctx => {
-    const { a: container, b: au, c: cs, d: host, f: subject, g: prop, h: expected, i: markup } = ctx;
+    const { a: container, b: au, c: lifecycle, d: host, f: subject, g: prop, h: expected, i: markup } = ctx;
     class App { sub = null; }
     const $App = defineCustomElement('app', markup, App);
     const component = new $App();
     component.sub = subject;
     au.app({ host, component }).start();
-    Lifecycle.flush()
+    lifecycle.flush(LifecycleFlags.none);
     if (subject instanceof Promise) {
       expect(trimFull(host.textContent)).to.equal('');
       await subject

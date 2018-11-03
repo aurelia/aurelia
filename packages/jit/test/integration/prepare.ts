@@ -1,7 +1,7 @@
 
 import { BasicConfiguration } from "../../src";
 import { expect } from "chai";
-import { valueConverter, customElement, bindable, CustomElementResource, IObserverLocator, Aurelia, Lifecycle } from "../../../runtime/src/index";
+import { valueConverter, customElement, bindable, CustomElementResource, IObserverLocator, Aurelia, Lifecycle, ILifecycle } from "../../../runtime/src/index";
 import { IContainer, DI, Constructable, PLATFORM } from "../../../kernel/src/index";
 
 export function cleanup(): void {
@@ -116,6 +116,7 @@ export function stringify(o) {
 export function setupAndStart(template: string, $class: Constructable | null, ...registrations: any[]) {
   const container = DI.createContainer();
   container.register(...registrations);
+  const lifecycle = container.get(ILifecycle);
   const observerLocator = container.get<IObserverLocator>(IObserverLocator);
   container.register(TestConfiguration, BasicConfiguration)
   const host = document.createElement('app');
@@ -123,23 +124,24 @@ export function setupAndStart(template: string, $class: Constructable | null, ..
   const au = new Aurelia(container);
   const component = createCustomElement(template, $class);
   au.app({ host, component }).start();
-  return { container, host, au, component, observerLocator };
+  return { container, lifecycle, host, au, component, observerLocator };
 }
 
 export function setup(template: string, $class: Constructable | null, ...registrations: any[]) {
   const container = DI.createContainer();
   container.register(...registrations);
+  const lifecycle = container.get(ILifecycle);
   const observerLocator = container.get<IObserverLocator>(IObserverLocator);
   container.register(TestConfiguration, BasicConfiguration)
   const host = document.createElement('app');
   document.body.appendChild(host);
   const au = new Aurelia(container);
   const component = createCustomElement(template, $class);
-  return { container, host, au, component, observerLocator };
+  return { container, lifecycle, host, au, component, observerLocator };
 }
 
-export function tearDown(au: Aurelia,  host: HTMLElement) {
+export function tearDown(au: Aurelia, lifecycle: ILifecycle, host: HTMLElement) {
   au.stop();
-  expect(Lifecycle.flushDepth).to.equal(0);
+  expect(lifecycle['flushDepth']).to.equal(0);
   document.body.removeChild(host);
 }

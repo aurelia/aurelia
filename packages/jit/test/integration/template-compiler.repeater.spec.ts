@@ -2,11 +2,12 @@ import { PLATFORM, IContainer } from "@aurelia/kernel";
 import { expect } from "chai";
 import { tearDown, defineCustomElement } from "./prepare";
 import { baseSuite } from "./template-compiler.base";
-import { Aurelia, Lifecycle } from '../../../runtime/src/index';;
+import { Aurelia, ILifecycle } from '../../../runtime/src/index';
+import { LifecycleFlags } from '../../../runtime/src/index';
 
 const spec = 'template-compiler.repeater';
 
-const suite = baseSuite.clone<IContainer, Aurelia, null, HTMLElement, [string, string, string, (component: any) => void], string>(spec);
+const suite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, [string, string, string, (component: any) => void], string>(spec);
 
 suite.addDataSlot('e')
   .addData('01').setValue([`[a,b,c]`,             `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}])
@@ -38,7 +39,7 @@ suite.addDataSlot('f')
 
 suite.addActionSlot('setup')
   .addAction(null, ctx => {
-    const {  b: au, c: cs, d: host, e: [a1, a2, expected, initialize], f: markup } = ctx;
+    const {  b: au, c: lifecycle, d: host, e: [a1, a2, expected, initialize], f: markup } = ctx;
     class App {}
     const $App = defineCustomElement('app', markup, App);
     const component = new $App();
@@ -50,7 +51,7 @@ suite.addActionSlot('setup')
 
     au.stop();
 
-    expect(Lifecycle.flushDepth).to.equal(0);
+    expect(lifecycle['flushDepth']).to.equal(0);
     expect(host.textContent).to.equal('');
   });
 

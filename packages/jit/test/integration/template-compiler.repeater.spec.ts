@@ -51,7 +51,7 @@ suite.addActionSlot('setup')
 
     au.stop();
 
-    expect(lifecycle['flushDepth']).to.equal(0);
+    expect(lifecycle['flushCount']).to.equal(0);
     expect(host.textContent).to.equal('');
   });
 

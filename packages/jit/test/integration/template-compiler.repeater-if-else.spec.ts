@@ -411,7 +411,7 @@ for (const suite of [mutations, removals, additions]) {
     .addAction(null, ctx => {
       const { b: au, c: lifecycle, d: host } = ctx;
       au.stop();
-      expect(lifecycle['flushDepth']).to.equal(0);
+      expect(lifecycle['flushCount']).to.equal(0);
       expect(trimFull(host.textContent)).to.equal('');
     });
 

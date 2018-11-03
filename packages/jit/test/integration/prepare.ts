@@ -142,6 +142,6 @@ export function setup(template: string, $class: Constructable | null, ...registr
 
 export function tearDown(au: Aurelia, lifecycle: ILifecycle, host: HTMLElement) {
   au.stop();
-  expect(lifecycle['flushDepth']).to.equal(0);
+  expect(lifecycle['flushCount']).to.equal(0);
   document.body.removeChild(host);
 }

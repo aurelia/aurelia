@@ -154,7 +154,7 @@ for (const suite of [nonWrappedBasic, wrappedBasic]) {
       const { a: container, b: au, c: lifecycle, d: host, e: app, f: fooA, g: fooB, h: fooC } = ctx;
 
       au.stop();
-      expect(lifecycle['flushDepth']).to.equal(0);
+      expect(lifecycle['flushCount']).to.equal(0);
       //expect(host.textContent).to.equal('');
     });
 

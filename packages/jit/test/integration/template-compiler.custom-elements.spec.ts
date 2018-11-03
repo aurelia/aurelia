@@ -259,13 +259,13 @@ describe('template-compiler.custom-elements', () => {
       i++;
     }
 
-    expect(lifecycle['flushDepth']).to.equal(0);
+    expect(lifecycle['flushCount']).to.equal(0);
     expect(host.textContent).to.equal('w00t'.repeat(6));
 
     component.value = 'w00t00t';
     expect(current.value).to.equal('w00t00t');
     expect(host.textContent).to.equal('w00t'.repeat(6));
-    expect(lifecycle['flushDepth']).to.equal(6);
+    expect(lifecycle['flushCount']).to.equal(6);
 
     lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('w00t00t'.repeat(6));

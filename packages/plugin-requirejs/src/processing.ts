@@ -7,16 +7,16 @@ export interface ITemplateImport {
 
 export interface ITemplateDescription {
   template: string;
-  imports: ITemplateImport[]
+  imports: ITemplateImport[];
 }
 
-export function processImports(toProcess: ITemplateImport[], relativeTo): string[] {
+export function processImports(toProcess: ITemplateImport[], relativeTo: string): string[] {
   return toProcess.map(x => {
     if (x.extension === '.html' && !x.plugin) {
-      return 'component!' + relativeToFile(x.path, relativeTo) + x.extension;
+      return `component!${relativeToFile(x.path, relativeTo) + x.extension}`;
     }
 
-    let relativePath = relativeToFile(x.path, relativeTo);
+    const relativePath = relativeToFile(x.path, relativeTo);
     return x.plugin ? `${x.plugin}!${relativePath}` : relativePath;
   });
 }
@@ -24,23 +24,23 @@ export function processImports(toProcess: ITemplateImport[], relativeTo): string
 const capitalMatcher = /([A-Z])/g;
 
 /*@internal*/
-export function addHyphenAndLower(char) {
-  return '-' + char.toLowerCase();
+export function addHyphenAndLower(char: string): string {
+  return `-${char.toLowerCase()}`;
 }
 
-export function kebabCase(name) {
+export function kebabCase(name: string): string {
   return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
 }
 
-export function escape(content: string) {
+export function escape(content: string): string {
   return content.replace(/(['\\])/g, '\\$1')
-            .replace(/[\f]/g, "\\f")
-            .replace(/[\b]/g, "\\b")
-            .replace(/[\n]/g, "\\n")
-            .replace(/[\t]/g, "\\t")
-            .replace(/[\r]/g, "\\r")
-            .replace(/[\u2028]/g, "\\u2028")
-            .replace(/[\u2029]/g, "\\u2029");
+            .replace(/[\f]/g, '\\f')
+            .replace(/[\b]/g, '\\b')
+            .replace(/[\n]/g, '\\n')
+            .replace(/[\t]/g, '\\t')
+            .replace(/[\r]/g, '\\r')
+            .replace(/[\u2028]/g, '\\u2028')
+            .replace(/[\u2029]/g, '\\u2029');
 }
 
 export function createTemplateDescription(template: string): ITemplateDescription {
@@ -107,13 +107,14 @@ export function relativeToFile(name: string, file: string): string {
 }
 
 interface Require {
-  nodeRequire(name: string): any;
+  nodeRequire(name: string): unknown;
 }
 
+// tslint:disable-next-line:no-reserved-keywords
 declare const require: Require;
 
-export function loadFromFile(url: string, callback: Function, errback: Function) {
-  const fs = require.nodeRequire('fs');
+export function loadFromFile(url: string, callback: (content: string) => void, errback: (error: Error) => void): void {
+  const fs = require.nodeRequire('fs') as {readFileSync(path: string, options?: { encoding?: string } | string): string};
 
   try {
     let file = fs.readFileSync(url, 'utf8');

@@ -16,7 +16,15 @@ export type Decoratable<TOptional, TRequired> = Function & {
 };
 export type Decorated<TOptional, TRequired> = Function & {
   readonly prototype: Required<TOptional> & Required<TRequired>;
-  new(...args: unknown[]): unknown;
+  // Constructor signatures are impossible to type correctly for use by decorators, because a synthetic constructor signature is expected to return "void"
+  // but a normal constructor signature is expected to return the type that they construct.
+  // Furthermore, using merged types will cause either to fail without using conditional types as well.
+  // If using conditional types correctly, they would need to have intimate knowledge of any type they might be applied to (or they will still cause typing
+  // errors in valid edge cases), which in turn is impossible to predict because there will be user code involved that might not fulfill any particular contract.
+  // In short, the type system (as of 3.1.x) is simply not (yet?) capable of correctly handling decorators and there is nothing here that will work in all cases except for "any".
+  // We can of course try again in later versions of TypeScript.
+  // tslint:disable-next-line:no-any
+  new(...args: unknown[]): any;
 };
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: unknown[] };

@@ -976,8 +976,7 @@ export class Lifecycle implements ILifecycle {
   public processDetachQueue(flags: LifecycleFlags): void {
     // flush before unmounting to ensure batched collection changes propagate to the repeaters,
     // which may lead to additional unmount operations
-    // TODO: be a little more efficient here (use a flag to not propagate DOM changes, etc)
-    this.processFlushQueue(flags | LifecycleFlags.fromFlush);
+    this.processFlushQueue(flags | LifecycleFlags.fromFlush | LifecycleFlags.doNotUpdateDOM);
 
     if (this.unmountCount > 0) {
       this.unmountCount = 0;

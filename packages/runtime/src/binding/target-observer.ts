@@ -1,4 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
+import { DOM } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor, LifecycleFlags, MutationKind } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
@@ -18,7 +19,8 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
     this.currentValue = newValue;
-    if (flags & (LifecycleFlags.fromFlush | LifecycleFlags.fromBind)) {
+    if ((flags & (LifecycleFlags.fromFlush | LifecycleFlags.fromBind)) &&
+      !((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj))) {
       this.setValueCore(newValue, flags);
     } else {
       this.currentFlags = flags;
@@ -29,6 +31,13 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
 }
 
 function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
+  if (flags & LifecycleFlags.doNotUpdateDOM) {
+    if (DOM.isNodeInstance(this.obj)) {
+      // re-queue the change so it will still propagate on flush when it's attached again
+      this.lifecycle.enqueueFlush(this);
+      return;
+    }
+  }
   const currentValue = this.currentValue;
   // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
   // in which case the target doesn't need to be updated

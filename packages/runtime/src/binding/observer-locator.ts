@@ -26,10 +26,9 @@ export interface IObserverLocator {
   getObserver(obj: IObservable, propertyName: string): AccessorOrObserver;
   getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
   addAdapter(adapter: IObjectObservationAdapter): void;
-  getArrayObserver(array: (IIndexable | Primitive)[]): ICollectionObserver<CollectionKind.array>;
-  getMapObserver(map: Map<IIndexable | Primitive, IIndexable | Primitive>): ICollectionObserver<CollectionKind.map>;
-  // tslint:disable-next-line:no-reserved-keywords
-  getSetObserver(set: Set<IIndexable | Primitive>): ICollectionObserver<CollectionKind.set>;
+  getArrayObserver(observedArray: (IIndexable | Primitive)[]): ICollectionObserver<CollectionKind.array>;
+  getMapObserver(observedMap: Map<IIndexable | Primitive, IIndexable | Primitive>): ICollectionObserver<CollectionKind.map>;
+  getSetObserver(observedSet: Set<IIndexable | Primitive>): ICollectionObserver<CollectionKind.set>;
 }
 
 export const IObserverLocator = DI.createInterface<IObserverLocator>()
@@ -117,17 +116,16 @@ export class ObserverLocator implements IObserverLocator {
     return new PropertyAccessor(obj, propertyName);
   }
 
-  public getArrayObserver(array: IObservedArray): ICollectionObserver<CollectionKind.array> {
-    return getArrayObserver(this.changeSet, array);
+  public getArrayObserver(observedArray: IObservedArray): ICollectionObserver<CollectionKind.array> {
+    return getArrayObserver(this.changeSet, observedArray);
   }
 
-  public getMapObserver(map: IObservedMap): ICollectionObserver<CollectionKind.map>  {
-    return getMapObserver(this.changeSet, map);
+  public getMapObserver(observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>  {
+    return getMapObserver(this.changeSet, observedMap);
   }
 
-  // tslint:disable-next-line:no-reserved-keywords
-  public getSetObserver(set: IObservedSet): ICollectionObserver<CollectionKind.set>  {
-    return getSetObserver(this.changeSet, set);
+  public getSetObserver(observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>  {
+    return getSetObserver(this.changeSet, observedSet);
   }
 
   private getOrCreateObserversLookup(obj: IObservable): Record<string, AccessorOrObserver | IBindingTargetObserver> {

@@ -112,8 +112,8 @@ function callPropertySubscribers(
   if (subscriber2 !== null) {
     subscriber2.handleChange(newValue, previousValue, flags);
   }
-  const length = subscribers && subscribers.length || 0;
-  if (length > 0) {
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
     for (let i = 0; i < length; ++i) {
       const subscriber = subscribers[i];
       if (subscriber !== null) {
@@ -140,8 +140,8 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
   if (subscriber2 !== null) {
     subscriber2.handleChange(origin, args, flags);
   }
-  const length = subscribers && subscribers.length || 0;
-  if (length > 0) {
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
     for (let i = 0; i < length; ++i) {
       const subscriber = subscribers[i];
       if (subscriber !== null) {
@@ -278,8 +278,8 @@ function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<Mut
   if (subscriber2 !== null) {
     subscriber2.handleBatchedChange(indexMap);
   }
-  const length = subscribers && subscribers.length || 0;
-  if (length > 0) {
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
     for (let i = 0; i < length; ++i) {
       const subscriber = subscribers[i];
       if (subscriber !== null) {

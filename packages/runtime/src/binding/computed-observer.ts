@@ -17,8 +17,7 @@ export type ComputedLookup = { computed?: Record<string, ComputedOverrides> };
 
 export function computed(config: ComputedOverrides): PropertyDecorator {
   return function(target: Object & ComputedLookup, key: string): void {
-    const computed = target.computed || (target.computed = {});
-    computed[key] = config;
+    (target.computed || (target.computed = {}))[key] = config;
   };
 }
 
@@ -239,7 +238,7 @@ export class GetterController {
 
     if (dynamicDependencies) {
       this.isCollecting = false;
-      this.dependencies.forEach(x => x.subscribe(this));
+      this.dependencies.forEach(x => { x.subscribe(this); });
     }
 
     return this.value;
@@ -258,7 +257,7 @@ export class GetterController {
   }
 
   private unsubscribeAllDependencies(): void {
-    this.dependencies.forEach(x => x.unsubscribe(this));
+    this.dependencies.forEach(x => { x.unsubscribe(this); });
     this.dependencies.length = 0;
   }
 }

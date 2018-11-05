@@ -7,7 +7,7 @@ export interface ISVGAnalyzer {
 
 export const ISVGAnalyzer = DI.createInterface<ISVGAnalyzer>()
   .withDefault(x => x.singleton(class {
-    isStandardSvgAttribute(node: INode, attributeName: string): boolean {
+    public isStandardSvgAttribute(node: INode, attributeName: string): boolean {
       return false;
     }
   })

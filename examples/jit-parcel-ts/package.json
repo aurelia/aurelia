@@ -13,6 +13,9 @@
   },
   "devDependencies": {
     "@types/node": "latest",
+    "babel-core": "latest",
+    "babel-plugin-transform-class-properties": "latest",
+    "babel-plugin-transform-decorators-legacy": "latest",
     "http-server": "latest",
     "parcel-bundler": "latest",
     "parcel-plugin-typescript": "latest",

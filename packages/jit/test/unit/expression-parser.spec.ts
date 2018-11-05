@@ -270,6 +270,14 @@ describe('ExpressionParser', () => {
     ...SimpleLeftHandSideList
   ];
 
+  // same as SimpleIsLeftHandSideList but without $parent and $this (ergo, LeftHandSide according to the actual spec)
+  const SimpleIsNativeLeftHandSideList: [string, any][] = [
+    ...AccessScopeList,
+    ...SimpleLiteralList,
+    ...SimpleParenthesizedList,
+    ...SimpleLeftHandSideList
+  ];
+
   // parseUnaryExpression (this is actually at the top in the parser due to the order in which expressions must be parsed)
   const SimpleUnaryList: [string, any][] = [
     [`!$1`, new Unary('!', new AccessScope('$1'))],
@@ -1370,7 +1378,7 @@ describe('ExpressionParser', () => {
       });
     }
 
-    for (const input of ['..', '...']) {
+    for (const input of ['..', '...', '..a', '...a', '..1', '...1', '.a.', '.a..']) {
       it(`throw Code 101 (UnconsumedToken) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 101');
       });
@@ -1387,9 +1395,16 @@ describe('ExpressionParser', () => {
     }
 
 
-    it(`throw Code 102 (DoubleDot) on "$parent..bar"`, () => {
-      verifyResultOrError(`$parent..bar`, null, 'Code 102');
-    });
+    for (const start of ['$parent', '$parent.$parent']) {
+      for (const middle of ['..', '...']) {
+        for (const end of ['', 'bar', '$parent']) {
+          const expr = `${start}${middle}${end}`;
+          it(`throw Code 102 (DoubleDot) on "${expr}"`, () => {
+            verifyResultOrError(expr, null, 'Code 102');
+          });
+        }
+      }
+    }
 
     for (const nonTerminal of ['!', ' of', ' typeof', '=']) {
       it(`throw Code 103 (InvalidMemberExpression) on "$parent${nonTerminal}"`, () => {
@@ -1411,6 +1426,19 @@ describe('ExpressionParser', () => {
         } else {
           verifyResultOrError(`${input}.`, expr, null);
         }
+      });
+    }
+
+    for (const [input] of SimpleIsNativeLeftHandSideList) {
+      for (const dots of ['..', '...']) {
+        it(`throw Code 105 (ExpectedIdentifier) on "${input}${dots}"`, () => {
+          verifyResultOrError(`${input}${dots}`, null, 'Code 105');
+        });
+      }
+    }
+    for (const input of ['.1.', '.1..']) {
+      it(`throw Code 105 (ExpectedIdentifier) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 105');
       });
     }
 

@@ -1,5 +1,5 @@
 import { DI, inject, PLATFORM } from '@aurelia/kernel';
-import { DOM, INode } from '@aurelia/runtime';
+import { DOM, IAttr, INode } from '@aurelia/runtime';
 import { AttrSyntax, IAttributeParser } from './attribute-parser';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
@@ -50,13 +50,13 @@ export class ElementParser implements IElementParser {
   constructor(public attrParser: IAttributeParser) {}
 
   public parse(markupOrNode: string | INode): ElementSyntax {
-    let node: Element;
+    let node: INode;
     if (typeof markupOrNode === 'string') {
       domParser.innerHTML = markupOrNode;
       node = domParser.firstElementChild;
-      domParser.removeChild(node);
+      domParser.removeChild(node as Node);
     } else {
-      node = markupOrNode as Element;
+      node = markupOrNode;
     }
 
     let children: ElementSyntax[];
@@ -79,8 +79,8 @@ export class ElementParser implements IElementParser {
     }
 
     let attributes: AttrSyntax[];
-    const nodeAttributes = node.attributes;
-    const attrLen = nodeAttributes && nodeAttributes.length || 0;
+    const nodeAttributes = (node as {attributes?: IAttr[]}).attributes;
+    const attrLen = nodeAttributes === undefined ? 0 : nodeAttributes.length;
     if (attrLen > 0) {
       attributes = Array(attrLen);
       for (let i = 0, ii = attrLen; i < ii; ++i) {
@@ -91,6 +91,6 @@ export class ElementParser implements IElementParser {
       attributes = PLATFORM.emptyArray as AttrSyntax[];
     }
 
-    return new ElementSyntax(node, node.nodeName, content, children, attributes);
+    return new ElementSyntax(node as Node, node.nodeName, content, children, attributes);
   }
 }

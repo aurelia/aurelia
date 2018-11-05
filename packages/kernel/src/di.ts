@@ -76,11 +76,11 @@ export interface IResolverBuilder<T> {
 }
 
 if (!('getOwnMetadata' in Reflect)) {
-  (Reflect as any).getOwnMetadata = function(key: string, target: any): any {
+  (Reflect as {getOwnMetadata?(key: string, target: any): any}).getOwnMetadata = function(key: string, target: any): any {
     return target[key];
   };
 
-  (Reflect as any).metadata = function(key: string, value: any): (target: any) => void {
+  (Reflect as {metadata?(key: string, value: any): any}).metadata = function(key: string, value: any): (target: any) => void {
     return function(target: any): void {
       target[key] = value;
     };
@@ -93,7 +93,7 @@ export const DI = {
   },
 
   getDesignParamTypes(target: any): any[] {
-    return (Reflect as any).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
+    return (Reflect as {getOwnMetadata?(key: string, target: any): any}).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
   getDependencies(type: Function & { inject?: any }): any[] {
@@ -119,9 +119,8 @@ export const DI = {
 
   createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
     const Key: any = function(target: Injectable, property: string, index: number): any {
-      const inject = target.inject || (target.inject = []);
-      (Key as any).friendlyName = friendlyName || 'Interface';
-      inject[index] = Key;
+      Key.friendlyName = friendlyName || 'Interface';
+      (target.inject || (target.inject = []))[index] = Key;
       return target;
     };
 
@@ -162,7 +161,7 @@ export const DI = {
   },
 
   inject(...dependencies: any[]): (target: any, property?: string, descriptor?: PropertyDescriptor | number) => any {
-    return function(target: any, key?, descriptor?) {
+    return function(target: any, key?: any, descriptor?: any): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!target.hasOwnProperty('inject')) {
           target.inject = DI.getDesignParamTypes(target).slice();
@@ -173,8 +172,7 @@ export const DI = {
         }
       } else if (key) { // It's a property decorator. Not supported by the container without plugins.
         const actualTarget = target.constructor;
-        const inject = actualTarget.inject || (actualTarget.inject = {});
-        inject[key] = dependencies[0];
+        (actualTarget.inject || (actualTarget.inject = {}))[key] = dependencies[0];
       } else if (descriptor) { // It's a function decorator (not a Class constructor)
         const fn = descriptor.value;
         fn.inject = dependencies;
@@ -389,8 +387,8 @@ export class Container implements IContainer {
 
     if (result === undefined) {
       resolvers.set(key, resolver);
-    } else if (result instanceof Resolver && (result as Resolver).strategy === ResolverStrategy.array) {
-      (result as Resolver).state.push(resolver);
+    } else if (result instanceof Resolver && result.strategy === ResolverStrategy.array) {
+      result.state.push(resolver);
     } else {
       resolvers.set(key, new Resolver(key, ResolverStrategy.array, [result, resolver]));
     }
@@ -418,7 +416,7 @@ export class Container implements IContainer {
     return false;
   }
 
-  public getResolver(key: any, autoRegister = true): IResolver | null {
+  public getResolver(key: any, autoRegister: boolean = true): IResolver | null {
     validateKey(key);
 
     if (key.resolve) {
@@ -579,7 +577,7 @@ export const Registration = {
 };
 
 /*@internal*/
-export function validateKey(key: any): void {
+export function validateKey(key: unknown): void {
   // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
   // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
   if (key === null || key === undefined || key === Object) {

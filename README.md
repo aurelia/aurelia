@@ -25,7 +25,7 @@ This is the Aurelia vNext monorepo, containing core and plugin packages, example
 
 > Please keep in mind that vNext is still in pre-alpha and by no means ready for production (or even development) yet. Many core features and use cases around the public API are still untested and there will be several breaking changes to come.
 
-See [aurelia-vnext-starter](https://github.com/aurelia-contrib/aurelia-vnext-starter) for a preliminary example setup.
+See [the examples folder](examples) for JIT setups with various loaders and bundlers.
 
 ## Contributing
 

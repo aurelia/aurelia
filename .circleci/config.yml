@@ -16,6 +16,7 @@ map-1: &package_globs
     - dist
     - packages/*/dist
     - packages/*/node_modules
+    - packages/*/*.tgz
 
 map-2: &filter_ignore_develop_release
   filters:
@@ -163,6 +164,12 @@ commands:
       - run:
           name: "Bundle packages"
           command: npm run bundle:all
+
+  do_publish_local:
+    steps:
+      - run:
+          name: "Publish packages locally"
+          command: npm run publish:local
 
   do_lint_packages:
     steps:
@@ -338,6 +345,14 @@ jobs:
       - last_persist_workspace
 
   # Requires bundle_packages
+  publish_local:
+    executor: docker-circleci
+    steps:
+      - first_attach_workspace
+      - do_publish_local
+      - last_persist_workspace
+
+  # Requires bundle_packages
   merge_and_dist:
     executor: docker-aurelia
     parameters:
@@ -444,6 +459,10 @@ workflows:
           <<: *filter_ignore_develop_release
           requires:
             - build_packages
+      - publish_local:
+          <<: *filter_ignore_develop_release
+          requires:
+            - bundle_packages
       - e2e_browserstack:
           <<: *filter_only_master
           requires:
@@ -475,7 +494,7 @@ workflows:
           path: "local/jit-parcel-ts"
           attach: true
           requires:
-            - bundle_packages
+            - publish_local
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
@@ -517,6 +536,10 @@ workflows:
           <<: *filter_only_tag
           requires:
             - build_packages
+      - publish_local:
+          <<: *filter_ignore_develop_release
+          requires:
+            - bundle_packages
       - e2e_browserstack:
           <<: *filter_only_tag
           requires:
@@ -527,6 +550,7 @@ workflows:
             - lint_packages
             - unit_test_chrome
             - unit_test_firefox
+            - publish_local
             - e2e_browserstack
           from: $CIRCLE_TAG
           to: release

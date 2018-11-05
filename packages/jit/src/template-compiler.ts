@@ -164,7 +164,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileCustomElement($el: ElementSymbol): void {
     if ($el.$attributes.length === 0) {
-      $el.addInstructions([new HydrateElementInstruction($el.definition.name, <any>PLATFORM.emptyArray)]);
+      $el.addInstructions([new HydrateElementInstruction($el.definition.name, <TargetedInstruction[]>PLATFORM.emptyArray)]);
       if ($el.definition.containerless) {
         $el.replaceNodeWithMarker();
       } else {

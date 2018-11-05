@@ -143,7 +143,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      */
     const op = TokenValues[state.currentToken & Token.Type] as UnaryOperator;
     nextToken(state);
-    result = new Unary(op, parse(state, access, Precedence.LeftHandSide, bindingType) as IsLeftHandSide);
+    result = new Unary(op, parse(state, access, Precedence.LeftHandSide, bindingType));
     state.assignable = false;
   } else {
     /** parsePrimaryExpression
@@ -714,55 +714,40 @@ function scanIdentifier(state: ParserState): Token {
   // run to the next non-idPart
   while (IdParts[nextChar(state)]);
 
-  return KeywordLookup[state.tokenValue = state.tokenRaw] || Token.Identifier;
+  const token: Token|undefined = KeywordLookup[state.tokenValue = state.tokenRaw];
+  return token === undefined ? Token.Identifier : token;
 }
 
 function scanNumber(state: ParserState, isFloat: boolean): Token {
-  if (isFloat) {
-    state.tokenValue = 0;
-  } else {
-    state.tokenValue = state.currentChar - Char.Zero;
-    while (nextChar(state) <= Char.Nine && state.currentChar >= Char.Zero) {
-      state.tokenValue = state.tokenValue * 10 + state.currentChar  - Char.Zero;
-    }
-  }
+  let char = state.currentChar;
+  if (isFloat === false) {
+    do {
+      char = nextChar(state);
+    } while (char <= Char.Nine && char >= Char.Zero);
 
-  if (isFloat || state.currentChar === Char.Dot) {
-    // isFloat (coming from the period scanner) means the period was already skipped
-    if (!isFloat) {
-      isFloat = true;
-      nextChar(state);
-      if (state.index >= state.length) {
-        // a trailing period is valid javascript, so return here to prevent creating a NaN down below
-        return Token.NumericLiteral;
-      }
-    }
-    // note: this essentially make member expressions on numeric literals valid;
-    // this makes sense to allow since they're always stored in variables, and they can legally be evaluated
-    // this would be consistent with declaring a literal as a normal variable and performing an operation on that
-    const current = state.currentChar;
-    if (current > Char.Nine || current < Char.Zero) {
-      state.currentChar = state.input.charCodeAt(--state.index);
+    if (char !== Char.Dot) {
+      state.tokenValue = parseInt(state.tokenRaw, 10);
       return Token.NumericLiteral;
     }
-    const start = state.index;
-    let value = state.currentChar - Char.Zero;
-    while (nextChar(state) <= Char.Nine && state.currentChar >= Char.Zero) {
-      value = value * 10 + state.currentChar  - Char.Zero;
-    }
-    state.tokenValue = state.tokenValue + value / 10 ** (state.index - start);
-  }
-
-  // in the rare case that we go over this number, re-parse the number with the (slower) native number parsing,
-  // to ensure consistency with the spec
-  if (state.tokenValue > Number.MAX_SAFE_INTEGER) {
-    if (isFloat) {
-      state.tokenValue = parseFloat(state.tokenRaw);
-    } else {
-      state.tokenValue = parseInt(state.tokenRaw, 10);
+    // past this point it's always a float
+    char = nextChar(state);
+    if (state.index >= state.length) {
+      // unless the number ends with a dot - that behaves a little different in native ES expressions
+      // but in our AST that behavior has no effect because numbers are always stored in variables
+      state.tokenValue = parseInt(state.tokenRaw.slice(0, -1), 10);
+      return Token.NumericLiteral;
     }
   }
 
+  if (char <= Char.Nine && char >= Char.Zero) {
+    do {
+      char = nextChar(state);
+    } while (char <= Char.Nine && char >= Char.Zero);
+  } else {
+    state.currentChar = state.input.charCodeAt(--state.index);
+  }
+
+  state.tokenValue = parseFloat(state.tokenRaw);
   return Token.NumericLiteral;
 }
 

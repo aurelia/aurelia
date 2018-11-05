@@ -1,3 +1,4 @@
+/// <reference types="reflect-metadata" />
 // tslint:disable:no-reserved-keywords
 import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
 import { PLATFORM } from './platform';
@@ -75,14 +76,20 @@ export interface IResolverBuilder<T> {
   aliasTo(destinationKey: Key<T>): IResolver;
 }
 
+// Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
+// https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
+// https://rbuckton.github.io/reflect-metadata/
+// As the official spec proposal uses "any", we use it here as well and suppress related typedef linting warnings.
 if (!('getOwnMetadata' in Reflect)) {
-  (Reflect as {getOwnMetadata?(key: string, target: any): any}).getOwnMetadata = function(key: string, target: any): any {
-    return target[key];
+  // tslint:disable-next-line:no-any
+  Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
+    return target[metadataKey];
   };
 
-  (Reflect as {metadata?(key: string, value: any): any}).metadata = function(key: string, value: any): (target: any) => void {
-    return function(target: any): void {
-      target[key] = value;
+  // tslint:disable-next-line:no-any
+  Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
+    return function(target: Function): void {
+      target[metadataKey] = metadataValue;
     };
   };
 }
@@ -92,8 +99,8 @@ export const DI = {
     return new Container();
   },
 
-  getDesignParamTypes(target: any): any[] {
-    return (Reflect as {getOwnMetadata?(key: string, target: any): any}).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
+  getDesignParamTypes(target: Object): any[] {
+    return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
   getDependencies(type: Function & { inject?: any }): any[] {

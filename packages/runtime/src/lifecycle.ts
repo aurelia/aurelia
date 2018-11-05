@@ -14,7 +14,8 @@ export const enum State {
   isDetaching           = 0b000000100000,
   isUnbinding           = 0b000001000000,
   isCached              = 0b000010000000,
-  needsMount            = 0b000100000000
+  needsMount            = 0b000100000000,
+  needsUnbind           = 0b001000000000
 }
 
 export const enum Hooks {
@@ -494,7 +495,7 @@ export interface IBindLifecycle extends IFlushLifecycle {
    * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`)
    * This default will work, but is generally less efficient.
    */
-  endBind(flags: LifecycleFlags): void;
+  endBind(flags: LifecycleFlags): ILifecycleTask;
 
   /**
    * Open up / expand an unbind batch for enqueueing `unbound` callbacks.
@@ -523,7 +524,7 @@ export interface IBindLifecycle extends IFlushLifecycle {
    * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`)
    * This default will work, but is generally less efficient.
    */
-  endUnbind(flags: LifecycleFlags): void;
+  endUnbind(flags: LifecycleFlags): ILifecycleTask;
 }
 
 export interface IAttachLifecycle extends IFlushLifecycle {
@@ -563,7 +564,7 @@ export interface IAttachLifecycle extends IFlushLifecycle {
    * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`)
    * This default will work, but is generally less efficient.
    */
-  endAttach(flags: LifecycleFlags): void;
+  endAttach(flags: LifecycleFlags): ILifecycleTask;
 
   /**
    * Open up / expand a detach batch for enqueueing `$unmount` and `detached` callbacks.
@@ -602,10 +603,10 @@ export interface IAttachLifecycle extends IFlushLifecycle {
    * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`).
    * This default will work, but is generally less efficient.
    */
-  endDetach(flags: LifecycleFlags): void;
+  endDetach(flags: LifecycleFlags): ILifecycleTask;
 }
 
-export interface ILifecycle extends IBindLifecycle, IAttachLifecycle { }
+export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {}
 
 export const ILifecycle = DI.createInterface<ILifecycle>().withDefault(x => x.singleton(Lifecycle));
 export const IFlushLifecycle = ILifecycle as InterfaceSymbol<IFlushLifecycle>;
@@ -680,6 +681,8 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public detached: ILifecycleDetached['detached'] = PLATFORM.noop;
   /*@internal*/public $nextUnbound: ILifecycleUnbound = marker;
   /*@internal*/public unbound: ILifecycleUnbound['unbound'] = PLATFORM.noop;
+
+  private task: AggregateLifecycleTask = null;
 
   public enqueueFlush(requestor: IChangeTracker): Promise<void> {
     // Queue a flush() callback; the depth is just for debugging / testing purposes and has
@@ -789,10 +792,17 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
-  public endBind(flags: LifecycleFlags): void {
+  public endBind(flags: LifecycleFlags): ILifecycleTask {
     // close / shrink a bind batch
     if (--this.bindDepth === 0) {
+      if (this.task !== null && !this.task.done) {
+        this.task.owner = this;
+        return this.task;
+      }
+
       this.processBindQueue(flags);
+
+      return LifecycleTask.done;
     }
   }
 
@@ -835,10 +845,17 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
-  public endUnbind(flags: LifecycleFlags): void {
+  public endUnbind(flags: LifecycleFlags): ILifecycleTask {
     // close / shrink an unbind batch
     if (--this.unbindDepth === 0) {
+      if (this.task !== null && !this.task.done) {
+        this.task.owner = this;
+        return this.task;
+      }
+
       this.processUnbindQueue(flags);
+
+      return LifecycleTask.done;
     }
   }
 
@@ -888,10 +905,17 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
-  public endAttach(flags: LifecycleFlags): void {
+  public endAttach(flags: LifecycleFlags): ILifecycleTask {
     // close / shrink an attach batch
     if (--this.attachDepth === 0) {
+      if (this.task !== null && !this.task.done) {
+        this.task.owner = this;
+        return this.task;
+      }
+
       this.processAttachQueue(flags);
+
+      return LifecycleTask.done;
     }
   }
 
@@ -899,7 +923,8 @@ export class Lifecycle implements ILifecycle {
     // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
     // and the DOM is updated
     this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
-    this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
+    // TODO: prevent duplicate updates coming from the patch queue (or perhaps it's just not needed in its entirety?)
+    //this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
 
     if (this.mountCount > 0) {
       this.mountCount = 0;
@@ -966,10 +991,17 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
-  public endDetach(flags: LifecycleFlags): void {
+  public endDetach(flags: LifecycleFlags): ILifecycleTask {
     // close / shrink a detach batch
     if (--this.detachDepth === 0) {
+      if (this.task !== null && !this.task.done) {
+        this.task.owner = this;
+        return this.task;
+      }
+
       this.processDetachQueue(flags);
+
+      return LifecycleTask.done;
     }
   }
 
@@ -993,6 +1025,7 @@ export class Lifecycle implements ILifecycle {
     }
 
     if (this.detachedCount > 0) {
+      this.beginUnbind();
       this.detachedCount = 0;
       let currentDetached = this.detachedHead.$nextDetached;
       this.detachedHead = this.detachedTail = this;
@@ -1000,10 +1033,15 @@ export class Lifecycle implements ILifecycle {
 
       do {
         currentDetached.detached(flags);
+        if (currentDetached.$state & State.needsUnbind) {
+          (<ILifecycleUnbind><unknown>currentDetached).$unbind(flags);
+          currentDetached.$state &= ~State.needsUnbind;
+        }
         nextDetached = currentDetached.$nextDetached;
         currentDetached.$nextDetached = null;
         currentDetached = nextDetached;
       } while (currentDetached !== marker);
+      this.endUnbind(flags);
     }
   }
 }
@@ -1011,6 +1049,9 @@ export class Lifecycle implements ILifecycle {
 @inject(ILifecycle)
 export class CompositionCoordinator {
   public onSwapComplete: () => void = PLATFORM.noop;
+
+  private queue: (IView | PromiseSwap)[] = null;
+  private swapTask: ILifecycleTask = LifecycleTask.done;
 
   private currentView: IView = null;
   private scope: IScope;
@@ -1024,7 +1065,24 @@ export class CompositionCoordinator {
   }
 
   public compose(value: IView, flags: LifecycleFlags): void {
-    this.swap(value, flags);
+    if (this.swapTask.done) {
+      if (value instanceof Promise) {
+        this.enqueue(new PromiseSwap(this, value));
+        this.processNext();
+      } else {
+        this.swap(value, flags);
+      }
+    } else {
+      if (value instanceof Promise) {
+        this.enqueue(new PromiseSwap(this, value));
+      } else {
+        this.enqueue(value);
+      }
+
+      if (this.swapTask.canCancel()) {
+        this.swapTask.cancel();
+      }
+    }
   }
 
   public binding(flags: LifecycleFlags, scope: IScope): void {
@@ -1064,29 +1122,40 @@ export class CompositionCoordinator {
     this.currentView = null;
   }
 
+  private enqueue(view: IView | PromiseSwap): void {
+    if (this.queue === null) {
+      this.queue = [];
+    }
+
+    this.queue.push(view);
+  }
+
   private swap(view: IView, flags: LifecycleFlags): void {
     if (this.currentView === view) {
       return;
     }
 
     const $lifecycle = this.$lifecycle;
+    const swapTask = new AggregateLifecycleTask();
+
+    let lifecycleTask: ILifecycleTask;
     let currentView = this.currentView;
-    if (currentView !== null) {
-      if (this.isAttached) {
-        $lifecycle.beginDetach();
-        currentView.$detach(flags | LifecycleFlags.allowUnmount);
-        $lifecycle.endDetach(flags);
-      }
-      if (this.isBound) {
-        $lifecycle.beginUnbind();
-        currentView.$unbind(flags);
-        $lifecycle.endUnbind(flags);
-      }
+    if (currentView === null) {
+      lifecycleTask = LifecycleTask.done;
+    } else {
+      currentView.$state |= State.needsUnbind;
+
+      $lifecycle.beginDetach();
+      currentView.$detach(flags | LifecycleFlags.allowUnmount);
+      lifecycleTask = $lifecycle.endDetach(flags);
     }
+    swapTask.addTask(lifecycleTask);
 
     currentView = this.currentView = view;
 
-    if (currentView !== null) {
+    if (currentView === null) {
+      lifecycleTask = LifecycleTask.done;
+    } else {
       if (this.isBound) {
         $lifecycle.beginBind();
         currentView.$bind(flags, this.scope);
@@ -1095,10 +1164,177 @@ export class CompositionCoordinator {
       if (this.isAttached) {
         $lifecycle.beginAttach();
         currentView.$attach(flags);
-        $lifecycle.endAttach(flags);
+        lifecycleTask = $lifecycle.endAttach(flags);
+      } else {
+        lifecycleTask = LifecycleTask.done;
+      }
+    }
+    swapTask.addTask(lifecycleTask);
+
+    if (swapTask.done) {
+      this.swapTask = LifecycleTask.done;
+      this.onSwapComplete();
+    } else {
+      this.swapTask = swapTask;
+      this.swapTask.wait().then(() => {
+        this.onSwapComplete();
+        this.processNext();
+      });
+    }
+  }
+
+  private processNext(): void {
+    if (this.queue !== null && this.queue.length > 0) {
+      const next = this.queue.pop();
+      this.queue.length = 0;
+
+      if (PromiseSwap.is(next)) {
+        this.swapTask = next.start();
+      } else {
+        this.swap(next, LifecycleFlags.fromLifecycleTask);
+      }
+    } else {
+      this.swapTask = LifecycleTask.done;
+    }
+  }
+}
+
+export const LifecycleTask = {
+  done: {
+    done: true,
+    canCancel(): boolean { return false; },
+    // tslint:disable-next-line:no-empty
+    cancel(): void {},
+    wait(): Promise<void> { return Promise.resolve(); }
+  }
+};
+
+export interface ILifecycleTask {
+  readonly done: boolean;
+  canCancel(): boolean;
+  cancel(): void;
+  wait(): Promise<void>;
+}
+
+export class AggregateLifecycleTask implements ILifecycleTask {
+  public done: boolean = true;
+
+  /*@internal*/
+  public owner: Lifecycle = null;
+
+  private tasks: ILifecycleTask[] = [];
+  private waiter: Promise<void> = null;
+  private resolve: () => void = null;
+
+  public addTask(task: ILifecycleTask): void {
+    if (!task.done) {
+      this.done = false;
+      this.tasks.push(task);
+      task.wait().then(() => this.tryComplete());
+    }
+  }
+
+  public canCancel(): boolean {
+    if (this.done) {
+      return false;
+    }
+
+    return this.tasks.every(x => x.canCancel());
+  }
+
+  public cancel(): void {
+    if (this.canCancel()) {
+      this.tasks.forEach(x => x.cancel());
+      this.done = false;
+    }
+  }
+
+  public wait(): Promise<void> {
+    if (this.waiter === null) {
+      if (this.done) {
+        this.waiter = Promise.resolve();
+      } else {
+        // tslint:disable-next-line:promise-must-complete
+        this.waiter = new Promise((resolve) => this.resolve = resolve);
       }
     }
 
-    this.onSwapComplete();
+    return this.waiter;
+  }
+
+  private tryComplete(): void {
+    if (this.done) {
+      return;
+    }
+
+    if (this.tasks.every(x => x.done)) {
+      this.complete(true);
+    }
+  }
+
+  private complete(notCancelled: boolean): void {
+    this.done = true;
+
+    if (notCancelled && this.owner !== null) {
+      this.owner.processDetachQueue(LifecycleFlags.fromLifecycleTask);
+      this.owner.processUnbindQueue(LifecycleFlags.fromLifecycleTask);
+      this.owner.processBindQueue(LifecycleFlags.fromLifecycleTask);
+      this.owner.processAttachQueue(LifecycleFlags.fromLifecycleTask);
+    }
+
+    if (this.resolve !== null) {
+      this.resolve();
+    }
+  }
+}
+
+/*@internal*/
+export class PromiseSwap implements ILifecycleTask {
+  public done: boolean = false;
+  private isCancelled: boolean = false;
+
+  constructor(
+    private coordinator: CompositionCoordinator,
+    private promise: Promise<IView>
+  ) {}
+
+  public static is(object: object): object is PromiseSwap {
+    return 'start' in object;
+  }
+
+  public start(): ILifecycleTask {
+    if (this.isCancelled) {
+      return LifecycleTask.done;
+    }
+
+    this.promise = this.promise.then(x => {
+      this.onResolve(x);
+      return x;
+    });
+
+    return this;
+  }
+
+  public canCancel(): boolean {
+    return !this.done;
+  }
+
+  public cancel(): void {
+    if (this.canCancel()) {
+      this.isCancelled = true;
+    }
+  }
+
+  public wait(): Promise<void> {
+    return this.promise as any;
+  }
+
+  private onResolve(value: any): void {
+    if (this.isCancelled) {
+      return;
+    }
+
+    this.done = true;
+    this.coordinator.compose(value, LifecycleFlags.fromLifecycleTask);
   }
 }

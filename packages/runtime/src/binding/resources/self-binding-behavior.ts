@@ -1,25 +1,8 @@
 import { Reporter } from '@aurelia/kernel';
 import { BindingFlags, IScope } from '../../observation';
 import { bindingBehavior } from '../binding-behavior';
+import { findOriginalEventTarget } from '../event-manager';
 import { Listener } from '../listener';
-
-type CompatibleEvent = {
-  target?: EventTarget;
-
-  // legacy
-  path?: EventTarget[];
-
-  // old composedPath
-  deepPath?(): EventTarget[];
-
-  // current spec
-  composedPath?(): EventTarget[];
-};
-
-/*@internal*/
-export function findOriginalEventTarget(event: Event & CompatibleEvent): EventTarget {
-  return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
-}
 
 /*@internal*/
 export function handleSelfEvent(event: Event): ReturnType<Listener['callSource']> {

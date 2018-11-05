@@ -5,7 +5,7 @@ import { ICustomElement } from './templating/custom-element';
 import { IRenderingEngine } from './templating/rendering-engine';
 
 export interface ISinglePageApp {
-  host: any,
+  host: any;
   component: any;
 }
 

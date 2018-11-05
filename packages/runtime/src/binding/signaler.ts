@@ -34,7 +34,7 @@ export class Signaler implements ISignaler {
     const signals = this.signals;
     const listeners = signals[name];
     if (listeners === undefined) {
-      signals[name] = new Set([listener])
+      signals[name] = new Set([listener]);
     } else {
       listeners.add(listener);
     }

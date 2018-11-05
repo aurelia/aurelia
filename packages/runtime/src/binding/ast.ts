@@ -7,8 +7,6 @@ import { IConnectableBinding } from './connectable';
 import { ISignaler } from './signaler';
 import { ValueConverterResource } from './value-converter';
 
-// tslint:disable:no-empty
-
 /**
  * StrictAny is a somewhat strongly typed alternative to 'any', in an effort to try to get rid of all 'any''s
  * It's not even remotely foolproof however, and this can largely be attributed to the fact that TypeScript imposes
@@ -154,11 +152,10 @@ export function isLiteral(expr: IsExpressionOrStatement): expr is IsLiteral {
   return (expr.$kind & ExpressionKind.IsLiteral) === ExpressionKind.IsLiteral;
 }
 export function arePureLiterals(expressions: ReadonlyArray<IsExpressionOrStatement>): expressions is IsLiteral[] {
-  const len = expressions && expressions.length || 0;
-  if (len === 0) {
+  if (expressions.length === 0) {
     return true;
   }
-  for (let i = 0; i < len; ++i) {
+  for (let i = 0; i < expressions.length; ++i) {
     if (!isPureLiteral(expressions[i])) {
       return false;
     }
@@ -334,7 +331,7 @@ export class ValueConverter implements IExpression {
     if (signals === undefined) {
       return;
     }
-    const signaler = locator.get(ISignaler) as ISignaler;
+    const signaler = locator.get(ISignaler);
     for (let i = 0, ii = signals.length; i < ii; ++i) {
       signaler.addSignalListener(signals[i], binding);
     }
@@ -347,7 +344,7 @@ export class ValueConverter implements IExpression {
     if (signals === undefined) {
       return;
     }
-    const signaler = locator.get(ISignaler) as ISignaler;
+    const signaler = locator.get(ISignaler);
     for (let i = 0, ii = signals.length; i < ii; ++i) {
       signaler.removeSignalListener(signals[i], binding);
     }
@@ -368,7 +365,9 @@ export class Assign implements IExpression {
     return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator));
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    return;
+  }
 
   public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
     this.value.assign(flags, scope, locator, value);
@@ -988,7 +987,9 @@ export class ArrayBindingPattern implements IExpression {
     // TODO
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    return;
+  }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayBindingPattern(this);
@@ -1013,7 +1014,9 @@ export class ObjectBindingPattern implements IExpression {
     // TODO
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    return;
+  }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectBindingPattern(this);
@@ -1027,7 +1030,9 @@ export class BindingIdentifier implements IExpression {
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return this.name;
   }
-  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    return;
+  }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingIdentifier(this);
@@ -1102,7 +1107,9 @@ export class Interpolation implements IExpression {
       return parts[0] + this.firstExpression.evaluate(flags, scope, locator) + parts[1];
     }
   }
-  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    return;
+  }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitInterpolation(this);
@@ -1162,10 +1169,9 @@ function getFunction(flags: BindingFlags, obj: StrictAny, name: string): Functio
 }
 
 function isNumeric(value: StrictAny): value is number {
-  // tslint:disable-next-line:no-reserved-keywords
-  const type = typeof value;
-  if (type === 'number') return true;
-  if (type !== 'string') return false;
+  const valueType = typeof value;
+  if (valueType === 'number') return true;
+  if (valueType !== 'string') return false;
   const len = (<string>value).length;
   if (len === 0) return false;
   for (let i = 0; i < len; ++i) {
@@ -1207,8 +1213,12 @@ export const IterateForOfStatement = {
     }
     IterateForOfStatement['[object Array]'](arr, func);
   },
-  ['[object Null]'](result: null, func: (arr: Collection, index: number, item: StrictAny) => void): void { },
-  ['[object Undefined]'](result: null, func: (arr: Collection, index: number, item: StrictAny) => void): void { }
+  ['[object Null]'](result: null, func: (arr: Collection, index: number, item: StrictAny) => void): void {
+    return;
+  },
+  ['[object Undefined]'](result: null, func: (arr: Collection, index: number, item: StrictAny) => void): void {
+    return;
+  }
 };
 
 /*@internal*/

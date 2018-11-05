@@ -1,6 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
 import { BindingFlags, CollectionKind, IChangeSet, ICollectionObserver, IObservedSet } from '../observation';
-// tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
 
@@ -105,14 +104,14 @@ export class SetObserver implements SetObserver {
 
   public collection: IObservedSet;
 
-  constructor(changeSet: IChangeSet, set: IObservedSet) {
+  constructor(changeSet: IChangeSet, observedSet: IObservedSet) {
     this.changeSet = changeSet;
-    set.$observer = this;
-    this.collection = set;
+    observedSet.$observer = this;
+    this.collection = observedSet;
     this.resetIndexMap();
   }
 }
 
-export function getSetObserver(changeSet: IChangeSet, set: IObservedSet): SetObserver {
-  return (set.$observer as SetObserver) || new SetObserver(changeSet, set);
+export function getSetObserver(changeSet: IChangeSet, observedSet: IObservedSet): SetObserver {
+  return (observedSet.$observer as SetObserver) || new SetObserver(changeSet, observedSet);
 }

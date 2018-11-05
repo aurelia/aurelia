@@ -7,10 +7,10 @@ export interface IBindingBehaviorSource {
 
 export type IBindingBehaviorType = IResourceType<IBindingBehaviorSource>;
 
-export function bindingBehavior(nameOrSource: string | IBindingBehaviorSource) {
-  return function<T extends Constructable>(target: T) {
+export function bindingBehavior(nameOrSource: string | IBindingBehaviorSource): <T extends Constructable>(target: T) => T & IResourceType<IBindingBehaviorSource> {
+  return function<T extends Constructable>(target: T): T & IResourceType<IBindingBehaviorSource> {
     return BindingBehaviorResource.define(nameOrSource, target);
-  }
+  };
 }
 
 export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBindingBehaviorType> = {
@@ -20,8 +20,8 @@ export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBin
     return `${this.name}:${name}`;
   },
 
-  isType<T extends Constructable>(type: T): type is T & IBindingBehaviorType {
-    return (type as any).kind === this;
+  isType<T extends Constructable>(Type: T): Type is T & IBindingBehaviorType {
+    return (Type as T & IBindingBehaviorType).kind === this;
   },
 
   define<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & IBindingBehaviorType {

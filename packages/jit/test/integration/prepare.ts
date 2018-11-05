@@ -117,7 +117,7 @@ export function setupAndStart(template: string, $class: Constructable | null, ..
   const container = DI.createContainer();
   container.register(...registrations);
   const lifecycle = container.get(ILifecycle);
-  const observerLocator = container.get<IObserverLocator>(IObserverLocator);
+  const observerLocator = container.get(IObserverLocator);
   container.register(TestConfiguration, BasicConfiguration)
   const host = document.createElement('app');
   document.body.appendChild(host);
@@ -131,7 +131,7 @@ export function setup(template: string, $class: Constructable | null, ...registr
   const container = DI.createContainer();
   container.register(...registrations);
   const lifecycle = container.get(ILifecycle);
-  const observerLocator = container.get<IObserverLocator>(IObserverLocator);
+  const observerLocator = container.get(IObserverLocator);
   container.register(TestConfiguration, BasicConfiguration)
   const host = document.createElement('app');
   document.body.appendChild(host);

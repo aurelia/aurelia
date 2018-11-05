@@ -124,7 +124,7 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
 
 // Note: we could loop through all generated tests by picking SimpleIsBindingBehaviorList and ComplexIsBindingBehaviorList,
 // but we're separating them out to make the test suites more granular for debugging and reporting purposes
-xdescribe('ExpressionParser', () => {
+describe('ExpressionParser', () => {
 
   // #region Simple lists
 

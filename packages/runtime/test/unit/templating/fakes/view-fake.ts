@@ -1,7 +1,7 @@
 import {
   IView,
   IViewFactory,
-  BindingFlags,
+  LifecycleFlags,
   IScope,
   INode,
   IRenderContext,
@@ -10,10 +10,10 @@ import {
   DOM,
   INodeSequence,
   IRenderLocation,
-  IDetachLifecycle,
-  IAttachLifecycle,
+  ILifecycle,
+  ILifecycle,
   NodeSequenceFactory,
-  LifecycleState
+  State
 } from "../../../../src/index";
 
 export class ViewFake implements IView {
@@ -26,35 +26,35 @@ export class ViewFake implements IView {
   $nextAttach: IAttach = null;
   $prevAttach: IAttach = null;
 
-  $state: LifecycleState = LifecycleState.none;
+  $state: State = State.none;
 
   lockScope(scope: IScope): void {
     this.$scope = scope;
     this.$bind = () => {
-      this.$state |= LifecycleState.isBound;
+      this.$state |= State.isBound;
     };
   }
 
-  $addChild(child: IBindScope | IAttach, flags: BindingFlags): void {
+  $addChild(child: IBindScope | IAttach, flags: LifecycleFlags): void {
   }
 
   $removeChild(child: IBindScope | IAttach): void {
   }
 
   $mount() {
-    this.$state &= ~LifecycleState.needsMount;
+    this.$state &= ~State.needsMount;
     this.$nodes.insertBefore(this.location);
   }
 
   $unmount() {
-    this.$state |= LifecycleState.needsMount;
+    this.$state |= State.needsMount;
     this.$nodes.remove();
   }
 
   $cache() {}
 
   hold(location: IRenderLocation): void {
-    this.$state |= LifecycleState.needsMount;
+    this.$state |= State.needsMount;
     this.location = location;
   }
 
@@ -72,26 +72,26 @@ export class ViewFake implements IView {
   }
 
   // IBindScope impl
-  $bind(flags: BindingFlags, scope: IScope): void {
+  $bind(flags: LifecycleFlags, scope: IScope): void {
     this.$scope = scope;
-    this.$state |= LifecycleState.isBound;
+    this.$state |= State.isBound;
   }
 
   $unbind(): void {
-    this.$state &= ~LifecycleState.isBound;
+    this.$state &= ~State.isBound;
   }
 
   // IAttach impl
-  $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    if (this.$state & LifecycleState.needsMount) {
-      lifecycle.queueMount(this);
+  $attach(): void {
+    if (this.$state & State.needsMount) {
+      this.lifecycle.queueMount(this);
     }
-    this.$state |= LifecycleState.isAttached;
+    this.$state |= State.isAttached;
   }
 
-  $detach(lifecycle: IDetachLifecycle): void {
-    lifecycle.queueUnmount(this);
-    this.$state &= ~LifecycleState.isAttached;
+  $detach(): void {
+    this.lifecycle.queueUnmount(this);
+    this.$state &= ~State.isAttached;
   }
 
   // IViewOwner impl

@@ -17,7 +17,7 @@ import {
   IHydrateElementInstruction,
   IRenderContext,
   View,
-  IChangeSet
+  ILifecycle
 } from "../../../src/index";
 import { DI, Registration, IContainer, Constructable } from '../../../../kernel/src/index';
 import { ViewFactoryFake } from "./fakes/view-factory-fake";
@@ -37,7 +37,7 @@ interface IAttributeTestOptions {
 interface ICustomAttributeCreation<T extends Constructable> {
   attribute: InstanceType<T> & ICustomAttribute,
   location?: IRenderLocation,
-  cs: IChangeSet
+  lifecycle: ILifecycle
 }
 
 export function hydrateCustomAttribute<T extends Constructable>(
@@ -46,7 +46,7 @@ export function hydrateCustomAttribute<T extends Constructable>(
 ) : ICustomAttributeCreation<T> {
   const AttributeType: ICustomAttributeType = Type as any;
   const container = options.container || DI.createContainer();
-  const cs = container.get<IChangeSet>(IChangeSet);
+  const lifecycle = container.get(ILifecycle);
 
   let location: IRenderLocation = null;
 
@@ -78,7 +78,7 @@ export function hydrateCustomAttribute<T extends Constructable>(
 
   attribute.$hydrate(container.get(IRenderingEngine));
 
-  return { attribute, location, cs };
+  return { attribute, location, lifecycle };
 }
 
 export function hydrateCustomElement<T>(Type: Constructable<T>) {

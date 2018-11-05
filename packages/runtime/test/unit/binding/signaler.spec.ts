@@ -1,5 +1,5 @@
 import { Signaler } from './../../../src/binding/signaler';
-import { ISignaler, BindingFlags } from '../../../src/index';
+import { ISignaler, LifecycleFlags } from '../../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
 import { MockPropertySubscriber } from '../mock';
@@ -8,7 +8,7 @@ describe('ISignaler', () => {
   eachCartesianJoinFactory<
     [string, ISignaler, MockPropertySubscriber[]],
     [string, string[]],
-    [string, BindingFlags],
+    [string, LifecycleFlags],
     [string, (sut: ISignaler) => void],
     [string, (sut: ISignaler) => void],
     [string, (sut: ISignaler) => void],
@@ -65,7 +65,7 @@ describe('ISignaler', () => {
           return [`undefined`, flags];
         },
         () => {
-          const flags = BindingFlags.fromFlushChanges;
+          const flags = LifecycleFlags.fromFlush;
           return [`fromFlush`, flags];
         }
       ],
@@ -114,7 +114,7 @@ describe('ISignaler', () => {
               expect(mock.calls[i][0]).to.equal('handleChange');
               expect(mock.calls[i][1]).to.be.undefined;
               expect(mock.calls[i][2]).to.be.undefined;
-              expect(mock.calls[i][3]).to.equal(flags | BindingFlags.updateTargetInstance);
+              expect(mock.calls[i][3]).to.equal(flags | LifecycleFlags.updateTargetInstance);
             }
           }
         }],
@@ -129,11 +129,11 @@ describe('ISignaler', () => {
               expect(mock.calls[i][0]).to.equal('handleChange');
               expect(mock.calls[i][1]).to.be.undefined;
               expect(mock.calls[i][2]).to.be.undefined;
-              expect(mock.calls[i][3]).to.equal(flags | BindingFlags.updateTargetInstance);
+              expect(mock.calls[i][3]).to.equal(flags | LifecycleFlags.updateTargetInstance);
               expect(mock.calls[i*2+1][0]).to.equal('handleChange');
               expect(mock.calls[i*2+1][1]).to.be.undefined;
               expect(mock.calls[i*2+1][2]).to.be.undefined;
-              expect(mock.calls[i*2+1][3]).to.equal(flags | BindingFlags.updateTargetInstance);
+              expect(mock.calls[i*2+1][3]).to.equal(flags | LifecycleFlags.updateTargetInstance);
             }
           }
         }]

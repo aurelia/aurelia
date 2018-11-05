@@ -1,5 +1,5 @@
 import { match } from 'sinon';
-import { ArrayObserver, enableArrayObservation, disableArrayObservation, LinkedChangeList, IndexMap } from '../../../src/index';
+import { ArrayObserver, enableArrayObservation, disableArrayObservation, Lifecycle, IndexMap, LifecycleFlags } from '../../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
 
@@ -39,7 +39,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new LinkedChangeList(), arr);
+      sut = new ArrayObserver(new Lifecycle(), arr);
       sut.subscribe(s);
       arr.push(1);
       expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1));
@@ -48,7 +48,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new LinkedChangeList(), arr);
+      sut = new ArrayObserver(new Lifecycle(), arr);
       sut.subscribe(s);
       arr.push(1, 2);
       expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1 && x[1] === 2));
@@ -59,7 +59,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new LinkedChangeList(), arr);
+      sut = new ArrayObserver(new Lifecycle(), arr);
       sut.subscribe(s);
       sut.unsubscribe(s);
       arr.push(1);
@@ -71,24 +71,24 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new LinkedChangeList(), arr);
+      sut = new ArrayObserver(new Lifecycle(), arr);
       sut.subscribeBatched(s);
       arr.push(1);
       const indexMap: IndexMap = sut.indexMap.slice();
       indexMap.deletedItems = sut.indexMap.deletedItems;
-      sut.flushChanges();
+      sut.flush(LifecycleFlags.none);
       expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
     });
 
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new LinkedChangeList(), arr);
+      sut = new ArrayObserver(new Lifecycle(), arr);
       sut.subscribeBatched(s);
       arr.push(1, 2);
       const indexMap: IndexMap = sut.indexMap.slice();
       indexMap.deletedItems = sut.indexMap.deletedItems;
-      sut.flushChanges();
+      sut.flush(LifecycleFlags.none);
       expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
     });
   });
@@ -97,11 +97,11 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new LinkedChangeList(), arr);
+      sut = new ArrayObserver(new Lifecycle(), arr);
       sut.subscribeBatched(s);
       sut.unsubscribeBatched(s);
       arr.push(1);
-      sut.flushChanges();
+      sut.flush(LifecycleFlags.none);
       expect(s.handleBatchedChange).not.to.have.been.called;
     });
   });
@@ -110,9 +110,9 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new LinkedChangeList(), arr);
+      sut = new ArrayObserver(new Lifecycle(), arr);
       sut.subscribeBatched(s);
-      sut.flushChanges();
+      sut.flush(LifecycleFlags.none);
       expect(s.handleBatchedChange).not.to.have.been.called;
     });
   });
@@ -128,7 +128,7 @@ describe(`ArrayObserver`, () => {
             const arr = init.slice();
             const expectedArr = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(new LinkedChangeList(), arr);
+            sut = new ArrayObserver(new Lifecycle(), arr);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -151,7 +151,7 @@ describe(`ArrayObserver`, () => {
             const arr = init.slice();
             const copy = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(new LinkedChangeList(), arr);
+            sut = new ArrayObserver(new Lifecycle(), arr);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -182,7 +182,7 @@ describe(`ArrayObserver`, () => {
             const arr = init.slice();
             const expectedArr = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(new LinkedChangeList(), arr);
+            sut = new ArrayObserver(new Lifecycle(), arr);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -205,7 +205,7 @@ describe(`ArrayObserver`, () => {
             const arr = init.slice();
             const copy = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(new LinkedChangeList(), arr);
+            sut = new ArrayObserver(new Lifecycle(), arr);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -233,7 +233,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
           const arr = init.slice();
           const expectedArr = init.slice();
-          sut = new ArrayObserver(new LinkedChangeList(), arr);
+          sut = new ArrayObserver(new Lifecycle(), arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -249,7 +249,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(new LinkedChangeList(), arr);
+          sut = new ArrayObserver(new Lifecycle(), arr);
           let i = 0;
           while (i < repeat) {
             arr.pop();
@@ -271,7 +271,7 @@ describe(`ArrayObserver`, () => {
         const arr = init.slice();
         const expectedArr = init.slice();
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
-          sut = new ArrayObserver(new LinkedChangeList(), arr);
+          sut = new ArrayObserver(new Lifecycle(), arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -287,7 +287,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(new LinkedChangeList(), arr);
+          sut = new ArrayObserver(new Lifecycle(), arr);
           let i = 0;
           while (i < repeat) {
             arr.shift();
@@ -316,7 +316,7 @@ describe(`ArrayObserver`, () => {
                 const arr = init.slice();
                 const expectedArr = init.slice();
                 const newItems = items && items.slice();
-                sut = new ArrayObserver(new LinkedChangeList(), arr);
+                sut = new ArrayObserver(new Lifecycle(), arr);
                 let expectedResult;
                 let actualResult;
                 let i = 0;
@@ -349,7 +349,7 @@ describe(`ArrayObserver`, () => {
                 const arr = init.slice();
                 const copy = init.slice();
                 const newItems = items && items.slice();
-                sut = new ArrayObserver(new LinkedChangeList(), arr);
+                sut = new ArrayObserver(new Lifecycle(), arr);
                 let i = 0;
                 while (i < repeat) {
                   incrementItems(newItems, i);
@@ -383,7 +383,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
           const arr = init.slice();
           const expectedArr = init.slice();
-          sut = new ArrayObserver(new LinkedChangeList(), arr);
+          sut = new ArrayObserver(new Lifecycle(), arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -399,7 +399,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(new LinkedChangeList(), arr);
+          sut = new ArrayObserver(new Lifecycle(), arr);
           let i = 0;
           while (i < repeat) {
             arr.reverse();
@@ -443,7 +443,7 @@ describe(`ArrayObserver`, () => {
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - behaves as native`, () => {
               const arr = init.slice();
               const expectedArr = init.slice();
-              sut = new ArrayObserver(new LinkedChangeList(), arr);
+              sut = new ArrayObserver(new Lifecycle(), arr);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
               expect(expectedResult).to.equal(expectedArr);
@@ -472,7 +472,7 @@ describe(`ArrayObserver`, () => {
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - tracks changes`, () => {
               let arr = init.slice();
               const copy = init.slice();
-              sut = new ArrayObserver(new LinkedChangeList(), arr);
+              sut = new ArrayObserver(new Lifecycle(), arr);
               arr.sort(compareFn);
               synchronize(copy, sut.indexMap, arr);
               assertArrayEqual(copy, arr);

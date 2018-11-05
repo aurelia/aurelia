@@ -50,7 +50,8 @@ import {
   addBindable,
   addAttachable,
   ILifecycleTask,
-  State
+  State,
+  CompositionCoordinator
 } from '../../src/index';
 import { spy } from 'sinon';
 import { expect } from 'chai';
@@ -372,12 +373,13 @@ export class MockTemplate implements ITemplate {
 export class MockTextNodeTemplate {
   constructor(
     public sourceExpression: any,
-    public observerLocator: any
+    public observerLocator: any,
+    public container: any
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockTextNodeSequence();
-    addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
   }
 }
 
@@ -391,16 +393,17 @@ export class MockIfTextNodeTemplate {
   constructor(
     public sourceExpression: any,
     public observerLocator: any,
-    public lifecycle: any
+    public lifecycle: any,
+    public container: any
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     const nodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
-    const observerLocator = new ObserverLocator(null, null, null);
-    const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
+    const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
+    const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, this.container), this.lifecycle);
 
-    const sut = new If(factory, nodes.firstChild);
+    const sut = new If(factory, nodes.firstChild, new CompositionCoordinator(this.lifecycle));
 
     (<any>sut)['$isAttached'] = false;
     (<any>sut)['$scope'] = null;
@@ -409,7 +412,7 @@ export class MockIfTextNodeTemplate {
     behavior.applyTo(sut, this.lifecycle);
 
     addAttachable(renderable, sut);
-    addBindable(renderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, this.container));
     addBindable(renderable, sut);
   }
 }
@@ -418,14 +421,15 @@ export class MockElseTextNodeTemplate {
   constructor(
     public sourceExpression: any,
     public observerLocator: any,
-    public lifecycle: any
+    public lifecycle: any,
+    public container: any
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
-    const observerLocator = new ObserverLocator(null, null, null);
-    const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
+    const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
+    const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator, this.container), this.lifecycle);
 
     const sut = new Else(factory);
 
@@ -439,7 +443,7 @@ export class MockElseTextNodeTemplate {
     behavior.applyTo(<any>sut, this.lifecycle);
 
     addAttachable(renderable, <any>sut);
-    addBindable(renderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, this.container));
     addBindable(renderable, <any>sut);
   }
 }
@@ -448,16 +452,17 @@ export class MockIfElseTextNodeTemplate {
   constructor(
     public sourceExpression: any,
     public observerLocator: any,
-    public lifecycle: any
+    public lifecycle: any,
+    public container: any
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     const ifNodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
-    const observerLocator = new ObserverLocator(null, null, null);
-    const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
+    const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
+    const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, this.container), this.lifecycle);
 
-    const ifSut = new If(ifFactory, ifNodes.firstChild);
+    const ifSut = new If(ifFactory, ifNodes.firstChild, new CompositionCoordinator(this.lifecycle));
 
     (<any>ifSut)['$isAttached'] = false;
     (<any>ifSut)['$state'] = State.none;
@@ -467,10 +472,10 @@ export class MockIfElseTextNodeTemplate {
     ifBehavior.applyTo(ifSut, this.lifecycle);
 
     addAttachable(renderable, ifSut);
-    addBindable(renderable, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, this.container));
     addBindable(renderable, ifSut);
 
-    const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
+    const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator, this.container), this.lifecycle);
 
     const elseSut = new Else(elseFactory);
 
@@ -484,7 +489,7 @@ export class MockIfElseTextNodeTemplate {
     elseBehavior.applyTo(<any>elseSut, this.lifecycle);
 
     addAttachable(renderable, <any>elseSut);
-    addBindable(renderable, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, null));
+    addBindable(renderable, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, this.container));
     addBindable(renderable, <any>elseSut);
   }
 }

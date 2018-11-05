@@ -120,15 +120,15 @@ suite.addDataSlot('i') // app markup
     `<template>
       <au-compose if.bind="true" repeat.for="i of 1" subject.bind="${ctx.g}"></au-compose>
     </template>`)
-  .addData('06').setFactory(ctx =>
+  .addData('07').setFactory(ctx =>
     `<template>
       <au-compose if.bind="true" repeat.for="i of 1" subject.bind="${ctx.g}"></au-compose>
     </template>`)
-  .addData('06').setFactory(ctx =>
+  .addData('08').setFactory(ctx =>
     `<template>
       <au-compose subject.bind="${ctx.g}" if.bind="true" repeat.for="i of 1"></au-compose>
     </template>`)
-  .addData('06').setFactory(ctx =>
+  .addData('09').setFactory(ctx =>
     `<template>
       <au-compose if.bind="true" subject.bind="${ctx.g}" repeat.for="i of 1"></au-compose>
     </template>`)
@@ -152,4 +152,4 @@ suite.addActionSlot('test')
   });
 
 suite.load();
-suite.xrun();
+suite.run();

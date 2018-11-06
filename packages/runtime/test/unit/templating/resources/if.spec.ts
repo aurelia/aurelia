@@ -24,7 +24,7 @@ import { MockTextNodeTemplate } from '../../mock';
 import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
 import { createScopeForTest } from '../../binding/shared';
 import { expect } from 'chai';
-import { DI } from '../../../../../kernel/src/index';
+import { DI, Writable } from '../../../../../kernel/src/index';
 
 describe('The "if" template controller', () => {
   it("renders its view when the value is true", () => {
@@ -178,31 +178,29 @@ export class MockIfTextNodeTemplate {
 
 
 function setup() {
-  const lifecycle = new Lifecycle();
+  const container = DI.createContainer();
+  const lifecycle = container.get(ILifecycle) as Lifecycle;
   const host = document.createElement('div');
   const ifLoc = document.createComment('au-loc');
   host.appendChild(ifLoc);
 
   const observerLocator = new ObserverLocator(lifecycle, null, null, null);
-  const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, lifecycle), lifecycle);
-  const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator, lifecycle), lifecycle);
+  const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, container), lifecycle);
+  const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator, container), lifecycle);
 
   const ifSut = new If(ifFactory, ifLoc, new CompositionCoordinator(lifecycle));
   const elseSut = new Else(elseFactory);
 
   elseSut.link(ifSut);
 
-  (<any>ifSut)['$isAttached'] = false;
-  (<any>ifSut)['$scope'] = null;
-
-  (<any>elseSut)['$isAttached'] = false;
-  (<any>elseSut)['$scope'] = null;
+  (<Writable<If>>ifSut).$scope = null;
+  (<Writable<Else>>elseSut).$scope = null;
 
   const ifBehavior = RuntimeBehavior.create(<any>If, ifSut);
   ifBehavior.applyTo(ifSut, lifecycle);
 
   const elseBehavior = RuntimeBehavior.create(<any>Else, <any>elseSut);
-  elseBehavior.applyTo(<any>elseSut, lifecycle);
+  elseBehavior.applyTo(elseSut, lifecycle);
 
   return { ifSut, elseSut, host, lifecycle };
 }
@@ -373,24 +371,21 @@ describe(`If/Else`, () => {
         ifSut.$detach(LifecycleFlags.none);
         lifecycle.endDetach(LifecycleFlags.none);
 
-        expect(host.textContent).to.equal('', `execute4, host.textContent`);
+        expect(host.textContent).to.equal('', `execute4, host.textContent #1`);
 
         ifSut.$unbind(LifecycleFlags.fromUnbind);
 
-        expect(host.textContent).to.equal('', `execute4, host.textContent`);
+        expect(host.textContent).to.equal('', `execute4, host.textContent #2`);
 
       }, `$detach(none)   -> $unbind(fromUnbind)`],
 
       ([,,]) => [(ifSut, elseSut, host, lifecycle) => {
+        lifecycle.enqueueUnbindAfterDetach(ifSut);
         lifecycle.beginDetach();
-        ifSut.$attach(LifecycleFlags.none);
+        ifSut.$detach(LifecycleFlags.none);
         lifecycle.endDetach(LifecycleFlags.none);
 
-        expect(host.textContent).to.equal('', `execute4, host.textContent`);
-
-        ifSut.$unbind(LifecycleFlags.fromUnbind);
-
-        expect(host.textContent).to.equal('', `execute4, host.textContent`);
+        expect(host.textContent).to.equal('', `execute4, host.textContent #3`);
 
       }, `$detach(unbind) -> $unbind(fromUnbind)`],
     ],

@@ -55,7 +55,7 @@
     "no-backbone-get-set-outside-model": false,
     "no-bitwise": false,
     "no-conditional-assignment": false,
-    "no-console": [true, "debug", "info", "error", "log", "time", "timeEnd", "trace"],
+    "no-console": [true, "debug", "info", "warn", "error", "log", "time", "timeEnd", "trace"],
     "no-constant-condition": true,
     "no-control-regex": true,
     "no-debugger": true,

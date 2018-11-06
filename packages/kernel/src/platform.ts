@@ -2,14 +2,15 @@ const camelCaseLookup = {};
 const kebabCaseLookup = {};
 
 export const PLATFORM = {
-  // tslint:disable-next-line:no-any
-  global: (function(): any {
+  global: (function(): unknown {
     // Workers don’t have `window`, only `self`
+    // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
     // tslint:disable-next-line:no-typeof-undefined
     if (typeof self !== 'undefined') {
       return self;
     }
 
+    // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
     // tslint:disable-next-line:no-typeof-undefined
     if (typeof global !== 'undefined') {
       return global;
@@ -65,8 +66,7 @@ export const PLATFORM = {
     return kebabCaseLookup[input] = value;
   },
 
-  // tslint:disable-next-line:no-any
-  toArray<T = any>(input: ArrayLike<T>): T[] {
+  toArray<T = unknown>(input: ArrayLike<T>): T[] {
     // benchmark: http://jsben.ch/xjsyF
     const len = input.length;
     const arr = Array(len);

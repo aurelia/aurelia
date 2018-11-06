@@ -29,7 +29,7 @@ const astTypeMap = [
 ];
 
 export function enableImprovedExpressionDebugging(): void {
-  astTypeMap.forEach(x => adoptDebugMethods(x.type, x.name));
+  astTypeMap.forEach(x => { adoptDebugMethods(x.type, x.name); });
 }
 
 /*@internal*/
@@ -267,6 +267,7 @@ export class Unparser implements AST.IVisitor<void> {
   public visitInterpolation(expr: AST.Interpolation): void {
     const { parts, expressions } = expr;
     const length = expressions.length;
+    // tslint:disable-next-line:no-invalid-template-strings
     this.text += '${';
     this.text += parts[0];
     for (let i = 0; i < length; i++) {
@@ -392,7 +393,6 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
-  // tslint:disable-next-line:no-any
   private serializeExpressions(args: ReadonlyArray<AST.IExpression>): string {
     let text = '[';
     for (let i = 0, ii = args.length; i < ii; ++i) {
@@ -406,8 +406,7 @@ export class Serializer implements AST.IVisitor<string> {
   }
 }
 
-  // tslint:disable-next-line:no-any
-function serializePrimitives(values: ReadonlyArray<any>): string {
+function serializePrimitives(values: ReadonlyArray<unknown>): string {
   let text = '[';
   for (let i = 0, ii = values.length; i < ii; ++i) {
     if (i !== 0) {
@@ -419,8 +418,7 @@ function serializePrimitives(values: ReadonlyArray<any>): string {
   return text;
 }
 
-  // tslint:disable-next-line:no-any
-function serializePrimitive(value: any): string {
+function serializePrimitive(value: unknown): string {
   if (typeof value === 'string') {
     return `"\\"${escapeString(value)}\\""`;
   } else if (value === null || value === undefined) {

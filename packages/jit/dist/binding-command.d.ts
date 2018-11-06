@@ -1,4 +1,3 @@
-import { Constructable } from '@aurelia/kernel';
 import { IExpressionParser, IResourceKind, IResourceType, TargetedInstruction } from '@aurelia/runtime';
 import { IAttributeSymbol } from './semantic-model';
 export interface IBindingCommandSource {
@@ -9,7 +8,7 @@ export interface IBindingCommand {
     handles($symbol: IAttributeSymbol): boolean;
 }
 export declare type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
-export declare function bindingCommand(nameOrSource: string | IBindingCommandSource): <T extends Constructable<{}>>(target: T) => T & IResourceType<IBindingCommandSource, IBindingCommand>;
+export declare function bindingCommand(nameOrSource: string | IBindingCommandSource): any;
 export declare const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindingCommandType>;
 export interface OneTimeBindingCommand extends IBindingCommand {
 }

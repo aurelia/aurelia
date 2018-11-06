@@ -7,13 +7,14 @@
   const camelCaseLookup = {};
   const kebabCaseLookup = {};
   const PLATFORM = {
-      // tslint:disable-next-line:no-any
       global: (function () {
           // Workers don’t have `window`, only `self`
+          // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
           // tslint:disable-next-line:no-typeof-undefined
           if (typeof self !== 'undefined') {
               return self;
           }
+          // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
           // tslint:disable-next-line:no-typeof-undefined
           if (typeof global !== 'undefined') {
               return global;
@@ -68,7 +69,6 @@
           }
           return kebabCaseLookup[input] = value;
       },
-      // tslint:disable-next-line:no-any
       toArray(input) {
           // benchmark: http://jsben.ch/xjsyF
           const len = input.length;
@@ -125,9 +125,8 @@
       },
       createInterface(friendlyName) {
           const Key = function (target, property, index) {
-              const inject = target.inject || (target.inject = []);
               Key.friendlyName = friendlyName || 'Interface';
-              inject[index] = Key;
+              (target.inject || (target.inject = []))[index] = Key;
               return target;
           };
           Key.noDefault = function () {
@@ -173,8 +172,7 @@
               }
               else if (key) { // It's a property decorator. Not supported by the container without plugins.
                   const actualTarget = target.constructor;
-                  const inject = actualTarget.inject || (actualTarget.inject = {});
-                  inject[key] = dependencies[0];
+                  (actualTarget.inject || (actualTarget.inject = {}))[key] = dependencies[0];
               }
               else if (descriptor) { // It's a function decorator (not a Class constructor)
                   const fn = descriptor.value;

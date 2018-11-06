@@ -4,13 +4,14 @@ var au = (function (exports) {
     const camelCaseLookup = {};
     const kebabCaseLookup = {};
     const PLATFORM = {
-        // tslint:disable-next-line:no-any
         global: (function () {
             // Workers don’t have `window`, only `self`
+            // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
             // tslint:disable-next-line:no-typeof-undefined
             if (typeof self !== 'undefined') {
                 return self;
             }
+            // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
             // tslint:disable-next-line:no-typeof-undefined
             if (typeof global !== 'undefined') {
                 return global;
@@ -65,7 +66,6 @@ var au = (function (exports) {
             }
             return kebabCaseLookup[input] = value;
         },
-        // tslint:disable-next-line:no-any
         toArray(input) {
             // benchmark: http://jsben.ch/xjsyF
             const len = input.length;
@@ -122,9 +122,8 @@ var au = (function (exports) {
         },
         createInterface(friendlyName) {
             const Key = function (target, property, index) {
-                const inject = target.inject || (target.inject = []);
                 Key.friendlyName = friendlyName || 'Interface';
-                inject[index] = Key;
+                (target.inject || (target.inject = []))[index] = Key;
                 return target;
             };
             Key.noDefault = function () {
@@ -170,8 +169,7 @@ var au = (function (exports) {
                 }
                 else if (key) { // It's a property decorator. Not supported by the container without plugins.
                     const actualTarget = target.constructor;
-                    const inject = actualTarget.inject || (actualTarget.inject = {});
-                    inject[key] = dependencies[0];
+                    (actualTarget.inject || (actualTarget.inject = {}))[key] = dependencies[0];
                 }
                 else if (descriptor) { // It's a function decorator (not a Class constructor)
                     const fn = descriptor.value;
@@ -8831,6 +8829,7 @@ var au = (function (exports) {
         keyFrom(name) {
             return `${this.name}:${name}`;
         },
+        // tslint:disable-next-line:no-reserved-keywords
         isType(type) {
             return type.kind === this;
         },
@@ -9657,53 +9656,37 @@ var au = (function (exports) {
         // run to the next non-idPart
         while (IdParts[nextChar(state)])
             ;
-        return KeywordLookup[state.tokenValue = state.tokenRaw] || 1024 /* Identifier */;
+        const token = KeywordLookup[state.tokenValue = state.tokenRaw];
+        return token === undefined ? 1024 /* Identifier */ : token;
     }
     function scanNumber(state, isFloat) {
-        if (isFloat) {
-            state.tokenValue = 0;
-        }
-        else {
-            state.tokenValue = state.currentChar - 48 /* Zero */;
-            while (nextChar(state) <= 57 /* Nine */ && state.currentChar >= 48 /* Zero */) {
-                state.tokenValue = state.tokenValue * 10 + state.currentChar - 48 /* Zero */;
-            }
-        }
-        if (isFloat || state.currentChar === 46 /* Dot */) {
-            // isFloat (coming from the period scanner) means the period was already skipped
-            if (!isFloat) {
-                isFloat = true;
-                nextChar(state);
-                if (state.index >= state.length) {
-                    // a trailing period is valid javascript, so return here to prevent creating a NaN down below
-                    return 8192 /* NumericLiteral */;
-                }
-            }
-            // note: this essentially make member expressions on numeric literals valid;
-            // this makes sense to allow since they're always stored in variables, and they can legally be evaluated
-            // this would be consistent with declaring a literal as a normal variable and performing an operation on that
-            const current = state.currentChar;
-            if (current > 57 /* Nine */ || current < 48 /* Zero */) {
-                state.currentChar = state.input.charCodeAt(--state.index);
+        let char = state.currentChar;
+        if (isFloat === false) {
+            do {
+                char = nextChar(state);
+            } while (char <= 57 /* Nine */ && char >= 48 /* Zero */);
+            if (char !== 46 /* Dot */) {
+                state.tokenValue = parseInt(state.tokenRaw, 10);
                 return 8192 /* NumericLiteral */;
             }
-            const start = state.index;
-            let value = state.currentChar - 48 /* Zero */;
-            while (nextChar(state) <= 57 /* Nine */ && state.currentChar >= 48 /* Zero */) {
-                value = value * 10 + state.currentChar - 48 /* Zero */;
-            }
-            state.tokenValue = state.tokenValue + value / 10 ** (state.index - start);
-        }
-        // in the rare case that we go over this number, re-parse the number with the (slower) native number parsing,
-        // to ensure consistency with the spec
-        if (state.tokenValue > Number.MAX_SAFE_INTEGER) {
-            if (isFloat) {
-                state.tokenValue = parseFloat(state.tokenRaw);
-            }
-            else {
-                state.tokenValue = parseInt(state.tokenRaw, 10);
+            // past this point it's always a float
+            char = nextChar(state);
+            if (state.index >= state.length) {
+                // unless the number ends with a dot - that behaves a little different in native ES expressions
+                // but in our AST that behavior has no effect because numbers are always stored in variables
+                state.tokenValue = parseInt(state.tokenRaw.slice(0, -1), 10);
+                return 8192 /* NumericLiteral */;
             }
         }
+        if (char <= 57 /* Nine */ && char >= 48 /* Zero */) {
+            do {
+                char = nextChar(state);
+            } while (char <= 57 /* Nine */ && char >= 48 /* Zero */);
+        }
+        else {
+            state.currentChar = state.input.charCodeAt(--state.index);
+        }
+        state.tokenValue = parseFloat(state.tokenRaw);
         return 8192 /* NumericLiteral */;
     }
     function scanString(state) {
@@ -10020,7 +10003,7 @@ var au = (function (exports) {
             }
             let attributes;
             const nodeAttributes = node.attributes;
-            const attrLen = nodeAttributes && nodeAttributes.length || 0;
+            const attrLen = nodeAttributes === undefined ? 0 : nodeAttributes.length;
             if (attrLen > 0) {
                 attributes = Array(attrLen);
                 for (let i = 0, ii = attrLen; i < ii; ++i) {
@@ -10072,24 +10055,24 @@ var au = (function (exports) {
             if (existing !== undefined) {
                 return existing;
             }
-            const definition = this.resources.find(CustomAttributeResource, name) || null;
-            return this.attrDefCache[name] = definition;
+            const definition = this.resources.find(CustomAttributeResource, name);
+            return this.attrDefCache[name] = definition === undefined ? null : definition;
         }
         getElementDefinition(name) {
             const existing = this.elDefCache[name];
             if (existing !== undefined) {
                 return existing;
             }
-            const definition = this.resources.find(CustomElementResource, name) || null;
-            return this.elDefCache[name] = definition;
+            const definition = this.resources.find(CustomElementResource, name);
+            return this.elDefCache[name] = definition === undefined ? null : definition;
         }
         getBindingCommand(name) {
             const existing = this.commandCache[name];
             if (existing !== undefined) {
                 return existing;
             }
-            const instance = this.resources.create(BindingCommandResource, name) || null;
-            return this.commandCache[name] = instance;
+            const instance = this.resources.create(BindingCommandResource, name);
+            return this.commandCache[name] = instance === undefined ? null : instance;
         }
         getAttributeSymbol(syntax, element) {
             const definition = this.getAttributeDefinition(PLATFORM.camelCase(syntax.target));
@@ -10152,15 +10135,16 @@ var au = (function (exports) {
                 const b = bindables[prop];
                 if (b.property === syntax.target) {
                     this.to = b.property;
-                    this.mode = (b.mode && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
+                    this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
                     this.bindable = b;
                     this.isAttributeBindable = true;
                     break;
                 }
             }
             if (!this.isAttributeBindable) {
+                const defaultBindingMode = $parent.definition.defaultBindingMode;
                 this.to = syntax.target;
-                this.mode = $parent.definition.defaultBindingMode || BindingMode.toView;
+                this.mode = defaultBindingMode === undefined ? BindingMode.toView : defaultBindingMode;
             }
         }
     }
@@ -10221,14 +10205,15 @@ var au = (function (exports) {
                     for (const prop in bindables) {
                         const b = bindables[prop];
                         this.to = b.property;
-                        this.mode = (b.mode && b.mode !== BindingMode.default) ? b.mode : (definition.defaultBindingMode || BindingMode.toView);
+                        this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : (definition.defaultBindingMode || BindingMode.toView);
                         this.bindable = b;
                         this.isBindable = this.isAttributeBindable = true;
                         break;
                     }
                     if (!this.isAttributeBindable) {
+                        const defaultBindingMode = definition.defaultBindingMode;
                         this.to = 'value';
-                        this.mode = definition.defaultBindingMode || BindingMode.toView;
+                        this.mode = defaultBindingMode === undefined ? BindingMode.toView : defaultBindingMode;
                         this.isBindable = this.isAttributeBindable = this.isDefaultAttributeBindable = true;
                     }
                 }
@@ -10239,7 +10224,7 @@ var au = (function (exports) {
                     const b = bindables[prop];
                     if (b.attribute === syntax.target) {
                         this.to = b.property;
-                        this.mode = (b.mode && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
+                        this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
                         this.bindable = b;
                         this.isBindable = this.isElementBindable = true;
                         break;
@@ -10353,13 +10338,15 @@ var au = (function (exports) {
             const siblings = this.$parent.$children;
             for (let i = 0, ii = siblings.length; i < ii; ++i) {
                 if (siblings[i] === this) {
-                    return siblings[i + 1] || null;
+                    const nextSibling = siblings[i + 1];
+                    return nextSibling === undefined ? null : nextSibling;
                 }
             }
             return null;
         }
         get firstChild() {
-            return this.$children[0] || null;
+            const firstChild = this.$children[0];
+            return firstChild === undefined ? null : firstChild;
         }
         get componentRoot() {
             return this.semanticModel.root;

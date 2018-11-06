@@ -1,5 +1,5 @@
-import { IScope } from '@aurelia/runtime';
+import { IBindingContext, IScope } from '@aurelia/runtime';
 export declare const BindingContext: {
-    createScopeForTest(bindingContext: any, parentBindingContext?: any): IScope;
+    createScopeForTest(bindingContext: IBindingContext, parentBindingContext?: IBindingContext): IScope;
 };
 //# sourceMappingURL=binding-context.d.ts.map

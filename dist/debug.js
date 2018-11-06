@@ -42,7 +42,7 @@ this.au.debug = (function (exports,AST,kernel) {
       { type: AST.ValueConverter, name: 'ValueConverter' }
   ];
   function enableImprovedExpressionDebugging() {
-      astTypeMap.forEach(x => adoptDebugMethods(x.type, x.name));
+      astTypeMap.forEach(x => { adoptDebugMethods(x.type, x.name); });
   }
   /*@internal*/
   function adoptDebugMethods($type, name) {
@@ -257,6 +257,7 @@ this.au.debug = (function (exports,AST,kernel) {
       visitInterpolation(expr) {
           const { parts, expressions } = expr;
           const length = expressions.length;
+          // tslint:disable-next-line:no-invalid-template-strings
           this.text += '${';
           this.text += parts[0];
           for (let i = 0; i < length; i++) {
@@ -355,7 +356,6 @@ this.au.debug = (function (exports,AST,kernel) {
       visitInterpolation(expr) {
           return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
       }
-      // tslint:disable-next-line:no-any
       serializeExpressions(args) {
           let text = '[';
           for (let i = 0, ii = args.length; i < ii; ++i) {
@@ -368,7 +368,6 @@ this.au.debug = (function (exports,AST,kernel) {
           return text;
       }
   }
-  // tslint:disable-next-line:no-any
   function serializePrimitives(values) {
       let text = '[';
       for (let i = 0, ii = values.length; i < ii; ++i) {
@@ -380,7 +379,6 @@ this.au.debug = (function (exports,AST,kernel) {
       text += ']';
       return text;
   }
-  // tslint:disable-next-line:no-any
   function serializePrimitive(value) {
       if (typeof value === 'string') {
           return `"\\"${escapeString(value)}\\""`;
@@ -416,6 +414,7 @@ this.au.debug = (function (exports,AST,kernel) {
 
   const Reporter = Object.assign({}, kernel.Reporter, { write(code, ...params) {
           const info = getMessageInfoForCode(code);
+          // tslint:disable:no-console
           switch (info.type) {
               case 3 /* debug */:
                   console.debug(info.message, ...params);
@@ -429,6 +428,7 @@ this.au.debug = (function (exports,AST,kernel) {
               case 0 /* error */:
                   throw this.error(code, ...params);
           }
+          // tslint:enable:no-console
       },
       error(code, ...params) {
           const info = getMessageInfoForCode(code);

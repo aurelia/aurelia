@@ -1,5 +1,5 @@
 import { Immutable, IServiceLocator } from '@aurelia/kernel';
-import { BindingMode, IBindableDescription, IAttributeDefinition, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
+import { BindingMode, IAttributeDefinition, IBindableDescription, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
 import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
 import { ElementSyntax, IElementParser } from './element-parser';

@@ -1,6 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
 import { INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IBindScope, ILifecycle, IMountable, IRenderContext, IView, IViewCache, IViewFactory, State } from '../lifecycle';
+import { IAttach, IBindScope, ILifecycle, ILifecycleUnbind, IMountable, IRenderContext, IView, IViewCache, IViewFactory, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
 import { $bindView, $unbindView } from './lifecycle-bind';
@@ -27,6 +27,8 @@ export class View implements IView {
   public $mountFlags: LifecycleFlags = 0;
   public $nextUnmount: IMountable = null;
   public $unmountFlags: LifecycleFlags = 0;
+
+  public $nextUnbindAfterDetach: ILifecycleUnbind = null;
 
   public $state: State = State.none;
   public $scope: IScope = null;

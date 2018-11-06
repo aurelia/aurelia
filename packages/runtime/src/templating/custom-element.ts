@@ -90,6 +90,8 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$prevAttach = null;
     proto.$nextAttach = null;
 
+    proto.$nextUnbindAfterDetach = null;
+
     proto.$scope = null;
     proto.$hooks = 0;
     proto.$state = State.needsMount;

@@ -14,8 +14,7 @@ export const enum State {
   isDetaching           = 0b000000100000,
   isUnbinding           = 0b000001000000,
   isCached              = 0b000010000000,
-  needsMount            = 0b000100000000,
-  needsUnbind           = 0b001000000000
+  needsMount            = 0b000100000000
 }
 
 export const enum Hooks {
@@ -377,6 +376,7 @@ export interface ILifecycleUnmount {
 export interface IMountable extends ILifecycleMount, ILifecycleUnmount { }
 
 export interface ILifecycleUnbind {
+  $nextUnbindAfterDetach?: ILifecycleUnbind;
   $state?: State;
   $unbind(flags: LifecycleFlags): void;
 }
@@ -595,6 +595,16 @@ export interface IAttachLifecycle extends IFlushLifecycle {
   enqueueDetached(requestor: ILifecycleDetached): void;
 
   /**
+   * Add an `$unbind` callback to the queue, to be invoked when the current detach batch
+   * is ended via `endAttach` by the top-most caller. The callback is invoked after all the
+   * `$unmount` and `detached` callbacks are processed.
+   *
+   * This method is idempotent; adding the same item more than once has the same effect as
+   * adding it once.
+   */
+  enqueueUnbindAfterDetach(requestor: ILifecycleUnbind): void;
+
+  /**
    * Close / shrink a detach batch for invoking queued `$unmount` and `detached` callbacks.
    * @param flags The flags that will be passed into the `$unmount` and `detached` callbacks.
    *
@@ -644,6 +654,9 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public detachedHead: ILifecycleDetached = this; //LOL
   /*@internal*/public detachedTail: ILifecycleDetached = this;
 
+  /*@internal*/public unbindAfterDetachHead: ILifecycleUnbind = this;
+  /*@internal*/public unbindAfterDetachTail: ILifecycleUnbind = this;
+
   /*@internal*/public unboundHead: ILifecycleUnbound = this;
   /*@internal*/public unboundTail: ILifecycleUnbound = this;
 
@@ -658,6 +671,7 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public attachedCount: number = 0;
   /*@internal*/public unmountCount: number = 0;
   /*@internal*/public detachedCount: number = 0;
+  /*@internal*/public unbindAfterDetachCount: number = 0;
   /*@internal*/public unboundCount: number = 0;
 
   // These are dummy properties to make the lifecycle conform to the interfaces
@@ -679,6 +693,8 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public $unmount: ILifecycleUnmount['$unmount'] = PLATFORM.noop;
   /*@internal*/public $nextDetached: ILifecycleDetached = marker;
   /*@internal*/public detached: ILifecycleDetached['detached'] = PLATFORM.noop;
+  /*@internal*/public $nextUnbindAfterDetach: ILifecycleUnbind = marker;
+  /*@internal*/public $unbind: ILifecycleUnbind['$unbind'] = PLATFORM.noop;
   /*@internal*/public $nextUnbound: ILifecycleUnbound = marker;
   /*@internal*/public unbound: ILifecycleUnbound['unbound'] = PLATFORM.noop;
 
@@ -991,6 +1007,18 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
+  public enqueueUnbindAfterDetach(requestor: ILifecycleUnbind): void {
+    // This method is idempotent; adding the same item more than once has the same effect as
+    // adding it once.
+    // build a standard singly linked list for unbindAfterDetach callbacks
+    if (requestor.$nextUnbindAfterDetach === null) {
+      requestor.$nextUnbindAfterDetach = marker;
+      this.unbindAfterDetachTail.$nextUnbindAfterDetach = requestor;
+      this.unbindAfterDetachTail = requestor;
+      ++this.unbindAfterDetachCount;
+    }
+  }
+
   public endDetach(flags: LifecycleFlags): ILifecycleTask {
     // close / shrink a detach batch
     if (--this.detachDepth === 0) {
@@ -1025,7 +1053,6 @@ export class Lifecycle implements ILifecycle {
     }
 
     if (this.detachedCount > 0) {
-      this.beginUnbind();
       this.detachedCount = 0;
       let currentDetached = this.detachedHead.$nextDetached;
       this.detachedHead = this.detachedTail = this;
@@ -1033,14 +1060,25 @@ export class Lifecycle implements ILifecycle {
 
       do {
         currentDetached.detached(flags);
-        if (currentDetached.$state & State.needsUnbind) {
-          (<ILifecycleUnbind><unknown>currentDetached).$unbind(flags);
-          currentDetached.$state &= ~State.needsUnbind;
-        }
         nextDetached = currentDetached.$nextDetached;
         currentDetached.$nextDetached = null;
         currentDetached = nextDetached;
       } while (currentDetached !== marker);
+    }
+
+    if (this.unbindAfterDetachCount > 0) {
+      this.beginUnbind();
+      this.unbindAfterDetachCount = 0;
+      let currentUnbind = this.unbindAfterDetachHead.$nextUnbindAfterDetach;
+      this.unbindAfterDetachHead = this.unbindAfterDetachTail = this;
+      let nextUnbind: typeof currentUnbind;
+
+      do {
+        currentUnbind.$unbind(flags);
+        nextUnbind = currentUnbind.$nextUnbindAfterDetach;
+        currentUnbind.$nextUnbindAfterDetach = null;
+        currentUnbind = nextUnbind;
+      } while (currentUnbind !== marker);
       this.endUnbind(flags);
     }
   }
@@ -1143,8 +1181,7 @@ export class CompositionCoordinator {
     if (currentView === null) {
       lifecycleTask = LifecycleTask.done;
     } else {
-      currentView.$state |= State.needsUnbind;
-
+      $lifecycle.enqueueUnbindAfterDetach(currentView);
       $lifecycle.beginDetach();
       currentView.$detach(flags | LifecycleFlags.allowUnmount);
       lifecycleTask = $lifecycle.endDetach(flags);

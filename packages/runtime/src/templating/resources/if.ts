@@ -66,7 +66,8 @@ export class If {
     this.coordinator.compose(view, flags);
   }
 
-  private updateView(flags: LifecycleFlags): IView {
+  /*@internal*/
+  public updateView(flags: LifecycleFlags): IView {
     let view: IView;
 
     if (this.value) {
@@ -80,7 +81,8 @@ export class If {
     return view;
   }
 
-  private ensureView(view: IView, factory: IViewFactory, flags: LifecycleFlags): IView {
+  /*@internal*/
+  public ensureView(view: IView, factory: IViewFactory, flags: LifecycleFlags): IView {
     if (view === null) {
       view = factory.create();
     }
@@ -90,6 +92,8 @@ export class If {
     return view;
   }
 }
+
+export interface Else extends ICustomAttribute {}
 
 @templateController('else')
 @inject(IViewFactory)

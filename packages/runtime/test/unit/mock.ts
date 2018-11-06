@@ -15,8 +15,6 @@ import {
   IAttach,
   IScope,
   LifecycleFlags,
-  ILifecycle,
-  ILifecycle,
   ICustomElementType,
   ICustomElement,
   Binding,

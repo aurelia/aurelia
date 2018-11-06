@@ -1,288 +1,301 @@
-// import { expect } from 'chai';
-// import { hydrateCustomElement } from '../behavior-assistance';
-// import { DOM, IViewFactory, customElement, ITemplateDefinition, LifecycleFlags, Lifecycle, LifecycleFlags, IAttach, Lifecycle, RenderPlan, Compose } from '../../../../src/index';
-// import { ViewFactoryFake } from '../fakes/view-factory-fake';
+import { expect } from 'chai';
+import { hydrateCustomElement } from '../behavior-assistance';
+import { DOM, IViewFactory, customElement, ITemplateDefinition, LifecycleFlags, IAttach, Lifecycle, RenderPlan, Compose, CustomElementResource } from '../../../../src/index';
+import { ViewFactoryFake } from '../fakes/view-factory-fake';
 
-// describe('The "compose" custom element', () => {
-//   // this is not ideal (same instance will be reused for multiple loops) but probably fine
-//   // need to revisit this later to give this extra dep a clean atomic entry point for the tests
-//   let lifecycle: Lifecycle;
-//   beforeEach(() => {
-//     lifecycle = new Lifecycle();
-//   });
+describe('The "compose" custom element', () => {
+  // this is not ideal (same instance will be reused for multiple loops) but probably fine
+  // need to revisit this later to give this extra dep a clean atomic entry point for the tests
+  const subjectPossibilities = [
+    {
+      description: 'Template Definition',
+      create: createTemplateDefinition
+    },
+    {
+      description: 'View Factory',
+      create: createViewFactory
+    },
+    {
+      description: 'Potential Renderable',
+      create: createPotentialRenderable
+    },
+    {
+      description: 'View',
+      create(lifecycle: Lifecycle) {
+        return createViewFactory(lifecycle).create();
+      }
+    },
+    {
+      description: 'Custom Element Constructor',
+      create(lifecycle: Lifecycle) {
+        return CustomElementResource.define(createTemplateDefinition(lifecycle), class MyCustomElement {});
+      }
+    }
+  ];
 
-//   @customElement(createTemplateDefinition())
-//   class MyCustomElement {}
+  const producerPossibilities = [
+    {
+      description: 'as a raw value',
+      create(subject) { return subject; }
+    },
+    {
+      description: 'via a Promise',
+      create(subject) { return Promise.resolve(subject); }
+    }
+  ];
 
-//   const subjectPossibilities = [
-//     {
-//       description: 'Template Definition',
-//       create: createTemplateDefinition
-//     },
-//     {
-//       description: 'View Factory',
-//       create: createViewFactory
-//     },
-//     {
-//       description: 'Potential Renderable',
-//       create: createPotentialRenderable
-//     },
-//     {
-//       description: 'View',
-//       create() {
-//         return createViewFactory().create();
-//       }
-//     },
-//     {
-//       description: 'Custom Element Constructor',
-//       create() {
-//         return MyCustomElement;
-//       }
-//     }
-//   ];
+  for (let subjectPossibility of subjectPossibilities) {
+    for(let producerPossibility of producerPossibilities) {
+      it(`can compose a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
+        const { element } = hydrateCustomElement(Compose);
 
-//   const producerPossibilities = [
-//     {
-//       description: 'as a raw value',
-//       create(subject) { return subject; }
-//     },
-//     {
-//       description: 'via a Promise',
-//       create(subject) { return Promise.resolve(subject); }
-//     }
-//   ];
+        waitForCompositionEnd(element, () => {
+          const child = getCurrentView(element);
+          expect(child).to.not.be.undefined.null;
+        }, done);
 
-//   for (let subjectPossibility of subjectPossibilities) {
-//     for(let producerPossibility of producerPossibilities) {
-//       it(`can compose a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-//         const value = producerPossibility.create(subjectPossibility.create());
-//         const { element } = hydrateCustomElement(Compose);
+        element.subject = value;
+      });
 
-//         waitForCompositionEnd(element, () => {
-//           const child = getCurrentView(element);
-//           expect(child).to.not.be.undefined.null;
-//         }, done);
+      it(`enforces the attach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
+        const { element, parent } = hydrateCustomElement(Compose);
 
-//         element.subject = value;
-//       });
+        waitForCompositionEnd(element, () => {
+          const child = getCurrentView(element);
+          let attachCalled = false;
+          child.$attach = function() { attachCalled = true; };
 
-//       it(`enforces the attach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-//         const value = producerPossibility.create(subjectPossibility.create());
-//         const { element, parent } = hydrateCustomElement(Compose);
+          runAttachLifecycle(lifecycle, element, parent);
 
-//         waitForCompositionEnd(element, () => {
-//           const child = getCurrentView(element);
-//           let attachCalled = false;
-//           child.$attach = function() { attachCalled = true; };
+          expect(attachCalled).to.be.true;
+        }, done);
 
-//           runLifecycle(element, parent);
+        element.subject = value;
+      });
 
-//           expect(attachCalled).to.be.true;
-//         }, done);
+      it(`adds a view at the render location when attaching a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
+        const { element, parent } = hydrateCustomElement(Compose);
 
-//         element.subject = value;
-//       });
+        waitForCompositionEnd(element, () => {
+          const location = element.$projector.host;
 
-//       it(`adds a view at the render location when attaching a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-//         const value = producerPossibility.create(subjectPossibility.create());
-//         const { element, parent } = hydrateCustomElement(Compose);
+          runAttachLifecycle(lifecycle, element, parent);
 
-//         waitForCompositionEnd(element, () => {
-//           const location = element.$projector.host;
+          expect(location.previousSibling)
+            .to.be.equal(getCurrentView(element).$nodes.lastChild);
+        }, done);
 
-//           runLifecycle(element, parent);
+        element.subject = value;
+      });
 
-//           expect(location.previousSibling)
-//             .to.be.equal(getCurrentView(element).$nodes.lastChild);
-//         }, done);
+      it(`enforces the bind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
+        const { element } = hydrateCustomElement(Compose);
 
-//         element.subject = value;
-//       });
+        waitForCompositionEnd(element, () => {
+          const child = getCurrentView(element);
 
-//       it(`enforces the bind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-//         const value = producerPossibility.create(subjectPossibility.create());
-//         const { element } = hydrateCustomElement(Compose);
+          let bindCalled = false;
+          child.$bind = function() { bindCalled = true; };
 
-//         waitForCompositionEnd(element, () => {
-//           const child = getCurrentView(element);
+          element.$bind(LifecycleFlags.fromBind);
 
-//           let bindCalled = false;
-//           child.$bind = function() { bindCalled = true; };
+          expect(bindCalled).to.be.true;
+        }, done);
 
-//           element.$bind(LifecycleFlags.fromBind);
+        element.subject = value;
+      });
 
-//           expect(bindCalled).to.be.true;
-//         }, done);
+      it(`enforces the detach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
+        const { element, parent } = hydrateCustomElement(Compose);
 
-//         element.subject = value;
-//       });
+        waitForCompositionEnd(element, () => {
+          const child = getCurrentView(element);
+          let detachCalled = false;
+          child.$detach = function() { detachCalled = true; };
 
-//       it(`enforces the detach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-//         const value = producerPossibility.create(subjectPossibility.create());
-//         const { element, parent } = hydrateCustomElement(Compose);
+          runAttachLifecycle(lifecycle, element, parent);
+          runDetachLifecycle(lifecycle, element);
 
-//         waitForCompositionEnd(element, () => {
-//           const child = getCurrentView(element);
-//           let detachCalled = false;
-//           child.$detach = function() { detachCalled = true; };
+          expect(detachCalled).to.be.true;
+        }, done);
 
-//           runLifecycle(element, parent);
-//           runLifecycle(element);
+        element.subject = value;
+      });
 
-//           expect(detachCalled).to.be.true;
-//         }, done);
+      it(`enforces the unbind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
+        const { element } = hydrateCustomElement(Compose);
 
-//         element.subject = value;
-//       });
+        waitForCompositionEnd(element, () => {
+          const child = getCurrentView(element);
+          let unbindCalled = false;
+          child.$unbind = function() { unbindCalled = true; };
 
-//       it(`enforces the unbind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-//         const value = producerPossibility.create(subjectPossibility.create());
-//         const { element } = hydrateCustomElement(Compose);
+          element.$bind(LifecycleFlags.fromBind);
+          element.$unbind(LifecycleFlags.fromUnbind);
 
-//         waitForCompositionEnd(element, () => {
-//           const child = getCurrentView(element);
-//           let unbindCalled = false;
-//           child.$unbind = function() { unbindCalled = true; };
+          expect(unbindCalled).to.be.true;
+        }, done);
 
-//           element.$bind(LifecycleFlags.fromBind);
-//           element.$unbind(LifecycleFlags.fromUnbind);
+        element.subject = value;
+      });
+    }
+  }
 
-//           expect(unbindCalled).to.be.true;
-//         }, done);
+  for (let producer of producerPossibilities) {
+    it(`can swap between views ${producer.description}`, done => {
+      const lifecycle = new Lifecycle();
+      const view1 = createViewFactory(lifecycle).create();
+      const view2 = createViewFactory(lifecycle).create();
+      const { element } = hydrateCustomElement(Compose);
 
-//         element.subject = value;
-//       });
-//     }
-//   }
+      waitForCompositionEnd(element, () => {
+        expect(getCurrentView(element)).to.equal(view1);
 
-//   for (let producer of producerPossibilities) {
-//     it(`can swap between views ${producer.description}`, done => {
-//       const view1 = createViewFactory().create();
-//       const view2 = createViewFactory().create();
-//       const { element } = hydrateCustomElement(Compose);
+        waitForCompositionEnd(element, () => {
+          expect(getCurrentView(element)).to.equal(view2);
 
-//       waitForCompositionEnd(element, () => {
-//         expect(getCurrentView(element)).to.equal(view1);
+          waitForCompositionEnd(element, () => {
+            expect(getCurrentView(element)).to.equal(view1);
+          }, done);
 
-//         waitForCompositionEnd(element, () => {
-//           expect(getCurrentView(element)).to.equal(view2);
+          element.subject = producer.create(view1);
+        });
 
-//           waitForCompositionEnd(element, () => {
-//             expect(getCurrentView(element)).to.equal(view1);
-//           }, done);
+        element.subject = producer.create(view2);
+      });
 
-//           element.subject = producer.create(view1);
-//         });
+      element.subject = producer.create(view1);
+    });
+  }
 
-//         element.subject = producer.create(view2);
-//       });
+  const noSubjectValues = [null, undefined];
 
-//       element.subject = producer.create(view1);
-//     });
-//   }
+  for(let value of noSubjectValues) {
+    for (let producer of producerPossibilities) {
+      it(`clears out the view when the subject is ${value} ${producer.description}`, done => {
+        const lifecycle = new Lifecycle();
+        const view1 = createViewFactory(lifecycle).create();
+        const { element, parent } = hydrateCustomElement(Compose, { lifecycle });
+        const location = element.$projector.host;
 
-//   const noSubjectValues = [null, undefined];
+        waitForCompositionEnd(element, () => {
+          runAttachLifecycle(lifecycle, element, parent);
 
-//   for(let value of noSubjectValues) {
-//     for (let producer of producerPossibilities) {
-//       it(`clears out the view when the subject is ${value} ${producer.description}`, done => {
-//         const view1 = createViewFactory().create();
-//         const { element, parent } = hydrateCustomElement(Compose);
-//         const location = element.$projector.host;
+          const currentView = getCurrentView(element);
+          if (location.previousSibling !== currentView.$nodes.lastChild) {
+            throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
+              location.previousSibling && location.previousSibling.textContent || "NULL"
+            }") to equal currentView.$nodes.lastChild (with textContent "${
+              currentView.$nodes.lastChild && currentView.$nodes.lastChild.textContent || "NULL"
+            }")`)
+          }
 
-//         waitForCompositionEnd(element, () => {
-//           runLifecycle(element, parent);
+          let detachCalled = false;
+          const detach = view1.$detach;
+          view1.$detach = function() {
+            detachCalled = true;
+            detach.apply(view1, [LifecycleFlags.none]);
+          };
 
-//           expect(location.previousSibling)
-//             .to.be.equal(getCurrentView(element).$nodes.lastChild);
+          let unbindCalled = false;
+          view1.$unbind = function() { unbindCalled = true; };
 
-//           let detachCalled = false;
-//           const detach = view1.$detach;
-//           view1.$detach = function() {
-//             detachCalled = true;
-//             detach.apply(view1, [lifecycle]);
-//           };
+          waitForCompositionEnd(element, () => {
+            expect(unbindCalled).to.be.true;
+            expect(detachCalled).to.be.true;
+            if (location.previousSibling !== location.$start) {
+              throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
+                location.previousSibling && location.previousSibling.textContent || "NULL"
+              }") to equal location.$start (with textContent "${
+                location.$start && location.$start.textContent || "NULL"
+              }")`)
+            }
+          }, done);
 
-//           let unbindCalled = false;
-//           view1.$unbind = function() { unbindCalled = true; };
+          element.subject = producer.create(value);
+        });
 
-//           waitForCompositionEnd(element, () => {
-//             expect(unbindCalled).to.be.true;
-//             expect(detachCalled).to.be.true;
-//             expect(location.previousSibling).to.equal(location.$start);
-//           }, done);
+        element.subject = view1;
+      });
+    }
+  }
 
-//           element.subject = producer.create(value);
-//         });
+  function getCurrentView(compose: Compose) {
+    return compose['coordinator']['currentView'];
+  }
 
-//         element.subject = view1;
-//       });
-//     }
-//   }
 
-//   function getCurrentView(compose: Compose) {
-//     return compose['coordinator']['currentView'];
-//   }
+  function runAttachLifecycle(lifecycle: Lifecycle, item: IAttach, encapsulationSource = null) {
+    lifecycle.beginAttach();
+    item.$attach(LifecycleFlags.none);
+    lifecycle.endAttach(LifecycleFlags.none);
+  }
 
-//   function runLifecycle(item: IAttach, encapsulationSource = null) {
-//     const attachLifecycle = this.lifecycle.beginAttach(lifecycle, encapsulationSource, LifecycleFlags.none);
-//     attachLifecycle.attach(item);
-//     attachLifecycle.end();
-//   }
+  function runDetachLifecycle(lifecycle: Lifecycle, item: IAttach) {
+    lifecycle.beginDetach();
+    item.$detach(LifecycleFlags.none);
+    lifecycle.endDetach(LifecycleFlags.none);
+  }
 
-//   function runLifecycle(item: IAttach) {
-//     const detachLifecycle = this.lifecycle.beginDetach(lifecycle, LifecycleFlags.none);
-//     detachLifecycle.detach(item);
-//     detachLifecycle.end();
-//   }
+  function waitForCompositionEnd(element: Compose, callback: () => void, done?: () => void) {
+    const coordinator = element['coordinator'];
+    const originalSwapComplete = coordinator.onSwapComplete;
 
-//   function waitForCompositionEnd(element: Compose, callback: () => void, done?: () => void) {
-//     const coordinator = element['coordinator'];
-//     const originalSwapComplete = coordinator.onSwapComplete;
+    coordinator.onSwapComplete = () => {
+      originalSwapComplete.call(coordinator);
+      coordinator.onSwapComplete = originalSwapComplete;
 
-//     coordinator.onSwapComplete = () => {
-//       originalSwapComplete.call(coordinator);
-//       coordinator.onSwapComplete = originalSwapComplete;
+      callback();
 
-//       callback();
+      if (done) {
+        done();
+      }
+    };
+  }
 
-//       if (done) {
-//         done();
-//       }
-//     };
-//   }
+  function createViewFactory(lifecycle: Lifecycle): IViewFactory {
+    return new ViewFactoryFake(lifecycle);
+  }
 
-//   function createViewFactory(): IViewFactory {
-//     return new ViewFactoryFake();
-//   }
+  function createPotentialRenderable(lifecycle: Lifecycle): RenderPlan {
+    return new RenderPlan(
+      DOM.createElement('div'),
+      [],
+      []
+    );
+  }
 
-//   function createPotentialRenderable(): RenderPlan {
-//     return new RenderPlan(
-//       DOM.createElement('div'),
-//       [],
-//       []
-//     );
-//   }
-
-//   function createTemplateDefinition(): ITemplateDefinition {
-//     return {
-//       name: 'dynamic',
-//       template: `
-//         <template>
-//           <div>Hello World</div>
-//         </template>
-//       `,
-//       cache: 0,
-//       instructions: [],
-//       dependencies: [],
-//       build: {
-//         required: false
-//       },
-//       surrogates: [],
-//       bindables: {},
-//       containerless: false,
-//       shadowOptions: null,
-//       hasSlots: false
-//     };
-//   }
-// });
+  function createTemplateDefinition(lifecycle: Lifecycle): ITemplateDefinition {
+    return {
+      name: 'dynamic',
+      template: `
+        <template>
+          <div>Hello World</div>
+        </template>
+      `,
+      cache: 0,
+      instructions: [],
+      dependencies: [],
+      build: {
+        required: false
+      },
+      surrogates: [],
+      bindables: {},
+      containerless: false,
+      shadowOptions: null,
+      hasSlots: false
+    };
+  }
+});

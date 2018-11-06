@@ -376,9 +376,12 @@ export interface ILifecycleUnmount {
 export interface IMountable extends ILifecycleMount, ILifecycleUnmount { }
 
 export interface ILifecycleUnbind {
-  $nextUnbindAfterDetach?: ILifecycleUnbind;
   $state?: State;
   $unbind(flags: LifecycleFlags): void;
+}
+
+export interface ILifecycleUnbindAfterDetach extends ILifecycleUnbind {
+  $nextUnbindAfterDetach?: ILifecycleUnbindAfterDetach;
 }
 
 export interface ILifecycleBind {
@@ -654,8 +657,8 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public detachedHead: ILifecycleDetached = this; //LOL
   /*@internal*/public detachedTail: ILifecycleDetached = this;
 
-  /*@internal*/public unbindAfterDetachHead: ILifecycleUnbind = this;
-  /*@internal*/public unbindAfterDetachTail: ILifecycleUnbind = this;
+  /*@internal*/public unbindAfterDetachHead: ILifecycleUnbindAfterDetach = this;
+  /*@internal*/public unbindAfterDetachTail: ILifecycleUnbindAfterDetach = this;
 
   /*@internal*/public unboundHead: ILifecycleUnbound = this;
   /*@internal*/public unboundTail: ILifecycleUnbound = this;
@@ -693,8 +696,8 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public $unmount: ILifecycleUnmount['$unmount'] = PLATFORM.noop;
   /*@internal*/public $nextDetached: ILifecycleDetached = marker;
   /*@internal*/public detached: ILifecycleDetached['detached'] = PLATFORM.noop;
-  /*@internal*/public $nextUnbindAfterDetach: ILifecycleUnbind = marker;
-  /*@internal*/public $unbind: ILifecycleUnbind['$unbind'] = PLATFORM.noop;
+  /*@internal*/public $nextUnbindAfterDetach: ILifecycleUnbindAfterDetach = marker;
+  /*@internal*/public $unbind: ILifecycleUnbindAfterDetach['$unbind'] = PLATFORM.noop;
   /*@internal*/public $nextUnbound: ILifecycleUnbound = marker;
   /*@internal*/public unbound: ILifecycleUnbound['unbound'] = PLATFORM.noop;
 
@@ -1007,7 +1010,7 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
-  public enqueueUnbindAfterDetach(requestor: ILifecycleUnbind): void {
+  public enqueueUnbindAfterDetach(requestor: ILifecycleUnbindAfterDetach): void {
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
     // build a standard singly linked list for unbindAfterDetach callbacks

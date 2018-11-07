@@ -1,215 +1,185 @@
-// import { State, ILifecycle, INode, IRuntimeBehavior, Hooks } from '../../../src/index';
-// import { expect } from 'chai';
-// import { eachCartesianJoin } from '../util';
-// import { CustomAttribute, createCustomAttribute } from './custom-attribute._builder';
+import { State, ILifecycle, INode, Hooks, LifecycleFlags } from '../../../src/index';
+import { expect } from 'chai';
+import { eachCartesianJoin } from '../util';
+import { CustomAttribute, createCustomAttribute } from './custom-attribute._builder';
 
-// describe('@customAttribute', () => {
+describe('@customAttribute', () => {
 
-//   describe('$attach', () => {
+  describe('$attach', () => {
 
-//     const propsSpecs = [
-//       {
-//         description: '$isAttached: false',
-//         expectation: 'calls behaviors',
-//         callsBehaviors: true,
-//         setProps(sut: CustomAttribute) {
-//           sut.$state |= State.isBound;
-//         }
-//       },
-//       {
-//         description: '$isAttached: true',
-//         expectation: 'does NOT call behaviors',
-//         callsBehaviors: false,
-//         setProps(sut: CustomAttribute) {
-//           sut.$state |= State.isBound | State.isAttached;
-//         }
-//       }
-//     ];
+    const propsSpecs = [
+      {
+        description: '$isAttached: false',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setProps(sut: CustomAttribute) {
+          sut.$state |= State.isBound;
+        }
+      },
+      {
+        description: '$isAttached: true',
+        expectation: 'does NOT call behaviors',
+        callsBehaviors: false,
+        setProps(sut: CustomAttribute) {
+          sut.$state |= State.isBound | State.isAttached;
+        }
+      }
+    ];
 
-//     const behaviorSpecs = [
-//       {
-//         description: '$behavior.hasAttaching: true, $behavior.hasAttached: false',
-//         expectation: 'calls attaching(), does NOT call attached()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.hasAttaching }; }
-//       },
-//       {
-//         description: '$behavior.hasAttaching: false, $behavior.hasAttached: false',
-//         expectation: 'does NOT call attaching(), does NOT call attached()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.none }; }
-//       },
-//       {
-//         description: '$behavior.hasAttaching: true, $behavior.hasAttached: true',
-//         expectation: 'calls attaching(), calls attached()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.hasAttaching | Hooks.hasAttached }; }
-//       },
-//       {
-//         description: '$behavior.hasAttaching: false, $behavior.hasAttached: true',
-//         expectation: 'does NOT call attaching(), calls attached()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.hasAttached }; }
-//       }
-//     ];
+    const hooksSpecs = [
+      {
+        description: 'Hooks.hasAttaching',
+        expectation: 'calls attaching(), does NOT call attached()',
+        getHooks() { return Hooks.hasAttaching }
+      },
+      {
+        description: 'Hooks.none',
+        expectation: 'does NOT call attaching(), does NOT call attached()',
+        getHooks() { return Hooks.none }
+      },
+      {
+        description: 'Hooks.hasAttaching | Hooks.hasAttached',
+        expectation: 'calls attaching(), calls attached()',
+        getHooks() { return Hooks.hasAttaching | Hooks.hasAttached }
+      },
+      {
+        description: 'Hooks.hasAttached',
+        expectation: 'does NOT call attaching(), calls attached()',
+        getHooks() { return Hooks.hasAttached }
+      }
+    ];
 
-//     eachCartesianJoin([propsSpecs, behaviorSpecs],
-//       (propsSpec, behaviorSpec) => {
+    eachCartesianJoin([propsSpecs, hooksSpecs],
+      (propsSpec, hooksSpec) => {
 
-//       it(`${propsSpec.expectation} if ${propsSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
-//         // Arrange
-//         const { sut } = createCustomAttribute();
-//         propsSpec.setProps(sut);
-//         const behavior = behaviorSpec.getBehavior();
-//         sut.$behavior = behavior;
-//         const encapsulationSource: INode = <any>{};
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomAttribute();
+        propsSpec.setProps(sut);
+        const hooks = hooksSpec.getHooks();
+        sut.$hooks = hooks;
 
-//         let queueAttachedCallbackCalled = false;
-//         let queueAttachedCallbackRequestor;
-//         const lifecycle: ILifecycle = <any>{
-//           queueAttachedCallback(requestor: CustomAttribute) {
-//             queueAttachedCallbackCalled = true;
-//             queueAttachedCallbackRequestor = requestor;
-//             requestor.attached();
-//           }
-//         };
+        // Act
+        sut.$attach(LifecycleFlags.none);
 
-//         // Act
-//         sut.$attach();
+        // Assert
+        if (propsSpec.callsBehaviors) {
+          if (hooks & Hooks.hasAttached) {
+            sut.verifyAttachedCalled(LifecycleFlags.fromAttach);
+          }
+          if (hooks & Hooks.hasAttaching) {
+            sut.verifyAttachingCalled(LifecycleFlags.fromAttach);
+          }
+        }
+        sut.verifyNoFurtherCalls();
+      });
+    });
+  });
 
-//         // Assert
-//         if (propsSpec.callsBehaviors) {
-//           if (behavior.hooks & Hooks.hasAttached) {
-//             sut.verifyAttachedCalled();
-//             expect(queueAttachedCallbackCalled).to.equal(true, 'queueAttachedCallbackCalled');
-//             expect(queueAttachedCallbackRequestor).to.equal(sut, 'queueAttachedCallbackRequestor')
-//           }
-//           if (behavior.hooks & Hooks.hasAttaching) {
-//             sut.verifyAttachingCalled();
-//           }
-//         } else {
-//           expect(queueAttachedCallbackCalled).to.equal(false, 'queueAttachedCallbackCalled');
-//         }
-//         sut.verifyNoFurtherCalls();
-//       });
-//     });
-//   });
+  describe('$detach', () => {
 
-//   describe('$detach', () => {
+    const propsSpecs = [
+      {
+        description: '$isAttached: false',
+        expectation: 'does NOT call behaviors',
+        callsBehaviors: false,
+        setProps(sut: CustomAttribute) {
+          sut.$state |= State.isBound;
+        }
+      },
+      {
+        description: '$isAttached: true',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setProps(sut: CustomAttribute) {
+          sut.$state |= State.isBound | State.isAttached;
+        }
+      }
+    ];
 
-//     const propsSpecs = [
-//       {
-//         description: '$isAttached: false',
-//         expectation: 'does NOT call behaviors',
-//         callsBehaviors: false,
-//         setProps(sut: CustomAttribute) {
-//           sut.$state |= State.isBound;
-//         }
-//       },
-//       {
-//         description: '$isAttached: true',
-//         expectation: 'calls behaviors',
-//         callsBehaviors: true,
-//         setProps(sut: CustomAttribute) {
-//           sut.$state |= State.isBound | State.isAttached;
-//         }
-//       }
-//     ];
+    const hooksSpecs = [
+      {
+        description: 'Hooks.hasDetaching',
+        expectation: 'calls detaching(), does NOT call detached()',
+        getHooks() { return Hooks.hasDetaching }
+      },
+      {
+        description: 'Hooks.none',
+        expectation: 'does NOT call detaching(), does NOT call detached()',
+        getHooks() { return Hooks.none }
+      },
+      {
+        description: 'Hooks.hasDetaching | Hooks.hasDetached',
+        expectation: 'calls detaching(), calls detached()',
+        getHooks() { return Hooks.hasDetaching | Hooks.hasDetaching }
+      },
+      {
+        description: 'Hooks.hasDetached',
+        expectation: 'does NOT call detaching(), calls detached()',
+        getHooks() { return Hooks.hasDetached }
+      }
+    ];
 
-//     const behaviorSpecs = [
-//       {
-//         description: '$behavior.hasDetaching: true, $behavior.hasDetached: false',
-//         expectation: 'calls detaching(), does NOT call detached()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.hasDetaching }; }
-//       },
-//       {
-//         description: '$behavior.hasDetaching: false, $behavior.hasDetached: false',
-//         expectation: 'does NOT call detaching(), does NOT call detached()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.none }; }
-//       },
-//       {
-//         description: '$behavior.hasDetaching: true, $behavior.hasDetached: true',
-//         expectation: 'calls detaching(), calls detached()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.hasDetaching | Hooks.hasDetaching }; }
-//       },
-//       {
-//         description: '$behavior.hasDetaching: false, $behavior.hasDetached: true',
-//         expectation: 'does NOT call detaching(), calls detached()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.hasDetached }; }
-//       }
-//     ];
+    eachCartesianJoin([propsSpecs, hooksSpecs],
+      (propsSpec, hooksSpec) => {
 
-//     eachCartesianJoin([propsSpecs, behaviorSpecs],
-//       (propsSpec, behaviorSpec) => {
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomAttribute();
+        propsSpec.setProps(sut);
+        const hooks = hooksSpec.getHooks();
+        sut.$hooks = hooks;
 
-//       it(`${propsSpec.expectation} if ${propsSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
-//         // Arrange
-//         const { sut } = createCustomAttribute();
-//         propsSpec.setProps(sut);
-//         const behavior = behaviorSpec.getBehavior();
-//         sut.$behavior = behavior;
-//         const encapsulationSource: INode = <any>{};
+        // Act
+        sut.$detach(LifecycleFlags.none);
 
-//         let queueDetachedCallbackCalled = false;
-//         let queueDetachedCallbackRequestor;
-//         const lifecycle: ILifecycle = <any>{
-//           queueDetachedCallback(requestor: CustomAttribute) {
-//             queueDetachedCallbackCalled = true;
-//             queueDetachedCallbackRequestor = requestor;
-//             requestor.detached();
-//           }
-//         };
+        // Assert
+        if (propsSpec.callsBehaviors) {
+          if (hooks & Hooks.hasDetached) {
+            sut.verifyDetachedCalled(LifecycleFlags.fromDetach);
+          }
+          if (hooks & Hooks.hasDetaching) {
+            sut.verifyDetachingCalled(LifecycleFlags.fromDetach);
+          }
+        }
+        sut.verifyNoFurtherCalls();
+      });
+    });
+  });
 
-//         // Act
-//         sut.$detach();
+  describe('$cache', () => {
 
-//         // Assert
-//         if (propsSpec.callsBehaviors) {
-//           if (behavior.hooks & Hooks.hasDetached) {
-//             sut.verifyDetachedCalled();
-//             expect(queueDetachedCallbackCalled).to.equal(true, 'queueDetachedCallbackCalled');
-//             expect(queueDetachedCallbackRequestor).to.equal(sut, 'queueDetachedCallbackRequestor')
-//           }
-//           if (behavior.hooks & Hooks.hasDetaching) {
-//             sut.verifyDetachingCalled();
-//           }
-//         } else {
-//           expect(queueDetachedCallbackCalled).to.equal(false, 'queueDetachedCallbackCalled');
-//         }
-//         sut.verifyNoFurtherCalls();
-//       });
-//     });
-//   });
+    const hooksSpecs = [
+      {
+        description: '$behavior.hasCaching: true',
+        expectation: 'calls hasCaching()',
+        getHooks() { return Hooks.hasCaching }
+      },
+      {
+        description: '$behavior.hasCaching: false',
+        expectation: 'does NOT call hasCaching()',
+        getHooks() { return Hooks.none }
+      }
+    ];
 
-//   describe('$cache', () => {
+    eachCartesianJoin([hooksSpecs],
+      (hooksSpec) => {
 
-//     const behaviorSpecs = [
-//       {
-//         description: '$behavior.hasCaching: true',
-//         expectation: 'calls hasCaching()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.hasCaching }; }
-//       },
-//       {
-//         description: '$behavior.hasCaching: false',
-//         expectation: 'does NOT call hasCaching()',
-//         getBehavior() { return <IRuntimeBehavior>{ hooks: Hooks.none }; }
-//       }
-//     ];
+      it(`${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
+        // Arrange
+        const { sut } = createCustomAttribute();
+        const hooks = hooksSpec.getHooks();
+        sut.$hooks = hooks;
 
-//     eachCartesianJoin([behaviorSpecs],
-//       (behaviorSpec) => {
+        // Act
+        sut.$cache(LifecycleFlags.none);
 
-//       it(`${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
-//         // Arrange
-//         const { sut } = createCustomAttribute();
-//         const behavior = behaviorSpec.getBehavior();
-//         sut.$behavior = behavior;
-
-//         // Act
-//         sut.$cache();
-
-//         // Assert
-//         if (behavior.hooks & Hooks.hasCaching) {
-//           sut.verifyCachingCalled();
-//         }
-//         sut.verifyNoFurtherCalls();
-//       });
-//     });
-//   });
-// });
+        // Assert
+        if (hooks & Hooks.hasCaching) {
+          sut.verifyCachingCalled(LifecycleFlags.fromCache);
+        }
+        sut.verifyNoFurtherCalls();
+      });
+    });
+  });
+});

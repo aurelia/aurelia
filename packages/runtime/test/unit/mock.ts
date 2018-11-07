@@ -49,7 +49,8 @@ import {
   addAttachable,
   ILifecycleTask,
   State,
-  CompositionCoordinator
+  CompositionCoordinator,
+  Lifecycle
 } from '../../src/index';
 import { spy } from 'sinon';
 import { expect } from 'chai';
@@ -740,55 +741,58 @@ export class MockRenderingEngine implements IRenderingEngine {
 
 export function defineComponentLifecycleMock() {
   return class ComponentLifecycleMock {
+    public $lifecycle: ILifecycle;
     public calls: [keyof ComponentLifecycleMock, ...any[]][] = [];
 
-    constructor() {}
+    constructor() {
+      this.$lifecycle = new Lifecycle();
+    }
 
     public created(): void {
       this.trace(`created`);
       this.verifyStateBit(State.isBound, false, 'created');
       this.verifyStateBit(State.isAttached, false, 'created');
     }
-    public binding(lifecycle: ILifecycle, flags: LifecycleFlags): void {
+    public binding(flags: LifecycleFlags): void {
       this.trace(`binding`, flags);
     }
-    public bound(lifecycle: ILifecycle, flags: LifecycleFlags): void {
+    public bound(flags: LifecycleFlags): void {
       this.trace(`bound`, flags);
       this.verifyStateBit(State.isBound, true, 'bound');
     }
-    public attaching(): void {
-      this.trace(`attaching`, encapsulationSource, lifecycle);
+    public attaching(flags: LifecycleFlags): void {
+      this.trace(`attaching`, flags);
       this.verifyStateBit(State.isBound, true, 'attaching');
       this.verifyStateBit(State.isAttached, false, 'attaching');
     }
-    public attached(): void {
-      this.trace(`attached`);
+    public attached(flags: LifecycleFlags): void {
+      this.trace(`attached`, flags);
       this.verifyStateBit(State.isBound, true, 'attached');
       this.verifyStateBit(State.isAttached, true, 'attached');
     }
-    public detaching(): void {
-      this.trace(`detaching`, lifecycle);
+    public detaching(flags: LifecycleFlags): void {
+      this.trace(`detaching`, flags);
       this.verifyStateBit(State.isBound, true, 'detaching');
       this.verifyStateBit(State.isAttached, true, 'detaching');
     }
-    public detached(): void {
-      this.trace(`detached`);
+    public detached(flags: LifecycleFlags): void {
+      this.trace(`detached`, flags);
       this.verifyStateBit(State.isBound, true, 'detached');
       this.verifyStateBit(State.isAttached, false, 'detached');
     }
-    public unbinding(lifecycle: ILifecycle, flags: LifecycleFlags): void {
+    public unbinding(flags: LifecycleFlags): void {
       this.trace(`unbinding`, flags);
       this.verifyStateBit(State.isBound, true, 'detached');
     }
-    public unbound(lifecycle: ILifecycle, flags: LifecycleFlags): void {
+    public unbound(flags: LifecycleFlags): void {
       this.trace(`unbound`, flags);
       this.verifyStateBit(State.isBound, false, 'detached');
     }
     public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
       this.trace(`render`, host, parts);
     }
-    public caching(): void {
-      this.trace(`caching`);
+    public caching(flags: LifecycleFlags): void {
+      this.trace(`caching`, flags);
     }
 
     public trace(fnName: keyof ComponentLifecycleMock, ...args: any[]): void {
@@ -837,17 +841,17 @@ export function defineComponentLifecycleMock() {
     public verifyBoundCalled(flags: LifecycleFlags): void {
       this.verifyLastCall(`bound`, flags);
     }
-    public verifyAttachingCalled(): void {
-      this.verifyLastCall(`attaching`, encapsulationSource, lifecycle);
+    public verifyAttachingCalled(flags: LifecycleFlags): void {
+      this.verifyLastCall(`attaching`, flags);
     }
-    public verifyAttachedCalled(): void {
-      this.verifyLastCall(`attached`);
+    public verifyAttachedCalled(flags: LifecycleFlags): void {
+      this.verifyLastCall(`attached`, flags);
     }
-    public verifyDetachingCalled(): void {
-      this.verifyLastCall(`detaching`, lifecycle);
+    public verifyDetachingCalled(flags: LifecycleFlags): void {
+      this.verifyLastCall(`detaching`, flags);
     }
-    public verifyDetachedCalled(): void {
-      this.verifyLastCall(`detached`);
+    public verifyDetachedCalled(flags: LifecycleFlags): void {
+      this.verifyLastCall(`detached`, flags);
     }
     public verifyUnbindingCalled(flags: LifecycleFlags): void {
       this.verifyLastCall(`unbinding`, flags);
@@ -858,8 +862,8 @@ export function defineComponentLifecycleMock() {
     public verifyRenderCalled(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
       this.verifyLastCall(`render`, host, parts);
     }
-    public verifyCachingCalled(): void {
-      this.verifyLastCall(`caching`);
+    public verifyCachingCalled(flags: LifecycleFlags): void {
+      this.verifyLastCall(`caching`, flags);
     }
     public verifyLastCall(name: string, ...args: any[]): void {
       const calls = this.calls;

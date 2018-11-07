@@ -1,25 +1,27 @@
 import { CustomElementResource } from '@aurelia/runtime';
 import { createTemplateDescription, escape, kebabCase, loadFromFile, parseImport, processImports } from './processing';
+import { Require, RequireConfig, RequireOnLoad } from './types';
 
 const buildMap = {};
 
-function finishLoad(name: string, content: string, onLoad: Function) {
+function finishLoad(name: string, content: string, onLoad: (content: string) => void): void {
   buildMap[name] = content;
   onLoad(content);
 }
 
-export function load(name: string, req, onLoad, config) {
+export function load(name: string, req: Require, onLoad: RequireOnLoad, config: RequireConfig): void {
   if (config.isBuild) {
-    loadFromFile(req.toUrl(name),
-      function(content) { finishLoad(name, content, onLoad); },
-      function(err) { if (onLoad.error) { onLoad.error(err); } }
+    loadFromFile(
+      req.toUrl(name),
+      function(content: string): void { finishLoad(name, content, onLoad); },
+      function(err: Error): void { if (onLoad.error) { onLoad.error(err); } }
     );
   } else {
-    req(['text!' + name], function(text) {
+    req([`text!${name}`], function(text: string): void {
       const description = createTemplateDescription(text);
       const depsToLoad = processImports(description.imports, name);
 
-      req(depsToLoad, function() {
+      req(depsToLoad, function(): void {
         const templateImport = parseImport(name);
         const templateSource = {
           name: kebabCase(templateImport.basename),
@@ -37,7 +39,7 @@ export function load(name: string, req, onLoad, config) {
   }
 }
 
-export function write(pluginName: string, moduleName: string, write, config) {
+export function write(pluginName: string, moduleName: string, writer: (content: string) => void, _config: RequireConfig): void {
   if (buildMap.hasOwnProperty(moduleName)) {
     const templateImport = parseImport(moduleName);
     const text = buildMap[moduleName];
@@ -46,7 +48,7 @@ export function write(pluginName: string, moduleName: string, write, config) {
 
     depsToLoad.unshift('@aurelia/runtime');
 
-    write(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() {
+    writer(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() {
       var Component = arguments[0].Component;
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
@@ -62,4 +64,3 @@ export function write(pluginName: string, moduleName: string, write, config) {
     });\n`);
   }
 }
-

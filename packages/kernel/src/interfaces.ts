@@ -45,9 +45,7 @@ export type Constructable<T = {}> = {
 interface IBind { bind(): void; }
 interface IAttach { attach(): void; }
 
-function customElement1<T extends Constructable>(
-  target: Decoratable<IBind & IAttach, T>):
-    Decorated<IBind & IAttach, T> {
+function customElement1<T extends Constructable>(target: Decoratable<IBind & IAttach, T>):  Decorated<IBind & IAttach, T> {
   target.prototype.bind = () => {};
   target.prototype.attach = () => {};
   return target;
@@ -56,9 +54,7 @@ function customElement1<T extends Constructable>(
 class ViewModel1 {}
 
 // IBind is now required instead of optional
-function customElement2<T extends Constructable>(
-  target: Decoratable<IAttach, T & IBind>):
-    Decorated<IAttach, T & IBind> {
+function customElement2<T extends Constructable>(target: Decoratable<IAttach, T & IBind>): Decorated<IAttach, T & IBind> {
   // this decorator apparently needs a bind()
   // method to already be defined
   target.prototype.attach = () => {};

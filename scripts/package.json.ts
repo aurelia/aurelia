@@ -398,22 +398,3 @@ export async function savePackageJson(pkg: Package, ...pathSegments: string[]): 
     });
   });
 }
-
-/**
- * Stringifies and writes out the content of a package-lock.json file
- *
- * @param pkg The package-lock.json as an object
- * @param pathSegments The path segments of the folder where the package-lock.json is located, relative to the root of the project
- */
-export async function savePackageLockJson(pkg: Package, ...pathSegments: string[]): Promise<any> {
-  const path = join(project.path, ...pathSegments, 'package-lock.json');
-  return new Promise((resolve, reject) => {
-    const str = JSON.stringify(pkg, null, 2);
-    writeFile(path, str, { encoding: 'utf8' }, (err) => {
-      if (err) {
-        reject(err);
-      }
-      resolve();
-    });
-  });
-}

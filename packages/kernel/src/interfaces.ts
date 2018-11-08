@@ -82,6 +82,19 @@ vm4.attach(); // no errors because we're instantiating the
 ```
  */
 // tslint:enable:jsdoc-format
+/* Note: the intent of TOptional on Decoratable was/is to have those properties declared
+on the prototype of the incoming class so that you would not get a type error when trying
+to assign properties/methods to the prototype to an incoming prototype of type `{}`.
+But actually applying this requires a certain interplay with the Constructable type
+(it requires type constraints on the type of the `prototype` property) that doesn't work
+too well (yet) in the type system as of version 3.0.x.
+We tried this, but it results in various false negatives where target classes seem to not
+conform to the Constructable type.
+With the incoming prototype currently being of type `any`, the TOptional type argument
+on Decoratable technically has no effect whatsoever, but the intent is to try and make
+it work like this at some point - either if the type system supports this design or if
+we learn some trick to accomplish this in another way.
+*/
 export type Decoratable<TOptional, TRequired> = Function & {
   readonly prototype: Partial<TOptional> & Required<TRequired>;
   new(...args: unknown[]): Partial<TOptional> & Required<TRequired>;

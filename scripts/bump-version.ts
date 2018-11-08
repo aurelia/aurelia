@@ -1,5 +1,5 @@
 import project from './project';
-import { loadPackageJson, savePackageJson, loadPackageLockJson, savePackageLockJson } from './package.json';
+import { loadPackageJson, savePackageJson, loadPackageLockJson } from './package.json';
 import { createLogger, c } from './logger';
 import { readFileSync, writeFileSync } from 'fs';
 
@@ -35,7 +35,6 @@ export async function updateDependencyVersions(newVersion: string) {
       }
     }
     await savePackageJson(pkg, 'packages', name);
-    await savePackageLockJson(pkgLock, 'packages', name);
   }
   const lernaJson = JSON.parse(readFileSync(project["lerna.json"].path, { encoding: 'utf8' }));
   lernaJson.version = newVersion;

@@ -76,6 +76,10 @@ export interface IResolverBuilder<T> {
   aliasTo(destinationKey: Key<T>): IResolver;
 }
 
+export type RegisterSelf<T extends Constructable> = {
+  register(container: IContainer): IResolver<InstanceType<T>>;
+};
+
 // Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
 // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
 // https://rbuckton.github.io/reflect-metadata/
@@ -191,6 +195,34 @@ export const DI = {
         }
       }
     };
+  },
+
+  /**
+   * Registers the `target` class as a transient dependency; each time the dependency is resolved
+   * a new instance will be created.
+   *
+   * @param target The class / constructor function to register as transient.
+   * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
+   */
+  transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+    target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
+      return Registration.transient(target, target).register(container, target);
+    };
+    return <T & RegisterSelf<T>>target;
+  },
+
+  /**
+   * Registers the `target` class as a singleton dependency; the class will only be created once. Each
+   * consecutive time the dependency is resolved, the same instance will be returned.
+   *
+   * @param target The class / constructor function to register as a singleton.
+   * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
+   */
+  singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+    target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
+      return Registration.singleton(target, target).register(container, target);
+    };
+    return <T & RegisterSelf<T>>target;
   }
 };
 
@@ -214,6 +246,86 @@ function createResolver(
 }
 
 export const inject = DI.inject;
+
+function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+  return DI.transient(target);
+}
+// tslint:disable:jsdoc-format
+/**
+ * Registers the decorated class as a transient dependency; each time the dependency is resolved
+ * a new instance will be created.
+ *
+ * Example usage:
+```ts
+@transient
+class Foo { }
+```
+ */
+// tslint:enable:jsdoc-format
+export function transient<T extends Constructable>(): typeof transientDecorator;
+// tslint:disable:jsdoc-format
+/**
+ * Registers the `target` class as a transient dependency; each time the dependency is resolved
+ * a new instance will be created.
+ *
+ * @param target The class / constructor function to register as transient.
+ *
+ * Example usages:
+```ts
+// As a decorator
+@transient()
+class Foo { }
+
+// As a function expression
+class Foo { }
+transient(Foo)()
+```
+ */
+// tslint:enable:jsdoc-format
+export function transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
+export function transient<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> | typeof transientDecorator {
+  return target === undefined ? transientDecorator : transientDecorator(target);
+}
+
+function singletonDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+  return DI.singleton(target);
+}
+// tslint:disable:jsdoc-format
+/**
+ * Registers the decorated class as a singleton dependency; the class will only be created once. Each
+ * consecutive time the dependency is resolved, the same instance will be returned.
+ *
+ * Example usage:
+```ts
+@singleton
+class Foo { }
+```
+ */
+// tslint:enable:jsdoc-format
+export function singleton<T extends Constructable>(): typeof singletonDecorator;
+// tslint:disable:jsdoc-format
+/**
+ * Registers the `target` class as a singleton dependency; the class will only be created once. Each
+ * consecutive time the dependency is resolved, the same instance will be returned.
+ *
+ * @param target The class / constructor function to register as a singleton.
+ *
+ * Example usages:
+```ts
+// As a decorator
+@singleton()
+class Foo { }
+
+// As a function expression
+class Foo { }
+singleton(Foo)()
+```
+ */
+// tslint:enable:jsdoc-format
+export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
+export function singleton<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> | typeof singletonDecorator {
+  return target === undefined ? singletonDecorator : singletonDecorator(target);
+}
 
 export const all = createResolver((key: any, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
 

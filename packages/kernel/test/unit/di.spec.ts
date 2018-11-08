@@ -1,4 +1,4 @@
-import { Resolver, Factory, fallbackInvoker } from './../../src/di';
+import { Resolver, Factory, fallbackInvoker, transient, singleton } from './../../src/di';
 import { spy } from 'sinon';
 import { DI, Container, PLATFORM, IContainer, IDefaultableInterfaceSymbol, ResolverStrategy, inject, invokeWithDynamicDependencies, classInvokers, Registration } from "../../src";
 import { expect } from "chai";
@@ -561,6 +561,66 @@ describe(`The inject decorator`, () => {
     expect(Foo['inject'].dep1).to.be.undefined;
     expect(Foo['inject'].dep2).to.be.undefined;
     expect(Foo['inject'].dep3).to.be.undefined;
+  });
+});
+
+describe(`The transient decorator`, () => {
+  it(`works as a plain decorator`, () => {
+    @transient
+    class Foo {}
+
+    expect(Foo['register']).to.be.a('function');
+
+    const container = DI.createContainer();
+
+    const foo1 = container.get(Foo);
+    const foo2 = container.get(Foo);
+
+    expect(foo1).not.to.equal(foo2);
+  });
+
+  it(`works as an invocation`, () => {
+    @transient()
+    class Foo {}
+
+    expect(Foo['register']).to.be.a('function');
+
+    const container = DI.createContainer();
+
+    const foo1 = container.get(Foo);
+    const foo2 = container.get(Foo);
+
+    expect(foo1).not.to.equal(foo2);
+  });
+});
+
+describe(`The singleton decorator`, () => {
+  it(`works as a plain decorator`, () => {
+    @singleton
+    class Foo {}
+
+    expect(Foo['register']).to.be.a('function');
+
+    const container = DI.createContainer();
+
+    const foo1 = container.get(Foo);
+    const foo2 = container.get(Foo);
+
+    expect(foo1).to.equal(foo2);
+  });
+
+  it(`works as an invocation`, () => {
+    @singleton()
+    class Foo {}
+
+    expect(Foo['register']).to.be.a('function');
+
+    const container = DI.createContainer();
+
+    const foo1 = container.get(Foo);
+    const foo2 = container.get(Foo);
+
+    expect(foo1).to.equal(foo2);
   });
 });
 

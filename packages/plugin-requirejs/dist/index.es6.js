@@ -3,29 +3,29 @@ import { CustomElementResource } from '@aurelia/runtime';
 function processImports(toProcess, relativeTo) {
     return toProcess.map(x => {
         if (x.extension === '.html' && !x.plugin) {
-            return 'component!' + relativeToFile(x.path, relativeTo) + x.extension;
+            return `component!${relativeToFile(x.path, relativeTo) + x.extension}`;
         }
-        let relativePath = relativeToFile(x.path, relativeTo);
+        const relativePath = relativeToFile(x.path, relativeTo);
         return x.plugin ? `${x.plugin}!${relativePath}` : relativePath;
     });
 }
 const capitalMatcher = /([A-Z])/g;
 /*@internal*/
 function addHyphenAndLower(char) {
-    return '-' + char.toLowerCase();
+    return `-${char.toLowerCase()}`;
 }
 function kebabCase(name) {
     return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
 }
 function escape(content) {
     return content.replace(/(['\\])/g, '\\$1')
-        .replace(/[\f]/g, "\\f")
-        .replace(/[\b]/g, "\\b")
-        .replace(/[\n]/g, "\\n")
-        .replace(/[\t]/g, "\\t")
-        .replace(/[\r]/g, "\\r")
-        .replace(/[\u2028]/g, "\\u2028")
-        .replace(/[\u2029]/g, "\\u2029");
+        .replace(/[\f]/g, '\\f')
+        .replace(/[\b]/g, '\\b')
+        .replace(/[\n]/g, '\\n')
+        .replace(/[\t]/g, '\\t')
+        .replace(/[\r]/g, '\\r')
+        .replace(/[\u2028]/g, '\\u2028')
+        .replace(/[\u2029]/g, '\\u2029');
 }
 function createTemplateDescription(template) {
     const imports = [];
@@ -135,7 +135,7 @@ function load(name, req, onLoad, config) {
         } });
     }
     else {
-        req(['text!' + name], function (text) {
+        req([`text!${name}`], function (text) {
             const description = createTemplateDescription(text);
             const depsToLoad = processImports(description.imports, name);
             req(depsToLoad, function () {
@@ -154,14 +154,14 @@ function load(name, req, onLoad, config) {
         });
     }
 }
-function write(pluginName, moduleName, write, config) {
+function write(pluginName, moduleName, writer, _config) {
     if (buildMap.hasOwnProperty(moduleName)) {
         const templateImport = parseImport(moduleName);
         const text = buildMap[moduleName];
         const description = createTemplateDescription(text);
         const depsToLoad = processImports(description.imports, moduleName);
         depsToLoad.unshift('@aurelia/runtime');
-        write(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() {
+        writer(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() {
       var Component = arguments[0].Component;
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
@@ -191,12 +191,12 @@ function finishLoad$1(name, content, onLoad) {
 }
 function load$1(name, req, onLoad, config) {
     if (config.isBuild) {
-        loadFromFile(req.toUrl(name), function (content) { finishLoad$1(name, content, onLoad); }, function (err) { if (onLoad.error) {
-            onLoad.error(err);
+        loadFromFile(req.toUrl(name), function (content) { finishLoad$1(name, content, onLoad); }, function (error) { if (onLoad.error) {
+            onLoad.error(error);
         } });
     }
     else {
-        req(['text!' + name], function (text) {
+        req([`text!${name}`], function (text) {
             const description = createTemplateDescription(text);
             const depsToLoad = processImports(description.imports, name);
             const templateImport = parseImport(name);
@@ -215,13 +215,13 @@ function load$1(name, req, onLoad, config) {
         });
     }
 }
-function write$1(pluginName, moduleName, write, config) {
+function write$1(pluginName, moduleName, writer, _config) {
     if (buildMap$1.hasOwnProperty(moduleName)) {
         const text = buildMap$1[moduleName];
         const description = createTemplateDescription(text);
         const depsToLoad = processImports(description.imports, moduleName);
         const templateImport = parseImport(moduleName);
-        write(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() { 
+        writer(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() {
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
         template: '${escape(description.template)}',
@@ -243,7 +243,7 @@ var viewPlugin = /*#__PURE__*/Object.freeze({
   write: write$1
 });
 
-let nonAnonDefine = define;
+const nonAnonDefine = define;
 function installRequireJSPlugins() {
     nonAnonDefine('view', [], viewPlugin);
     nonAnonDefine('component', [], componentPlugin);

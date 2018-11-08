@@ -83,13 +83,19 @@ const Reporter = {
     error(code, ...params) { return new Error(`Code ${code}`); }
 };
 
+// Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
+// https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
+// https://rbuckton.github.io/reflect-metadata/
+// As the official spec proposal uses "any", we use it here as well and suppress related typedef linting warnings.
 if (!('getOwnMetadata' in Reflect)) {
-    Reflect.getOwnMetadata = function (key, target) {
-        return target[key];
+    // tslint:disable-next-line:no-any
+    Reflect.getOwnMetadata = function (metadataKey, target) {
+        return target[metadataKey];
     };
-    Reflect.metadata = function (key, value) {
+    // tslint:disable-next-line:no-any
+    Reflect.metadata = function (metadataKey, metadataValue) {
         return function (target) {
-            target[key] = value;
+            target[metadataKey] = metadataValue;
         };
     };
 }

@@ -47,7 +47,7 @@ export interface IResolverBuilder<T> {
 }
 export declare const DI: {
     createContainer(): IContainer;
-    getDesignParamTypes(target: any): any[];
+    getDesignParamTypes(target: Object): any[];
     getDependencies(type: Function & {
         inject?: any;
     }): any[];

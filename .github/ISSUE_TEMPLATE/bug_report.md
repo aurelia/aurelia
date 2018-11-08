@@ -39,7 +39,7 @@ Search open/closed issues before submitting since someone might have asked the s
 
 ## 🌍 Your Environment
 
-<!--- Include as many relevant details about the environment you experienced the bug in -->
+<!--- Include as many relevant details as possible about the environment you experienced the bug in -->
 
 | Software         | Version(s) |
 | ---------------- | ---------- |

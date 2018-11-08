@@ -197,13 +197,27 @@ export const DI = {
     };
   },
 
+  // tslint:disable:jsdoc-format
   /**
    * Registers the `target` class as a transient dependency; each time the dependency is resolved
    * a new instance will be created.
    *
    * @param target The class / constructor function to register as transient.
    * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
+   *
+   * Example usage:
+```ts
+// On an existing class
+class Foo { }
+DI.transient(Foo);
+
+// Inline declaration
+const Foo = DI.transient(class { });
+// Foo is now strongly typed with register
+Foo.register(container);
+```
    */
+  // tslint:enable:jsdoc-format
   transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       return Registration.transient(target, target).register(container, target);
@@ -211,13 +225,26 @@ export const DI = {
     return <T & RegisterSelf<T>>target;
   },
 
+  // tslint:disable:jsdoc-format
   /**
    * Registers the `target` class as a singleton dependency; the class will only be created once. Each
    * consecutive time the dependency is resolved, the same instance will be returned.
    *
    * @param target The class / constructor function to register as a singleton.
    * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
+   * Example usage:
+```ts
+// On an existing class
+class Foo { }
+DI.singleton(Foo);
+
+// Inline declaration
+const Foo = DI.singleton(class { });
+// Foo is now strongly typed with register
+Foo.register(container);
+```
    */
+  // tslint:enable:jsdoc-format
   singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       return Registration.singleton(target, target).register(container, target);
@@ -270,15 +297,10 @@ export function transient<T extends Constructable>(): typeof transientDecorator;
  *
  * @param target The class / constructor function to register as transient.
  *
- * Example usages:
+ * Example usage:
 ```ts
-// As a decorator
 @transient()
 class Foo { }
-
-// As a function expression
-class Foo { }
-transient(Foo)()
 ```
  */
 // tslint:enable:jsdoc-format
@@ -310,15 +332,10 @@ export function singleton<T extends Constructable>(): typeof singletonDecorator;
  *
  * @param target The class / constructor function to register as a singleton.
  *
- * Example usages:
+ * Example usage:
 ```ts
-// As a decorator
 @singleton()
 class Foo { }
-
-// As a function expression
-class Foo { }
-singleton(Foo)()
 ```
  */
 // tslint:enable:jsdoc-format

@@ -619,7 +619,10 @@ export interface IAttachLifecycle extends IFlushLifecycle {
   endDetach(flags: LifecycleFlags): ILifecycleTask;
 }
 
-export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {}
+export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {
+  registerTask(task: ILifecycleTask): void;
+  finishTask(task: ILifecycleTask): void;
+}
 
 export const ILifecycle = DI.createInterface<ILifecycle>().withDefault(x => x.singleton(Lifecycle));
 export const IFlushLifecycle = ILifecycle as InterfaceSymbol<IFlushLifecycle>;
@@ -702,6 +705,23 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public unbound: ILifecycleUnbound['unbound'] = PLATFORM.noop;
 
   private task: AggregateLifecycleTask = null;
+
+  public registerTask(task: ILifecycleTask): void {
+    if (this.task === null) {
+      this.task = new AggregateLifecycleTask();
+    }
+    this.task.addTask(task);
+  }
+
+  public finishTask(task: ILifecycleTask): void {
+    if (this.task !== null) {
+      if (this.task === task) {
+        this.task = null;
+      } else {
+        this.task.removeTask(task);
+      }
+    }
+  }
 
   public enqueueFlush(requestor: IChangeTracker): Promise<void> {
     // Queue a flush() callback; the depth is just for debugging / testing purposes and has
@@ -1274,6 +1294,21 @@ export class AggregateLifecycleTask implements ILifecycleTask {
     }
   }
 
+  public removeTask(task: ILifecycleTask): void {
+    if (task.done) {
+      const idx = this.tasks.indexOf(task);
+      if (idx !== -1) {
+        this.tasks.splice(idx, 1);
+      }
+    }
+    if (this.tasks.length === 0) {
+      if (this.owner !== null) {
+        this.owner.finishTask(this);
+        this.owner = null;
+      }
+    }
+  }
+
   public canCancel(): boolean {
     if (this.done) {
       return false;
@@ -1321,6 +1356,7 @@ export class AggregateLifecycleTask implements ILifecycleTask {
       this.owner.processBindQueue(LifecycleFlags.fromLifecycleTask);
       this.owner.processAttachQueue(LifecycleFlags.fromLifecycleTask);
     }
+    this.owner.finishTask(this);
 
     if (this.resolve !== null) {
       this.resolve();

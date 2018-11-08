@@ -275,4 +275,266 @@ describe(spec, () => {
     expect(host.textContent).to.equal(text2);
 
   });
+
+
+  it('attached task awaited indirectly', async () => {
+
+    const Foo = CustomElementResource.define({
+      name: 'foo',
+      template: `<template><div ref="div">bar</div></template>`
+    }, class {
+      $lifecycle: ILifecycle;
+      attaching() {
+        this.$lifecycle.registerTask({
+          done: false,
+          canCancel() {return false;},
+          cancel() {},
+          wait() {
+            this.done = true;
+            return Promise.resolve();
+          }
+        })
+      }
+    });
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo if.bind="true"></foo></template>`
+    }, class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+    container.register(<any>Foo);
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('');
+
+    await Promise.resolve();
+
+    expect(host.textContent).to.equal('bar');
+
+    au.stop();
+
+    expect(host.textContent).to.equal('');
+
+    au.start();
+
+    expect(host.textContent).to.equal('');
+
+    await Promise.resolve();
+
+    expect(host.textContent).to.equal('bar');
+
+    au.stop();
+
+    expect(host.textContent).to.equal('');
+  });
+
+
+  it('attached task awaited directly', async () => {
+
+    const Foo = CustomElementResource.define({
+      name: 'foo',
+      template: `<template><div ref="div">bar</div></template>`
+    }, class {
+      $lifecycle: ILifecycle;
+      attaching() {
+        this.$lifecycle.registerTask({
+          done: false,
+          canCancel() {return false;},
+          cancel() {},
+          wait() {
+            this.done = true;
+            return Promise.resolve();
+          }
+        })
+      }
+    });
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo if.bind="true"></foo></template>`
+    }, class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+    container.register(<any>Foo);
+    const lifecycle = container.get(ILifecycle);
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    lifecycle.beginAttach();
+    au.start();
+    let task = lifecycle.endAttach(LifecycleFlags.fromStartTask);
+
+    expect(host.textContent).to.equal('');
+
+    await task.wait();
+
+    expect(host.textContent).to.equal('bar');
+
+    au.stop();
+
+    expect(host.textContent).to.equal('');
+
+    lifecycle.beginAttach();
+    au.start();
+    task = lifecycle.endAttach(LifecycleFlags.fromStartTask);
+
+    expect(host.textContent).to.equal('');
+
+    await task.wait();
+
+    expect(host.textContent).to.equal('bar');
+
+    au.stop();
+
+    expect(host.textContent).to.equal('');
+  });
+
+
+  it('attached task (triple then) awaited indirectly', async () => {
+
+    const Foo = CustomElementResource.define({
+      name: 'foo',
+      template: `<template><div ref="div">bar</div></template>`
+    }, class {
+      $lifecycle: ILifecycle;
+      attaching() {
+        this.$lifecycle.registerTask({
+          done: false,
+          canCancel() {return false;},
+          cancel() {},
+          wait() {
+            this.done = true;
+            return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
+          }
+        })
+      }
+    });
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo if.bind="true"></foo></template>`
+    }, class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+    container.register(<any>Foo);
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('');
+
+    await Promise.resolve();
+
+    expect(host.textContent).to.equal('');
+
+    await Promise.resolve();
+
+    expect(host.textContent).to.equal('bar');
+
+    au.stop();
+
+    expect(host.textContent).to.equal('');
+
+    au.start();
+
+    expect(host.textContent).to.equal('');
+
+    await Promise.resolve();
+
+    expect(host.textContent).to.equal('');
+
+    await Promise.resolve();
+
+    expect(host.textContent).to.equal('bar');
+
+    au.stop();
+
+    expect(host.textContent).to.equal('');
+  });
+
+
+  it('attached task (triple then) awaited directly', async () => {
+
+    const Foo = CustomElementResource.define({
+      name: 'foo',
+      template: `<template><div ref="div">bar</div></template>`
+    }, class {
+      $lifecycle: ILifecycle;
+      attaching() {
+        this.$lifecycle.registerTask({
+          done: false,
+          canCancel() {return false;},
+          cancel() {},
+          wait() {
+            this.done = true;
+            return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
+          }
+        })
+      }
+    });
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo if.bind="true"></foo></template>`
+    }, class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+    container.register(<any>Foo);
+    const lifecycle = container.get(ILifecycle);
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    lifecycle.beginAttach();
+    au.start();
+    let task = lifecycle.endAttach(LifecycleFlags.fromStartTask);
+
+    expect(host.textContent).to.equal('');
+
+    await task.wait();
+
+    expect(host.textContent).to.equal('bar');
+
+    au.stop();
+
+    expect(host.textContent).to.equal('');
+
+    lifecycle.beginAttach();
+    au.start();
+    task = lifecycle.endAttach(LifecycleFlags.fromStartTask);
+
+    expect(host.textContent).to.equal('');
+
+    await task.wait();
+
+    expect(host.textContent).to.equal('bar');
+
+    au.stop();
+
+    expect(host.textContent).to.equal('');
+  });
 });

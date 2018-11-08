@@ -362,25 +362,6 @@ export async function loadPackageJson(...pathSegments: string[]): Promise<Packag
 }
 
 /**
- * Reads and parses the content of a package-lock.json file
- *
- * @param pathSegments The path segments of the folder where the package-lock.json is located, relative to the root of the project
- */
-export async function loadPackageLockJson(...pathSegments: string[]): Promise<Package> {
-  const path = join(project.path, ...pathSegments, 'package-lock.json');
-  return new Promise((resolve, reject) => {
-    readFile(path, (err, data) => {
-      if (err) {
-        reject(err);
-      }
-      const str = data.toString('utf8');
-      const json = JSON.parse(str);
-      resolve(json);
-    })
-  });
-}
-
-/**
  * Stringifies and writes out the content of a package.json file
  *
  * @param pkg The package.json as an object

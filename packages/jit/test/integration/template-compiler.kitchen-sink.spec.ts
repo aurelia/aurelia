@@ -2,9 +2,10 @@ import { expect } from 'chai';
 import { tearDown, setupAndStart, cleanup, defineCustomElement } from './prepare';
 import { baseSuite } from './template-compiler.base';
 import { IContainer, Constructable, DI, IRegistry } from '../../../kernel/src/index';;
-import { Aurelia, ICustomElementType, ILifecycle, CustomElementResource, DOM } from '../../../runtime/src/index';
+import { Aurelia, ICustomElementType, ILifecycle, CustomElementResource, DOM, ISignaler, Lifecycle, TextNodeSequence } from '../../../runtime/src/index';
 import { LifecycleFlags } from '../../../runtime/src/index';
 import { BasicConfiguration } from '../../src/index';
+import { INodeSequence, NodeSequenceFactory } from '@aurelia/runtime';
 
 const spec = 'template-compiler.kitchen-sink';
 
@@ -790,5 +791,111 @@ describe(spec, () => {
     expect(host.textContent).to.equal('bar');
     await task.wait();
     expect(host.textContent).to.equal('');
+  });
+
+
+  it('signaler', async () => {
+
+    const items = [0,1,2];
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem'}</div></template>`
+    }, class {
+      items = items;
+    });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+
+    const signaler = container.get(ISignaler);
+    const lifecycle = container.get(ILifecycle) as Lifecycle;
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('012');
+
+    items[0] = 2;
+
+    lifecycle.processFlushQueue(LifecycleFlags.none);
+
+    expect(host.textContent).to.equal('012');
+
+    signaler.dispatchSignal('updateItem', LifecycleFlags.fromFlush);
+
+    expect(host.textContent).to.equal('212');
+
+  });
+
+
+  it('signaler + oneTime', async () => {
+
+    const items = [0,1,2];
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem' & oneTime}</div></template>`
+    }, class {
+      items = items;
+    });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+
+    const signaler = container.get(ISignaler);
+    const lifecycle = container.get(ILifecycle) as Lifecycle;
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('012');
+
+    items[0] = 2;
+
+    lifecycle.processFlushQueue(LifecycleFlags.none);
+
+    expect(host.textContent).to.equal('012');
+
+    signaler.dispatchSignal('updateItem', LifecycleFlags.fromFlush);
+
+    expect(host.textContent).to.equal('212');
+
+  });
+
+  it('render hook', async () => {
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template></template>`
+    }, class {
+      $nodes: INodeSequence;
+      render() {
+        this.$nodes = NodeSequenceFactory.createFor('foo').createNodeSequence();
+      }
+    });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('foo');
+
   });
 });

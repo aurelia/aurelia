@@ -537,4 +537,258 @@ describe(spec, () => {
 
     expect(host.textContent).to.equal('');
   });
+
+
+  it('detached task awaited indirectly', async () => {
+
+    const Foo = CustomElementResource.define({
+      name: 'foo',
+      template: `<template><div ref="div">bar</div></template>`
+    }, class {
+      $lifecycle: ILifecycle;
+      detaching() {
+        this.$lifecycle.registerTask({
+          done: false,
+          canCancel() {return false;},
+          cancel() {},
+          wait() {
+            this.done = true;
+            return Promise.resolve();
+          }
+        })
+      }
+    });
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo if.bind="true"></foo></template>`
+    }, class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+    container.register(<any>Foo);
+    const lifecycle = container.get(ILifecycle);
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+
+    lifecycle.beginDetach();
+    au.stop();
+    lifecycle.endDetach(LifecycleFlags.fromStopTask);
+
+    expect(host.textContent).to.equal('bar');
+    await Promise.resolve();
+    expect(host.textContent).to.equal('');
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+
+    lifecycle.beginDetach();
+    au.stop();
+    lifecycle.endDetach(LifecycleFlags.fromStopTask);
+
+    expect(host.textContent).to.equal('bar');
+    await Promise.resolve();
+    expect(host.textContent).to.equal('');
+
+  });
+
+
+  it('detached task awaited directly', async () => {
+
+    const Foo = CustomElementResource.define({
+      name: 'foo',
+      template: `<template><div ref="div">bar</div></template>`
+    }, class {
+      $lifecycle: ILifecycle;
+      detaching() {
+        this.$lifecycle.registerTask({
+          done: false,
+          canCancel() {return false;},
+          cancel() {},
+          wait() {
+            this.done = true;
+            return Promise.resolve();
+          }
+        })
+      }
+    });
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo if.bind="true"></foo></template>`
+    }, class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+    container.register(<any>Foo);
+    const lifecycle = container.get(ILifecycle);
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+
+    lifecycle.beginDetach();
+    au.stop();
+    let task = lifecycle.endDetach(LifecycleFlags.fromStopTask);
+
+    expect(host.textContent).to.equal('bar');
+    await task.wait();
+    expect(host.textContent).to.equal('');
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+
+    lifecycle.beginDetach();
+    au.stop();
+    task = lifecycle.endDetach(LifecycleFlags.fromStopTask);
+
+    expect(host.textContent).to.equal('bar');
+    await task.wait();
+    expect(host.textContent).to.equal('');
+
+  });
+
+
+  it('detached task (triple then) awaited indirectly', async () => {
+
+    const Foo = CustomElementResource.define({
+      name: 'foo',
+      template: `<template><div ref="div">bar</div></template>`
+    }, class {
+      $lifecycle: ILifecycle;
+      detaching() {
+        this.$lifecycle.registerTask({
+          done: false,
+          canCancel() {return false;},
+          cancel() {},
+          wait() {
+            this.done = true;
+            return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
+          }
+        })
+      }
+    });
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo if.bind="true"></foo></template>`
+    }, class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+    container.register(<any>Foo);
+    const lifecycle = container.get(ILifecycle);
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+
+    lifecycle.beginDetach();
+    au.stop();
+    lifecycle.endDetach(LifecycleFlags.fromStopTask);
+
+    expect(host.textContent).to.equal('bar');
+    await Promise.resolve();
+    expect(host.textContent).to.equal('bar');
+    await Promise.resolve();
+    expect(host.textContent).to.equal('');
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+
+    lifecycle.beginDetach();
+    au.stop();
+    lifecycle.endDetach(LifecycleFlags.fromStopTask);
+
+    expect(host.textContent).to.equal('bar');
+    await Promise.resolve();
+    expect(host.textContent).to.equal('bar');
+    await Promise.resolve();
+    expect(host.textContent).to.equal('');
+  });
+
+
+  it('detached task (triple then) awaited directly', async () => {
+
+    const Foo = CustomElementResource.define({
+      name: 'foo',
+      template: `<template><div ref="div">bar</div></template>`
+    }, class {
+      $lifecycle: ILifecycle;
+      detaching() {
+        this.$lifecycle.registerTask({
+          done: false,
+          canCancel() {return false;},
+          cancel() {},
+          wait() {
+            this.done = true;
+            return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
+          }
+        })
+      }
+    });
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo if.bind="true"></foo></template>`
+    }, class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration);
+    container.register(<any>Foo);
+    const lifecycle = container.get(ILifecycle);
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+
+    lifecycle.beginDetach();
+    au.stop();
+    let task = lifecycle.endDetach(LifecycleFlags.fromStopTask);
+
+    expect(host.textContent).to.equal('bar');
+    await task.wait();
+    expect(host.textContent).to.equal('');
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+
+    lifecycle.beginDetach();
+    au.stop();
+    task = lifecycle.endDetach(LifecycleFlags.fromStopTask);
+
+    expect(host.textContent).to.equal('bar');
+    await task.wait();
+    expect(host.textContent).to.equal('');
+  });
 });

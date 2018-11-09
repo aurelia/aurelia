@@ -322,7 +322,9 @@ export class MockTextNodeSequence implements INodeSequence {
   }
 
   public insertBefore(refNode: Node): void {
-    refNode.parentNode.insertBefore(this.fragment, refNode);
+    if (refNode) {
+      refNode.parentNode.insertBefore(this.fragment, refNode);
+    }
   }
 
   public appendTo(parent: Node): void {

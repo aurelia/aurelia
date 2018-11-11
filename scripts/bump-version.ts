@@ -1,5 +1,5 @@
 import project from './project';
-import { loadPackageJson, savePackageJson, loadPackageLockJson, savePackageLockJson } from './package.json';
+import { loadPackageJson, savePackageJson } from './package.json';
 import { createLogger, c } from './logger';
 import { readFileSync, writeFileSync } from 'fs';
 
@@ -23,8 +23,7 @@ export async function updateDependencyVersions(newVersion: string) {
   for (const { name, scopedName } of project.packages) {
     log(`updating dependencies for ${c.magentaBright(scopedName)}`);
     const pkg = await loadPackageJson('packages', name);
-    const pkgLock = await loadPackageLockJson('packages', name);
-    pkg.version = pkgLock.version = newVersion;
+    pkg.version = newVersion;
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
       for (const depName in deps) {
@@ -35,7 +34,6 @@ export async function updateDependencyVersions(newVersion: string) {
       }
     }
     await savePackageJson(pkg, 'packages', name);
-    await savePackageLockJson(pkgLock, 'packages', name);
   }
   const lernaJson = JSON.parse(readFileSync(project["lerna.json"].path, { encoding: 'utf8' }));
   lernaJson.version = newVersion;

@@ -241,7 +241,7 @@ export class BindingBehavior implements IExpression {
     if (!behavior) {
       throw Reporter.error(RuntimeError.NoBehaviorFound, this);
     }
-    if (binding[behaviorKey] !== undefined) {
+    if (binding[behaviorKey] !== undefined && binding[behaviorKey] !== null) {
       throw Reporter.error(RuntimeError.BehaviorAlreadyApplied, this);
     }
     binding[behaviorKey] = behavior;

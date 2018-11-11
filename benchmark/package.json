@@ -1,0 +1,40 @@
+{
+  "name": "js-framework-benchmark",
+  "version": "1.0.0",
+  "description": "Simple Benchmark for Javascript client side rendering",
+  "scripts": {
+    "clean": "node cleanup.js",
+    "build": "node build.js",
+    "build-prod": "node build.js",
+    "compile": "node build.js",
+    "start": "http-server -c-1 .",
+    "bench": "cd webdriver-ts && npm run selenium && npm run results",
+    "selenium": "cd webdriver-ts && npm run selenium && npm run results",
+    "check": "cd webdriver-ts && npm run selenium -- --count 1 --exitOnError true --fork false"
+  },
+  "keywords": [
+    "benchmark",
+    "javascript",
+    "frontend",
+    "client",
+    "react",
+    "angular",
+    "mithril"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krausest/js-framework-benchmark.git"
+  },
+  "author": "Stefan Krause",
+  "license": "ISC",
+  "homepage": "https://github.com/krausest/js-framework-benchmark",
+  "dependencies": {
+    "command-exists": "^1.0.2",
+    "fs-extra": "^0.30.0",
+    "http-server": "^0.10.0",
+    "lodash": "^4.15.0",
+    "rimraf": "^2.6.2",
+    "yargs": "^12.0.1",
+    "npm":"^6.4.1"
+  }
+}

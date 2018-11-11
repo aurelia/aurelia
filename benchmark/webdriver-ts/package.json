@@ -1,0 +1,50 @@
+{
+  "name": "webdriver-ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "rimraf ./node-modules/.bin/npm && echo 'manually removed node-modules/.bin/npm'",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "tsc",
+    "build-prod": "tsc",
+    "bench": "cross-env LANG=\"en_US.UTF-8\" node dist/benchmarkRunner.js",
+    "selenium": "cross-env LANG=\"en_US.UTF-8\" node dist/benchmarkRunner.js --chromeBinary \"C:\\Program Files (x86)\\Google\\Chrome Dev\\Application\\chrome.exe\"",
+    "checkSelenium": "cross-env LANG=\"en_US.UTF-8\" node dist/benchmarkRunner.js --check true",
+    "results": "npm run interactive-results",
+    "static-results": "echo \"no longer supported\" && exit 1",
+    "interactive-results": "node dist/createResultJS.js && cd .. && cd webdriver-ts-results && npm run build-prod",
+    "index": "node dist/createIndex.js",
+    "check": "node dist/runCheck.js",
+    "update": "node dist/updateFrameworks.js",
+    "nonKeyed": "cross-env LANG=\"en_US.UTF-8\" node dist/isKeyed.js",
+    "isKeyed": "cross-env LANG=\"en_US.UTF-8\" node dist/isKeyed.js",
+    "rebuild": "node dist/rebuild.js"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/lodash": "4.14.116",
+    "@types/node": "10.11.4",
+    "@types/ramda": "0.25.39",
+    "@types/selenium-webdriver": "3.0.12",
+    "@types/semver": "5.5.0",
+    "@types/yargs": "12.0.1",
+    "rimraf": "^2.6.2",
+    "ts-node": "7.0.1",
+    "typescript": "3.1.1"
+  },
+  "dependencies": {
+    "cross-env": "5.2.0",
+    "chromedriver": "2.42.0",
+    "dot": "1.1.2",
+    "jstat": "1.7.1",
+    "lighthouse": "3.2.1",
+    "lodash": "4.17.11",
+    "ramda": "0.25.0",
+    "selenium-webdriver": "4.0.0-alpha.1",
+    "yargs": "12.0.2",
+    "npm-check-updates": "2.14.2",
+    "semver": "5.5.1"
+  }
+}

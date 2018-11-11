@@ -1,0 +1,20 @@
+{
+  "name": "js-framework-benchmark-aurelia",
+  "version": "1.0.0",
+  "description": "Benchmark for aurelia framework",
+  "js-framework-benchmark": {
+    "frameworkVersion": "0.3"
+  },
+  "keywords": [
+    "aurelia"
+  ],
+  "author": "Stefan Krause",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/krausest/js-framework-benchmark",
+  "scripts": {
+    "build-dev": "cls",
+    "build-prod": "cls"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

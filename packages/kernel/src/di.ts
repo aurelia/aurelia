@@ -15,10 +15,14 @@ export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
   noDefault(): InterfaceSymbol<T>;
 }
 
-export interface IResolver<T = any> {
-  resolve(handler: IContainer, requestor: IContainer): T;
-  getFactory?(container: IContainer): IFactory<T> | null;
+// This interface exists only to break a circular type referencing issue in the IServiceLocator interface.
+// Otherwise IServiceLocator references IResolver, which references IContainer, which extends IServiceLocator.
+interface IResolverLike<TValue, TContainer> {
+  resolve(handler: TContainer, requestor: TContainer): TValue;
+  getFactory?(container: TContainer): IFactory<TValue> | null;
 }
+
+export interface IResolver<T = any> extends IResolverLike<T, IContainer> { }
 
 export interface IRegistration<T = any> {
   register(container: IContainer, key?: Key<T>): IResolver<T>;
@@ -36,13 +40,13 @@ export interface IServiceLocator {
   get<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K):
     K extends InterfaceSymbol<infer T> ? T :
     K extends Constructable ? InstanceType<K> :
-    K extends IResolver<infer T1> ? T1 extends Constructable ? InstanceType<T1> : T1 :
+    K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? InstanceType<T1> : T1 :
     K;
 
   getAll<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K):
     K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> :
     K extends Constructable ? ReadonlyArray<InstanceType<K>> :
-    K extends IResolver<infer T1> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> :
+    K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> :
     ReadonlyArray<K>;
 }
 
@@ -51,7 +55,13 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
+  register(...params: IRegistry[]): void;
+  register(...params: Record<string, Partial<IRegistry>>[]): void;
   register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void;
+  register(registry: Record<string, Partial<IRegistry>>): void;
+  // tslint:disable-next-line:unified-signatures
+  register(registry: IRegistry): void;
+  // tslint:disable-next-line:unified-signatures
   register(registry: IRegistry | Record<string, Partial<IRegistry>>): void;
 
   registerResolver<T>(key: Key<T>, resolver: IResolver<T>): IResolver<T>;
@@ -651,7 +661,11 @@ export class Container implements IContainer {
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
     if (keyAsValue.register) {
-      return keyAsValue.register(handler, keyAsValue) || null;
+      const registrationResolver = keyAsValue.register(handler, keyAsValue);
+      if (!(registrationResolver && registrationResolver.resolve)) {
+        throw Reporter.error(40); // did not return a valid resolver from the static register method
+      }
+      return registrationResolver;
     }
 
     const resolver = new Resolver(keyAsValue, ResolverStrategy.singleton, keyAsValue);

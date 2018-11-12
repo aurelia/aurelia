@@ -1,5 +1,5 @@
 import { TestSuite } from "../../../../scripts/test-suite";
-import { IChangeSet, IObserverLocator, DOM, Aurelia } from "@aurelia/runtime";
+import { IObserverLocator, DOM, Aurelia, ILifecycle } from '../../../runtime/src/index';;
 import { DI } from "@aurelia/kernel";
 import { BasicConfiguration } from "../../src";
 import { TestConfiguration } from "./prepare";
@@ -11,12 +11,11 @@ export const baseSuite = new TestSuite(null);
 
 baseSuite.addDataSlot('a').addData(null).setFactory(c => {
   const container = DI.createContainer();
-  container.get(IChangeSet);
   container.get(IObserverLocator);
   container.register(BasicConfiguration);
   container.register(TestConfiguration);
   c.b = new Aurelia(container);
-  c.c = container.get(IChangeSet);
+  c.c = container.get(ILifecycle);
   c.d = createApp();
   return container;
 });

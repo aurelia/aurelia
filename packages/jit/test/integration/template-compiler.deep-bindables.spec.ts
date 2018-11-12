@@ -1,10 +1,11 @@
 import { expect } from "chai";
 import { defineCustomElement, createCustomElement, TestConfiguration } from "./prepare";
-import { IChangeSet, bindable, Aurelia, ICustomElementType, DOM, IObserverLocator } from "@aurelia/runtime";
+import { ILifecycle, bindable, Aurelia, ICustomElementType, DOM, IObserverLocator } from '../../../runtime/src/index';
 import { baseSuite } from "./template-compiler.base";
 import { IContainer, Constructable, DI } from "@aurelia/kernel";
 import { trimFull } from "./util";
 import { BasicConfiguration } from "../../src";
+import { LifecycleFlags } from '../../../runtime/src/index';
 
 const spec = 'template-compiler.deep-bindables';
 
@@ -14,7 +15,7 @@ type TFooC = Constructable<{ c1: string; c2: string; c3: string }> & ICustomElem
 type TApp = Constructable<{ $1: string; $2: string; $3: string }> & ICustomElementType & TFooA & TFooB & TFooC;
 
 // #region parentSuite
-const parentSuite = baseSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
 parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
   const { a: container } = ctx;
@@ -106,8 +107,8 @@ parentSuite.addDataSlot('h').addData('foo-c').setFactory(ctx => {
 // #endregion
 
 // #region basic
-const nonWrappedBasic = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
-const wrappedBasic = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const nonWrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const wrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
 wrappedBasic.addActionSlot('wrap in div')
   .addAction('setup', ctx => {
@@ -128,7 +129,7 @@ wrappedBasic.addActionSlot('wrap in div')
 for (const suite of [nonWrappedBasic, wrappedBasic]) {
   suite.addActionSlot('act')
     .addAction('assign', ctx => {
-      const { b: au, c: cs, d: host, e: app } = ctx;
+      const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
       const component = new app();
       component.$1 = '1';
@@ -140,7 +141,7 @@ for (const suite of [nonWrappedBasic, wrappedBasic]) {
       expect(host.textContent).to.equal('123'.repeat(4));
     })
     .addAction('no assign', ctx => {
-      const { b: au, c: cs, d: host, e: app } = ctx;
+      const { b: au, c: lifecycle, d: host, e: app } = ctx;
       const component = new app();
 
       au.app({ host, component }).start();
@@ -150,10 +151,10 @@ for (const suite of [nonWrappedBasic, wrappedBasic]) {
 
   suite.addActionSlot('teardown')
     .addAction(null, ctx => {
-      const { a: container, b: au, c: cs, d: host, e: app, f: fooA, g: fooB, h: fooC } = ctx;
+      const { a: container, b: au, c: lifecycle, d: host, e: app, f: fooA, g: fooB, h: fooC } = ctx;
 
       au.stop();
-      expect(cs.size).to.equal(0);
+      expect(lifecycle['flushCount']).to.equal(0);
       //expect(host.textContent).to.equal('');
     });
 
@@ -163,7 +164,7 @@ for (const suite of [nonWrappedBasic, wrappedBasic]) {
 // #endregion
 
 // #region noBindables
-const noBindables = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const noBindables = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 noBindables.addActionSlot('remove bindables')
   .addAction('setup', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
@@ -176,7 +177,7 @@ noBindables.addActionSlot('remove bindables')
 
 noBindables.addActionSlot('act')
   .addAction('assign 1', ctx => {
-    const { b: au, c: cs, d: host, e: app } = ctx;
+    const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
     const component = new app();
     component.$1 = '1';
@@ -188,7 +189,7 @@ noBindables.addActionSlot('act')
     expect(host.textContent).to.equal('123' + 'undefined'.repeat(9));
   })
   .addAction('assign 2', ctx => {
-    const { b: au, c: cs, d: host, e: app } = ctx;
+    const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
     const component = new app();
     component.a1 = '1';
@@ -200,7 +201,7 @@ noBindables.addActionSlot('act')
     expect(host.textContent).to.equal('undefined'.repeat(12));
   })
   .addAction('assign 3', ctx => {
-    const { b: au, c: cs, d: host, e: app } = ctx;
+    const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
     const component = new app();
     component.b1 = '1';
@@ -212,7 +213,7 @@ noBindables.addActionSlot('act')
     expect(host.textContent).to.equal('undefined'.repeat(12));
   })
   .addAction('assign 4', ctx => {
-    const { b: au, c: cs, d: host, e: app } = ctx;
+    const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
     const component = new app();
     component.c1 = '1';
@@ -230,7 +231,7 @@ noBindables.run();
 // #endregion
 
 // #region duplicated
-const duplicated = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const duplicated = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 duplicated.addActionSlot('duplicate')
   .addAction('setup', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
@@ -246,7 +247,7 @@ duplicated.addActionSlot('duplicate')
 
 duplicated.addActionSlot('act')
   .addAction('assign', ctx => {
-    const { b: au, c: cs, d: host, e: app } = ctx;
+    const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
     const component = new app();
     component.$1 = '1';
@@ -258,7 +259,7 @@ duplicated.addActionSlot('act')
     expect(host.textContent).to.equal('123'.repeat(1124));
   })
   .addAction('no assign', ctx => {
-    const { b: au, c: cs, d: host, e: app } = ctx;
+    const { b: au, c: lifecycle, d: host, e: app } = ctx;
     const component = new app();
 
     au.app({ host, component }).start();
@@ -272,7 +273,7 @@ duplicated.run();
 // #endregion
 
 // #region staticTemplateCtrl
-const staticTemplateCtrl = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const staticTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
 staticTemplateCtrl.addActionSlot('static template controller')
   .addAction('prepend if+repeat', ctx => {
@@ -343,7 +344,7 @@ staticTemplateCtrl.addActionSlot('static template controller')
 
 staticTemplateCtrl.addActionSlot('act')
   .addAction(null, ctx => {
-    const { b: au, c: cs, d: host, e: app } = ctx;
+    const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
     const component = <any>new app();
     component.$1 = '1';
@@ -361,7 +362,7 @@ staticTemplateCtrl.run();
 // #endregion
 
 // #region boundTemplateCtrl
-const boundTemplateCtrl = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const boundTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
 boundTemplateCtrl.addActionSlot('bound template controller')
   .addAction('prepend if+repeat', ctx => {
@@ -440,7 +441,7 @@ boundTemplateCtrl.addActionSlot('bound template controller')
 
 boundTemplateCtrl.addActionSlot('act')
   .addAction('1', ctx => {
-    const { b: au, c: cs, d: host, e: app } = ctx;
+    const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
     const component = <any>new app();
     component.$1 = '1';
@@ -454,7 +455,7 @@ boundTemplateCtrl.addActionSlot('act')
     expect(host.textContent).to.equal('123'.repeat(4));
   })
   .addAction('2', ctx => {
-    const { b: au, c: cs, d: host, e: app } = ctx;
+    const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
     const component = new app();
     component.$1 = '1';

@@ -1,6 +1,6 @@
-import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, ThrottleBindingBehavior, IsBindingBehavior } from '../../src/index';
+import { IExpression, IObserverLocator, Binding, LifecycleFlags, IScope, BindingMode, ThrottleBindingBehavior, IsBindingBehavior } from '../../src/index';
 import { expect } from 'chai';
-import { IContainer } from '../../../kernel/src/index';
+import { IContainer, DI } from '../../../kernel/src/index';
 
 describe('ThrottleBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;
@@ -8,16 +8,16 @@ describe('ThrottleBindingBehavior', () => {
   let targetProperty: string;
   let mode: BindingMode;
   let observerLocator: IObserverLocator;
-  let container: IContainer;
+  let container: IContainer = DI.createContainer();
   let sut: ThrottleBindingBehavior;
   let binding: Binding;
-  let flags: BindingFlags;
+  let flags: LifecycleFlags;
   let scope: IScope;
   let originalFn: Function;
 
   beforeEach(() => {
     sut = new ThrottleBindingBehavior();
-    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
+    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, <any>container);
     originalFn = binding.updateTarget;
     sut.bind(flags, scope, <any>binding);
   });

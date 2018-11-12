@@ -1,4 +1,4 @@
-import { LifecycleState, IRuntimeBehavior, LifecycleHooks, ICustomAttributeType, IRenderingEngine } from '../../../src/index';
+import { State, Hooks, ICustomAttributeType, IRenderingEngine } from '../../../src/index';
 import { eachCartesianJoin } from '../util';
 import { CustomAttribute, createCustomAttribute } from './custom-attribute._builder';
 import { expect } from 'chai';
@@ -7,11 +7,11 @@ describe('@customAttribute', () => {
 
   describe('$hydrate', () => {
 
-    const behaviorSpecs = [
+    const hooksSpecs = [
       {
         description: '$behavior.hasCreated: true',
         expectation: 'calls created()',
-        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasCreated }; },
+        getHooks() { return Hooks.hasCreated },
         verifyBehaviorInvocation(sut: CustomAttribute) {
           sut.verifyCreatedCalled();
           sut.verifyNoFurtherCalls();
@@ -20,17 +20,17 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasCreated: false',
         expectation: 'does NOT call created()',
-        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.none }; },
+        getHooks() { return Hooks.none },
         verifyBehaviorInvocation(sut: CustomAttribute) {
           sut.verifyNoFurtherCalls();
         }
       }
     ];
 
-    eachCartesianJoin([behaviorSpecs],
-      (behaviorSpec) => {
+    eachCartesianJoin([hooksSpecs],
+      (hooksSpec) => {
 
-      it(`sets properties, applies runtime behavior and ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+      it(`sets properties, applies runtime behavior and ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
         // Arrange
         const { Type, sut } = createCustomAttribute();
 
@@ -38,7 +38,7 @@ describe('@customAttribute', () => {
         let appliedInstance: CustomAttribute;
         const renderingEngine: IRenderingEngine = <any>{
           applyRuntimeBehavior(type: ICustomAttributeType, instance: CustomAttribute) {
-            instance.$behavior = behaviorSpec.getBehavior();
+            instance.$hooks = hooksSpec.getHooks();
             appliedType = type;
             appliedInstance = instance;
           }
@@ -49,12 +49,12 @@ describe('@customAttribute', () => {
 
         // Assert
         expect(sut).to.not.have.$state.isAttached('sut.$isAttached');
-        expect(sut.$state & LifecycleState.isBound).to.equal(0, 'sut.$isBound');
+        expect(sut.$state & State.isBound).to.equal(0, 'sut.$isBound');
         expect(sut.$scope).to.equal(null, 'sut.$scope');
 
         expect(appliedType).to.equal(Type, 'appliedType');
         expect(appliedInstance).to.equal(sut, 'appliedInstance');
-        behaviorSpec.verifyBehaviorInvocation(sut);
+        hooksSpec.verifyBehaviorInvocation(sut);
       });
     });
   });

@@ -1,5 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, CollectionKind, IChangeSet, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
 const proto = Array.prototype;
 export const nativePush = proto.push; // TODO: probably want to make these internal again
@@ -27,7 +28,7 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
     this[i] = arguments[i - len]; o.indexMap[i] = - 2;
     i++;
   }
-  o.callSubscribers('push', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('push', arguments, LifecycleFlags.isCollectionMutation);
   return this.length;
 }
 
@@ -45,7 +46,7 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift> 
   }
   nativeUnshift.apply(o.indexMap, inserts);
   const len = nativeUnshift.apply(this, arguments);
-  o.callSubscribers('unshift', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('unshift', arguments, LifecycleFlags.isCollectionMutation);
   return len;
 }
 
@@ -63,7 +64,7 @@ function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativePop.call(indexMap);
-  o.callSubscribers('pop', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('pop', arguments, LifecycleFlags.isCollectionMutation);
   return element;
 }
 
@@ -80,7 +81,7 @@ function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativeShift.call(indexMap);
-  o.callSubscribers('shift', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('shift', arguments, LifecycleFlags.isCollectionMutation);
   return element;
 }
 
@@ -114,7 +115,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
     nativeSplice.call(indexMap, start, deleteCount);
   }
   const deleted = nativeSplice.apply(this, arguments);
-  o.callSubscribers('splice', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('splice', arguments, LifecycleFlags.isCollectionMutation);
   return deleted;
 }
 
@@ -135,7 +136,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
     this[upper] = lowerValue; o.indexMap[upper] = lowerIndex;
     lower++;
   }
-  o.callSubscribers('reverse', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('reverse', arguments, LifecycleFlags.isCollectionMutation);
   return this;
 }
 
@@ -162,7 +163,7 @@ function observeSort(this: IObservedArray, compareFn?: (a: IIndexable | Primitiv
     compareFn = sortCompare;
   }
   quickSort(this, o.indexMap, 0, i, compareFn);
-  o.callSubscribers('sort', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('sort', arguments, LifecycleFlags.isCollectionMutation);
   return this;
 }
 
@@ -323,18 +324,17 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 @collectionObserver(CollectionKind.array)
 export class ArrayObserver implements ArrayObserver {
   public resetIndexMap: () => void;
-  public changeSet: IChangeSet;
 
   public collection: IObservedArray;
 
-  constructor(changeSet: IChangeSet, array: IObservedArray) {
-    this.changeSet = changeSet;
+  constructor(lifecycle: ILifecycle, array: IObservedArray) {
+    this.lifecycle = lifecycle;
     array.$observer = this;
     this.collection = array;
     this.resetIndexMap();
   }
 }
 
-export function getArrayObserver(changeSet: IChangeSet, array: IObservedArray): ArrayObserver {
-  return (array.$observer as ArrayObserver) || new ArrayObserver(changeSet, array);
+export function getArrayObserver(lifecycle: ILifecycle, array: IObservedArray): ArrayObserver {
+  return (array.$observer as ArrayObserver) || new ArrayObserver(lifecycle, array);
 }

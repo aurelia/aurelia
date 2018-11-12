@@ -1,7 +1,7 @@
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { IBindScope, LifecycleState } from '../lifecycle';
-import { BindingFlags, IScope } from '../observation';
+import { IBindScope, State } from '../lifecycle';
+import { IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
@@ -12,7 +12,7 @@ export class Listener implements IBinding {
   public $nextBind: IBindScope = null;
   public $prevBind: IBindScope = null;
 
-  public $state: LifecycleState = LifecycleState.none;
+  public $state: State = State.none;
 
   public $scope: IScope;
 
@@ -25,14 +25,13 @@ export class Listener implements IBinding {
     public target: INode,
     public preventDefault: boolean,
     private eventManager: IEventManager,
-    public locator: IServiceLocator
-  ) { }
+    public locator: IServiceLocator) { }
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;
     overrideContext['$event'] = event;
 
-    const result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.$scope, this.locator);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
 
     delete overrideContext['$event'];
 
@@ -47,16 +46,16 @@ export class Listener implements IBinding {
     this.callSource(event);
   }
 
-  public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$state & LifecycleState.isBound) {
+  public $bind(flags: LifecycleFlags, scope: IScope): void {
+    if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind(flags | BindingFlags.fromBind);
+      this.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
-    this.$state |= LifecycleState.isBinding;
+    this.$state |= State.isBinding;
 
     this.$scope = scope;
 
@@ -73,16 +72,16 @@ export class Listener implements IBinding {
     );
 
     // add isBound flag and remove isBinding flag
-    this.$state |= LifecycleState.isBound;
-    this.$state &= ~LifecycleState.isBinding;
+    this.$state |= State.isBound;
+    this.$state &= ~State.isBinding;
   }
 
-  public $unbind(flags: BindingFlags): void {
-    if (!(this.$state & LifecycleState.isBound)) {
+  public $unbind(flags: LifecycleFlags): void {
+    if (!(this.$state & State.isBound)) {
       return;
     }
     // add isUnbinding flag
-    this.$state |= LifecycleState.isUnbinding;
+    this.$state |= State.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
@@ -94,10 +93,10 @@ export class Listener implements IBinding {
     this.handler = null;
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
+    this.$state &= ~(State.isBound | State.isUnbinding);
   }
   // tslint:disable:no-empty no-any
   public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }
-  public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void { }
+  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void { }
   // tslint:enable:no-empty no-any
 }

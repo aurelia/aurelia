@@ -1,4 +1,4 @@
-import { IObserverLocator, IChangeSet, SelectValueObserver, BindingFlags, DOM } from '../../src/index';
+import { IObserverLocator, ILifecycle, SelectValueObserver, LifecycleFlags, DOM } from '../../src/index';
 import { createElement, _, eachCartesianJoin, eachCartesianJoinFactory, h, verifyEqual } from '../unit/util';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
@@ -13,15 +13,15 @@ describe('SelectValueObserver', () => {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const container = DI.createContainer();
     const observerLocator = <IObserverLocator>container.get(IObserverLocator);
-    const changeSet = <IChangeSet>container.get(IChangeSet);
+    const lifecycle = container.get(ILifecycle);
     const optionElements = options.map(o => `<option value="${o}">${o}</option>`).join('\n');
     const markup = `<select ${multiple ? 'multiple' : ''}>\n${optionElements}\n</select>`;
     const el = <HTMLSelectElement>createElement(markup);
     const sut = <SelectValueObserver>observerLocator.getObserver(el, 'value');
-    sut.setValue(initialValue, BindingFlags.none);
-    changeSet.flushChanges();
+    sut.setValue(initialValue, LifecycleFlags.none);
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    return { changeSet, el, sut };
+    return { lifecycle, el, sut };
   }
 
   describe('setValue()', () => {
@@ -32,14 +32,14 @@ describe('SelectValueObserver', () => {
       for (const initial of initialArr) {
         for (const next of nextArr) {
           it(`sets 'value' from "${initial}" to "${next}"`, () => {
-            const { changeSet, el, sut } = createFixture(initial, values);
+            const { lifecycle, el, sut } = createFixture(initial, values);
 
-            changeSet.flushChanges();
+            lifecycle.processFlushQueue(LifecycleFlags.none);
             expect(el.value).to.equal(initial);
 
             el.options.item(values.indexOf(next)).selected = true;
 
-            changeSet.flushChanges();
+            lifecycle.processFlushQueue(LifecycleFlags.none);
             expect(el.value).to.equal(next);
           });
         }
@@ -244,7 +244,7 @@ describe('SelectValueObserver', () => {
       function createMutiSelectSut(initialValue: Anything[], options: SelectValidChild[]) {
         const container = DI.createContainer();
         const observerLocator = <IObserverLocator>container.get(IObserverLocator);
-        // const changeSet = <IChangeSet>container.get(IChangeSet);
+        // const lifecycle = <ILifecycle>container.get(ILifecycle);
         const el = select(...options);
         const sut = <SelectValueObserver>observerLocator.getObserver(el, 'value');
         sut.oldValue = sut.currentValue = initialValue;

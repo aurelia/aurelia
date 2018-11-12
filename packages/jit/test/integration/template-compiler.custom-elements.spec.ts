@@ -1,10 +1,12 @@
 import { expect } from "chai";
 import { tearDown, createCustomElement, setupAndStart, TestConfiguration, cleanup } from "./prepare";
-import { customElement, bindable, IChangeSet, Aurelia, Binding, SetterObserver, PropertyAccessor, ElementPropertyAccessor, Observer } from "@aurelia/runtime";
+import { customElement, bindable, Aurelia, Binding, SetterObserver, PropertyAccessor, ElementPropertyAccessor, Observer } from '../../../runtime/src/index';;
 import { DI } from "@aurelia/kernel";
 import { BasicConfiguration } from "../../src";
 import { h } from "./util";
 import { InterpolationBinding } from "../../../runtime/src/binding/interpolation-binding";
+import { ILifecycle } from '../../../runtime/src/index';
+import { LifecycleFlags } from '../../../runtime/src/index';
 
 // TemplateCompiler - custom element integration
 describe('template-compiler.custom-elements', () => {
@@ -13,11 +15,11 @@ describe('template-compiler.custom-elements', () => {
 
   // custom elements
   it('01.', () => {
-    const { au, host, cs, component } = setupAndStart(`<template><name-tag name="bigopon"></name-tag></template>`, null);
+    const { au, lifecycle, host, component } = setupAndStart(`<template><name-tag name="bigopon"></name-tag></template>`, null);
 
     expect(host.textContent).to.equal('bigopon');
 
-    tearDown(au, cs, host);
+    tearDown(au, lifecycle, host);
   });
 
   //[as-element]
@@ -25,26 +27,26 @@ describe('template-compiler.custom-elements', () => {
 
     //works with custom element with [as-element]
     it('01.', () => {
-      const { au, host, cs, component } = setupAndStart(`<template><div as-element="name-tag" name="bigopon"></div></template>`, null);
+      const { au, lifecycle, host, component } = setupAndStart(`<template><div as-element="name-tag" name="bigopon"></div></template>`, null);
 
       expect(host.textContent).to.equal('bigopon');
 
-      tearDown(au, cs, host);
+      tearDown(au, lifecycle, host);
     });
 
     //ignores tag name
     it('02.', () => {
-      const { au, host, cs, component } = setupAndStart(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, null);
+      const { au, lifecycle, host, component } = setupAndStart(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, null);
 
       expect(host.textContent).to.equal('Fred');
 
-      tearDown(au, cs, host);
+      tearDown(au, lifecycle, host);
     });
   });
 
   //<let/>
   it('03.', () => {
-    const { au, host, cs, component } = setupAndStart('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
+    const { au, lifecycle, host, component } = setupAndStart('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
     expect(host.textContent).to.equal('undefined undefined');
 
     component.firstName = 'bi';
@@ -52,23 +54,23 @@ describe('template-compiler.custom-elements', () => {
 
     expect(host.textContent).to.equal('undefined undefined');
 
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(host.textContent).to.equal('bi go');
 
-    tearDown(au, cs, host);
+    tearDown(au, lifecycle, host);
   });
 
   //<let [to-view-model] />
   it('04.', () => {
-    const { au, host, cs, component } = setupAndStart('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
+    const { au, lifecycle, host, component } = setupAndStart('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
     component.firstName = 'bi';
     expect(component.fullName).to.equal('bi undefined');
     component.lastName = 'go';
     expect(component.fullName).to.equal('bi go');
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('bi go');
-    tearDown(au, cs, host);
+    tearDown(au, lifecycle, host);
   });
 
   //initial values propagate through multiple nested custom elements connected via bindables
@@ -165,8 +167,8 @@ describe('template-compiler.custom-elements', () => {
 
     const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
     const container = DI.createContainer();
+    const lifecycle = container.get(ILifecycle);
     container.register(...customElementCtors);
-    const cs = container.get<IChangeSet>(IChangeSet);
     container.register(TestConfiguration, BasicConfiguration)
     const host = document.createElement('app');
     document.body.appendChild(host);
@@ -257,17 +259,17 @@ describe('template-compiler.custom-elements', () => {
       i++;
     }
 
-    expect(cs.size).to.equal(0);
+    expect(lifecycle['flushCount']).to.equal(0);
     expect(host.textContent).to.equal('w00t'.repeat(6));
 
     component.value = 'w00t00t';
     expect(current.value).to.equal('w00t00t');
     expect(host.textContent).to.equal('w00t'.repeat(6));
-    expect(cs.size).to.equal(6);
+    expect(lifecycle['flushCount']).to.equal(6);
 
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('w00t00t'.repeat(6));
-    tearDown(au, cs, host);
+    tearDown(au, lifecycle, host);
   });
 
   function template(attrs: Record<string, any> | null, ...children: Element[]) {

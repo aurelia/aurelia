@@ -1,11 +1,12 @@
 import {
   ValueAttributeObserver,
   IObserverLocator,
-  IChangeSet,
-  BindingFlags,
+  ILifecycle,
+  LifecycleFlags,
   Binding,
   IBindingTargetObserver,
   IPropertySubscriber,
+  Lifecycle,
 } from '../../src/index';
 import { createElement, _ } from '../unit/util';
 import { expect } from 'chai';
@@ -34,8 +35,8 @@ describe('ValueAttributeObserver', () => {
     describe(`setValue() - type="${inputType}"`, () => {
       function setup(hasSubscriber: boolean) {
         const container = DI.createContainer();
-        const changeSet = <IChangeSet>container.get(IChangeSet);
-        const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+        const lifecycle = container.get(ILifecycle) as Lifecycle;
+        const observerLocator = container.get(IObserverLocator);
 
         const el = <HTMLInputElement>createElement(`<input type="${inputType}"/>`);
         document.body.appendChild(el);
@@ -47,10 +48,10 @@ describe('ValueAttributeObserver', () => {
           sut.subscribe(subscriber);
         }
 
-        return { container, changeSet, observerLocator, el, sut, subscriber };
+        return { container, lifecycle, observerLocator, el, sut, subscriber };
       }
 
-      function tearDown({ sut, changeSet, el }: Partial<ReturnType<typeof setup>>) {
+      function tearDown({ sut, lifecycle, el }: Partial<ReturnType<typeof setup>>) {
         document.body.removeChild(el);
         sut.dispose();
       }
@@ -61,7 +62,7 @@ describe('ValueAttributeObserver', () => {
 
             it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, () => {
 
-              const { sut, changeSet, el, subscriber } = setup(hasSubscriber);
+              const { sut, lifecycle, el, subscriber } = setup(hasSubscriber);
 
               const expectedValueBefore = nullValues.includes(valueBefore) ? sut.defaultValue : valueBefore;
               const expectedValueAfter = nullValues.includes(valueAfter) ? sut.defaultValue : valueAfter;
@@ -70,30 +71,30 @@ describe('ValueAttributeObserver', () => {
               const changeCountAfter = expectedValueBefore !== expectedValueAfter ? 1 : 0;
               let callCount = 0;
 
-              sut.setValue(valueBefore, BindingFlags.none);
-              expect(changeSet.size).to.equal(changeCountBefore, 'changeSet.size 1');
-              changeSet.flushChanges();
+              sut.setValue(valueBefore, LifecycleFlags.none);
+              expect(lifecycle.flushCount).to.equal(changeCountBefore, 'lifecycle.flushCount 1');
+              lifecycle.processFlushQueue(LifecycleFlags.none);
               expect(el.value).to.equal(expectedValueBefore, 'el.value 1');
               expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
               if (hasSubscriber && changeCountBefore) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LifecycleFlags.fromSyncFlush | LifecycleFlags.updateTargetInstance);
               }
 
-              sut.setValue(valueAfter, BindingFlags.none);
-              expect(changeSet.size).to.equal(changeCountAfter, 'changeSet.size 2');
-              changeSet.flushChanges();
+              sut.setValue(valueAfter, LifecycleFlags.none);
+              expect(lifecycle.flushCount).to.equal(changeCountAfter, 'lifecycle.flushCount 2');
+              lifecycle.processFlushQueue(LifecycleFlags.none);
               expect(el.value).to.equal(expectedValueAfter, 'el.value 2');
               expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
               if (hasSubscriber && changeCountAfter) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LifecycleFlags.fromSyncFlush | LifecycleFlags.updateTargetInstance);
               }
               if (hasSubscriber) {
                 expect((<SinonSpy>subscriber.handleChange).getCalls().length).to.equal(callCount);
               }
 
-              tearDown({ sut, changeSet, el });
+              tearDown({ sut, lifecycle, el });
             });
           }
         }
@@ -140,7 +141,7 @@ describe('ValueAttributeObserver', () => {
               expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
               if (expectedValueBefore !== '') {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, BindingFlags.updateSourceExpression | BindingFlags.fromDOMEvent);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LifecycleFlags.updateSourceExpression | LifecycleFlags.fromDOMEvent);
               }
 
               el.value = valueAfter;
@@ -149,7 +150,7 @@ describe('ValueAttributeObserver', () => {
               expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
               if (expectedValueBefore !== expectedValueAfter) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, BindingFlags.updateSourceExpression | BindingFlags.fromDOMEvent);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LifecycleFlags.updateSourceExpression | LifecycleFlags.fromDOMEvent);
               }
               expect((<SinonSpy>subscriber.handleChange).getCalls().length).to.equal(callCount);
 

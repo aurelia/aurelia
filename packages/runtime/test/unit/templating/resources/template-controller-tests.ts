@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { Constructable } from '../../../../../kernel/src/index';
-import { BindingFlags, Lifecycle, LifecycleFlags, IAttach, IView, LinkedChangeList } from '../../../../src/index';
+import { LifecycleFlags, IAttach, IView, Lifecycle } from '../../../../src/index';
 import { ViewFake } from '../fakes/view-fake';
 import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';
@@ -9,7 +9,6 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
   Type: T,
   getChildView: (attribute: InstanceType<T>) => IView
   ) {
-    const cs = new LinkedChangeList();
 
   it('creates a child instance from its template', () => {
     const { attribute } = hydrateCustomAttribute(Type);
@@ -19,22 +18,24 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
   });
 
   it('enforces the attach lifecycle of its child instance', () => {
-    const { attribute } = hydrateCustomAttribute(Type);
+    const lifecycle = new Lifecycle();
+    const { attribute } = hydrateCustomAttribute(Type, { lifecycle });
     const child = getChildView(attribute);
 
     let attachCalled = false;
     child.$attach = function() { attachCalled = true; };
 
-    runAttachLifecycle(attribute);
+    runAttachLifecycle(lifecycle, attribute);
 
     expect(attachCalled).to.be.true;
   });
 
   it('adds a child instance at the render location when attaching', () => {
-    const { attribute, location } = hydrateCustomAttribute(Type);
+    const lifecycle = new Lifecycle();
+    const { attribute, location } = hydrateCustomAttribute(Type, { lifecycle });
     const child = getChildView(attribute);
 
-    runAttachLifecycle(attribute);
+    runAttachLifecycle(lifecycle, attribute);
 
     expect(location.previousSibling)
       .to.be.equal(child.$nodes.lastChild);
@@ -47,20 +48,21 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
     let bindCalled = false;
     child.$bind = function() { bindCalled = true; };
 
-    attribute.$bind(BindingFlags.fromBind, createScope());
+    attribute.$bind(LifecycleFlags.fromBind, createScope());
 
     expect(bindCalled).to.be.true;
   });
 
   it('enforces the detach lifecycle of its child instance', () => {
-    const { attribute } = hydrateCustomAttribute(Type);
+    const lifecycle = new Lifecycle();
+    const { attribute } = hydrateCustomAttribute(Type, { lifecycle });
     const child = getChildView(attribute);
 
     let detachCalled = false;
     child.$detach = function() { detachCalled = true; };
 
-    runAttachLifecycle(attribute);
-    runDetachLifecycle(attribute);
+    runAttachLifecycle(lifecycle, attribute);
+    runDetachLifecycle(lifecycle, attribute);
 
     expect(detachCalled).to.be.true;
   });
@@ -72,21 +74,21 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
     let unbindCalled = false;
     child.$unbind = function() { unbindCalled = true; };
 
-    attribute.$bind(BindingFlags.fromBind, createScope());
-    attribute.$unbind(BindingFlags.fromUnbind);
+    attribute.$bind(LifecycleFlags.fromBind, createScope());
+    attribute.$unbind(LifecycleFlags.fromUnbind);
 
     expect(unbindCalled).to.be.true;
   });
 
-  function runAttachLifecycle(item: IAttach) {
-    const attachLifecycle = Lifecycle.beginAttach(cs, null, LifecycleFlags.none);
-    attachLifecycle.attach(item);
-    attachLifecycle.end();
+  function runAttachLifecycle(lifecycle: Lifecycle, item: IAttach) {
+    lifecycle.beginAttach();
+    item.$attach(LifecycleFlags.none);
+    lifecycle.endAttach(LifecycleFlags.none);
   }
 
-  function runDetachLifecycle(item: IAttach) {
-    const detachLifecycle = Lifecycle.beginDetach(cs, LifecycleFlags.none);
-    detachLifecycle.detach(item);
-    detachLifecycle.end();
+  function runDetachLifecycle(lifecycle: Lifecycle, item: IAttach) {
+    lifecycle.beginDetach();
+    item.$detach(LifecycleFlags.none);
+    lifecycle.endDetach(LifecycleFlags.none);
   }
 }

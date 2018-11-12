@@ -1,6 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { IBindScope, LifecycleState } from '../lifecycle';
-import { BindingFlags, IScope } from '../observation';
+import { IBindScope, State } from '../lifecycle';
+import { IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { IConnectableBinding } from './connectable';
@@ -10,26 +10,25 @@ export class Ref implements IBinding {
   public $nextBind: IBindScope = null;
   public $prevBind: IBindScope = null;
 
-  public $state: LifecycleState = LifecycleState.none;
+  public $state: State = State.none;
 
   public $scope: IScope;
 
   constructor(
     public sourceExpression: IsBindingBehavior,
     public target: IBindingTarget,
-    public locator: IServiceLocator) {
-  }
+    public locator: IServiceLocator) { }
 
-  public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$state & LifecycleState.isBound) {
+  public $bind(flags: LifecycleFlags, scope: IScope): void {
+    if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind(flags | BindingFlags.fromBind);
+      this.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
-    this.$state |= LifecycleState.isBinding;
+    this.$state |= State.isBinding;
 
     this.$scope = scope;
 
@@ -41,16 +40,16 @@ export class Ref implements IBinding {
     this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
 
     // add isBound flag and remove isBinding flag
-    this.$state |= LifecycleState.isBound;
-    this.$state &= ~LifecycleState.isBinding;
+    this.$state |= State.isBound;
+    this.$state &= ~State.isBinding;
   }
 
-  public $unbind(flags: BindingFlags): void {
-    if (!(this.$state & LifecycleState.isBound)) {
+  public $unbind(flags: LifecycleFlags): void {
+    if (!(this.$state & State.isBound)) {
       return;
     }
     // add isUnbinding flag
-    this.$state |= LifecycleState.isUnbinding;
+    this.$state |= State.isUnbinding;
 
     if (this.sourceExpression.evaluate(flags, this.$scope, this.locator) === this.target) {
       this.sourceExpression.assign(flags, this.$scope, this.locator, null);
@@ -64,10 +63,10 @@ export class Ref implements IBinding {
     this.$scope = null;
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(LifecycleState.isBound | LifecycleState.isUnbinding);
+    this.$state &= ~(State.isBound | State.isUnbinding);
   }
   // tslint:disable:no-empty no-any
   public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }
-  public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void { }
+  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void { }
   // tslint:enable:no-empty no-any
 }

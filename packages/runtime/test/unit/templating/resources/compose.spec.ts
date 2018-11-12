@@ -1,19 +1,11 @@
 import { expect } from 'chai';
 import { hydrateCustomElement } from '../behavior-assistance';
-import { DOM, IViewFactory, customElement, ITemplateDefinition, BindingFlags, Lifecycle, LifecycleFlags, IAttach, LinkedChangeList, RenderPlan, Compose } from '../../../../src/index';
+import { DOM, IViewFactory, customElement, ITemplateDefinition, LifecycleFlags, IAttach, Lifecycle, RenderPlan, Compose, CustomElementResource } from '../../../../src/index';
 import { ViewFactoryFake } from '../fakes/view-factory-fake';
 
 describe('The "compose" custom element', () => {
   // this is not ideal (same instance will be reused for multiple loops) but probably fine
   // need to revisit this later to give this extra dep a clean atomic entry point for the tests
-  let cs: LinkedChangeList;
-  beforeEach(() => {
-    cs = new LinkedChangeList();
-  });
-
-  @customElement(createTemplateDefinition())
-  class MyCustomElement {}
-
   const subjectPossibilities = [
     {
       description: 'Template Definition',
@@ -29,14 +21,14 @@ describe('The "compose" custom element', () => {
     },
     {
       description: 'View',
-      create() {
-        return createViewFactory().create();
+      create(lifecycle: Lifecycle) {
+        return createViewFactory(lifecycle).create();
       }
     },
     {
       description: 'Custom Element Constructor',
-      create() {
-        return MyCustomElement;
+      create(lifecycle: Lifecycle) {
+        return CustomElementResource.define(createTemplateDefinition(lifecycle), class MyCustomElement {});
       }
     }
   ];
@@ -55,7 +47,8 @@ describe('The "compose" custom element', () => {
   for (let subjectPossibility of subjectPossibilities) {
     for(let producerPossibility of producerPossibilities) {
       it(`can compose a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-        const value = producerPossibility.create(subjectPossibility.create());
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
         const { element } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
@@ -67,7 +60,8 @@ describe('The "compose" custom element', () => {
       });
 
       it(`enforces the attach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-        const value = producerPossibility.create(subjectPossibility.create());
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
         const { element, parent } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
@@ -75,7 +69,7 @@ describe('The "compose" custom element', () => {
           let attachCalled = false;
           child.$attach = function() { attachCalled = true; };
 
-          runAttachLifecycle(element, parent);
+          runAttachLifecycle(lifecycle, element, parent);
 
           expect(attachCalled).to.be.true;
         }, done);
@@ -84,13 +78,14 @@ describe('The "compose" custom element', () => {
       });
 
       it(`adds a view at the render location when attaching a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-        const value = producerPossibility.create(subjectPossibility.create());
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
         const { element, parent } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
           const location = element.$projector.host;
 
-          runAttachLifecycle(element, parent);
+          runAttachLifecycle(lifecycle, element, parent);
 
           expect(location.previousSibling)
             .to.be.equal(getCurrentView(element).$nodes.lastChild);
@@ -100,7 +95,8 @@ describe('The "compose" custom element', () => {
       });
 
       it(`enforces the bind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-        const value = producerPossibility.create(subjectPossibility.create());
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
         const { element } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
@@ -109,7 +105,7 @@ describe('The "compose" custom element', () => {
           let bindCalled = false;
           child.$bind = function() { bindCalled = true; };
 
-          element.$bind(BindingFlags.fromBind);
+          element.$bind(LifecycleFlags.fromBind);
 
           expect(bindCalled).to.be.true;
         }, done);
@@ -118,7 +114,8 @@ describe('The "compose" custom element', () => {
       });
 
       it(`enforces the detach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-        const value = producerPossibility.create(subjectPossibility.create());
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
         const { element, parent } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
@@ -126,8 +123,8 @@ describe('The "compose" custom element', () => {
           let detachCalled = false;
           child.$detach = function() { detachCalled = true; };
 
-          runAttachLifecycle(element, parent);
-          runDetachLifecycle(element);
+          runAttachLifecycle(lifecycle, element, parent);
+          runDetachLifecycle(lifecycle, element);
 
           expect(detachCalled).to.be.true;
         }, done);
@@ -136,7 +133,8 @@ describe('The "compose" custom element', () => {
       });
 
       it(`enforces the unbind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
-        const value = producerPossibility.create(subjectPossibility.create());
+        const lifecycle = new Lifecycle();
+        const value = producerPossibility.create(subjectPossibility.create(lifecycle));
         const { element } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
@@ -144,8 +142,8 @@ describe('The "compose" custom element', () => {
           let unbindCalled = false;
           child.$unbind = function() { unbindCalled = true; };
 
-          element.$bind(BindingFlags.fromBind);
-          element.$unbind(BindingFlags.fromUnbind);
+          element.$bind(LifecycleFlags.fromBind);
+          element.$unbind(LifecycleFlags.fromUnbind);
 
           expect(unbindCalled).to.be.true;
         }, done);
@@ -157,8 +155,9 @@ describe('The "compose" custom element', () => {
 
   for (let producer of producerPossibilities) {
     it(`can swap between views ${producer.description}`, done => {
-      const view1 = createViewFactory().create();
-      const view2 = createViewFactory().create();
+      const lifecycle = new Lifecycle();
+      const view1 = createViewFactory(lifecycle).create();
+      const view2 = createViewFactory(lifecycle).create();
       const { element } = hydrateCustomElement(Compose);
 
       waitForCompositionEnd(element, () => {
@@ -186,21 +185,28 @@ describe('The "compose" custom element', () => {
   for(let value of noSubjectValues) {
     for (let producer of producerPossibilities) {
       it(`clears out the view when the subject is ${value} ${producer.description}`, done => {
-        const view1 = createViewFactory().create();
-        const { element, parent } = hydrateCustomElement(Compose);
+        const lifecycle = new Lifecycle();
+        const view1 = createViewFactory(lifecycle).create();
+        const { element, parent } = hydrateCustomElement(Compose, { lifecycle });
         const location = element.$projector.host;
 
         waitForCompositionEnd(element, () => {
-          runAttachLifecycle(element, parent);
+          runAttachLifecycle(lifecycle, element, parent);
 
-          expect(location.previousSibling)
-            .to.be.equal(getCurrentView(element).$nodes.lastChild);
+          const currentView = getCurrentView(element);
+          if (location.previousSibling !== currentView.$nodes.lastChild) {
+            throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
+              location.previousSibling && location.previousSibling.textContent || "NULL"
+            }") to equal currentView.$nodes.lastChild (with textContent "${
+              currentView.$nodes.lastChild && currentView.$nodes.lastChild.textContent || "NULL"
+            }")`)
+          }
 
           let detachCalled = false;
           const detach = view1.$detach;
-          view1.$detach = function(lifecycle) {
+          view1.$detach = function() {
             detachCalled = true;
-            detach.apply(view1, [lifecycle]);
+            detach.apply(view1, [LifecycleFlags.none]);
           };
 
           let unbindCalled = false;
@@ -209,7 +215,13 @@ describe('The "compose" custom element', () => {
           waitForCompositionEnd(element, () => {
             expect(unbindCalled).to.be.true;
             expect(detachCalled).to.be.true;
-            expect(location.previousSibling).to.equal(location.$start);
+            if (location.previousSibling !== location.$start) {
+              throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
+                location.previousSibling && location.previousSibling.textContent || "NULL"
+              }") to equal location.$start (with textContent "${
+                location.$start && location.$start.textContent || "NULL"
+              }")`)
+            }
           }, done);
 
           element.subject = producer.create(value);
@@ -224,16 +236,17 @@ describe('The "compose" custom element', () => {
     return compose['coordinator']['currentView'];
   }
 
-  function runAttachLifecycle(item: IAttach, encapsulationSource = null) {
-    const attachLifecycle = Lifecycle.beginAttach(cs, encapsulationSource, LifecycleFlags.none);
-    attachLifecycle.attach(item);
-    attachLifecycle.end();
+
+  function runAttachLifecycle(lifecycle: Lifecycle, item: IAttach, encapsulationSource = null) {
+    lifecycle.beginAttach();
+    item.$attach(LifecycleFlags.none);
+    lifecycle.endAttach(LifecycleFlags.none);
   }
 
-  function runDetachLifecycle(item: IAttach) {
-    const detachLifecycle = Lifecycle.beginDetach(cs, LifecycleFlags.none);
-    detachLifecycle.detach(item);
-    detachLifecycle.end();
+  function runDetachLifecycle(lifecycle: Lifecycle, item: IAttach) {
+    lifecycle.beginDetach();
+    item.$detach(LifecycleFlags.none);
+    lifecycle.endDetach(LifecycleFlags.none);
   }
 
   function waitForCompositionEnd(element: Compose, callback: () => void, done?: () => void) {
@@ -252,11 +265,11 @@ describe('The "compose" custom element', () => {
     };
   }
 
-  function createViewFactory(): IViewFactory {
-    return new ViewFactoryFake();
+  function createViewFactory(lifecycle: Lifecycle): IViewFactory {
+    return new ViewFactoryFake(lifecycle);
   }
 
-  function createPotentialRenderable(): RenderPlan {
+  function createPotentialRenderable(lifecycle: Lifecycle): RenderPlan {
     return new RenderPlan(
       DOM.createElement('div'),
       [],
@@ -264,7 +277,7 @@ describe('The "compose" custom element', () => {
     );
   }
 
-  function createTemplateDefinition(): ITemplateDefinition {
+  function createTemplateDefinition(lifecycle: Lifecycle): ITemplateDefinition {
     return {
       name: 'dynamic',
       template: `

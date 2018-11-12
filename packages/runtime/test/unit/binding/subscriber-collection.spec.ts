@@ -1,4 +1,4 @@
-import { BindingFlags, subscriberCollection, MutationKind } from '../../../src/index';
+import { LifecycleFlags, subscriberCollection, MutationKind } from '../../../src/index';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 
@@ -7,7 +7,7 @@ class Test {}
 
 describe('subscriberCollection', () => {
   it('calls subscribers', () => {
-    const flags = BindingFlags.updateSourceExpression;
+    const flags = LifecycleFlags.updateSourceExpression;
     const observer = new Test();
     const observer2 = new Test();
 

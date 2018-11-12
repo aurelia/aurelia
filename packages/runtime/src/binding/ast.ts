@@ -152,7 +152,7 @@ export function isLiteral(expr: IsExpressionOrStatement): expr is IsLiteral {
   return (expr.$kind & ExpressionKind.IsLiteral) === ExpressionKind.IsLiteral;
 }
 export function arePureLiterals(expressions: ReadonlyArray<IsExpressionOrStatement>): expressions is IsLiteral[] {
-  if (expressions.length === 0) {
+  if (expressions === undefined || expressions.length === 0) {
     return true;
   }
   for (let i = 0; i < expressions.length; ++i) {

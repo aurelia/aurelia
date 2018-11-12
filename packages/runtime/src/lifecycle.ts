@@ -704,7 +704,7 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public $nextUnbound: ILifecycleUnbound = marker;
   /*@internal*/public unbound: ILifecycleUnbound['unbound'] = PLATFORM.noop;
 
-  private task: AggregateLifecycleTask = null;
+  /*@internal*/public task: AggregateLifecycleTask = null;
 
   public registerTask(task: ILifecycleTask): void {
     if (this.task === null) {
@@ -1265,18 +1265,18 @@ export const LifecycleTask = {
     canCancel(): boolean { return false; },
     // tslint:disable-next-line:no-empty
     cancel(): void {},
-    wait(): Promise<void> { return Promise.resolve(); }
+    wait(): Promise<unknown> { return Promise.resolve(); }
   }
 };
 
-export interface ILifecycleTask {
+export interface ILifecycleTask<T = unknown> {
   readonly done: boolean;
   canCancel(): boolean;
   cancel(): void;
-  wait(): Promise<void>;
+  wait(): Promise<T>;
 }
 
-export class AggregateLifecycleTask implements ILifecycleTask {
+export class AggregateLifecycleTask implements ILifecycleTask<void> {
   public done: boolean = true;
 
   /*@internal*/
@@ -1365,7 +1365,7 @@ export class AggregateLifecycleTask implements ILifecycleTask {
 }
 
 /*@internal*/
-export class PromiseSwap implements ILifecycleTask {
+export class PromiseSwap implements ILifecycleTask<IView> {
   public done: boolean = false;
   private isCancelled: boolean = false;
 
@@ -1378,7 +1378,7 @@ export class PromiseSwap implements ILifecycleTask {
     return 'start' in object;
   }
 
-  public start(): ILifecycleTask {
+  public start(): ILifecycleTask<IView | unknown> {
     if (this.isCancelled) {
       return LifecycleTask.done;
     }
@@ -1401,16 +1401,93 @@ export class PromiseSwap implements ILifecycleTask {
     }
   }
 
-  public wait(): Promise<void> {
-    return this.promise as any;
+  public wait(): Promise<IView> {
+    return this.promise;
   }
 
-  private onResolve(value: any): void {
+  private onResolve(value: IView): void {
     if (this.isCancelled) {
       return;
     }
 
     this.done = true;
     this.coordinator.compose(value, LifecycleFlags.fromLifecycleTask);
+  }
+}
+
+// tslint:disable:jsdoc-format
+/**
+ * A general-purpose ILifecycleTask implementation that can be placed
+ * before an attached, detached, bound or unbound hook during attaching,
+ * detaching, binding or unbinding, respectively.
+ *
+ * The provided promise will be awaited before the corresponding lifecycle
+ * hook (and any hooks following it) is invoked.
+ *
+ * The provided callback will be invoked after the promise is resolved
+ * and before the next lifecycle hook.
+ *
+ * Example:
+```ts
+export class MyViewModel {
+  private $lifecycle: ILifecycle; // set before created() hook
+  private answer: number;
+
+  public binding(flags: LifecycleFlags): void {
+    // this.answer === undefined
+    this.$lifecycle.registerTask(new PromiseTask(
+      this.getAnswerAsync,
+      answer => {
+        this.answer = answer;
+      }
+    ));
+  }
+
+  public bound(flags: LifecycleFlags): void {
+    // this.answer === 42
+  }
+
+  private getAnswerAsync(): Promise<number> {
+    return Promise.resolve().then(() => 42);
+  }
+}
+```
+ */
+// tslint:enable:jsdoc-format
+export class PromiseTask<T = void> implements ILifecycleTask<T> {
+  public done: boolean;
+  private isCancelled: boolean;
+  private promise: Promise<T>;
+  private callback: (result?: T) => void;
+
+  constructor(
+    promise: Promise<T>,
+    callback: (result?: T) => void
+  ) {
+    this.done = false;
+    this.isCancelled = false;
+    this.callback = callback;
+    this.promise = promise.then(value => {
+      if (this.isCancelled === true) {
+        return;
+      }
+      this.done = true;
+      this.callback(value);
+      return value;
+    });
+  }
+
+  public canCancel(): boolean {
+    return !this.done;
+  }
+
+  public cancel(): void {
+    if (this.canCancel()) {
+      this.isCancelled = true;
+    }
+  }
+
+  public wait(): Promise<T> {
+    return this.promise;
   }
 }

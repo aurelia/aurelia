@@ -1,70 +1,62 @@
 import { writeFileSync } from 'fs';
 import {
-  createCall,
-  createIdentifier,
-  createLiteral,
-  Node,
-  SourceFile,
-  Printer,
-  createSourceFile,
-  createPrinter,
-  EmitHint,
-  ScriptTarget,
-  createArrowFunction,
-  createToken,
-  SyntaxKind,
-  createBlock,
-  createFunctionExpression,
-  StringLiteral,
-  Block,
-  createNew,
-  createExpressionStatement,
-  Statement,
-  createVariableDeclaration,
-  createVariableStatement,
-  ModifierFlags,
-  createModifier,
-  createKeywordTypeNode,
-  createVariableDeclarationList,
-  NodeFlags,
-  createPropertyAccess,
-  Expression,
-  createImportDeclaration,
-  createImportClause,
-  createNamedImports,
-  createImportSpecifier,
-  createClassDeclaration,
-  createDecorator,
-  createObjectLiteral,
-  createPropertyAssignment,
-  ClassElement,
-  createPropertySignature,
-  createLiteralTypeNode,
-  createProperty,
-  createAssignment,
-  createShorthandPropertyAssignment,
-  createFunctionDeclaration,
-  createObjectBindingPattern,
-  createBindingElement,
-  createReturn,
-  createClassExpression,
-  createBinary,
-  Decorator,
-  Identifier,
-  ParameterDeclaration,
-  createParameter,
-  ObjectLiteralExpression,
-  PropertyAssignment,
   ArrayLiteralExpression,
+  ClassElement,
+  ClassExpression,
   createArrayLiteral,
-  createNoSubstitutionTemplateLiteral,
-  VariableStatement,
-  VariableDeclaration,
+  createAssignment,
+  createBindingElement,
+  createBlock,
+  createCall,
+  createClassExpression,
+  createExpressionStatement,
+  createFunctionDeclaration,
+  createFunctionExpression,
+  createIdentifier,
+  createImportClause,
+  createImportDeclaration,
+  createImportSpecifier,
+  createLiteral,
+  createMethod,
+  createModifier,
+  createNamedImports,
+  createNew,
+  createObjectBindingPattern,
+  createObjectLiteral,
+  createParameter,
+  createPrinter,
+  createProperty,
+  createPropertyAccess,
+  createPropertyAssignment,
+  createReturn,
+  createShorthandPropertyAssignment,
+  createSourceFile,
+  createVariableDeclaration,
+  createVariableDeclarationList,
+  createVariableStatement,
+  EmitHint,
+  Expression,
+  Identifier,
+  ImportDeclaration,
+  MethodDeclaration,
+  Node,
+  NodeFlags,
   ObjectLiteralElementLike,
+  ObjectLiteralExpression,
+  ParameterDeclaration,
+  Printer,
   PropertyAccessExpression,
+  PropertyDeclaration,
   ReturnStatement,
-  createMethod
+  ScriptTarget,
+  SourceFile,
+  Statement,
+  SyntaxKind,
+  VariableDeclaration,
+  VariableStatement
 } from 'typescript';
+
+// tslint:disable:unified-signatures
 
 export function emit(path: string, ...nodes: Node[]): void {
   const emptyFile: SourceFile = createSourceFile('', '', ScriptTarget.Latest);
@@ -74,26 +66,26 @@ export function emit(path: string, ...nodes: Node[]): void {
     if (node === null) {
       content += '\n';
     } else {
-      content += printer.printNode(EmitHint.Unspecified, node, emptyFile) + '\n';
+      content += `${printer.printNode(EmitHint.Unspecified, node, emptyFile)}\n`;
     }
   }
   writeFileSync(path, content.slice(0, -1), { encoding: 'utf8' });
 }
 
-export function addRange(start: number, end: number, ...records: Record<string, boolean>[]) {
+export function addRange(start: number, end: number, ...records: Record<string, boolean>[]): void {
   for (let i = start; i <= end; ++i) {
     records.forEach(r => r[String.fromCharCode(i)] = true);
   }
 }
-let identPart = {};
-let identStart = {};
+const identPart = {};
+const identStart = {};
 addRange('a'.charCodeAt(0), 'z'.charCodeAt(0), identPart, identStart);
 addRange('A'.charCodeAt(0), 'Z'.charCodeAt(0), identPart, identStart);
 addRange('$'.charCodeAt(0), '$'.charCodeAt(0), identPart, identStart);
 addRange('_'.charCodeAt(0), '_'.charCodeAt(0), identPart, identStart);
 addRange('0'.charCodeAt(0), '9'.charCodeAt(0), identPart);
 
-export function $name(input: string) {
+export function $name(input: string): string {
   let value = '';
   let first = true;
   let char: string;
@@ -218,7 +210,7 @@ export function $$const(nameOrNames: string | string[], initializer: Expression)
   let declaration: VariableDeclaration;
   if (Array.isArray(nameOrNames)) {
     const elements = nameOrNames.map(n => createBindingElement(undefined, undefined, n));
-    declaration = createVariableDeclaration(createObjectBindingPattern(elements), undefined, initializer)
+    declaration = createVariableDeclaration(createObjectBindingPattern(elements), undefined, initializer);
   } else {
     declaration = createVariableDeclaration(createIdentifier(nameOrNames), undefined, initializer);
   }
@@ -231,9 +223,9 @@ export function $expression(value: any, multiline: number = 0, level: number = 0
     const properties: ObjectLiteralElementLike[] = [];
     Object.keys(obj).forEach(key => {
       const identifier = createIdentifier(key);
-      const value = obj[key];
-      if (key === value) {
-        properties.push(createShorthandPropertyAssignment(identifier))
+      const objValue = obj[key];
+      if (key === objValue) {
+        properties.push(createShorthandPropertyAssignment(identifier));
       } else {
         const initializer = $expression(obj[key], $multiline, $level + 1);
         properties.push(createPropertyAssignment(identifier, initializer));
@@ -244,8 +236,8 @@ export function $expression(value: any, multiline: number = 0, level: number = 0
 
   function $arrayLiteral(arr: any[], $multiline: number, $level: number): ArrayLiteralExpression {
     const expressions: Expression[] = [];
-    arr.forEach(value => {
-      expressions.push($expression(value, $multiline, $level + 1));
+    arr.forEach(arrValue => {
+      expressions.push($expression(arrValue, $multiline, $level + 1));
     });
     return createArrayLiteral(expressions, $multiline > $level);
   }
@@ -258,7 +250,7 @@ export function $expression(value: any, multiline: number = 0, level: number = 0
     case '[object Number]':
     case '[object Boolean]':
     case '[object String]':
-      return createLiteral(value)
+      return createLiteral(value);
     case '[object Array]':
       return $arrayLiteral(value, multiline, level);
     case '[object Object]':
@@ -273,10 +265,10 @@ export function $expression(value: any, multiline: number = 0, level: number = 0
 }
 
 export function $$return(value: any): ReturnStatement {
-  return createReturn($expression(value))
+  return createReturn($expression(value));
 }
 
-export function $property(name: string, value?: any, isStatic?: boolean) {
+export function $property(name: string, value?: any, isStatic?: boolean): PropertyDeclaration {
   const modifiers = [];
   if (isStatic === true) {
     modifiers.push(createModifier(SyntaxKind.StaticKeyword));
@@ -287,7 +279,7 @@ export function $property(name: string, value?: any, isStatic?: boolean) {
     return createProperty([], modifiers, $id(name), undefined, undefined, value && value.escapedText ? value : $expression(value));
   }
 }
-export function $method(name: string, statements: Statement[], params?: ParameterDeclaration[], isStatic?: boolean) {
+export function $method(name: string, statements: Statement[], params?: ParameterDeclaration[], isStatic?: boolean): MethodDeclaration {
   const modifiers = [];
   if (isStatic === true) {
     modifiers.push(createModifier(SyntaxKind.StaticKeyword));
@@ -298,8 +290,8 @@ export function $method(name: string, statements: Statement[], params?: Paramete
     return createMethod([], modifiers, undefined, $id(name), undefined, undefined, params, undefined, createBlock(statements, true));
   }
 }
-export function $class(elements: ReadonlyArray<ClassElement>) {
-  return createClassExpression([], undefined, [], [], elements)
+export function $class(elements: ReadonlyArray<ClassElement>): ClassExpression {
+  return createClassExpression([], undefined, [], [], elements);
 }
 export function $functionExpr(statements: Statement[]): Expression {
   return createFunctionExpression(
@@ -310,7 +302,7 @@ export function $functionExpr(statements: Statement[]): Expression {
     [],
     undefined,
     createBlock(statements, true)
-  )
+  );
 }
 export function $$functionExpr(name: string, args: Expression[]): Statement {
   return createExpressionStatement($call(name, args));
@@ -318,7 +310,7 @@ export function $$functionExpr(name: string, args: Expression[]): Statement {
 export function $$functionDecl(name: string, statements: Statement[], parameters: ParameterDeclaration[]): Statement {
   return createFunctionDeclaration([], [], undefined, createIdentifier(name), [], parameters, undefined, createBlock(statements, true));
 }
-export function $param(name: string) {
+export function $param(name: string): ParameterDeclaration {
   return createParameter(
     [],
     [],
@@ -327,28 +319,29 @@ export function $param(name: string) {
     undefined,
     undefined,
     undefined
-  )
+  );
 }
-export function $$import(path: string, ...names: string[]) {
+export function $$import(path: string, ...names: string[]): ImportDeclaration {
   return createImportDeclaration(
     [],
     [],
     createImportClause(
       undefined,
-      createNamedImports(names.map(name => createImportSpecifier(undefined, createIdentifier(name))))),
-      createLiteral(path)
+      createNamedImports(names.map(name => createImportSpecifier(undefined, createIdentifier(name))))
+    ),
+    createLiteral(path)
   );
 }
-export function $element(name: string, inner: string, ...attributes: string[]) {
+export function $element(name: string, inner: string, ...attributes: string[]): string {
   return attributes.length
     ? `<${name} ${attributes.join(' ')}>${inner}</${name}>`
     : `<${name}>${inner}</${name}>`;
 }
-export function $div(inner: string, ...attributes: string[]) {
+export function $div(inner: string, ...attributes: string[]): string {
   return $element('div', inner, ...attributes);
 }
 $div.$name = 'div';
-export function $tpl(inner: string, ...attributes: string[]) {
+export function $tpl(inner: string, ...attributes: string[]): string {
   return $element('template', inner, ...attributes);
 }
 $tpl.$name = 'tpl';
@@ -361,4 +354,3 @@ export function $attr(create: CreateElement, ...attributes: string[]): CreateEle
   createWrapped.$name = this.$name;
   return createWrapped;
 }
-

@@ -1,4 +1,4 @@
-import { all, Constructable, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IResolver, IServiceLocator, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { all, Constructable, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IResolver, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { Interpolation } from '../binding/ast';
 import { Binding } from '../binding/binding';
 import { Scope } from '../binding/binding-context';
@@ -30,10 +30,10 @@ export interface IRenderStrategySource {
 
 export type IRenderStrategyType = IResourceType<IRenderStrategySource, IRenderStrategy>;
 
-export function renderStrategy(nameOrSource: string | IRenderStrategySource) {
-  return function<T extends Constructable>(target: T) {
-    return RenderStrategyResource.define(nameOrSource, target);
-  }
+type RenderStrategyDecorator = <T extends Constructable>(target: Decoratable<IRenderStrategy, T>) => Decorated<IRenderStrategy, T> & IRenderStrategyType;
+
+export function renderStrategy(nameOrSource: string | IRenderStrategySource): RenderStrategyDecorator {
+  return target => RenderStrategyResource.define(nameOrSource, target);
 }
 
 export const RenderStrategyResource: IResourceKind<IRenderStrategySource, IRenderStrategyType> = {
@@ -43,23 +43,27 @@ export const RenderStrategyResource: IResourceKind<IRenderStrategySource, IRende
     return `${this.name}:${name}`;
   },
 
-  isType<T extends Constructable>(type: T): type is T & IRenderStrategyType {
-    return (type as any).kind === this;
+  isType<T extends Constructable & Partial<IRenderStrategyType>>(Type: T): Type is T & IRenderStrategyType {
+    return Type.kind === this;
   },
 
   define<T extends Constructable>(nameOrSource: string | IRenderStrategySource, ctor: T): T & IRenderStrategyType {
     const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
-    const Type: T & IRenderStrategyType = ctor as any;
+    const Type = ctor as T & Writable<IRenderStrategyType>;
 
-    (Type as Writable<IRenderStrategyType>).kind = RenderStrategyResource;
-    (Type as Writable<IRenderStrategyType>).description = description;
-    Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
-    };
+    Type.kind = RenderStrategyResource;
+    Type.description = description;
+    Type.register = registerRenderStrategy;
 
-    return Type;
+    return <IRenderStrategyType & T>Type;
   }
 };
+
+/*@internal*/
+export function registerRenderStrategy(this: IRenderStrategyType, container: IContainer): void {
+  const resourceKey = RenderStrategyResource.keyFrom(this.description.name);
+  container.register(Registration.singleton(resourceKey, this));
+}
 
 export interface ITemplateCompiler {
   readonly name: string;

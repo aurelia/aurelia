@@ -6,9 +6,24 @@ export interface IEventWithStandardPropagation extends Event {
   standardStopPropagation?: Event['stopPropagation'];
 }
 
+/*@internal*/
+export type CompatibleEvent = {
+  target?: EventTarget;
+
+  // legacy
+  path?: EventTarget[];
+
+  // old composedPath
+  deepPath?(): EventTarget[];
+
+  // current spec
+  composedPath?(): EventTarget[];
+};
+
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
-function findOriginalEventTarget(event: any): IEventTargetWithLookups {
-  return (event.composedPath && event.composedPath()[0]) || (event.path && event.path[0]) || (event.deepPath && event.deepPath[0]) || event.target;
+/*@internal*/
+export function findOriginalEventTarget(event: Event & CompatibleEvent): EventTarget {
+  return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
 }
 
 function stopPropagation(this: IEventWithStandardPropagation): void {
@@ -18,7 +33,7 @@ function stopPropagation(this: IEventWithStandardPropagation): void {
 
 function handleCapturedEvent(event: IEventWithStandardPropagation): void {
   event.propagationStopped = false;
-  let target = findOriginalEventTarget(event);
+  let target: IEventTargetWithLookups = findOriginalEventTarget(event) as EventTarget & IEventTargetWithLookups;
   const orderedCallbacks = [];
   /**
    * During capturing phase, event 'bubbles' down from parent. Needs to reorder callback from root down to target
@@ -49,7 +64,7 @@ function handleCapturedEvent(event: IEventWithStandardPropagation): void {
 
 function handleDelegatedEvent(event: IEventWithStandardPropagation): void {
   event.propagationStopped = false;
-  let target = findOriginalEventTarget(event);
+  let target: IEventTargetWithLookups = findOriginalEventTarget(event) as EventTarget & IEventTargetWithLookups;
   while (target && !event.propagationStopped) {
     if (target.delegatedCallbacks) {
       const callback = target.delegatedCallbacks[event.type];

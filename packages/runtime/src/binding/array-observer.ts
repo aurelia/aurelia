@@ -2,7 +2,6 @@ import { IIndexable, Primitive } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
-// tslint:disable:no-reserved-keywords
 const proto = Array.prototype;
 export const nativePush = proto.push; // TODO: probably want to make these internal again
 export const nativeUnshift = proto.unshift;
@@ -94,7 +93,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
   }
   const indexMap = o.indexMap;
   if (deleteCount > 0) {
-    let i = start || 0;
+    let i = isNaN(start) ? 0 : start;
     const to = i + deleteCount;
     while (i < to) {
       if (indexMap[i] > -1) {
@@ -192,12 +191,12 @@ function preSortCompare(x: IIndexable | Primitive, y: IIndexable | Primitive): n
   return 0;
 }
 
-function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
+function insertionSort(arr: IObservedArray, indexMap: IndexMap, fromIndex: number, toIndex: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
   let velement, ielement, vtmp, itmp, order;
   let i, j;
-  for (i = from + 1; i < to; i++) {
+  for (i = fromIndex + 1; i < toIndex; i++) {
     velement = arr[i]; ielement = indexMap[i];
-    for (j = i - 1; j >= from; j--) {
+    for (j = i - 1; j >= fromIndex; j--) {
       vtmp = arr[j]; itmp = indexMap[j];
       order = compareFn(vtmp, velement);
       if (order > 0) {
@@ -210,7 +209,7 @@ function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to
   }
 }
 
-function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
+function quickSort(arr: IObservedArray, indexMap: IndexMap, fromIndex: number, toIndex: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
   let thirdIndex = 0, i = 0;
   let v0, v1, v2;
   let i0, i1, i2;
@@ -221,14 +220,14 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
 
   // tslint:disable-next-line:no-constant-condition
   while (true) {
-    if (to - from <= 10) {
-      insertionSort(arr, indexMap, from, to, compareFn);
+    if (toIndex - fromIndex <= 10) {
+      insertionSort(arr, indexMap, fromIndex, toIndex, compareFn);
       return;
     }
 
-    thirdIndex = from + ((to - from) >> 1);
-    v0 = arr[from];       i0 = indexMap[from];
-    v1 = arr[to - 1];     i1 = indexMap[to - 1];
+    thirdIndex = fromIndex + ((toIndex - fromIndex) >> 1);
+    v0 = arr[fromIndex];       i0 = indexMap[fromIndex];
+    v1 = arr[toIndex - 1];     i1 = indexMap[toIndex - 1];
     v2 = arr[thirdIndex]; i2 = indexMap[thirdIndex];
     c01 = compareFn(v0, v1);
     if (c01 > 0) {
@@ -250,11 +249,11 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
         v2 = vtmp; i2 = itmp;
       }
     }
-    arr[from] = v0;   indexMap[from] = i0;
-    arr[to - 1] = v2; indexMap[to - 1] = i2;
+    arr[fromIndex] = v0;   indexMap[fromIndex] = i0;
+    arr[toIndex - 1] = v2; indexMap[toIndex - 1] = i2;
     vpivot = v1;      ipivot = i1;
-    lowEnd = from + 1;
-    highStart = to - 1;
+    lowEnd = fromIndex + 1;
+    highStart = toIndex - 1;
     arr[thirdIndex] = arr[lowEnd]; indexMap[thirdIndex] = indexMap[lowEnd];
     arr[lowEnd] = vpivot;          indexMap[lowEnd] = ipivot;
 
@@ -284,12 +283,12 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
         }
       }
     }
-    if (to - highStart < lowEnd - from) {
-      quickSort(arr, indexMap, highStart, to, compareFn);
-      to = lowEnd;
+    if (toIndex - highStart < lowEnd - fromIndex) {
+      quickSort(arr, indexMap, highStart, toIndex, compareFn);
+      toIndex = lowEnd;
     } else {
-      quickSort(arr, indexMap, from, lowEnd, compareFn);
-      from = highStart;
+      quickSort(arr, indexMap, fromIndex, lowEnd, compareFn);
+      fromIndex = highStart;
     }
   }
 }

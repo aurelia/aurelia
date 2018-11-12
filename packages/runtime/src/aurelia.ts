@@ -3,7 +3,7 @@ import { LifecycleFlags } from './observation';
 import { ICustomElement, IRenderingEngine } from './templating/lifecycle-render';
 
 export interface ISinglePageApp {
-  host: any,
+  host: any;
   component: any;
 }
 

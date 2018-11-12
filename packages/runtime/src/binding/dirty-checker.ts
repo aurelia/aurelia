@@ -34,7 +34,7 @@ export class DirtyChecker {
   }
 
   public scheduleDirtyCheck(): void {
-    setTimeout(() => this.check(), this.checkDelay);
+    setTimeout(() => { this.check(); }, this.checkDelay);
   }
 
   public check(): void {

@@ -105,14 +105,14 @@ export class SetObserver implements SetObserver {
 
   public collection: IObservedSet;
 
-  constructor(lifecycle: ILifecycle, set: IObservedSet) {
+  constructor(lifecycle: ILifecycle, observedSet: IObservedSet) {
     this.lifecycle = lifecycle;
-    set.$observer = this;
-    this.collection = set;
+    observedSet.$observer = this;
+    this.collection = observedSet;
     this.resetIndexMap();
   }
 }
 
-export function getSetObserver(lifecycle: ILifecycle, set: IObservedSet): SetObserver {
-  return (set.$observer as SetObserver) || new SetObserver(lifecycle, set);
+export function getSetObserver(lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver {
+  return (observedSet.$observer as SetObserver) || new SetObserver(lifecycle, observedSet);
 }

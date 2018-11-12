@@ -8,24 +8,24 @@ import { Listener } from '../listener';
 export type DebounceableBinding = (Binding | Call | Listener) & {
   debouncedMethod: ((newValue: any, oldValue: any, flags: LifecycleFlags) => void) & { originalName: string };
   debounceState: {
-    callContextToDebounce: LifecycleFlags,
-    delay: number,
-    timeoutId: any,
-    oldValue: any
-  }
+    callContextToDebounce: LifecycleFlags;
+    delay: number;
+    timeoutId: any;
+    oldValue: any;
+  };
 };
 
 const unset = {};
 
 /*@internal*/
-export function debounceCallSource(event: Event) {
+export function debounceCallSource(event: Event): void {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
   state.timeoutId = setTimeout(() => this.debouncedMethod(event), state.delay);
 }
 
 /*@internal*/
-export function debounceCall(this: DebounceableBinding, newValue: any, oldValue: any, flags: LifecycleFlags) {
+export function debounceCall(this: DebounceableBinding, newValue: any, oldValue: any, flags: LifecycleFlags): void {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
   if (!(flags & state.callContextToDebounce)) {
@@ -36,18 +36,21 @@ export function debounceCall(this: DebounceableBinding, newValue: any, oldValue:
   if (state.oldValue === unset) {
     state.oldValue = oldValue;
   }
-  state.timeoutId = setTimeout(() => {
-    const ov = state.oldValue;
-    state.oldValue = unset;
-    this.debouncedMethod(newValue, ov, flags);
-  }, state.delay);
+  state.timeoutId = setTimeout(
+    () => {
+      const ov = state.oldValue;
+      state.oldValue = unset;
+      this.debouncedMethod(newValue, ov, flags);
+    },
+    state.delay
+  );
 }
 
 const fromView = BindingMode.fromView;
 
 @bindingBehavior('debounce')
 export class DebounceBindingBehavior {
-  public bind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding, delay = 200) {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding, delay: number = 200): void {
     let methodToDebounce;
     let callContextToDebounce;
     let debouncer;
@@ -80,7 +83,7 @@ export class DebounceBindingBehavior {
     };
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding) {
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding): void {
     // restore the state of the binding.
     const methodToRestore = binding.debouncedMethod.originalName;
     binding[methodToRestore] = binding.debouncedMethod;

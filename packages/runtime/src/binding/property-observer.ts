@@ -19,7 +19,7 @@ function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): voi
     const { obj, propertyKey } = this;
     this.currentValue = obj[propertyKey];
     observedPropertyDescriptor.get = () => this.getValue();
-    observedPropertyDescriptor.set = value => this.setValue(value, LifecycleFlags.updateTargetInstance);
+    observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.updateTargetInstance); };
     if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
       Reporter.write(1, propertyKey, obj);
     }

@@ -124,7 +124,7 @@ const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlag
 
 interface IInternalInputElement extends IInputElement {
   matcher?: typeof defaultMatcher;
-  model?: any;
+  model?: Primitive | IIndexable;
   $observers?: IObserversLookup & {
     model?: SetterObserver;
     value?: ValueAttributeObserver;

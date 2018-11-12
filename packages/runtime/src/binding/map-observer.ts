@@ -3,7 +3,6 @@ import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
 import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
-// tslint:disable:no-reserved-keywords
 
 const proto = Map.prototype;
 export const nativeSet = proto.set; // TODO: probably want to make these internal again

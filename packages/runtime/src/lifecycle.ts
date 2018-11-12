@@ -1206,7 +1206,7 @@ export class CompositionCoordinator {
     } else {
       $lifecycle.enqueueUnbindAfterDetach(currentView);
       $lifecycle.beginDetach();
-      currentView.$detach(flags | LifecycleFlags.allowUnmount);
+      currentView.$detach(flags);
       lifecycleTask = $lifecycle.endDetach(flags);
     }
     swapTask.addTask(lifecycleTask);

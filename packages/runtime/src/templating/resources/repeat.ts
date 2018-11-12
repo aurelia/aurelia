@@ -107,7 +107,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
         $lifecycle.beginDetach();
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
           view.release(flags);
-          view.$detach(flags | LifecycleFlags.allowUnmount);
+          view.$detach(flags);
         }
         $lifecycle.endDetach(flags);
         $lifecycle.beginUnbind();

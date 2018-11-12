@@ -124,16 +124,19 @@ export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleF
     this.$state |= State.isDetaching;
     flags |= LifecycleFlags.fromDetach;
 
-    const hooks = this.$hooks;
-    if (hooks & Hooks.hasDetaching) {
-      this.detaching(flags);
-    }
-
     if (this.$state & State.isMounted) {
-      if ((flags ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.allowUnmount)) {
+      // Only unmount if either:
+      // - No parent view/element is queued for unmount yet, or
+      // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
+      if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
         lifecycle.enqueueUnmount(this);
         flags |= LifecycleFlags.parentUnmountQueued;
       }
+    }
+
+    const hooks = this.$hooks;
+    if (hooks & Hooks.hasDetaching) {
+      this.detaching(flags);
     }
 
     let current = this.$attachableTail;
@@ -160,7 +163,10 @@ export function $detachView(this: Writable<IView>, flags: LifecycleFlags): void 
     flags |= LifecycleFlags.fromDetach;
 
     if (this.$state & State.isMounted) {
-      if ((flags ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.allowUnmount)) {
+      // Only unmount if either:
+      // - No parent view/element is queued for unmount yet, or
+      // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
+      if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
         this.$lifecycle.enqueueUnmount(this);
         flags |= LifecycleFlags.parentUnmountQueued;
       }

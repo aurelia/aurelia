@@ -27,17 +27,10 @@ export enum LifecycleFlags {
   fromObserverSetter     = 0b0000_00100000000000_000_00,
   fromBindableHandler    = 0b0000_01000000000000_000_00,
   fromLifecycleTask      = 0b0000_10000000000000_000_00,
-  // Note: setting the allowUnmount flag *always* allows the following view to be unmounted,
-  // regardless of whether parentUnmountQueued is set.
-  // Certain components will always set the allowUnmount flag, other components will only
-  // set it if parentUnmountQueued is NOT already set.
-  // This mechanism ensures that the necessary unmount operations are always performed,
-  // and at the same time that only roots are removed.
-  allowUnmount           = 0b0010_00000000000000_000_00,
-  parentUnmountQueued    = 0b0100_00000000000000_000_00,
+  parentUnmountQueued    = 0b0010_00000000000000_000_00,
   // this flag is for the synchronous flush before detach (no point in updating the
   // DOM if it's about to be detached)
-  doNotUpdateDOM         = 0b1000_00000000000000_000_00,
+  doNotUpdateDOM         = 0b0100_00000000000000_000_00,
 }
 
 /*@internal*/

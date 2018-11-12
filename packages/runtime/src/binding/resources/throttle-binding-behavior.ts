@@ -1,28 +1,27 @@
+import { IRegistry } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../../observation';
-import { Binding } from '../binding';
+import { Binding, IBinding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingMode } from '../binding-mode';
-import { Call } from '../call';
-import { Listener } from '../listener';
 
-export type ThrottleableBinding = (Binding | Call | Listener) & {
-  throttledMethod: ((value: any) => any) & { originalName: string };
+export type ThrottleableBinding = IBinding & {
+  throttledMethod: ((value: unknown) => unknown) & { originalName: string };
   throttleState: {
     delay: number;
-    timeoutId: any;
-    last: any;
-    newValue?: any;
+    timeoutId: number;
+    last: number;
+    newValue?: unknown;
   };
 };
 
 /*@internal*/
-export function throttle(this: ThrottleableBinding, newValue: any): void {
+export function throttle(this: ThrottleableBinding, newValue: unknown): void {
   const state = this.throttleState;
   const elapsed = +new Date() - state.last;
 
   if (elapsed >= state.delay) {
     clearTimeout(state.timeoutId);
-    state.timeoutId = null;
+    state.timeoutId = -1;
     state.last = +new Date();
     this.throttledMethod(newValue);
     return;
@@ -30,20 +29,24 @@ export function throttle(this: ThrottleableBinding, newValue: any): void {
 
   state.newValue = newValue;
 
-  if (state.timeoutId === null) {
-    state.timeoutId = setTimeout(
+  if (state.timeoutId === -1) {
+    // To disambiguate between "number" and "NodeJS.Timer" we cast it to an unknown, so we can subsequently cast it to number.
+    const timeoutId: unknown = setTimeout(
       () => {
-        state.timeoutId = null;
+        state.timeoutId = -1;
         state.last = +new Date();
         this.throttledMethod(state.newValue);
       },
       state.delay - elapsed
     );
+    state.timeoutId = timeoutId as number;
   }
 }
 
 @bindingBehavior('throttle')
 export class ThrottleBindingBehavior {
+  public static register: IRegistry['register'];
+
   public bind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding, delay: number = 200): void {
     let methodToThrottle: string;
 
@@ -70,7 +73,7 @@ export class ThrottleBindingBehavior {
     binding.throttleState = {
       delay: delay,
       last: 0,
-      timeoutId: null
+      timeoutId: -1
     };
   }
 

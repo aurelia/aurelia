@@ -113,18 +113,18 @@ export const DI = {
     return new Container();
   },
 
-  getDesignParamTypes(target: Object): any[] {
+  getDesignParamTypes(target: Function): Function[] {
     return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
-  getDependencies(type: Function & { inject?: any }): any[] {
-    let dependencies: any[];
+  getDependencies(type: Function | Injectable): Function[] {
+    let dependencies: Function[];
 
-    if (type.inject === undefined) {
+    if ((type as Injectable).inject === undefined) {
       dependencies = DI.getDesignParamTypes(type);
     } else {
       dependencies = [];
-      let ctor = type;
+      let ctor = type as Injectable;
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
@@ -181,8 +181,8 @@ export const DI = {
     return Key;
   },
 
-  inject(...dependencies: any[]): (target: any, property?: string, descriptor?: PropertyDescriptor | number) => any {
-    return function(target: any, key?: any, descriptor?: any): void {
+  inject(...dependencies: Function[]): (target: any, key?: string, descriptor?: PropertyDescriptor | number) => void {
+    return function(target: any, key?: string, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!target.hasOwnProperty('inject')) {
           target.inject = DI.getDesignParamTypes(target).slice();

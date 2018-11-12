@@ -3,7 +3,7 @@ import { Constructable, Immutable, IRegistry } from '@aurelia/kernel';
 export interface IResourceKind<TSource, TType extends IResourceType<TSource> = IResourceType<TSource>> {
   readonly name: string;
   keyFrom(name: string): string;
-  isType<T extends Constructable>(type: T): type is T & TType;
+  isType<T extends Constructable & Partial<TType>>(Type: T): Type is T & TType;
   define<T extends Constructable>(nameOrSource: string | TSource, ctor: T): T & TType;
 }
 

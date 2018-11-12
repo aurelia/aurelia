@@ -728,7 +728,7 @@ export class Lifecycle implements ILifecycle {
     // no effect on execution. flush() will automatically be invoked when the promise resolves,
     // or it can be manually invoked synchronously.
     if (this.flushHead === this) {
-      this.flushed = this.promise.then(() => this.processFlushQueue(LifecycleFlags.fromAsyncFlush));
+      this.flushed = this.promise.then(() => { this.processFlushQueue(LifecycleFlags.fromAsyncFlush); });
     }
     if (requestor.$nextFlush === null) {
       requestor.$nextFlush = marker;
@@ -1125,7 +1125,7 @@ export class CompositionCoordinator {
     return Registration.transient(this, this).register(container, this);
   }
 
-  public compose(value: IView, flags: LifecycleFlags): void {
+  public compose(value: IView | Promise<IView>, flags: LifecycleFlags): void {
     if (this.swapTask.done) {
       if (value instanceof Promise) {
         this.enqueue(new PromiseSwap(this, value));
@@ -1290,7 +1290,7 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
     if (!task.done) {
       this.done = false;
       this.tasks.push(task);
-      task.wait().then(() => this.tryComplete());
+      task.wait().then(() => { this.tryComplete(); });
     }
   }
 
@@ -1319,7 +1319,7 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
 
   public cancel(): void {
     if (this.canCancel()) {
-      this.tasks.forEach(x => x.cancel());
+      this.tasks.forEach(x => { x.cancel(); });
       this.done = false;
     }
   }

@@ -1,4 +1,4 @@
-import { Constructable, Immutable, inject } from '@aurelia/kernel';
+import { Constructable, Immutable, inject, IRegistry } from '@aurelia/kernel';
 import {
   IHydrateElementInstruction,
   ITargetedInstruction,
@@ -26,6 +26,8 @@ export interface Compose extends ICustomElement {}
 @customElement(composeSource)
 @inject(IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator)
 export class Compose {
+  public static register: IRegistry['register'];
+
   @bindable public subject: Subject | Promise<Subject> = null;
   @bindable public composing: boolean = false;
 
@@ -44,13 +46,16 @@ export class Compose {
 
     this.properties = instruction.instructions
       .filter((x: any) => !composeProps.includes(x.to))
-      .reduce((acc, item: any) => {
-        if (item.to) {
-          acc[item.to] = item;
-        }
+      .reduce(
+        (acc, item: any) => {
+          if (item.to) {
+            acc[item.to] = item;
+          }
 
-        return acc;
-      }, {});
+          return acc;
+        },
+        {}
+      );
   }
 
   public binding(flags: LifecycleFlags): void {
@@ -75,11 +80,11 @@ export class Compose {
     this.coordinator.caching(flags);
   }
 
-  public subjectChanged(newValue: any, previousValue: any, flags: LifecycleFlags): void {
+  public subjectChanged(newValue: Subject | Promise<Subject>, previousValue: Subject | Promise<Subject>, flags: LifecycleFlags): void {
     this.startComposition(newValue, previousValue, flags);
   }
 
-  private startComposition(subject: any, previousSubject: any, flags: LifecycleFlags): void {
+  private startComposition(subject: Subject | Promise<Subject>, _previousSubject: Subject | Promise<Subject>, flags: LifecycleFlags): void {
     if (this.lastSubject === subject) {
       return;
     }
@@ -93,7 +98,7 @@ export class Compose {
     }
 
     this.composing = true;
-    this.coordinator.compose(subject, flags);
+    this.coordinator.compose(subject as IView | Promise<IView>, flags);
   }
 
   private resolveView(subject: Subject, flags: LifecycleFlags): IView {

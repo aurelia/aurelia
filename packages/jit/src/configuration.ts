@@ -1,4 +1,4 @@
-import { IContainer, Registration } from '@aurelia/kernel';
+import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
 import {
   AttrBindingBehavior,
   Compose,
@@ -34,7 +34,7 @@ import {
 import { ParserRegistration } from './expression-parser';
 import { TemplateCompiler } from './template-compiler';
 
-const globalResources: any[] = [
+const globalResources: IRegistry[] = [
   Compose,
   If,
   Else,
@@ -54,7 +54,7 @@ const globalResources: any[] = [
   UpdateTriggerBindingBehavior
 ];
 
-const defaultBindingLanguage: any[] = [
+const defaultBindingLanguage: IRegistry[] = [
   DefaultBindingCommand,
   OneTimeBindingCommand,
   ToViewBindingCommand,

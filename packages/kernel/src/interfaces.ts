@@ -117,7 +117,7 @@ export type Decorated<TOptional, TRequired> = Function & {
   new(...args: unknown[]): any;
 };
 
-export type Injectable<T = {}> = Constructable<T> & { inject?: unknown[] };
+export type Injectable<T = {}> = Constructable<T> & { inject?: Function[] };
 
 // Note: use of "any" here can perfectly well be replaced by "unknown" but that would also involve fixing consumers of this
 // interface since their indexed properties are now all returning "unknown" which is not assignable to anything else.

@@ -14,7 +14,7 @@ type BindingTargetAccessor = IBindingTargetAccessor & {
   setValueCore(value: Primitive | IIndexable, flags: LifecycleFlags): void;
 };
 
-async function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable, flags: LifecycleFlags): Promise<void> {
+function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable, flags: LifecycleFlags): Promise<void> {
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {

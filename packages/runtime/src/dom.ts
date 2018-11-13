@@ -24,6 +24,8 @@ export interface INode extends INodeLike {
   readonly nodeName: string;
   readonly nodeType: number;
 }
+export const IEncapsulationSource = DI.createInterface<IEncapsulationSource>().noDefault();
+export interface IEncapsulationSource extends INode {}
 
 export interface IAttr extends Partial<INode> {
   readonly name: string;

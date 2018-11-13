@@ -1,10 +1,11 @@
 import { Writable } from '@aurelia/kernel';
+import { IEncapsulationSource } from '../dom';
 import { Hooks, IView, State } from '../lifecycle';
 import { LifecycleFlags } from '../observation';
 import { ICustomAttribute, ICustomElement } from './lifecycle-render';
 
 /*@internal*/
-export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
+export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
     return;
   }
@@ -17,7 +18,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
   const hooks = this.$hooks;
 
   if (hooks & Hooks.hasAttaching) {
-    this.attaching(flags);
+    this.attaching(flags, encapsulationSource);
   }
 
   // add isAttached flag, remove isAttaching flag
@@ -31,7 +32,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
 }
 
 /*@internal*/
-export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
+export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
     return;
   }
@@ -42,14 +43,15 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
   flags |= LifecycleFlags.fromAttach;
 
   const hooks = this.$hooks;
+  encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource === undefined ? this.$host : encapsulationSource);
 
   if (hooks & Hooks.hasAttaching) {
-    this.attaching(flags);
+    this.attaching(flags, encapsulationSource);
   }
 
   let current = this.$attachableHead;
   while (current !== null) {
-    current.$attach(flags);
+    current.$attach(flags, encapsulationSource);
     current = current.$nextAttach;
   }
 
@@ -68,7 +70,7 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
 }
 
 /*@internal*/
-export function $attachView(this: Writable<IView>, flags: LifecycleFlags): void {
+export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
     return;
   }
@@ -78,7 +80,7 @@ export function $attachView(this: Writable<IView>, flags: LifecycleFlags): void 
 
   let current = this.$attachableHead;
   while (current !== null) {
-    current.$attach(flags);
+    current.$attach(flags, encapsulationSource);
     current = current.$nextAttach;
   }
 

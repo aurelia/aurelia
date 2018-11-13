@@ -14,7 +14,7 @@ import { Observer } from '../binding/property-observation';
 import { Ref } from '../binding/ref';
 import { subscriberCollection } from '../binding/subscriber-collection';
 import { BindableDefinitions, buildTemplateDefinition, customAttributeKey, customElementBehavior, CustomElementConstructor, customElementKey, IAttributeDefinition, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, IRenderStrategyInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
-import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
+import { DOM, IEncapsulationSource, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
 import { Hooks, IAttach, IAttachables, IBindables, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext, IState, IViewFactory, State } from '../lifecycle';
 import { IAccessor, IChangeTracker, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
@@ -138,6 +138,7 @@ export interface ILifecycleRender {
    * - Populate `this.$context` with the RenderContext / Container scoped to this instance
    *
    * @param host The DOM node that declares this custom element
+   * @param encapsulationSource The nearest app host or DOM boundary
    * @param parts Replaceable parts, if any
    *
    * @returns Either an implementation of `IElementTemplateProvider`, or void
@@ -146,7 +147,7 @@ export interface ILifecycleRender {
    * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
-  render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
+  render?(host: INode, encapsulationSource: IEncapsulationSource, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
 }
 
 export interface ICustomAttribute extends Partial<IChangeTracker>, IBindScope, ILifecycleUnbindAfterDetach, IAttach, OptionalHooks, RequiredLifecycleProperties {
@@ -170,11 +171,14 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
   const description = Type.description;
 
   this.$scope = Scope.create(this, null);
+  this.$host = host;
+  const projector = this.$projector = determineProjector(this, host, description);
+  const encapsulationSource = projector.provideEncapsulationSource(host);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
   if (this.$hooks & Hooks.hasRender) {
-    const result = this.render(host, options.parts);
+    const result = this.render(host, encapsulationSource, options.parts);
 
     if (result && 'getElementTemplate' in result) {
       const template = result.getElementTemplate(renderingEngine, Type);
@@ -184,8 +188,6 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
     const template = renderingEngine.getElementTemplate(description, Type);
     template.render(this, host, options.parts);
   }
-  this.$host = host;
-  this.$projector = determineProjector(this, host, description);
 
   if (this.$hooks & Hooks.hasCreated) {
     this.created();
@@ -956,7 +958,7 @@ export class Renderer implements IRenderer {
     operation.dispose();
   }
 
-  public [TargetedInstructionType.hydrateTemplateController](renderable: IRenderable, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions): void {
+  public [TargetedInstructionType.hydrateTemplateController](renderable: IRenderable, target: any, instruction: Immutable<IHydrateTemplateController>, encapsulationSource?: IEncapsulationSource, parts?: TemplatePartDefinitions): void {
     const childInstructions = instruction.instructions;
     const factory = this.renderingEngine.getViewFactory(instruction.def, this.context);
     const context = this.context;

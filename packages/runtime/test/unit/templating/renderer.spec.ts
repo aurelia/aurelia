@@ -23,11 +23,7 @@ import {
   CallScope,
   Ref,
   Interpolation,
-  InterpolationBinding
-} from '../../../src/index';
-import { expect } from 'chai';
-import { _, createElement } from '../util';
-import {
+  InterpolationBinding,
   CallBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
@@ -44,7 +40,11 @@ import {
   TriggerBindingInstruction,
   TwoWayBindingInstruction,
   LetBindingInstruction,
-  LetElementInstruction,
+  LetElementInstruction
+} from '../../../src/index';
+import { expect } from 'chai';
+import { _, createElement } from '../util';
+import {
   ParserRegistration
 } from '../../../../jit/src/index';
 import { DI } from '../../../../kernel/src/index';

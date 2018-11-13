@@ -4,6 +4,5 @@ export * from './common';
 export * from './configuration';
 export * from './element-parser';
 export * from './expression-parser';
-export * from './instructions';
 export * from './semantic-model';
 export * from './template-compiler';

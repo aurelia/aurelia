@@ -1,18 +1,23 @@
 import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
-import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
 import {
+  BindingType,
   CallBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
   FromViewBindingInstruction,
   HydrateTemplateController,
+  IExpressionParser,
+  IResourceKind,
+  IResourceType,
+  ITemplateDefinition,
   IteratorBindingInstruction,
   OneTimeBindingInstruction,
   SetPropertyInstruction,
+  TargetedInstruction,
   ToViewBindingInstruction,
   TriggerBindingInstruction,
   TwoWayBindingInstruction
-} from './instructions';
+} from '@aurelia/runtime';
 import { IAttributeSymbol } from './semantic-model';
 
 export interface IBindingCommandSource {

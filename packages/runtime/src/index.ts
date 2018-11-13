@@ -53,6 +53,7 @@ export * from './templating/view';
 export * from './aurelia';
 export * from './definitions';
 export * from './dom';
+export * from './instructions';
 export * from './lifecycle';
 export * from './observation';
 export * from './resource';

@@ -958,7 +958,7 @@ export class Renderer implements IRenderer {
     operation.dispose();
   }
 
-  public [TargetedInstructionType.hydrateTemplateController](renderable: IRenderable, target: any, instruction: Immutable<IHydrateTemplateController>, encapsulationSource?: IEncapsulationSource, parts?: TemplatePartDefinitions): void {
+  public [TargetedInstructionType.hydrateTemplateController](renderable: IRenderable, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions): void {
     const childInstructions = instruction.instructions;
     const factory = this.renderingEngine.getViewFactory(instruction.def, this.context);
     const context = this.context;

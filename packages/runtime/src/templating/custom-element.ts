@@ -9,8 +9,8 @@ type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICus
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-export function customElement(nameOrSource: string | ITemplateDefinition): CustomElementDecorator {
-  return target => CustomElementResource.define(nameOrSource, target);
+export function customElement(nameOrDefinition: string | ITemplateDefinition): CustomElementDecorator {
+  return target => CustomElementResource.define(nameOrDefinition, target);
 }
 
 type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
@@ -66,12 +66,12 @@ export const CustomElementResource: ICustomElementResource = {
 
   behaviorFor: <(node: ICustomElementHost) => ICustomElement | null>customElementBehavior,
 
-  define<T extends Constructable>(nameOrSource: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
-    if (!nameOrSource) {
+  define<T extends Constructable>(nameOrDefinition: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
+    if (!nameOrDefinition) {
       throw Reporter.error(70);
     }
     const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
-    const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrSource);
+    const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrDefinition);
     const proto: Writable<ICustomElement> = Type.prototype;
 
     Type.kind = CustomElementResource;

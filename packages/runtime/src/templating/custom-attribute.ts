@@ -37,9 +37,9 @@ export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICusto
     return Type.kind === this;
   },
 
-  define<T extends Constructable>(nameOrSource: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
+  define<T extends Constructable>(nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
     const Type = ctor as T & Writable<ICustomAttributeType>;
-    const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, <T & ICustomAttributeType>Type);
+    const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, <T & ICustomAttributeType>Type);
     const proto: Writable<ICustomAttribute> = Type.prototype;
 
     Type.kind = CustomAttributeResource;

@@ -1,19 +1,19 @@
 import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
 import { IResourceKind, IResourceType } from '../resource';
 
-export interface IValueConverterSource {
+export interface IValueConverterDefinition {
   name: string;
 }
 
-export type IValueConverterType = IResourceType<IValueConverterSource>;
+export type IValueConverterType = IResourceType<IValueConverterDefinition>;
 
-export function valueConverter(nameOrSource: string | IValueConverterSource): <T extends Constructable>(target: T) => T & IResourceType<IValueConverterSource> {
-  return function<T extends Constructable>(target: T): T & IResourceType<IValueConverterSource> {
-    return ValueConverterResource.define(nameOrSource, target);
+export function valueConverter(nameOrDefinition: string | IValueConverterDefinition): <T extends Constructable>(target: T) => T & IResourceType<IValueConverterDefinition> {
+  return function<T extends Constructable>(target: T): T & IResourceType<IValueConverterDefinition> {
+    return ValueConverterResource.define(nameOrDefinition, target);
   };
 }
 
-export const ValueConverterResource: IResourceKind<IValueConverterSource, IValueConverterType> = {
+export const ValueConverterResource: IResourceKind<IValueConverterDefinition, IValueConverterType> = {
   name: 'value-converter',
 
   keyFrom(name: string): string {
@@ -24,11 +24,11 @@ export const ValueConverterResource: IResourceKind<IValueConverterSource, IValue
     return Type.kind === this;
   },
 
-  define<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & IValueConverterType {
+  define<T extends Constructable>(nameOrDefinition: string | IValueConverterDefinition, ctor: T): T & IValueConverterType {
     const Type = ctor as T & IValueConverterType;
-    const description = typeof nameOrSource === 'string'
-      ? { name: nameOrSource }
-      : nameOrSource;
+    const description = typeof nameOrDefinition === 'string'
+      ? { name: nameOrDefinition }
+      : nameOrDefinition;
 
     (Type as Writable<IValueConverterType>).kind = ValueConverterResource;
     (Type as Writable<IValueConverterType>).description = description;

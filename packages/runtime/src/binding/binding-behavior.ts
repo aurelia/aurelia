@@ -8,22 +8,22 @@ export interface IBindingBehavior {
   unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
 }
 
-export interface IBindingBehaviorSource {
+export interface IBindingBehaviorDefinition {
   name: string;
 }
 
-export interface IBindingBehaviorType extends IResourceType<IBindingBehaviorSource> {
+export interface IBindingBehaviorType extends IResourceType<IBindingBehaviorDefinition> {
 }
 
 type BindingBehaviorDecorator = <T extends Constructable>(target: Decoratable<IBindingBehavior, T>) => Decorated<IBindingBehavior, T> & IBindingBehaviorType;
 
 export function bindingBehavior(name: string): BindingBehaviorDecorator;
-export function bindingBehavior(source: IBindingBehaviorSource): BindingBehaviorDecorator;
-export function bindingBehavior(nameOrSource: string | IBindingBehaviorSource): BindingBehaviorDecorator {
+export function bindingBehavior(source: IBindingBehaviorDefinition): BindingBehaviorDecorator;
+export function bindingBehavior(nameOrSource: string | IBindingBehaviorDefinition): BindingBehaviorDecorator {
   return target => BindingBehaviorResource.define(nameOrSource, target);
 }
 
-export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBindingBehaviorType> = {
+export const BindingBehaviorResource: IResourceKind<IBindingBehaviorDefinition, IBindingBehaviorType> = {
   name: 'binding-behavior',
 
   keyFrom(name: string): string {
@@ -34,11 +34,11 @@ export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBin
     return Type.kind === this;
   },
 
-  define<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & IBindingBehaviorType {
+  define<T extends Constructable>(nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType {
     const Type = ctor as T & IBindingBehaviorType;
-    const description = typeof nameOrSource === 'string'
-      ? { name: nameOrSource }
-      : nameOrSource;
+    const description = typeof nameOrDefinition === 'string'
+      ? { name: nameOrDefinition }
+      : nameOrDefinition;
 
     (Type as Writable<IBindingBehaviorType>).kind = BindingBehaviorResource;
     (Type as Writable<IBindingBehaviorType>).description = description;

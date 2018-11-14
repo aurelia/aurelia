@@ -20,7 +20,7 @@ import {
 } from '@aurelia/runtime';
 import { IAttributeSymbol } from './semantic-model';
 
-export interface IBindingCommandSource {
+export interface IBindingCommandDefinition {
   name: string;
 }
 
@@ -29,15 +29,15 @@ export interface IBindingCommand {
   handles($symbol: IAttributeSymbol): boolean;
 }
 
-export type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
+export type IBindingCommandType = IResourceType<IBindingCommandDefinition, IBindingCommand>;
 
-export function bindingCommand(nameOrSource: string | IBindingCommandSource): any {
-  return function<T extends Constructable>(target: T): T & IResourceType<IBindingCommandSource, IBindingCommand> {
-    return BindingCommandResource.define(nameOrSource, target);
+export function bindingCommand(nameOrDefinition: string | IBindingCommandDefinition): any {
+  return function<T extends Constructable>(target: T): T & IResourceType<IBindingCommandDefinition, IBindingCommand> {
+    return BindingCommandResource.define(nameOrDefinition, target);
   };
 }
 
-export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindingCommandType> = {
+export const BindingCommandResource: IResourceKind<IBindingCommandDefinition, IBindingCommandType> = {
   name: 'binding-command',
 
   keyFrom(name: string): string {
@@ -48,8 +48,8 @@ export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindi
     return Type.kind === this;
   },
 
-  define<T extends Constructable>(nameOrSource: string | IBindingCommandSource, ctor: T): T & IBindingCommandType {
-    const description = typeof nameOrSource === 'string' ? { name: nameOrSource, target: null } : nameOrSource;
+  define<T extends Constructable>(nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
+    const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
     const Type = ctor as T & IBindingCommandType;
 
     (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;

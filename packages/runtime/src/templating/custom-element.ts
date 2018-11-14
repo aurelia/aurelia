@@ -26,6 +26,8 @@ type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICus
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
+export function customElement(name: string): CustomElementDecorator;
+export function customElement(definition: ITemplateDefinition): CustomElementDecorator;
 export function customElement(nameOrDefinition: string | ITemplateDefinition): CustomElementDecorator {
   return target => CustomElementResource.define(nameOrDefinition, target);
 }

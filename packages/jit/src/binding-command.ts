@@ -1,4 +1,4 @@
-import { Constructable, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, Decoratable, Decorated, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
 import {
   BindingType,
   CallBindingInstruction,
@@ -21,19 +21,23 @@ import {
 } from '@aurelia/runtime';
 import { IAttributeSymbol } from './semantic-model';
 
-export interface IBindingCommandDefinition extends IResourceDefinition { }
-
 export interface IBindingCommand {
   compile($symbol: IAttributeSymbol): TargetedInstruction;
-  handles($symbol: IAttributeSymbol): boolean;
+  handles?($symbol: IAttributeSymbol): boolean;
 }
 
-export type IBindingCommandType = IResourceType<IBindingCommandDefinition, IBindingCommand>;
+export interface IBindingCommandDefinition extends IResourceDefinition { }
 
-export function bindingCommand(nameOrDefinition: string | IBindingCommandDefinition): any {
-  return function<T extends Constructable>(target: T): T & IResourceType<IBindingCommandDefinition, IBindingCommand> {
-    return BindingCommandResource.define(nameOrDefinition, target);
-  };
+export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand> {
+  inject: Function[];
+}
+
+type BindingCommandDecorator = <T extends Constructable>(target: Decoratable<IBindingCommand, T>) => Decorated<IBindingCommand, T> & IBindingCommandType;
+
+export function bindingCommand(name: string): BindingCommandDecorator;
+export function bindingCommand(definition: IBindingCommandDefinition): BindingCommandDecorator;
+export function bindingCommand(nameOrDefinition: string | IBindingCommandDefinition): BindingCommandDecorator {
+  return target => BindingCommandResource.define(nameOrDefinition, target);
 }
 
 export const BindingCommandResource: IResourceKind<IBindingCommandDefinition, IBindingCommandType> = {

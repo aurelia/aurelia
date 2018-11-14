@@ -1,6 +1,6 @@
 import { CIEnv } from './ci-env';
 
-async function main() {
+async function main(): Promise<void> {
   let url;
   const rows = await CIEnv.circleGet(`project/github/aurelia/aurelia/${CIEnv.CIRCLE_BUILD_NUM}/artifacts`);
   for (const row of rows) {
@@ -17,4 +17,4 @@ async function main() {
 
 try {
   main();
-} catch(e) {}
+} catch (e) {}

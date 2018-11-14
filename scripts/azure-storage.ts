@@ -1,6 +1,6 @@
 import * as s from 'azure-storage';
-const storage = <typeof import('azure-storage')>(<any>(<any>s).default || s);
-import { createLogger, c } from './logger';
+import { c, createLogger } from './logger';
+const storage = <typeof import('azure-storage')>(<any>s).default || s;
 
 const log = createLogger('azure-storage');
 

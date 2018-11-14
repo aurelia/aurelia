@@ -1,4 +1,4 @@
-import { Immutable, Omit } from '@aurelia/kernel';
+import { Constructable, Immutable, Omit } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
@@ -154,4 +154,15 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
     from: string | IsBindingBehavior | Interpolation;
     to: string;
 }
+declare type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
+declare type CustomAttributeStaticProperties = Pick<AttributeDefinition, 'bindables'>;
+export declare type CustomElementConstructor = Constructable & CustomElementStaticProperties;
+export declare type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
+export declare function buildTemplateDefinition(ctor: CustomElementConstructor, name: string): TemplateDefinition;
+export declare function buildTemplateDefinition(ctor: null, def: Immutable<ITemplateDefinition>): TemplateDefinition;
+export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, nameOrDef: string | Immutable<ITemplateDefinition>): TemplateDefinition;
+export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: string | INode, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: ReadonlyArray<ReadonlyArray<TargetedInstruction>> | null, dependencies?: ReadonlyArray<unknown> | null, surrogates?: ReadonlyArray<TargetedInstruction> | null, containerless?: boolean | null, shadowOptions?: {
+    mode: 'open' | 'closed';
+} | null, hasSlots?: boolean | null): TemplateDefinition;
+export {};
 //# sourceMappingURL=definitions.d.ts.map

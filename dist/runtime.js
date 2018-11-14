@@ -24,149 +24,798 @@ this.au.runtime = (function (exports,kernel) {
         return c > 3 && r && Object.defineProperty(target, key, r), r;
     }
 
-    (function (BindingFlags) {
-        BindingFlags[BindingFlags["none"] = 0] = "none";
-        BindingFlags[BindingFlags["mustEvaluate"] = 32768] = "mustEvaluate";
-        BindingFlags[BindingFlags["mutation"] = 3] = "mutation";
-        BindingFlags[BindingFlags["isCollectionMutation"] = 1] = "isCollectionMutation";
-        BindingFlags[BindingFlags["isInstanceMutation"] = 2] = "isInstanceMutation";
-        BindingFlags[BindingFlags["update"] = 28] = "update";
-        BindingFlags[BindingFlags["updateTargetObserver"] = 4] = "updateTargetObserver";
-        BindingFlags[BindingFlags["updateTargetInstance"] = 8] = "updateTargetInstance";
-        BindingFlags[BindingFlags["updateSourceExpression"] = 16] = "updateSourceExpression";
-        BindingFlags[BindingFlags["from"] = 8160] = "from";
-        BindingFlags[BindingFlags["fromFlushChanges"] = 32] = "fromFlushChanges";
-        BindingFlags[BindingFlags["fromStartTask"] = 64] = "fromStartTask";
-        BindingFlags[BindingFlags["fromStopTask"] = 128] = "fromStopTask";
-        BindingFlags[BindingFlags["fromBind"] = 256] = "fromBind";
-        BindingFlags[BindingFlags["fromUnbind"] = 512] = "fromUnbind";
-        BindingFlags[BindingFlags["fromDOMEvent"] = 1024] = "fromDOMEvent";
-        BindingFlags[BindingFlags["fromObserverSetter"] = 2048] = "fromObserverSetter";
-        BindingFlags[BindingFlags["fromBindableHandler"] = 4096] = "fromBindableHandler";
-    })(exports.BindingFlags || (exports.BindingFlags = {}));
-    const IChangeSet = kernel.DI.createInterface()
-        .withDefault(x => x.singleton(LinkedChangeList));
-    const add = Set.prototype.add;
-    /*@internal*/
-    class ChangeSet extends Set {
-        constructor() {
-            super(...arguments);
-            this.flushing = false;
-            /*@internal*/
-            this.promise = Promise.resolve();
-            /**
-             * This particular implementation is recursive; any changes added as a side-effect of flushing changes, will be flushed during the same tick.
-             */
-            this.flushChanges = () => {
-                this.flushing = true;
-                while (this.size > 0) {
-                    const items = this.toArray();
-                    this.clear();
-                    const len = items.length;
-                    let i = 0;
-                    while (i < len) {
-                        items[i++].flushChanges();
-                    }
-                }
-                this.flushing = false;
-            };
-        }
-        toArray() {
-            const items = new Array(this.size);
-            let i = 0;
-            for (const item of this.keys()) {
-                items[i++] = item;
-            }
-            return items;
-        }
-        add(changeTracker) {
-            if (this.size === 0) {
-                this.flushed = this.promise.then(this.flushChanges);
-            }
-            add.call(this, changeTracker);
-            return this.flushed;
-        }
-    }
-    const marker = kernel.PLATFORM.emptyObject;
-    /*@internal*/
-    class LinkedChangeList {
-        constructor() {
-            this.flushing = false;
-            this.size = 0;
-            this.head = null;
-            this.tail = null;
-            /*@internal*/
-            this.promise = Promise.resolve();
-            /**
-             * This particular implementation is recursive; any changes added as a side-effect of flushing changes, will be flushed during the same tick.
-             */
-            this.flushChanges = () => {
-                this.flushing = true;
-                while (this.size > 0) {
-                    let current = this.head;
-                    this.head = this.tail = null;
-                    this.size = 0;
-                    let next;
-                    while (current && current !== marker) {
-                        next = current.$next;
-                        current.$next = null;
-                        current.flushChanges();
-                        current = next;
-                    }
-                }
-                this.flushing = false;
-            };
-        }
-        toArray() {
-            const items = new Array(this.size);
-            let i = 0;
-            let current = this.head;
-            let next;
-            while (current) {
-                items[i] = current;
-                next = current.$next;
-                current = next;
-                i++;
-            }
-            return items;
-        }
-        has(item) {
-            let current = this.head;
-            let next;
-            while (current) {
-                if (item === current) {
-                    return true;
-                }
-                next = current.$next;
-                current = next;
-            }
-            return false;
-        }
-        add(item) {
-            if (this.size === 0) {
-                this.flushed = this.promise.then(this.flushChanges);
-            }
-            if (item.$next) {
-                return this.flushed;
-            }
-            // this is just to give the tail node a non-null value as a cheap way to check whether
-            // something is queued already
-            item.$next = marker;
-            if (this.tail !== null) {
-                this.tail.$next = item;
-            }
-            else {
-                this.head = item;
-            }
-            this.tail = item;
-            this.size++;
-            return this.flushed;
-        }
-    }
+    (function (LifecycleFlags) {
+        LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
+        LifecycleFlags[LifecycleFlags["mustEvaluate"] = 524288] = "mustEvaluate";
+        LifecycleFlags[LifecycleFlags["mutation"] = 3] = "mutation";
+        LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 1] = "isCollectionMutation";
+        LifecycleFlags[LifecycleFlags["isInstanceMutation"] = 2] = "isInstanceMutation";
+        LifecycleFlags[LifecycleFlags["update"] = 28] = "update";
+        LifecycleFlags[LifecycleFlags["updateTargetObserver"] = 4] = "updateTargetObserver";
+        LifecycleFlags[LifecycleFlags["updateTargetInstance"] = 8] = "updateTargetInstance";
+        LifecycleFlags[LifecycleFlags["updateSourceExpression"] = 16] = "updateSourceExpression";
+        LifecycleFlags[LifecycleFlags["from"] = 524256] = "from";
+        LifecycleFlags[LifecycleFlags["fromFlush"] = 96] = "fromFlush";
+        LifecycleFlags[LifecycleFlags["fromAsyncFlush"] = 32] = "fromAsyncFlush";
+        LifecycleFlags[LifecycleFlags["fromSyncFlush"] = 64] = "fromSyncFlush";
+        LifecycleFlags[LifecycleFlags["fromStartTask"] = 128] = "fromStartTask";
+        LifecycleFlags[LifecycleFlags["fromStopTask"] = 256] = "fromStopTask";
+        LifecycleFlags[LifecycleFlags["fromBind"] = 512] = "fromBind";
+        LifecycleFlags[LifecycleFlags["fromUnbind"] = 1024] = "fromUnbind";
+        LifecycleFlags[LifecycleFlags["fromAttach"] = 2048] = "fromAttach";
+        LifecycleFlags[LifecycleFlags["fromDetach"] = 4096] = "fromDetach";
+        LifecycleFlags[LifecycleFlags["fromCache"] = 8192] = "fromCache";
+        LifecycleFlags[LifecycleFlags["fromCreate"] = 16384] = "fromCreate";
+        LifecycleFlags[LifecycleFlags["fromDOMEvent"] = 32768] = "fromDOMEvent";
+        LifecycleFlags[LifecycleFlags["fromObserverSetter"] = 65536] = "fromObserverSetter";
+        LifecycleFlags[LifecycleFlags["fromBindableHandler"] = 131072] = "fromBindableHandler";
+        LifecycleFlags[LifecycleFlags["fromLifecycleTask"] = 262144] = "fromLifecycleTask";
+        LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 1048576] = "parentUnmountQueued";
+        // this flag is for the synchronous flush before detach (no point in updating the
+        // DOM if it's about to be detached)
+        LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 2097152] = "doNotUpdateDOM";
+    })(exports.LifecycleFlags || (exports.LifecycleFlags = {}));
     (function (MutationKind) {
         MutationKind[MutationKind["instance"] = 1] = "instance";
         MutationKind[MutationKind["collection"] = 2] = "collection";
     })(exports.MutationKind || (exports.MutationKind = {}));
+
+    const IRenderable = kernel.DI.createInterface().noDefault();
+    const IViewFactory = kernel.DI.createInterface().noDefault();
+    const marker = Object.freeze(Object.create(null));
+    const ILifecycle = kernel.DI.createInterface().withDefault(x => x.singleton(Lifecycle));
+    const IFlushLifecycle = ILifecycle;
+    const IBindLifecycle = ILifecycle;
+    const IAttachLifecycle = ILifecycle;
+    /*@internal*/
+    class Lifecycle {
+        constructor() {
+            /*@internal*/ this.bindDepth = 0;
+            /*@internal*/ this.attachDepth = 0;
+            /*@internal*/ this.detachDepth = 0;
+            /*@internal*/ this.unbindDepth = 0;
+            /*@internal*/ this.flushHead = this;
+            /*@internal*/ this.flushTail = this;
+            /*@internal*/ this.connectHead = this; // this cast is safe because we know exactly which properties we'll use
+            /*@internal*/ this.connectTail = this;
+            /*@internal*/ this.patchHead = this;
+            /*@internal*/ this.patchTail = this;
+            /*@internal*/ this.boundHead = this;
+            /*@internal*/ this.boundTail = this;
+            /*@internal*/ this.mountHead = this;
+            /*@internal*/ this.mountTail = this;
+            /*@internal*/ this.attachedHead = this;
+            /*@internal*/ this.attachedTail = this;
+            /*@internal*/ this.unmountHead = this;
+            /*@internal*/ this.unmountTail = this;
+            /*@internal*/ this.detachedHead = this; //LOL
+            /*@internal*/ this.detachedTail = this;
+            /*@internal*/ this.unbindAfterDetachHead = this;
+            /*@internal*/ this.unbindAfterDetachTail = this;
+            /*@internal*/ this.unboundHead = this;
+            /*@internal*/ this.unboundTail = this;
+            /*@internal*/ this.flushed = null;
+            /*@internal*/ this.promise = Promise.resolve();
+            /*@internal*/ this.flushCount = 0;
+            /*@internal*/ this.connectCount = 0;
+            /*@internal*/ this.patchCount = 0;
+            /*@internal*/ this.boundCount = 0;
+            /*@internal*/ this.mountCount = 0;
+            /*@internal*/ this.attachedCount = 0;
+            /*@internal*/ this.unmountCount = 0;
+            /*@internal*/ this.detachedCount = 0;
+            /*@internal*/ this.unbindAfterDetachCount = 0;
+            /*@internal*/ this.unboundCount = 0;
+            // These are dummy properties to make the lifecycle conform to the interfaces
+            // of the components it manages. This allows the lifecycle itself to be the first link
+            // in the chain and removes the need for an additional null check on each addition.
+            /*@internal*/ this.$nextFlush = marker;
+            /*@internal*/ this.flush = kernel.PLATFORM.noop;
+            /*@internal*/ this.$nextConnect = marker;
+            /*@internal*/ this.connect = kernel.PLATFORM.noop;
+            /*@internal*/ this.$nextPatch = marker;
+            /*@internal*/ this.patch = kernel.PLATFORM.noop;
+            /*@internal*/ this.$nextBound = marker;
+            /*@internal*/ this.bound = kernel.PLATFORM.noop;
+            /*@internal*/ this.$nextMount = marker;
+            /*@internal*/ this.$mount = kernel.PLATFORM.noop;
+            /*@internal*/ this.$nextAttached = marker;
+            /*@internal*/ this.attached = kernel.PLATFORM.noop;
+            /*@internal*/ this.$nextUnmount = marker;
+            /*@internal*/ this.$unmount = kernel.PLATFORM.noop;
+            /*@internal*/ this.$nextDetached = marker;
+            /*@internal*/ this.detached = kernel.PLATFORM.noop;
+            /*@internal*/ this.$nextUnbindAfterDetach = marker;
+            /*@internal*/ this.$unbind = kernel.PLATFORM.noop;
+            /*@internal*/ this.$nextUnbound = marker;
+            /*@internal*/ this.unbound = kernel.PLATFORM.noop;
+            /*@internal*/ this.task = null;
+        }
+        registerTask(task) {
+            if (this.task === null) {
+                this.task = new AggregateLifecycleTask();
+            }
+            this.task.addTask(task);
+        }
+        finishTask(task) {
+            if (this.task !== null) {
+                if (this.task === task) {
+                    this.task = null;
+                }
+                else {
+                    this.task.removeTask(task);
+                }
+            }
+        }
+        enqueueFlush(requestor) {
+            // Queue a flush() callback; the depth is just for debugging / testing purposes and has
+            // no effect on execution. flush() will automatically be invoked when the promise resolves,
+            // or it can be manually invoked synchronously.
+            if (this.flushHead === this) {
+                this.flushed = this.promise.then(() => this.processFlushQueue(exports.LifecycleFlags.fromAsyncFlush));
+            }
+            if (requestor.$nextFlush === null) {
+                requestor.$nextFlush = marker;
+                this.flushTail.$nextFlush = requestor;
+                this.flushTail = requestor;
+                ++this.flushCount;
+            }
+            return this.flushed;
+        }
+        processFlushQueue(flags) {
+            flags |= exports.LifecycleFlags.fromSyncFlush;
+            // flush callbacks may lead to additional flush operations, so keep looping until
+            // the flush head is back to `this` (though this will typically happen in the first iteration)
+            while (this.flushCount > 0) {
+                let current = this.flushHead.$nextFlush;
+                this.flushHead = this.flushTail = this;
+                this.flushCount = 0;
+                let next;
+                do {
+                    next = current.$nextFlush;
+                    current.$nextFlush = null;
+                    current.flush(flags);
+                    current = next;
+                } while (current !== marker);
+            }
+        }
+        beginBind() {
+            ++this.bindDepth;
+        }
+        enqueueBound(requestor) {
+            // build a standard singly linked list for bound callbacks
+            if (requestor.$nextBound === null) {
+                requestor.$nextBound = marker;
+                this.boundTail.$nextBound = requestor;
+                this.boundTail = requestor;
+                ++this.boundCount;
+            }
+        }
+        enqueueConnect(requestor) {
+            // enqueue connect and patch calls in separate lists so that they can be invoked
+            // independently from eachother
+            // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path
+            // (first get all the necessary integration tests working, then look for optimizations)
+            // build a standard singly linked list for connect callbacks
+            if (requestor.$nextConnect === null) {
+                requestor.$nextConnect = marker;
+                this.connectTail.$nextConnect = requestor;
+                this.connectTail = requestor;
+                ++this.connectCount;
+            }
+            // build a standard singly linked list for patch callbacks
+            if (requestor.$nextPatch === null) {
+                requestor.$nextPatch = marker;
+                this.patchTail.$nextPatch = requestor;
+                this.patchTail = requestor;
+                ++this.patchCount;
+            }
+        }
+        processConnectQueue(flags) {
+            // connects cannot lead to additional connects, so we don't need to loop here
+            if (this.connectCount > 0) {
+                this.connectCount = 0;
+                let current = this.connectHead.$nextConnect;
+                this.connectHead = this.connectTail = this;
+                let next;
+                do {
+                    current.connect(flags);
+                    next = current.$nextConnect;
+                    current.$nextConnect = null;
+                    current = next;
+                } while (current !== marker);
+            }
+        }
+        processPatchQueue(flags) {
+            // flush before patching, but only if this is the initial bind;
+            // no DOM is attached yet so we can safely let everything propagate
+            if (flags & exports.LifecycleFlags.fromStartTask) {
+                this.processFlushQueue(flags | exports.LifecycleFlags.fromSyncFlush);
+            }
+            // patch callbacks may lead to additional bind operations, so keep looping until
+            // the patch head is back to `this` (though this will typically happen in the first iteration)
+            while (this.patchCount > 0) {
+                this.patchCount = 0;
+                let current = this.patchHead.$nextPatch;
+                this.patchHead = this.patchTail = this;
+                let next;
+                do {
+                    current.patch(flags);
+                    next = current.$nextPatch;
+                    current.$nextPatch = null;
+                    current = next;
+                } while (current !== marker);
+            }
+        }
+        endBind(flags) {
+            // close / shrink a bind batch
+            if (--this.bindDepth === 0) {
+                if (this.task !== null && !this.task.done) {
+                    this.task.owner = this;
+                    return this.task;
+                }
+                this.processBindQueue(flags);
+                return LifecycleTask.done;
+            }
+        }
+        processBindQueue(flags) {
+            // flush before processing bound callbacks, but only if this is the initial bind;
+            // no DOM is attached yet so we can safely let everything propagate
+            if (flags & exports.LifecycleFlags.fromStartTask) {
+                this.processFlushQueue(flags | exports.LifecycleFlags.fromSyncFlush);
+            }
+            // bound callbacks may lead to additional bind operations, so keep looping until
+            // the bound head is back to `this` (though this will typically happen in the first iteration)
+            while (this.boundCount > 0) {
+                this.boundCount = 0;
+                let current = this.boundHead.$nextBound;
+                let next;
+                this.boundHead = this.boundTail = this;
+                do {
+                    current.bound(flags);
+                    next = current.$nextBound;
+                    current.$nextBound = null;
+                    current = next;
+                } while (current !== marker);
+            }
+        }
+        beginUnbind() {
+            // open up / expand an unbind batch; the very first caller will close it again with endUnbind
+            ++this.unbindDepth;
+        }
+        enqueueUnbound(requestor) {
+            // This method is idempotent; adding the same item more than once has the same effect as
+            // adding it once.
+            // build a standard singly linked list for unbound callbacks
+            if (requestor.$nextUnbound === null) {
+                requestor.$nextUnbound = marker;
+                this.unboundTail.$nextUnbound = requestor;
+                this.unboundTail = requestor;
+                ++this.unboundCount;
+            }
+        }
+        endUnbind(flags) {
+            // close / shrink an unbind batch
+            if (--this.unbindDepth === 0) {
+                if (this.task !== null && !this.task.done) {
+                    this.task.owner = this;
+                    return this.task;
+                }
+                this.processUnbindQueue(flags);
+                return LifecycleTask.done;
+            }
+        }
+        processUnbindQueue(flags) {
+            // unbound callbacks may lead to additional unbind operations, so keep looping until
+            // the unbound head is back to `this` (though this will typically happen in the first iteration)
+            while (this.unboundCount > 0) {
+                this.unboundCount = 0;
+                let current = this.unboundHead.$nextUnbound;
+                let next;
+                this.unboundHead = this.unboundTail = this;
+                do {
+                    current.unbound(flags);
+                    next = current.$nextUnbound;
+                    current.$nextUnbound = null;
+                    current = next;
+                } while (current !== marker);
+            }
+        }
+        beginAttach() {
+            // open up / expand an attach batch; the very first caller will close it again with endAttach
+            ++this.attachDepth;
+        }
+        enqueueMount(requestor) {
+            // This method is idempotent; adding the same item more than once has the same effect as
+            // adding it once.
+            // build a standard singly linked list for mount callbacks
+            if (requestor.$nextMount === null) {
+                requestor.$nextMount = marker;
+                this.mountTail.$nextMount = requestor;
+                this.mountTail = requestor;
+                ++this.mountCount;
+            }
+        }
+        enqueueAttached(requestor) {
+            // This method is idempotent; adding the same item more than once has the same effect as
+            // adding it once.
+            // build a standard singly linked list for attached callbacks
+            if (requestor.$nextAttached === null) {
+                requestor.$nextAttached = marker;
+                this.attachedTail.$nextAttached = requestor;
+                this.attachedTail = requestor;
+                ++this.attachedCount;
+            }
+        }
+        endAttach(flags) {
+            // close / shrink an attach batch
+            if (--this.attachDepth === 0) {
+                if (this.task !== null && !this.task.done) {
+                    this.task.owner = this;
+                    return this.task;
+                }
+                this.processAttachQueue(flags);
+                return LifecycleTask.done;
+            }
+        }
+        processAttachQueue(flags) {
+            // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
+            // and the DOM is updated
+            this.processFlushQueue(flags | exports.LifecycleFlags.fromSyncFlush);
+            // TODO: prevent duplicate updates coming from the patch queue (or perhaps it's just not needed in its entirety?)
+            //this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
+            if (this.mountCount > 0) {
+                this.mountCount = 0;
+                let currentMount = this.mountHead.$nextMount;
+                this.mountHead = this.mountTail = this;
+                let nextMount;
+                do {
+                    currentMount.$mount(flags);
+                    nextMount = currentMount.$nextMount;
+                    currentMount.$nextMount = null;
+                    currentMount = nextMount;
+                } while (currentMount !== marker);
+            }
+            // Connect all connect-queued bindings AFTER mounting is done, so that the DOM is visible asap,
+            // but connect BEFORE running the attached callbacks to ensure any changes made during those callbacks
+            // are still accounted for.
+            // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
+            // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
+            // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
+            this.processConnectQueue(exports.LifecycleFlags.mustEvaluate);
+            if (this.attachedCount > 0) {
+                this.attachedCount = 0;
+                let currentAttached = this.attachedHead.$nextAttached;
+                this.attachedHead = this.attachedTail = this;
+                let nextAttached;
+                do {
+                    currentAttached.attached(flags);
+                    nextAttached = currentAttached.$nextAttached;
+                    currentAttached.$nextAttached = null;
+                    currentAttached = nextAttached;
+                } while (currentAttached !== marker);
+            }
+        }
+        beginDetach() {
+            // open up / expand a detach batch; the very first caller will close it again with endDetach
+            ++this.detachDepth;
+        }
+        enqueueUnmount(requestor) {
+            // This method is idempotent; adding the same item more than once has the same effect as
+            // adding it once.
+            // build a standard singly linked list for unmount callbacks
+            if (requestor.$nextUnmount === null) {
+                requestor.$nextUnmount = marker;
+                this.unmountTail.$nextUnmount = requestor;
+                this.unmountTail = requestor;
+                ++this.unmountCount;
+            }
+        }
+        enqueueDetached(requestor) {
+            // This method is idempotent; adding the same item more than once has the same effect as
+            // adding it once.
+            // build a standard singly linked list for detached callbacks
+            if (requestor.$nextDetached === null) {
+                requestor.$nextDetached = marker;
+                this.detachedTail.$nextDetached = requestor;
+                this.detachedTail = requestor;
+                ++this.detachedCount;
+            }
+        }
+        enqueueUnbindAfterDetach(requestor) {
+            // This method is idempotent; adding the same item more than once has the same effect as
+            // adding it once.
+            // build a standard singly linked list for unbindAfterDetach callbacks
+            if (requestor.$nextUnbindAfterDetach === null) {
+                requestor.$nextUnbindAfterDetach = marker;
+                this.unbindAfterDetachTail.$nextUnbindAfterDetach = requestor;
+                this.unbindAfterDetachTail = requestor;
+                ++this.unbindAfterDetachCount;
+            }
+        }
+        endDetach(flags) {
+            // close / shrink a detach batch
+            if (--this.detachDepth === 0) {
+                if (this.task !== null && !this.task.done) {
+                    this.task.owner = this;
+                    return this.task;
+                }
+                this.processDetachQueue(flags);
+                return LifecycleTask.done;
+            }
+        }
+        processDetachQueue(flags) {
+            // flush before unmounting to ensure batched collection changes propagate to the repeaters,
+            // which may lead to additional unmount operations
+            this.processFlushQueue(flags | exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.doNotUpdateDOM);
+            if (this.unmountCount > 0) {
+                this.unmountCount = 0;
+                let currentUnmount = this.unmountHead.$nextUnmount;
+                this.unmountHead = this.unmountTail = this;
+                let nextUnmount;
+                do {
+                    currentUnmount.$unmount(flags);
+                    nextUnmount = currentUnmount.$nextUnmount;
+                    currentUnmount.$nextUnmount = null;
+                    currentUnmount = nextUnmount;
+                } while (currentUnmount !== marker);
+            }
+            if (this.detachedCount > 0) {
+                this.detachedCount = 0;
+                let currentDetached = this.detachedHead.$nextDetached;
+                this.detachedHead = this.detachedTail = this;
+                let nextDetached;
+                do {
+                    currentDetached.detached(flags);
+                    nextDetached = currentDetached.$nextDetached;
+                    currentDetached.$nextDetached = null;
+                    currentDetached = nextDetached;
+                } while (currentDetached !== marker);
+            }
+            if (this.unbindAfterDetachCount > 0) {
+                this.beginUnbind();
+                this.unbindAfterDetachCount = 0;
+                let currentUnbind = this.unbindAfterDetachHead.$nextUnbindAfterDetach;
+                this.unbindAfterDetachHead = this.unbindAfterDetachTail = this;
+                let nextUnbind;
+                do {
+                    currentUnbind.$unbind(flags);
+                    nextUnbind = currentUnbind.$nextUnbindAfterDetach;
+                    currentUnbind.$nextUnbindAfterDetach = null;
+                    currentUnbind = nextUnbind;
+                } while (currentUnbind !== marker);
+                this.endUnbind(flags);
+            }
+        }
+    }
+    exports.CompositionCoordinator = class CompositionCoordinator {
+        constructor($lifecycle) {
+            this.$lifecycle = $lifecycle;
+            this.onSwapComplete = kernel.PLATFORM.noop;
+            this.queue = null;
+            this.swapTask = LifecycleTask.done;
+            this.currentView = null;
+            this.isBound = false;
+            this.isAttached = false;
+        }
+        static register(container) {
+            return kernel.Registration.transient(this, this).register(container, this);
+        }
+        compose(value, flags) {
+            if (this.swapTask.done) {
+                if (value instanceof Promise) {
+                    this.enqueue(new PromiseSwap(this, value));
+                    this.processNext();
+                }
+                else {
+                    this.swap(value, flags);
+                }
+            }
+            else {
+                if (value instanceof Promise) {
+                    this.enqueue(new PromiseSwap(this, value));
+                }
+                else {
+                    this.enqueue(value);
+                }
+                if (this.swapTask.canCancel()) {
+                    this.swapTask.cancel();
+                }
+            }
+        }
+        binding(flags, scope) {
+            this.scope = scope;
+            this.isBound = true;
+            if (this.currentView !== null) {
+                this.currentView.$bind(flags, scope);
+            }
+        }
+        attaching(flags) {
+            this.isAttached = true;
+            if (this.currentView !== null) {
+                this.currentView.$attach(flags);
+            }
+        }
+        detaching(flags) {
+            this.isAttached = false;
+            if (this.currentView !== null) {
+                this.currentView.$detach(flags);
+            }
+        }
+        unbinding(flags) {
+            this.isBound = false;
+            if (this.currentView !== null) {
+                this.currentView.$unbind(flags);
+            }
+        }
+        caching(flags) {
+            this.currentView = null;
+        }
+        enqueue(view) {
+            if (this.queue === null) {
+                this.queue = [];
+            }
+            this.queue.push(view);
+        }
+        swap(view, flags) {
+            if (this.currentView === view) {
+                return;
+            }
+            const $lifecycle = this.$lifecycle;
+            const swapTask = new AggregateLifecycleTask();
+            let lifecycleTask;
+            let currentView = this.currentView;
+            if (currentView === null) {
+                lifecycleTask = LifecycleTask.done;
+            }
+            else {
+                $lifecycle.enqueueUnbindAfterDetach(currentView);
+                $lifecycle.beginDetach();
+                currentView.$detach(flags);
+                lifecycleTask = $lifecycle.endDetach(flags);
+            }
+            swapTask.addTask(lifecycleTask);
+            currentView = this.currentView = view;
+            if (currentView === null) {
+                lifecycleTask = LifecycleTask.done;
+            }
+            else {
+                if (this.isBound) {
+                    $lifecycle.beginBind();
+                    currentView.$bind(flags, this.scope);
+                    $lifecycle.endBind(flags);
+                }
+                if (this.isAttached) {
+                    $lifecycle.beginAttach();
+                    currentView.$attach(flags);
+                    lifecycleTask = $lifecycle.endAttach(flags);
+                }
+                else {
+                    lifecycleTask = LifecycleTask.done;
+                }
+            }
+            swapTask.addTask(lifecycleTask);
+            if (swapTask.done) {
+                this.swapTask = LifecycleTask.done;
+                this.onSwapComplete();
+            }
+            else {
+                this.swapTask = swapTask;
+                this.swapTask.wait().then(() => {
+                    this.onSwapComplete();
+                    this.processNext();
+                });
+            }
+        }
+        processNext() {
+            if (this.queue !== null && this.queue.length > 0) {
+                const next = this.queue.pop();
+                this.queue.length = 0;
+                if (PromiseSwap.is(next)) {
+                    this.swapTask = next.start();
+                }
+                else {
+                    this.swap(next, exports.LifecycleFlags.fromLifecycleTask);
+                }
+            }
+            else {
+                this.swapTask = LifecycleTask.done;
+            }
+        }
+    };
+    exports.CompositionCoordinator = __decorate([
+        kernel.inject(ILifecycle)
+    ], exports.CompositionCoordinator);
+    const LifecycleTask = {
+        done: {
+            done: true,
+            canCancel() { return false; },
+            // tslint:disable-next-line:no-empty
+            cancel() { },
+            wait() { return Promise.resolve(); }
+        }
+    };
+    class AggregateLifecycleTask {
+        constructor() {
+            this.done = true;
+            /*@internal*/
+            this.owner = null;
+            this.tasks = [];
+            this.waiter = null;
+            this.resolve = null;
+        }
+        addTask(task) {
+            if (!task.done) {
+                this.done = false;
+                this.tasks.push(task);
+                task.wait().then(() => this.tryComplete());
+            }
+        }
+        removeTask(task) {
+            if (task.done) {
+                const idx = this.tasks.indexOf(task);
+                if (idx !== -1) {
+                    this.tasks.splice(idx, 1);
+                }
+            }
+            if (this.tasks.length === 0) {
+                if (this.owner !== null) {
+                    this.owner.finishTask(this);
+                    this.owner = null;
+                }
+            }
+        }
+        canCancel() {
+            if (this.done) {
+                return false;
+            }
+            return this.tasks.every(x => x.canCancel());
+        }
+        cancel() {
+            if (this.canCancel()) {
+                this.tasks.forEach(x => x.cancel());
+                this.done = false;
+            }
+        }
+        wait() {
+            if (this.waiter === null) {
+                if (this.done) {
+                    this.waiter = Promise.resolve();
+                }
+                else {
+                    // tslint:disable-next-line:promise-must-complete
+                    this.waiter = new Promise((resolve) => this.resolve = resolve);
+                }
+            }
+            return this.waiter;
+        }
+        tryComplete() {
+            if (this.done) {
+                return;
+            }
+            if (this.tasks.every(x => x.done)) {
+                this.complete(true);
+            }
+        }
+        complete(notCancelled) {
+            this.done = true;
+            if (notCancelled && this.owner !== null) {
+                this.owner.processDetachQueue(exports.LifecycleFlags.fromLifecycleTask);
+                this.owner.processUnbindQueue(exports.LifecycleFlags.fromLifecycleTask);
+                this.owner.processBindQueue(exports.LifecycleFlags.fromLifecycleTask);
+                this.owner.processAttachQueue(exports.LifecycleFlags.fromLifecycleTask);
+            }
+            this.owner.finishTask(this);
+            if (this.resolve !== null) {
+                this.resolve();
+            }
+        }
+    }
+    /*@internal*/
+    class PromiseSwap {
+        constructor(coordinator, promise) {
+            this.coordinator = coordinator;
+            this.promise = promise;
+            this.done = false;
+            this.isCancelled = false;
+        }
+        static is(object) {
+            return 'start' in object;
+        }
+        start() {
+            if (this.isCancelled) {
+                return LifecycleTask.done;
+            }
+            this.promise = this.promise.then(x => {
+                this.onResolve(x);
+                return x;
+            });
+            return this;
+        }
+        canCancel() {
+            return !this.done;
+        }
+        cancel() {
+            if (this.canCancel()) {
+                this.isCancelled = true;
+            }
+        }
+        wait() {
+            return this.promise;
+        }
+        onResolve(value) {
+            if (this.isCancelled) {
+                return;
+            }
+            this.done = true;
+            this.coordinator.compose(value, exports.LifecycleFlags.fromLifecycleTask);
+        }
+    }
+    // tslint:disable:jsdoc-format
+    /**
+     * A general-purpose ILifecycleTask implementation that can be placed
+     * before an attached, detached, bound or unbound hook during attaching,
+     * detaching, binding or unbinding, respectively.
+     *
+     * The provided promise will be awaited before the corresponding lifecycle
+     * hook (and any hooks following it) is invoked.
+     *
+     * The provided callback will be invoked after the promise is resolved
+     * and before the next lifecycle hook.
+     *
+     * Example:
+    ```ts
+    export class MyViewModel {
+      private $lifecycle: ILifecycle; // set before created() hook
+      private answer: number;
+
+      public binding(flags: LifecycleFlags): void {
+        // this.answer === undefined
+        this.$lifecycle.registerTask(new PromiseTask(
+          this.getAnswerAsync,
+          answer => {
+            this.answer = answer;
+          }
+        ));
+      }
+
+      public bound(flags: LifecycleFlags): void {
+        // this.answer === 42
+      }
+
+      private getAnswerAsync(): Promise<number> {
+        return Promise.resolve().then(() => 42);
+      }
+    }
+    ```
+     */
+    // tslint:enable:jsdoc-format
+    class PromiseTask {
+        constructor(promise, callback) {
+            this.done = false;
+            this.isCancelled = false;
+            this.callback = callback;
+            this.promise = promise.then(value => {
+                if (this.isCancelled === true) {
+                    return;
+                }
+                this.done = true;
+                this.callback(value);
+                return value;
+            });
+        }
+        canCancel() {
+            return !this.done;
+        }
+        cancel() {
+            if (this.canCancel()) {
+                this.isCancelled = true;
+            }
+        }
+        wait() {
+            return this.promise;
+        }
+    }
 
     function bindingBehavior(nameOrSource) {
         return function (target) {
@@ -178,8 +827,8 @@ this.au.runtime = (function (exports,kernel) {
         keyFrom(name) {
             return `${this.name}:${name}`;
         },
-        isType(type) {
-            return type.kind === this;
+        isType(Type) {
+            return Type.kind === this;
         },
         define(nameOrSource, ctor) {
             const Type = ctor;
@@ -664,8 +1313,8 @@ this.au.runtime = (function (exports,kernel) {
         if (subscriber2 !== null) {
             subscriber2.handleChange(newValue, previousValue, flags);
         }
-        const length = subscribers && subscribers.length || 0;
-        if (length > 0) {
+        const length = subscribers && subscribers.length;
+        if (length !== undefined && length > 0) {
             for (let i = 0; i < length; ++i) {
                 const subscriber = subscribers[i];
                 if (subscriber !== null) {
@@ -691,8 +1340,8 @@ this.au.runtime = (function (exports,kernel) {
         if (subscriber2 !== null) {
             subscriber2.handleChange(origin, args, flags);
         }
-        const length = subscribers && subscribers.length || 0;
-        if (length > 0) {
+        const length = subscribers && subscribers.length;
+        if (length !== undefined && length > 0) {
             for (let i = 0; i < length; ++i) {
                 const subscriber = subscribers[i];
                 if (subscriber !== null) {
@@ -700,7 +1349,7 @@ this.au.runtime = (function (exports,kernel) {
                 }
             }
         }
-        this.changeSet.add(this);
+        this.lifecycle.enqueueFlush(this);
     }
     function hasSubscribers() {
         return this._subscriberFlags !== 0 /* None */;
@@ -821,8 +1470,8 @@ this.au.runtime = (function (exports,kernel) {
         if (subscriber2 !== null) {
             subscriber2.handleBatchedChange(indexMap);
         }
-        const length = subscribers && subscribers.length || 0;
-        if (length > 0) {
+        const length = subscribers && subscribers.length;
+        if (length !== undefined && length > 0) {
             for (let i = 0; i < length; ++i) {
                 const subscriber = subscribers[i];
                 if (subscriber !== null) {
@@ -865,23 +1514,30 @@ this.au.runtime = (function (exports,kernel) {
         newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
         if (currentValue !== newValue) {
             this.currentValue = newValue;
-            if (flags & (exports.BindingFlags.fromFlushChanges | exports.BindingFlags.fromBind)) {
+            if ((flags & (exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.fromBind)) &&
+                !((flags & exports.LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj))) {
                 this.setValueCore(newValue, flags);
             }
             else {
                 this.currentFlags = flags;
-                return this.changeSet.add(this);
+                return this.lifecycle.enqueueFlush(this);
             }
         }
         return Promise.resolve();
     }
-    const defaultFlushChangesFlags = exports.BindingFlags.fromFlushChanges | exports.BindingFlags.updateTargetInstance;
-    function flushChanges() {
+    function flush(flags) {
+        if (flags & exports.LifecycleFlags.doNotUpdateDOM) {
+            if (DOM.isNodeInstance(this.obj)) {
+                // re-queue the change so it will still propagate on flush when it's attached again
+                this.lifecycle.enqueueFlush(this);
+                return;
+            }
+        }
         const currentValue = this.currentValue;
         // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
         // in which case the target doesn't need to be updated
         if (this.oldValue !== currentValue) {
-            this.setValueCore(currentValue, this.currentFlags | defaultFlushChangesFlags);
+            this.setValueCore(currentValue, this.currentFlags | flags | exports.LifecycleFlags.updateTargetInstance);
             this.oldValue = this.currentValue;
         }
     }
@@ -891,21 +1547,20 @@ this.au.runtime = (function (exports,kernel) {
         this.defaultValue = null;
         this.obj = null;
         this.propertyKey = '';
-        this.changeSet = null;
     }
     function targetObserver(defaultValue = null) {
         return function (target) {
             subscriberCollection(exports.MutationKind.instance)(target);
             const proto = target.prototype;
+            proto.$nextFlush = null;
             proto.currentValue = defaultValue;
             proto.oldValue = defaultValue;
             proto.defaultValue = defaultValue;
             proto.obj = null;
             proto.propertyKey = '';
             proto.setValue = proto.setValue || setValue;
-            proto.flushChanges = proto.flushChanges || flushChanges;
+            proto.flush = proto.flush || flush;
             proto.dispose = proto.dispose || dispose;
-            proto.changeSet = null;
         };
     }
 
@@ -917,8 +1572,8 @@ this.au.runtime = (function (exports,kernel) {
         // in html5 documents)
         // Using very HTML-specific code here since this isn't likely to get
         // called unless operating against a real HTML element.
-        constructor(changeSet, obj, propertyKey, attributeName) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, obj, propertyKey, attributeName) {
+            this.lifecycle = lifecycle;
             this.obj = obj;
             this.propertyKey = propertyKey;
             this.attributeName = attributeName;
@@ -936,8 +1591,8 @@ this.au.runtime = (function (exports,kernel) {
     ], exports.XLinkAttributeAccessor);
     exports.XLinkAttributeAccessor.prototype.attributeName = '';
     exports.DataAttributeAccessor = class DataAttributeAccessor {
-        constructor(changeSet, obj, propertyKey) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, obj, propertyKey) {
+            this.lifecycle = lifecycle;
             this.obj = obj;
             this.propertyKey = propertyKey;
             this.oldValue = this.currentValue = this.getValue();
@@ -958,8 +1613,8 @@ this.au.runtime = (function (exports,kernel) {
         targetObserver()
     ], exports.DataAttributeAccessor);
     exports.StyleAttributeAccessor = class StyleAttributeAccessor {
-        constructor(changeSet, obj) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, obj) {
+            this.lifecycle = lifecycle;
             this.obj = obj;
             this.oldValue = this.currentValue = obj.style.cssText;
         }
@@ -1025,8 +1680,8 @@ this.au.runtime = (function (exports,kernel) {
     exports.StyleAttributeAccessor.prototype.version = 0;
     exports.StyleAttributeAccessor.prototype.propertyKey = 'style';
     exports.ClassAttributeAccessor = class ClassAttributeAccessor {
-        constructor(changeSet, obj) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, obj) {
+            this.lifecycle = lifecycle;
             this.obj = obj;
         }
         getValue() {
@@ -1078,8 +1733,8 @@ this.au.runtime = (function (exports,kernel) {
     exports.ClassAttributeAccessor.prototype.version = 0;
     exports.ClassAttributeAccessor.prototype.nameIndex = null;
     exports.ElementPropertyAccessor = class ElementPropertyAccessor {
-        constructor(changeSet, obj, propertyKey) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, obj, propertyKey) {
+            this.lifecycle = lifecycle;
             this.obj = obj;
             this.propertyKey = propertyKey;
         }
@@ -1108,7 +1763,7 @@ this.au.runtime = (function (exports,kernel) {
 
     exports.AttrBindingBehavior = class AttrBindingBehavior {
         bind(flags, scope, binding) {
-            binding.targetObserver = new exports.DataAttributeAccessor(binding.locator.get(IChangeSet), binding.target, binding.targetProperty);
+            binding.targetObserver = new exports.DataAttributeAccessor(binding.locator.get(ILifecycle), binding.target, binding.targetProperty);
         }
         // tslint:disable-next-line:no-empty
         unbind(flags, scope, binding) { }
@@ -1196,7 +1851,7 @@ this.au.runtime = (function (exports,kernel) {
             const { obj, propertyKey } = this;
             this.currentValue = obj[propertyKey];
             observedPropertyDescriptor.get = () => this.getValue();
-            observedPropertyDescriptor.set = value => this.setValue(value, exports.BindingFlags.updateTargetInstance);
+            observedPropertyDescriptor.set = value => { this.setValue(value, exports.LifecycleFlags.updateTargetInstance); };
             if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
                 kernel.Reporter.write(1, propertyKey, obj);
             }
@@ -1268,7 +1923,7 @@ this.au.runtime = (function (exports,kernel) {
             const currentValue = this.currentValue;
             if (currentValue !== newValue) {
                 this.currentValue = newValue;
-                if (!(flags & exports.BindingFlags.fromBind)) {
+                if (!(flags & exports.LifecycleFlags.fromBind)) {
                     this.callSubscribers(newValue, currentValue, flags);
                 }
                 // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -1302,7 +1957,7 @@ this.au.runtime = (function (exports,kernel) {
             const currentValue = this.currentValue;
             if (currentValue !== newValue) {
                 this.currentValue = newValue;
-                if (!(flags & exports.BindingFlags.fromBind)) {
+                if (!(flags & exports.LifecycleFlags.fromBind)) {
                     const coercedValue = this.callback(newValue, currentValue);
                     if (coercedValue !== undefined) {
                         this.currentValue = newValue = coercedValue;
@@ -1438,7 +2093,7 @@ this.au.runtime = (function (exports,kernel) {
                 return;
             }
             for (const listener of listeners.keys()) {
-                listener.handleChange(undefined, undefined, flags | exports.BindingFlags.updateTargetInstance);
+                listener.handleChange(undefined, undefined, flags | exports.LifecycleFlags.updateTargetInstance);
             }
         }
         addSignalListener(name, listener) {
@@ -1469,8 +2124,8 @@ this.au.runtime = (function (exports,kernel) {
         keyFrom(name) {
             return `${this.name}:${name}`;
         },
-        isType(type) {
-            return type.kind === this;
+        isType(Type) {
+            return Type.kind === this;
         },
         define(nameOrSource, ctor) {
             const Type = ctor;
@@ -1521,11 +2176,10 @@ this.au.runtime = (function (exports,kernel) {
         return (expr.$kind & 16384 /* IsLiteral */) === 16384 /* IsLiteral */;
     }
     function arePureLiterals(expressions) {
-        const len = expressions && expressions.length || 0;
-        if (len === 0) {
+        if (expressions === undefined || expressions.length === 0) {
             return true;
         }
-        for (let i = 0; i < len; ++i) {
+        for (let i = 0; i < expressions.length; ++i) {
             if (!isPureLiteral(expressions[i])) {
                 return false;
             }
@@ -1587,7 +2241,7 @@ this.au.runtime = (function (exports,kernel) {
             if (!behavior) {
                 throw kernel.Reporter.error(203 /* NoBehaviorFound */, this);
             }
-            if (binding[behaviorKey] !== undefined) {
+            if (binding[behaviorKey] !== undefined && binding[behaviorKey] !== null) {
                 throw kernel.Reporter.error(204 /* BehaviorAlreadyApplied */, this);
             }
             binding[behaviorKey] = behavior;
@@ -1701,7 +2355,9 @@ this.au.runtime = (function (exports,kernel) {
         evaluate(flags, scope, locator) {
             return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator));
         }
-        connect(flags, scope, binding) { }
+        connect(flags, scope, binding) {
+            return;
+        }
         assign(flags, scope, locator, value) {
             this.value.assign(flags, scope, locator, value);
             return this.target.assign(flags, scope, locator, value);
@@ -1894,7 +2550,7 @@ this.au.runtime = (function (exports,kernel) {
         connect(flags, scope, binding) {
             const obj = this.object.evaluate(flags, scope, null);
             this.object.connect(flags, scope, binding);
-            if (getFunction(flags & ~exports.BindingFlags.mustEvaluate, obj, this.name)) {
+            if (getFunction(flags & ~exports.LifecycleFlags.mustEvaluate, obj, this.name)) {
                 const args = this.args;
                 for (let i = 0, ii = args.length; i < ii; ++i) {
                     args[i].connect(flags, scope, binding);
@@ -1915,7 +2571,7 @@ this.au.runtime = (function (exports,kernel) {
             if (typeof func === 'function') {
                 return func.apply(null, evalList(flags, scope, locator, this.args));
             }
-            if (!(flags & exports.BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
+            if (!(flags & exports.LifecycleFlags.mustEvaluate) && (func === null || func === undefined)) {
                 return undefined;
             }
             throw kernel.Reporter.error(207 /* NotAFunction */, this);
@@ -2228,7 +2884,9 @@ this.au.runtime = (function (exports,kernel) {
         assign(flags, scope, locator, obj) {
             // TODO
         }
-        connect(flags, scope, binding) { }
+        connect(flags, scope, binding) {
+            return;
+        }
         accept(visitor) {
             return visitor.visitArrayBindingPattern(this);
         }
@@ -2247,7 +2905,9 @@ this.au.runtime = (function (exports,kernel) {
         assign(flags, scope, locator, obj) {
             // TODO
         }
-        connect(flags, scope, binding) { }
+        connect(flags, scope, binding) {
+            return;
+        }
         accept(visitor) {
             return visitor.visitObjectBindingPattern(this);
         }
@@ -2259,7 +2919,9 @@ this.au.runtime = (function (exports,kernel) {
         evaluate(flags, scope, locator) {
             return this.name;
         }
-        connect(flags, scope, binding) { }
+        connect(flags, scope, binding) {
+            return;
+        }
         accept(visitor) {
             return visitor.visitBindingIdentifier(this);
         }
@@ -2318,7 +2980,9 @@ this.au.runtime = (function (exports,kernel) {
                 return parts[0] + this.firstExpression.evaluate(flags, scope, locator) + parts[1];
             }
         }
-        connect(flags, scope, binding) { }
+        connect(flags, scope, binding) {
+            return;
+        }
         accept(visitor) {
             return visitor.visitInterpolation(this);
         }
@@ -2367,17 +3031,16 @@ this.au.runtime = (function (exports,kernel) {
         if (typeof func === 'function') {
             return func;
         }
-        if (!(flags & exports.BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
+        if (!(flags & exports.LifecycleFlags.mustEvaluate) && (func === null || func === undefined)) {
             return null;
         }
         throw kernel.Reporter.error(207 /* NotAFunction */, obj, name, func);
     }
     function isNumeric(value) {
-        // tslint:disable-next-line:no-reserved-keywords
-        const type = typeof value;
-        if (type === 'number')
+        const valueType = typeof value;
+        if (valueType === 'number')
             return true;
-        if (type !== 'string')
+        if (valueType !== 'string')
             return false;
         const len = value.length;
         if (len === 0)
@@ -2420,8 +3083,12 @@ this.au.runtime = (function (exports,kernel) {
             }
             IterateForOfStatement['[object Array]'](arr, func);
         },
-        ['[object Null]'](result, func) { },
-        ['[object Undefined]'](result, func) { }
+        ['[object Null]'](result, func) {
+            return;
+        },
+        ['[object Undefined]'](result, func) {
+            return;
+        }
     };
     /*@internal*/
     const CountForOfStatement = {
@@ -2554,16 +3221,19 @@ this.au.runtime = (function (exports,kernel) {
             this.mode = mode;
             this.observerLocator = observerLocator;
             this.locator = locator;
+            this.$nextConnect = null;
+            this.$nextPatch = null;
             this.$nextBind = null;
             this.$prevBind = null;
             this.$state = 0 /* none */;
             this.$scope = null;
+            this.$lifecycle = locator.get(ILifecycle);
         }
         updateTarget(value, flags) {
-            this.targetObserver.setValue(value, flags | exports.BindingFlags.updateTargetInstance);
+            this.targetObserver.setValue(value, flags | exports.LifecycleFlags.updateTargetInstance);
         }
         updateSource(value, flags) {
-            this.sourceExpression.assign(flags | exports.BindingFlags.updateSourceExpression, this.$scope, this.locator, value);
+            this.sourceExpression.assign(flags | exports.LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
         }
         handleChange(newValue, previousValue, flags) {
             if (!(this.$state & 2 /* isBound */)) {
@@ -2572,7 +3242,7 @@ this.au.runtime = (function (exports,kernel) {
             const sourceExpression = this.sourceExpression;
             const $scope = this.$scope;
             const locator = this.locator;
-            if (flags & exports.BindingFlags.updateTargetInstance) {
+            if (flags & exports.LifecycleFlags.updateTargetInstance) {
                 const targetObserver = this.targetObserver;
                 const mode = this.mode;
                 previousValue = targetObserver.getValue();
@@ -2590,20 +3260,20 @@ this.au.runtime = (function (exports,kernel) {
                 }
                 return;
             }
-            if (flags & exports.BindingFlags.updateSourceExpression) {
+            if (flags & exports.LifecycleFlags.updateSourceExpression) {
                 if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
                     this.updateSource(newValue, flags);
                 }
                 return;
             }
-            throw kernel.Reporter.error(15, exports.BindingFlags[flags]);
+            throw kernel.Reporter.error(15, exports.LifecycleFlags[flags]);
         }
         $bind(flags, scope) {
             if (this.$state & 2 /* isBound */) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags | exports.BindingFlags.fromBind);
+                this.$unbind(flags | exports.LifecycleFlags.fromBind);
             }
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
@@ -2628,10 +3298,10 @@ this.au.runtime = (function (exports,kernel) {
             // during bind, binding behavior might have changed sourceExpression
             sourceExpression = this.sourceExpression;
             if (mode & toViewOrOneTime) {
-                targetObserver.setValue(sourceExpression.evaluate(flags, scope, this.locator), flags);
+                this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
             }
             if (mode & toView$1) {
-                sourceExpression.connect(flags, scope, this);
+                this.$lifecycle.enqueueConnect(this);
             }
             if (mode & fromView$1) {
                 targetObserver.subscribe(this);
@@ -2645,7 +3315,7 @@ this.au.runtime = (function (exports,kernel) {
                 return;
             }
             // add isUnbinding flag
-            this.$state |= 32 /* isUnbinding */;
+            this.$state |= 64 /* isUnbinding */;
             const sourceExpression = this.sourceExpression;
             if (hasUnbind(sourceExpression)) {
                 sourceExpression.unbind(flags, this.$scope, this);
@@ -2660,7 +3330,17 @@ this.au.runtime = (function (exports,kernel) {
             }
             this.unobserve(true);
             // remove isBound and isUnbinding flags
-            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
+            this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+        }
+        connect(flags) {
+            if (this.$state & 2 /* isBound */) {
+                this.sourceExpression.connect(flags | exports.LifecycleFlags.mustEvaluate, this.$scope, this);
+            }
+        }
+        patch(flags) {
+            if (this.$state & 2 /* isBound */) {
+                this.updateTarget(this.sourceExpression.evaluate(flags | exports.LifecycleFlags.mustEvaluate, this.$scope, this.locator), flags);
+            }
         }
     };
     exports.Binding = __decorate([
@@ -2701,12 +3381,12 @@ this.au.runtime = (function (exports,kernel) {
             if (binding instanceof exports.Binding) {
                 methodToDebounce = 'handleChange';
                 debouncer = debounceCall;
-                callContextToDebounce = binding.mode & fromView$2 ? exports.BindingFlags.updateSourceExpression : exports.BindingFlags.updateTargetInstance;
+                callContextToDebounce = binding.mode & fromView$2 ? exports.LifecycleFlags.updateSourceExpression : exports.LifecycleFlags.updateTargetInstance;
             }
             else {
                 methodToDebounce = 'callSource';
                 debouncer = debounceCallSource;
-                callContextToDebounce = exports.BindingFlags.updateTargetInstance;
+                callContextToDebounce = exports.LifecycleFlags.updateTargetInstance;
             }
             // stash the original method and it's name.
             // note: a generic name like "originalMethod" is not used to avoid collisions
@@ -2767,145 +3447,10 @@ this.au.runtime = (function (exports,kernel) {
         kernel.inject(ISanitizer)
     ], exports.SanitizeValueConverter);
 
+    //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
     /*@internal*/
     function findOriginalEventTarget(event) {
         return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
-    }
-    /*@internal*/
-    function handleSelfEvent(event) {
-        const target = findOriginalEventTarget(event);
-        if (this.target !== target) {
-            return;
-        }
-        return this.selfEventCallSource(event);
-    }
-    exports.SelfBindingBehavior = class SelfBindingBehavior {
-        bind(flags, scope, binding) {
-            if (!binding.callSource || !binding.targetEvent) {
-                throw kernel.Reporter.error(8);
-            }
-            binding.selfEventCallSource = binding.callSource;
-            binding.callSource = handleSelfEvent;
-        }
-        unbind(flags, scope, binding) {
-            binding.callSource = binding.selfEventCallSource;
-            binding.selfEventCallSource = null;
-        }
-    };
-    exports.SelfBindingBehavior = __decorate([
-        bindingBehavior('self')
-    ], exports.SelfBindingBehavior);
-
-    exports.SignalBindingBehavior = class SignalBindingBehavior {
-        constructor(signaler) {
-            this.signaler = signaler;
-        }
-        bind(flags, scope, binding) {
-            if (!binding.updateTarget) {
-                throw kernel.Reporter.error(11);
-            }
-            if (arguments.length === 4) {
-                let name = arguments[3];
-                this.signaler.addSignalListener(name, binding);
-                binding.signal = name;
-            }
-            else if (arguments.length > 4) {
-                let names = Array.prototype.slice.call(arguments, 3);
-                let i = names.length;
-                while (i--) {
-                    let name = names[i];
-                    this.signaler.addSignalListener(name, binding);
-                }
-                binding.signal = names;
-            }
-            else {
-                throw kernel.Reporter.error(12);
-            }
-        }
-        unbind(flags, scope, binding) {
-            let name = binding.signal;
-            binding.signal = null;
-            if (Array.isArray(name)) {
-                let names = name;
-                let i = names.length;
-                while (i--) {
-                    this.signaler.removeSignalListener(names[i], binding);
-                }
-            }
-            else {
-                this.signaler.removeSignalListener(name, binding);
-            }
-        }
-    };
-    exports.SignalBindingBehavior = __decorate([
-        bindingBehavior('signal'),
-        kernel.inject(ISignaler)
-    ], exports.SignalBindingBehavior);
-
-    /*@internal*/
-    function throttle(newValue) {
-        let state = this.throttleState;
-        let elapsed = +new Date() - state.last;
-        if (elapsed >= state.delay) {
-            clearTimeout(state.timeoutId);
-            state.timeoutId = null;
-            state.last = +new Date();
-            this.throttledMethod(newValue);
-            return;
-        }
-        state.newValue = newValue;
-        if (state.timeoutId === null) {
-            state.timeoutId = setTimeout(() => {
-                state.timeoutId = null;
-                state.last = +new Date();
-                this.throttledMethod(state.newValue);
-            }, state.delay - elapsed);
-        }
-    }
-    exports.ThrottleBindingBehavior = class ThrottleBindingBehavior {
-        bind(flags, scope, binding, delay = 200) {
-            let methodToThrottle;
-            if (binding instanceof exports.Binding) {
-                if (binding.mode === exports.BindingMode.twoWay) {
-                    methodToThrottle = 'updateSource';
-                }
-                else {
-                    methodToThrottle = 'updateTarget';
-                }
-            }
-            else {
-                methodToThrottle = 'callSource';
-            }
-            // stash the original method and it's name.
-            // note: a generic name like "originalMethod" is not used to avoid collisions
-            // with other binding behavior types.
-            binding.throttledMethod = binding[methodToThrottle];
-            binding.throttledMethod.originalName = methodToThrottle;
-            // replace the original method with the throttling version.
-            binding[methodToThrottle] = throttle;
-            // create the throttle state.
-            binding.throttleState = {
-                delay: delay,
-                last: 0,
-                timeoutId: null
-            };
-        }
-        unbind(flags, scope, binding) {
-            // restore the state of the binding.
-            let methodToRestore = binding.throttledMethod.originalName;
-            binding[methodToRestore] = binding.throttledMethod;
-            binding.throttledMethod = null;
-            clearTimeout(binding.throttleState.timeoutId);
-            binding.throttleState = null;
-        }
-    };
-    exports.ThrottleBindingBehavior = __decorate([
-        bindingBehavior('throttle')
-    ], exports.ThrottleBindingBehavior);
-
-    //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
-    function findOriginalEventTarget$1(event) {
-        return (event.composedPath && event.composedPath()[0]) || (event.path && event.path[0]) || (event.deepPath && event.deepPath[0]) || event.target;
     }
     function stopPropagation() {
         this.standardStopPropagation();
@@ -2913,7 +3458,7 @@ this.au.runtime = (function (exports,kernel) {
     }
     function handleCapturedEvent(event) {
         event.propagationStopped = false;
-        let target = findOriginalEventTarget$1(event);
+        let target = findOriginalEventTarget(event);
         const orderedCallbacks = [];
         /**
          * During capturing phase, event 'bubbles' down from parent. Needs to reorder callback from root down to target
@@ -2943,7 +3488,7 @@ this.au.runtime = (function (exports,kernel) {
     }
     function handleDelegatedEvent(event) {
         event.propagationStopped = false;
-        let target = findOriginalEventTarget$1(event);
+        let target = findOriginalEventTarget(event);
         while (target && !event.propagationStopped) {
             if (target.delegatedCallbacks) {
                 const callback = target.delegatedCallbacks[event.type];
@@ -3133,7 +3678,139 @@ this.au.runtime = (function (exports,kernel) {
         }
     }
 
-    function flushChanges$1() {
+    /*@internal*/
+    function handleSelfEvent(event) {
+        const target = findOriginalEventTarget(event);
+        if (this.target !== target) {
+            return;
+        }
+        return this.selfEventCallSource(event);
+    }
+    exports.SelfBindingBehavior = class SelfBindingBehavior {
+        bind(flags, scope, binding) {
+            if (!binding.callSource || !binding.targetEvent) {
+                throw kernel.Reporter.error(8);
+            }
+            binding.selfEventCallSource = binding.callSource;
+            binding.callSource = handleSelfEvent;
+        }
+        unbind(flags, scope, binding) {
+            binding.callSource = binding.selfEventCallSource;
+            binding.selfEventCallSource = null;
+        }
+    };
+    exports.SelfBindingBehavior = __decorate([
+        bindingBehavior('self')
+    ], exports.SelfBindingBehavior);
+
+    exports.SignalBindingBehavior = class SignalBindingBehavior {
+        constructor(signaler) {
+            this.signaler = signaler;
+        }
+        bind(flags, scope, binding) {
+            if (!binding.updateTarget) {
+                throw kernel.Reporter.error(11);
+            }
+            if (arguments.length === 4) {
+                const name = arguments[3];
+                this.signaler.addSignalListener(name, binding);
+                binding.signal = name;
+            }
+            else if (arguments.length > 4) {
+                const names = Array.prototype.slice.call(arguments, 3);
+                let i = names.length;
+                while (i--) {
+                    const name = names[i];
+                    this.signaler.addSignalListener(name, binding);
+                }
+                binding.signal = names;
+            }
+            else {
+                throw kernel.Reporter.error(12);
+            }
+        }
+        unbind(flags, scope, binding) {
+            const name = binding.signal;
+            binding.signal = null;
+            if (Array.isArray(name)) {
+                const names = name;
+                let i = names.length;
+                while (i--) {
+                    this.signaler.removeSignalListener(names[i], binding);
+                }
+            }
+            else {
+                this.signaler.removeSignalListener(name, binding);
+            }
+        }
+    };
+    exports.SignalBindingBehavior = __decorate([
+        bindingBehavior('signal'),
+        kernel.inject(ISignaler)
+    ], exports.SignalBindingBehavior);
+
+    /*@internal*/
+    function throttle(newValue) {
+        const state = this.throttleState;
+        const elapsed = +new Date() - state.last;
+        if (elapsed >= state.delay) {
+            clearTimeout(state.timeoutId);
+            state.timeoutId = null;
+            state.last = +new Date();
+            this.throttledMethod(newValue);
+            return;
+        }
+        state.newValue = newValue;
+        if (state.timeoutId === null) {
+            state.timeoutId = setTimeout(() => {
+                state.timeoutId = null;
+                state.last = +new Date();
+                this.throttledMethod(state.newValue);
+            }, state.delay - elapsed);
+        }
+    }
+    exports.ThrottleBindingBehavior = class ThrottleBindingBehavior {
+        bind(flags, scope, binding, delay = 200) {
+            let methodToThrottle;
+            if (binding instanceof exports.Binding) {
+                if (binding.mode === exports.BindingMode.twoWay) {
+                    methodToThrottle = 'updateSource';
+                }
+                else {
+                    methodToThrottle = 'updateTarget';
+                }
+            }
+            else {
+                methodToThrottle = 'callSource';
+            }
+            // stash the original method and it's name.
+            // note: a generic name like "originalMethod" is not used to avoid collisions
+            // with other binding behavior types.
+            binding.throttledMethod = binding[methodToThrottle];
+            binding.throttledMethod.originalName = methodToThrottle;
+            // replace the original method with the throttling version.
+            binding[methodToThrottle] = throttle;
+            // create the throttle state.
+            binding.throttleState = {
+                delay: delay,
+                last: 0,
+                timeoutId: null
+            };
+        }
+        unbind(flags, scope, binding) {
+            // restore the state of the binding.
+            const methodToRestore = binding.throttledMethod.originalName;
+            binding[methodToRestore] = binding.throttledMethod;
+            binding.throttledMethod = null;
+            clearTimeout(binding.throttleState.timeoutId);
+            binding.throttleState = null;
+        }
+    };
+    exports.ThrottleBindingBehavior = __decorate([
+        bindingBehavior('throttle')
+    ], exports.ThrottleBindingBehavior);
+
+    function flush$1() {
         this.callBatchedSubscribers(this.indexMap);
         this.resetIndexMap();
     }
@@ -3168,13 +3845,14 @@ this.au.runtime = (function (exports,kernel) {
             subscriberCollection(exports.MutationKind.collection)(target);
             batchedSubscriberCollection()(target);
             const proto = target.prototype;
+            proto.$nextFlush = null;
             proto.collection = null;
             proto.indexMap = null;
             proto.hasChanges = false;
             proto.lengthPropertyName = kind & 8 /* indexed */ ? 'length' : 'size';
             proto.collectionKind = kind;
             proto.resetIndexMap = kind & 8 /* indexed */ ? resetIndexMapIndexed : resetIndexMapKeyed;
-            proto.flushChanges = flushChanges$1;
+            proto.flush = flush$1;
             proto.dispose = dispose$2;
             proto.getLengthObserver = getLengthObserver;
             proto.subscribe = proto.subscribe || proto.addSubscriber;
@@ -3206,7 +3884,6 @@ this.au.runtime = (function (exports,kernel) {
         targetObserver()
     ], exports.CollectionLengthObserver);
 
-    // tslint:disable:no-reserved-keywords
     const proto = Array.prototype;
     const nativePush = proto.push; // TODO: probably want to make these internal again
     const nativeUnshift = proto.unshift;
@@ -3233,7 +3910,7 @@ this.au.runtime = (function (exports,kernel) {
             o.indexMap[i] = -2;
             i++;
         }
-        o.callSubscribers('push', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('push', arguments, exports.LifecycleFlags.isCollectionMutation);
         return this.length;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
@@ -3250,7 +3927,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         nativeUnshift.apply(o.indexMap, inserts);
         const len = nativeUnshift.apply(this, arguments);
-        o.callSubscribers('unshift', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('unshift', arguments, exports.LifecycleFlags.isCollectionMutation);
         return len;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.pop
@@ -3267,7 +3944,7 @@ this.au.runtime = (function (exports,kernel) {
             nativePush.call(indexMap.deletedItems, element);
         }
         nativePop.call(indexMap);
-        o.callSubscribers('pop', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('pop', arguments, exports.LifecycleFlags.isCollectionMutation);
         return element;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.shift
@@ -3283,7 +3960,7 @@ this.au.runtime = (function (exports,kernel) {
             nativePush.call(indexMap.deletedItems, element);
         }
         nativeShift.call(indexMap);
-        o.callSubscribers('shift', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('shift', arguments, exports.LifecycleFlags.isCollectionMutation);
         return element;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.splice
@@ -3294,7 +3971,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         const indexMap = o.indexMap;
         if (deleteCount > 0) {
-            let i = start || 0;
+            let i = isNaN(start) ? 0 : start;
             const to = i + deleteCount;
             while (i < to) {
                 if (indexMap[i] > -1) {
@@ -3317,7 +3994,7 @@ this.au.runtime = (function (exports,kernel) {
             nativeSplice.call(indexMap, start, deleteCount);
         }
         const deleted = nativeSplice.apply(this, arguments);
-        o.callSubscribers('splice', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('splice', arguments, exports.LifecycleFlags.isCollectionMutation);
         return deleted;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
@@ -3341,7 +4018,7 @@ this.au.runtime = (function (exports,kernel) {
             o.indexMap[upper] = lowerIndex;
             lower++;
         }
-        o.callSubscribers('reverse', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('reverse', arguments, exports.LifecycleFlags.isCollectionMutation);
         return this;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.sort
@@ -3367,7 +4044,7 @@ this.au.runtime = (function (exports,kernel) {
             compareFn = sortCompare;
         }
         quickSort(this, o.indexMap, 0, i, compareFn);
-        o.callSubscribers('sort', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('sort', arguments, exports.LifecycleFlags.isCollectionMutation);
         return this;
     }
     // https://tc39.github.io/ecma262/#sec-sortcompare
@@ -3393,13 +4070,13 @@ this.au.runtime = (function (exports,kernel) {
         }
         return 0;
     }
-    function insertionSort(arr, indexMap, from, to, compareFn) {
+    function insertionSort(arr, indexMap, fromIndex, toIndex, compareFn) {
         let velement, ielement, vtmp, itmp, order;
         let i, j;
-        for (i = from + 1; i < to; i++) {
+        for (i = fromIndex + 1; i < toIndex; i++) {
             velement = arr[i];
             ielement = indexMap[i];
-            for (j = i - 1; j >= from; j--) {
+            for (j = i - 1; j >= fromIndex; j--) {
                 vtmp = arr[j];
                 itmp = indexMap[j];
                 order = compareFn(vtmp, velement);
@@ -3415,7 +4092,7 @@ this.au.runtime = (function (exports,kernel) {
             indexMap[j + 1] = ielement;
         }
     }
-    function quickSort(arr, indexMap, from, to, compareFn) {
+    function quickSort(arr, indexMap, fromIndex, toIndex, compareFn) {
         let thirdIndex = 0, i = 0;
         let v0, v1, v2;
         let i0, i1, i2;
@@ -3425,15 +4102,15 @@ this.au.runtime = (function (exports,kernel) {
         let velement, ielement, order, vtopElement;
         // tslint:disable-next-line:no-constant-condition
         while (true) {
-            if (to - from <= 10) {
-                insertionSort(arr, indexMap, from, to, compareFn);
+            if (toIndex - fromIndex <= 10) {
+                insertionSort(arr, indexMap, fromIndex, toIndex, compareFn);
                 return;
             }
-            thirdIndex = from + ((to - from) >> 1);
-            v0 = arr[from];
-            i0 = indexMap[from];
-            v1 = arr[to - 1];
-            i1 = indexMap[to - 1];
+            thirdIndex = fromIndex + ((toIndex - fromIndex) >> 1);
+            v0 = arr[fromIndex];
+            i0 = indexMap[fromIndex];
+            v1 = arr[toIndex - 1];
+            i1 = indexMap[toIndex - 1];
             v2 = arr[thirdIndex];
             i2 = indexMap[thirdIndex];
             c01 = compareFn(v0, v1);
@@ -3467,14 +4144,14 @@ this.au.runtime = (function (exports,kernel) {
                     i2 = itmp;
                 }
             }
-            arr[from] = v0;
-            indexMap[from] = i0;
-            arr[to - 1] = v2;
-            indexMap[to - 1] = i2;
+            arr[fromIndex] = v0;
+            indexMap[fromIndex] = i0;
+            arr[toIndex - 1] = v2;
+            indexMap[toIndex - 1] = i2;
             vpivot = v1;
             ipivot = i1;
-            lowEnd = from + 1;
-            highStart = to - 1;
+            lowEnd = fromIndex + 1;
+            highStart = toIndex - 1;
             arr[thirdIndex] = arr[lowEnd];
             indexMap[thirdIndex] = indexMap[lowEnd];
             arr[lowEnd] = vpivot;
@@ -3515,13 +4192,13 @@ this.au.runtime = (function (exports,kernel) {
                     }
                 }
             }
-            if (to - highStart < lowEnd - from) {
-                quickSort(arr, indexMap, highStart, to, compareFn);
-                to = lowEnd;
+            if (toIndex - highStart < lowEnd - fromIndex) {
+                quickSort(arr, indexMap, highStart, toIndex, compareFn);
+                toIndex = lowEnd;
             }
             else {
-                quickSort(arr, indexMap, from, lowEnd, compareFn);
-                from = highStart;
+                quickSort(arr, indexMap, fromIndex, lowEnd, compareFn);
+                fromIndex = highStart;
             }
         }
     }
@@ -3562,8 +4239,8 @@ this.au.runtime = (function (exports,kernel) {
             proto.sort = nativeSort;
     }
     exports.ArrayObserver = class ArrayObserver {
-        constructor(changeSet, array) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, array) {
+            this.lifecycle = lifecycle;
             array.$observer = this;
             this.collection = array;
             this.resetIndexMap();
@@ -3572,20 +4249,19 @@ this.au.runtime = (function (exports,kernel) {
     exports.ArrayObserver = __decorate([
         collectionObserver(9 /* array */)
     ], exports.ArrayObserver);
-    function getArrayObserver(changeSet, array) {
-        return array.$observer || new exports.ArrayObserver(changeSet, array);
+    function getArrayObserver(lifecycle, array) {
+        return array.$observer || new exports.ArrayObserver(lifecycle, array);
     }
 
     function computed(config) {
         return function (target, key) {
-            const computed = target.computed || (target.computed = {});
-            computed[key] = config;
+            (target.computed || (target.computed = {}))[key] = config;
         };
     }
     const noProxy = !(typeof Proxy !== undefined);
     const computedOverrideDefaults = { static: false, volatile: false };
     /* @internal */
-    function createComputedObserver(observerLocator, dirtyChecker, changeSet, 
+    function createComputedObserver(observerLocator, dirtyChecker, lifecycle, 
     // tslint:disable-next-line:no-reserved-keywords
     instance, propertyName, descriptor) {
         if (descriptor.configurable === false) {
@@ -3599,23 +4275,24 @@ this.au.runtime = (function (exports,kernel) {
                 if (overrides.volatile) {
                     return noProxy
                         ? dirtyChecker.createProperty(instance, propertyName)
-                        : new exports.GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
+                        : new exports.GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
                 }
-                return new exports.CustomSetterObserver(instance, propertyName, descriptor, changeSet);
+                return new exports.CustomSetterObserver(instance, propertyName, descriptor, lifecycle);
             }
             return noProxy
                 ? dirtyChecker.createProperty(instance, propertyName)
-                : new exports.GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
+                : new exports.GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
         }
         throw kernel.Reporter.error(18, propertyName);
     }
     // Used when the getter is dependent solely on changes that happen within the setter.
     exports.CustomSetterObserver = class CustomSetterObserver {
-        constructor(obj, propertyKey, descriptor, changeSet) {
+        constructor(obj, propertyKey, descriptor, lifecycle) {
             this.obj = obj;
             this.propertyKey = propertyKey;
             this.descriptor = descriptor;
-            this.changeSet = changeSet;
+            this.lifecycle = lifecycle;
+            this.$nextFlush = null;
             this.observing = false;
         }
         getValue() {
@@ -3624,10 +4301,10 @@ this.au.runtime = (function (exports,kernel) {
         setValue(newValue) {
             this.obj[this.propertyKey] = newValue;
         }
-        flushChanges() {
+        flush(flags) {
             const oldValue = this.oldValue;
             const newValue = this.currentValue;
-            this.callSubscribers(newValue, oldValue, exports.BindingFlags.updateTargetInstance | exports.BindingFlags.fromFlushChanges);
+            this.callSubscribers(newValue, oldValue, flags | exports.LifecycleFlags.updateTargetInstance);
         }
         subscribe(subscriber) {
             if (!this.observing) {
@@ -3649,7 +4326,7 @@ this.au.runtime = (function (exports,kernel) {
                     const oldValue = this.currentValue;
                     if (oldValue !== newValue) {
                         that.oldValue = oldValue;
-                        that.changeSet.add(that);
+                        this.lifecycle.queueFlush(that);
                         that.currentValue = newValue;
                     }
                 }
@@ -3664,25 +4341,25 @@ this.au.runtime = (function (exports,kernel) {
     // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
     /*@internal*/
     exports.GetterObserver = class GetterObserver {
-        constructor(overrides, obj, propertyKey, descriptor, observerLocator, changeSet) {
+        constructor(overrides, obj, propertyKey, descriptor, observerLocator, lifecycle) {
             this.overrides = overrides;
             this.obj = obj;
             this.propertyKey = propertyKey;
             this.descriptor = descriptor;
             this.observerLocator = observerLocator;
-            this.changeSet = changeSet;
-            this.controller = new GetterController(overrides, obj, propertyKey, descriptor, this, observerLocator, changeSet);
+            this.lifecycle = lifecycle;
+            this.controller = new GetterController(overrides, obj, propertyKey, descriptor, this, observerLocator, lifecycle);
         }
         getValue() {
             return this.controller.value;
         }
         // tslint:disable-next-line:no-empty
         setValue(newValue) { }
-        flushChanges() {
+        flush(flags) {
             const oldValue = this.controller.value;
             const newValue = this.controller.getValueAndCollectDependencies();
             if (oldValue !== newValue) {
-                this.callSubscribers(newValue, oldValue, exports.BindingFlags.updateTargetInstance);
+                this.callSubscribers(newValue, oldValue, flags | exports.LifecycleFlags.updateTargetInstance);
             }
         }
         subscribe(subscriber) {
@@ -3700,12 +4377,12 @@ this.au.runtime = (function (exports,kernel) {
     exports.GetterObserver.prototype.dispose = kernel.PLATFORM.noop;
     /*@internal*/
     class GetterController {
-        constructor(overrides, instance, propertyName, descriptor, owner, observerLocator, changeSet) {
+        constructor(overrides, instance, propertyName, descriptor, owner, observerLocator, lifecycle) {
             this.overrides = overrides;
             this.instance = instance;
             this.propertyName = propertyName;
             this.owner = owner;
-            this.changeSet = changeSet;
+            this.lifecycle = lifecycle;
             this.isCollecting = false;
             this.dependencies = [];
             this.subscriberCount = 0;
@@ -3743,7 +4420,7 @@ this.au.runtime = (function (exports,kernel) {
             this.value = this.instance[this.propertyName]; // triggers observer collection
             if (dynamicDependencies) {
                 this.isCollecting = false;
-                this.dependencies.forEach(x => x.subscribe(this));
+                this.dependencies.forEach(x => { x.subscribe(this); });
             }
             return this.value;
         }
@@ -3754,10 +4431,10 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
         handleChange() {
-            this.changeSet.add(this.owner);
+            this.lifecycle.enqueueFlush(this.owner);
         }
         unsubscribeAllDependencies() {
-            this.dependencies.forEach(x => x.unsubscribe(this));
+            this.dependencies.forEach(x => { x.unsubscribe(this); });
             this.dependencies.length = 0;
         }
     }
@@ -3824,7 +4501,7 @@ this.au.runtime = (function (exports,kernel) {
             tracked.splice(tracked.indexOf(property), 1);
         }
         scheduleDirtyCheck() {
-            setTimeout(() => this.check(), this.checkDelay);
+            setTimeout(() => { this.check(); }, this.checkDelay);
         }
         check() {
             const tracked = this.tracked;
@@ -3832,7 +4509,7 @@ this.au.runtime = (function (exports,kernel) {
             while (i--) {
                 const current = tracked[i];
                 if (current.isDirty()) {
-                    current.flushChanges();
+                    current.flush(exports.LifecycleFlags.fromFlush);
                 }
             }
             if (tracked.length) {
@@ -3856,10 +4533,10 @@ this.au.runtime = (function (exports,kernel) {
         setValue(newValue) {
             this.obj[this.propertyKey] = newValue;
         }
-        flushChanges() {
+        flush(flags) {
             const oldValue = this.oldValue;
             const newValue = this.getValue();
-            this.callSubscribers(newValue, oldValue, exports.BindingFlags.updateTargetInstance | exports.BindingFlags.fromFlushChanges);
+            this.callSubscribers(newValue, oldValue, flags | exports.LifecycleFlags.updateTargetInstance);
             this.oldValue = newValue;
         }
         subscribe(subscriber) {
@@ -3903,12 +4580,12 @@ this.au.runtime = (function (exports,kernel) {
         ['url']: '',
         ['week']: ''
     };
-    const handleEventFlags = exports.BindingFlags.fromDOMEvent | exports.BindingFlags.updateSourceExpression;
+    const handleEventFlags = exports.LifecycleFlags.fromDOMEvent | exports.LifecycleFlags.updateSourceExpression;
     exports.ValueAttributeObserver = class ValueAttributeObserver {
-        constructor(changeSet, obj, propertyKey, handler) {
+        constructor(lifecycle, obj, propertyKey, handler) {
             // note: input.files can be assigned and this was fixed in Firefox 57:
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
-            this.changeSet = changeSet;
+            this.lifecycle = lifecycle;
             this.obj = obj;
             this.propertyKey = propertyKey;
             this.handler = handler;
@@ -3917,7 +4594,7 @@ this.au.runtime = (function (exports,kernel) {
                 const nodeType = obj['type'];
                 this.defaultValue = inputValueDefaults[nodeType || 'text'];
                 if (nodeType === 'file') {
-                    this.flushChanges = this.flushFileChanges;
+                    this.flush = this.flushFileChanges;
                 }
             }
             else {
@@ -3930,7 +4607,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         setValueCore(newValue, flags) {
             this.obj[this.propertyKey] = newValue;
-            if (flags & exports.BindingFlags.fromBind) {
+            if (flags & exports.LifecycleFlags.fromBind) {
                 return;
             }
             this.callSubscribers(this.currentValue, this.oldValue, flags);
@@ -3970,10 +4647,10 @@ this.au.runtime = (function (exports,kernel) {
     ], exports.ValueAttributeObserver);
     exports.ValueAttributeObserver.prototype.propertyKey = '';
     exports.ValueAttributeObserver.prototype.handler = null;
-    const defaultHandleBatchedChangeFlags = exports.BindingFlags.fromFlushChanges | exports.BindingFlags.updateTargetInstance;
+    const defaultHandleBatchedChangeFlags = exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.updateTargetInstance;
     exports.CheckedObserver = class CheckedObserver {
-        constructor(changeSet, obj, handler, observerLocator) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, obj, handler, observerLocator) {
+            this.lifecycle = lifecycle;
             this.obj = obj;
             this.handler = handler;
             this.observerLocator = observerLocator;
@@ -4028,7 +4705,7 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
         notify(flags) {
-            if (flags & exports.BindingFlags.fromBind) {
+            if (flags & exports.LifecycleFlags.fromBind) {
                 return;
             }
             const oldValue = this.oldValue;
@@ -4103,8 +4780,8 @@ this.au.runtime = (function (exports,kernel) {
         return a === b;
     }
     exports.SelectValueObserver = class SelectValueObserver {
-        constructor(changeSet, obj, handler, observerLocator) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, obj, handler, observerLocator) {
+            this.lifecycle = lifecycle;
             this.obj = obj;
             this.handler = handler;
             this.observerLocator = observerLocator;
@@ -4139,7 +4816,7 @@ this.au.runtime = (function (exports,kernel) {
             this.setValue(newValue, flags);
         }
         notify(flags) {
-            if (flags & exports.BindingFlags.fromBind) {
+            if (flags & exports.LifecycleFlags.fromBind) {
                 return;
             }
             const oldValue = this.oldValue;
@@ -4296,7 +4973,6 @@ this.au.runtime = (function (exports,kernel) {
     exports.SelectValueObserver.prototype.handler = null;
     exports.SelectValueObserver.prototype.observerLocator = null;
 
-    // tslint:disable:no-reserved-keywords
     const proto$1 = Map.prototype;
     const nativeSet = proto$1.set; // TODO: probably want to make these internal again
     const nativeClear = proto$1.clear;
@@ -4326,7 +5002,7 @@ this.au.runtime = (function (exports,kernel) {
             return this;
         }
         o.indexMap[oldSize] = -2;
-        o.callSubscribers('set', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('set', arguments, exports.LifecycleFlags.isCollectionMutation);
         return this;
     }
     // https://tc39.github.io/ecma262/#sec-map.prototype.clear
@@ -4347,7 +5023,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             nativeClear.call(this);
             indexMap.length = 0;
-            o.callSubscribers('clear', arguments, exports.BindingFlags.isCollectionMutation);
+            o.callSubscribers('clear', arguments, exports.LifecycleFlags.isCollectionMutation);
         }
         return undefined;
     }
@@ -4373,7 +5049,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             i++;
         }
-        o.callSubscribers('delete', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('delete', arguments, exports.LifecycleFlags.isCollectionMutation);
         return false;
     }
     for (const observe of [observeSet, observeClear, observeDelete]) {
@@ -4397,8 +5073,8 @@ this.au.runtime = (function (exports,kernel) {
             proto$1.delete = nativeDelete;
     }
     exports.MapObserver = class MapObserver {
-        constructor(changeSet, map) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, map) {
+            this.lifecycle = lifecycle;
             map.$observer = this;
             this.collection = map;
             this.resetIndexMap();
@@ -4407,8 +5083,8 @@ this.au.runtime = (function (exports,kernel) {
     exports.MapObserver = __decorate([
         collectionObserver(6 /* map */)
     ], exports.MapObserver);
-    function getMapObserver(changeSet, map) {
-        return map.$observer || new exports.MapObserver(changeSet, map);
+    function getMapObserver(lifecycle, map) {
+        return map.$observer || new exports.MapObserver(lifecycle, map);
     }
 
     const proto$2 = Set.prototype;
@@ -4430,7 +5106,7 @@ this.au.runtime = (function (exports,kernel) {
             return this;
         }
         o.indexMap[oldSize] = -2;
-        o.callSubscribers('add', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('add', arguments, exports.LifecycleFlags.isCollectionMutation);
         return this;
     }
     // https://tc39.github.io/ecma262/#sec-set.prototype.clear
@@ -4451,7 +5127,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             nativeClear$1.call(this);
             indexMap.length = 0;
-            o.callSubscribers('clear', arguments, exports.BindingFlags.isCollectionMutation);
+            o.callSubscribers('clear', arguments, exports.LifecycleFlags.isCollectionMutation);
         }
         return undefined;
     }
@@ -4477,7 +5153,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             i++;
         }
-        o.callSubscribers('delete', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('delete', arguments, exports.LifecycleFlags.isCollectionMutation);
         return false;
     }
     for (const observe of [observeAdd, observeClear$1, observeDelete$1]) {
@@ -4501,18 +5177,18 @@ this.au.runtime = (function (exports,kernel) {
             proto$2.delete = nativeDelete$1;
     }
     exports.SetObserver = class SetObserver {
-        constructor(changeSet, set) {
-            this.changeSet = changeSet;
-            set.$observer = this;
-            this.collection = set;
+        constructor(lifecycle, observedSet) {
+            this.lifecycle = lifecycle;
+            observedSet.$observer = this;
+            this.collection = observedSet;
             this.resetIndexMap();
         }
     };
     exports.SetObserver = __decorate([
         collectionObserver(7 /* set */)
     ], exports.SetObserver);
-    function getSetObserver(changeSet, set) {
-        return set.$observer || new exports.SetObserver(changeSet, set);
+    function getSetObserver(lifecycle, observedSet) {
+        return observedSet.$observer || new exports.SetObserver(lifecycle, observedSet);
     }
 
     const ISVGAnalyzer = kernel.DI.createInterface()
@@ -4537,8 +5213,8 @@ this.au.runtime = (function (exports,kernel) {
     exports.ObserverLocator = 
     /*@internal*/
     class ObserverLocator {
-        constructor(changeSet, eventManager, dirtyChecker, svgAnalyzer) {
-            this.changeSet = changeSet;
+        constructor(lifecycle, eventManager, dirtyChecker, svgAnalyzer) {
+            this.lifecycle = lifecycle;
             this.eventManager = eventManager;
             this.dirtyChecker = dirtyChecker;
             this.svgAnalyzer = svgAnalyzer;
@@ -4570,7 +5246,7 @@ this.au.runtime = (function (exports,kernel) {
                 const tagName = obj['tagName'];
                 // this check comes first for hot path optimization
                 if (propertyName === 'textContent') {
-                    return new exports.ElementPropertyAccessor(this.changeSet, obj, propertyName);
+                    return new exports.ElementPropertyAccessor(this.lifecycle, obj, propertyName);
                 }
                 // TODO: optimize and make pluggable
                 if (propertyName === 'class' || propertyName === 'style' || propertyName === 'css'
@@ -4584,21 +5260,20 @@ this.au.runtime = (function (exports,kernel) {
                     || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)
                     || tagName === 'IMG' && propertyName === 'src'
                     || tagName === 'A' && propertyName === 'href') {
-                    return new exports.DataAttributeAccessor(this.changeSet, obj, propertyName);
+                    return new exports.DataAttributeAccessor(this.lifecycle, obj, propertyName);
                 }
-                return new exports.ElementPropertyAccessor(this.changeSet, obj, propertyName);
+                return new exports.ElementPropertyAccessor(this.lifecycle, obj, propertyName);
             }
             return new PropertyAccessor(obj, propertyName);
         }
-        getArrayObserver(array) {
-            return getArrayObserver(this.changeSet, array);
+        getArrayObserver(observedArray) {
+            return getArrayObserver(this.lifecycle, observedArray);
         }
-        getMapObserver(map) {
-            return getMapObserver(this.changeSet, map);
+        getMapObserver(observedMap) {
+            return getMapObserver(this.lifecycle, observedMap);
         }
-        // tslint:disable-next-line:no-reserved-keywords
-        getSetObserver(set) {
-            return getSetObserver(this.changeSet, set);
+        getSetObserver(observedSet) {
+            return getSetObserver(this.lifecycle, observedSet);
         }
         getOrCreateObserversLookup(obj) {
             return obj.$observers || this.createObserversLookup(obj);
@@ -4632,30 +5307,30 @@ this.au.runtime = (function (exports,kernel) {
             let isNode;
             if (DOM.isNodeInstance(obj)) {
                 if (propertyName === 'class') {
-                    return new exports.ClassAttributeAccessor(this.changeSet, obj);
+                    return new exports.ClassAttributeAccessor(this.lifecycle, obj);
                 }
                 if (propertyName === 'style' || propertyName === 'css') {
-                    return new exports.StyleAttributeAccessor(this.changeSet, obj);
+                    return new exports.StyleAttributeAccessor(this.lifecycle, obj);
                 }
                 const tagName = obj['tagName'];
                 const handler = this.eventManager.getElementHandler(obj, propertyName);
                 if (propertyName === 'value' && tagName === 'SELECT') {
-                    return new exports.SelectValueObserver(this.changeSet, obj, handler, this);
+                    return new exports.SelectValueObserver(this.lifecycle, obj, handler, this);
                 }
                 if (propertyName === 'checked' && tagName === 'INPUT') {
-                    return new exports.CheckedObserver(this.changeSet, obj, handler, this);
+                    return new exports.CheckedObserver(this.lifecycle, obj, handler, this);
                 }
                 if (handler) {
-                    return new exports.ValueAttributeObserver(this.changeSet, obj, propertyName, handler);
+                    return new exports.ValueAttributeObserver(this.lifecycle, obj, propertyName, handler);
                 }
                 const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
                 if (xlinkResult) {
-                    return new exports.XLinkAttributeAccessor(this.changeSet, obj, propertyName, xlinkResult[1]);
+                    return new exports.XLinkAttributeAccessor(this.lifecycle, obj, propertyName, xlinkResult[1]);
                 }
                 if (propertyName === 'role'
                     || /^\w+:|^data-|^aria-/.test(propertyName)
                     || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
-                    return new exports.DataAttributeAccessor(this.changeSet, obj, propertyName);
+                    return new exports.DataAttributeAccessor(this.lifecycle, obj, propertyName);
                 }
                 isNode = true;
             }
@@ -4692,24 +5367,24 @@ this.au.runtime = (function (exports,kernel) {
                         // TODO: use MutationObserver
                         return this.dirtyChecker.createProperty(obj, propertyName);
                     }
-                    return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor);
+                    return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
                 }
             }
             return new exports.SetterObserver(obj, propertyName);
         }
     };
     exports.ObserverLocator = __decorate([
-        kernel.inject(IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer)
+        kernel.inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
         /*@internal*/
     ], exports.ObserverLocator);
-    function getCollectionObserver(changeSet, collection) {
+    function getCollectionObserver(lifecycle, collection) {
         switch (toStringTag$1.call(collection)) {
             case '[object Array]':
-                return getArrayObserver(changeSet, collection);
+                return getArrayObserver(lifecycle, collection);
             case '[object Map]':
-                return getMapObserver(changeSet, collection);
+                return getMapObserver(lifecycle, collection);
             case '[object Set]':
-                return getSetObserver(changeSet, collection);
+                return getSetObserver(lifecycle, collection);
         }
         return null;
     }
@@ -4760,7 +5435,7 @@ this.au.runtime = (function (exports,kernel) {
         callSource(args) {
             const overrideContext = this.$scope.overrideContext;
             Object.assign(overrideContext, args);
-            const result = this.sourceExpression.evaluate(exports.BindingFlags.mustEvaluate, this.$scope, this.locator);
+            const result = this.sourceExpression.evaluate(exports.LifecycleFlags.mustEvaluate, this.$scope, this.locator);
             for (const prop in args) {
                 delete overrideContext[prop];
             }
@@ -4771,7 +5446,7 @@ this.au.runtime = (function (exports,kernel) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags | exports.BindingFlags.fromBind);
+                this.$unbind(flags | exports.LifecycleFlags.fromBind);
             }
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
@@ -4790,7 +5465,7 @@ this.au.runtime = (function (exports,kernel) {
                 return;
             }
             // add isUnbinding flag
-            this.$state |= 32 /* isUnbinding */;
+            this.$state |= 64 /* isUnbinding */;
             const sourceExpression = this.sourceExpression;
             if (hasUnbind(sourceExpression)) {
                 sourceExpression.unbind(flags, this.$scope, this);
@@ -4798,7 +5473,7 @@ this.au.runtime = (function (exports,kernel) {
             this.$scope = null;
             this.targetObserver.setValue(null, flags);
             // remove isBound and isUnbinding flags
-            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
+            this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
         }
         // tslint:disable:no-empty no-any
         observeProperty(obj, propertyName) { }
@@ -4953,10 +5628,11 @@ this.au.runtime = (function (exports,kernel) {
             this.observerLocator = observerLocator;
             this.locator = locator;
             this.isFirst = isFirst;
+            this.$state = 0 /* none */;
             this.targetObserver = observerLocator.getAccessor(target, targetProperty);
         }
         updateTarget(value, flags) {
-            this.targetObserver.setValue(value, flags | exports.BindingFlags.updateTargetInstance);
+            this.targetObserver.setValue(value, flags | exports.LifecycleFlags.updateTargetInstance);
         }
         handleChange(newValue, previousValue, flags) {
             if (!(this.$state & 2 /* isBound */)) {
@@ -5024,12 +5700,13 @@ this.au.runtime = (function (exports,kernel) {
             this.$state = 0 /* none */;
             this.$scope = null;
             this.target = null;
+            this.$lifecycle = locator.get(ILifecycle);
         }
         handleChange(newValue, previousValue, flags) {
             if (!(this.$state & 2 /* isBound */)) {
                 return;
             }
-            if (flags & exports.BindingFlags.updateTargetInstance) {
+            if (flags & exports.LifecycleFlags.updateTargetInstance) {
                 const { target, targetProperty } = this;
                 previousValue = target[targetProperty];
                 newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
@@ -5045,7 +5722,7 @@ this.au.runtime = (function (exports,kernel) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags | exports.BindingFlags.fromBind);
+                this.$unbind(flags | exports.LifecycleFlags.fromBind);
             }
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
@@ -5056,7 +5733,7 @@ this.au.runtime = (function (exports,kernel) {
                 sourceExpression.bind(flags, scope, this);
             }
             // sourceExpression might have been changed during bind
-            this.target[this.targetProperty] = this.sourceExpression.evaluate(exports.BindingFlags.fromBind, scope, this.locator);
+            this.target[this.targetProperty] = this.sourceExpression.evaluate(exports.LifecycleFlags.fromBind, scope, this.locator);
             this.sourceExpression.connect(flags, scope, this);
             // add isBound flag and remove isBinding flag
             this.$state |= 2 /* isBound */;
@@ -5067,7 +5744,7 @@ this.au.runtime = (function (exports,kernel) {
                 return;
             }
             // add isUnbinding flag
-            this.$state |= 32 /* isUnbinding */;
+            this.$state |= 64 /* isUnbinding */;
             const sourceExpression = this.sourceExpression;
             if (sourceExpression.unbind) {
                 sourceExpression.unbind(flags, this.$scope, this);
@@ -5075,7 +5752,7 @@ this.au.runtime = (function (exports,kernel) {
             this.$scope = null;
             this.unobserve(true);
             // remove isBound and isUnbinding flags
-            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
+            this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
         }
     };
     exports.LetBinding = __decorate([
@@ -5098,7 +5775,7 @@ this.au.runtime = (function (exports,kernel) {
         callSource(event) {
             const overrideContext = this.$scope.overrideContext;
             overrideContext['$event'] = event;
-            const result = this.sourceExpression.evaluate(exports.BindingFlags.mustEvaluate, this.$scope, this.locator);
+            const result = this.sourceExpression.evaluate(exports.LifecycleFlags.mustEvaluate, this.$scope, this.locator);
             delete overrideContext['$event'];
             if (result !== true && this.preventDefault) {
                 event.preventDefault();
@@ -5113,7 +5790,7 @@ this.au.runtime = (function (exports,kernel) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags | exports.BindingFlags.fromBind);
+                this.$unbind(flags | exports.LifecycleFlags.fromBind);
             }
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
@@ -5132,7 +5809,7 @@ this.au.runtime = (function (exports,kernel) {
                 return;
             }
             // add isUnbinding flag
-            this.$state |= 32 /* isUnbinding */;
+            this.$state |= 64 /* isUnbinding */;
             const sourceExpression = this.sourceExpression;
             if (hasUnbind(sourceExpression)) {
                 sourceExpression.unbind(flags, this.$scope, this);
@@ -5141,7 +5818,7 @@ this.au.runtime = (function (exports,kernel) {
             this.handler.dispose();
             this.handler = null;
             // remove isBound and isUnbinding flags
-            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
+            this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
         }
         // tslint:disable:no-empty no-any
         observeProperty(obj, propertyName) { }
@@ -5162,7 +5839,7 @@ this.au.runtime = (function (exports,kernel) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags | exports.BindingFlags.fromBind);
+                this.$unbind(flags | exports.LifecycleFlags.fromBind);
             }
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
@@ -5181,7 +5858,7 @@ this.au.runtime = (function (exports,kernel) {
                 return;
             }
             // add isUnbinding flag
-            this.$state |= 32 /* isUnbinding */;
+            this.$state |= 64 /* isUnbinding */;
             if (this.sourceExpression.evaluate(flags, this.$scope, this.locator) === this.target) {
                 this.sourceExpression.assign(flags, this.$scope, this.locator, null);
             }
@@ -5191,7 +5868,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             this.$scope = null;
             // remove isBound and isUnbinding flags
-            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
+            this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
         }
         // tslint:disable:no-empty no-any
         observeProperty(obj, propertyName) { }
@@ -5199,61 +5876,28 @@ this.au.runtime = (function (exports,kernel) {
     }
 
     // tslint:disable:no-reserved-keywords
+    /*@internal*/
+    const customElementName = 'custom-element';
+    /*@internal*/
+    function customElementKey(name) {
+        return `${customElementName}:${name}`;
+    }
+    /*@internal*/
+    function customElementBehavior(node) {
+        return node.$customElement || null;
+    }
+    /*@internal*/
+    const customAttributeName = 'custom-attribute';
+    /*@internal*/
+    function customAttributeKey(name) {
+        return `${customAttributeName}:${name}`;
+    }
     const instructionTypeValues = 'abcdefghijkl';
     const ITargetedInstruction = kernel.DI.createInterface();
     function isTargetedInstruction(value) {
         const type = value.type;
         return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
     }
-
-    function bindable(configOrTarget, prop) {
-        let config;
-        const decorator = function decorate($target, $prop) {
-            const Type = $target.constructor;
-            let bindables = Type.bindables;
-            if (bindables === undefined) {
-                bindables = Type.bindables = {};
-            }
-            if (!config.attribute) {
-                config.attribute = kernel.PLATFORM.kebabCase($prop);
-            }
-            if (!config.callback) {
-                config.callback = `${$prop}Changed`;
-            }
-            if (!config.mode) {
-                config.mode = exports.BindingMode.toView;
-            }
-            if (arguments.length > 1) {
-                // Non invocation:
-                // - @bindable
-                // Invocation with or w/o opts:
-                // - @bindable()
-                // - @bindable({...opts})
-                config.property = $prop;
-            }
-            bindables[config.property] = config;
-        };
-        if (arguments.length > 1) {
-            // Non invocation:
-            // - @bindable
-            config = {};
-            return decorator(configOrTarget, prop);
-        }
-        else if (typeof configOrTarget === 'string') {
-            // ClassDecorator
-            // - @bindable('bar')
-            // Direct call:
-            // - @bindable('bar')(Foo)
-            config = {};
-            return decorator;
-        }
-        // Invocation with or w/o opts:
-        // - @bindable()
-        // - @bindable({...opts})
-        config = (configOrTarget || {});
-        return decorator;
-    }
-
     /*@internal*/
     const buildRequired = Object.freeze({
         required: true,
@@ -5365,6 +6009,54 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
         return def;
+    }
+
+    function bindable(configOrTarget, prop) {
+        let config;
+        const decorator = function decorate($target, $prop) {
+            const Type = $target.constructor;
+            let bindables = Type.bindables;
+            if (bindables === undefined) {
+                bindables = Type.bindables = {};
+            }
+            if (!config.attribute) {
+                config.attribute = kernel.PLATFORM.kebabCase($prop);
+            }
+            if (!config.callback) {
+                config.callback = `${$prop}Changed`;
+            }
+            if (!config.mode) {
+                config.mode = exports.BindingMode.toView;
+            }
+            if (arguments.length > 1) {
+                // Non invocation:
+                // - @bindable
+                // Invocation with or w/o opts:
+                // - @bindable()
+                // - @bindable({...opts})
+                config.property = $prop;
+            }
+            bindables[config.property] = config;
+        };
+        if (arguments.length > 1) {
+            // Non invocation:
+            // - @bindable
+            config = {};
+            return decorator(configOrTarget, prop);
+        }
+        else if (typeof configOrTarget === 'string') {
+            // ClassDecorator
+            // - @bindable('bar')
+            // Direct call:
+            // - @bindable('bar')(Foo)
+            config = {};
+            return decorator;
+        }
+        // Invocation with or w/o opts:
+        // - @bindable()
+        // - @bindable({...opts})
+        config = (configOrTarget || {});
+        return decorator;
     }
 
     function createElement(tagOrType, props, children) {
@@ -5492,488 +6184,254 @@ this.au.runtime = (function (exports,kernel) {
         }
     }
 
-    (function (LifecycleFlags) {
-        LifecycleFlags[LifecycleFlags["none"] = 1] = "none";
-        LifecycleFlags[LifecycleFlags["noTasks"] = 2] = "noTasks";
-        LifecycleFlags[LifecycleFlags["unbindAfterDetached"] = 4] = "unbindAfterDetached";
-    })(exports.LifecycleFlags || (exports.LifecycleFlags = {}));
-    class AggregateLifecycleTask {
-        constructor() {
-            this.done = true;
-            /*@internal*/
-            this.owner = null;
-            this.tasks = [];
-            this.waiter = null;
-            this.resolve = null;
+    /*@internal*/
+    function $attachAttribute(flags) {
+        if (this.$state & 8 /* isAttached */) {
+            return;
         }
-        addTask(task) {
-            if (!task.done) {
-                this.done = false;
-                this.tasks.push(task);
-                task.wait().then(() => this.tryComplete());
+        const lifecycle = this.$lifecycle;
+        lifecycle.beginAttach();
+        // add isAttaching flag
+        this.$state |= 4 /* isAttaching */;
+        flags |= exports.LifecycleFlags.fromAttach;
+        const hooks = this.$hooks;
+        if (hooks & 16 /* hasAttaching */) {
+            this.attaching(flags);
+        }
+        // add isAttached flag, remove isAttaching flag
+        this.$state |= 8 /* isAttached */;
+        this.$state &= ~4 /* isAttaching */;
+        if (hooks & 32 /* hasAttached */) {
+            lifecycle.enqueueAttached(this);
+        }
+        lifecycle.endAttach(flags);
+    }
+    /*@internal*/
+    function $attachElement(flags) {
+        if (this.$state & 8 /* isAttached */) {
+            return;
+        }
+        const lifecycle = this.$lifecycle;
+        lifecycle.beginAttach();
+        // add isAttaching flag
+        this.$state |= 4 /* isAttaching */;
+        flags |= exports.LifecycleFlags.fromAttach;
+        const hooks = this.$hooks;
+        if (hooks & 16 /* hasAttaching */) {
+            this.attaching(flags);
+        }
+        let current = this.$attachableHead;
+        while (current !== null) {
+            current.$attach(flags);
+            current = current.$nextAttach;
+        }
+        if (!(this.$state & 16 /* isMounted */)) {
+            lifecycle.enqueueMount(this);
+        }
+        // add isAttached flag, remove isAttaching flag
+        this.$state |= 8 /* isAttached */;
+        this.$state &= ~4 /* isAttaching */;
+        if (hooks & 32 /* hasAttached */) {
+            lifecycle.enqueueAttached(this);
+        }
+        lifecycle.endAttach(flags);
+    }
+    /*@internal*/
+    function $attachView(flags) {
+        if (this.$state & 8 /* isAttached */) {
+            return;
+        }
+        // add isAttaching flag
+        this.$state |= 4 /* isAttaching */;
+        flags |= exports.LifecycleFlags.fromAttach;
+        let current = this.$attachableHead;
+        while (current !== null) {
+            current.$attach(flags);
+            current = current.$nextAttach;
+        }
+        if (!(this.$state & 16 /* isMounted */)) {
+            this.$lifecycle.enqueueMount(this);
+        }
+        // add isAttached flag, remove isAttaching flag
+        this.$state |= 8 /* isAttached */;
+        this.$state &= ~4 /* isAttaching */;
+    }
+    /*@internal*/
+    function $detachAttribute(flags) {
+        if (this.$state & 8 /* isAttached */) {
+            const lifecycle = this.$lifecycle;
+            lifecycle.beginDetach();
+            // add isDetaching flag
+            this.$state |= 32 /* isDetaching */;
+            flags |= exports.LifecycleFlags.fromDetach;
+            const hooks = this.$hooks;
+            if (hooks & 64 /* hasDetaching */) {
+                this.detaching(flags);
             }
-        }
-        canCancel() {
-            if (this.done) {
-                return false;
+            // remove isAttached and isDetaching flags
+            this.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */);
+            if (hooks & 128 /* hasDetached */) {
+                lifecycle.enqueueDetached(this);
             }
-            return this.tasks.every(x => x.canCancel());
+            lifecycle.endDetach(flags);
         }
-        cancel() {
-            if (this.canCancel()) {
-                this.tasks.forEach(x => x.cancel());
-                this.done = false;
-            }
-        }
-        wait() {
-            if (this.waiter === null) {
-                if (this.done) {
-                    this.waiter = Promise.resolve();
+    }
+    /*@internal*/
+    function $detachElement(flags) {
+        if (this.$state & 8 /* isAttached */) {
+            const lifecycle = this.$lifecycle;
+            lifecycle.beginDetach();
+            // add isDetaching flag
+            this.$state |= 32 /* isDetaching */;
+            flags |= exports.LifecycleFlags.fromDetach;
+            if (this.$state & 16 /* isMounted */) {
+                // Only unmount if either:
+                // - No parent view/element is queued for unmount yet, or
+                // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
+                if (((flags & exports.LifecycleFlags.parentUnmountQueued) ^ exports.LifecycleFlags.parentUnmountQueued) | (flags & exports.LifecycleFlags.fromStopTask)) {
+                    lifecycle.enqueueUnmount(this);
+                    flags |= exports.LifecycleFlags.parentUnmountQueued;
                 }
-                else {
-                    // tslint:disable-next-line:promise-must-complete
-                    this.waiter = new Promise((resolve) => this.resolve = resolve);
+            }
+            const hooks = this.$hooks;
+            if (hooks & 64 /* hasDetaching */) {
+                this.detaching(flags);
+            }
+            let current = this.$attachableTail;
+            while (current !== null) {
+                current.$detach(flags);
+                current = current.$prevAttach;
+            }
+            // remove isAttached and isDetaching flags
+            this.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */);
+            if (hooks & 128 /* hasDetached */) {
+                lifecycle.enqueueDetached(this);
+            }
+            lifecycle.endDetach(flags);
+        }
+    }
+    /*@internal*/
+    function $detachView(flags) {
+        if (this.$state & 8 /* isAttached */) {
+            // add isDetaching flag
+            this.$state |= 32 /* isDetaching */;
+            flags |= exports.LifecycleFlags.fromDetach;
+            if (this.$state & 16 /* isMounted */) {
+                // Only unmount if either:
+                // - No parent view/element is queued for unmount yet, or
+                // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
+                if (((flags & exports.LifecycleFlags.parentUnmountQueued) ^ exports.LifecycleFlags.parentUnmountQueued) | (flags & exports.LifecycleFlags.fromStopTask)) {
+                    this.$lifecycle.enqueueUnmount(this);
+                    flags |= exports.LifecycleFlags.parentUnmountQueued;
                 }
             }
-            return this.waiter;
+            let current = this.$attachableTail;
+            while (current !== null) {
+                current.$detach(flags);
+                current = current.$prevAttach;
+            }
+            // remove isAttached and isDetaching flags
+            this.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */);
         }
-        tryComplete() {
-            if (this.done) {
+    }
+    /*@internal*/
+    function $cacheAttribute(flags) {
+        flags |= exports.LifecycleFlags.fromCache;
+        if (this.$hooks & 2048 /* hasCaching */) {
+            this.caching(flags);
+        }
+    }
+    /*@internal*/
+    function $cacheElement(flags) {
+        flags |= exports.LifecycleFlags.fromCache;
+        if (this.$hooks & 2048 /* hasCaching */) {
+            this.caching(flags);
+        }
+        let current = this.$attachableTail;
+        while (current !== null) {
+            current.$cache(flags);
+            current = current.$prevAttach;
+        }
+    }
+    /*@internal*/
+    function $cacheView(flags) {
+        flags |= exports.LifecycleFlags.fromCache;
+        let current = this.$attachableTail;
+        while (current !== null) {
+            current.$cache(flags);
+            current = current.$prevAttach;
+        }
+    }
+    /*@internal*/
+    function $mountElement(flags) {
+        this.$state |= 16 /* isMounted */;
+        this.$projector.project(this.$nodes);
+    }
+    /*@internal*/
+    function $unmountElement(flags) {
+        this.$state &= ~16 /* isMounted */;
+        this.$projector.take(this.$nodes);
+    }
+    /*@internal*/
+    function $mountView(flags) {
+        this.$state |= 16 /* isMounted */;
+        this.$state &= ~256 /* needsMount */;
+        this.$nodes.insertBefore(this.location);
+    }
+    /*@internal*/
+    function $unmountView(flags) {
+        this.$state &= ~16 /* isMounted */;
+        this.$state |= 256 /* needsMount */;
+        this.$nodes.remove();
+        if (this.isFree) {
+            this.isFree = false;
+            if (this.cache.tryReturnToCache(this)) {
+                this.$state |= 128 /* isCached */;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*@internal*/
+    function $bindAttribute(flags, scope) {
+        flags |= exports.LifecycleFlags.fromBind;
+        if (this.$state & 2 /* isBound */) {
+            if (this.$scope === scope) {
                 return;
             }
-            if (this.tasks.every(x => x.done)) {
-                this.complete(true);
-            }
+            this.$unbind(flags);
         }
-        complete(notCancelled) {
-            this.done = true;
-            if (notCancelled && this.owner !== null) {
-                this.owner.processAll();
-            }
-            if (this.resolve !== null) {
-                this.resolve();
-            }
+        const lifecycle = this.$lifecycle;
+        lifecycle.beginBind();
+        // add isBinding flag
+        this.$state |= 1 /* isBinding */;
+        const hooks = this.$hooks;
+        if (hooks & 8 /* hasBound */) {
+            lifecycle.enqueueBound(this);
         }
+        this.$scope = scope;
+        if (hooks & 4 /* hasBinding */) {
+            this.binding(flags);
+        }
+        // add isBound flag and remove isBinding flag
+        this.$state |= 2 /* isBound */;
+        this.$state &= ~1 /* isBinding */;
+        lifecycle.endBind(flags);
     }
     /*@internal*/
-    class AttachLifecycleController {
-        constructor(changeSet, flags, parent = null, encapsulationSource = null) {
-            this.changeSet = changeSet;
-            this.flags = flags;
-            this.parent = parent;
-            this.encapsulationSource = encapsulationSource;
-            /*@internal*/
-            this.$nextMount = null;
-            /*@internal*/
-            this.$nextAttached = null;
-            this.attachedHead = this;
-            this.attachedTail = this;
-            this.mountHead = this;
-            this.mountTail = this;
-            this.task = null;
-        }
-        attach(requestor) {
-            requestor.$attach(this.encapsulationSource, this);
-            return this;
-        }
-        queueMount(requestor) {
-            this.mountTail.$nextMount = requestor;
-            this.mountTail = requestor;
-        }
-        queueAttachedCallback(requestor) {
-            this.attachedTail.$nextAttached = requestor;
-            this.attachedTail = requestor;
-        }
-        registerTask(task) {
-            if (this.parent !== null) {
-                this.parent.registerTask(task);
-            }
-            else {
-                if (this.task === null) {
-                    this.task = new AggregateLifecycleTask();
-                }
-                this.task.addTask(task);
-            }
-        }
-        createChild() {
-            const lifecycle = new AttachLifecycleController(this.changeSet, this.flags, this);
-            this.queueMount(lifecycle);
-            this.queueAttachedCallback(lifecycle);
-            return lifecycle;
-        }
-        end() {
-            if (this.task !== null && !this.task.done) {
-                this.task.owner = this;
-                return this.task;
-            }
-            this.processAll();
-            return Lifecycle.done;
-        }
-        /*@internal*/
-        processAll() {
-            Lifecycle.attach = this;
-            this.changeSet.flushChanges();
-            Lifecycle.attach = null;
-            this.processMounts();
-            this.processAttachedCallbacks();
-        }
-        /*@internal*/
-        $mount() {
-            if (this.parent !== null) {
-                this.processMounts();
-            }
-        }
-        /*@internal*/
-        attached() {
-            if (this.parent !== null) {
-                this.processAttachedCallbacks();
-            }
-        }
-        processMounts() {
-            let currentMount = this.mountHead;
-            let nextMount;
-            while (currentMount) {
-                currentMount.$mount();
-                nextMount = currentMount.$nextMount;
-                currentMount.$nextMount = null;
-                currentMount = nextMount;
-            }
-        }
-        processAttachedCallbacks() {
-            let currentAttached = this.attachedHead;
-            let nextAttached;
-            while (currentAttached) {
-                currentAttached.attached();
-                nextAttached = currentAttached.$nextAttached;
-                currentAttached.$nextAttached = null;
-                currentAttached = nextAttached;
-            }
-        }
-    }
-    /*@internal*/
-    class DetachLifecycleController {
-        constructor(changeSet, flags, parent = null) {
-            this.changeSet = changeSet;
-            this.flags = flags;
-            this.parent = parent;
-            /*@internal*/
-            this.$nextUnmount = null;
-            /*@internal*/
-            this.$nextDetached = null;
-            this.detachedHead = this; //LOL
-            this.detachedTail = this;
-            this.unmountHead = this;
-            this.unmountTail = this;
-            this.task = null;
-            this.allowUnmount = true;
-        }
-        detach(requestor) {
-            this.allowUnmount = true;
-            if (requestor.$state & 8 /* isAttached */) {
-                requestor.$detach(this);
-            }
-            else if (isUnmountable(requestor)) {
-                this.queueUnmount(requestor);
-            }
-            return this;
-        }
-        queueUnmount(requestor) {
-            if (this.allowUnmount) {
-                this.unmountTail.$nextUnmount = requestor;
-                this.unmountTail = requestor;
-                this.allowUnmount = false; // only remove roots
-            }
-        }
-        queueDetachedCallback(requestor) {
-            this.detachedTail.$nextDetached = requestor;
-            this.detachedTail = requestor;
-        }
-        registerTask(task) {
-            if (this.parent !== null) {
-                this.parent.registerTask(task);
-            }
-            else {
-                if (this.task === null) {
-                    this.task = new AggregateLifecycleTask();
-                }
-                this.task.addTask(task);
-            }
-        }
-        createChild() {
-            const lifecycle = new DetachLifecycleController(this.changeSet, this.flags, this);
-            this.queueUnmount(lifecycle);
-            this.queueDetachedCallback(lifecycle);
-            return lifecycle;
-        }
-        end() {
-            if (this.task !== null && !this.task.done) {
-                this.task.owner = this;
-                return this.task;
-            }
-            this.processAll();
-            return Lifecycle.done;
-        }
-        /*@internal*/
-        $unmount() {
-            if (this.parent !== null) {
-                this.processUnmounts();
-            }
-        }
-        /*@internal*/
-        detached() {
-            if (this.parent !== null) {
-                this.processDetachedCallbacks();
-            }
-        }
-        /*@internal*/
-        processAll() {
-            Lifecycle.detach = this;
-            this.changeSet.flushChanges();
-            Lifecycle.detach = null;
-            this.processUnmounts();
-            this.processDetachedCallbacks();
-        }
-        processUnmounts() {
-            let currentUnmount = this.unmountHead;
-            if (this.flags & exports.LifecycleFlags.unbindAfterDetached) {
-                while (currentUnmount) {
-                    currentUnmount.$unmount();
-                    currentUnmount = currentUnmount.$nextUnmount;
-                }
-            }
-            else {
-                let nextUnmount;
-                while (currentUnmount) {
-                    currentUnmount.$unmount();
-                    nextUnmount = currentUnmount.$nextUnmount;
-                    currentUnmount.$nextUnmount = null;
-                    currentUnmount = nextUnmount;
-                }
-            }
-        }
-        processDetachedCallbacks() {
-            let currentDetached = this.detachedHead;
-            let nextDetached;
-            while (currentDetached) {
-                currentDetached.detached();
-                nextDetached = currentDetached.$nextDetached;
-                currentDetached.$nextDetached = null;
-                currentDetached = nextDetached;
-            }
-            if (this.flags & exports.LifecycleFlags.unbindAfterDetached) {
-                let currentUnmount = this.unmountHead;
-                let nextUnmount;
-                while (currentUnmount) {
-                    if (isUnbindable(currentUnmount)) {
-                        currentUnmount.$unbind(exports.BindingFlags.fromUnbind);
-                    }
-                    nextUnmount = currentUnmount.$nextUnmount;
-                    currentUnmount.$nextUnmount = null;
-                    currentUnmount = nextUnmount;
-                }
-            }
-        }
-    }
-    function isUnmountable(requestor) {
-        return '$unmount' in requestor;
-    }
-    function isUnbindable(requestor) {
-        return '$unbind' in requestor;
-    }
-    const Lifecycle = {
-        // TODO: this is just a temporary fix to get certain tests to pass.
-        // When there is better test coverage in complex lifecycle scenarios,
-        // this needs to be properly handled without abusing a global object
-        /*@internal*/ attach: null,
-        beginAttach(changeSet, encapsulationSource, flags) {
-            if (Lifecycle.attach === null) {
-                return new AttachLifecycleController(changeSet, flags, null, encapsulationSource);
-            }
-            else {
-                return Lifecycle.attach;
-            }
-        },
-        /*@internal*/ detach: null,
-        beginDetach(changeSet, flags) {
-            if (Lifecycle.detach === null) {
-                return new DetachLifecycleController(changeSet, flags);
-            }
-            else {
-                return Lifecycle.detach;
-            }
-        },
-        done: {
-            done: true,
-            canCancel() { return false; },
-            // tslint:disable-next-line:no-empty
-            cancel() { },
-            wait() { return Promise.resolve(); }
-        }
-    };
-    const BindLifecycle = {
-        boundDepth: 0,
-        boundHead: null,
-        boundTail: null,
-        queueBound(requestor, flags) {
-            requestor.$boundFlags = flags;
-            requestor.$nextBound = null;
-            if (BindLifecycle.boundHead === null) {
-                BindLifecycle.boundHead = requestor;
-            }
-            else {
-                BindLifecycle.boundTail.$nextBound = requestor;
-            }
-            BindLifecycle.boundTail = requestor;
-            ++BindLifecycle.boundDepth;
-        },
-        unqueueBound() {
-            if (--BindLifecycle.boundDepth === 0) {
-                let current = BindLifecycle.boundHead;
-                let next;
-                BindLifecycle.boundHead = BindLifecycle.boundTail = null;
-                while (current !== null) {
-                    current.bound(current.$boundFlags);
-                    next = current.$nextBound;
-                    // Note: we're intentionally not resetting $boundFlags because it's not an object reference
-                    // so it can't cause memory leaks. Save some cycles. It's somewhat unclean, but it's fine really.
-                    current.$nextBound = null;
-                    current = next;
-                }
-            }
-        },
-        unboundDepth: 0,
-        unboundHead: null,
-        unboundTail: null,
-        queueUnbound(requestor, flags) {
-            requestor.$unboundFlags = flags;
-            requestor.$nextUnbound = null;
-            if (BindLifecycle.unboundHead === null) {
-                BindLifecycle.unboundHead = requestor;
-            }
-            else {
-                BindLifecycle.unboundTail.$nextUnbound = requestor;
-            }
-            BindLifecycle.unboundTail = requestor;
-            ++BindLifecycle.unboundDepth;
-        },
-        unqueueUnbound() {
-            if (--BindLifecycle.unboundDepth === 0) {
-                let current = BindLifecycle.unboundHead;
-                let next;
-                BindLifecycle.unboundHead = BindLifecycle.unboundTail = null;
-                while (current !== null) {
-                    current.unbound(current.$unboundFlags);
-                    next = current.$nextUnbound;
-                    current.$nextUnbound = null;
-                    current = next;
-                }
-            }
-        }
-    };
-
-    /**
-     * Decorator: Indicates that the decorated class is a custom element.
-     */
-    function customElement(nameOrSource) {
-        return target => CustomElementResource.define(nameOrSource, target);
-    }
-    const defaultShadowOptions = {
-        mode: 'open'
-    };
-    function useShadowDOM(targetOrOptions) {
-        const options = typeof targetOrOptions === 'function' || !targetOrOptions
-            ? defaultShadowOptions
-            : targetOrOptions;
-        function useShadowDOMDecorator(target) {
-            target.shadowOptions = options;
-            return target;
-        }
-        return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
-    }
-    function containerlessDecorator(target) {
-        target.containerless = true;
-        return target;
-    }
-    function containerless(target) {
-        return target === undefined ? containerlessDecorator : containerlessDecorator(target);
-    }
-    const CustomElementResource = {
-        name: 'custom-element',
-        keyFrom(name) {
-            return `${this.name}:${name}`;
-        },
-        isType(Type) {
-            return Type.kind === this;
-        },
-        behaviorFor(node) {
-            return node.$customElement || null;
-        },
-        define(nameOrSource, ctor = null) {
-            if (!nameOrSource) {
-                throw kernel.Reporter.error(70);
-            }
-            const Type = (ctor === null ? class HTMLOnlyElement {
-            } : ctor);
-            const description = buildTemplateDefinition(Type, nameOrSource);
-            const proto = Type.prototype;
-            Type.kind = CustomElementResource;
-            Type.description = description;
-            Type.register = register$2;
-            proto.$hydrate = hydrate;
-            proto.$bind = bind;
-            proto.$attach = attach;
-            proto.$detach = detach;
-            proto.$unbind = unbind;
-            proto.$cache = cache;
-            proto.$mount = mount;
-            proto.$unmount = unmount;
-            return Type;
-        }
-    };
-    function register$2(container) {
-        const resourceKey = CustomElementResource.keyFrom(this.description.name);
-        container.register(kernel.Registration.transient(resourceKey, this));
-    }
-    function hydrate(renderingEngine, host, options = kernel.PLATFORM.emptyObject) {
-        const Type = this.constructor;
-        const description = Type.description;
-        this.$bindableHead = this.$bindableTail = null;
-        this.$prevBind = this.$nextBind = null;
-        this.$attachableHead = this.$attachableTail = null;
-        this.$prevAttach = this.$nextAttach = null;
-        this.$state = 128 /* needsMount */;
-        this.$scope = Scope.create(this, null);
-        // Defining the property ensures the correct runtime behavior is applied - we can't actually get the projector here because the ContainerlessProjector
-        // needs the element to be rendered first. It seems like a decent requirement for rendering to be done before either the ChildrenObserver or
-        // ContainerlessProjector is used, but still this is necessarily a complete and utter hack that we should aim to solve in a cleaner way.
-        this.$projector = undefined;
-        renderingEngine.applyRuntimeBehavior(Type, this);
-        if (this.$behavior.hooks & 1024 /* hasRender */) {
-            const result = this.render(host, options.parts);
-            if (result && 'getElementTemplate' in result) {
-                const template = result.getElementTemplate(renderingEngine, Type);
-                template.render(this, host, options.parts);
-            }
-        }
-        else {
-            const template = renderingEngine.getElementTemplate(description, Type);
-            template.render(this, host, options.parts);
-        }
-        this.$projector = determineProjector(this, host, description);
-        if (this.$behavior.hooks & 2 /* hasCreated */) {
-            this.created();
-        }
-    }
-    function bind(flags) {
+    function $bindElement(flags) {
         if (this.$state & 2 /* isBound */) {
             return;
         }
+        const lifecycle = this.$lifecycle;
+        lifecycle.beginBind();
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
-        const hooks = this.$behavior.hooks;
-        flags |= exports.BindingFlags.fromBind;
+        const hooks = this.$hooks;
+        flags |= exports.LifecycleFlags.fromBind;
         if (hooks & 8 /* hasBound */) {
-            BindLifecycle.queueBound(this, flags);
+            lifecycle.enqueueBound(this);
         }
         if (hooks & 4 /* hasBinding */) {
             this.binding(flags);
@@ -5987,18 +6445,60 @@ this.au.runtime = (function (exports,kernel) {
         // add isBound flag and remove isBinding flag
         this.$state |= 2 /* isBound */;
         this.$state &= ~1 /* isBinding */;
-        if (hooks & 8 /* hasBound */) {
-            BindLifecycle.unqueueBound();
+        lifecycle.endBind(flags);
+    }
+    /*@internal*/
+    function $bindView(flags, scope) {
+        flags |= exports.LifecycleFlags.fromBind;
+        if (this.$state & 2 /* isBound */) {
+            if (this.$scope === scope) {
+                return;
+            }
+            this.$unbind(flags);
+        }
+        // add isBinding flag
+        this.$state |= 1 /* isBinding */;
+        this.$scope = scope;
+        let current = this.$bindableHead;
+        while (current !== null) {
+            current.$bind(flags, scope);
+            current = current.$nextBind;
+        }
+        // add isBound flag and remove isBinding flag
+        this.$state |= 2 /* isBound */;
+        this.$state &= ~1 /* isBinding */;
+    }
+    /*@internal*/
+    function $unbindAttribute(flags) {
+        if (this.$state & 2 /* isBound */) {
+            const lifecycle = this.$lifecycle;
+            lifecycle.beginUnbind();
+            // add isUnbinding flag
+            this.$state |= 64 /* isUnbinding */;
+            const hooks = this.$hooks;
+            flags |= exports.LifecycleFlags.fromUnbind;
+            if (hooks & 512 /* hasUnbound */) {
+                lifecycle.enqueueUnbound(this);
+            }
+            if (hooks & 256 /* hasUnbinding */) {
+                this.unbinding(flags);
+            }
+            // remove isBound and isUnbinding flags
+            this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+            lifecycle.endUnbind(flags);
         }
     }
-    function unbind(flags) {
+    /*@internal*/
+    function $unbindElement(flags) {
         if (this.$state & 2 /* isBound */) {
+            const lifecycle = this.$lifecycle;
+            lifecycle.beginUnbind();
             // add isUnbinding flag
-            this.$state |= 32 /* isUnbinding */;
-            const hooks = this.$behavior.hooks;
-            flags |= exports.BindingFlags.fromUnbind;
+            this.$state |= 64 /* isUnbinding */;
+            const hooks = this.$hooks;
+            flags |= exports.LifecycleFlags.fromUnbind;
             if (hooks & 512 /* hasUnbound */) {
-                BindLifecycle.queueUnbound(this, flags);
+                lifecycle.enqueueUnbound(this);
             }
             if (hooks & 256 /* hasUnbinding */) {
                 this.unbinding(flags);
@@ -6009,697 +6509,31 @@ this.au.runtime = (function (exports,kernel) {
                 current = current.$prevBind;
             }
             // remove isBound and isUnbinding flags
-            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
-            if (hooks & 512 /* hasUnbound */) {
-                BindLifecycle.unqueueUnbound();
-            }
+            this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+            lifecycle.endUnbind(flags);
         }
     }
-    function attach(encapsulationSource, lifecycle) {
-        if (this.$state & 8 /* isAttached */) {
-            return;
-        }
-        // add isAttaching flag
-        this.$state |= 4 /* isAttaching */;
-        const hooks = this.$behavior.hooks;
-        encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
-        if (hooks & 16 /* hasAttaching */) {
-            this.attaching(encapsulationSource, lifecycle);
-        }
-        let current = this.$attachableHead;
-        while (current !== null) {
-            current.$attach(encapsulationSource, lifecycle);
-            current = current.$nextAttach;
-        }
-        lifecycle.queueMount(this);
-        // add isAttached flag, remove isAttaching flag
-        this.$state |= 8 /* isAttached */;
-        this.$state &= ~4 /* isAttaching */;
-        if (hooks & 32 /* hasAttached */) {
-            lifecycle.queueAttachedCallback(this);
-        }
-    }
-    function detach(lifecycle) {
-        if (this.$state & 8 /* isAttached */) {
-            // add isDetaching flag
-            this.$state |= 16 /* isDetaching */;
-            const hooks = this.$behavior.hooks;
-            if (hooks & 64 /* hasDetaching */) {
-                this.detaching(lifecycle);
-            }
-            lifecycle.queueUnmount(this);
-            let current = this.$attachableTail;
-            while (current !== null) {
-                current.$detach(lifecycle);
-                current = current.$prevAttach;
-            }
-            // remove isAttached and isDetaching flags
-            this.$state &= ~(8 /* isAttached */ | 16 /* isDetaching */);
-            if (hooks & 128 /* hasDetached */) {
-                lifecycle.queueDetachedCallback(this);
-            }
-        }
-    }
-    function cache() {
-        if (this.$behavior.hooks & 2048 /* hasCaching */) {
-            this.caching();
-        }
-        let current = this.$attachableTail;
-        while (current !== null) {
-            current.$cache();
-            current = current.$prevAttach;
-        }
-    }
-    function mount() {
-        this.$projector.project(this.$nodes);
-    }
-    function unmount() {
-        this.$projector.take(this.$nodes);
-    }
-    function determineProjector($customElement, host, definition) {
-        if (definition.shadowOptions || definition.hasSlots) {
-            if (definition.containerless) {
-                throw kernel.Reporter.error(21);
-            }
-            return new ShadowDOMProjector($customElement, host, definition);
-        }
-        if (definition.containerless) {
-            return new ContainerlessProjector($customElement, host);
-        }
-        return new HostProjector($customElement, host);
-    }
-    const childObserverOptions$1 = { childList: true };
-    class ShadowDOMProjector {
-        constructor($customElement, host, definition) {
-            this.host = host;
-            this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
-            host.$customElement = $customElement;
-            this.shadowRoot.$customElement = $customElement;
-        }
-        get children() {
-            return this.host.childNodes;
-        }
-        subscribeToChildrenChange(callback) {
-            DOM.createNodeObserver(this.host, callback, childObserverOptions$1);
-        }
-        provideEncapsulationSource(parentEncapsulationSource) {
-            return this.shadowRoot;
-        }
-        project(nodes) {
-            nodes.appendTo(this.host);
-            this.project = kernel.PLATFORM.noop;
-        }
-        take(nodes) {
-            // No special behavior is required because the host element removal
-            // will result in the projected nodes being removed, since they are in
-            // the ShadowDOM.
-        }
-    }
-    class ContainerlessProjector {
-        constructor($customElement, host) {
-            this.$customElement = $customElement;
-            if (host.childNodes.length) {
-                this.childNodes = kernel.PLATFORM.toArray(host.childNodes);
-            }
-            else {
-                this.childNodes = kernel.PLATFORM.emptyArray;
-            }
-            this.host = DOM.convertToRenderLocation(host);
-            this.host.$customElement = $customElement;
-        }
-        get children() {
-            return this.childNodes;
-        }
-        subscribeToChildrenChange(callback) {
-            // Do nothing since this scenario will never have children.
-        }
-        provideEncapsulationSource(parentEncapsulationSource) {
-            if (!parentEncapsulationSource) {
-                throw kernel.Reporter.error(22);
-            }
-            return parentEncapsulationSource;
-        }
-        project(nodes) {
-            if (this.$customElement.$state & 128 /* needsMount */) {
-                this.$customElement.$state &= ~128 /* needsMount */;
-                nodes.insertBefore(this.host);
-            }
-        }
-        take(nodes) {
-            this.$customElement.$state |= 128 /* needsMount */;
-            nodes.remove();
-        }
-    }
-    class HostProjector {
-        constructor($customElement, host) {
-            this.host = host;
-            host.$customElement = $customElement;
-            this.isAppHost = host.hasOwnProperty('$au');
-        }
-        get children() {
-            return kernel.PLATFORM.emptyArray;
-        }
-        subscribeToChildrenChange(callback) {
-            // Do nothing since this scenario will never have children.
-        }
-        provideEncapsulationSource(parentEncapsulationSource) {
-            return parentEncapsulationSource || this.host;
-        }
-        project(nodes) {
-            nodes.appendTo(this.host);
-            if (!this.isAppHost) {
-                this.project = kernel.PLATFORM.noop;
-            }
-        }
-        take(nodes) {
-            // No special behavior is required because the host element removal
-            // will result in the projected nodes being removed, since they are children.
-            if (this.isAppHost) {
-                // The only exception to that is the app host, which is not part of a removable node sequence
-                nodes.remove();
-            }
-        }
-    }
-    // TODO
-    // ## DefaultSlotProjector
-    // An implementation of IElementProjector that can handle a subset of default
-    // slot projection scenarios without needing real Shadow DOM.
-    // ### Conditions
-    // We can do a one-time, static composition of the content and view,
-    // to emulate shadow DOM, if the following constraints are met:
-    // * There must be exactly one slot and it must be a default slot.
-    // * The default slot must not have any fallback content.
-    // * The default slot must not have a custom element as its immediate parent or
-    //   a slot attribute (re-projection).
-    // ### Projection
-    // The projector copies all content nodes to the slot's location.
-    // The copy process should inject a comment node before and after the slotted
-    // content, so that the bounds of the content can be clearly determined,
-    // even if the slotted content has template controllers or string interpolation.
-    // ### Encapsulation Source
-    // Uses the same strategy as HostProjector.
-    // ### Children
-    // The projector adds a mutation observer to the parent node of the
-    // slot comment. When direct children of that node change, the projector
-    // will gather up all nodes between the start and end slot comments.
-
-    /**
-     * Decorator: Indicates that the decorated class is a custom attribute.
-     */
-    function customAttribute(nameOrDef) {
-        return target => CustomAttributeResource.define(nameOrDef, target);
-    }
-    /**
-     * Decorator: Applied to custom attributes. Indicates that whatever element the
-     * attribute is placed on should be converted into a template and that this
-     * attribute controls the instantiation of the template.
-     */
-    function templateController(nameOrDef) {
-        return target => CustomAttributeResource.define(typeof nameOrDef === 'string'
-            ? { isTemplateController: true, name: nameOrDef }
-            : Object.assign({ isTemplateController: true }, nameOrDef), target);
-    }
-    const CustomAttributeResource = {
-        name: 'custom-attribute',
-        keyFrom(name) {
-            return `${this.name}:${name}`;
-        },
-        isType(Type) {
-            return Type.kind === this;
-        },
-        define(nameOrSource, ctor) {
-            const Type = ctor;
-            const proto = Type.prototype;
-            const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
-            Type.kind = CustomAttributeResource;
-            Type.description = description;
-            Type.register = register$3;
-            proto.$hydrate = hydrate$1;
-            proto.$bind = bind$1;
-            proto.$attach = attach$1;
-            proto.$detach = detach$1;
-            proto.$unbind = unbind$1;
-            proto.$cache = cache$1;
-            return Type;
-        }
-    };
-    function register$3(container) {
-        const description = this.description;
-        const resourceKey = CustomAttributeResource.keyFrom(description.name);
-        const aliases = description.aliases;
-        container.register(kernel.Registration.transient(resourceKey, this));
-        for (let i = 0, ii = aliases.length; i < ii; ++i) {
-            const aliasKey = CustomAttributeResource.keyFrom(aliases[i]);
-            container.register(kernel.Registration.alias(resourceKey, aliasKey));
-        }
-    }
-    function hydrate$1(renderingEngine) {
-        const Type = this.constructor;
-        this.$state = 0 /* none */;
-        this.$scope = null;
-        renderingEngine.applyRuntimeBehavior(Type, this);
-        if (this.$behavior.hooks & 2 /* hasCreated */) {
-            this.created();
-        }
-    }
-    function bind$1(flags, scope) {
-        flags |= exports.BindingFlags.fromBind;
-        if (this.$state & 2 /* isBound */) {
-            if (this.$scope === scope) {
-                return;
-            }
-            this.$unbind(flags);
-        }
-        // add isBinding flag
-        this.$state |= 1 /* isBinding */;
-        const hooks = this.$behavior.hooks;
-        if (hooks & 8 /* hasBound */) {
-            BindLifecycle.queueBound(this, flags);
-        }
-        this.$scope = scope;
-        if (hooks & 4 /* hasBinding */) {
-            this.binding(flags);
-        }
-        // add isBound flag and remove isBinding flag
-        this.$state |= 2 /* isBound */;
-        this.$state &= ~1 /* isBinding */;
-        if (hooks & 8 /* hasBound */) {
-            BindLifecycle.unqueueBound();
-        }
-    }
-    function unbind$1(flags) {
+    /*@internal*/
+    function $unbindView(flags) {
         if (this.$state & 2 /* isBound */) {
             // add isUnbinding flag
-            this.$state |= 32 /* isUnbinding */;
-            const hooks = this.$behavior.hooks;
-            flags |= exports.BindingFlags.fromUnbind;
-            if (hooks & 512 /* hasUnbound */) {
-                BindLifecycle.queueUnbound(this, flags);
-            }
-            if (hooks & 256 /* hasUnbinding */) {
-                this.unbinding(flags);
+            this.$state |= 64 /* isUnbinding */;
+            flags |= exports.LifecycleFlags.fromUnbind;
+            let current = this.$bindableTail;
+            while (current !== null) {
+                current.$unbind(flags);
+                current = current.$prevBind;
             }
             // remove isBound and isUnbinding flags
-            this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
-            if (hooks & 512 /* hasUnbound */) {
-                BindLifecycle.unqueueUnbound();
-            }
-        }
-    }
-    function attach$1(encapsulationSource, lifecycle) {
-        if (this.$state & 8 /* isAttached */) {
-            return;
-        }
-        // add isAttaching flag
-        this.$state |= 4 /* isAttaching */;
-        const hooks = this.$behavior.hooks;
-        if (hooks & 16 /* hasAttaching */) {
-            this.attaching(encapsulationSource, lifecycle);
-        }
-        // add isAttached flag, remove isAttaching flag
-        this.$state |= 8 /* isAttached */;
-        this.$state &= ~4 /* isAttaching */;
-        if (hooks & 32 /* hasAttached */) {
-            lifecycle.queueAttachedCallback(this);
-        }
-    }
-    function detach$1(lifecycle) {
-        if (this.$state & 8 /* isAttached */) {
-            // add isDetaching flag
-            this.$state |= 16 /* isDetaching */;
-            const hooks = this.$behavior.hooks;
-            if (hooks & 64 /* hasDetaching */) {
-                this.detaching(lifecycle);
-            }
-            // remove isAttached and isDetaching flags
-            this.$state &= ~(8 /* isAttached */ | 16 /* isDetaching */);
-            if (hooks & 128 /* hasDetached */) {
-                lifecycle.queueDetachedCallback(this);
-            }
-        }
-    }
-    function cache$1() {
-        if (this.$behavior.hooks & 2048 /* hasCaching */) {
-            this.caching();
-        }
-    }
-    /*@internal*/
-    function createCustomAttributeDescription(def, Type) {
-        return {
-            name: def.name,
-            aliases: def.aliases || kernel.PLATFORM.emptyArray,
-            defaultBindingMode: def.defaultBindingMode || exports.BindingMode.toView,
-            isTemplateController: def.isTemplateController || false,
-            bindables: Object.assign({}, Type.bindables, def.bindables)
-        };
-    }
-
-    function renderStrategy(nameOrSource) {
-        return function (target) {
-            return RenderStrategyResource.define(nameOrSource, target);
-        };
-    }
-    const RenderStrategyResource = {
-        name: 'render-strategy',
-        keyFrom(name) {
-            return `${this.name}:${name}`;
-        },
-        isType(type) {
-            return type.kind === this;
-        },
-        define(nameOrSource, ctor) {
-            const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
-            const Type = ctor;
-            Type.kind = RenderStrategyResource;
-            Type.description = description;
-            Type.register = function (container) {
-                container.register(kernel.Registration.singleton(Type.kind.keyFrom(description.name), Type));
-            };
-            return Type;
-        }
-    };
-
-    // tslint:disable:function-name
-    // tslint:disable:no-any
-    /* @internal */
-    class Renderer {
-        constructor(context, observerLocator, eventManager, parser, renderingEngine) {
-            this.context = context;
-            this.observerLocator = observerLocator;
-            this.eventManager = eventManager;
-            this.parser = parser;
-            this.renderingEngine = renderingEngine;
-        }
-        render(renderable, targets, definition, host, parts) {
-            const targetInstructions = definition.instructions;
-            if (targets.length !== targetInstructions.length) {
-                if (targets.length > targetInstructions.length) {
-                    throw kernel.Reporter.error(30);
-                }
-                else {
-                    throw kernel.Reporter.error(31);
-                }
-            }
-            for (let i = 0, ii = targets.length; i < ii; ++i) {
-                const instructions = targetInstructions[i];
-                const target = targets[i];
-                for (let j = 0, jj = instructions.length; j < jj; ++j) {
-                    const current = instructions[j];
-                    this[current.type](renderable, target, current, parts);
-                }
-            }
-            if (host) {
-                const surrogateInstructions = definition.surrogates;
-                for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                    const current = surrogateInstructions[i];
-                    this[current.type](renderable, host, current, parts);
-                }
-            }
-        }
-        hydrateElementInstance(renderable, target, instruction, component) {
-            const childInstructions = instruction.instructions;
-            component.$hydrate(this.renderingEngine, target, instruction);
-            for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-                const current = childInstructions[i];
-                const currentType = current.type;
-                this[currentType](renderable, component, current);
-            }
-            addBindable(renderable, component);
-            addAttachable(renderable, component);
-        }
-        ["a" /* textBinding */](renderable, target, instruction) {
-            const next = target.nextSibling;
-            DOM.treatAsNonWhitespace(next);
-            DOM.remove(target);
-            const $from = instruction.from;
-            const expr = ($from.$kind ? $from : this.parser.parse($from, 2048 /* Interpolation */));
-            if (expr.isMulti) {
-                addBindable(renderable, new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', exports.BindingMode.toView, this.context));
-            }
-            else {
-                addBindable(renderable, new exports.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', exports.BindingMode.toView, this.observerLocator, this.context, true));
-            }
-        }
-        ["b" /* interpolation */](renderable, target, instruction) {
-            const $from = instruction.from;
-            const expr = ($from.$kind ? $from : this.parser.parse($from, 2048 /* Interpolation */));
-            if (expr.isMulti) {
-                addBindable(renderable, new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.to, exports.BindingMode.toView, this.context));
-            }
-            else {
-                addBindable(renderable, new exports.InterpolationBinding(expr.firstExpression, expr, target, instruction.to, exports.BindingMode.toView, this.observerLocator, this.context, true));
-            }
-        }
-        ["c" /* propertyBinding */](renderable, target, instruction) {
-            const $from = instruction.from;
-            addBindable(renderable, new exports.Binding($from.$kind ? $from : this.parser.parse($from, 48 /* IsPropertyCommand */ | instruction.mode), target, instruction.to, instruction.mode, this.observerLocator, this.context));
-        }
-        ["d" /* iteratorBinding */](renderable, target, instruction) {
-            const $from = instruction.from;
-            addBindable(renderable, new exports.Binding($from.$kind ? $from : this.parser.parse($from, 539 /* ForCommand */), target, instruction.to, exports.BindingMode.toView, this.observerLocator, this.context));
-        }
-        ["e" /* listenerBinding */](renderable, target, instruction) {
-            const $from = instruction.from;
-            addBindable(renderable, new Listener(instruction.to, instruction.strategy, $from.$kind ? $from : this.parser.parse($from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */)), target, instruction.preventDefault, this.eventManager, this.context));
-        }
-        ["f" /* callBinding */](renderable, target, instruction) {
-            const $from = instruction.from;
-            addBindable(renderable, new Call($from.$kind ? $from : this.parser.parse($from, 153 /* CallCommand */), target, instruction.to, this.observerLocator, this.context));
-        }
-        ["g" /* refBinding */](renderable, target, instruction) {
-            const $from = instruction.from;
-            addBindable(renderable, new Ref($from.$kind ? $from : this.parser.parse($from, 1280 /* IsRef */), target, this.context));
-        }
-        ["h" /* stylePropertyBinding */](renderable, target, instruction) {
-            const $from = instruction.from;
-            addBindable(renderable, new exports.Binding($from.$kind ? $from : this.parser.parse($from, 48 /* IsPropertyCommand */ | exports.BindingMode.toView), target.style, instruction.to, exports.BindingMode.toView, this.observerLocator, this.context));
-        }
-        ["i" /* setProperty */](renderable, target, instruction) {
-            target[instruction.to] = instruction.value;
-        }
-        ["j" /* setAttribute */](renderable, target, instruction) {
-            DOM.setAttribute(target, instruction.to, instruction.value);
-        }
-        ["k" /* hydrateElement */](renderable, target, instruction) {
-            const context = this.context;
-            const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
-            const component = context.get(CustomElementResource.keyFrom(instruction.res));
-            this.hydrateElementInstance(renderable, target, instruction, component);
-            operation.dispose();
-        }
-        ["l" /* hydrateAttribute */](renderable, target, instruction) {
-            const childInstructions = instruction.instructions;
-            const context = this.context;
-            const operation = context.beginComponentOperation(renderable, target, instruction);
-            const component = context.get(CustomAttributeResource.keyFrom(instruction.res));
-            component.$hydrate(this.renderingEngine);
-            for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-                const current = childInstructions[i];
-                this[current.type](renderable, component, current);
-            }
-            addBindable(renderable, component);
-            addAttachable(renderable, component);
-            operation.dispose();
-        }
-        ["m" /* hydrateTemplateController */](renderable, target, instruction, parts) {
-            const childInstructions = instruction.instructions;
-            const factory = this.renderingEngine.getViewFactory(instruction.def, this.context);
-            const context = this.context;
-            const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
-            const component = context.get(CustomAttributeResource.keyFrom(instruction.res));
-            component.$hydrate(this.renderingEngine);
-            if (instruction.link) {
-                component.link(renderable.$attachableTail);
-            }
-            for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-                const current = childInstructions[i];
-                this[current.type](renderable, component, current);
-            }
-            addBindable(renderable, component);
-            addAttachable(renderable, component);
-            operation.dispose();
-        }
-        ["z" /* renderStrategy */](renderable, target, instruction) {
-            const strategyName = instruction.name;
-            if (this[strategyName] === undefined) {
-                const strategy = this.context.get(RenderStrategyResource.keyFrom(strategyName));
-                if (strategy === null || strategy === undefined) {
-                    throw new Error(`Unknown renderStrategy "${strategyName}"`);
-                }
-                this[strategyName] = strategy.render.bind(strategy);
-            }
-            this[strategyName](renderable, target, instruction);
-        }
-        ["n" /* letElement */](renderable, target, instruction) {
-            target.remove();
-            const childInstructions = instruction.instructions;
-            const toViewModel = instruction.toViewModel;
-            for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-                const childInstruction = childInstructions[i];
-                const $from = childInstruction.from;
-                addBindable(renderable, new exports.LetBinding($from.$kind ? $from : this.parser.parse($from, 48 /* IsPropertyCommand */), childInstruction.to, this.observerLocator, this.context, toViewModel));
-            }
+            this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+            this.$scope = null;
         }
     }
 
-    /** @internal */
-    class RuntimeBehavior {
-        constructor() { }
-        static create(Component, instance) {
-            const behavior = new RuntimeBehavior();
-            // Pre-setting the properties for the lifecycle queues (to null) is to help generate
-            // fewer variations in property declaration order and makes it easier for the browser
-            // to perform optimizations via generated hidden classes.
-            // It also allows us to perform strict null checks which is more efficient than falsey
-            // value coercion
-            behavior.bindables = Component.description.bindables;
-            behavior.hooks = 0;
-            if ('created' in instance)
-                behavior.hooks |= 2 /* hasCreated */;
-            if ('binding' in instance)
-                behavior.hooks |= 4 /* hasBinding */;
-            if ('bound' in instance) {
-                behavior.hooks |= 8 /* hasBound */;
-                instance['$boundFlags'] = 0;
-                instance['$nextBound'] = null;
-            }
-            if ('attaching' in instance)
-                behavior.hooks |= 16 /* hasAttaching */;
-            if ('attached' in instance) {
-                behavior.hooks |= 32 /* hasAttached */;
-                instance['$nextAttached'] = null;
-            }
-            if ('detaching' in instance)
-                behavior.hooks |= 64 /* hasDetaching */;
-            if ('detached' in instance) {
-                behavior.hooks |= 128 /* hasDetached */;
-                instance['$nextDetached'] = null;
-            }
-            if ('unbinding' in instance)
-                behavior.hooks |= 256 /* hasUnbinding */;
-            if ('unbound' in instance) {
-                behavior.hooks |= 512 /* hasUnbound */;
-                instance['$unboundFlags'] = 0;
-                instance['$nextUnbound'] = null;
-            }
-            if ('render' in instance)
-                behavior.hooks |= 1024 /* hasRender */;
-            if ('caching' in instance)
-                behavior.hooks |= 2048 /* hasCaching */;
-            if (behavior.hooks === 0)
-                behavior.hooks |= 1 /* none */;
-            if ('$mount' in Component.prototype) {
-                instance['$nextMount'] = null;
-            }
-            return behavior;
-        }
-        applyTo(instance, changeSet) {
-            if ('$projector' in instance) {
-                this.applyToElement(changeSet, instance);
-            }
-            else {
-                this.applyToCore(changeSet, instance);
-            }
-        }
-        applyToElement(changeSet, instance) {
-            const observers = this.applyToCore(changeSet, instance);
-            observers.$children = new exports.ChildrenObserver(changeSet, instance);
-            Reflect.defineProperty(instance, '$children', {
-                enumerable: false,
-                get: function () {
-                    return this.$observers.$children.getValue();
-                }
-            });
-        }
-        applyToCore(changeSet, instance) {
-            const observers = {};
-            const bindables = this.bindables;
-            const observableNames = Object.getOwnPropertyNames(bindables);
-            for (let i = 0, ii = observableNames.length; i < ii; ++i) {
-                const name = observableNames[i];
-                observers[name] = new exports.Observer(instance, name, bindables[name].callback);
-                createGetterSetter(instance, name);
-            }
-            Reflect.defineProperty(instance, '$observers', {
-                enumerable: false,
-                value: observers
-            });
-            instance.$behavior = this;
-            return observers;
-        }
-    }
-    function createGetterSetter(instance, name) {
-        Reflect.defineProperty(instance, name, {
-            enumerable: true,
-            get: function () { return this.$observers[name].getValue(); },
-            set: function (value) { this.$observers[name].setValue(value, exports.BindingFlags.updateTargetInstance); }
-        });
-    }
-    /*@internal*/
-    exports.ChildrenObserver = class ChildrenObserver {
-        constructor(changeSet, customElement$$1) {
-            this.changeSet = changeSet;
-            this.customElement = customElement$$1;
-            this.hasChanges = false;
-            this.children = null;
-            this.observing = false;
-        }
-        getValue() {
-            if (!this.observing) {
-                this.observing = true;
-                this.customElement.$projector.subscribeToChildrenChange(() => this.onChildrenChanged());
-                this.children = findElements(this.customElement.$projector.children);
-            }
-            return this.children;
-        }
-        setValue(newValue) { }
-        flushChanges() {
-            this.callSubscribers(this.children, undefined, exports.BindingFlags.updateTargetInstance | exports.BindingFlags.fromFlushChanges);
-            this.hasChanges = false;
-        }
-        subscribe(subscriber) {
-            this.addSubscriber(subscriber);
-        }
-        unsubscribe(subscriber) {
-            this.removeSubscriber(subscriber);
-        }
-        onChildrenChanged() {
-            this.children = findElements(this.customElement.$projector.children);
-            if ('$childrenChanged' in this.customElement) {
-                this.customElement.$childrenChanged();
-            }
-            this.changeSet.add(this);
-            this.hasChanges = true;
-        }
-    };
-    exports.ChildrenObserver = __decorate([
-        subscriberCollection(exports.MutationKind.instance)
-    ], exports.ChildrenObserver);
-    const elementBehaviorFor = CustomElementResource.behaviorFor;
-    /*@internal*/
-    function findElements(nodes) {
-        const components = [];
-        for (let i = 0, ii = nodes.length; i < ii; ++i) {
-            const current = nodes[i];
-            const component = elementBehaviorFor(current);
-            if (component !== null) {
-                components.push(component);
-            }
-        }
-        return components;
-    }
-
-    const ITemplateCompiler = kernel.DI.createInterface().noDefault();
-    (function (ViewCompileFlags) {
-        ViewCompileFlags[ViewCompileFlags["none"] = 1] = "none";
-        ViewCompileFlags[ViewCompileFlags["surrogate"] = 2] = "surrogate";
-        ViewCompileFlags[ViewCompileFlags["shadowDOM"] = 4] = "shadowDOM";
-    })(exports.ViewCompileFlags || (exports.ViewCompileFlags = {}));
-
-    const IViewFactory = kernel.DI.createInterface().noDefault();
     /*@internal*/
     class View {
-        constructor(cache) {
+        constructor($lifecycle, cache) {
+            this.$lifecycle = $lifecycle;
             this.cache = cache;
             this.$bindableHead = null;
             this.$bindableTail = null;
@@ -6709,132 +6543,46 @@ this.au.runtime = (function (exports,kernel) {
             this.$attachableTail = null;
             this.$nextAttach = null;
             this.$prevAttach = null;
-            // Pre-setting to null for performance (see RuntimeBehavior.create())
             this.$nextMount = null;
+            this.$mountFlags = 0;
+            this.$nextUnmount = null;
+            this.$unmountFlags = 0;
+            this.$nextUnbindAfterDetach = null;
             this.$state = 0 /* none */;
             this.$scope = null;
             this.isFree = false;
         }
-        hold(location) {
+        hold(location, flags) {
             if (!location.parentNode) { // unmet invariant: location must be a child of some other node
                 throw kernel.Reporter.error(60); // TODO: organize error codes
             }
             this.location = location;
             const lastChild = this.$nodes.lastChild;
             if (lastChild && lastChild.nextSibling === location) {
-                this.$state &= ~128 /* needsMount */;
+                this.$state &= ~256 /* needsMount */;
             }
             else {
-                this.$state |= 128 /* needsMount */;
+                this.$state |= 256 /* needsMount */;
             }
         }
         lockScope(scope) {
             this.$scope = scope;
             this.$bind = lockedBind;
         }
-        release() {
+        release(flags) {
             this.isFree = true;
             if (this.$state & 8 /* isAttached */) {
                 return this.cache.canReturnToCache(this);
             }
-            return this.$unmount();
-        }
-        $bind(flags, scope) {
-            flags |= exports.BindingFlags.fromBind;
-            if (this.$state & 2 /* isBound */) {
-                if (this.$scope === scope) {
-                    return;
-                }
-                this.$unbind(flags);
-            }
-            // add isBinding flag
-            this.$state |= 1 /* isBinding */;
-            this.$scope = scope;
-            let current = this.$bindableHead;
-            while (current !== null) {
-                current.$bind(flags, scope);
-                current = current.$nextBind;
-            }
-            // add isBound flag and remove isBinding flag
-            this.$state |= 2 /* isBound */;
-            this.$state &= ~1 /* isBinding */;
-        }
-        $unbind(flags) {
-            if (this.$state & 2 /* isBound */) {
-                // add isUnbinding flag
-                this.$state |= 32 /* isUnbinding */;
-                flags |= exports.BindingFlags.fromUnbind;
-                let current = this.$bindableTail;
-                while (current !== null) {
-                    current.$unbind(flags);
-                    current = current.$prevBind;
-                }
-                // remove isBound and isUnbinding flags
-                this.$state &= ~(2 /* isBound */ | 32 /* isUnbinding */);
-                this.$scope = null;
-            }
-        }
-        $attach(encapsulationSource, lifecycle) {
-            if (this.$state & 8 /* isAttached */) {
-                return;
-            }
-            // add isAttaching flag
-            this.$state |= 4 /* isAttaching */;
-            let current = this.$attachableHead;
-            while (current !== null) {
-                current.$attach(encapsulationSource, lifecycle);
-                current = current.$nextAttach;
-            }
-            if (this.$state & 128 /* needsMount */) {
-                lifecycle.queueMount(this);
-            }
-            // add isAttached flag, remove isAttaching flag
-            this.$state |= 8 /* isAttached */;
-            this.$state &= ~4 /* isAttaching */;
-        }
-        $detach(lifecycle) {
-            if (this.$state & 8 /* isAttached */) {
-                // add isDetaching flag
-                this.$state |= 16 /* isDetaching */;
-                lifecycle.queueUnmount(this);
-                let current = this.$attachableTail;
-                while (current !== null) {
-                    current.$detach(lifecycle);
-                    current = current.$prevAttach;
-                }
-                // remove isAttached and isDetaching flags
-                this.$state &= ~(8 /* isAttached */ | 16 /* isDetaching */);
-            }
-        }
-        $mount() {
-            this.$state &= ~128 /* needsMount */;
-            this.$nodes.insertBefore(this.location);
-        }
-        $unmount() {
-            this.$state |= 128 /* needsMount */;
-            this.$nodes.remove();
-            if (this.isFree) {
-                this.isFree = false;
-                if (this.cache.tryReturnToCache(this)) {
-                    this.$state |= 64 /* isCached */;
-                    return true;
-                }
-            }
-            return false;
-        }
-        $cache() {
-            let current = this.$attachableTail;
-            while (current !== null) {
-                current.$cache();
-                current = current.$prevAttach;
-            }
+            return this.$unmount(flags);
         }
     }
     /*@internal*/
     class ViewFactory {
-        constructor(name, template) {
+        constructor(name, template, lifecycle) {
             this.name = name;
             this.template = template;
+            this.lifecycle = lifecycle;
             this.isCaching = false;
             this.cacheSize = -1;
             this.cache = null;
@@ -6864,7 +6612,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         tryReturnToCache(view) {
             if (this.canReturnToCache(view)) {
-                view.$cache();
+                view.$cache(exports.LifecycleFlags.none);
                 this.cache.push(view);
                 return true;
             }
@@ -6875,10 +6623,10 @@ this.au.runtime = (function (exports,kernel) {
             let view;
             if (cache !== null && cache.length > 0) {
                 view = cache.pop();
-                view.$state &= ~64 /* isCached */;
+                view.$state &= ~128 /* isCached */;
                 return view;
             }
-            view = new View(this);
+            view = new View(this.lifecycle, this);
             this.template.render(view);
             if (!view.$nodes) {
                 throw kernel.Reporter.error(90);
@@ -6891,7 +6639,7 @@ this.au.runtime = (function (exports,kernel) {
         if (this.$state & 2 /* isBound */) {
             return;
         }
-        flags |= exports.BindingFlags.fromBind;
+        flags |= exports.LifecycleFlags.fromBind;
         const lockedScope = this.$scope;
         let current = this.$bindableHead;
         while (current !== null) {
@@ -6900,16 +6648,103 @@ this.au.runtime = (function (exports,kernel) {
         }
         this.$state |= 2 /* isBound */;
     }
+    ((proto) => {
+        proto.$bind = $bindView;
+        proto.$unbind = $unbindView;
+        proto.$attach = $attachView;
+        proto.$detach = $detachView;
+        proto.$cache = $cacheView;
+        proto.$mount = $mountView;
+        proto.$unmount = $unmountView;
+    })(View.prototype);
 
+    function renderStrategy(nameOrSource) {
+        return target => RenderStrategyResource.define(nameOrSource, target);
+    }
+    const RenderStrategyResource = {
+        name: 'render-strategy',
+        keyFrom(name) {
+            return `${this.name}:${name}`;
+        },
+        isType(Type) {
+            return Type.kind === this;
+        },
+        define(nameOrSource, ctor) {
+            const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
+            const Type = ctor;
+            Type.kind = RenderStrategyResource;
+            Type.description = description;
+            Type.register = registerRenderStrategy;
+            return Type;
+        }
+    };
+    /*@internal*/
+    function registerRenderStrategy(container) {
+        const resourceKey = RenderStrategyResource.keyFrom(this.description.name);
+        container.register(kernel.Registration.singleton(resourceKey, this));
+    }
+    const ITemplateCompiler = kernel.DI.createInterface().noDefault();
+    (function (ViewCompileFlags) {
+        ViewCompileFlags[ViewCompileFlags["none"] = 1] = "none";
+        ViewCompileFlags[ViewCompileFlags["surrogate"] = 2] = "surrogate";
+        ViewCompileFlags[ViewCompileFlags["shadowDOM"] = 4] = "shadowDOM";
+    })(exports.ViewCompileFlags || (exports.ViewCompileFlags = {}));
+    /*@internal*/
+    function $hydrateAttribute(renderingEngine) {
+        const Type = this.constructor;
+        renderingEngine.applyRuntimeBehavior(Type, this);
+        if (this.$hooks & 2 /* hasCreated */) {
+            this.created();
+        }
+    }
+    /*@internal*/
+    function $hydrateElement(renderingEngine, host, options = kernel.PLATFORM.emptyObject) {
+        const Type = this.constructor;
+        const description = Type.description;
+        this.$scope = Scope.create(this, null);
+        renderingEngine.applyRuntimeBehavior(Type, this);
+        if (this.$hooks & 1024 /* hasRender */) {
+            const result = this.render(host, options.parts);
+            if (result && 'getElementTemplate' in result) {
+                const template = result.getElementTemplate(renderingEngine, Type);
+                template.render(this, host, options.parts);
+            }
+        }
+        else {
+            const template = renderingEngine.getElementTemplate(description, Type);
+            template.render(this, host, options.parts);
+        }
+        this.$host = host;
+        this.$projector = determineProjector(this, host, description);
+        if (this.$hooks & 2 /* hasCreated */) {
+            this.created();
+        }
+    }
+    /*@internal*/
+    const defaultShadowOptions = {
+        mode: 'open'
+    };
+    function determineProjector($customElement, host, definition) {
+        if (definition.shadowOptions || definition.hasSlots) {
+            if (definition.containerless) {
+                throw kernel.Reporter.error(21);
+            }
+            return new ShadowDOMProjector($customElement, host, definition);
+        }
+        if (definition.containerless) {
+            return new ContainerlessProjector($customElement, host);
+        }
+        return new HostProjector($customElement, host);
+    }
     const IRenderingEngine = kernel.DI.createInterface()
         .withDefault(x => x.singleton(exports.RenderingEngine));
     const defaultCompilerName = 'default';
     exports.RenderingEngine = 
     /*@internal*/
     class RenderingEngine {
-        constructor(container, changeSet, observerLocator, eventManager, parser, templateCompilers) {
+        constructor(container, lifecycle, observerLocator, eventManager, parser, templateCompilers) {
             this.container = container;
-            this.changeSet = changeSet;
+            this.lifecycle = lifecycle;
             this.observerLocator = observerLocator;
             this.eventManager = eventManager;
             this.parser = parser;
@@ -6944,7 +6779,7 @@ this.au.runtime = (function (exports,kernel) {
             if (!factory) {
                 const validSource = buildTemplateDefinition(null, definition);
                 const template = this.templateFromSource(validSource, parentContext);
-                factory = new ViewFactory(validSource.name, template);
+                factory = new ViewFactory(validSource.name, template, this.lifecycle);
                 factory.setCacheSize(validSource.cache, true);
                 this.factoryLookup.set(definition, factory);
             }
@@ -6956,7 +6791,7 @@ this.au.runtime = (function (exports,kernel) {
                 found = RuntimeBehavior.create(Type, instance);
                 this.behaviorLookup.set(Type, found);
             }
-            found.applyTo(instance, this.changeSet);
+            found.applyTo(instance, this.lifecycle);
         }
         createRenderer(context) {
             return new Renderer(context, this.observerLocator, this.eventManager, this.parser, this);
@@ -6978,9 +6813,206 @@ this.au.runtime = (function (exports,kernel) {
         }
     };
     exports.RenderingEngine = __decorate([
-        kernel.inject(kernel.IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, kernel.all(ITemplateCompiler))
+        kernel.inject(kernel.IContainer, ILifecycle, IObserverLocator, IEventManager, IExpressionParser, kernel.all(ITemplateCompiler))
         /*@internal*/
     ], exports.RenderingEngine);
+    const childObserverOptions$1 = { childList: true };
+    /*@internal*/
+    class ShadowDOMProjector {
+        constructor($customElement, host, definition) {
+            this.host = host;
+            this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
+            host.$customElement = $customElement;
+            this.shadowRoot.$customElement = $customElement;
+        }
+        get children() {
+            return this.host.childNodes;
+        }
+        subscribeToChildrenChange(callback) {
+            DOM.createNodeObserver(this.host, callback, childObserverOptions$1);
+        }
+        provideEncapsulationSource(parentEncapsulationSource) {
+            return this.shadowRoot;
+        }
+        project(nodes) {
+            nodes.appendTo(this.host);
+            this.project = kernel.PLATFORM.noop;
+        }
+        take(nodes) {
+            // No special behavior is required because the host element removal
+            // will result in the projected nodes being removed, since they are in
+            // the ShadowDOM.
+        }
+    }
+    /*@internal*/
+    class ContainerlessProjector {
+        constructor($customElement, host) {
+            this.$customElement = $customElement;
+            if (host.childNodes.length) {
+                this.childNodes = kernel.PLATFORM.toArray(host.childNodes);
+            }
+            else {
+                this.childNodes = kernel.PLATFORM.emptyArray;
+            }
+            this.host = DOM.convertToRenderLocation(host);
+            this.host.$customElement = $customElement;
+        }
+        get children() {
+            return this.childNodes;
+        }
+        subscribeToChildrenChange(callback) {
+            // Do nothing since this scenario will never have children.
+        }
+        provideEncapsulationSource(parentEncapsulationSource) {
+            if (!parentEncapsulationSource) {
+                throw kernel.Reporter.error(22);
+            }
+            return parentEncapsulationSource;
+        }
+        project(nodes) {
+            if (this.$customElement.$state & 256 /* needsMount */) {
+                this.$customElement.$state &= ~256 /* needsMount */;
+                nodes.insertBefore(this.host);
+            }
+        }
+        take(nodes) {
+            this.$customElement.$state |= 256 /* needsMount */;
+            nodes.remove();
+        }
+    }
+    /*@internal*/
+    class HostProjector {
+        constructor($customElement, host) {
+            this.host = host;
+            host.$customElement = $customElement;
+            this.isAppHost = host.hasOwnProperty('$au');
+        }
+        get children() {
+            return kernel.PLATFORM.emptyArray;
+        }
+        subscribeToChildrenChange(callback) {
+            // Do nothing since this scenario will never have children.
+        }
+        provideEncapsulationSource(parentEncapsulationSource) {
+            return parentEncapsulationSource || this.host;
+        }
+        project(nodes) {
+            nodes.appendTo(this.host);
+            if (!this.isAppHost) {
+                this.project = kernel.PLATFORM.noop;
+            }
+        }
+        take(nodes) {
+            // No special behavior is required because the host element removal
+            // will result in the projected nodes being removed, since they are children.
+            if (this.isAppHost) {
+                // The only exception to that is the app host, which is not part of a removable node sequence
+                nodes.remove();
+            }
+        }
+    }
+    /** @internal */
+    class RuntimeBehavior {
+        constructor() { }
+        static create(Component, instance) {
+            const behavior = new RuntimeBehavior();
+            behavior.bindables = Component.description.bindables;
+            return behavior;
+        }
+        applyTo(instance, lifecycle) {
+            instance.$lifecycle = lifecycle;
+            if ('$projector' in instance) {
+                this.applyToElement(lifecycle, instance);
+            }
+            else {
+                this.applyToCore(instance);
+            }
+        }
+        applyToElement(lifecycle, instance) {
+            const observers = this.applyToCore(instance);
+            observers.$children = new exports.ChildrenObserver(lifecycle, instance);
+            Reflect.defineProperty(instance, '$children', {
+                enumerable: false,
+                get: function () {
+                    return this.$observers.$children.getValue();
+                }
+            });
+        }
+        applyToCore(instance) {
+            const observers = {};
+            const bindables = this.bindables;
+            const observableNames = Object.getOwnPropertyNames(bindables);
+            for (let i = 0, ii = observableNames.length; i < ii; ++i) {
+                const name = observableNames[i];
+                observers[name] = new exports.Observer(instance, name, bindables[name].callback);
+                createGetterSetter(instance, name);
+            }
+            Reflect.defineProperty(instance, '$observers', {
+                enumerable: false,
+                value: observers
+            });
+            return observers;
+        }
+    }
+    function createGetterSetter(instance, name) {
+        Reflect.defineProperty(instance, name, {
+            enumerable: true,
+            get: function () { return this.$observers[name].getValue(); },
+            set: function (value) { this.$observers[name].setValue(value, exports.LifecycleFlags.updateTargetInstance); }
+        });
+    }
+    /*@internal*/
+    exports.ChildrenObserver = class ChildrenObserver {
+        constructor(lifecycle, customElement) {
+            this.lifecycle = lifecycle;
+            this.customElement = customElement;
+            this.hasChanges = false;
+            this.children = null;
+            this.observing = false;
+        }
+        getValue() {
+            if (!this.observing) {
+                this.observing = true;
+                this.customElement.$projector.subscribeToChildrenChange(() => this.onChildrenChanged());
+                this.children = findElements(this.customElement.$projector.children);
+            }
+            return this.children;
+        }
+        setValue(newValue) { }
+        flush(flags) {
+            this.callSubscribers(this.children, undefined, flags | exports.LifecycleFlags.updateTargetInstance);
+            this.hasChanges = false;
+        }
+        subscribe(subscriber) {
+            this.addSubscriber(subscriber);
+        }
+        unsubscribe(subscriber) {
+            this.removeSubscriber(subscriber);
+        }
+        onChildrenChanged() {
+            this.children = findElements(this.customElement.$projector.children);
+            if ('$childrenChanged' in this.customElement) {
+                this.customElement.$childrenChanged();
+            }
+            this.lifecycle.enqueueFlush(this);
+            this.hasChanges = true;
+        }
+    };
+    exports.ChildrenObserver = __decorate([
+        subscriberCollection(exports.MutationKind.instance)
+    ], exports.ChildrenObserver);
+    /*@internal*/
+    function findElements(nodes) {
+        const components = [];
+        for (let i = 0, ii = nodes.length; i < ii; ++i) {
+            const current = nodes[i];
+            const component = customElementBehavior(current);
+            if (component !== null) {
+                components.push(component);
+            }
+        }
+        return components;
+    }
     /*@internal*/
     class RuntimeCompilationResources {
         constructor(context) {
@@ -7119,7 +7151,6 @@ this.au.runtime = (function (exports,kernel) {
             this.replacements = null;
         }
     }
-    const IRenderable = kernel.DI.createInterface().noDefault();
     function addBindable(renderable, bindable) {
         bindable.$prevBind = renderable.$bindableTail;
         bindable.$nextBind = null;
@@ -7142,173 +7173,297 @@ this.au.runtime = (function (exports,kernel) {
         }
         renderable.$attachableTail = attachable;
     }
+    // tslint:disable:function-name
+    // tslint:disable:no-any
+    /* @internal */
+    class Renderer {
+        constructor(context, observerLocator, eventManager, parser, renderingEngine) {
+            this.context = context;
+            this.observerLocator = observerLocator;
+            this.eventManager = eventManager;
+            this.parser = parser;
+            this.renderingEngine = renderingEngine;
+        }
+        render(renderable, targets, definition, host, parts) {
+            const targetInstructions = definition.instructions;
+            if (targets.length !== targetInstructions.length) {
+                if (targets.length > targetInstructions.length) {
+                    throw kernel.Reporter.error(30);
+                }
+                else {
+                    throw kernel.Reporter.error(31);
+                }
+            }
+            for (let i = 0, ii = targets.length; i < ii; ++i) {
+                const instructions = targetInstructions[i];
+                const target = targets[i];
+                for (let j = 0, jj = instructions.length; j < jj; ++j) {
+                    const current = instructions[j];
+                    this[current.type](renderable, target, current, parts);
+                }
+            }
+            if (host) {
+                const surrogateInstructions = definition.surrogates;
+                for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
+                    const current = surrogateInstructions[i];
+                    this[current.type](renderable, host, current, parts);
+                }
+            }
+        }
+        hydrateElementInstance(renderable, target, instruction, component) {
+            const childInstructions = instruction.instructions;
+            component.$hydrate(this.renderingEngine, target, instruction);
+            for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+                const current = childInstructions[i];
+                const currentType = current.type;
+                this[currentType](renderable, component, current);
+            }
+            addBindable(renderable, component);
+            addAttachable(renderable, component);
+        }
+        ["a" /* textBinding */](renderable, target, instruction) {
+            const next = target.nextSibling;
+            DOM.treatAsNonWhitespace(next);
+            DOM.remove(target);
+            const $from = instruction.from;
+            const expr = ($from.$kind ? $from : this.parser.parse($from, 2048 /* Interpolation */));
+            if (expr.isMulti) {
+                addBindable(renderable, new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', exports.BindingMode.toView, this.context));
+            }
+            else {
+                addBindable(renderable, new exports.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', exports.BindingMode.toView, this.observerLocator, this.context, true));
+            }
+        }
+        ["b" /* interpolation */](renderable, target, instruction) {
+            const $from = instruction.from;
+            const expr = ($from.$kind ? $from : this.parser.parse($from, 2048 /* Interpolation */));
+            if (expr.isMulti) {
+                addBindable(renderable, new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.to, exports.BindingMode.toView, this.context));
+            }
+            else {
+                addBindable(renderable, new exports.InterpolationBinding(expr.firstExpression, expr, target, instruction.to, exports.BindingMode.toView, this.observerLocator, this.context, true));
+            }
+        }
+        ["c" /* propertyBinding */](renderable, target, instruction) {
+            const $from = instruction.from;
+            addBindable(renderable, new exports.Binding($from.$kind ? $from : this.parser.parse($from, 48 /* IsPropertyCommand */ | instruction.mode), target, instruction.to, instruction.mode, this.observerLocator, this.context));
+        }
+        ["d" /* iteratorBinding */](renderable, target, instruction) {
+            const $from = instruction.from;
+            addBindable(renderable, new exports.Binding($from.$kind ? $from : this.parser.parse($from, 539 /* ForCommand */), target, instruction.to, exports.BindingMode.toView, this.observerLocator, this.context));
+        }
+        ["e" /* listenerBinding */](renderable, target, instruction) {
+            const $from = instruction.from;
+            addBindable(renderable, new Listener(instruction.to, instruction.strategy, $from.$kind ? $from : this.parser.parse($from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */)), target, instruction.preventDefault, this.eventManager, this.context));
+        }
+        ["f" /* callBinding */](renderable, target, instruction) {
+            const $from = instruction.from;
+            addBindable(renderable, new Call($from.$kind ? $from : this.parser.parse($from, 153 /* CallCommand */), target, instruction.to, this.observerLocator, this.context));
+        }
+        ["g" /* refBinding */](renderable, target, instruction) {
+            const $from = instruction.from;
+            addBindable(renderable, new Ref($from.$kind ? $from : this.parser.parse($from, 1280 /* IsRef */), target, this.context));
+        }
+        ["h" /* stylePropertyBinding */](renderable, target, instruction) {
+            const $from = instruction.from;
+            addBindable(renderable, new exports.Binding($from.$kind ? $from : this.parser.parse($from, 48 /* IsPropertyCommand */ | exports.BindingMode.toView), target.style, instruction.to, exports.BindingMode.toView, this.observerLocator, this.context));
+        }
+        ["i" /* setProperty */](renderable, target, instruction) {
+            target[instruction.to] = instruction.value;
+        }
+        ["j" /* setAttribute */](renderable, target, instruction) {
+            DOM.setAttribute(target, instruction.to, instruction.value);
+        }
+        ["k" /* hydrateElement */](renderable, target, instruction) {
+            const context = this.context;
+            const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
+            const component = context.get(customElementKey(instruction.res));
+            this.hydrateElementInstance(renderable, target, instruction, component);
+            operation.dispose();
+        }
+        ["l" /* hydrateAttribute */](renderable, target, instruction) {
+            const childInstructions = instruction.instructions;
+            const context = this.context;
+            const operation = context.beginComponentOperation(renderable, target, instruction);
+            const component = context.get(customAttributeKey(instruction.res));
+            component.$hydrate(this.renderingEngine);
+            for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+                const current = childInstructions[i];
+                this[current.type](renderable, component, current);
+            }
+            addBindable(renderable, component);
+            addAttachable(renderable, component);
+            operation.dispose();
+        }
+        ["m" /* hydrateTemplateController */](renderable, target, instruction, parts) {
+            const childInstructions = instruction.instructions;
+            const factory = this.renderingEngine.getViewFactory(instruction.def, this.context);
+            const context = this.context;
+            const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
+            const component = context.get(customAttributeKey(instruction.res));
+            component.$hydrate(this.renderingEngine);
+            if (instruction.link) {
+                component.link(renderable.$attachableTail);
+            }
+            for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+                const current = childInstructions[i];
+                this[current.type](renderable, component, current);
+            }
+            addBindable(renderable, component);
+            addAttachable(renderable, component);
+            operation.dispose();
+        }
+        ["z" /* renderStrategy */](renderable, target, instruction) {
+            const strategyName = instruction.name;
+            if (this[strategyName] === undefined) {
+                const strategy = this.context.get(RenderStrategyResource.keyFrom(strategyName));
+                if (strategy === null || strategy === undefined) {
+                    throw new Error(`Unknown renderStrategy "${strategyName}"`);
+                }
+                this[strategyName] = strategy.render.bind(strategy);
+            }
+            this[strategyName](renderable, target, instruction);
+        }
+        ["n" /* letElement */](renderable, target, instruction) {
+            target.remove();
+            const childInstructions = instruction.instructions;
+            const toViewModel = instruction.toViewModel;
+            for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+                const childInstruction = childInstructions[i];
+                const $from = childInstruction.from;
+                addBindable(renderable, new exports.LetBinding($from.$kind ? $from : this.parser.parse($from, 48 /* IsPropertyCommand */), childInstruction.to, this.observerLocator, this.context, toViewModel));
+            }
+        }
+    }
 
-    class CompositionCoordinator {
-        constructor(changeSet) {
-            this.changeSet = changeSet;
-            this.onSwapComplete = kernel.PLATFORM.noop;
-            this.queue = null;
-            this.currentView = null;
-            this.swapTask = Lifecycle.done;
-            this.isBound = false;
-            this.isAttached = false;
-        }
-        compose(value) {
-            if (this.swapTask.done) {
-                if (value instanceof Promise) {
-                    this.enqueue(new PromiseSwap(this, value));
-                    this.processNext();
-                }
-                else {
-                    this.swap(value);
-                }
-            }
-            else {
-                if (value instanceof Promise) {
-                    this.enqueue(new PromiseSwap(this, value));
-                }
-                else {
-                    this.enqueue(value);
-                }
-                if (this.swapTask.canCancel()) {
-                    this.swapTask.cancel();
-                }
-            }
-        }
-        binding(flags, scope) {
-            this.scope = scope;
-            this.isBound = true;
-            if (this.currentView !== null) {
-                this.currentView.$bind(flags, scope);
-            }
-        }
-        attaching(encapsulationSource, lifecycle) {
-            this.encapsulationSource = encapsulationSource;
-            this.isAttached = true;
-            if (this.currentView !== null) {
-                this.currentView.$attach(encapsulationSource, lifecycle);
-            }
-        }
-        detaching(lifecycle) {
-            this.isAttached = false;
-            if (this.currentView !== null) {
-                this.currentView.$detach(lifecycle);
-            }
-        }
-        unbinding(flags) {
-            this.isBound = false;
-            if (this.currentView !== null) {
-                this.currentView.$unbind(flags);
-            }
-        }
-        caching() {
-            this.currentView = null;
-        }
-        enqueue(view) {
-            if (this.queue === null) {
-                this.queue = [];
-            }
-            this.queue.push(view);
-        }
-        swap(view) {
-            if (this.currentView === view) {
-                return;
-            }
-            const swapTask = new AggregateLifecycleTask();
-            swapTask.addTask(this.detachAndUnbindCurrentView(this.isAttached
-                ? exports.LifecycleFlags.none
-                : exports.LifecycleFlags.noTasks));
-            this.currentView = view;
-            swapTask.addTask(this.bindAndAttachCurrentView());
-            if (swapTask.done) {
-                this.swapTask = Lifecycle.done;
-                this.onSwapComplete();
-            }
-            else {
-                this.swapTask = swapTask;
-                this.swapTask.wait().then(() => {
-                    this.onSwapComplete();
-                    this.processNext();
-                });
-            }
-        }
-        processNext() {
-            if (this.queue !== null && this.queue.length > 0) {
-                const next = this.queue.pop();
-                this.queue.length = 0;
-                if (PromiseSwap.is(next)) {
-                    this.swapTask = next.start();
-                }
-                else {
-                    this.swap(next);
-                }
-            }
-            else {
-                this.swapTask = Lifecycle.done;
-            }
-        }
-        detachAndUnbindCurrentView(detachFlags) {
-            if (this.currentView === null) {
-                return Lifecycle.done;
-            }
-            return Lifecycle.beginDetach(this.changeSet, detachFlags | exports.LifecycleFlags.unbindAfterDetached)
-                .detach(this.currentView)
-                .end();
-        }
-        bindAndAttachCurrentView() {
-            if (this.currentView === null) {
-                return Lifecycle.done;
-            }
-            if (this.isBound) {
-                this.currentView.$bind(exports.BindingFlags.fromBindableHandler, this.scope);
-            }
-            if (this.isAttached) {
-                return Lifecycle.beginAttach(this.changeSet, this.encapsulationSource, exports.LifecycleFlags.none)
-                    .attach(this.currentView)
-                    .end();
-            }
-            return Lifecycle.done;
-        }
+    /**
+     * Decorator: Indicates that the decorated class is a custom element.
+     */
+    function customElement(nameOrSource) {
+        return target => CustomElementResource.define(nameOrSource, target);
     }
-    class PromiseSwap {
-        constructor(coordinator, promise) {
-            this.coordinator = coordinator;
-            this.promise = promise;
-            this.done = false;
-            this.isCancelled = false;
+    function useShadowDOM(targetOrOptions) {
+        const options = typeof targetOrOptions === 'function' || !targetOrOptions
+            ? defaultShadowOptions
+            : targetOrOptions;
+        function useShadowDOMDecorator(target) {
+            target.shadowOptions = options;
+            return target;
         }
-        static is(object) {
-            return 'start' in object;
-        }
-        start() {
-            if (this.isCancelled) {
-                return Lifecycle.done;
-            }
-            this.promise = this.promise.then(x => {
-                this.onResolve(x);
-                return x;
-            });
-            return this;
-        }
-        canCancel() {
-            return !this.done;
-        }
-        cancel() {
-            if (this.canCancel()) {
-                this.isCancelled = true;
-            }
-        }
-        wait() {
-            return this.promise;
-        }
-        onResolve(value) {
-            if (this.isCancelled) {
-                return;
-            }
-            this.done = true;
-            this.coordinator.compose(value);
-        }
+        return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
     }
+    function containerlessDecorator(target) {
+        target.containerless = true;
+        return target;
+    }
+    function containerless(target) {
+        return target === undefined ? containerlessDecorator : containerlessDecorator(target);
+    }
+    const CustomElementResource = {
+        name: customElementName,
+        keyFrom: customElementKey,
+        isType(Type) {
+            return Type.kind === this;
+        },
+        behaviorFor: customElementBehavior,
+        define(nameOrSource, ctor = null) {
+            if (!nameOrSource) {
+                throw kernel.Reporter.error(70);
+            }
+            const Type = (ctor === null ? class HTMLOnlyElement {
+            } : ctor);
+            const description = buildTemplateDefinition(Type, nameOrSource);
+            const proto = Type.prototype;
+            Type.kind = CustomElementResource;
+            Type.description = description;
+            Type.register = registerElement;
+            proto.$hydrate = $hydrateElement;
+            proto.$bind = $bindElement;
+            proto.$attach = $attachElement;
+            proto.$detach = $detachElement;
+            proto.$unbind = $unbindElement;
+            proto.$cache = $cacheElement;
+            proto.$prevBind = null;
+            proto.$nextBind = null;
+            proto.$prevAttach = null;
+            proto.$nextAttach = null;
+            proto.$nextUnbindAfterDetach = null;
+            proto.$scope = null;
+            proto.$hooks = 0;
+            proto.$state = 256 /* needsMount */;
+            proto.$bindableHead = null;
+            proto.$bindableTail = null;
+            proto.$attachableHead = null;
+            proto.$attachableTail = null;
+            proto.$mount = $mountElement;
+            proto.$unmount = $unmountElement;
+            proto.$nextMount = null;
+            proto.$nextUnmount = null;
+            proto.$projector = null;
+            if ('flush' in proto) {
+                proto.$nextFlush = null;
+            }
+            if ('binding' in proto)
+                proto.$hooks |= 4 /* hasBinding */;
+            if ('bound' in proto) {
+                proto.$hooks |= 8 /* hasBound */;
+                proto.$nextBound = null;
+            }
+            if ('unbinding' in proto)
+                proto.$hooks |= 256 /* hasUnbinding */;
+            if ('unbound' in proto) {
+                proto.$hooks |= 512 /* hasUnbound */;
+                proto.$nextUnbound = null;
+            }
+            if ('render' in proto)
+                proto.$hooks |= 1024 /* hasRender */;
+            if ('created' in proto)
+                proto.$hooks |= 2 /* hasCreated */;
+            if ('attaching' in proto)
+                proto.$hooks |= 16 /* hasAttaching */;
+            if ('attached' in proto) {
+                proto.$hooks |= 32 /* hasAttached */;
+                proto.$nextAttached = null;
+            }
+            if ('detaching' in proto)
+                proto.$hooks |= 64 /* hasDetaching */;
+            if ('caching' in proto)
+                proto.$hooks |= 2048 /* hasCaching */;
+            if ('detached' in proto) {
+                proto.$hooks |= 128 /* hasDetached */;
+                proto.$nextDetached = null;
+            }
+            return Type;
+        }
+    };
+    /*@internal*/
+    function registerElement(container) {
+        const resourceKey = CustomElementResource.keyFrom(this.description.name);
+        container.register(kernel.Registration.transient(resourceKey, this));
+    }
+    // tslint:enable:align
+    // TODO
+    // ## DefaultSlotProjector
+    // An implementation of IElementProjector that can handle a subset of default
+    // slot projection scenarios without needing real Shadow DOM.
+    // ### Conditions
+    // We can do a one-time, static composition of the content and view,
+    // to emulate shadow DOM, if the following constraints are met:
+    // * There must be exactly one slot and it must be a default slot.
+    // * The default slot must not have any fallback content.
+    // * The default slot must not have a custom element as its immediate parent or
+    //   a slot attribute (re-projection).
+    // ### Projection
+    // The projector copies all content nodes to the slot's location.
+    // The copy process should inject a comment node before and after the slotted
+    // content, so that the bounds of the content can be clearly determined,
+    // even if the slotted content has template controllers or string interpolation.
+    // ### Encapsulation Source
+    // Uses the same strategy as HostProjector.
+    // ### Children
+    // The projector adds a mutation observer to the parent node of the
+    // slot comment. When direct children of that node change, the projector
+    // will gather up all nodes between the start and end slot comments.
 
     const composeSource = {
         name: 'au-compose',
@@ -7316,15 +7471,14 @@ this.au.runtime = (function (exports,kernel) {
     };
     const composeProps = ['subject', 'composing'];
     exports.Compose = class Compose {
-        constructor(changeSet, renderable, instruction, renderingEngine) {
-            this.changeSet = changeSet;
+        constructor(renderable, instruction, renderingEngine, coordinator) {
             this.renderable = renderable;
             this.renderingEngine = renderingEngine;
+            this.coordinator = coordinator;
             this.subject = null;
             this.composing = false;
             this.properties = null;
             this.lastSubject = null;
-            this.coordinator = new CompositionCoordinator(this.changeSet);
             this.coordinator.onSwapComplete = () => {
                 this.composing = false;
             };
@@ -7338,43 +7492,43 @@ this.au.runtime = (function (exports,kernel) {
             }, {});
         }
         binding(flags) {
-            this.startComposition(this.subject);
+            this.startComposition(this.subject, undefined, flags);
             this.coordinator.binding(flags, this.$scope);
         }
-        attaching(encapsulationSource, lifecycle) {
-            this.coordinator.attaching(encapsulationSource, lifecycle);
+        attaching(flags) {
+            this.coordinator.attaching(flags);
         }
-        detaching(lifecycle) {
-            this.coordinator.detaching(lifecycle);
+        detaching(flags) {
+            this.coordinator.detaching(flags);
         }
         unbinding(flags) {
             this.lastSubject = null;
             this.coordinator.unbinding(flags);
         }
-        caching() {
-            this.coordinator.caching();
+        caching(flags) {
+            this.coordinator.caching(flags);
         }
-        subjectChanged(newValue) {
-            this.startComposition(newValue);
+        subjectChanged(newValue, previousValue, flags) {
+            this.startComposition(newValue, previousValue, flags);
         }
-        startComposition(subject) {
+        startComposition(subject, previousSubject, flags) {
             if (this.lastSubject === subject) {
                 return;
             }
             this.lastSubject = subject;
             if (subject instanceof Promise) {
-                subject = subject.then(x => this.resolveView(x));
+                subject = subject.then(x => this.resolveView(x, flags));
             }
             else {
-                subject = this.resolveView(subject);
+                subject = this.resolveView(subject, flags);
             }
             this.composing = true;
-            this.coordinator.compose(subject);
+            this.coordinator.compose(subject, flags);
         }
-        resolveView(subject) {
+        resolveView(subject, flags) {
             const view = this.provideViewFor(subject);
             if (view) {
-                view.hold(this.$projector.host);
+                view.hold(this.$projector.host, flags);
                 view.lockScope(this.renderable.$scope);
                 return view;
             }
@@ -7408,74 +7562,174 @@ this.au.runtime = (function (exports,kernel) {
     ], exports.Compose.prototype, "composing", void 0);
     exports.Compose = __decorate([
         customElement(composeSource),
-        kernel.inject(IChangeSet, IRenderable, ITargetedInstruction, IRenderingEngine)
+        kernel.inject(IRenderable, ITargetedInstruction, IRenderingEngine, exports.CompositionCoordinator)
     ], exports.Compose);
 
+    /**
+     * Decorator: Indicates that the decorated class is a custom attribute.
+     */
+    function customAttribute(nameOrDef) {
+        return target => CustomAttributeResource.define(nameOrDef, target);
+    }
+    /**
+     * Decorator: Applied to custom attributes. Indicates that whatever element the
+     * attribute is placed on should be converted into a template and that this
+     * attribute controls the instantiation of the template.
+     */
+    function templateController(nameOrDef) {
+        return target => CustomAttributeResource.define(typeof nameOrDef === 'string'
+            ? { isTemplateController: true, name: nameOrDef }
+            : Object.assign({ isTemplateController: true }, nameOrDef), target);
+    }
+    const CustomAttributeResource = {
+        name: customAttributeName,
+        keyFrom: customAttributeKey,
+        isType(Type) {
+            return Type.kind === this;
+        },
+        define(nameOrSource, ctor) {
+            const Type = ctor;
+            const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
+            const proto = Type.prototype;
+            Type.kind = CustomAttributeResource;
+            Type.description = description;
+            Type.register = registerAttribute;
+            proto.$hydrate = $hydrateAttribute;
+            proto.$bind = $bindAttribute;
+            proto.$attach = $attachAttribute;
+            proto.$detach = $detachAttribute;
+            proto.$unbind = $unbindAttribute;
+            proto.$cache = $cacheAttribute;
+            proto.$prevBind = null;
+            proto.$nextBind = null;
+            proto.$prevAttach = null;
+            proto.$nextAttach = null;
+            proto.$nextUnbindAfterDetach = null;
+            proto.$scope = null;
+            proto.$hooks = 0;
+            proto.$state = 0;
+            if ('flush' in proto) {
+                proto.$nextFlush = null;
+            }
+            if ('binding' in proto)
+                proto.$hooks |= 4 /* hasBinding */;
+            if ('bound' in proto) {
+                proto.$hooks |= 8 /* hasBound */;
+                proto.$nextBound = null;
+            }
+            if ('unbinding' in proto)
+                proto.$hooks |= 256 /* hasUnbinding */;
+            if ('unbound' in proto) {
+                proto.$hooks |= 512 /* hasUnbound */;
+                proto.$nextUnbound = null;
+            }
+            if ('created' in proto)
+                proto.$hooks |= 2 /* hasCreated */;
+            if ('attaching' in proto)
+                proto.$hooks |= 16 /* hasAttaching */;
+            if ('attached' in proto) {
+                proto.$hooks |= 32 /* hasAttached */;
+                proto.$nextAttached = null;
+            }
+            if ('detaching' in proto)
+                proto.$hooks |= 64 /* hasDetaching */;
+            if ('caching' in proto)
+                proto.$hooks |= 2048 /* hasCaching */;
+            if ('detached' in proto) {
+                proto.$hooks |= 128 /* hasDetached */;
+                proto.$nextDetached = null;
+            }
+            return Type;
+        }
+    };
+    /*@internal*/
+    function registerAttribute(container) {
+        const description = this.description;
+        const resourceKey = CustomAttributeResource.keyFrom(description.name);
+        const aliases = description.aliases;
+        container.register(kernel.Registration.transient(resourceKey, this));
+        for (let i = 0, ii = aliases.length; i < ii; ++i) {
+            const aliasKey = CustomAttributeResource.keyFrom(aliases[i]);
+            container.register(kernel.Registration.alias(resourceKey, aliasKey));
+        }
+    }
+    /*@internal*/
+    function createCustomAttributeDescription(def, Type) {
+        return {
+            name: def.name,
+            aliases: def.aliases || kernel.PLATFORM.emptyArray,
+            defaultBindingMode: def.defaultBindingMode || exports.BindingMode.toView,
+            isTemplateController: def.isTemplateController || false,
+            bindables: Object.assign({}, Type.bindables, def.bindables)
+        };
+    }
+
     exports.If = class If {
-        constructor(changeSet, ifFactory, location) {
-            this.changeSet = changeSet;
+        constructor(ifFactory, location, coordinator) {
             this.ifFactory = ifFactory;
             this.location = location;
+            this.coordinator = coordinator;
             this.value = false;
             this.elseFactory = null;
             this.ifView = null;
             this.elseView = null;
-            this.coordinator = new CompositionCoordinator(this.changeSet);
         }
         binding(flags) {
-            const view = this.updateView();
-            this.coordinator.compose(view);
+            const view = this.updateView(flags);
+            this.coordinator.compose(view, flags);
             this.coordinator.binding(flags, this.$scope);
         }
-        attaching(encapsulationSource, lifecycle) {
-            this.coordinator.attaching(encapsulationSource, lifecycle);
+        attaching(flags) {
+            this.coordinator.attaching(flags);
         }
-        detaching(lifecycle) {
-            this.coordinator.detaching(lifecycle);
+        detaching(flags) {
+            this.coordinator.detaching(flags);
         }
         unbinding(flags) {
             this.coordinator.unbinding(flags);
         }
-        caching() {
-            if (this.ifView !== null && this.ifView.release()) {
+        caching(flags) {
+            if (this.ifView !== null && this.ifView.release(flags)) {
                 this.ifView = null;
             }
-            if (this.elseView !== null && this.elseView.release()) {
+            if (this.elseView !== null && this.elseView.release(flags)) {
                 this.elseView = null;
             }
-            this.coordinator.caching();
+            this.coordinator.caching(flags);
         }
         valueChanged(newValue, oldValue, flags) {
-            if (flags & exports.BindingFlags.fromFlushChanges) {
-                const view = this.updateView();
-                this.coordinator.compose(view);
+            if (flags & exports.LifecycleFlags.fromFlush) {
+                const view = this.updateView(flags);
+                this.coordinator.compose(view, flags);
             }
             else {
-                this.changeSet.add(this);
+                this.$lifecycle.enqueueFlush(this);
             }
         }
-        flushChanges() {
-            const view = this.updateView();
-            this.coordinator.compose(view);
+        flush(flags) {
+            const view = this.updateView(flags);
+            this.coordinator.compose(view, flags);
         }
-        updateView() {
+        /*@internal*/
+        updateView(flags) {
             let view;
             if (this.value) {
-                view = this.ifView = this.ensureView(this.ifView, this.ifFactory);
+                view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
             }
             else if (this.elseFactory !== null) {
-                view = this.elseView = this.ensureView(this.elseView, this.elseFactory);
+                view = this.elseView = this.ensureView(this.elseView, this.elseFactory, flags);
             }
             else {
                 view = null;
             }
             return view;
         }
-        ensureView(view, factory) {
+        /*@internal*/
+        ensureView(view, factory, flags) {
             if (view === null) {
                 view = factory.create();
             }
-            view.hold(this.location);
+            view.hold(this.location, flags);
             return view;
         }
     };
@@ -7484,7 +7738,7 @@ this.au.runtime = (function (exports,kernel) {
     ], exports.If.prototype, "value", void 0);
     exports.If = __decorate([
         templateController('if'),
-        kernel.inject(IChangeSet, IViewFactory, IRenderLocation)
+        kernel.inject(IViewFactory, IRenderLocation, exports.CompositionCoordinator)
     ], exports.If);
     exports.Else = class Else {
         constructor(factory) {
@@ -7500,8 +7754,7 @@ this.au.runtime = (function (exports,kernel) {
     ], exports.Else);
 
     exports.Repeat = class Repeat {
-        constructor(changeSet, location, renderable, factory) {
-            this.changeSet = changeSet;
+        constructor(location, renderable, factory) {
             this.location = location;
             this.renderable = renderable;
             this.factory = factory;
@@ -7525,20 +7778,20 @@ this.au.runtime = (function (exports,kernel) {
             this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
             this.processViews(null, flags);
         }
-        attaching(encapsulationSource, lifecycle) {
+        attaching(flags) {
             const { views, location } = this;
             for (let i = 0, ii = views.length; i < ii; ++i) {
                 const view = views[i];
-                view.hold(location);
-                view.$attach(encapsulationSource, lifecycle);
+                view.hold(location, flags);
+                view.$attach(flags);
             }
         }
-        detaching(lifecycle) {
+        detaching(flags) {
             const { views } = this;
             for (let i = 0, ii = views.length; i < ii; ++i) {
                 const view = views[i];
-                view.$detach(lifecycle);
-                view.release();
+                view.$detach(flags);
+                view.release(flags);
             }
         }
         unbound(flags) {
@@ -7552,15 +7805,15 @@ this.au.runtime = (function (exports,kernel) {
         // called by SetterObserver (sync)
         itemsChanged(newValue, oldValue, flags) {
             this.checkCollectionObserver();
-            this.processViews(null, flags | exports.BindingFlags.updateTargetInstance);
+            this.processViews(null, flags | exports.LifecycleFlags.updateTargetInstance);
         }
         // called by a CollectionObserver (async)
         handleBatchedChange(indexMap) {
-            this.processViews(indexMap, exports.BindingFlags.fromFlushChanges | exports.BindingFlags.updateTargetInstance);
+            this.processViews(indexMap, exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.updateTargetInstance);
         }
         // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
         processViews(indexMap, flags) {
-            const views = this.views;
+            const { views, $lifecycle } = this;
             if (this.$state & 2 /* isBound */) {
                 const { local, $scope, factory, forOf, items } = this;
                 const oldLength = views.length;
@@ -7572,12 +7825,17 @@ this.au.runtime = (function (exports,kernel) {
                     }
                 }
                 else if (newLength < oldLength) {
-                    const lifecycle = Lifecycle.beginDetach(this.changeSet, exports.LifecycleFlags.unbindAfterDetached);
+                    $lifecycle.beginDetach();
                     for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
-                        view.release();
-                        lifecycle.detach(view);
+                        view.release(flags);
+                        view.$detach(flags);
                     }
-                    lifecycle.end();
+                    $lifecycle.endDetach(flags);
+                    $lifecycle.beginUnbind();
+                    for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+                        view.$unbind(flags);
+                    }
+                    $lifecycle.endUnbind(flags);
                     views.length = newLength;
                     if (newLength === 0) {
                         return;
@@ -7586,6 +7844,7 @@ this.au.runtime = (function (exports,kernel) {
                 else if (newLength === 0) {
                     return;
                 }
+                $lifecycle.beginBind();
                 if (indexMap === null) {
                     forOf.iterate(items, (arr, i, item) => {
                         const view = views[i];
@@ -7608,33 +7867,34 @@ this.au.runtime = (function (exports,kernel) {
                         }
                     });
                 }
+                $lifecycle.endBind(flags);
             }
             if (this.$state & 8 /* isAttached */) {
                 const { location } = this;
-                const lifecycle = Lifecycle.beginAttach(this.changeSet, this.encapsulationSource, exports.LifecycleFlags.none);
+                $lifecycle.beginAttach();
                 if (indexMap === null) {
                     for (let i = 0, ii = views.length; i < ii; ++i) {
                         const view = views[i];
-                        view.hold(location);
-                        lifecycle.attach(view);
+                        view.hold(location, flags);
+                        view.$attach(flags);
                     }
                 }
                 else {
                     for (let i = 0, ii = views.length; i < ii; ++i) {
                         if (indexMap[i] !== i) {
                             const view = views[i];
-                            view.hold(location);
-                            lifecycle.attach(view);
+                            view.hold(location, flags);
+                            view.$attach(flags);
                         }
                     }
                 }
-                lifecycle.end();
+                $lifecycle.endAttach(flags);
             }
         }
         checkCollectionObserver() {
             const oldObserver = this.observer;
             if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-                const newObserver = this.observer = getCollectionObserver(this.changeSet, this.items);
+                const newObserver = this.observer = getCollectionObserver(this.$lifecycle, this.items);
                 if (oldObserver !== newObserver) {
                     if (oldObserver) {
                         oldObserver.unsubscribeBatched(this);
@@ -7653,7 +7913,7 @@ this.au.runtime = (function (exports,kernel) {
         bindable
     ], exports.Repeat.prototype, "items", void 0);
     exports.Repeat = __decorate([
-        kernel.inject(IChangeSet, IRenderLocation, IRenderable, IViewFactory),
+        kernel.inject(IRenderLocation, IRenderable, IViewFactory),
         templateController('repeat')
     ], exports.Repeat);
 
@@ -7661,16 +7921,16 @@ this.au.runtime = (function (exports,kernel) {
         constructor(factory, location) {
             this.factory = factory;
             this.currentView = this.factory.create();
-            this.currentView.hold(location);
+            this.currentView.hold(location, exports.LifecycleFlags.fromCreate);
         }
         binding(flags) {
             this.currentView.$bind(flags, this.$scope);
         }
-        attaching(encapsulationSource, lifecycle) {
-            this.currentView.$attach(encapsulationSource, lifecycle);
+        attaching(flags) {
+            this.currentView.$attach(flags);
         }
-        detaching(lifecycle) {
-            this.currentView.$detach(lifecycle);
+        detaching(flags) {
+            this.currentView.$detach(flags);
         }
         unbinding(flags) {
             this.currentView.$unbind(flags);
@@ -7687,27 +7947,28 @@ this.au.runtime = (function (exports,kernel) {
             this.value = null;
             this.currentView = null;
             this.currentView = this.factory.create();
-            this.currentView.hold(location);
+            this.currentView.hold(location, exports.LifecycleFlags.fromCreate);
         }
         valueChanged() {
             if (this.$state & 2 /* isBound */) {
-                this.bindChild(exports.BindingFlags.fromBindableHandler);
+                this.bindChild(exports.LifecycleFlags.fromBindableHandler);
             }
         }
         binding(flags) {
             this.bindChild(flags);
         }
-        attaching(encapsulationSource, lifecycle) {
-            this.currentView.$attach(encapsulationSource, lifecycle);
+        attaching(flags) {
+            this.currentView.$attach(flags);
         }
-        detaching(lifecycle) {
-            this.currentView.$detach(lifecycle);
+        detaching(flags) {
+            this.currentView.$detach(flags);
         }
         unbinding(flags) {
             this.currentView.$unbind(flags);
         }
         bindChild(flags) {
-            this.currentView.$bind(flags, Scope.fromParent(this.$scope, this.value));
+            const scope = Scope.fromParent(this.$scope, this.value);
+            this.currentView.$bind(flags, scope);
         }
     };
     __decorate([
@@ -7745,29 +8006,14 @@ this.au.runtime = (function (exports,kernel) {
                     const re = this.container.get(IRenderingEngine);
                     component.$hydrate(re, host);
                 }
-                component.$bind(exports.BindingFlags.fromStartTask | exports.BindingFlags.fromBind);
-                const cs = this.container.get(IChangeSet);
-                const lifecycle = Lifecycle.beginAttach(cs, config.host, exports.LifecycleFlags.none);
-                lifecycle.attach(component);
-                lifecycle.end();
+                component.$bind(exports.LifecycleFlags.fromStartTask | exports.LifecycleFlags.fromBind);
+                component.$attach(exports.LifecycleFlags.fromStartTask);
             };
             this.startTasks.push(startTask);
             this.stopTasks.push(() => {
-                const cs = this.container.get(IChangeSet);
-                const lifecycle = Lifecycle.beginDetach(cs, exports.LifecycleFlags.noTasks);
-                lifecycle.detach(component);
-                const task = lifecycle.end();
-                const flags = exports.BindingFlags.fromStopTask | exports.BindingFlags.fromUnbind;
-                if (task.done) {
-                    component.$unbind(flags);
-                    host.$au = null;
-                }
-                else {
-                    task.wait().then(() => {
-                        component.$unbind(flags);
-                        host.$au = null;
-                    });
-                }
+                component.$detach(exports.LifecycleFlags.fromStopTask);
+                component.$unbind(exports.LifecycleFlags.fromStopTask | exports.LifecycleFlags.fromUnbind);
+                host.$au = null;
             });
             if (this.isStarted) {
                 startTask();
@@ -7817,7 +8063,6 @@ this.au.runtime = (function (exports,kernel) {
     exports.debounceCallSource = debounceCallSource;
     exports.debounceCall = debounceCall;
     exports.ISanitizer = ISanitizer;
-    exports.findOriginalEventTarget = findOriginalEventTarget;
     exports.handleSelfEvent = handleSelfEvent;
     exports.throttle = throttle;
     exports.connects = connects;
@@ -7872,6 +8117,7 @@ this.au.runtime = (function (exports,kernel) {
     exports.GetterController = GetterController;
     exports.IDirtyChecker = IDirtyChecker;
     exports.DirtyChecker = DirtyChecker;
+    exports.findOriginalEventTarget = findOriginalEventTarget;
     exports.ListenerTracker = ListenerTracker;
     exports.DelegateOrCaptureSubscription = DelegateOrCaptureSubscription;
     exports.TriggerSubscription = TriggerSubscription;
@@ -7896,41 +8142,71 @@ this.au.runtime = (function (exports,kernel) {
     exports.valueConverter = valueConverter;
     exports.ValueConverterResource = ValueConverterResource;
     exports.bindable = bindable;
+    exports.createElement = createElement;
+    exports.RenderPlan = RenderPlan;
     exports.customAttribute = customAttribute;
     exports.templateController = templateController;
     exports.CustomAttributeResource = CustomAttributeResource;
+    exports.registerAttribute = registerAttribute;
     exports.createCustomAttributeDescription = createCustomAttributeDescription;
     exports.customElement = customElement;
     exports.useShadowDOM = useShadowDOM;
     exports.containerless = containerless;
     exports.CustomElementResource = CustomElementResource;
+    exports.registerElement = registerElement;
+    exports.$attachAttribute = $attachAttribute;
+    exports.$attachElement = $attachElement;
+    exports.$attachView = $attachView;
+    exports.$detachAttribute = $detachAttribute;
+    exports.$detachElement = $detachElement;
+    exports.$detachView = $detachView;
+    exports.$cacheAttribute = $cacheAttribute;
+    exports.$cacheElement = $cacheElement;
+    exports.$cacheView = $cacheView;
+    exports.$mountElement = $mountElement;
+    exports.$unmountElement = $unmountElement;
+    exports.$mountView = $mountView;
+    exports.$unmountView = $unmountView;
+    exports.$bindAttribute = $bindAttribute;
+    exports.$bindElement = $bindElement;
+    exports.$bindView = $bindView;
+    exports.$unbindAttribute = $unbindAttribute;
+    exports.$unbindElement = $unbindElement;
+    exports.$unbindView = $unbindView;
+    exports.renderStrategy = renderStrategy;
+    exports.RenderStrategyResource = RenderStrategyResource;
+    exports.registerRenderStrategy = registerRenderStrategy;
+    exports.ITemplateCompiler = ITemplateCompiler;
+    exports.$hydrateAttribute = $hydrateAttribute;
+    exports.$hydrateElement = $hydrateElement;
+    exports.defaultShadowOptions = defaultShadowOptions;
+    exports.IRenderingEngine = IRenderingEngine;
     exports.ShadowDOMProjector = ShadowDOMProjector;
     exports.ContainerlessProjector = ContainerlessProjector;
     exports.HostProjector = HostProjector;
-    exports.createElement = createElement;
-    exports.RenderPlan = RenderPlan;
-    exports.renderStrategy = renderStrategy;
-    exports.RenderStrategyResource = RenderStrategyResource;
-    exports.Renderer = Renderer;
-    exports.IRenderingEngine = IRenderingEngine;
+    exports.RuntimeBehavior = RuntimeBehavior;
+    exports.findElements = findElements;
     exports.RuntimeCompilationResources = RuntimeCompilationResources;
     exports.CompiledTemplate = CompiledTemplate;
     exports.noViewTemplate = noViewTemplate;
     exports.createRenderContext = createRenderContext;
     exports.InstanceProvider = InstanceProvider;
     exports.ViewFactoryProvider = ViewFactoryProvider;
-    exports.IRenderable = IRenderable;
     exports.addBindable = addBindable;
     exports.addAttachable = addAttachable;
-    exports.RuntimeBehavior = RuntimeBehavior;
-    exports.findElements = findElements;
-    exports.ITemplateCompiler = ITemplateCompiler;
-    exports.IViewFactory = IViewFactory;
+    exports.Renderer = Renderer;
     exports.View = View;
     exports.ViewFactory = ViewFactory;
     exports.Aurelia = Aurelia;
+    exports.customElementName = customElementName;
+    exports.customElementKey = customElementKey;
+    exports.customElementBehavior = customElementBehavior;
+    exports.customAttributeName = customAttributeName;
+    exports.customAttributeKey = customAttributeKey;
     exports.ITargetedInstruction = ITargetedInstruction;
     exports.isTargetedInstruction = isTargetedInstruction;
+    exports.buildRequired = buildRequired;
+    exports.buildTemplateDefinition = buildTemplateDefinition;
     exports.ELEMENT_NODE = ELEMENT_NODE;
     exports.ATTRIBUTE_NODE = ATTRIBUTE_NODE;
     exports.TEXT_NODE = TEXT_NODE;
@@ -7944,14 +8220,17 @@ this.au.runtime = (function (exports,kernel) {
     exports.FragmentNodeSequence = FragmentNodeSequence;
     exports.NodeSequenceFactory = NodeSequenceFactory;
     exports.AuMarker = AuMarker;
-    exports.AggregateLifecycleTask = AggregateLifecycleTask;
-    exports.AttachLifecycleController = AttachLifecycleController;
-    exports.DetachLifecycleController = DetachLifecycleController;
+    exports.IRenderable = IRenderable;
+    exports.IViewFactory = IViewFactory;
+    exports.ILifecycle = ILifecycle;
+    exports.IFlushLifecycle = IFlushLifecycle;
+    exports.IBindLifecycle = IBindLifecycle;
+    exports.IAttachLifecycle = IAttachLifecycle;
     exports.Lifecycle = Lifecycle;
-    exports.BindLifecycle = BindLifecycle;
-    exports.IChangeSet = IChangeSet;
-    exports.ChangeSet = ChangeSet;
-    exports.LinkedChangeList = LinkedChangeList;
+    exports.LifecycleTask = LifecycleTask;
+    exports.AggregateLifecycleTask = AggregateLifecycleTask;
+    exports.PromiseSwap = PromiseSwap;
+    exports.PromiseTask = PromiseTask;
 
     return exports;
 

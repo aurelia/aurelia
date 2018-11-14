@@ -1,4 +1,4 @@
-import { BindingFlags, Collection, CollectionKind, IBindingTargetObserver, IPropertySubscriber } from '../observation';
+import { Collection, CollectionKind, IBindingTargetObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
 export declare function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator;
 export interface CollectionLengthObserver extends IBindingTargetObserver<any, string> {
 }
@@ -6,7 +6,7 @@ export declare class CollectionLengthObserver implements CollectionLengthObserve
     obj: Collection;
     propertyKey: 'length' | 'size';
     currentValue: number;
-    currentFlags: BindingFlags;
+    currentFlags: LifecycleFlags;
     constructor(obj: Collection, propertyKey: 'length' | 'size');
     getValue(): number;
     setValueCore(newValue: number): void;

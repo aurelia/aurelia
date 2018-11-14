@@ -1,37 +1,38 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
 import { IHTMLElement, INode } from '../dom';
-import { IBindingTargetAccessor, IChangeSet } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { IBindingTargetAccessor } from '../observation';
 export interface XLinkAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, string, string> {
 }
 export declare class XLinkAttributeAccessor implements XLinkAttributeAccessor {
-    changeSet: IChangeSet;
+    lifecycle: ILifecycle;
     obj: IHTMLElement;
     propertyKey: string;
     attributeName: string;
     currentValue: string;
     oldValue: string;
     defaultValue: string;
-    constructor(changeSet: IChangeSet, obj: IHTMLElement, propertyKey: string, attributeName: string);
+    constructor(lifecycle: ILifecycle, obj: IHTMLElement, propertyKey: string, attributeName: string);
     getValue(): string;
     setValueCore(newValue: string): void;
 }
 export interface DataAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {
 }
 export declare class DataAttributeAccessor implements DataAttributeAccessor {
-    changeSet: IChangeSet;
+    lifecycle: ILifecycle;
     obj: INode;
     propertyKey: string;
     currentValue: string;
     oldValue: string;
     defaultValue: string;
-    constructor(changeSet: IChangeSet, obj: INode, propertyKey: string);
+    constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string);
     getValue(): string;
     setValueCore(newValue: string): void;
 }
 export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, 'style', string | IIndexable> {
 }
 export declare class StyleAttributeAccessor implements StyleAttributeAccessor {
-    changeSet: IChangeSet;
+    lifecycle: ILifecycle;
     obj: IHTMLElement;
     currentValue: string | IIndexable;
     oldValue: string | IIndexable;
@@ -39,7 +40,7 @@ export declare class StyleAttributeAccessor implements StyleAttributeAccessor {
     propertyKey: 'style';
     styles: IIndexable;
     version: number;
-    constructor(changeSet: IChangeSet, obj: IHTMLElement);
+    constructor(lifecycle: ILifecycle, obj: IHTMLElement);
     getValue(): string;
     _setProperty(style: string, value: string): void;
     setValueCore(newValue: string | IIndexable): void;
@@ -47,7 +48,7 @@ export declare class StyleAttributeAccessor implements StyleAttributeAccessor {
 export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {
 }
 export declare class ClassAttributeAccessor implements ClassAttributeAccessor {
-    changeSet: IChangeSet;
+    lifecycle: ILifecycle;
     obj: INode;
     currentValue: string;
     oldValue: string;
@@ -55,17 +56,17 @@ export declare class ClassAttributeAccessor implements ClassAttributeAccessor {
     doNotCache: true;
     version: number;
     nameIndex: IIndexable;
-    constructor(changeSet: IChangeSet, obj: INode);
+    constructor(lifecycle: ILifecycle, obj: INode);
     getValue(): string;
     setValueCore(newValue: string): void;
 }
 export interface ElementPropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {
 }
 export declare class ElementPropertyAccessor implements ElementPropertyAccessor {
-    changeSet: IChangeSet;
+    lifecycle: ILifecycle;
     obj: IIndexable;
     propertyKey: string;
-    constructor(changeSet: IChangeSet, obj: IIndexable, propertyKey: string);
+    constructor(lifecycle: ILifecycle, obj: IIndexable, propertyKey: string);
     getValue(): Primitive | IIndexable;
     setValueCore(value: Primitive | IIndexable): void;
 }

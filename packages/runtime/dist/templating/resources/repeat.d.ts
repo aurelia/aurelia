@@ -1,15 +1,12 @@
 import { ForOfStatement } from '../../binding/ast';
 import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
-import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
-import { BindingFlags, CollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IObservedArray, IScope, ObservedCollection } from '../../observation';
-import { ICustomAttribute } from '../custom-attribute';
-import { IRenderable } from '../rendering-engine';
-import { IView, IViewFactory } from '../view';
+import { IRenderable, IView, IViewFactory } from '../../lifecycle';
+import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
+import { ICustomAttribute } from '../lifecycle-render';
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {
 }
 export declare class Repeat<T extends ObservedCollection = IObservedArray> {
-    changeSet: IChangeSet;
     location: IRenderLocation;
     renderable: IRenderable;
     factory: IViewFactory;
@@ -24,13 +21,13 @@ export declare class Repeat<T extends ObservedCollection = IObservedArray> {
     hasPendingInstanceMutation: boolean;
     forOf: ForOfStatement;
     local: string;
-    constructor(changeSet: IChangeSet, location: IRenderLocation, renderable: IRenderable, factory: IViewFactory);
-    binding(flags: BindingFlags): void;
-    bound(flags: BindingFlags): void;
-    attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
-    detaching(lifecycle: IDetachLifecycle): void;
-    unbound(flags: BindingFlags): void;
-    itemsChanged(newValue: T, oldValue: T, flags: BindingFlags): void;
+    constructor(location: IRenderLocation, renderable: IRenderable, factory: IViewFactory);
+    binding(flags: LifecycleFlags): void;
+    bound(flags: LifecycleFlags): void;
+    attaching(flags: LifecycleFlags): void;
+    detaching(flags: LifecycleFlags): void;
+    unbound(flags: LifecycleFlags): void;
+    itemsChanged(newValue: T, oldValue: T, flags: LifecycleFlags): void;
     handleBatchedChange(indexMap: number[] | null): void;
     private processViews;
     private checkCollectionObserver;

@@ -1,4 +1,5 @@
-import { CollectionKind, IChangeSet, ICollectionObserver, IObservedSet } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { CollectionKind, ICollectionObserver, IObservedSet } from '../observation';
 export declare const nativeAdd: (value: any) => Set<any>;
 export declare const nativeClear: () => void;
 export declare const nativeDelete: (value: any) => boolean;
@@ -8,9 +9,8 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {
 }
 export declare class SetObserver implements SetObserver {
     resetIndexMap: () => void;
-    changeSet: IChangeSet;
     collection: IObservedSet;
-    constructor(changeSet: IChangeSet, set: IObservedSet);
+    constructor(lifecycle: ILifecycle, observedSet: IObservedSet);
 }
-export declare function getSetObserver(changeSet: IChangeSet, set: IObservedSet): SetObserver;
+export declare function getSetObserver(lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver;
 //# sourceMappingURL=set-observer.d.ts.map

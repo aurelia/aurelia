@@ -1,4 +1,4 @@
-import { BindingFlags, IScope } from '../../observation';
+import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from '../element-observation';
 import { IEventSubscriber } from '../event-manager';
@@ -12,7 +12,7 @@ export declare type UpdateTriggerableBinding = Binding & {
 export declare class UpdateTriggerBindingBehavior {
     private observerLocator;
     constructor(observerLocator: IObserverLocator);
-    bind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void;
-    unbind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding): void;
+    bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void;
+    unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void;
 }
 //# sourceMappingURL=update-trigger-binding-behavior.d.ts.map

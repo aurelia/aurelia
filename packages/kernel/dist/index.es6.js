@@ -187,6 +187,59 @@ const DI = {
                 }
             }
         };
+    },
+    // tslint:disable:jsdoc-format
+    /**
+     * Registers the `target` class as a transient dependency; each time the dependency is resolved
+     * a new instance will be created.
+     *
+     * @param target The class / constructor function to register as transient.
+     * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
+     *
+     * Example usage:
+  ```ts
+  // On an existing class
+  class Foo { }
+  DI.transient(Foo);
+  
+  // Inline declaration
+  const Foo = DI.transient(class { });
+  // Foo is now strongly typed with register
+  Foo.register(container);
+  ```
+     */
+    // tslint:enable:jsdoc-format
+    transient(target) {
+        target.register = function register(container) {
+            return Registration.transient(target, target).register(container, target);
+        };
+        return target;
+    },
+    // tslint:disable:jsdoc-format
+    /**
+     * Registers the `target` class as a singleton dependency; the class will only be created once. Each
+     * consecutive time the dependency is resolved, the same instance will be returned.
+     *
+     * @param target The class / constructor function to register as a singleton.
+     * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
+     * Example usage:
+  ```ts
+  // On an existing class
+  class Foo { }
+  DI.singleton(Foo);
+  
+  // Inline declaration
+  const Foo = DI.singleton(class { });
+  // Foo is now strongly typed with register
+  Foo.register(container);
+  ```
+     */
+    // tslint:enable:jsdoc-format
+    singleton(target) {
+        target.register = function register(container) {
+            return Registration.singleton(target, target).register(container, target);
+        };
+        return target;
     }
 };
 const IContainer = DI.createInterface().noDefault();
@@ -203,6 +256,18 @@ function createResolver(getter) {
     };
 }
 const inject = DI.inject;
+function transientDecorator(target) {
+    return DI.transient(target);
+}
+function transient(target) {
+    return target === undefined ? transientDecorator : transientDecorator(target);
+}
+function singletonDecorator(target) {
+    return DI.singleton(target);
+}
+function singleton(target) {
+    return target === undefined ? singletonDecorator : singletonDecorator(target);
+}
 const all = createResolver((key, handler, requestor) => requestor.getAll(key));
 const lazy = createResolver((key, handler, requestor) => {
     let instance = null; // cache locally so that lazy always returns the same instance once resolved
@@ -441,7 +506,11 @@ class Container {
     }
     jitRegister(keyAsValue, handler) {
         if (keyAsValue.register) {
-            return keyAsValue.register(handler, keyAsValue) || null;
+            const registrationResolver = keyAsValue.register(handler, keyAsValue);
+            if (!(registrationResolver && registrationResolver.resolve)) {
+                throw Reporter.error(40); // did not return a valid resolver from the static register method
+            }
+            return registrationResolver;
         }
         const resolver = new Resolver(keyAsValue, 1 /* singleton */, keyAsValue);
         handler.resolvers.set(keyAsValue, resolver);
@@ -571,5 +640,5 @@ function invokeWithDynamicDependencies(container, Type, staticDependencies, dyna
     return Reflect.construct(Type, args);
 }
 
-export { DI, IContainer, IServiceLocator, inject, all, lazy, optional, Resolver, Factory, Container, Registration, validateKey, classInvokers, fallbackInvoker, invokeWithDynamicDependencies, PLATFORM, Reporter };
+export { DI, IContainer, IServiceLocator, inject, transient, singleton, all, lazy, optional, Resolver, Factory, Container, Registration, validateKey, classInvokers, fallbackInvoker, invokeWithDynamicDependencies, PLATFORM, Reporter };
 //# sourceMappingURL=index.es6.js.map

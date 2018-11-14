@@ -7,10 +7,84 @@ export interface IDisposable {
 export declare type Constructable<T = {}> = {
     new (...args: unknown[]): T;
 };
+/**
+ * A helper interface for declaring strongly typed decorators.
+ *
+ * The `Decoratable` and `Decorated` types are intended to be used together, where
+ * `Decoratable` describes the (not yet decorated) target class and `Decorated`
+ * describes the same target class *after* the decorator was applied to it.
+ *
+ * `TRequired` dictates the preconditions that the target class must conform to,
+ * and `TOptional` describes the postconditions that the decorator will make the class conform
+ * to. The end result (return value of the decorator) is a combination of `TOptional & TRequired`
+ * where all properties/methods are defined.
+ *
+ * ### How it works:
+ *
+ * The `TOptional` and `TRequired` type arguments in the `Decoratable` interface relate
+ * to the target class that the decorator will be applied to.
+ * As the names imply, properties/methods defined in the `TOptional` type are optional
+ * and those defined in `TRequired` are required.
+ *
+ * In the `Decorated` interface, the `TOptional` type argument's name is a bit misleading.
+ * It is in fact transformed into a required property: it's the decorator's job to
+ * add it to the prototype. They are named the same to emphasize that the type arguments
+ * passed to `Decoratable` and `Decorated` must be the same.
+ *
+ * Example:
+ *
+```ts
+// Neither bind() nor attach() need to be present,
+// so we pass them both to TOptional. The only constraint
+// for TRequired is that it must be a class, so we give
+// it a type that must extend Constructable
+interface IBind { bind(): void; }
+interface IAttach { attach(): void; }
+
+function customElement1<T extends Constructable>(target: Decoratable<IBind & IAttach, T>):  Decorated<IBind & IAttach, T> {
+  target.prototype.bind = () => {};
+  target.prototype.attach = () => {};
+  return target;
+}
+@customElement1 // no errors
+class ViewModel1 {}
+
+// IBind is now required instead of optional
+function customElement2<T extends Constructable>(target: Decoratable<IAttach, T & IBind>): Decorated<IAttach, T & IBind> {
+  // this decorator apparently needs a bind()
+  // method to already be defined
+  target.prototype.attach = () => {};
+  return target;
+}
+@customElement2 // type error: property 'bind' is missing
+class ViewModel2 {}
+
+@customElement2 // no errors
+class ViewModel3 { public bind(): void {} }
+
+const vm3 = new ViewModel3();
+vm3.attach(); // type error: property 'attach' does not exist
+// (eventhough the decorator added it)
+
+const ViewModel4 = customElement2(ViewModel3);
+const vm4 = new ViewModel4();
+vm4.attach(); // no errors because we're instantiating the
+// returned value from the decorator, which is the
+// modified type
+```
+ */
 export declare type Decoratable<TOptional, TRequired> = Function & {
     readonly prototype: Partial<TOptional> & Required<TRequired>;
     new (...args: unknown[]): Partial<TOptional> & Required<TRequired>;
 };
+/**
+ * A helper interface for declaring strongly typed decorators.
+ *
+ * The `Decoratable` and `Decorated` types are intended to be used together.
+ *
+ * Please refer to the `Decoratable` type for an explanation of its application.
+ *
+ */
 export declare type Decorated<TOptional, TRequired> = Function & {
     readonly prototype: Required<TOptional> & Required<TRequired>;
     new (...args: unknown[]): any;

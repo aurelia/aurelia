@@ -1,5 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, IAccessor, IPropertyObserver, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
+import { IAccessor, IPropertyObserver, IPropertySubscriber, ISubscribable, LifecycleFlags, MutationKind } from '../observation';
 export declare class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.instance> {
     getValue: () => undefined | number;
     setValue: () => void;
@@ -21,7 +21,7 @@ export declare class SetterObserver implements SetterObserver {
     propertyKey: string;
     constructor(obj: IIndexable, propertyKey: string);
     getValue(): IIndexable | Primitive;
-    setValue(newValue: IIndexable | Primitive, flags: BindingFlags): void;
+    setValue(newValue: IIndexable | Primitive, flags: LifecycleFlags): void;
 }
 export interface Observer extends IPropertyObserver<IIndexable, string> {
 }
@@ -32,6 +32,6 @@ export declare class Observer implements Observer {
     private callback;
     constructor(instance: object, propertyName: string, callbackName: string);
     getValue(): IIndexable | Primitive;
-    setValue(newValue: IIndexable | Primitive, flags: BindingFlags): void;
+    setValue(newValue: IIndexable | Primitive, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=property-observation.d.ts.map

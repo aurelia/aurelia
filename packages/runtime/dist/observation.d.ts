@@ -1,7 +1,7 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
-export declare enum BindingFlags {
+export declare enum LifecycleFlags {
     none = 0,
-    mustEvaluate = 32768,
+    mustEvaluate = 524288,
     mutation = 3,
     isCollectionMutation = 1,
     isInstanceMutation = 2,
@@ -9,70 +9,39 @@ export declare enum BindingFlags {
     updateTargetObserver = 4,
     updateTargetInstance = 8,
     updateSourceExpression = 16,
-    from = 8160,
-    fromFlushChanges = 32,
-    fromStartTask = 64,
-    fromStopTask = 128,
-    fromBind = 256,
-    fromUnbind = 512,
-    fromDOMEvent = 1024,
-    fromObserverSetter = 2048,
-    fromBindableHandler = 4096
-}
-export interface ILinkedNode {
+    from = 524256,
+    fromFlush = 96,
+    fromAsyncFlush = 32,
+    fromSyncFlush = 64,
+    fromStartTask = 128,
+    fromStopTask = 256,
+    fromBind = 512,
+    fromUnbind = 1024,
+    fromAttach = 2048,
+    fromDetach = 4096,
+    fromCache = 8192,
+    fromCreate = 16384,
+    fromDOMEvent = 32768,
+    fromObserverSetter = 65536,
+    fromBindableHandler = 131072,
+    fromLifecycleTask = 262144,
+    parentUnmountQueued = 1048576,
+    doNotUpdateDOM = 2097152
 }
 /**
  * Describes a type that tracks changes and can flush those changes in some way
  */
-export interface IChangeTracker extends ILinkedNode {
+export interface IChangeTracker {
+    $nextFlush?: IChangeTracker;
     hasChanges?: boolean;
-    flushChanges(): void;
+    flush(flags: LifecycleFlags): void;
 }
-/**
- * Represents a set of ChangeTrackers (typically observers) containing changes that can be flushed in some way (e.g. by calling subscribers).
- *
- * The LinkedChangeList itself also implements the IChangeTracker interface, allowing sets of changes to be grouped together and composed into a tree.
- */
-export interface IChangeSet extends IChangeTracker {
-    /**
-     * A promise that resolves when the current set of changes has been flushed.
-     * This is the same promise that is returned from `add`
-     */
-    readonly flushed: Promise<void>;
-    /**
-     * Indicates whether this LinkedChangeList is currently flushing changes
-     */
-    readonly flushing: boolean;
-    /**
-     * The number of ChangeTrackers that this set contains
-     */
-    readonly size: number;
-    /**
-     * Flushes the changes for all ChangeTrackers currently present in this set.
-     */
-    flushChanges(): void;
-    /**
-     * Returns this set of ChangeTrackers as an array.
-     */
-    toArray(): IChangeTracker[];
-    /**
-     * Adds a ChangeTracker to the set. Similar to how a normal Set behaves, adding the same item multiple times has the same effect as adding it once.
-     *
-     * @returns A promise that resolves when the changes have been flushed.
-     */
-    add(changeTracker: IChangeTracker): Promise<void>;
-    /**
-     * Returns true if the specified ChangeTracker is present in the set.
-     */
-    has(changeTracker: IChangeTracker): boolean;
-}
-export declare const IChangeSet: import("@aurelia/kernel/dist/di").InterfaceSymbol<IChangeSet>;
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = any> {
     getValue(): TValue;
-    setValue(newValue: TValue, flags: BindingFlags): void;
+    setValue(newValue: TValue, flags: LifecycleFlags): void;
 }
 /**
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).
@@ -83,8 +52,8 @@ export interface IBindingTargetAccessor<TObj = any, TProp = keyof TObj, TValue =
  * Describes a target observer for from-view or two-way bindings.
  */
 export interface IBindingTargetObserver<TObj = any, TProp = keyof TObj, TValue = any> extends IBindingTargetAccessor<TObj, TProp, TValue>, ISubscribable<MutationKind.instance>, ISubscriberCollection<MutationKind.instance> {
-    bind?(flags: BindingFlags): void;
-    unbind?(flags: BindingFlags): void;
+    bind?(flags: LifecycleFlags): void;
+    unbind?(flags: LifecycleFlags): void;
 }
 export declare type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 /**
@@ -121,7 +90,7 @@ export interface ICollectionChangeTracker<T extends Collection> extends IChangeT
 /**
  * Represents a (subscriber) function that can be called by a PropertyChangeNotifier
  */
-export declare type IPropertyChangeHandler<TValue = any> = (newValue: TValue, previousValue: TValue, flags: BindingFlags) => void;
+export declare type IPropertyChangeHandler<TValue = any> = (newValue: TValue, previousValue: TValue, flags: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations on a property
  */
@@ -131,12 +100,12 @@ export interface IPropertyChangeNotifier extends IPropertyChangeHandler {
  * Describes a (subscriber) type that has a function conforming to the IPropertyChangeHandler interface
  */
 export interface IPropertySubscriber<TValue = any> {
-    handleChange(newValue: TValue, previousValue: TValue, flags: BindingFlags): void;
+    handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
 }
 /**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
  */
-export declare type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags?: BindingFlags) => void;
+export declare type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags?: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations in a collection
  */
@@ -155,7 +124,7 @@ export interface IBatchedCollectionChangeNotifier extends IBatchedCollectionChan
  * Describes a (subscriber) type that has a function conforming to the ICollectionChangeHandler interface
  */
 export interface ICollectionSubscriber {
-    handleChange(origin: string, args: IArguments | null, flags: BindingFlags): void;
+    handleChange(origin: string, args: IArguments | null, flags: LifecycleFlags): void;
 }
 /**
  * Describes a (subscriber) type that has a function conforming to the IBatchedCollectionChangeNotifier interface

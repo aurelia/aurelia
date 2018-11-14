@@ -1,4 +1,4 @@
-import { BindingFlags, IScope } from '../../observation';
+import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 import { BindingMode } from '../binding-mode';
 export declare type WithMode = {
@@ -8,8 +8,8 @@ export declare type WithMode = {
 export declare abstract class BindingModeBehavior {
     private mode;
     constructor(mode: BindingMode);
-    bind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode): void;
-    unbind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode): void;
+    bind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void;
+    unbind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void;
 }
 export declare class OneTimeBindingBehavior extends BindingModeBehavior {
     constructor();

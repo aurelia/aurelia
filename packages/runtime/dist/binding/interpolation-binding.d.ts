@@ -1,6 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { IBindScope, LifecycleState } from '../lifecycle';
-import { BindingFlags, IBindingTargetAccessor, IScope } from '../observation';
+import { IBindScope, State } from '../lifecycle';
+import { IBindingTargetAccessor, IScope, LifecycleFlags } from '../observation';
 import { IExpression, Interpolation } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { BindingMode } from './binding-mode';
@@ -15,12 +15,12 @@ export declare class MultiInterpolationBinding implements IBinding {
     locator: IServiceLocator;
     $nextBind: IBindScope;
     $prevBind: IBindScope;
-    $state: LifecycleState;
+    $state: State;
     $scope: IScope;
     parts: InterpolationBinding[];
     constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, locator: IServiceLocator);
-    $bind(flags: BindingFlags, scope: IScope): void;
-    $unbind(flags: BindingFlags): void;
+    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $unbind(flags: LifecycleFlags): void;
 }
 export interface InterpolationBinding extends IConnectableBinding {
 }
@@ -34,11 +34,12 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     locator: IServiceLocator;
     isFirst: boolean;
     $scope: IScope;
+    $state: State;
     targetObserver: IBindingTargetAccessor;
     constructor(sourceExpression: IExpression, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
-    updateTarget(value: any, flags: BindingFlags): void;
-    handleChange(newValue: any, previousValue: any, flags: BindingFlags): void;
-    $bind(flags: BindingFlags, scope: IScope): void;
-    $unbind(flags: BindingFlags): void;
+    updateTarget(value: any, flags: LifecycleFlags): void;
+    handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void;
+    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=interpolation-binding.d.ts.map

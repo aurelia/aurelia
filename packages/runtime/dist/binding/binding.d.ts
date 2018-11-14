@@ -1,6 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { IBindScope, LifecycleState } from '../lifecycle';
-import { AccessorOrObserver, BindingFlags, IScope } from '../observation';
+import { IBindScope, ILifecycle, State } from '../lifecycle';
+import { AccessorOrObserver, IScope, LifecycleFlags } from '../observation';
 import { ForOfStatement, IsBindingBehavior } from './ast';
 import { BindingMode } from './binding-mode';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
@@ -19,16 +19,21 @@ export declare class Binding implements IPartialConnectableBinding {
     mode: BindingMode;
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
+    $nextConnect: IConnectableBinding;
+    $nextPatch: IConnectableBinding;
     $nextBind: IBindScope;
     $prevBind: IBindScope;
-    $state: LifecycleState;
+    $state: State;
     $scope: IScope;
+    $lifecycle: ILifecycle;
     targetObserver: AccessorOrObserver;
     constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
-    updateTarget(value: any, flags: BindingFlags): void;
-    updateSource(value: any, flags: BindingFlags): void;
-    handleChange(newValue: any, previousValue: any, flags: BindingFlags): void;
-    $bind(flags: BindingFlags, scope: IScope): void;
-    $unbind(flags: BindingFlags): void;
+    updateTarget(value: any, flags: LifecycleFlags): void;
+    updateSource(value: any, flags: LifecycleFlags): void;
+    handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void;
+    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $unbind(flags: LifecycleFlags): void;
+    connect(flags: LifecycleFlags): void;
+    patch(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=binding.d.ts.map

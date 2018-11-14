@@ -6,9 +6,11 @@ export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
     withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T>;
     noDefault(): InterfaceSymbol<T>;
 }
-export interface IResolver<T = any> {
-    resolve(handler: IContainer, requestor: IContainer): T;
-    getFactory?(container: IContainer): IFactory<T> | null;
+interface IResolverLike<TValue, TContainer> {
+    resolve(handler: TContainer, requestor: TContainer): TValue;
+    getFactory?(container: TContainer): IFactory<TValue> | null;
+}
+export interface IResolver<T = any> extends IResolverLike<T, IContainer> {
 }
 export interface IRegistration<T = any> {
     register(container: IContainer, key?: Key<T>): IResolver<T>;
@@ -20,14 +22,18 @@ export interface IFactory<T = any> {
 }
 export interface IServiceLocator {
     has(key: any, searchAncestors: boolean): boolean;
-    get<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolver<infer T1> ? T1 extends Constructable ? InstanceType<T1> : T1 : K;
-    getAll<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> : K extends Constructable ? ReadonlyArray<InstanceType<K>> : K extends IResolver<infer T1> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> : ReadonlyArray<K>;
+    get<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? InstanceType<T1> : T1 : K;
+    getAll<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> : K extends Constructable ? ReadonlyArray<InstanceType<K>> : K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> : ReadonlyArray<K>;
 }
 export interface IRegistry {
     register(container: IContainer): void;
 }
 export interface IContainer extends IServiceLocator {
+    register(...params: IRegistry[]): void;
+    register(...params: Record<string, Partial<IRegistry>>[]): void;
     register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void;
+    register(registry: Record<string, Partial<IRegistry>>): void;
+    register(registry: IRegistry): void;
     register(registry: IRegistry | Record<string, Partial<IRegistry>>): void;
     registerResolver<T>(key: Key<T>, resolver: IResolver<T>): IResolver<T>;
     registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;
@@ -45,6 +51,9 @@ export interface IResolverBuilder<T> {
     callback(value: ResolveCallback<T>): IResolver;
     aliasTo(destinationKey: Key<T>): IResolver;
 }
+export declare type RegisterSelf<T extends Constructable> = {
+    register(container: IContainer): IResolver<InstanceType<T>>;
+};
 export declare const DI: {
     createContainer(): IContainer;
     getDesignParamTypes(target: Object): any[];
@@ -53,10 +62,99 @@ export declare const DI: {
     }): any[];
     createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T>;
     inject(...dependencies: any[]): (target: any, property?: string, descriptor?: number | PropertyDescriptor) => any;
+    /**
+     * Registers the `target` class as a transient dependency; each time the dependency is resolved
+     * a new instance will be created.
+     *
+     * @param target The class / constructor function to register as transient.
+     * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
+     *
+     * Example usage:
+  ```ts
+  // On an existing class
+  class Foo { }
+  DI.transient(Foo);
+  
+  // Inline declaration
+  const Foo = DI.transient(class { });
+  // Foo is now strongly typed with register
+  Foo.register(container);
+  ```
+     */
+    transient<T extends Constructable<{}>>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
+    /**
+     * Registers the `target` class as a singleton dependency; the class will only be created once. Each
+     * consecutive time the dependency is resolved, the same instance will be returned.
+     *
+     * @param target The class / constructor function to register as a singleton.
+     * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
+     * Example usage:
+  ```ts
+  // On an existing class
+  class Foo { }
+  DI.singleton(Foo);
+  
+  // Inline declaration
+  const Foo = DI.singleton(class { });
+  // Foo is now strongly typed with register
+  Foo.register(container);
+  ```
+     */
+    singleton<T extends Constructable<{}>>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 };
 export declare const IContainer: InterfaceSymbol<IContainer>;
 export declare const IServiceLocator: InterfaceSymbol<IServiceLocator>;
 export declare const inject: (...dependencies: any[]) => (target: any, property?: string, descriptor?: number | PropertyDescriptor) => any;
+declare function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
+/**
+ * Registers the decorated class as a transient dependency; each time the dependency is resolved
+ * a new instance will be created.
+ *
+ * Example usage:
+```ts
+@transient
+class Foo { }
+```
+ */
+export declare function transient<T extends Constructable>(): typeof transientDecorator;
+/**
+ * Registers the `target` class as a transient dependency; each time the dependency is resolved
+ * a new instance will be created.
+ *
+ * @param target The class / constructor function to register as transient.
+ *
+ * Example usage:
+```ts
+@transient()
+class Foo { }
+```
+ */
+export declare function transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
+declare function singletonDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
+/**
+ * Registers the decorated class as a singleton dependency; the class will only be created once. Each
+ * consecutive time the dependency is resolved, the same instance will be returned.
+ *
+ * Example usage:
+```ts
+@singleton
+class Foo { }
+```
+ */
+export declare function singleton<T extends Constructable>(): typeof singletonDecorator;
+/**
+ * Registers the `target` class as a singleton dependency; the class will only be created once. Each
+ * consecutive time the dependency is resolved, the same instance will be returned.
+ *
+ * @param target The class / constructor function to register as a singleton.
+ *
+ * Example usage:
+```ts
+@singleton()
+class Foo { }
+```
+ */
+export declare function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export declare const all: (key: any) => (target: any, property?: string, descriptor?: number | PropertyDescriptor) => any;
 export declare const lazy: (key: any) => (target: any, property?: string, descriptor?: number | PropertyDescriptor) => any;
 export declare const optional: (key: any) => (target: any, property?: string, descriptor?: number | PropertyDescriptor) => any;
@@ -68,4 +166,5 @@ export declare const Registration: {
     alias(originalKey: any, aliasKey: any): IRegistration<any>;
     interpret(interpreterKey: any, ...rest: any[]): IRegistry;
 };
+export {};
 //# sourceMappingURL=di.d.ts.map

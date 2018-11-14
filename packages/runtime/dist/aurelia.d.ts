@@ -1,5 +1,5 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
-import { ICustomElement } from './templating/custom-element';
+import { ICustomElement } from './templating/lifecycle-render';
 export interface ISinglePageApp {
     host: any;
     component: any;

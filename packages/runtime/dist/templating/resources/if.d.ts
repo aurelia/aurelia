@@ -1,30 +1,27 @@
-import { INode, IRenderLocation } from '../../dom';
-import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
-import { BindingFlags, IChangeSet } from '../../observation';
-import { ICustomAttribute } from '../custom-attribute';
-import { IView, IViewFactory } from '../view';
-import { CompositionCoordinator } from './composition-coordinator';
+import { IRenderLocation } from '../../dom';
+import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
+import { LifecycleFlags } from '../../observation';
+import { ICustomAttribute } from '../lifecycle-render';
 export interface If extends ICustomAttribute {
 }
 export declare class If {
-    readonly changeSet: IChangeSet;
     ifFactory: IViewFactory;
     location: IRenderLocation;
+    coordinator: CompositionCoordinator;
     value: boolean;
     elseFactory: IViewFactory;
     ifView: IView;
     elseView: IView;
-    coordinator: CompositionCoordinator;
-    constructor(changeSet: IChangeSet, ifFactory: IViewFactory, location: IRenderLocation);
-    binding(flags: BindingFlags): void;
-    attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void;
-    detaching(lifecycle: IDetachLifecycle): void;
-    unbinding(flags: BindingFlags): void;
-    caching(): void;
-    valueChanged(newValue: boolean, oldValue: boolean, flags: BindingFlags): void;
-    flushChanges(): void;
-    private updateView;
-    private ensureView;
+    constructor(ifFactory: IViewFactory, location: IRenderLocation, coordinator: CompositionCoordinator);
+    binding(flags: LifecycleFlags): void;
+    attaching(flags: LifecycleFlags): void;
+    detaching(flags: LifecycleFlags): void;
+    unbinding(flags: LifecycleFlags): void;
+    caching(flags: LifecycleFlags): void;
+    valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void;
+    flush(flags: LifecycleFlags): void;
+}
+export interface Else extends ICustomAttribute {
 }
 export declare class Else {
     private factory;

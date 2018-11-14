@@ -1,15 +1,7 @@
-import { Constructable, Decoratable, Decorated, Immutable, Omit } from '@aurelia/kernel';
+import { Constructable, Decoratable, Decorated, Omit } from '@aurelia/kernel';
 import { IAttributeDefinition } from '../definitions';
-import { IAttach, IBindScope, ILifecycleHooks, ILifecycleState } from '../lifecycle';
-import { IResourceKind, IResourceType } from '../resource';
-import { IRenderable, IRenderingEngine } from './rendering-engine';
-export interface ICustomAttributeType extends IResourceType<IAttributeDefinition, ICustomAttribute>, Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> {
-}
-declare type OptionalLifecycleHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
-declare type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & ILifecycleState;
-export interface ICustomAttribute extends IBindScope, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {
-    $hydrate(renderingEngine: IRenderingEngine): void;
-}
+import { IResourceKind } from '../resource';
+import { ICustomAttribute, ICustomAttributeType } from './lifecycle-render';
 declare type CustomAttributeDecorator = <T extends Constructable>(target: Decoratable<ICustomAttribute, T>) => Decorated<ICustomAttribute, T> & ICustomAttributeType;
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.

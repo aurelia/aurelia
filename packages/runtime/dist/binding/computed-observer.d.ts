@@ -1,5 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { IBindingTargetObserver, IChangeSet, IObservable, IPropertySubscriber } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
 export interface ComputedOverrides {
     static?: boolean;
     volatile?: boolean;
@@ -14,15 +15,16 @@ export declare class CustomSetterObserver implements CustomSetterObserver {
     obj: IObservable;
     propertyKey: string;
     private descriptor;
-    private changeSet;
+    private lifecycle;
+    $nextFlush: this;
     dispose: () => void;
     observing: boolean;
     currentValue: IIndexable | Primitive;
     oldValue: IIndexable | Primitive;
-    constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, changeSet: IChangeSet);
+    constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, lifecycle: ILifecycle);
     getValue(): IIndexable | Primitive;
     setValue(newValue: IIndexable | Primitive): void;
-    flushChanges(): void;
+    flush(flags: LifecycleFlags): void;
     subscribe(subscriber: IPropertySubscriber): void;
     unsubscribe(subscriber: IPropertySubscriber): void;
     convertProperty(): void;

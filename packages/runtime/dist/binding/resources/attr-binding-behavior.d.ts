@@ -1,7 +1,7 @@
-import { BindingFlags, IScope } from '../../observation';
+import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 export declare class AttrBindingBehavior {
-    bind(flags: BindingFlags, scope: IScope, binding: Binding): void;
-    unbind(flags: BindingFlags, scope: IScope, binding: Binding): void;
+    bind(flags: LifecycleFlags, scope: IScope, binding: Binding): void;
+    unbind(flags: LifecycleFlags, scope: IScope, binding: Binding): void;
 }
 //# sourceMappingURL=attr-binding-behavior.d.ts.map

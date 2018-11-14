@@ -1,4 +1,5 @@
-import { CollectionKind, IChangeSet, ICollectionObserver, IObservedArray } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { CollectionKind, ICollectionObserver, IObservedArray } from '../observation';
 export declare const nativePush: (...items: any[]) => number;
 export declare const nativeUnshift: (...items: any[]) => number;
 export declare const nativePop: () => any;
@@ -15,9 +16,8 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 }
 export declare class ArrayObserver implements ArrayObserver {
     resetIndexMap: () => void;
-    changeSet: IChangeSet;
     collection: IObservedArray;
-    constructor(changeSet: IChangeSet, array: IObservedArray);
+    constructor(lifecycle: ILifecycle, array: IObservedArray);
 }
-export declare function getArrayObserver(changeSet: IChangeSet, array: IObservedArray): ArrayObserver;
+export declare function getArrayObserver(lifecycle: ILifecycle, array: IObservedArray): ArrayObserver;
 //# sourceMappingURL=array-observer.d.ts.map

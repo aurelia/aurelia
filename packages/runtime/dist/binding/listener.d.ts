@@ -1,7 +1,7 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { IBindScope, LifecycleState } from '../lifecycle';
-import { BindingFlags, IScope } from '../observation';
+import { IBindScope, State } from '../lifecycle';
+import { IScope, LifecycleFlags } from '../observation';
 import { IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
@@ -18,15 +18,15 @@ export declare class Listener implements IBinding {
     locator: IServiceLocator;
     $nextBind: IBindScope;
     $prevBind: IBindScope;
-    $state: LifecycleState;
+    $state: State;
     $scope: IScope;
     private handler;
     constructor(targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: INode, preventDefault: boolean, eventManager: IEventManager, locator: IServiceLocator);
     callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']>;
     handleEvent(event: Event): void;
-    $bind(flags: BindingFlags, scope: IScope): void;
-    $unbind(flags: BindingFlags): void;
+    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $unbind(flags: LifecycleFlags): void;
     observeProperty(obj: StrictAny, propertyName: StrictAny): void;
-    handleChange(newValue: any, previousValue: any, flags: BindingFlags): void;
+    handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=listener.d.ts.map

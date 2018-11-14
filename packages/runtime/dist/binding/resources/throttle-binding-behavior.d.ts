@@ -1,4 +1,4 @@
-import { BindingFlags, IScope } from '../../observation';
+import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 import { Call } from '../call';
 import { Listener } from '../listener';
@@ -14,7 +14,7 @@ export declare type ThrottleableBinding = (Binding | Call | Listener) & {
     };
 };
 export declare class ThrottleBindingBehavior {
-    bind(flags: BindingFlags, scope: IScope, binding: ThrottleableBinding, delay?: number): void;
-    unbind(flags: BindingFlags, scope: IScope, binding: ThrottleableBinding): void;
+    bind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding, delay?: number): void;
+    unbind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding): void;
 }
 //# sourceMappingURL=throttle-binding-behavior.d.ts.map

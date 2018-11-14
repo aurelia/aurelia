@@ -1,61 +1,13 @@
-import { all, Constructable, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { all, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { Scope } from '../binding/binding-context';
-import { IEventManager } from '../binding/event-manager';
-import { IExpressionParser } from '../binding/expression-parser';
-import { IObserverLocator } from '../binding/observer-locator';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
-import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, CustomElementConstructor, IAttributeDefinition, IHydrateElementInstruction, IRenderStrategyInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
+import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, CustomElementConstructor, IAttributeDefinition, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
 import { Hooks, IAttach, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext, IState, IViewFactory, State } from '../lifecycle';
 import { IAccessor, IChangeTracker, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { ViewFactory } from './view';
-
-export interface IRenderStrategy<TTarget = any, TInstruction extends IRenderStrategyInstruction = any> {
-  render(renderable: IRenderable, target: TTarget, instruction: TInstruction): void;
-}
-
-export interface IRenderStrategySource {
-  name: string;
-}
-
-export type IRenderStrategyType = IResourceType<IRenderStrategySource, IRenderStrategy>;
-
-type RenderStrategyDecorator = <T extends Constructable>(target: Decoratable<IRenderStrategy, T>) => Decorated<IRenderStrategy, T> & IRenderStrategyType;
-
-export function renderStrategy(nameOrSource: string | IRenderStrategySource): RenderStrategyDecorator {
-  return target => RenderStrategyResource.define(nameOrSource, target);
-}
-
-export const RenderStrategyResource: IResourceKind<IRenderStrategySource, IRenderStrategyType> = {
-  name: 'render-strategy',
-
-  keyFrom(name: string): string {
-    return `${this.name}:${name}`;
-  },
-
-  isType<T extends Constructable & Partial<IRenderStrategyType>>(Type: T): Type is T & IRenderStrategyType {
-    return Type.kind === this;
-  },
-
-  define<T extends Constructable>(nameOrSource: string | IRenderStrategySource, ctor: T): T & IRenderStrategyType {
-    const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
-    const Type = ctor as T & Writable<IRenderStrategyType>;
-
-    Type.kind = RenderStrategyResource;
-    Type.description = description;
-    Type.register = registerRenderStrategy;
-
-    return <IRenderStrategyType & T>Type;
-  }
-};
-
-/*@internal*/
-export function registerRenderStrategy(this: IRenderStrategyType, container: IContainer): void {
-  const resourceKey = RenderStrategyResource.keyFrom(this.description.name);
-  container.register(Registration.singleton(resourceKey, this));
-}
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -645,7 +597,6 @@ export const noViewTemplate: ITemplate = {
   }
 };
 
-
 /*@internal*/
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
@@ -778,8 +729,8 @@ type InstructionRendererDecorator<TType extends string> = (target: DecoratableIn
 
 export function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
   return function decorator(target: DecoratableInstructionRenderer<TType>): DecoratedInstructionRenderer<TType> {
-    target.register = function register(container: IContainer): void {
-      container.register(Registration.singleton(IInstructionRenderer, target));
+    target.register = function register(container: IContainer): IResolver {
+      return Registration.singleton(IInstructionRenderer, target).register(container, IInstructionRenderer);
     };
     target.prototype.instructionType = instructionType;
     return <DecoratedInstructionRenderer<TType>>target;

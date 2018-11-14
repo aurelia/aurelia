@@ -14,14 +14,14 @@ import { DOM, INode, IRemovableNode } from './dom';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';
 import { ICustomAttribute, ICustomElement, IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
 
-function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
+export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
   if (typeof srcOrExpr === 'string') {
     return <Exclude<TFrom, string>><unknown>parser.parse(srcOrExpr, bindingType);
   }
   return <Exclude<TFrom, string>>srcOrExpr;
 }
 
-function addBindable(renderable: IBindables, bindable: IBindScope): void {
+export function addBindable(renderable: IBindables, bindable: IBindScope): void {
   bindable.$prevBind = renderable.$bindableTail;
   bindable.$nextBind = null;
   if (renderable.$bindableTail === null) {
@@ -32,7 +32,7 @@ function addBindable(renderable: IBindables, bindable: IBindScope): void {
   renderable.$bindableTail = bindable;
 }
 
-function addAttachable(renderable: IAttachables, attachable: IAttach): void {
+export function addAttachable(renderable: IAttachables, attachable: IAttach): void {
   attachable.$prevAttach = renderable.$attachableTail;
   attachable.$nextAttach = null;
   if (renderable.$attachableTail === null) {

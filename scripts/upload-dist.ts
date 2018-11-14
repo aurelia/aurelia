@@ -1,9 +1,9 @@
-import project from "./project";
-import { createContainer, uploadFile } from "./azure-storage";
-import { readdirSync } from "fs";
-import { join } from "path";
+import { readdirSync } from 'fs';
+import { join } from 'path';
+import { createContainer, uploadFile } from './azure-storage';
+import project from './project';
 
-async function upload() {
+async function upload(): Promise<void> {
   const args = process.argv.slice(2);
   const target = args[0];
   const containerName = 'releases';

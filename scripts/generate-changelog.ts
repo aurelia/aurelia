@@ -1,12 +1,10 @@
-import { join } from 'path';
-import project from './project';
-import { writeFileSync, appendFileSync, readFileSync, existsSync } from 'fs';
-import { getCurrentVersion, getNewVersion, getDate } from './bump-version';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { getCurrentVersion, getDate, getNewVersion } from './bump-version';
 import { getGitLog } from './git';
-import { createLogger, c } from './logger';
+import { createLogger } from './logger';
+import project from './project';
 
 const log = createLogger('generate-changelog');
-;
 
 function toUrl(hash: string): string {
   return `([${hash}](https://github.com/aurelia/aurelia/commit/${hash}))`;
@@ -32,8 +30,8 @@ const regex = {
   refactor: /refactor\((.*)\):\s*(.*)$/i
 };
 
-async function getRawChangeLog(from: string, to: string, path: string) {
-  const gitLog = await getGitLog(from, to, path);
+async function getRawChangeLog(fromRevision: string, toRevision: string, path: string): Promise<IChangeLog> {
+  const gitLog = await getGitLog(fromRevision, toRevision, path);
   const lines = gitLog.split('\n');
   const results: IChangeLog = {
     feat: [],
@@ -43,38 +41,38 @@ async function getRawChangeLog(from: string, to: string, path: string) {
   };
   let match: RegExpExecArray;
   let currentHash = '';
-  let type = '';
+  let Type = '';
 
   for (const line of lines) {
     if (match = regex.commit.exec(line)) {
       currentHash = match[1].slice(0, 7);
-      type = null;
+      Type = null;
     } else if (match = regex.feat.exec(line)) {
-      type = 'feat';
+      Type = 'feat';
     } else if (match = regex.fix.exec(line)) {
-      type = 'fix';
+      Type = 'fix';
     } else if (match = regex.perf.exec(line)) {
-      type = 'perf';
+      Type = 'perf';
     } else if (match = regex.refactor.exec(line)) {
-      type = 'refactor';
+      Type = 'refactor';
     } else {
-      type = null;
+      Type = null;
     }
-    if (type !== null) {
+    if (Type !== null) {
       const result = {
         hash: currentHash,
         scope: match[1],
         message: match[2]
       };
-      log.info(`${type}(${result.scope}): ${result.message}`)
-      results[type].push(result);
+      log.info(`${Type}(${result.scope}): ${result.message}`);
+      results[Type].push(result);
     }
   }
   return results;
 }
 
-async function getChangeLogContent(from: string, to: string, path: string, pkgName?: string, newVersion?: string) {
-  const changelog = await getRawChangeLog(from, to, path);
+async function getChangeLogContent(fromRevision: string, toRevision: string, path: string, pkgName?: string, newVersion?: string): Promise<{content: string; newVersion: string}> {
+  const changelog = await getRawChangeLog(fromRevision, toRevision, path);
 
   if (newVersion === undefined) {
     const { major, minor, patch } = getCurrentVersion();
@@ -128,12 +126,12 @@ async function getChangeLogContent(from: string, to: string, path: string, pkgNa
     content += `\n\n**Note:** Version bump only for package ${pkgName}\n`;
   }
 
-  content += '\n'
+  content += '\n';
 
   return { content, newVersion };
 }
 
-export async function generateChangeLog(from: string, to: string) {
+export async function generateChangeLog(fromRevision: string, toRevision: string): Promise<string> {
   const standardHeader = `# Change Log
 
 All notable changes to this project will be documented in this file.
@@ -141,11 +139,11 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 `;
 
-  const currentAnchor = `<a name="${from.startsWith('v') ? from.slice(1) : from}"></a>`;
+  const currentAnchor = `<a name="${fromRevision.startsWith('v') ? fromRevision.slice(1) : fromRevision}"></a>`;
   const currentChangelog = readFileSync(project.changelog.path, { encoding: 'utf8' });
   const currentParts = currentChangelog.split(currentAnchor);
 
-  const { content: newChangeLog, newVersion } = await getChangeLogContent(from, to, project.path);
+  const { content: newChangeLog, newVersion } = await getChangeLogContent(fromRevision, toRevision, project.path);
   const newContent = standardHeader + newChangeLog + currentAnchor + (currentParts[1] || '');
   writeFileSync(project.changelog.path, newContent, { encoding: 'utf8' });
 
@@ -160,7 +158,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
       }
     }
 
-    const { content: newPkgChangeLog } = await getChangeLogContent(from, to, pkg.path, pkg.scopedName, newVersion);
+    const { content: newPkgChangeLog } = await getChangeLogContent(fromRevision, toRevision, pkg.path, pkg.scopedName, newVersion);
     const newPkgContent = standardHeader + newPkgChangeLog + existingChangeLog;
     writeFileSync(pkg.changelog.path, newPkgContent, { encoding: 'utf8' });
   }

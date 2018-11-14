@@ -1,7 +1,7 @@
-import * as l from 'fancy-log';
-const log = <typeof import('fancy-log')>(<any>(<any>l).default || l);
 import * as c from 'chalk';
+import * as l from 'fancy-log';
 const chalk = <import('chalk').Chalk>(c.default || c);
+const log = <typeof import('fancy-log')>(<any>(<any>l).default || l);
 
 export function createLogger(name: string): typeof log {
   const prefix = `> ${chalk.green(name)} `;

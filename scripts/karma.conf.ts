@@ -62,10 +62,13 @@ export default function(config: IKarmaConfig): void {
     basePath: project.path,
     frameworks: ['source-map-support', 'mocha', 'chai'],
     files: packages.map(p => p.test.setup),
-    preprocessors: packages.reduce((preprocessors, p) => {
-      preprocessors[p.test.setup] = ['webpack', 'sourcemap'];
-      return preprocessors;
-    }, {}),
+    preprocessors: packages.reduce(
+      (preprocessors, p) => {
+        preprocessors[p.test.setup] = ['webpack', 'sourcemap'];
+        return preprocessors;
+      },
+      {}
+    ),
     webpack: {
       mode: 'development',
       resolve: {
@@ -74,10 +77,13 @@ export default function(config: IKarmaConfig): void {
           ...packages.map(p => p.src),
           project.node_modules.path
         ],
-        alias: project.packages.reduce((alias, p) => {
-          alias[p.scopedName] = p.src;
-          return alias;
-        }, {})
+        alias: project.packages.reduce(
+          (alias, p) => {
+            alias[p.scopedName] = p.src;
+            return alias;
+          },
+          {}
+        )
       },
       devtool: browsers.indexOf('ChromeDebugging') > -1 ? 'eval-source-map' : 'inline-source-map',
       module: {
@@ -117,7 +123,7 @@ export default function(config: IKarmaConfig): void {
     browsers: browsers,
     customLaunchers: {
       ChromeDebugging: {
-        base: "Chrome",
+        base: 'Chrome',
         flags: [
           ...commonChromeFlags,
           '--remote-debugging-port=9333'
@@ -125,7 +131,7 @@ export default function(config: IKarmaConfig): void {
         debug: true
       },
       ChromeHeadlessOpt: {
-        base: "ChromeHeadless",
+        base: 'ChromeHeadless',
         flags: [
           ...commonChromeFlags
         ]
@@ -150,7 +156,7 @@ export default function(config: IKarmaConfig): void {
     });
     options.reporters = ['coverage-istanbul', ...options.reporters];
     options.coverageIstanbulReporter = {
-      reports: ["html", "text-summary", "json", "lcovonly", "cobertura"],
+      reports: ['html', 'text-summary', 'json', 'lcovonly', 'cobertura'],
       dir: project.coverage.path
     };
     options.junitReporter = {
@@ -161,4 +167,4 @@ export default function(config: IKarmaConfig): void {
   }
 
   config.set(options);
-};
+}

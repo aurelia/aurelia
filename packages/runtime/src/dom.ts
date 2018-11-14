@@ -27,6 +27,8 @@ export interface INode extends INodeLike {
 export interface IRemovableNode extends INode {
   remove(): void;
 }
+export const IEncapsulationSource = DI.createInterface<IEncapsulationSource>().noDefault();
+export interface IEncapsulationSource extends INode {}
 
 export interface IAttr extends Partial<INode> {
   readonly name: string;

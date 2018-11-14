@@ -39,7 +39,7 @@ export class Aurelia {
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach(LifecycleFlags.fromStartTask);
+      component.$attach(LifecycleFlags.fromStartTask, host);
     };
 
     this.startTasks.push(startTask);

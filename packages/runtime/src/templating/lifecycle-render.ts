@@ -114,6 +114,8 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
   const description = Type.description;
 
   this.$scope = Scope.create(this, null);
+  this.$host = host;
+  this.$projector = determineProjector(this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
@@ -128,8 +130,6 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
     const template = renderingEngine.getElementTemplate(description, Type);
     template.render(this, host, options.parts);
   }
-  this.$host = host;
-  this.$projector = determineProjector(this, host, description);
 
   if (this.$hooks & Hooks.hasCreated) {
     this.created();

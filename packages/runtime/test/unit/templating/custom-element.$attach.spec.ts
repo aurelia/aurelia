@@ -73,6 +73,9 @@ describe('@customElement', () => {
           project(nodes) {
             projectCalled = true;
             projectNodes = nodes;
+          },
+          provideEncapsulationSource(parentEncapsulationSource) {
+            return parentEncapsulationSource;
           }
         };
 

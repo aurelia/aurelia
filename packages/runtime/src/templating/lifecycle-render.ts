@@ -729,11 +729,24 @@ type InstructionRendererDecorator<TType extends string> = (target: DecoratableIn
 
 export function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
   return function decorator(target: DecoratableInstructionRenderer<TType>): DecoratedInstructionRenderer<TType> {
-    target.register = function register(container: IContainer): IResolver {
-      return Registration.singleton(IInstructionRenderer, target).register(container, IInstructionRenderer);
+    // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
+    const decoratedTarget = function(...args: unknown[]): InstanceType<DecoratedInstructionRenderer<TType>> {
+      const instance = new target(...args);
+      instance.instructionType = instructionType;
+      return instance;
+    } as unknown as DecoratedInstructionRenderer<TType>;
+    // make sure we register the decorated constructor with DI
+    decoratedTarget.register = function register(container: IContainer): IResolver {
+      return Registration.singleton(IInstructionRenderer, decoratedTarget).register(container, IInstructionRenderer);
     };
-    target.prototype.instructionType = instructionType;
-    return <DecoratedInstructionRenderer<TType>>target;
+    // copy over any static properties such as inject (set by preceding decorators)
+    // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
+    // the length (number of ctor arguments) is copied for the same reason
+    const ownProperties = Object.getOwnPropertyDescriptors(target);
+    Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
+      Reflect.defineProperty(decoratedTarget, prop, ownProperties[prop]);
+    });
+    return decoratedTarget;
   };
 }
 

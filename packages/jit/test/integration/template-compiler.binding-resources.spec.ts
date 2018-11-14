@@ -1,5 +1,7 @@
 import { setupAndStart, tearDown, cleanup } from './prepare';
 import { expect } from 'chai';
+import { Lifecycle } from '../../../runtime/src/index';
+import { LifecycleFlags } from '../../../runtime/src/index';
 
 // TemplateCompiler - Binding Resources integration
 describe('template-compiler.binding-resources', () => {
@@ -8,7 +10,7 @@ describe('template-compiler.binding-resources', () => {
 
   // debounceBindingBehavior - input.value
   it('01.', done => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.to-view="message & debounce:50"></template>`, null);
+    const { au, lifecycle, host, component } = setupAndStart(`<template><input value.to-view="message & debounce:50"></template>`, null);
     expect(host.firstChild['value']).to.equal('');
     component.message = 'hello!';
     setTimeout(() => {
@@ -24,28 +26,28 @@ describe('template-compiler.binding-resources', () => {
     }, 75);
     setTimeout(() => {
       expect(host.firstChild['value']).to.equal('hello!!!');
-      tearDown(au, cs, host);
+      tearDown(au, lifecycle, host);
       done();
     }, 175);
   });
 
   // TODO: fix throttle
   // it(`throttleBindingBehavior - input.value`, done => {
-  //   const { au, host, cs, component } = setup(`<template><input value.to-view="message & throttle:50"></template>`);
+  //   const { au, lifecycle, host, component } = setup(`<template><input value.to-view="message & throttle:50"></template>`);
   //   au.app({ host, component }).start();
   //   expect(host.firstChild['value']).to.equal('');
   //   component.message = 'hello!';
-  //   cs.flushChanges();
+  //   lifecycle.flush(LifecycleFlags.none);
   //   expect(host.firstChild['value']).to.equal('hello!');
   //   component.message = 'hello!!';
-  //   cs.flushChanges();
+  //   lifecycle.flush(LifecycleFlags.none);
   //   expect(host.firstChild['value']).to.equal('hello!');
   //   component.message = 'hello!!!';
-  //   cs.flushChanges();
+  //   lifecycle.flush(LifecycleFlags.none);
   //   expect(host.firstChild['value']).to.equal('hello!');
   //   setTimeout(() => {
   //     component.message = 'hello!!!!';
-  //     cs.flushChanges();
+  //     lifecycle.flush(LifecycleFlags.none);
   //     expect(host.firstChild['value']).to.equal('hello!!!!');
   //     done();
   //   }, 75);

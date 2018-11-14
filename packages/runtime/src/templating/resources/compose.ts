@@ -6,15 +6,12 @@ import {
   TargetedInstruction,
   TemplateDefinition
 } from '../../definitions';
-import { INode } from '../../dom';
-import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
-import { BindingFlags, IChangeSet } from '../../observation';
+import { CompositionCoordinator, IRenderable, IView, IViewFactory } from '../../lifecycle';
+import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { createElement, RenderPlan } from '../create-element';
-import { customElement, ICustomElement } from '../custom-element';
-import { IRenderable, IRenderingEngine } from '../rendering-engine';
-import { IView, IViewFactory } from '../view';
-import { CompositionCoordinator } from './composition-coordinator';
+import { customElement } from '../custom-element';
+import { ICustomElement, IRenderingEngine } from '../lifecycle-render';
 
 const composeSource: ITemplateDefinition = {
   name: 'au-compose',
@@ -27,22 +24,20 @@ type Subject = IViewFactory | IView | RenderPlan | Constructable | TemplateDefin
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
-@inject(IChangeSet, IRenderable, ITargetedInstruction, IRenderingEngine)
+@inject(IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator)
 export class Compose {
   @bindable public subject: Subject | Promise<Subject> = null;
   @bindable public composing: boolean = false;
 
   private properties: Record<string, TargetedInstruction> = null;
-  private coordinator: CompositionCoordinator;
   private lastSubject: Subject | Promise<Subject> = null;
 
   constructor(
-    public readonly changeSet: IChangeSet,
     private renderable: IRenderable,
     instruction: Immutable<IHydrateElementInstruction>,
-    private renderingEngine: IRenderingEngine
+    private renderingEngine: IRenderingEngine,
+    private coordinator: CompositionCoordinator
   ) {
-    this.coordinator = new CompositionCoordinator(this.changeSet);
     this.coordinator.onSwapComplete = () => {
       this.composing = false;
     };
@@ -58,33 +53,33 @@ export class Compose {
       }, {});
   }
 
-  public binding(flags: BindingFlags): void {
-    this.startComposition(this.subject);
+  public binding(flags: LifecycleFlags): void {
+    this.startComposition(this.subject, undefined, flags);
     this.coordinator.binding(flags, this.$scope);
   }
 
-  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    this.coordinator.attaching(encapsulationSource, lifecycle);
+  public attaching(flags: LifecycleFlags): void {
+    this.coordinator.attaching(flags);
   }
 
-  public detaching(lifecycle: IDetachLifecycle): void {
-    this.coordinator.detaching(lifecycle);
+  public detaching(flags: LifecycleFlags): void {
+    this.coordinator.detaching(flags);
   }
 
-  public unbinding(flags: BindingFlags): void {
+  public unbinding(flags: LifecycleFlags): void {
     this.lastSubject = null;
     this.coordinator.unbinding(flags);
   }
 
-  public caching(): void {
-    this.coordinator.caching();
+  public caching(flags: LifecycleFlags): void {
+    this.coordinator.caching(flags);
   }
 
-  public subjectChanged(newValue: any): void {
-    this.startComposition(newValue);
+  public subjectChanged(newValue: any, previousValue: any, flags: LifecycleFlags): void {
+    this.startComposition(newValue, previousValue, flags);
   }
 
-  private startComposition(subject: any): void {
+  private startComposition(subject: any, previousSubject: any, flags: LifecycleFlags): void {
     if (this.lastSubject === subject) {
       return;
     }
@@ -92,20 +87,20 @@ export class Compose {
     this.lastSubject = subject;
 
     if (subject instanceof Promise) {
-      subject = subject.then(x => this.resolveView(x));
+      subject = subject.then(x => this.resolveView(x, flags));
     } else {
-      subject = this.resolveView(subject);
+      subject = this.resolveView(subject, flags);
     }
 
     this.composing = true;
-    this.coordinator.compose(subject);
+    this.coordinator.compose(subject, flags);
   }
 
-  private resolveView(subject: Subject): IView {
+  private resolveView(subject: Subject, flags: LifecycleFlags): IView {
     const view = this.provideViewFor(subject);
 
     if (view) {
-      view.hold(this.$projector.host);
+      view.hold(this.$projector.host, flags);
       view.lockScope(this.renderable.$scope);
       return view;
     }

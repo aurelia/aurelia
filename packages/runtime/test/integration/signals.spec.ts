@@ -1,7 +1,7 @@
-import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, SignalBindingBehavior, ISignaler, IsBindingBehavior } from '../../src/index';
+import { IExpression, IObserverLocator, Binding, LifecycleFlags, IScope, BindingMode, SignalBindingBehavior, ISignaler, IsBindingBehavior } from '../../src/index';
 import { spy } from 'sinon';
 import { expect } from 'chai';
-import { IContainer } from '../../../kernel/src/index';
+import { IContainer, DI } from '../../../kernel/src/index';
 
 describe('SignalBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;
@@ -9,10 +9,10 @@ describe('SignalBindingBehavior', () => {
   let targetProperty: string;
   let mode: BindingMode;
   let observerLocator: IObserverLocator;
-  let container: IContainer;
+  let container: IContainer = DI.createContainer();
   let sut: SignalBindingBehavior;
   let binding: Binding;
-  let flags: BindingFlags;
+  let flags: LifecycleFlags;
   let scope: IScope;
   let signaler: ISignaler;
   let name: string;
@@ -21,7 +21,7 @@ describe('SignalBindingBehavior', () => {
     name = 'foo';
     signaler = <any>new MockSignaler();
     sut = new SignalBindingBehavior(signaler);
-    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
+    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, <any>container);
     (<any>sut).bind(flags, scope, <any>binding, name);
   });
 

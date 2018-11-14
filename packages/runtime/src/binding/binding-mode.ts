@@ -12,4 +12,4 @@ export enum BindingMode {
   fromView = 0b0100,
   twoWay   = 0b0110,
   default  = 0b1000
-};
+}

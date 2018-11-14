@@ -1,12 +1,13 @@
 import {
   CheckedObserver,
   IObserverLocator,
-  IChangeSet,
-  BindingFlags,
+  ILifecycle,
+  LifecycleFlags,
   Binding,
   IBindingTargetObserver,
   IPropertySubscriber,
-  enableArrayObservation
+  enableArrayObservation,
+  Lifecycle
 } from '../../src/index';
 import { createElement, _ } from '../unit/util';
 import { expect } from 'chai';
@@ -31,7 +32,7 @@ describe('CheckedObserver', () => {
   describe('setValue() - primitive - type="checkbox"', () => {
     function setup(hasSubscriber: boolean) {
       const container = DI.createContainer();
-      const changeSet = <IChangeSet>container.get(IChangeSet);
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = <IObserverLocator>container.get(IObserverLocator);
 
       const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
@@ -45,10 +46,10 @@ describe('CheckedObserver', () => {
         sut.subscribe(subscriber);
       }
 
-      return { container, changeSet, observerLocator, el, sut, subscriber };
+      return { container, lifecycle, observerLocator, el, sut, subscriber };
     }
 
-    function tearDown({ sut, changeSet, el }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ sut, lifecycle, el }: Partial<ReturnType<typeof setup>>) {
       document.body.removeChild(el);
       sut.unbind();
       sut.dispose();
@@ -71,24 +72,24 @@ describe('CheckedObserver', () => {
                 const changeCountBefore = expectedPropValue !== null ? 1 : 0;
                 const changeCountAfter = expectedPropValue !== expectedNewValue ? 1 : 0;
 
-                const { sut, changeSet, el, subscriber } = setup(hasSubscriber);
+                const { sut, lifecycle, el, subscriber } = setup(hasSubscriber);
 
-                sut.setValue(propValue, BindingFlags.none);
-                expect(changeSet.size).to.equal(changeCountBefore, 'changeSet.size 1');
-                changeSet.flushChanges();
+                sut.setValue(propValue, LifecycleFlags.none);
+                expect(lifecycle.flushCount).to.equal(changeCountBefore, 'lifecycle.flushCount 1');
+                lifecycle.processFlushQueue(LifecycleFlags.none);
                 expect(el.checked).to.equal(checkedBefore, 'el.checked 1');
                 expect(sut.getValue()).to.equal(expectedPropValue, 'sut.getValue() 1');
 
-                sut.setValue(newValue, BindingFlags.none);
+                sut.setValue(newValue, LifecycleFlags.none);
                 expect(el.checked).to.equal(checkedBefore, 'el.checked 2');
                 expect(sut.getValue()).to.equal(expectedNewValue, 'sut.getValue() 2');
-                expect(changeSet.size).to.equal(changeCountAfter, 'changeSet.size 2');
-                changeSet.flushChanges();
+                expect(lifecycle.flushCount).to.equal(changeCountAfter, 'lifecycle.flushCount 2');
+                lifecycle.processFlushQueue(LifecycleFlags.none);
 
                 expect(el.checked).to.equal(checkedAfter, 'el.checked 3');
                 expect(subscriber.handleChange).not.to.have.been.called;
 
-                tearDown({ sut, changeSet, el });
+                tearDown({ sut, lifecycle, el });
               });
             }
           }
@@ -129,14 +130,14 @@ describe('CheckedObserver', () => {
             el.checked = checkedBefore;
             el.dispatchEvent(new Event(event, eventDefaults));
             expect(sut.getValue()).to.equal(checkedBefore, 'sut.getValue() 1');
-            expect(subscriber.handleChange).to.have.been.calledWith(checkedBefore, null, BindingFlags.updateSourceExpression | BindingFlags.fromDOMEvent);
+            expect(subscriber.handleChange).to.have.been.calledWith(checkedBefore, null, LifecycleFlags.updateSourceExpression | LifecycleFlags.fromDOMEvent);
 
             el.checked = checkedAfter;
             el.dispatchEvent(new Event(event, eventDefaults));
             expect(sut.getValue()).to.equal(checkedAfter, 'sut.getValue() 2');
 
             if (checkedBefore !== checkedAfter) {
-              expect(subscriber.handleChange).to.have.been.calledWith(checkedAfter, checkedBefore, BindingFlags.updateSourceExpression | BindingFlags.fromDOMEvent);
+              expect(subscriber.handleChange).to.have.been.calledWith(checkedAfter, checkedBefore, LifecycleFlags.updateSourceExpression | LifecycleFlags.fromDOMEvent);
               expect(subscriber.handleChange).to.have.been.calledTwice;
             } else {
               expect(subscriber.handleChange).to.have.been.calledOnce;
@@ -152,7 +153,7 @@ describe('CheckedObserver', () => {
   describe('setValue() - primitive - type="radio"', () => {
     function setup(hasSubscriber: boolean) {
       const container = DI.createContainer();
-      const changeSet = <IChangeSet>container.get(IChangeSet);
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = <IObserverLocator>container.get(IObserverLocator);
       const elA = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="A"/>`);
       const elB = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="B"/>`);
@@ -176,10 +177,10 @@ describe('CheckedObserver', () => {
         sutC.subscribe(subscriberC);
       }
 
-      return { container, changeSet, observerLocator, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      return { container, lifecycle, observerLocator, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
-    function tearDown({ sutA, sutB, sutC, elA, elB, elC, changeSet }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ sutA, sutB, sutC, elA, elB, elC, lifecycle }: Partial<ReturnType<typeof setup>>) {
       document.body.removeChild(elA);
       document.body.removeChild(elB);
       document.body.removeChild(elC);
@@ -203,13 +204,13 @@ describe('CheckedObserver', () => {
             const changeCountBefore = expectedPropValue !== null ? 3 : 0;
             const changeCountAfter = expectedPropValue !== expectedNewValue ? 3 : 0;
 
-            const { sutA, sutB, sutC, elA, elB, elC, changeSet, subscriberA, subscriberB, subscriberC } = setup(hasSubscriber);
+            const { sutA, sutB, sutC, elA, elB, elC, lifecycle, subscriberA, subscriberB, subscriberC } = setup(hasSubscriber);
 
-            sutA.setValue(checkedBefore, BindingFlags.none);
-            sutB.setValue(checkedBefore, BindingFlags.none);
-            sutC.setValue(checkedBefore, BindingFlags.none);
-            expect(changeSet.size).to.equal(changeCountBefore, 'changeSet.size 1');
-            changeSet.flushChanges();
+            sutA.setValue(checkedBefore, LifecycleFlags.none);
+            sutB.setValue(checkedBefore, LifecycleFlags.none);
+            sutC.setValue(checkedBefore, LifecycleFlags.none);
+            expect(lifecycle.flushCount).to.equal(changeCountBefore, 'lifecycle.flushCount 1');
+            lifecycle.processFlushQueue(LifecycleFlags.none);
             expect(elA.checked).to.equal(checkedBefore === 'A', 'elA.checked 1');
             expect(elB.checked).to.equal(checkedBefore === 'B', 'elB.checked 1');
             expect(elC.checked).to.equal(checkedBefore === 'C', 'elC.checked 1');
@@ -217,17 +218,17 @@ describe('CheckedObserver', () => {
             expect(sutB.getValue()).to.equal(expectedPropValue, 'sutB.getValue() 1');
             expect(sutC.getValue()).to.equal(expectedPropValue, 'sutC.getValue() 1');
 
-            sutA.setValue(checkedAfter, BindingFlags.none);
-            sutB.setValue(checkedAfter, BindingFlags.none);
-            sutC.setValue(checkedAfter, BindingFlags.none);
+            sutA.setValue(checkedAfter, LifecycleFlags.none);
+            sutB.setValue(checkedAfter, LifecycleFlags.none);
+            sutC.setValue(checkedAfter, LifecycleFlags.none);
             expect(elA.checked).to.equal(checkedBefore === 'A', 'elA.checked 2');
             expect(elB.checked).to.equal(checkedBefore === 'B', 'elB.checked 2');
             expect(elC.checked).to.equal(checkedBefore === 'C', 'elC.checked 2');
             expect(sutA.getValue()).to.equal(expectedNewValue, 'sutA.getValue() 2');
             expect(sutB.getValue()).to.equal(expectedNewValue, 'sutB.getValue() 2');
             expect(sutC.getValue()).to.equal(expectedNewValue, 'sutC.getValue() 2');
-            expect(changeSet.size).to.equal(changeCountAfter, 'changeSet.size 2');
-            changeSet.flushChanges();
+            expect(lifecycle.flushCount).to.equal(changeCountAfter, 'lifecycle.flushCount 2');
+            lifecycle.processFlushQueue(LifecycleFlags.none);
 
             expect(elA.checked).to.equal(checkedAfter === 'A', 'elA.checked 3');
             expect(elB.checked).to.equal(checkedAfter === 'B', 'elB.checked 3');
@@ -237,7 +238,7 @@ describe('CheckedObserver', () => {
             expect(subscriberB.handleChange).not.to.have.been.called;
             expect(subscriberC.handleChange).not.to.have.been.called;
 
-            tearDown({ sutA, sutB, sutC, elA, elB, elC, changeSet });
+            tearDown({ sutA, sutB, sutC, elA, elB, elC, lifecycle });
           });
         }
       }
@@ -247,7 +248,7 @@ describe('CheckedObserver', () => {
   describe('handleEvent() - primitive - type="radio"', () => {
     function setup() {
       const container = DI.createContainer();
-      const changeSet = <IChangeSet>container.get(IChangeSet);
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = <IObserverLocator>container.get(IObserverLocator);
       const elA = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="A"/>`);
       const elB = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="B"/>`);
@@ -265,10 +266,10 @@ describe('CheckedObserver', () => {
       sutB.subscribe(subscriberB);
       sutC.subscribe(subscriberC);
 
-      return { container, changeSet, observerLocator, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      return { container, lifecycle, observerLocator, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
-    function tearDown({ sutA, sutB, sutC, elA, elB, elC, changeSet }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ sutA, sutB, sutC, elA, elB, elC, lifecycle }: Partial<ReturnType<typeof setup>>) {
       document.body.removeChild(elA);
       document.body.removeChild(elB);
       document.body.removeChild(elC);
@@ -324,7 +325,7 @@ describe('CheckedObserver', () => {
   describe('setValue() - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
       const container = DI.createContainer();
-      const changeSet = <IChangeSet>container.get(IChangeSet);
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = <IObserverLocator>container.get(IObserverLocator);
 
       const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
@@ -339,10 +340,10 @@ describe('CheckedObserver', () => {
         sut.subscribe(subscriber);
       }
 
-      return { value, container, changeSet, observerLocator, el, sut, subscriber };
+      return { value, container, lifecycle, observerLocator, el, sut, subscriber };
     }
 
-    function tearDown({ sut, changeSet, el }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ sut, lifecycle, el }: Partial<ReturnType<typeof setup>>) {
       document.body.removeChild(el);
       sut.unbind();
       sut.dispose();
@@ -367,24 +368,24 @@ describe('CheckedObserver', () => {
                     const changeCountBefore = 1;
                     const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
 
-                    const { sut, changeSet, el, subscriber } = setup(hasSubscriber, value, prop);
+                    const { sut, lifecycle, el, subscriber } = setup(hasSubscriber, value, prop);
 
-                    sut.setValue(propValue, BindingFlags.none);
-                    expect(changeSet.size).to.equal(changeCountBefore, 'changeSet.size 1');
-                    changeSet.flushChanges();
+                    sut.setValue(propValue, LifecycleFlags.none);
+                    expect(lifecycle.flushCount).to.equal(changeCountBefore, 'lifecycle.flushCount 1');
+                    lifecycle.processFlushQueue(LifecycleFlags.none);
                     expect(el.checked).to.equal(valueCanBeChecked && checkedBefore, 'el.checked 1');
                     expect(sut.getValue()).to.equal(propValue, 'sut.getValue() 1');
 
-                    sut.setValue(newValue, BindingFlags.none);
+                    sut.setValue(newValue, LifecycleFlags.none);
                     expect(el.checked).to.equal(valueCanBeChecked && checkedBefore, 'el.checked 2');
                     expect(sut.getValue()).to.equal(newValue, 'sut.getValue() 2');
-                    expect(changeSet.size).to.equal(changeCountAfter, 'changeSet.size 2');
-                    changeSet.flushChanges();
+                    expect(lifecycle.flushCount).to.equal(changeCountAfter, 'lifecycle.flushCount 2');
+                    lifecycle.processFlushQueue(LifecycleFlags.none);
 
                     expect(el.checked).to.equal(valueCanBeChecked && checkedAfter, 'el.checked 3');
                     expect(subscriber.handleChange).not.to.have.been.called;
 
-                    tearDown({ sut, changeSet, el });
+                    tearDown({ sut, lifecycle, el });
                   });
                 }
               }
@@ -398,7 +399,7 @@ describe('CheckedObserver', () => {
   describe('mutate collection - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
       const container = DI.createContainer();
-      const changeSet = <IChangeSet>container.get(IChangeSet);
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = <IObserverLocator>container.get(IObserverLocator);
 
       const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
@@ -413,10 +414,10 @@ describe('CheckedObserver', () => {
         sut.subscribe(subscriber);
       }
 
-      return { value, container, changeSet, observerLocator, el, sut, subscriber };
+      return { value, container, lifecycle, observerLocator, el, sut, subscriber };
     }
 
-    function tearDown({ sut, changeSet, el }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ sut, lifecycle, el }: Partial<ReturnType<typeof setup>>) {
       document.body.removeChild(el);
       sut.unbind();
       sut.dispose();
@@ -432,28 +433,28 @@ describe('CheckedObserver', () => {
 
             const array = [];
 
-            const { sut, changeSet, el, subscriber } = setup(hasSubscriber, value, prop);
+            const { sut, lifecycle, el, subscriber } = setup(hasSubscriber, value, prop);
 
-            sut.setValue(array, BindingFlags.none);
-            expect(changeSet.size).to.equal(1, 'changeSet.size 1');
-            changeSet.flushChanges();
+            sut.setValue(array, LifecycleFlags.none);
+            expect(lifecycle.flushCount).to.equal(1, 'lifecycle.flushCount 1');
+            lifecycle.processFlushQueue(LifecycleFlags.none);
             expect(el.checked).to.equal(false, 'el.checked 1');
             expect(sut.getValue()).to.equal(array, 'sut.getValue() 1');
 
             array.push(value);
             expect(el.checked).to.equal(false, 'el.checked 2');
-            expect(changeSet.size).to.equal(1, 'changeSet.size 2');
-            changeSet.flushChanges();
+            expect(lifecycle.flushCount).to.equal(1, 'lifecycle.flushCount 2');
+            lifecycle.processFlushQueue(LifecycleFlags.none);
             expect(el.checked).to.equal(valueCanBeChecked, 'el.checked 3');
 
             array.pop();
             expect(el.checked).to.equal(valueCanBeChecked, 'el.checked 4');
-            expect(changeSet.size).to.equal(1, 'changeSet.size 3');
-            changeSet.flushChanges();
+            expect(lifecycle.flushCount).to.equal(1, 'lifecycle.flushCount 3');
+            lifecycle.processFlushQueue(LifecycleFlags.none);
             expect(el.checked).to.equal(false, 'el.checked 5');
             expect(subscriber.handleChange).not.to.have.been.called;
 
-            tearDown({ sut, changeSet, el });
+            tearDown({ sut, lifecycle, el });
           });
         }
       }
@@ -495,7 +496,7 @@ describe('CheckedObserver', () => {
                 const { sut, el, subscriber } = setup(value, prop);
 
                 const array = [];
-                await sut.setValue(array, BindingFlags.none);
+                await sut.setValue(array, LifecycleFlags.none);
                 el.checked = checkedBefore;
                 el.dispatchEvent(new Event(event, eventDefaults));
                 let actual = sut.getValue();
@@ -527,7 +528,7 @@ describe('CheckedObserver', () => {
   describe('SelectValueObserver.setValue() - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
       const container = DI.createContainer();
-      const changeSet = <IChangeSet>container.get(IChangeSet);
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = <IObserverLocator>container.get(IObserverLocator);
 
       const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
@@ -541,7 +542,7 @@ describe('CheckedObserver', () => {
         sut.subscribe(subscriber);
       }
 
-      return { value, container, observerLocator, el, sut, subscriber, valueOrModelObserver, changeSet };
+      return { value, container, observerLocator, el, sut, subscriber, valueOrModelObserver, lifecycle };
     }
 
     function tearDown({ sut, el }: Partial<ReturnType<typeof setup>>) {
@@ -566,25 +567,25 @@ describe('CheckedObserver', () => {
 
                   it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, () => {
 
-                    const { sut, el, subscriber, valueOrModelObserver, changeSet } = setup(hasSubscriber, value, prop);
+                    const { sut, el, subscriber, valueOrModelObserver, lifecycle } = setup(hasSubscriber, value, prop);
 
-                    sut.setValue(propValue, BindingFlags.none);
-                    changeSet.flushChanges();
+                    sut.setValue(propValue, LifecycleFlags.none);
+                    lifecycle.processFlushQueue(LifecycleFlags.none);
                     expect(sut.getValue()).to.equal(propValue, 'sut.getValue() 1');
 
                     expect(el.checked).to.equal(prop === 'model' && value === undefined && propValue === checkedValue, 'el.checked 1');
-                    valueOrModelObserver.setValue(value, BindingFlags.none | BindingFlags.fromFlushChanges);
+                    valueOrModelObserver.setValue(value, LifecycleFlags.none | LifecycleFlags.fromFlush);
                     expect(el.checked).to.equal(valueCanBeChecked && checkedBefore, 'el.checked 2');
-                    changeSet.flushChanges();
+                    lifecycle.processFlushQueue(LifecycleFlags.none);
                     expect(el.checked).to.equal(valueCanBeChecked && checkedBefore, 'el.checked 3');
 
-                    sut.setValue(newValue, BindingFlags.none);
-                    changeSet.flushChanges();
+                    sut.setValue(newValue, LifecycleFlags.none);
+                    lifecycle.processFlushQueue(LifecycleFlags.none);
                     expect(sut.getValue()).to.equal(newValue, 'sut.getValue() 2');
 
-                    valueOrModelObserver.setValue(value, BindingFlags.none | BindingFlags.fromFlushChanges);
+                    valueOrModelObserver.setValue(value, LifecycleFlags.none | LifecycleFlags.fromFlush);
                     expect(el.checked).to.equal(valueCanBeChecked && checkedAfter, 'el.checked 4');
-                    changeSet.flushChanges();
+                    lifecycle.processFlushQueue(LifecycleFlags.none);
                     expect(el.checked).to.equal(valueCanBeChecked && checkedAfter, 'el.checked 5');
                     expect(subscriber.handleChange).not.to.have.been.called;
 

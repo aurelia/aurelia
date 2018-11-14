@@ -1,11 +1,11 @@
 import { DI, Immutable } from '@aurelia/kernel';
-import { BindingFlags, IPropertySubscriber } from '../observation';
+import { IPropertySubscriber, LifecycleFlags } from '../observation';
 
 type Signal = string;
 
 export interface ISignaler {
   signals: Immutable<Record<string, Set<IPropertySubscriber>>>;
-  dispatchSignal(name: Signal, flags?: BindingFlags): void;
+  dispatchSignal(name: Signal, flags?: LifecycleFlags): void;
   addSignalListener(name: Signal, listener: IPropertySubscriber): void;
   removeSignalListener(name: Signal, listener: IPropertySubscriber): void;
 }
@@ -20,13 +20,13 @@ export class Signaler implements ISignaler {
     this.signals = Object.create(null);
   }
 
-  public dispatchSignal(name: Signal, flags?: BindingFlags): void {
+  public dispatchSignal(name: Signal, flags?: LifecycleFlags): void {
     const listeners = this.signals[name];
     if (listeners === undefined) {
       return;
     }
     for (const listener of listeners.keys()) {
-      listener.handleChange(undefined, undefined, flags | BindingFlags.updateTargetInstance);
+      listener.handleChange(undefined, undefined, flags | LifecycleFlags.updateTargetInstance);
     }
   }
 
@@ -34,7 +34,7 @@ export class Signaler implements ISignaler {
     const signals = this.signals;
     const listeners = signals[name];
     if (listeners === undefined) {
-      signals[name] = new Set([listener])
+      signals[name] = new Set([listener]);
     } else {
       listeners.add(listener);
     }

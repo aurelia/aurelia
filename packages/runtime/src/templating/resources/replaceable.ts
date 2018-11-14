@@ -1,9 +1,9 @@
 import { inject } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
-import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
-import { BindingFlags } from '../../observation';
-import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IView, IViewFactory } from '../view';
+import { IView, IViewFactory } from '../../lifecycle';
+import { LifecycleFlags } from '../../observation';
+import { templateController } from '../custom-attribute';
+import { ICustomAttribute } from '../lifecycle-render';
 
 export interface Replaceable extends ICustomAttribute {}
 @templateController('replaceable')
@@ -13,22 +13,22 @@ export class Replaceable {
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {
     this.currentView = this.factory.create();
-    this.currentView.hold(location);
+    this.currentView.hold(location, LifecycleFlags.fromCreate);
   }
 
-  public binding(flags: BindingFlags): void {
+  public binding(flags: LifecycleFlags): void {
     this.currentView.$bind(flags, this.$scope);
   }
 
-  public attaching(encapsulationSource: any, lifecycle: IAttachLifecycle): void {
-    this.currentView.$attach(encapsulationSource, lifecycle);
+  public attaching(flags: LifecycleFlags): void {
+    this.currentView.$attach(flags);
   }
 
-  public detaching(lifecycle: IDetachLifecycle): void {
-    this.currentView.$detach(lifecycle);
+  public detaching(flags: LifecycleFlags): void {
+    this.currentView.$detach(flags);
   }
 
-  public unbinding(flags: BindingFlags): void {
+  public unbinding(flags: LifecycleFlags): void {
     this.currentView.$unbind(flags);
   }
 }

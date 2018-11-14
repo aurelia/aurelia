@@ -1,19 +1,21 @@
 import { expect } from "chai";
 import { defineCustomElement } from "./prepare";
 import {
-  IChangeSet, bindable, Aurelia, ViewFactory, View, IView,
-  RenderPlan, IViewFactory, CompiledTemplate, IRenderingEngine, DOM
+  bindable, Aurelia, ViewFactory, View, IView,
+  RenderPlan, IViewFactory, CompiledTemplate, IRenderingEngine, DOM, ILifecycle
 } from "../../../runtime/src/index";
 import { baseSuite } from "./template-compiler.base";
 import { IContainer } from "@aurelia/kernel";
 import { trimFull, createElement } from "./util";
+import { Lifecycle } from '../../../runtime/src/index';
+import { LifecycleFlags } from '../../../runtime/src/index';
 
 const spec = 'template-compiler.compose';
 
 const suite = baseSuite.clone<
     /*a*/IContainer,
     /*b*/Aurelia,
-    /*c*/IChangeSet,
+    /*c*/ILifecycle,
     /*d*/HTMLElement, // host
     /*e*/any, // component
     /*f*/any, // subject
@@ -118,28 +120,28 @@ suite.addDataSlot('i') // app markup
     `<template>
       <au-compose if.bind="true" repeat.for="i of 1" subject.bind="${ctx.g}"></au-compose>
     </template>`)
-  .addData('06').setFactory(ctx =>
+  .addData('07').setFactory(ctx =>
     `<template>
       <au-compose if.bind="true" repeat.for="i of 1" subject.bind="${ctx.g}"></au-compose>
     </template>`)
-  .addData('06').setFactory(ctx =>
+  .addData('08').setFactory(ctx =>
     `<template>
       <au-compose subject.bind="${ctx.g}" if.bind="true" repeat.for="i of 1"></au-compose>
     </template>`)
-  .addData('06').setFactory(ctx =>
+  .addData('09').setFactory(ctx =>
     `<template>
       <au-compose if.bind="true" subject.bind="${ctx.g}" repeat.for="i of 1"></au-compose>
     </template>`)
 
 suite.addActionSlot('test')
   .addAsyncAction(null, async ctx => {
-    const { a: container, b: au, c: cs, d: host, f: subject, g: prop, h: expected, i: markup } = ctx;
+    const { a: container, b: au, c: lifecycle, d: host, f: subject, g: prop, h: expected, i: markup } = ctx;
     class App { sub = null; }
     const $App = defineCustomElement('app', markup, App);
     const component = new $App();
     component.sub = subject;
     au.app({ host, component }).start();
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     if (subject instanceof Promise) {
       expect(trimFull(host.textContent)).to.equal('');
       await subject

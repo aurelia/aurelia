@@ -1,8 +1,9 @@
 import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
 import { DOM, IHTMLElement, IInputElement } from '../dom';
+import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext,
-  IBindingTargetAccessor, IBindingTargetObserver, IChangeSet, ICollectionObserver,
+  IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver,
   IObservable,  IObservedArray, IObservedMap, IObservedSet, IOverrideContext
 } from '../observation';
 import { getArrayObserver } from './array-observer';
@@ -26,10 +27,9 @@ export interface IObserverLocator {
   getObserver(obj: IObservable, propertyName: string): AccessorOrObserver;
   getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
   addAdapter(adapter: IObjectObservationAdapter): void;
-  getArrayObserver(array: (IIndexable | Primitive)[]): ICollectionObserver<CollectionKind.array>;
-  getMapObserver(map: Map<IIndexable | Primitive, IIndexable | Primitive>): ICollectionObserver<CollectionKind.map>;
-  // tslint:disable-next-line:no-reserved-keywords
-  getSetObserver(set: Set<IIndexable | Primitive>): ICollectionObserver<CollectionKind.set>;
+  getArrayObserver(observedArray: (IIndexable | Primitive)[]): ICollectionObserver<CollectionKind.array>;
+  getMapObserver(observedMap: Map<IIndexable | Primitive, IIndexable | Primitive>): ICollectionObserver<CollectionKind.map>;
+  getSetObserver(observedSet: Set<IIndexable | Primitive>): ICollectionObserver<CollectionKind.set>;
 }
 
 export const IObserverLocator = DI.createInterface<IObserverLocator>()
@@ -47,13 +47,13 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
   return pd;
 }
 
-@inject(IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer)
+@inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
 /*@internal*/
 export class ObserverLocator implements IObserverLocator {
   private adapters: IObjectObservationAdapter[] = [];
 
   constructor(
-    private changeSet: IChangeSet,
+    private lifecycle: ILifecycle,
     private eventManager: IEventManager,
     private dirtyChecker: IDirtyChecker,
     private svgAnalyzer: ISVGAnalyzer
@@ -92,7 +92,7 @@ export class ObserverLocator implements IObserverLocator {
       const tagName = obj['tagName'];
       // this check comes first for hot path optimization
       if (propertyName === 'textContent') {
-        return new ElementPropertyAccessor(this.changeSet, obj, propertyName);
+        return new ElementPropertyAccessor(this.lifecycle, obj, propertyName);
       }
 
       // TODO: optimize and make pluggable
@@ -109,25 +109,24 @@ export class ObserverLocator implements IObserverLocator {
         || tagName === 'IMG' && propertyName === 'src'
         || tagName === 'A' && propertyName === 'href'
       ) {
-        return new DataAttributeAccessor(this.changeSet, obj, propertyName);
+        return new DataAttributeAccessor(this.lifecycle, obj, propertyName);
       }
-      return new ElementPropertyAccessor(this.changeSet, obj, propertyName);
+      return new ElementPropertyAccessor(this.lifecycle, obj, propertyName);
     }
 
     return new PropertyAccessor(obj, propertyName);
   }
 
-  public getArrayObserver(array: IObservedArray): ICollectionObserver<CollectionKind.array> {
-    return getArrayObserver(this.changeSet, array);
+  public getArrayObserver(observedArray: IObservedArray): ICollectionObserver<CollectionKind.array> {
+    return getArrayObserver(this.lifecycle, observedArray);
   }
 
-  public getMapObserver(map: IObservedMap): ICollectionObserver<CollectionKind.map>  {
-    return getMapObserver(this.changeSet, map);
+  public getMapObserver(observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>  {
+    return getMapObserver(this.lifecycle, observedMap);
   }
 
-  // tslint:disable-next-line:no-reserved-keywords
-  public getSetObserver(set: IObservedSet): ICollectionObserver<CollectionKind.set>  {
-    return getSetObserver(this.changeSet, set);
+  public getSetObserver(observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>  {
+    return getSetObserver(this.lifecycle, observedSet);
   }
 
   private getOrCreateObserversLookup(obj: IObservable): Record<string, AccessorOrObserver | IBindingTargetObserver> {
@@ -166,36 +165,36 @@ export class ObserverLocator implements IObserverLocator {
     let isNode: boolean;
     if (DOM.isNodeInstance(obj)) {
       if (propertyName === 'class') {
-        return new ClassAttributeAccessor(this.changeSet, obj);
+        return new ClassAttributeAccessor(this.lifecycle, obj);
       }
 
       if (propertyName === 'style' || propertyName === 'css') {
-        return new StyleAttributeAccessor(this.changeSet, <IHTMLElement>obj);
+        return new StyleAttributeAccessor(this.lifecycle, <IHTMLElement>obj);
       }
 
       const tagName = obj['tagName'];
       const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && tagName === 'SELECT') {
-        return new SelectValueObserver(this.changeSet, <ISelectElement>obj, handler, this);
+        return new SelectValueObserver(this.lifecycle, <ISelectElement>obj, handler, this);
       }
 
       if (propertyName === 'checked' && tagName === 'INPUT') {
-        return new CheckedObserver(this.changeSet, <IInputElement>obj, handler, this);
+        return new CheckedObserver(this.lifecycle, <IInputElement>obj, handler, this);
       }
 
       if (handler) {
-        return new ValueAttributeObserver(this.changeSet, obj, propertyName, handler);
+        return new ValueAttributeObserver(this.lifecycle, obj, propertyName, handler);
       }
 
       const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
       if (xlinkResult) {
-        return new XLinkAttributeAccessor(this.changeSet, <IHTMLElement>obj, propertyName, xlinkResult[1]);
+        return new XLinkAttributeAccessor(this.lifecycle, <IHTMLElement>obj, propertyName, xlinkResult[1]);
       }
 
       if (propertyName === 'role'
         || /^\w+:|^data-|^aria-/.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
-        return new DataAttributeAccessor(this.changeSet, obj, propertyName);
+        return new DataAttributeAccessor(this.lifecycle, obj, propertyName);
       }
       isNode = true;
     }
@@ -240,21 +239,21 @@ export class ObserverLocator implements IObserverLocator {
           return this.dirtyChecker.createProperty(obj, propertyName);
         }
 
-        return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor);
+        return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
       }
     }
     return new SetterObserver(obj, propertyName);
   }
 }
 
-export function getCollectionObserver(changeSet: IChangeSet, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
+export function getCollectionObserver(lifecycle: ILifecycle, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
   switch (toStringTag.call(collection)) {
     case '[object Array]':
-      return getArrayObserver(changeSet, <IObservedArray>collection);
+      return getArrayObserver(lifecycle, <IObservedArray>collection);
     case '[object Map]':
-      return getMapObserver(changeSet, <IObservedMap>collection);
+      return getMapObserver(lifecycle, <IObservedMap>collection);
     case '[object Set]':
-      return getSetObserver(changeSet, <IObservedSet>collection);
+      return getSetObserver(lifecycle, <IObservedSet>collection);
   }
   return null;
 }

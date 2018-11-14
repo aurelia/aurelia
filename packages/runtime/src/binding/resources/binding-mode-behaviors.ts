@@ -1,21 +1,21 @@
-import { BindingFlags, IScope } from '../../observation';
+import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingMode } from '../binding-mode';
 
 const { oneTime, toView, fromView, twoWay } = BindingMode;
 
-export type WithMode = { mode: BindingMode, originalMode?: BindingMode };
+export type WithMode = { mode: BindingMode; originalMode?: BindingMode };
 
 export abstract class BindingModeBehavior {
   constructor(private mode: BindingMode) {}
 
-  public bind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void {
     binding.originalMode = binding.mode;
     binding.mode = this.mode;
   }
 
-  public unbind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void {
     binding.mode = binding.originalMode;
     binding.originalMode = null;
   }

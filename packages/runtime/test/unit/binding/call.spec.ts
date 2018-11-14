@@ -1,6 +1,6 @@
 import { CallScope, BindingBehavior, ExpressionKind } from './../../../src/binding/ast';
 import { spy, SinonSpy } from 'sinon';
-import { IExpression, IObserverLocator, AccessScope, BindingFlags, IScope, IChangeSet, SetterObserver, Call } from '../../../src/index';
+import { IExpression, IObserverLocator, AccessScope, LifecycleFlags, IScope, ILifecycle, SetterObserver, Call } from '../../../src/index';
 import { DI } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
@@ -9,11 +9,11 @@ import { _, massSpy, massReset, massRestore, eachCartesianJoinFactory } from '..
 describe('Call', () => {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
     const container = DI.createContainer();
-    const changeSet = container.get<IChangeSet>(IChangeSet);
-    const observerLocator = container.get<IObserverLocator>(IObserverLocator);
+    const lifecycle = container.get(ILifecycle);
+    const observerLocator = container.get(IObserverLocator);
     const sut = new Call(sourceExpression, target, targetProperty, observerLocator, container);
 
-    return { sut, changeSet, container, observerLocator };
+    return { sut, lifecycle, container, observerLocator };
   }
 
   describe('$bind -> $bind', () => {
@@ -43,8 +43,8 @@ describe('Call', () => {
       ([target, $1], [prop, $2], [expr, $3], [scope, $4], [renewScope, $5]) => {
         it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, () => {
           // - Arrange -
-          const { sut, changeSet, observerLocator } = setup(expr, target, prop);
-          const flags = BindingFlags.none;
+          const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
+          const flags = LifecycleFlags.none;
           const targetObserver = observerLocator.getObserver(target, prop);
 
           massSpy(scope.bindingContext, 'theFunc');
@@ -67,7 +67,7 @@ describe('Call', () => {
           expect(expr.bind).to.have.been.calledWith(flags, scope, sut);
 
           expect(targetObserver.setValue).to.have.been.calledOnce;
-          expect(changeSet.size).to.equal(0);
+          expect(lifecycle.flushCount).to.equal(0);
 
           if (renewScope) {
             scope = { ...scope };
@@ -94,7 +94,7 @@ describe('Call', () => {
             expect(expr.bind).to.have.been.calledWith(flags, scope, sut);
           }
 
-          expect(changeSet.size).to.equal(0);
+          expect(lifecycle.flushCount).to.equal(0);
         });
       }
     )
@@ -123,8 +123,8 @@ describe('Call', () => {
       ([target, $1], [prop, $2], [expr, $3], [scope, $4]) => {
         it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, () => {
           // - Arrange -
-          const { sut, changeSet, observerLocator } = setup(expr, target, prop);
-          const flags = BindingFlags.none;
+          const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
+          const flags = LifecycleFlags.none;
           const targetObserver = observerLocator.getObserver(target, prop);
 
           massSpy(scope.bindingContext, 'theFunc');
@@ -147,7 +147,7 @@ describe('Call', () => {
           expect(expr.bind).to.have.been.calledWith(flags, scope, sut);
 
           expect(targetObserver.setValue).to.have.been.calledOnce;
-          expect(changeSet.size).to.equal(0);
+          expect(lifecycle.flushCount).to.equal(0);
 
           // - Arrange -
           massReset(scope.bindingContext);
@@ -165,7 +165,7 @@ describe('Call', () => {
           expect(expr.unbind).to.have.been.calledOnce;
           expect(target[prop]).to.be.null;
 
-          expect(changeSet.size).to.equal(0);
+          expect(lifecycle.flushCount).to.equal(0);
 
           // - Arrange -
           massReset(scope.bindingContext);
@@ -180,7 +180,7 @@ describe('Call', () => {
           expect(sut.targetObserver).to.be.instanceof(SetterObserver);
           expect(sut.targetObserver).to.equal(targetObserver);
 
-          expect(changeSet.size).to.equal(0);
+          expect(lifecycle.flushCount).to.equal(0);
           expect(expr.unbind).not.to.have.been.called;
         });
       }
@@ -216,8 +216,8 @@ describe('Call', () => {
       ([target, $1], [prop, $2], [args, $3], [expr, $4], [scope, $5]) => {
         it(`$bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, () => {
           // - Arrange -
-          const { sut, changeSet, observerLocator } = setup(expr, target, prop);
-          const flags = BindingFlags.none;
+          const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
+          const flags = LifecycleFlags.none;
           const targetObserver = observerLocator.getObserver(target, prop);
 
           massSpy(scope.bindingContext, 'theFunc');
@@ -234,7 +234,7 @@ describe('Call', () => {
           expect(sut.targetObserver).to.be.instanceof(SetterObserver);
 
           expect(targetObserver.setValue).to.have.been.calledOnce;
-          expect(changeSet.size).to.equal(0);
+          expect(lifecycle.flushCount).to.equal(0);
 
           // - Arrange -
           massReset(scope.bindingContext);

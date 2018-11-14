@@ -7,10 +7,10 @@ export interface IValueConverterSource {
 
 export type IValueConverterType = IResourceType<IValueConverterSource>;
 
-export function valueConverter(nameOrSource: string | IValueConverterSource) {
-  return function<T extends Constructable>(target: T) {
+export function valueConverter(nameOrSource: string | IValueConverterSource): <T extends Constructable>(target: T) => T & IResourceType<IValueConverterSource> {
+  return function<T extends Constructable>(target: T): T & IResourceType<IValueConverterSource> {
     return ValueConverterResource.define(nameOrSource, target);
-  }
+  };
 }
 
 export const ValueConverterResource: IResourceKind<IValueConverterSource, IValueConverterType> = {
@@ -20,8 +20,8 @@ export const ValueConverterResource: IResourceKind<IValueConverterSource, IValue
     return `${this.name}:${name}`;
   },
 
-  isType<T extends Constructable>(type: T): type is T & IValueConverterType {
-    return (type as any).kind === this;
+  isType<T extends Constructable>(Type: T): Type is T & IValueConverterType {
+    return (Type as T & IValueConverterType).kind === this;
   },
 
   define<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & IValueConverterType {

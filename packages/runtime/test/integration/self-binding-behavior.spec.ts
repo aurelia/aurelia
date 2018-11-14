@@ -1,5 +1,5 @@
-import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, SelfBindingBehavior, IsBindingBehavior } from '../../src/index';
-import { IContainer } from '../../../kernel/src/index';
+import { IExpression, IObserverLocator, Binding, LifecycleFlags, IScope, BindingMode, SelfBindingBehavior, IsBindingBehavior } from '../../src/index';
+import { IContainer, DI } from '../../../kernel/src/index';
 import { expect } from 'chai';
 
 describe('SelfBindingBehavior', () => {
@@ -8,16 +8,16 @@ describe('SelfBindingBehavior', () => {
   let targetProperty: string;
   let mode: BindingMode;
   let observerLocator: IObserverLocator;
-  let container: IContainer;
+  let container: IContainer = DI.createContainer();
   let sut: SelfBindingBehavior;
   let binding: Binding;
-  let flags: BindingFlags;
+  let flags: LifecycleFlags;
   let scope: IScope;
   let originalCallSource: Function;
 
   beforeEach(() => {
     sut = new SelfBindingBehavior();
-    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
+    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, <any>container);
     originalCallSource = binding['callSource'] = function(){};
     binding['targetEvent'] = 'foo';
     sut.bind(flags, scope, <any>binding);

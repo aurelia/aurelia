@@ -33,7 +33,7 @@ function $hook(name: string, mutation: Statement | Statement[], flush?: boolean,
     ...expectedBeforeFlush ? [$$call(
       [$call('expect', ['this.el.textContent']), 'to.equal'],
       [createConditional($access('this.cycled'), $expression(expectedBeforeFlush[1]), $expression(expectedBeforeFlush[0])), $expression(`this.el.textContent during ${name}() before mutation${flush ? ' before flushChanges()' : ''}`)])] : [],
-    ...flush ? [$$call('cs.flushChanges')] : [],
+    ...flush ? [$$call('this.$lifecycle.processFlushQueue')] : [],
     ...expectedAfterFlush ? [$$call(
       [$call('expect', ['this.el.textContent']), 'to.equal'],
       [createConditional($access('this.cycled'), $expression(expectedAfterFlush[1]), $expression(expectedAfterFlush[0])), $expression(`this.el.textContent during ${name}() after mutation${flush ? ' after flushChanges()' : ''}`)])] : []
@@ -63,7 +63,7 @@ function generateAndEmit() {
       $$functionExpr('it', [
         $expression('works 1'),
         $functionExpr([
-          $$const(['au', 'host', 'cs'], $call('setup')),
+          $$const(['au', 'host'], $call('setup')),
           $$const('App', $call('CustomElementResource.define', [
             $expression({ name: 'app', template: `<template><foo></foo></template>` }),
             $class([])
@@ -74,6 +74,7 @@ function generateAndEmit() {
             $class([
               $property('items', $id('items')),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
               $property('inject', [class Element{}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
@@ -103,7 +104,7 @@ function generateAndEmit() {
       $$functionExpr('it', [
         $expression('works 2'),
         $functionExpr([
-          $$const(['au', 'host', 'cs'], $call('setup')),
+          $$const(['au', 'host'], $call('setup')),
           $$const('App', $call('CustomElementResource.define', [
             $expression({ name: 'app', template: `<template><foo></foo></template>` }),
             $class([])
@@ -114,6 +115,7 @@ function generateAndEmit() {
             $class([
               $property('items', $id('items')),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
               $property('inject', [class Element{}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
@@ -143,7 +145,7 @@ function generateAndEmit() {
       $$functionExpr('it', [
         $expression('works 3'),
         $functionExpr([
-          $$const(['au', 'host', 'cs'], $call('setup')),
+          $$const(['au', 'host'], $call('setup')),
           $$const('App', $call('CustomElementResource.define', [
             $expression({ name: 'app', template: `<template><foo></foo></template>` }),
             $class([])
@@ -155,6 +157,7 @@ function generateAndEmit() {
               $property('items', $id('items')),
               $property('mod', 2),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
               $property('inject', [class Element{}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
@@ -184,7 +187,7 @@ function generateAndEmit() {
       $$functionExpr('it', [
         $expression('works 4'),
         $functionExpr([
-          $$const(['au', 'host', 'cs'], $call('setup')),
+          $$const(['au', 'host'], $call('setup')),
           $$const('App', $call('CustomElementResource.define', [
             $expression({ name: 'app', template: `<template><foo></foo></template>` }),
             $class([])
@@ -196,6 +199,7 @@ function generateAndEmit() {
               $property('items', $id('items')),
               $property('mod', 2),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
               $property('inject', [class Element{}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
@@ -229,7 +233,7 @@ function generateAndEmit() {
     const nodes = [
       $$import('chai', 'expect'),
       $$import('../../../kernel/src/index', 'DI'),
-      $$import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode', 'IChangeSet'),
+      $$import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode', 'ILifecycle'),
       $$import('../../src/index', 'BasicConfiguration'),
       null,
       $$functionExpr('describe', [
@@ -238,10 +242,9 @@ function generateAndEmit() {
           $$functionDecl('setup', [
               $$const('container', $call('DI.createContainer')),
               $$call('container.register', ['BasicConfiguration']),
-              $$const('cs', $call('container.get', ['IChangeSet'])),
               $$new('au', 'Aurelia', ['container']),
               $$const('host', $call('DOM.createElement', [$expression('div')])),
-              $$return({ au: 'au', host: 'host', cs: 'cs' })
+              $$return({ au: 'au', host: 'host' })
             ],
             []
           ),

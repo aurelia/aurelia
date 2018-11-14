@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
 import { PLATFORM } from '../../../../kernel/src/index';
-import { PrimitiveObserver, SetterObserver, LinkedChangeList, BindingFlags, Observer } from '../../../src/index';
+import { PrimitiveObserver, SetterObserver, Lifecycle, LifecycleFlags, Observer } from '../../../src/index';
 import { expect } from 'chai';
 import { SpySubscriber } from '../util';
 
@@ -89,7 +89,7 @@ describe('SetterObserver', () => {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
-    const flags = BindingFlags.updateTargetInstance;
+    const flags = LifecycleFlags.updateTargetInstance;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
@@ -107,7 +107,7 @@ describe('SetterObserver', () => {
   describe('subscribe()', () => {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
-    const flags = BindingFlags.updateTargetInstance;
+    const flags = LifecycleFlags.updateTargetInstance;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, () => {

@@ -1,14 +1,21 @@
-import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, Decoratable, Decorated, IContainer, Registration, Writable } from '@aurelia/kernel';
 import { IResourceDefinition, IResourceKind, IResourceType } from '../resource';
+
+export interface IValueConverter {
+  toView(input: unknown, ...args: unknown[]): unknown;
+  fromView?(input: unknown, ...args: unknown[]): unknown;
+}
 
 export interface IValueConverterDefinition extends IResourceDefinition { }
 
-export type IValueConverterType = IResourceType<IValueConverterDefinition>;
+export interface IValueConverterType extends IResourceType<IValueConverterDefinition, IValueConverter> { }
 
-export function valueConverter(nameOrDefinition: string | IValueConverterDefinition): <T extends Constructable>(target: T) => T & IResourceType<IValueConverterDefinition> {
-  return function<T extends Constructable>(target: T): T & IResourceType<IValueConverterDefinition> {
-    return ValueConverterResource.define(nameOrDefinition, target);
-  };
+type ValueConverterDecorator = <T extends Constructable>(target: Decoratable<IValueConverter, T>) => Decorated<IValueConverter, T> & IValueConverterType;
+
+export function valueConverter(name: string): ValueConverterDecorator;
+export function valueConverter(definition: IValueConverterDefinition): ValueConverterDecorator;
+export function valueConverter(nameOrDefinition: string | IValueConverterDefinition): ValueConverterDecorator {
+  return target => ValueConverterResource.define(nameOrDefinition, target);
 }
 
 export const ValueConverterResource: IResourceKind<IValueConverterDefinition, IValueConverterType> = {

@@ -24,6 +24,9 @@ export interface INode extends INodeLike {
   readonly nodeName: string;
   readonly nodeType: number;
 }
+export interface IRemovableNode extends INode {
+  remove(): void;
+}
 
 export interface IAttr extends Partial<INode> {
   readonly name: string;

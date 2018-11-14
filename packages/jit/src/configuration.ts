@@ -5,6 +5,7 @@ import {
   DebounceBindingBehavior,
   Else,
   FromViewBindingBehavior,
+  HtmlRenderer,
   If,
   ITemplateCompiler,
   OneTimeBindingBehavior,
@@ -71,6 +72,7 @@ export const BasicConfiguration = {
   register(container: IContainer): void {
     container.register(
       ParserRegistration,
+      HtmlRenderer,
       Registration.singleton(ITemplateCompiler, TemplateCompiler),
       ...globalResources,
       ...defaultBindingLanguage

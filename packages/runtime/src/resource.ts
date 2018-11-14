@@ -1,5 +1,9 @@
 import { Constructable, Immutable, IRegistry } from '@aurelia/kernel';
 
+export interface IResourceDefinition {
+  name: string;
+}
+
 export interface IResourceKind<TSource, TType extends IResourceType<TSource> = IResourceType<TSource>> {
   readonly name: string;
   keyFrom(name: string): string;

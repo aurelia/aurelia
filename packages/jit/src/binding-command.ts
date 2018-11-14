@@ -18,11 +18,10 @@ import {
   TriggerBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
+import { IResourceDefinition } from '../../runtime/src/resource';
 import { IAttributeSymbol } from './semantic-model';
 
-export interface IBindingCommandDefinition {
-  name: string;
-}
+export interface IBindingCommandDefinition extends IResourceDefinition { }
 
 export interface IBindingCommand {
   compile($symbol: IAttributeSymbol): TargetedInstruction;

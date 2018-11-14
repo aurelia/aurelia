@@ -4,7 +4,7 @@ import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast'
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
 import { INode } from './dom';
-import { ResourceDescription } from './resource';
+import { IResourceDefinition, ResourceDescription } from './resource';
 import { ICustomElement, ICustomElementHost } from './templating/lifecycle-render';
 
 /*@internal*/
@@ -59,8 +59,7 @@ export interface IBuildInstruction {
   compiler?: string;
 }
 
-export interface ITemplateDefinition {
-  name?: string;
+export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: string | INode;
   instructions?: TargetedInstruction[][];
@@ -77,8 +76,7 @@ export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 export type TemplatePartDefinitions = Record<string, Immutable<ITemplateDefinition>>;
 export type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
 
-export interface IAttributeDefinition {
-  name: string;
+export interface IAttributeDefinition extends IResourceDefinition {
   defaultBindingMode?: BindingMode;
   aliases?: string[];
   isTemplateController?: boolean;

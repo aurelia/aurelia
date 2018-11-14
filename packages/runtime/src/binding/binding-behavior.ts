@@ -1,6 +1,6 @@
 import { Constructable, Decoratable, Decorated, IContainer, Registration, Writable } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../observation';
-import { IResourceKind, IResourceType } from '../resource';
+import { IResourceDefinition, IResourceKind, IResourceType } from '../resource';
 import { IBinding } from './binding';
 
 export interface IBindingBehavior {
@@ -8,9 +8,7 @@ export interface IBindingBehavior {
   unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
 }
 
-export interface IBindingBehaviorDefinition {
-  name: string;
-}
+export interface IBindingBehaviorDefinition extends IResourceDefinition { }
 
 export interface IBindingBehaviorType extends IResourceType<IBindingBehaviorDefinition> {
 }

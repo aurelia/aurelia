@@ -7,6 +7,7 @@ import {
   FromViewBindingInstruction,
   HydrateTemplateController,
   IExpressionParser,
+  IResourceDefinition,
   IResourceKind,
   IResourceType,
   ITemplateDefinition,
@@ -18,7 +19,6 @@ import {
   TriggerBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
-import { IResourceDefinition } from '../../runtime/src/resource';
 import { IAttributeSymbol } from './semantic-model';
 
 export interface IBindingCommandDefinition extends IResourceDefinition { }

@@ -1,11 +1,27 @@
-import { Constructable, Decoratable, Decorated, IContainer, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, Decoratable, Decorated, IContainer, Immutable, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
-import { customAttributeKey, customAttributeName, IAttributeDefinition } from '../definitions';
-import { Hooks } from '../lifecycle';
-import { IResourceKind, ResourceDescription } from '../resource';
+import { AttributeDefinition, customAttributeKey, customAttributeName, IAttributeDefinition } from '../definitions';
+import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable, IState } from '../lifecycle';
+import { IChangeTracker } from '../observation';
+import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { $attachAttribute, $cacheAttribute, $detachAttribute } from './lifecycle-attach';
 import { $bindAttribute, $unbindAttribute } from './lifecycle-bind';
-import { $hydrateAttribute, ICustomAttribute, ICustomAttributeType } from './lifecycle-render';
+import { $hydrateAttribute, IRenderingEngine } from './lifecycle-render';
+
+type OptionalHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
+type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & IState;
+
+type CustomAttributeStaticProperties = Pick<AttributeDefinition, 'bindables'>;
+
+export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
+
+export interface ICustomAttributeType extends
+  IResourceType<IAttributeDefinition, ICustomAttribute>,
+  Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
+
+export interface ICustomAttribute extends Partial<IChangeTracker>, IBindScope, ILifecycleUnbindAfterDetach, IAttach, OptionalHooks, RequiredLifecycleProperties {
+  $hydrate(renderingEngine: IRenderingEngine): void;
+}
 
 type CustomAttributeDecorator = <T extends Constructable>(target: Decoratable<ICustomAttribute, T>) => Decorated<ICustomAttribute, T> & ICustomAttributeType;
 /**

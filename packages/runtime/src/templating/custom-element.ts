@@ -1,9 +1,26 @@
 import { Constructable, Decoratable, Decorated, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
-import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition } from '../definitions';
-import { Hooks, State } from '../lifecycle';
+import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
+import { INode } from '../dom';
+import { Hooks, IAttach, IBindSelf, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IState, State } from '../lifecycle';
+import { IChangeTracker } from '../observation';
+import { IResourceType } from '../resource';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindElement, $unbindElement } from './lifecycle-bind';
-import { $hydrateElement, defaultShadowOptions, ICustomElement, ICustomElementHost, ICustomElementResource, ICustomElementType } from './lifecycle-render';
+import { $hydrateElement, defaultShadowOptions, ICustomElementHost, ICustomElementResource, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
+
+type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
+
+export type CustomElementConstructor = Constructable & CustomElementStaticProperties;
+
+export interface ICustomElementType extends
+  IResourceType<ITemplateDefinition, ICustomElement>,
+  CustomElementConstructor { }
+
+export interface ICustomElement extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IBindSelf, ILifecycleUnbindAfterDetach, IAttach, IMountable, IState, IRenderable {
+  readonly $projector: IElementProjector;
+  readonly $host: ICustomElementHost;
+  $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+}
 
 type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T> & ICustomElementType;
 /**

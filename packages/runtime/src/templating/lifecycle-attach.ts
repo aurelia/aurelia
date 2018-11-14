@@ -2,7 +2,8 @@ import { Writable } from '@aurelia/kernel';
 import { IEncapsulationSource } from '../dom';
 import { Hooks, IView, State } from '../lifecycle';
 import { LifecycleFlags } from '../observation';
-import { ICustomAttribute, ICustomElement } from './lifecycle-render';
+import { ICustomAttribute } from './custom-attribute';
+import { ICustomElement } from './custom-element';
 
 /*@internal*/
 export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {

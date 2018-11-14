@@ -3,8 +3,7 @@ import { IRenderLocation } from '../../dom';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
-import { templateController } from '../custom-attribute';
-import { ICustomAttribute } from '../lifecycle-render';
+import { ICustomAttribute, templateController } from '../custom-attribute';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')

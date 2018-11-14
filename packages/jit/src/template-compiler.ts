@@ -27,7 +27,7 @@ import {
   ViewCompileFlags
 } from '@aurelia/runtime';
 import { IAttributeParser } from './attribute-parser';
-import {  IElementParser, NodeType } from './element-parser';
+import { IElementParser, NodeType } from './element-parser';
 import { AttributeSymbol, ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 
 @inject(IExpressionParser, IElementParser, IAttributeParser)

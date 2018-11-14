@@ -1,10 +1,10 @@
-import { spy, SinonStub } from 'sinon';
-import { expect } from "chai";
+import { expect } from 'chai';
+import { SinonStub, spy } from 'sinon';
 import sinon from 'sinon';
 
 const toStringTag = Object.prototype.toString;
 
-const wrappedObjects = new Map<any, string[]>();
+// tslint:disable:whitespace
 
 export function massSpy(obj: any, ...properties: string[]): void {
   if (properties.length === 0) {
@@ -120,8 +120,8 @@ const whitespace = /\s+/g;
  * stringify primitive value (null -> 'null' and undefined -> 'undefined') or complex values with recursion guard
  */
 export function stringify(value: any): string {
-  const type = toStringTag.call(value);
-  switch (type) {
+  const Type = toStringTag.call(value);
+  switch (Type) {
     case '[object Undefined]':
       return 'undefined';
     case '[object Null]':
@@ -155,7 +155,7 @@ export function stringify(value: any): string {
 
 export function jsonStringify(o: any): string {
   let cache = [];
-  const result = JSON.stringify(o, function(key, value) {
+  const result = JSON.stringify(o, function(_key: string, value: any): string {
     if (typeof value === 'object' && value !== null) {
       if (value instanceof Node) {
         return htmlStringify(value);
@@ -199,7 +199,7 @@ export function htmlStringify(node: Node): string {
  * pad a string with spaces on the right-hand side until it's the specified length
  */
 export function padRight(str: any, len: number): string {
-  str = str + '';
+  str = `${str}`;
   const strLen = str.length;
   if (strLen >= len) {
     return str;
@@ -217,14 +217,14 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
   }
   if (expected instanceof Array) {
     for (let i = 0; i < expected.length; i++) {
-      verifyEqual(actual[i], expected[i], depth+1, property, i);
+      verifyEqual(actual[i], expected[i], depth + 1, property, i);
     }
     return;
   }
   if (expected instanceof Node) {
     if (expected.nodeType === 11) {
       for (let i = 0; i < expected.childNodes.length; i++) {
-        verifyEqual(actual.childNodes.item(i), expected.childNodes.item(i), depth+1, property, i);
+        verifyEqual(actual.childNodes.item(i), expected.childNodes.item(i), depth + 1, property, i);
       }
     } else {
       expect(actual.outerHTML).to.equal((<any>expected).outerHTML, `depth=${depth}, prop=${property}, index=${index}`);
@@ -236,7 +236,7 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
     expect(actual.constructor.name).to.equal(expected.constructor.name, `depth=${depth}, prop=${property}, index=${index}`);
     expect(actual.toString()).to.equal(expected.toString(), `depth=${depth}, prop=${property}, index=${index}`);
     for (const prop of Object.keys(expected)) {
-      verifyEqual(actual[prop], expected[prop], depth+1, prop, index);
+      verifyEqual(actual[prop], expected[prop], depth + 1, prop, index);
     }
   }
 }
@@ -248,8 +248,7 @@ export function createElement(markup: string): Node {
     domParser = document.createElement('div');
   }
   domParser.innerHTML = markup;
-  const element = domParser.firstElementChild;
-  return element;
+  return domParser.firstElementChild;
 }
 
 export function lazyProduct(sets: any[][], f: (...args: any[]) => void, context?: any): void {
@@ -259,14 +258,14 @@ export function lazyProduct(sets: any[][], f: (...args: any[]) => void, context?
   const product = [];
   const max = sets.length - 1;
   const lens = [];
-  for (let i = sets.length; i--; ) {
+  for (let i = sets.length; i--;) {
     lens[i] = sets[i].length;
   }
 
   function dive(depth: number): void {
     const a = sets[depth];
     const len = lens[depth];
-    if (depth == max) {
+    if (depth === max) {
       for (let i = 0; i < len; ++i) {
         product[depth] = a[i];
         f.apply(context, product);
@@ -283,10 +282,11 @@ export function lazyProduct(sets: any[][], f: (...args: any[]) => void, context?
 }
 
 const returnTrue = () => true;
-const pdCache = new Map<Object, PropertyDescriptorMap>();
 const filterCache = new Map<string, Map<Object, PropertyDescriptorMap>>();
 
 export function getAllPropertyDescriptors(proto: Object, filter: (pd: PropertyDescriptor) => boolean = returnTrue): PropertyDescriptorMap {
+  let pdCache = new Map<Object, PropertyDescriptorMap>();
+
   if (filter === returnTrue) {
     let pdMap = pdCache.get(proto);
     if (pdMap === undefined) {
@@ -296,8 +296,8 @@ export function getAllPropertyDescriptors(proto: Object, filter: (pd: PropertyDe
     return pdMap;
   } else {
     const filterStr = filter.toString();
-    let pdCache = filterCache.get(filterStr);
     let pdMap;
+    pdCache = filterCache.get(filterStr);
     if (pdCache === undefined) {
       pdCache = new Map();
       filterCache.set(filterStr, pdCache);
@@ -332,56 +332,55 @@ function $getAllPropertyDescriptors(proto: Object, filter: (pd: PropertyDescript
   return allDescriptors;
 }
 
-
-export function eachCartesianJoinFactory<T1, U>(
-  arrays: [(()=>T1)[]],
+export function eachCartesianJoinFactory<T1,U>(
+  arrays: [(() => T1)[]],
   callback: (arg1: T1) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[]],
+export function eachCartesianJoinFactory<T1,T2,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[]],
   callback: (arg1: T1, arg2: T2) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[]],
+export function eachCartesianJoinFactory<T1,T2,T3,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, T4, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[]],
+export function eachCartesianJoinFactory<T1,T2,T3,T4,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => U): void
+export function eachCartesianJoinFactory<T1,T2,T3,T4,T5,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4) => T5)[]],
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[]],
+export function eachCartesianJoinFactory<T1,T2,T3,T4,T5,T6,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4) => T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => T6)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6)=>T7)[]],
+export function eachCartesianJoinFactory<T1,T2,T3,T4,T5,T6,T7,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4) => T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => T7)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, T8, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6)=>T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7)=>T8)[]],
+export function eachCartesianJoinFactory<T1,T2,T3,T4,T5,T6,T7,T8,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4) => T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => T8)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, T8, T9, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6)=>T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7)=>T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8)=>T9)[]],
+export function eachCartesianJoinFactory<T1,T2,T3,T4,T5,T6,T7,T8,T9,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4) => T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => T9)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6)=>T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7)=>T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8)=>T9)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9)=>T10)[]],
+export function eachCartesianJoinFactory<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4) => T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => T9)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9) => T10)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6)=>T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7)=>T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8)=>T9)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9)=>T10)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10)=>T11)[]],
+export function eachCartesianJoinFactory<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4) => T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => T9)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9) => T10)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10) => T11)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10, arg11: T11) => U): void;
 
-export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, U>(
-  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6)=>T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7)=>T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8)=>T9)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9)=>T10)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10)=>T11)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10, arg11: T11)=>T12)[]],
+export function eachCartesianJoinFactory<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,U>(
+  arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4) => T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => T9)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9) => T10)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10) => T11)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10, arg11: T11) => T12)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10, arg11: T11, arg12: T12) => U): void;
 
-export function eachCartesianJoinFactory<T extends any, U>(
+export function eachCartesianJoinFactory<T extends any,U>(
   arrays: ((...args: T[]) => T)[][],
   callback: (...args: any[]) => U): void {
 
@@ -392,7 +391,7 @@ export function eachCartesianJoinFactory<T extends any, U>(
   if (arrays.length === 0) {
     return;
   }
-  const totalCallCount: number = arrays.reduce((count: number, arr: ((...args: T[])=>T)[]) => count *= arr.length, 1);
+  const totalCallCount: number = arrays.reduce((count: number, arr: ((...args: T[]) => T)[]) => count *= arr.length, 1);
   const argsIndices = Array(arrays.length).fill(0);
   const errors: Error[] = [];
   let args: T[];
@@ -406,7 +405,8 @@ export function eachCartesianJoinFactory<T extends any, U>(
   if (totalCallCount === callCount) {
     return;
   }
-  while (true) {
+  let stop = false;
+  while (!stop) {
     const hasUpdate = updateIndices(arrays, argsIndices);
     if (hasUpdate) {
       try {
@@ -419,7 +419,7 @@ export function eachCartesianJoinFactory<T extends any, U>(
         throw new Error('Invalid loop implementation.');
       }
     } else {
-      break;
+      stop = true;
     }
   }
   if (errors.length > 0) {
@@ -427,53 +427,53 @@ export function eachCartesianJoinFactory<T extends any, U>(
     // in the meantime, only use this by commenting out the throw by hand if the throw makes it difficult to troubleshoot an error
     const msg = `eachCartesionJoinFactory failed to load ${errors.length} tests:\n\n${errors.map(e => e.message).join('\n')}`;
     throw new Error(msg);
-    console.error(msg);
+    // console.error(msg);
   }
 }
-function updateElementByIndicesFactory<T extends any>(arrays: ((...args: T[])=>T)[][], args: T[], indices: number[]): T[] {
+function updateElementByIndicesFactory<T extends any>(arrays: ((...args: T[]) => T)[][], args: T[], indices: number[]): T[] {
   for (let i = 0, ii = arrays.length; ii > i; ++i) {
     args[i] = arrays[i][indices[i]](...args);
   }
   return args;
 }
 
-export function eachCartesianJoin<T1, U>(
+export function eachCartesianJoin<T1,U>(
   arrays: [T1[]],
   callback: (arg1: T1) => U): void;
 
-export function eachCartesianJoin<T1, T2, U>(
-  arrays: [T1[], T2[]],
+export function eachCartesianJoin<T1,T2,U>(
+  arrays: [T1[],T2[]],
   callback: (arg1: T1, arg2: T2) => U): void;
 
-export function eachCartesianJoin<T1, T2, T3, U>(
-  arrays: [T1[], T2[], T3[]],
+export function eachCartesianJoin<T1,T2,T3,U>(
+  arrays: [T1[],T2[],T3[]],
   callback: (arg1: T1, arg2: T2, arg3: T3) => U): void;
 
-export function eachCartesianJoin<T1, T2, T3, T4, U>(
-  arrays: [T1[], T2[], T3[], T4[]],
+export function eachCartesianJoin<T1,T2,T3,T4,U>(
+  arrays: [T1[],T2[],T3[],T4[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => U): void;
 
-export function eachCartesianJoin<T1, T2, T3, T4, T5, U>(
-  arrays: [T1[], T2[], T3[], T4[], T5[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => U): void
+export function eachCartesianJoin<T1,T2,T3,T4,T5,U>(
+  arrays: [T1[],T2[],T3[],T4[],T5[]],
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => U): void;
 
-export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, U>(
-  arrays: [T1[], T2[], T3[], T4[], T5[], T6[]],
+export function eachCartesianJoin<T1,T2,T3,T4,T5,T6,U>(
+  arrays: [T1[],T2[],T3[],T4[],T5[],T6[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => U): void;
 
-export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, T7, U>(
-  arrays: [T1[], T2[], T3[], T4[], T5[], T6[], T7[]],
+export function eachCartesianJoin<T1,T2,T3,T4,T5,T6,T7,U>(
+  arrays: [T1[],T2[],T3[],T4[],T5[],T6[],T7[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => U): void;
 
-export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, T7, T8, U>(
-  arrays: [T1[], T2[], T3[], T4[], T5[], T6[], T7[], T8[]],
+export function eachCartesianJoin<T1,T2,T3,T4,T5,T6,T7,T8,U>(
+  arrays: [T1[],T2[],T3[],T4[],T5[],T6[],T7[],T8[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => U): void;
 
-export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, T7, T8, T9, U>(
-  arrays: [T1[], T2[], T3[], T4[], T5[], T6[], T7[], T8[], T9[]],
+export function eachCartesianJoin<T1,T2,T3,T4,T5,T6,T7,T8,T9,U>(
+  arrays: [T1[],T2[],T3[],T4[],T5[],T6[],T7[],T8[],T9[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9) => U): void;
 
-export function eachCartesianJoin<T extends any, U>(
+export function eachCartesianJoin<T extends any,U>(
   arrays: T[][],
   callback: (...args: any[]) => U): void {
 
@@ -492,7 +492,8 @@ export function eachCartesianJoin<T extends any, U>(
   if (totalCallCount === callCount) {
     return;
   }
-  while (true) {
+  let stop = false;
+  while (!stop) {
     const hasUpdate = updateIndices(arrays, argsIndices);
     if (hasUpdate) {
       callback(...updateElementByIndices(arrays, args, argsIndices));
@@ -501,11 +502,11 @@ export function eachCartesianJoin<T extends any, U>(
         throw new Error('Invalid loop implementation.');
       }
     } else {
-      break;
+      stop = true;
     }
   }
 }
-function updateIndices<T extends any>(arrays: T[][], indices: number[]) {
+function updateIndices<T extends any>(arrays: T[][], indices: number[]): boolean {
   let arrIndex = arrays.length;
   while (arrIndex--) {
     if (indices[arrIndex] === arrays[arrIndex].length - 1) {

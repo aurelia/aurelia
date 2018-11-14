@@ -1,3 +1,4 @@
+// tslint:disable:whitespace
 
 type a = any;
 export class TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
@@ -23,8 +24,7 @@ export class TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   ) { }
 }
 
-const noopAssert = (function() { return true }).bind(undefined);
-const noopPopulate = (function() {}).bind(undefined);
+const noopPopulate = (function(): void { return; }).bind(undefined);
 export class TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   public next: this;
   public prev: this;
@@ -44,7 +44,7 @@ export class TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     const $prop = this.slot.prop;
     const $value = value;
 
-    this.populate = (function(ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) {
+    this.populate = (function(ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): void {
       ctx[$prop] = $value;
     }).bind(undefined);
     return this.slot;
@@ -54,7 +54,7 @@ export class TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     const $prop = this.slot.prop;
     const $factory = factory;
 
-    this.populate = (function(ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) {
+    this.populate = (function(ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): void {
       ctx[$prop] = $factory(ctx);
     }).bind(undefined);
     return this.slot;
@@ -74,7 +74,7 @@ export class TestDataSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
 
   public head: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>;
   public tail: this['head'];
-  public current: this['head']
+  public current: this['head'];
 
   constructor(public readonly prop: Exclude<keyof TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>, 'id' | 'suite' | 'title'>) {
     this.next = null;
@@ -113,7 +113,6 @@ export class TestDataSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     return data;
   }
 
-
   public clone(): this {
     const clone = new TestDataSlot(this.prop) as this;
     let current = this.head;
@@ -125,7 +124,6 @@ export class TestDataSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     return clone;
   }
 }
-
 
 export class TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   public next: this;
@@ -259,7 +257,7 @@ export class TestFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
 }
 
 function runSuite<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(suite: TestSuite<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): () => void {
-  return (function() {
+  return (function(): void {
     let fixture = suite.head;
     while (fixture !== null) {
       if (fixture.isAsync) {
@@ -273,7 +271,7 @@ function runSuite<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(suite: TestSuite<A,B,C,D,E,F,G,
 }
 
 function runFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): () => void {
-  return (function() {
+  return (function(): void {
     const ctx = fixture.ctx;
     let action = fixture.head;
     while (action !== null) {
@@ -284,7 +282,7 @@ function runFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B,C,D,
 }
 
 function runAsyncFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): () => Promise<void> {
-  return (async function() {
+  return (async function(): Promise<void> {
     const ctx = fixture.ctx;
     let action = fixture.head;
     while (action !== null) {
@@ -294,9 +292,9 @@ function runAsyncFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B
   }).bind(undefined);
 }
 
-const createTitle = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return ctx.suite.name };
-const appendDataName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return data.name && data.name.length ? ` [${data.slot.prop} ${data.name}]` : ` [${data.slot.prop}]` };
-const appendActionName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(action: TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return action.name && action.name.length ? ` [${action.slot.name} ${action.name}]` : ` [${action.slot.name}]` };
+const createTitle = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): string { return ctx.suite.name; };
+const appendDataName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): string { return data.name && data.name.length ? ` [${data.slot.prop} ${data.name}]` : ` [${data.slot.prop}]`; };
+const appendActionName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(action: TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): string { return action.name && action.name.length ? ` [${action.slot.name} ${action.name}]` : ` [${action.slot.name}]`; };
 export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O=a> {
   public asHead: TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>;
   public asTail: this['asHead'];
@@ -344,6 +342,7 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
    *
    * @param name The name for the new slot to add. This is only used for generating the title of the test.
    */
+  // tslint:disable-next-line:unified-signatures
   public addActionSlot(name: string): this['asHead'];
   public addActionSlot(nameOrSlot?: this['asHead'] | string): this['asHead'] {
     if (!(nameOrSlot instanceof TestActionSlot)) {
@@ -371,6 +370,7 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
    * The total number of tests will be multiplied by the number of data points added to this slot.
    * @param prop The property name of the TestContext that the data points will be assigned to.
    */
+  // tslint:disable-next-line:unified-signatures
   public addDataSlot(prop: this['dsHead']['prop']): this['dsHead'];
   public addDataSlot(propOrSlot: this['dsHead'] | this['dsHead']['prop']): this['dsHead'] {
     if (!(propOrSlot instanceof TestDataSlot)) {
@@ -454,7 +454,7 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
       dataNames += appendDataName(data.current);
       data = data.next;
     }
-    ctx.title = createTitle(ctx) + ' -' + dataNames;
+    ctx.title = `${createTitle(ctx)} -${dataNames}`;
     return ctx;
   }
 
@@ -468,7 +468,7 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
       action = action.next;
     }
     fixture.ctx = this.createContext(this.currentId++);
-    fixture.ctx.title += ' -' + actionNames;
+    fixture.ctx.title += ` -${actionNames}`;
     return fixture;
   }
 

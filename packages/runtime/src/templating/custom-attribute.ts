@@ -15,20 +15,23 @@ type CustomAttributeStaticProperties = Pick<AttributeDefinition, 'bindables'>;
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
-export interface ICustomAttributeType extends
-  IResourceType<IAttributeDefinition, ICustomAttribute>,
-  Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
-
 export interface ICustomAttribute extends Partial<IChangeTracker>, IBindScope, ILifecycleUnbindAfterDetach, IAttach, OptionalHooks, RequiredLifecycleProperties {
   $hydrate(renderingEngine: IRenderingEngine): void;
 }
 
+export interface ICustomAttributeType extends
+  IResourceType<IAttributeDefinition, ICustomAttribute>,
+  Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
+
 type CustomAttributeDecorator = <T extends Constructable>(target: Decoratable<ICustomAttribute, T>) => Decorated<ICustomAttribute, T> & ICustomAttributeType;
+
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
  */
-export function customAttribute(nameOrDef: string | IAttributeDefinition): CustomAttributeDecorator {
-  return target => CustomAttributeResource.define(nameOrDef, target);
+export function customAttribute(name: string): CustomAttributeDecorator;
+export function customAttribute(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator {
+  return target => CustomAttributeResource.define(nameOrDefinition, target);
 }
 
 /**
@@ -36,11 +39,13 @@ export function customAttribute(nameOrDef: string | IAttributeDefinition): Custo
  * attribute is placed on should be converted into a template and that this
  * attribute controls the instantiation of the template.
  */
-export function templateController(nameOrDef: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
+export function templateController(name: string): CustomAttributeDecorator;
+export function templateController(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return target => CustomAttributeResource.define(
-    typeof nameOrDef === 'string'
-    ? { isTemplateController: true , name: nameOrDef }
-    : { isTemplateController: true, ...nameOrDef },
+    typeof nameOrDefinition === 'string'
+    ? { isTemplateController: true , name: nameOrDefinition }
+    : { isTemplateController: true, ...nameOrDefinition },
     target);
 }
 

@@ -24,7 +24,8 @@ import {
   Lifecycle,
   IView,
   Interpolation,
-  State
+  State,
+  HtmlRenderer
 } from '../../src/index';
 import { IContainer, DI } from '../../../kernel/src/index';
 import { createAureliaRepeaterConfig, createRepeater } from '../unit/util';
@@ -286,6 +287,7 @@ describe('ArrayRepeater - render html', () => {
       register(container: IContainer) {
         (<IExpressionParser>container.get(IExpressionParser)).cache(expressionCache);
         container.register(<any>Repeat);
+        container.register(<any>HtmlRenderer)
       }
     };
     au.register(<any>aureliaConfig);

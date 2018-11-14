@@ -18,7 +18,8 @@ import {
   IRenderContext,
   View,
   ILifecycle,
-  Lifecycle
+  Lifecycle,
+  HtmlRenderer
 } from "../../../src/index";
 import { DI, Registration, IContainer, Constructable, IRegistry } from '../../../../kernel/src/index';
 import { ViewFactoryFake } from "./fakes/view-factory-fake";
@@ -91,6 +92,7 @@ export function hydrateCustomElement<T>(
 ) {
   const ElementType: ICustomElementType = Type as any;
   const container = options.container || DI.createContainer();
+  container.register(HtmlRenderer);
   if (options.lifecycle) {
     Registration.instance(ILifecycle, options.lifecycle).register(container, ILifecycle);
   }

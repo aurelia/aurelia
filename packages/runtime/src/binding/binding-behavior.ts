@@ -10,15 +10,14 @@ export interface IBindingBehavior {
 
 export interface IBindingBehaviorDefinition extends IResourceDefinition { }
 
-export interface IBindingBehaviorType extends IResourceType<IBindingBehaviorDefinition> {
-}
+export interface IBindingBehaviorType extends IResourceType<IBindingBehaviorDefinition, IBindingBehavior> { }
 
 type BindingBehaviorDecorator = <T extends Constructable>(target: Decoratable<IBindingBehavior, T>) => Decorated<IBindingBehavior, T> & IBindingBehaviorType;
 
 export function bindingBehavior(name: string): BindingBehaviorDecorator;
-export function bindingBehavior(source: IBindingBehaviorDefinition): BindingBehaviorDecorator;
-export function bindingBehavior(nameOrSource: string | IBindingBehaviorDefinition): BindingBehaviorDecorator {
-  return target => BindingBehaviorResource.define(nameOrSource, target);
+export function bindingBehavior(definition: IBindingBehaviorDefinition): BindingBehaviorDecorator;
+export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator {
+  return target => BindingBehaviorResource.define(nameOrDefinition, target);
 }
 
 export const BindingBehaviorResource: IResourceKind<IBindingBehaviorDefinition, IBindingBehaviorType> = {

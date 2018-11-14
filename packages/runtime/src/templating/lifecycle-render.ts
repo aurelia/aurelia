@@ -756,13 +756,10 @@ export class Renderer implements IRenderer {
   public instructionRenderers: Record<string, IInstructionRenderer>;
 
   constructor(instructionRenderers: IInstructionRenderer[]) {
-    this.instructionRenderers = instructionRenderers.reduce(
-      (acc, item) => {
-        acc[item.instructionType] = item;
-        return acc;
-      },
-      Object.create(null)
-    );
+    const record = this.instructionRenderers = {};
+    instructionRenderers.forEach(item => {
+      record[item.instructionType] = item;
+    });
   }
 
   public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {

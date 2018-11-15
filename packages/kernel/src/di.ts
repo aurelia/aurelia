@@ -95,13 +95,13 @@ export type RegisterSelf<T extends Constructable> = {
 if (!('getOwnMetadata' in Reflect)) {
   // tslint:disable-next-line:no-any
   Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
-    return target[metadataKey];
+    return (<IIndexable>target)[metadataKey];
   };
 
   // tslint:disable-next-line:no-any
   Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
     return function(target: Function): void {
-      target[metadataKey] = metadataValue;
+      (<IIndexable>target)[metadataKey] = metadataValue;
     };
   };
 }

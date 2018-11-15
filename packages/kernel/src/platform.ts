@@ -1,5 +1,5 @@
-const camelCaseLookup = {};
-const kebabCaseLookup = {};
+const camelCaseLookup: Record<string, string> = {};
+const kebabCaseLookup: Record<string, string> = {};
 
 export const PLATFORM = {
   global: (function(): unknown {

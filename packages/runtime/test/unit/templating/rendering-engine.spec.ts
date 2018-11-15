@@ -9,8 +9,7 @@ import {
   CustomElementResource,
   CustomAttributeResource,
   BindingBehaviorResource,
-  ValueConverterResource,
-  RenderStrategyResource
+  ValueConverterResource
 } from '../../../src/index';
 import { expect } from 'chai';
 import { Container } from '../../../../kernel/src';
@@ -36,7 +35,6 @@ describe('RuntimeCompilationResources', () => {
       CustomAttributeResource,
       BindingBehaviorResource,
       ValueConverterResource,
-      RenderStrategyResource,
       BindingCommandResource
     ].forEach(r => {
       resources.find(r, 'a');

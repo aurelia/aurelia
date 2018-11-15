@@ -1,32 +1,11 @@
-import {
-  BindingMode,
-  DelegationStrategy,
-  ForOfStatement,
-  ICallBindingInstruction,
-  IHydrateAttributeInstruction,
-  IHydrateElementInstruction,
-  IHydrateTemplateController,
-  IInterpolationInstruction,
-  IIteratorBindingInstruction,
-  ILetBindingInstruction,
-  ILetElementInstruction,
-  IListenerBindingInstruction,
-  INode,
-  Interpolation,
-  IPropertyBindingInstruction,
-  IRefBindingInstruction,
-  IsBindingBehavior,
-  ISetPropertyInstruction,
-  IStylePropertyBindingInstruction,
-  ITargetedInstruction,
-  ITemplateDefinition,
-  ITextBindingInstruction,
-  TargetedInstruction,
-  TargetedInstructionType
-} from '@aurelia/runtime';
+import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
+import { BindingMode } from './binding/binding-mode';
+import { DelegationStrategy } from './binding/event-manager';
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType } from './definitions';
+import { INode } from './dom';
 
-// tslint:disable:no-reserved-keywords
-// tslint:disable:no-any
+// tslint:disable:no-reserved-keywords | TODO: get rid of this suppression and fix the error
+
 export class TextBindingInstruction implements ITextBindingInstruction {
   public type: TargetedInstructionType.textBinding = TargetedInstructionType.textBinding;
   constructor(public from: string | Interpolation) {}
@@ -95,23 +74,23 @@ export class StylePropertyBindingInstruction implements IStylePropertyBindingIns
 }
 export class SetPropertyInstruction implements ISetPropertyInstruction {
   public type: TargetedInstructionType.setProperty = TargetedInstructionType.setProperty;
-  constructor(public value: any, public to: string) {}
+  constructor(public value: unknown, public to: string) {}
 }
 export class SetAttributeInstruction implements ITargetedInstruction {
   public type: TargetedInstructionType.setAttribute = TargetedInstructionType.setAttribute;
-  constructor(public value: any, public to: string) {}
+  constructor(public value: unknown, public to: string) {}
 }
 export class HydrateElementInstruction implements IHydrateElementInstruction {
   public type: TargetedInstructionType.hydrateElement = TargetedInstructionType.hydrateElement;
-  constructor(public res: any, public instructions: TargetedInstruction[], public parts?: Record<string, ITemplateDefinition>, public contentOverride?: INode) {}
+  constructor(public res: string, public instructions: TargetedInstruction[], public parts?: Record<string, ITemplateDefinition>, public contentOverride?: INode) {}
 }
 export class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
   public type: TargetedInstructionType.hydrateAttribute = TargetedInstructionType.hydrateAttribute;
-  constructor(public res: any, public instructions: TargetedInstruction[]) {}
+  constructor(public res: string, public instructions: TargetedInstruction[]) {}
 }
 export class HydrateTemplateController implements IHydrateTemplateController {
   public type: TargetedInstructionType.hydrateTemplateController = TargetedInstructionType.hydrateTemplateController;
-  constructor(public def: ITemplateDefinition, public res: any, public instructions: TargetedInstruction[], public link?: boolean) {}
+  constructor(public def: ITemplateDefinition, public res: string, public instructions: TargetedInstruction[], public link?: boolean) {}
 }
 export class LetElementInstruction implements ILetElementInstruction {
   public type: TargetedInstructionType.letElement = TargetedInstructionType.letElement;

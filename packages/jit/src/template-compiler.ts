@@ -2,34 +2,32 @@ import { inject, PLATFORM } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
-  IExpressionParser,
-  ILetBindingInstruction,
-  IResourceDescriptions,
-  ITemplateCompiler,
-  ITemplateDefinition,
-  TargetedInstruction,
-  TargetedInstructionType,
-  TemplateDefinition,
-  ViewCompileFlags
-} from '@aurelia/runtime';
-import { IAttributeParser } from './attribute-parser';
-import {  IElementParser, NodeType } from './element-parser';
-import {
   FromViewBindingInstruction,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
+  IExpressionParser,
+  ILetBindingInstruction,
   InterpolationInstruction,
+  IResourceDescriptions,
+  ITemplateCompiler,
+  ITemplateDefinition,
   LetBindingInstruction,
   LetElementInstruction,
   OneTimeBindingInstruction,
   RefBindingInstruction,
   SetAttributeInstruction,
   SetPropertyInstruction,
+  TargetedInstruction,
+  TargetedInstructionType,
+  TemplateDefinition,
   TextBindingInstruction,
   ToViewBindingInstruction,
-  TwoWayBindingInstruction
-} from './instructions';
+  TwoWayBindingInstruction,
+  ViewCompileFlags
+} from '@aurelia/runtime';
+import { IAttributeParser } from './attribute-parser';
+import {  IElementParser, NodeType } from './element-parser';
 import { AttributeSymbol, ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 
 @inject(IExpressionParser, IElementParser, IAttributeParser)

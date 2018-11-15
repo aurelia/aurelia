@@ -49,8 +49,7 @@ export const enum TargetedInstructionType {
   hydrateAttribute = 'l',
   hydrateTemplateController = 'm',
   letElement = 'n',
-  letBinding = 'o',
-  renderStrategy = 'z',
+  letBinding = 'o'
 }
 
 const instructionTypeValues = 'abcdefghijkl';
@@ -107,7 +106,6 @@ export type TargetedInstruction =
   IHydrateElementInstruction |
   IHydrateAttributeInstruction |
   IHydrateTemplateController |
-  IRenderStrategyInstruction |
   ILetElementInstruction;
 
 export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
@@ -202,11 +200,6 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   instructions: TargetedInstruction[];
   def: ITemplateDefinition;
   link?: boolean;
-}
-
-export interface IRenderStrategyInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.renderStrategy;
-  name: string;
 }
 
 export interface ILetElementInstruction extends ITargetedInstruction {

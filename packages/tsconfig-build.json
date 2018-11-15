@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowJs": false,
+    "alwaysStrict": true,
     "composite": true,
     "declaration": true,
     "declarationMap": true,

@@ -56,8 +56,6 @@ import {
   VariableStatement
 } from 'typescript';
 
-// tslint:disable:unified-signatures
-
 export function emit(path: string, ...nodes: Node[]): void {
   const emptyFile: SourceFile = createSourceFile('', '', ScriptTarget.Latest);
   const printer: Printer = createPrinter({ removeComments: false });

@@ -59,9 +59,7 @@ export interface IContainer extends IServiceLocator {
   register(...params: Record<string, Partial<IRegistry>>[]): void;
   register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void;
   register(registry: Record<string, Partial<IRegistry>>): void;
-  // tslint:disable-next-line:unified-signatures
   register(registry: IRegistry): void;
-  // tslint:disable-next-line:unified-signatures
   register(registry: IRegistry | Record<string, Partial<IRegistry>>): void;
 
   registerResolver<T>(key: Key<T>, resolver: IResolver<T>): IResolver<T>;

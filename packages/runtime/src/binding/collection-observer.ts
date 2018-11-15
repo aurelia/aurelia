@@ -1,11 +1,11 @@
 import {
-  BindingFlags, Collection, CollectionKind, CollectionObserver,
-  IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber, MutationKind
+  Collection, CollectionKind, CollectionObserver, IBindingTargetObserver,
+  ICollectionObserver, IndexMap, IPropertySubscriber, LifecycleFlags, MutationKind
 } from '../observation';
 import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';
 
-function flushChanges(this: CollectionObserver): void {
+function flush(this: CollectionObserver): void {
   this.callBatchedSubscribers(this.indexMap);
   this.resetIndexMap();
 }
@@ -46,13 +46,15 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
     batchedSubscriberCollection()(target);
     const proto = <CollectionObserver>target.prototype;
 
+    proto.$nextFlush = null;
+
     proto.collection = null;
     proto.indexMap = null;
     proto.hasChanges = false;
     proto.lengthPropertyName = kind & CollectionKind.indexed ? 'length' : 'size';
     proto.collectionKind = kind;
     proto.resetIndexMap = kind & CollectionKind.indexed ? resetIndexMapIndexed : resetIndexMapKeyed;
-    proto.flushChanges = flushChanges;
+    proto.flush = flush;
     proto.dispose = dispose;
     proto.getLengthObserver = getLengthObserver;
 
@@ -69,7 +71,7 @@ export interface CollectionLengthObserver extends IBindingTargetObserver<any, st
 @targetObserver()
 export class CollectionLengthObserver implements CollectionLengthObserver {
   public currentValue: number;
-  public currentFlags: BindingFlags;
+  public currentFlags: LifecycleFlags;
 
   constructor(public obj: Collection, public propertyKey: 'length' | 'size') {
     this.currentValue = obj[propertyKey];

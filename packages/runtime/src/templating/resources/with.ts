@@ -1,11 +1,11 @@
 import { inject } from '@aurelia/kernel';
 import { Scope } from '../../binding/binding-context';
 import { IRenderLocation } from '../../dom';
-import { IAttachLifecycle, IDetachLifecycle, LifecycleState } from '../../lifecycle';
-import { BindingFlags } from '../../observation';
+import { IView, IViewFactory, State } from '../../lifecycle';
+import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
-import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IView, IViewFactory } from '../view';
+import { templateController } from '../custom-attribute';
+import { ICustomAttribute } from '../lifecycle-render';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')
@@ -17,35 +17,33 @@ export class With {
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {
     this.currentView = this.factory.create();
-    this.currentView.hold(location);
+    this.currentView.hold(location, LifecycleFlags.fromCreate);
   }
 
   public valueChanged(this: With): void {
-    if (this.$state & LifecycleState.isBound) {
-      this.bindChild(BindingFlags.fromBindableHandler);
+    if (this.$state & State.isBound) {
+      this.bindChild(LifecycleFlags.fromBindableHandler);
     }
   }
 
-  public binding(flags: BindingFlags): void {
+  public binding(flags: LifecycleFlags): void {
     this.bindChild(flags);
   }
 
-  public attaching(encapsulationSource: any, lifecycle: IAttachLifecycle): void {
-    this.currentView.$attach(encapsulationSource, lifecycle);
+  public attaching(flags: LifecycleFlags): void {
+    this.currentView.$attach(flags);
   }
 
-  public detaching(lifecycle: IDetachLifecycle): void {
-    this.currentView.$detach(lifecycle);
+  public detaching(flags: LifecycleFlags): void {
+    this.currentView.$detach(flags);
   }
 
-  public unbinding(flags: BindingFlags): void {
+  public unbinding(flags: LifecycleFlags): void {
     this.currentView.$unbind(flags);
   }
 
-  private bindChild(flags: BindingFlags): void {
-    this.currentView.$bind(
-      flags,
-      Scope.fromParent(this.$scope, this.value)
-    );
+  private bindChild(flags: LifecycleFlags): void {
+    const scope = Scope.fromParent(this.$scope, this.value);
+    this.currentView.$bind(flags, scope);
   }
 }

@@ -1,46 +1,45 @@
-import { Statement, PropertyDeclaration, createConditional } from 'typescript';
+import { join } from 'path';
+import { createConditional, MethodDeclaration, Statement } from 'typescript';
+import project from '../project';
 import {
-  emit,
-  $property,
-  $$import,
-  $$functionDecl,
-  $call,
-  $$const,
-  $param,
+  $$assign,
   $$call,
-  $expression,
+  $$const,
+  $$functionDecl,
+  $$functionExpr,
+  $$import,
   $$new,
   $$return,
   $access,
+  $call,
   $class,
-  $$functionExpr,
+  $expression,
   $functionExpr,
+  $id,
   $method,
-  $$assign,
-  $id
+  $param,
+  $property,
+  emit
 } from './util';
-import project from '../project';
-import { join } from 'path';
-import { PLATFORM } from '../../packages/kernel/src/index';
 
-function outFile(suffix: string) {
+function outFile(suffix: string): string {
   return join(`${project.path}`, 'packages', 'jit', 'test', 'generated', `template-compiler.${suffix}.spec.ts`);
 }
 
-function $hook(name: string, mutation: Statement | Statement[], flush?: boolean, expectedBeforeFlush?: [any, any], expectedAfterFlush?: [any, any]) {
+function $hook(name: string, mutation: Statement | Statement[], flush?: boolean, expectedBeforeFlush?: [any, any], expectedAfterFlush?: [any, any]): MethodDeclaration {
   return $method(name, [
     ...Array.isArray(mutation) ? mutation : [mutation],
     ...expectedBeforeFlush ? [$$call(
       [$call('expect', ['this.el.textContent']), 'to.equal'],
       [createConditional($access('this.cycled'), $expression(expectedBeforeFlush[1]), $expression(expectedBeforeFlush[0])), $expression(`this.el.textContent during ${name}() before mutation${flush ? ' before flushChanges()' : ''}`)])] : [],
-    ...flush ? [$$call('cs.flushChanges')] : [],
+    ...flush ? [$$call('this.$lifecycle.processFlushQueue')] : [],
     ...expectedAfterFlush ? [$$call(
       [$call('expect', ['this.el.textContent']), 'to.equal'],
       [createConditional($access('this.cycled'), $expression(expectedAfterFlush[1]), $expression(expectedAfterFlush[0])), $expression(`this.el.textContent during ${name}() after mutation${flush ? ' after flushChanges()' : ''}`)])] : []
   ]);
 }
 
-function $$verify(start1ExpectedValue: any, start1ExpectedText: string, stop1ExpectedValue: any, start2ExpectedValue: any, start2ExpectedText: string, stop2ExpectedValue: any) {
+function $$verify(start1ExpectedValue: any, start1ExpectedText: string, stop1ExpectedValue: any, start2ExpectedValue: any, start2ExpectedText: string, stop2ExpectedValue: any): Statement[] {
   return [
     $$call('au.start'),
     $$call([$call('expect', ['host.textContent']), 'to.equal'], [$expression(start1ExpectedText), $expression('host.textContent after start #1')]),
@@ -57,13 +56,13 @@ function $$verify(start1ExpectedValue: any, start1ExpectedText: string, stop1Exp
   ];
 }
 
-function generateAndEmit() {
+function generateAndEmit(): void {
   const testsRecord = {
     'mutations.basic': [
       $$functionExpr('it', [
         $expression('works 1'),
         $functionExpr([
-          $$const(['au', 'host', 'cs'], $call('setup')),
+          $$const(['au', 'host'], $call('setup')),
           $$const('App', $call('CustomElementResource.define', [
             $expression({ name: 'app', template: `<template><foo></foo></template>` }),
             $class([])
@@ -74,8 +73,9 @@ function generateAndEmit() {
             $class([
               $property('items', $id('items')),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class Element{}], true),
+              $property('inject', [class Element {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -103,7 +103,7 @@ function generateAndEmit() {
       $$functionExpr('it', [
         $expression('works 2'),
         $functionExpr([
-          $$const(['au', 'host', 'cs'], $call('setup')),
+          $$const(['au', 'host'], $call('setup')),
           $$const('App', $call('CustomElementResource.define', [
             $expression({ name: 'app', template: `<template><foo></foo></template>` }),
             $class([])
@@ -114,8 +114,9 @@ function generateAndEmit() {
             $class([
               $property('items', $id('items')),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class Element{}], true),
+              $property('inject', [class Element {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -143,7 +144,7 @@ function generateAndEmit() {
       $$functionExpr('it', [
         $expression('works 3'),
         $functionExpr([
-          $$const(['au', 'host', 'cs'], $call('setup')),
+          $$const(['au', 'host'], $call('setup')),
           $$const('App', $call('CustomElementResource.define', [
             $expression({ name: 'app', template: `<template><foo></foo></template>` }),
             $class([])
@@ -155,8 +156,9 @@ function generateAndEmit() {
               $property('items', $id('items')),
               $property('mod', 2),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class Element{}], true),
+              $property('inject', [class Element {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -184,7 +186,7 @@ function generateAndEmit() {
       $$functionExpr('it', [
         $expression('works 4'),
         $functionExpr([
-          $$const(['au', 'host', 'cs'], $call('setup')),
+          $$const(['au', 'host'], $call('setup')),
           $$const('App', $call('CustomElementResource.define', [
             $expression({ name: 'app', template: `<template><foo></foo></template>` }),
             $class([])
@@ -196,8 +198,9 @@ function generateAndEmit() {
               $property('items', $id('items')),
               $property('mod', 2),
               $property('el'),
+              $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class Element{}], true),
+              $property('inject', [class Element {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -223,25 +226,26 @@ function generateAndEmit() {
         ])
       ])
     ]
-  }
+  };
   for (const suffix in testsRecord) {
     const tests = testsRecord[suffix];
     const nodes = [
       $$import('chai', 'expect'),
       $$import('../../../kernel/src/index', 'DI'),
-      $$import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode', 'IChangeSet'),
+      $$import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode', 'ILifecycle'),
       $$import('../../src/index', 'BasicConfiguration'),
       null,
       $$functionExpr('describe', [
         $expression(`generated.template-compiler.${suffix}`),
         $functionExpr([
-          $$functionDecl('setup', [
+          $$functionDecl(
+            'setup',
+            [
               $$const('container', $call('DI.createContainer')),
               $$call('container.register', ['BasicConfiguration']),
-              $$const('cs', $call('container.get', ['IChangeSet'])),
               $$new('au', 'Aurelia', ['container']),
               $$const('host', $call('DOM.createElement', [$expression('div')])),
-              $$return({ au: 'au', host: 'host', cs: 'cs' })
+              $$return({ au: 'au', host: 'host' })
             ],
             []
           ),
@@ -255,4 +259,3 @@ function generateAndEmit() {
 }
 
 generateAndEmit();
-

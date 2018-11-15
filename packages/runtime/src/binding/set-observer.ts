@@ -1,5 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, CollectionKind, IChangeSet, ICollectionObserver, IObservedSet } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { CollectionKind, ICollectionObserver, IObservedSet, LifecycleFlags } from '../observation';
 // tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
@@ -25,7 +26,7 @@ function observeAdd(this: IObservedSet, value: IIndexable | Primitive): ReturnTy
     return this;
   }
   o.indexMap[oldSize] = -2;
-  o.callSubscribers('add', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('add', arguments, LifecycleFlags.isCollectionMutation);
   return this;
 }
 
@@ -47,7 +48,7 @@ function observeClear(this: IObservedSet): ReturnType<typeof nativeClear>  {
     }
     nativeClear.call(this);
     indexMap.length = 0;
-    o.callSubscribers('clear', arguments, BindingFlags.isCollectionMutation);
+    o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
   }
   return undefined;
 }
@@ -74,7 +75,7 @@ function observeDelete(this: IObservedSet, value: IIndexable | Primitive): Retur
     }
     i++;
   }
-  o.callSubscribers('delete', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
   return false;
 }
 
@@ -101,18 +102,17 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 @collectionObserver(CollectionKind.set)
 export class SetObserver implements SetObserver {
   public resetIndexMap: () => void;
-  public changeSet: IChangeSet;
 
   public collection: IObservedSet;
 
-  constructor(changeSet: IChangeSet, set: IObservedSet) {
-    this.changeSet = changeSet;
-    set.$observer = this;
-    this.collection = set;
+  constructor(lifecycle: ILifecycle, observedSet: IObservedSet) {
+    this.lifecycle = lifecycle;
+    observedSet.$observer = this;
+    this.collection = observedSet;
     this.resetIndexMap();
   }
 }
 
-export function getSetObserver(changeSet: IChangeSet, set: IObservedSet): SetObserver {
-  return (set.$observer as SetObserver) || new SetObserver(changeSet, set);
+export function getSetObserver(lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver {
+  return (observedSet.$observer as SetObserver) || new SetObserver(lifecycle, observedSet);
 }

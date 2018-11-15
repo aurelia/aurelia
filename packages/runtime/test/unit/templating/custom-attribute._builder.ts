@@ -1,8 +1,8 @@
-import { customAttribute, IAttributeDefinition, IInternalCustomAttributeImplementation, templateController } from '../../../src/index';
+import { customAttribute, IAttributeDefinition, ICustomAttribute, templateController } from '../../../src/index';
 import { defineComponentLifecycleMock, IComponentLifecycleMock } from '../mock';
 import { Writable } from '@aurelia/kernel';
 
-export type CustomAttribute = Writable<IInternalCustomAttributeImplementation> & IComponentLifecycleMock;
+export type CustomAttribute = Writable<ICustomAttribute> & IComponentLifecycleMock;
 
 export function createCustomAttribute(nameOrDef: string | IAttributeDefinition = 'foo') {
   const Type = customAttribute(nameOrDef)(defineComponentLifecycleMock());

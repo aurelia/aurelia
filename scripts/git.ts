@@ -1,8 +1,8 @@
-import { exec } from "child_process";
+import { exec } from 'child_process';
 
-export async function getGitLog(from: string, to: string, path: string): Promise<string> {
+export async function getGitLog(fromRevision: string, toRevision: string, path: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
-    exec(`git log ${from}..${to} -- ${path}`, (err, stdout, stderr) => {
+    exec(`git log ${fromRevision}..${toRevision} -- ${path}`, (err, stdout, _stderr) => {
       if (err) {
         reject(err);
       }

@@ -1,25 +1,25 @@
 import { expect } from "chai";
 import { DI } from "../../../kernel/src/index";
-import { CustomElementResource, DOM, Aurelia, BindingMode, IChangeSet } from "../../../runtime/src/index";
+import { CustomElementResource, DOM, Aurelia, BindingMode, ILifecycle } from "../../../runtime/src/index";
 import { BasicConfiguration } from "../../src/index";
 
 describe("generated.template-compiler.mutations.basic", function () {
     function setup() {
         const container = DI.createContainer();
         container.register(BasicConfiguration);
-        const cs = container.get(IChangeSet);
         const au = new Aurelia(container);
         const host = DOM.createElement("div");
-        return { au, host, cs };
+        return { au, host };
     }
     it("works 1", function () {
-        const { au, host, cs } = setup();
+        const { au, host } = setup();
         const App = CustomElementResource.define({ name: "app", template: "<template><foo></foo></template>" }, class {
         });
         const items = [];
         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\">${item}</div></template>" }, class {
             items = items;
             el;
+            $lifecycle;
             cycled = false;
             static inject = [Element];
             constructor(el) {
@@ -35,18 +35,18 @@ describe("generated.template-compiler.mutations.basic", function () {
             attaching() {
                 this.items.push(3);
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
             }
             attached() {
                 this.items.push(4);
                 expect(this.el.textContent).to.equal(this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "123456781234" : "1234", "this.el.textContent during attached() after mutation after flushChanges()");
             }
             detaching() {
                 this.items.push(5);
                 expect(this.el.textContent).to.equal(this.cycled ? "123456781234" : "1234", "this.el.textContent during detaching() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "1234567812345" : "12345", "this.el.textContent during detaching() after mutation after flushChanges()");
             }
             detached() {
@@ -59,7 +59,7 @@ describe("generated.template-compiler.mutations.basic", function () {
                 this.items.push(8);
                 this.cycled = true;
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
             }
         });
@@ -80,13 +80,14 @@ describe("generated.template-compiler.mutations.basic", function () {
         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
     });
     it("works 2", function () {
-        const { au, host, cs } = setup();
+        const { au, host } = setup();
         const App = CustomElementResource.define({ name: "app", template: "<template><foo></foo></template>" }, class {
         });
         const items = [];
         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\">${item}</div></template>" }, class {
             items = items;
             el;
+            $lifecycle;
             cycled = false;
             static inject = [Element];
             constructor(el) {
@@ -121,7 +122,7 @@ describe("generated.template-compiler.mutations.basic", function () {
                 this.items.push(8);
                 this.cycled = true;
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
             }
         });
@@ -142,7 +143,7 @@ describe("generated.template-compiler.mutations.basic", function () {
         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
     });
     it("works 3", function () {
-        const { au, host, cs } = setup();
+        const { au, host } = setup();
         const App = CustomElementResource.define({ name: "app", template: "<template><foo></foo></template>" }, class {
         });
         const items = [];
@@ -150,6 +151,7 @@ describe("generated.template-compiler.mutations.basic", function () {
             items = items;
             mod = 2;
             el;
+            $lifecycle;
             cycled = false;
             static inject = [Element];
             constructor(el) {
@@ -165,18 +167,18 @@ describe("generated.template-compiler.mutations.basic", function () {
             attaching() {
                 this.items.push(3);
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
             }
             attached() {
                 this.items.push(4);
                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "24", "this.el.textContent during attached() after mutation after flushChanges()");
             }
             detaching() {
                 this.items.push(5);
                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "24", "this.el.textContent during detaching() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "24", "this.el.textContent during detaching() after mutation after flushChanges()");
             }
             detached() {
@@ -190,7 +192,7 @@ describe("generated.template-compiler.mutations.basic", function () {
                 this.cycled = true;
                 this.mod = 3;
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
             }
         });
@@ -211,7 +213,7 @@ describe("generated.template-compiler.mutations.basic", function () {
         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
     });
     it("works 4", function () {
-        const { au, host, cs } = setup();
+        const { au, host } = setup();
         const App = CustomElementResource.define({ name: "app", template: "<template><foo></foo></template>" }, class {
         });
         const items = [];
@@ -219,6 +221,7 @@ describe("generated.template-compiler.mutations.basic", function () {
             items = items;
             mod = 2;
             el;
+            $lifecycle;
             cycled = false;
             static inject = [Element];
             constructor(el) {
@@ -254,7 +257,7 @@ describe("generated.template-compiler.mutations.basic", function () {
                 this.cycled = true;
                 this.mod = 3;
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
-                cs.flushChanges();
+                this.$lifecycle.processFlushQueue();
                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
             }
         });

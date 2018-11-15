@@ -1,6 +1,6 @@
-import { ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, IObserverLocator, OneTimeBindingBehavior, Binding, BindingFlags, IExpression, BindingMode, IScope, IsBindingBehavior } from '../../src/index';
+import { ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, IObserverLocator, OneTimeBindingBehavior, Binding, LifecycleFlags, IExpression, BindingMode, IScope, IsBindingBehavior } from '../../src/index';
 import { expect } from 'chai';
-import { IContainer } from '../../../kernel/src/index';
+import { IContainer, DI } from '../../../kernel/src/index';
 
 const tests = [
   { Behavior: OneTimeBindingBehavior, mode: BindingMode.oneTime },
@@ -14,10 +14,10 @@ describe('BindingModeBehavior', () => {
   let target: any;
   let targetProperty: string;
   let observerLocator: IObserverLocator;
-  let container: IContainer;
+  let container: IContainer = DI.createContainer();
   let sut: OneTimeBindingBehavior;
   let binding: Binding;
-  let flags: BindingFlags;
+  let flags: LifecycleFlags;
   let scope: IScope;
 
   for (const { Behavior, mode } of tests) {
@@ -27,7 +27,7 @@ describe('BindingModeBehavior', () => {
       describe(Behavior.name, () => {
         beforeEach(() => {
           sut = new Behavior();
-          binding = new Binding(sourceExpression, target, targetProperty, initMode, observerLocator, container);
+          binding = new Binding(sourceExpression, target, targetProperty, initMode, observerLocator, <any>container);
           sut.bind(flags, scope, binding);
         });
 

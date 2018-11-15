@@ -1,13 +1,14 @@
 import { expect } from "chai";
 import { defineCustomElement } from "./prepare";
-import { IChangeSet, bindable, Aurelia } from "@aurelia/runtime";
+import { ILifecycle, bindable, Aurelia } from '../../../runtime/src/index';;
 import { baseSuite } from "./template-compiler.base";
 import { IContainer } from "@aurelia/kernel";
 import { trimFull } from "./util";
+import { LifecycleFlags } from '../../../runtime/src/index';
 
 const spec = 'template-compiler.repeater-if-else';
 
-const parentSuite = baseSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, any, string, [any[], string, string], string, number, any>(spec);
+const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, any, string, [any[], string, string], string, number, any>(spec);
 
 // repeater + if + custom element
 parentSuite.addDataSlot('f') // Template (custom element)
@@ -249,7 +250,7 @@ parentSuite.addDataSlot('i') // count
 
 parentSuite.addActionSlot('setup')
   .addAction(null, ctx => {
-    const { a: container, b: au, c: cs, d: host, f: template, g: [initialItems, ifText, elseText], h: markup, i: count } = ctx;
+    const { a: container, b: au, c: lifecycle, d: host, f: template, g: [initialItems, ifText, elseText], h: markup, i: count } = ctx;
     class Foo {
       @bindable public items: any[];
       @bindable public display: boolean;
@@ -264,69 +265,69 @@ parentSuite.addActionSlot('setup')
     const $App = defineCustomElement('app', markup, App);
     const component = new $App();
     au.app({ host, component }).start();
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
 
     ctx.e = component;
   });
 
-const mutations = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, any, string, [any[], string, string], string, number, any>();
-const removals = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, any, string, [any[], string, string], string, number, any>();
-const additions = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElement, any, string, [any[], string, string], string, number, any>();
+const mutations = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, any, string, [any[], string, string], string, number, any>();
+const removals = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, any, string, [any[], string, string], string, number, any>();
+const additions = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, any, string, [any[], string, string], string, number, any>();
 
 mutations.addActionSlot('mutate') // Tests/assertions
   // swap the if/else
   .addAction('01', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.display = true;
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(ifText.repeat(count));
   })
   // swap the if/else twice
   .addAction('02', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.display = true;
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
     component.display = false;
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
   })
   // assign items with the if/else swapped
   .addAction('03', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal('13'.repeat(count));
   })
   // change the if/else values of the items
   .addAction('04', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items[0].if = 5;
     component.items[0].else = 6;
     component.items[1].if = 7;
     component.items[1].else = 8;
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(('68' + elseText.slice(2)).repeat(count));
   })
   // reverse the items
   .addAction('05', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.reverse();
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((elseText.split('').reverse().join('')).repeat(count));
   })
   // reverse the items + swap the if/else
   .addAction('06', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.reverse();
     component.display = true;
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((ifText.split('').reverse().join('')).repeat(count));
   });
@@ -335,35 +336,35 @@ mutations.addActionSlot('mutate') // Tests/assertions
 removals.addActionSlot('remove')
   // assign an item less
   .addAction('01', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 'a', else: 'b'}];
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal('b'.repeat(count));
   })
   // assign an item less + swap the if/else
   .addAction('02', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 'a', else: 'b'}];
     component.display = true;
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal('a'.repeat(count));
   })
   // pop an item
   .addAction('03', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.pop();
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(elseText.slice(0, -1).repeat(count));
   })
   // pop an item + swap the if/else
   .addAction('04', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.pop();
     component.display = true;
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal(ifText.slice(0, -1).repeat(count));
   });
@@ -372,35 +373,35 @@ removals.addActionSlot('remove')
 additions.addActionSlot('add')
   // assign an item more
   .addAction('01', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = component.items.slice().concat({if: 'x', else: 'y'});
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((elseText+'y').repeat(count));
   })
   // assign an item more + swap the if/else
   .addAction('02', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items = [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}];
     component.display = true;
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal('ace'.repeat(count));
   })
   // push an item
   .addAction('03', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.push({if: 5, else: 6});
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((elseText + '6').repeat(count));
   })
   // push an item + swap the if/else
   .addAction('04', ctx => {
-    const { c: cs, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
+    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
     component.items.push({if: 5, else: 6});
     component.display = true;
-    cs.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((ifText + '5').repeat(count));
   })
@@ -408,9 +409,9 @@ additions.addActionSlot('add')
 for (const suite of [mutations, removals, additions]) {
   suite.addActionSlot('teardown')
     .addAction(null, ctx => {
-      const { b: au, c: cs, d: host } = ctx;
+      const { b: au, c: lifecycle, d: host } = ctx;
       au.stop();
-      expect(cs.size).to.equal(0);
+      expect(lifecycle['flushCount']).to.equal(0);
       expect(trimFull(host.textContent)).to.equal('');
     });
 

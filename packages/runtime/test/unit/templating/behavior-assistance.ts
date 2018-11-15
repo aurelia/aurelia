@@ -17,9 +17,10 @@ import {
   IHydrateElementInstruction,
   IRenderContext,
   View,
-  IChangeSet
+  ILifecycle,
+  Lifecycle
 } from "../../../src/index";
-import { DI, Registration, IContainer, Constructable } from '../../../../kernel/src/index';
+import { DI, Registration, IContainer, Constructable, IRegistry } from '../../../../kernel/src/index';
 import { ViewFactoryFake } from "./fakes/view-factory-fake";
 import { ViewFake } from "./fakes/view-fake";
 
@@ -30,6 +31,7 @@ function createRenderLocation() {
   return DOM.convertToRenderLocation(child);
 }
 interface IAttributeTestOptions {
+  lifecycle?: Lifecycle;
   container?: IContainer;
   target?: INode;
 }
@@ -37,7 +39,7 @@ interface IAttributeTestOptions {
 interface ICustomAttributeCreation<T extends Constructable> {
   attribute: InstanceType<T> & ICustomAttribute,
   location?: IRenderLocation,
-  cs: IChangeSet
+  lifecycle: Lifecycle
 }
 
 export function hydrateCustomAttribute<T extends Constructable>(
@@ -46,7 +48,10 @@ export function hydrateCustomAttribute<T extends Constructable>(
 ) : ICustomAttributeCreation<T> {
   const AttributeType: ICustomAttributeType = Type as any;
   const container = options.container || DI.createContainer();
-  const cs = container.get<IChangeSet>(IChangeSet);
+  if (options.lifecycle) {
+    Registration.instance(ILifecycle, options.lifecycle).register(container, ILifecycle);
+  }
+  const lifecycle = container.get(ILifecycle) as Lifecycle;
 
   let location: IRenderLocation = null;
 
@@ -62,31 +67,37 @@ export function hydrateCustomAttribute<T extends Constructable>(
     );
   } else {
     const hostProvider = new InstanceProvider();
-    hostProvider.prepare(
-      options.target || document.createElement('div')
-    );
+    hostProvider.prepare(options.target || document.createElement('div'));
 
-    DOM.registerElementResolver(
-      container,
-      hostProvider
-    );
+    DOM.registerElementResolver(container, hostProvider);
   }
 
   const attribute = container.get<InstanceType<T> & ICustomAttribute>(
     CustomAttributeResource.keyFrom(AttributeType.description.name)
   );
+  const renderingEngine = container.get(IRenderingEngine);
+  attribute.$hydrate(renderingEngine);
 
-  attribute.$hydrate(container.get(IRenderingEngine));
-
-  return { attribute, location, cs };
+  return { attribute, location, lifecycle } as ICustomAttributeCreation<T>;
+}
+interface IElementTestOptions {
+  lifecycle?: Lifecycle;
+  container?: IContainer;
 }
 
-export function hydrateCustomElement<T>(Type: Constructable<T>) {
+export function hydrateCustomElement<T>(
+  Type: Constructable<T>,
+  options: IAttributeTestOptions = {}
+) {
   const ElementType: ICustomElementType = Type as any;
-  const container = DI.createContainer();
+  const container = options.container || DI.createContainer();
+  if (options.lifecycle) {
+    Registration.instance(ILifecycle, options.lifecycle).register(container, ILifecycle);
+  }
+  const lifecycle = container.get(ILifecycle) as Lifecycle;
   const parent = DOM.createElement('div');
   const host = DOM.createElement(ElementType.description.name);
-  const renderable = new ViewFake();
+  const renderable = new ViewFake(lifecycle);
   const instruction: IHydrateElementInstruction = {
     type: TargetedInstructionType.hydrateElement,
     res: 'au-compose',
@@ -112,7 +123,8 @@ export function hydrateCustomElement<T>(Type: Constructable<T>) {
     CustomElementResource.keyFrom(ElementType.description.name)
   );
 
-  element.$hydrate(container.get(IRenderingEngine), host);
+  const renderingEngine = container.get(IRenderingEngine);
+  element.$hydrate(renderingEngine, host);
 
   return { element, parent };
 }

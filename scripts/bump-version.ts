@@ -1,15 +1,15 @@
-import project from './project';
-import { loadPackageJson, savePackageJson, loadPackageLockJson, savePackageLockJson } from './package.json';
-import { createLogger, c } from './logger';
 import { readFileSync, writeFileSync } from 'fs';
+import { c, createLogger } from './logger';
+import { loadPackageJson, savePackageJson } from './package.json';
+import project from './project';
 
 const log = createLogger('bump-version');
 
-export function getCurrentVersion() {
+export function getCurrentVersion(): {major: string; minor: string; patch: string} {
   const versionRegExp = /(\d+)\.(\d+)\.(\d+)($|\-)/;
   const match = project.lerna.version.match(versionRegExp);
   if (match === null) {
-    throw new Error( `lerna.json 'version' should match ${versionRegExp}`);
+    throw new Error(`lerna.json 'version' should match ${versionRegExp}`);
   }
   const major = match[1];
   const minor = match[2];
@@ -18,13 +18,12 @@ export function getCurrentVersion() {
   return { major, minor, patch };
 }
 
-export async function updateDependencyVersions(newVersion: string) {
-  const aureliaRegExp = /^@aurelia/
+export async function updateDependencyVersions(newVersion: string): Promise<void> {
+  const aureliaRegExp = /^@aurelia/;
   for (const { name, scopedName } of project.packages) {
     log(`updating dependencies for ${c.magentaBright(scopedName)}`);
     const pkg = await loadPackageJson('packages', name);
-    const pkgLock = await loadPackageLockJson('packages', name);
-    pkg.version = pkgLock.version = newVersion;
+    pkg.version = newVersion;
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
       for (const depName in deps) {
@@ -35,11 +34,10 @@ export async function updateDependencyVersions(newVersion: string) {
       }
     }
     await savePackageJson(pkg, 'packages', name);
-    await savePackageLockJson(pkgLock, 'packages', name);
   }
-  const lernaJson = JSON.parse(readFileSync(project["lerna.json"].path, { encoding: 'utf8' }));
+  const lernaJson = JSON.parse(readFileSync(project['lerna.json'].path, { encoding: 'utf8' }));
   lernaJson.version = newVersion;
-  writeFileSync(project["lerna.json"].path, JSON.stringify(lernaJson, null, 2), { encoding: 'utf8' });
+  writeFileSync(project['lerna.json'].path, JSON.stringify(lernaJson, null, 2), { encoding: 'utf8' });
 }
 
 export function getDate(sep?: string): string {

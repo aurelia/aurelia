@@ -1,5 +1,5 @@
 import { spy } from 'sinon';
-import { PLATFORM, Writable } from '../../../kernel/src/index';
+import { PLATFORM, Writable, DI } from '../../../kernel/src/index';
 import {
   noViewTemplate,
   ITemplate,
@@ -7,28 +7,20 @@ import {
   BindingContext,
   IViewFactory,
   IView,
-  DetachLifecycleController,
   ViewFactory,
-  BindingFlags,
-  View,
-  IAttachLifecycle,
-  INode,
-  AttachLifecycleController,
   LifecycleFlags,
-  IDetachLifecycle,
+  View,
+  ILifecycle,
+  INode,
   Lifecycle,
-  IAttachLifecycleController,
-  IDetachLifecycleController,
   IRenderLocation,
   INodeSequence,
   AccessScope,
-  IChangeSet,
-  LinkedChangeList,
   Scope,
   IRenderable,
   addBindable,
   addAttachable,
-  LifecycleState,
+  State,
   ObserverLocator,
   NodeSequence,
   INodeSequenceFactory
@@ -94,7 +86,7 @@ describe(`ViewFactory`, () => {
       ([text1, doNotOverride1], [text2, size2, isPositive2], [text3, doNotOverride3], [text4, size4, isPositive4]) => {
         it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, () => {
           const template = new StubTemplate()
-          const sut = new ViewFactory(null, template as any);
+          const sut = new ViewFactory(null, template as any, new Lifecycle());
           const view1 = new StubView();
           const view2 = new StubView();
 
@@ -155,70 +147,76 @@ const expressions = {
 
 describe(`View`, () => {
   eachCartesianJoinFactory<
-    [string, View, ITemplate, ViewFactory, IChangeSet, boolean],
-    [string, BindingFlags, IScope],
+    [string, ILifecycle, View, ITemplate, ViewFactory, boolean],
+    [string, LifecycleFlags, IScope],
     [string, (sut: View) => void],
     [string, IRenderLocation],
     [string, (sut: View) => void],
-    [string, INode, IAttachLifecycleController],
+    [string, INode],
     [string, (sut: View) => void],
     [string, (sut: View) => void],
-    [string, IDetachLifecycleController],
+    [string],
     [string, (sut: View) => void],
-    [string, BindingFlags],
+    [string, LifecycleFlags],
     [string, (sut: View) => void],
     void
   >(
     [
       [
         () => {
-          const cs = new LinkedChangeList();
-          const factory = new ViewFactory('foo', noViewTemplate);
+          const container = DI.createContainer();
+          const lifecycle = container.get(ILifecycle) as Lifecycle;
+          const factory = new ViewFactory('foo', noViewTemplate, lifecycle);
           factory.setCacheSize('*', true);
-          return [` noViewTemplate, viewFactory(cache=true )`, <View>factory.create(), noViewTemplate, factory, cs, true];
+          return [` noViewTemplate, viewFactory(cache=true )`, lifecycle, <View>factory.create(), noViewTemplate, factory, true];
         },
         () => {
-          const cs = new LinkedChangeList();
-          const factory = new ViewFactory('foo', noViewTemplate);
-          return [` noViewTemplate, viewFactory(cache=false)`, <View>factory.create(), noViewTemplate, factory, cs, false];
+          const container = DI.createContainer();
+          const lifecycle = container.get(ILifecycle) as Lifecycle;
+          const factory = new ViewFactory('foo', noViewTemplate, lifecycle);
+          return [` noViewTemplate, viewFactory(cache=false)`, lifecycle, <View>factory.create(), noViewTemplate, factory, false];
         },
         () => {
-          const cs = new LinkedChangeList();
-          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
-          const factory = new ViewFactory('foo', <any>template);
+          const container = DI.createContainer();
+          const lifecycle = container.get(ILifecycle) as Lifecycle;
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(lifecycle, null, null, null), container) as any;
+          const factory = new ViewFactory('foo', <any>template, lifecycle);
           factory.setCacheSize('*', true);
-          return [`textNodeTemplate, viewFactory(cache=true )`, <View>factory.create(), template, factory, cs, true];
+          return [`textNodeTemplate, viewFactory(cache=true )`, lifecycle, <View>factory.create(), template, factory, true];
         },
         () => {
-          const cs = new LinkedChangeList();
-          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
-          const factory = new ViewFactory('foo', <any>template);
-          return [`textNodeTemplate, viewFactory(cache=false)`, <View>factory.create(), template, factory, cs, false];
+          const container = DI.createContainer();
+          const lifecycle = container.get(ILifecycle) as Lifecycle;
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(lifecycle, null, null, null), container) as any;
+          const factory = new ViewFactory('foo', <any>template, lifecycle);
+          return [`textNodeTemplate, viewFactory(cache=false)`, lifecycle, <View>factory.create(), template, factory, false];
         },
         () => {
-          const cs = new LinkedChangeList();
-          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
-          const factory = new ViewFactory('foo', <any>template);
+          const container = DI.createContainer();
+          const lifecycle = container.get(ILifecycle) as Lifecycle;
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(lifecycle, null, null, null), container) as any;
+          const factory = new ViewFactory('foo', <any>template, lifecycle);
           const child = <View>factory.create();
           const sut = <View>factory.create();
           addBindable(sut, child);
           addAttachable(sut, child);
           factory.setCacheSize('*', true);
-          return [`textNodeTemplate, viewFactory(cache=true )`, sut, template, factory, cs, true];
+          return [`textNodeTemplate, viewFactory(cache=true )`, lifecycle, sut, template, factory, true];
         },
         () => {
-          const cs = new LinkedChangeList();
-          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
-          const factory = new ViewFactory('foo', <any>template);
+          const container = DI.createContainer();
+          const lifecycle = container.get(ILifecycle) as Lifecycle;
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(lifecycle, null, null, null), container) as any;
+          const factory = new ViewFactory('foo', <any>template, lifecycle);
           const child = <View>factory.create();
           const sut = <View>factory.create();
           addBindable(sut, child);
           addAttachable(sut, child);
-          return [`textNodeTemplate, viewFactory(cache=false)`, sut, template, factory, cs, false];
+          return [`textNodeTemplate, viewFactory(cache=false)`, lifecycle, sut, template, factory, false];
         }
       ],
       [
-        () => [`fromBind, {text:'foo'}`, BindingFlags.fromBind, Scope.create({text:'foo'}, null)]
+        () => [`fromBind, {text:'foo'}`, LifecycleFlags.fromBind, Scope.create({text:'foo'}, null)]
       ],
       [
         () => [`       noop`, PLATFORM.noop],
@@ -240,17 +238,17 @@ describe(`View`, () => {
           expect(sut.$scope).to.equal(newScope, 'sut.$scope');
           expect(sut).to.have.$state.isBound();
         }],
-        ([$11, $12, $13, $14, cs], [$21, flags, scope]) => [`$bind+flush`, (sut) => {
+        ([$11, lifecycle, $13, $14], [$21, flags, scope]) => [`$bind+flush`, (sut) => {
           sut.$bind(flags, scope);
 
           expect(sut.$scope).to.equal(scope, 'sut.$scope');
           expect(sut).to.have.$state.isBound();
           if (sut.$nodes.firstChild) {
             expect(sut.$nodes.firstChild.textContent).to.equal('foo', 'sut.$nodes.firstChild.textContent');
-            cs.flushChanges();
+            lifecycle.processFlushQueue(LifecycleFlags.none)
             expect(sut.$nodes.firstChild.textContent).to.equal('foo', 'sut.$nodes.firstChild.textContent');
             if (sut.$attachableHead) {
-              expect(sut.$attachableHead.$nodes.firstChild.textContent).to.equal('foo', 'sut.$attachableHead.$nodes.firstChild.textContent');
+              expect(sut.$attachableHead['$nodes'].firstChild.textContent).to.equal('foo', 'sut.$attachableHead.$nodes.firstChild.textContent');
             }
           }
         }]
@@ -271,9 +269,9 @@ describe(`View`, () => {
         () => [` noop`, PLATFORM.noop],
         ($1, $2, $3, [$41, location]) => [`mount`, (sut) => {
           if (!location.parentNode) {
-            expect(() => sut.hold(location)).to.throw(/60/);
+            expect(() => sut.hold(location, LifecycleFlags.none)).to.throw(/60/);
           } else {
-            sut.hold(location);
+            sut.hold(location, LifecycleFlags.none);
 
             expect(sut.location).to.equal(location, 'sut.location');
             if (sut.$nodes === NodeSequence.empty) {
@@ -283,7 +281,7 @@ describe(`View`, () => {
               expect(sut).to.have.$state.needsMount();
             }
             if (sut.$attachableHead) {
-              expect(sut.$attachableHead.location).to.equal(undefined, 'sut.$attachableHead.location');
+              expect(sut.$attachableHead['location']).to.equal(undefined, 'sut.$attachableHead.location');
             }
 
             expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
@@ -293,15 +291,17 @@ describe(`View`, () => {
         }]
       ],
       [
-        ([$11, $12, $13, $14, changeSet]) => {
+        ([$11, $12, $13, $14]) => {
           const encapsulationSource = document.createElement('div');
-          return [`AttachLifecycle(div, none)`, encapsulationSource, Lifecycle.beginAttach(changeSet, encapsulationSource, LifecycleFlags.none)]
+          return [`Lifecycle(div, none)`, encapsulationSource]
         }
       ],
       [
         () => [`   noop`, PLATFORM.noop],
-        ([$11, $12, template, $14, cs], $2, $3, [$41, location], $5, [$61, source, lifecycle]) => [`$attach`, (sut) => {
-          lifecycle.attach(sut).end();
+        ([$11, lifecycle, sut, template], $2, $3, [$41, location], $5, [$61, source]) => [`$attach`, (sut) => {
+          lifecycle.beginAttach();
+          sut.$attach(LifecycleFlags.none);
+          lifecycle.endAttach(LifecycleFlags.none);
 
           expect(sut).to.have.$state.isAttached('sut.$isAttached');
           //expect(sut.$encapsulationSource).to.equal(source);
@@ -316,7 +316,7 @@ describe(`View`, () => {
               expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
             } else {
               expect(location.parentNode.childNodes.length).to.equal(2);
-              if (cs.size > 0 || !(sut.$state & LifecycleState.isBound)) {
+              if (lifecycle.flushCount > 0 || !(sut.$state & State.isBound)) {
                 expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
               } else {
                 expect(location.parentNode.textContent).to.equal('foo', 'location.parentNode.textContent');
@@ -326,32 +326,37 @@ describe(`View`, () => {
 
           // verify short-circuit if already attached
           //const def = sut.$encapsulationSource;
-          sut.$encapsulationSource = null;
-          sut.$attach(source, <any>lifecycle);
-          expect(sut.$encapsulationSource).to.equal(null, 'sut.$encapsulationSource');
+          //sut.$encapsulationSource = null;
+          lifecycle.beginAttach();
+          sut.$attach(LifecycleFlags.none);
+          lifecycle.endAttach(LifecycleFlags.none);
+          //expect(sut.$encapsulationSource).to.equal(null, 'sut.$encapsulationSource');
           //sut.$encapsulationSource = def;
         }]
       ],
       [
         () => [`   noop`, PLATFORM.noop],
         ([$11, $12, $13, $14, $15, cache], $2, $3, $4, $5, $6, $7) => [`release`, (sut) => {
-          expect(sut.release()).to.equal(cache, 'sut.release()');
+          expect(sut.release(LifecycleFlags.none)).to.equal(cache, 'sut.release()');
         }]
       ],
       [
-        ([$11, $12, $13, $14, changeSet]) => [`DetachLifecycle(none)`, new DetachLifecycleController(changeSet, LifecycleFlags.none)]
+        ([$11, $12, $13, $14, lifecycle]) => [`Lifecycle(none)`]
       ],
       [
         () => [`   noop`, PLATFORM.noop],
-        ([$11, $12, template, factory, cs, cache], $2, $3, [$41, location], $5, [$61, source], [$71, attach], [$81, release], [$91, lifecycle]) => [`$detach`, (sut) => {
-          lifecycle.detach(sut).end();
+        ([$11, lifecycle, sut, template, factory, cache], $2, $3, [$41, location], $5, [$61, source], [$71, attach], [$81, release], [$91]) => [`$detach`, (sut) => {
+          lifecycle.beginDetach();
+          sut.$detach(LifecycleFlags.none);
+          lifecycle.endDetach(LifecycleFlags.none);
+
 
           expect(sut).to.not.have.$state.isAttached('sut.$isAttached');
           if (attach === PLATFORM.noop) {
             //expect(sut.$encapsulationSource).to.be.undefined;
 
             // verify short-circuit if already detached
-            const s = spy(lifecycle, <any>'queueUnmount');
+            const s = spy(lifecycle, <any>'enqueueUnmount');
             sut.$detach(<any>lifecycle);
             expect(s).not.to.have.been.called;
             s.restore();
@@ -379,7 +384,7 @@ describe(`View`, () => {
         }]
       ],
       [
-        () => [`fromUnbind`, BindingFlags.fromBind]
+        () => [`fromUnbind`, LifecycleFlags.fromBind]
       ],
       [
         () => [`   noop`, PLATFORM.noop],
@@ -395,8 +400,8 @@ describe(`View`, () => {
         }]
       ]
     ],
-    ([t1, sut], [t2], [t3, bind], [t4], [t5, mount], [t6], [t7, attach], [t8, release], [t9], [t10, detach], [t11], [t12, unbind]) => {
-      it(`create(${t1}) -> ${t3}(${t2}) -> ${t5}(${t4}) -> ${t7}(${t6}) -> ${t8}() -> ${t10}(${t9}) -> ${t12}(${t11})`, () => {
+    ([t01, t02, sut], [t2], [t3, bind], [t4], [t5, mount], [t6], [t7, attach], [t8, release], [t9], [t10, detach], [t11], [t12, unbind]) => {
+      it(`create(${t01}) -> ${t3}(${t2}) -> ${t5}(${t4}) -> ${t7}(${t6}) -> ${t8}() -> ${t10}(${t9}) -> ${t12}(${t11})`, () => {
         bind(sut);
         mount(sut);
         attach(sut);

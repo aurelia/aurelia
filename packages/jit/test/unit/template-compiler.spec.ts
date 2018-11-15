@@ -618,7 +618,7 @@ describe(`TemplateCompiler - combinations`, () => {
   function setup(...globals: IRegistry[]) {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
-    const expressionParser = container.get<IExpressionParser>(IExpressionParser);
+    const expressionParser = container.get(IExpressionParser);
     const sut = new TemplateCompiler(expressionParser as any, elParser, attrParser);
     const resources = new RuntimeCompilationResources(<any>container);
     return { container, expressionParser, sut, resources }

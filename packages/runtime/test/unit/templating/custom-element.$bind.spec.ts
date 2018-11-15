@@ -1,4 +1,4 @@
-import { LifecycleHooks, BindingFlags, Scope, IRuntimeBehavior, LifecycleState } from '../../../src/index';
+import { Hooks, LifecycleFlags, Scope, State } from '../../../src/index';
 import { eachCartesianJoin } from '../util';
 import { CustomElement, createCustomElement } from './custom-element._builder';
 
@@ -12,7 +12,7 @@ describe('@customElement', () => {
         expectation: 'does NOT call behaviors',
         callsBehaviors: false,
         setProps(sut: CustomElement) {
-          sut.$state |= LifecycleState.isBound;
+          sut.$state |= State.isBound;
         }
       },
       {
@@ -20,102 +20,102 @@ describe('@customElement', () => {
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomElement) {
-          sut.$state &= ~LifecycleState.isBound;
+          sut.$state &= ~State.isBound;
         }
       }
     ];
 
     const flagsSpecs = [
       {
-        description: 'flags: BindingFlags.fromBind',
+        description: 'flags: LifecycleFlags.fromBind',
         expectation: 'passed-through flags: fromBind',
         getFlags() {
-          return BindingFlags.fromBind;
+          return LifecycleFlags.fromBind;
         },
         getExpectedFlags() {
-          return BindingFlags.fromBind;
+          return LifecycleFlags.fromBind;
         }
       },
       {
-        description: 'flags: BindingFlags.fromUnbind',
+        description: 'flags: LifecycleFlags.fromUnbind',
         expectation: 'passed-through flags: fromBind|fromUnbind',
         getFlags() {
-          return BindingFlags.fromUnbind;
+          return LifecycleFlags.fromUnbind;
         },
         getExpectedFlags() {
-          return BindingFlags.fromBind | BindingFlags.fromUnbind;
+          return LifecycleFlags.fromBind | LifecycleFlags.fromUnbind;
         }
       },
       {
-        description: 'flags: BindingFlags.updateTargetInstance',
+        description: 'flags: LifecycleFlags.updateTargetInstance',
         expectation: 'passed-through flags: fromBind|updateTargetInstance',
         getFlags() {
-          return BindingFlags.updateTargetInstance;
+          return LifecycleFlags.updateTargetInstance;
         },
         getExpectedFlags() {
-          return BindingFlags.fromBind | BindingFlags.updateTargetInstance;
+          return LifecycleFlags.fromBind | LifecycleFlags.updateTargetInstance;
         }
       }
     ];
 
-    const behaviorSpecs = [
+    const hooksSpecs = [
       {
-        description: '$behavior.hasBinding: true, $behavior.hasBound: false',
+        description: 'Hooks.hasBinding',
         expectation: 'calls binding(), does NOT call bound()',
-        getBehavior() {
-          return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasBinding };
+        getHooks() {
+          return Hooks.hasBinding;
         },
-        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
           sut.verifyBindingCalled(flags);
           sut.verifyNoFurtherCalls();
         }
       },
       {
-        description: '$behavior.hasBinding: false, $behavior.hasBound: false',
+        description: 'Hooks.none',
         expectation: 'does NOT call binding(), does NOT call bound()',
-        getBehavior() {
-          return <IRuntimeBehavior>{ hooks: LifecycleHooks.none};
+        getHooks() {
+          return Hooks.none;
         },
-        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
           sut.verifyNoFurtherCalls();
         }
       },
       {
-        description: '$behavior.hasBinding: true, $behavior.hasBound: true',
+        description: 'Hooks.hasBinding | Hooks.hasBound',
         expectation: 'calls binding(), calls bound()',
-        getBehavior() {
-          return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasBinding | LifecycleHooks.hasBound };
+        getHooks() {
+          return Hooks.hasBinding | Hooks.hasBound;
         },
-        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
           sut.verifyBoundCalled(flags);
           sut.verifyBindingCalled(flags);
           sut.verifyNoFurtherCalls();
         }
       },
       {
-        description: '$behavior.hasBinding: false, $behavior.hasBound: true',
+        description: 'Hooks.hasBound',
         expectation: 'does NOT call binding(), calls bound()',
-        getBehavior() {
-          return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasBound};
+        getHooks() {
+          return Hooks.hasBound;
         },
-        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
           sut.verifyBoundCalled(flags);
           sut.verifyNoFurtherCalls();
         }
       }
     ];
 
-    eachCartesianJoin([propsAndScopeSpecs, flagsSpecs, behaviorSpecs],
-      (psSpec, flagsSpec, behaviorSpec) => {
+    eachCartesianJoin([propsAndScopeSpecs, flagsSpecs, hooksSpecs],
+      (psSpec, flagsSpec, hooksSpec) => {
 
-      it(`${psSpec.expectation} if ${psSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
+      it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
         sut.$scope = Scope.create(sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
-        sut.$behavior = behaviorSpec.getBehavior();
+        sut.$hooks = hooksSpec.getHooks();
         const expectedFlags = flagsSpec.getExpectedFlags();
         const flags = flagsSpec.getFlags();
 
@@ -124,7 +124,7 @@ describe('@customElement', () => {
 
         // Assert
         if (psSpec.callsBehaviors) {
-          behaviorSpec.verifyBehaviorInvocation(sut, expectedFlags);
+          hooksSpec.verifyBehaviorInvocation(sut, expectedFlags);
         } else {
           sut.verifyNoFurtherCalls();
         }
@@ -140,7 +140,7 @@ describe('@customElement', () => {
         expectation: 'does NOT call behaviors',
         callsBehaviors: false,
         setProps(sut: CustomElement) {
-          sut.$state &= ~LifecycleState.isBound;
+          sut.$state &= ~State.isBound;
         }
       },
       {
@@ -148,65 +148,65 @@ describe('@customElement', () => {
         expectation: 'calls behaviors',
         callsBehaviors: true,
         setProps(sut: CustomElement) {
-          sut.$state |= LifecycleState.isBound;
+          sut.$state |= State.isBound;
         }
       }
     ];
 
-    const flagsSpec = [
+    const flagsSpecs = [
       {
-        description: 'flags: BindingFlags.fromBind',
+        description: 'flags: LifecycleFlags.fromBind',
         expectation: 'passed-through flags: fromUnbind|fromBind',
-        getFlags() { return BindingFlags.fromUnbind; },
-        getExpectedFlags() { return BindingFlags.fromUnbind; }
+        getFlags() { return LifecycleFlags.fromUnbind; },
+        getExpectedFlags() { return LifecycleFlags.fromUnbind; }
       },
       {
-        description: 'flags: BindingFlags.fromUnbind',
+        description: 'flags: LifecycleFlags.fromUnbind',
         expectation: 'passed-through flags: fromUnbind',
-        getFlags() { return BindingFlags.fromUnbind; },
-        getExpectedFlags() { return BindingFlags.fromUnbind | BindingFlags.fromUnbind; }
+        getFlags() { return LifecycleFlags.fromUnbind; },
+        getExpectedFlags() { return LifecycleFlags.fromUnbind | LifecycleFlags.fromUnbind; }
       },
       {
-        description: 'flags: BindingFlags.updateTargetInstance',
+        description: 'flags: LifecycleFlags.updateTargetInstance',
         expectation: 'passed-through flags: fromUnbind|updateTargetInstance',
-        getFlags() { return BindingFlags.updateTargetInstance; },
-        getExpectedFlags() { return BindingFlags.fromUnbind | BindingFlags.updateTargetInstance; }
+        getFlags() { return LifecycleFlags.updateTargetInstance; },
+        getExpectedFlags() { return LifecycleFlags.fromUnbind | LifecycleFlags.updateTargetInstance; }
       }
     ];
 
-    const behaviorSpecs = [
+    const hooksSpecs = [
       {
-        description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: false',
+        description: 'Hooks.hasUnbinding',
         expectation: 'calls unbinding(), does NOT call unbound()',
-        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasUnbinding }; },
-        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+        getHooks() { return Hooks.hasUnbinding },
+        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
           sut.verifyUnbindingCalled(flags);
           sut.verifyNoFurtherCalls();
         }
       },
       {
-        description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: false',
+        description: 'Hooks.none',
         expectation: 'does NOT call unbinding(), does NOT call unbound()',
-        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.none }; },
-        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+        getHooks() { return Hooks.none },
+        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
           sut.verifyNoFurtherCalls();
         }
       },
       {
-        description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: true',
+        description: 'Hooks.hasUnbinding | Hooks.hasUnbound',
         expectation: 'calls unbinding(), calls unbound()',
-        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasUnbinding | LifecycleHooks.hasUnbound }; },
-        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+        getHooks() { return Hooks.hasUnbinding | Hooks.hasUnbound },
+        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyUnbindingCalled(flags);
           sut.verifyNoFurtherCalls();
         }
       },
       {
-        description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: true',
+        description: 'Hooks.hasUnbound',
         expectation: 'does NOT call unbinding(), calls unbound()',
-        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasUnbound}; },
-        verifyBehaviorInvocation(sut: CustomElement, flags: BindingFlags) {
+        getHooks() { return Hooks.hasUnbound},
+        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyNoFurtherCalls();
         }
@@ -214,17 +214,17 @@ describe('@customElement', () => {
     ];
 
 
-    eachCartesianJoin([propsAndScopeSpecs, flagsSpec, behaviorSpecs],
-      (psSpec, flagsSpec, behaviorSpec) => {
+    eachCartesianJoin([propsAndScopeSpecs, flagsSpecs, hooksSpecs],
+      (psSpec, flagsSpec, hooksSpec) => {
 
-      it(`${psSpec.expectation} if ${psSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
+      it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
         sut.$scope = Scope.create(sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
-        sut.$behavior = behaviorSpec.getBehavior();
+        sut.$hooks = hooksSpec.getHooks();
         const expectedFlags = flagsSpec.getExpectedFlags();
         const flags = flagsSpec.getFlags();
 
@@ -233,7 +233,7 @@ describe('@customElement', () => {
 
         // Assert
         if (psSpec.callsBehaviors) {
-          behaviorSpec.verifyBehaviorInvocation(sut, expectedFlags);
+          hooksSpec.verifyBehaviorInvocation(sut, expectedFlags);
         } else {
           sut.verifyNoFurtherCalls();
         }

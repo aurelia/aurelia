@@ -1,15 +1,14 @@
 import { inject } from '@aurelia/kernel';
-import { INode, IRenderLocation } from '../../dom';
-import { IAttachLifecycle, IDetachLifecycle } from '../../lifecycle';
-import { BindingFlags, IChangeSet } from '../../observation';
+import { IRenderLocation } from '../../dom';
+import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
+import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
-import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IView, IViewFactory } from '../view';
-import { CompositionCoordinator } from './composition-coordinator';
+import { templateController } from '../custom-attribute';
+import { ICustomAttribute } from '../lifecycle-render';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')
-@inject(IChangeSet, IViewFactory, IRenderLocation)
+@inject(IViewFactory, IRenderLocation, CompositionCoordinator)
 export class If {
   @bindable public value: boolean = false;
 
@@ -17,66 +16,64 @@ export class If {
 
   public ifView: IView = null;
   public elseView: IView = null;
-  public coordinator: CompositionCoordinator;
 
   constructor(
-    public readonly changeSet: IChangeSet,
     public ifFactory: IViewFactory,
-    public location: IRenderLocation) {
-    this.coordinator = new CompositionCoordinator(this.changeSet);
-  }
+    public location: IRenderLocation,
+    public coordinator: CompositionCoordinator) { }
 
-  public binding(flags: BindingFlags): void {
-    const view = this.updateView();
-    this.coordinator.compose(view);
+  public binding(flags: LifecycleFlags): void {
+    const view = this.updateView(flags);
+    this.coordinator.compose(view, flags);
     this.coordinator.binding(flags, this.$scope);
   }
 
-  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    this.coordinator.attaching(encapsulationSource, lifecycle);
+  public attaching(flags: LifecycleFlags): void {
+    this.coordinator.attaching(flags);
   }
 
-  public detaching(lifecycle: IDetachLifecycle): void {
-    this.coordinator.detaching(lifecycle);
+  public detaching(flags: LifecycleFlags): void {
+    this.coordinator.detaching(flags);
   }
 
-  public unbinding(flags: BindingFlags): void {
+  public unbinding(flags: LifecycleFlags): void {
     this.coordinator.unbinding(flags);
   }
 
-  public caching(): void {
-    if (this.ifView !== null && this.ifView.release()) {
+  public caching(flags: LifecycleFlags): void {
+    if (this.ifView !== null && this.ifView.release(flags)) {
       this.ifView = null;
     }
 
-    if (this.elseView !== null && this.elseView.release()) {
+    if (this.elseView !== null && this.elseView.release(flags)) {
       this.elseView = null;
     }
 
-    this.coordinator.caching();
+    this.coordinator.caching(flags);
   }
 
-  public valueChanged(newValue: boolean, oldValue: boolean, flags: BindingFlags): void {
-    if (flags & BindingFlags.fromFlushChanges) {
-      const view = this.updateView();
-      this.coordinator.compose(view);
+  public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
+    if (flags & LifecycleFlags.fromFlush) {
+      const view = this.updateView(flags);
+      this.coordinator.compose(view, flags);
     } else {
-      this.changeSet.add(this);
+      this.$lifecycle.enqueueFlush(this);
     }
   }
 
-  public flushChanges(): void {
-    const view = this.updateView();
-    this.coordinator.compose(view);
+  public flush(flags: LifecycleFlags): void {
+    const view = this.updateView(flags);
+    this.coordinator.compose(view, flags);
   }
 
-  private updateView(): IView {
+  /*@internal*/
+  public updateView(flags: LifecycleFlags): IView {
     let view: IView;
 
     if (this.value) {
-      view = this.ifView = this.ensureView(this.ifView, this.ifFactory);
+      view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
     } else if (this.elseFactory !== null) {
-      view = this.elseView  = this.ensureView(this.elseView, this.elseFactory);
+      view = this.elseView  = this.ensureView(this.elseView, this.elseFactory, flags);
     } else {
       view = null;
     }
@@ -84,16 +81,19 @@ export class If {
     return view;
   }
 
-  private ensureView(view: IView, factory: IViewFactory): IView {
+  /*@internal*/
+  public ensureView(view: IView, factory: IViewFactory, flags: LifecycleFlags): IView {
     if (view === null) {
       view = factory.create();
     }
 
-    view.hold(this.location);
+    view.hold(this.location, flags);
 
     return view;
   }
 }
+
+export interface Else extends ICustomAttribute {}
 
 @templateController('else')
 @inject(IViewFactory)

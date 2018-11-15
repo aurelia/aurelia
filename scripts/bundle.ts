@@ -1,14 +1,14 @@
 import { join } from 'path';
 import * as rollup from 'rollup';
-import project from './project';
 import resolve from 'rollup-plugin-node-resolve';
 import typescript2 from 'rollup-plugin-typescript2';
 import ts from 'typescript';
-import { createLogger, c } from './logger';
+import { c, createLogger } from './logger';
+import project from './project';
 
 const log = createLogger('bundle');
 
-async function bundle() {
+async function createBundle(): Promise<void> {
   const outputs = process.argv.slice(2)[0].split(',');
 
   // ensure the bundles are created in the correct order of dependency
@@ -31,7 +31,7 @@ async function bundle() {
   const count = packages.length;
   let cur = 0;
   for (const pkg of packages) {
-    const logPrefix = c.grey(`[${++cur}/${count}] ${pkg.scopedName}`)
+    const logPrefix = c.grey(`[${++cur}/${count}] ${pkg.scopedName}`);
     log(`${logPrefix} creating bundle`);
 
     const bundle = await rollup.rollup({
@@ -59,7 +59,7 @@ async function bundle() {
       external: project.packages.filter(p => p.name !== pkg.name).map(p => p.scopedName)
     });
 
-//'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd'
+    //'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd'
     if (outputs.indexOf('esm') === -1) {
       log(`${logPrefix} skipping esm`);
     } else {
@@ -109,10 +109,13 @@ async function bundle() {
         exports: 'named',
         name: pkg.jsName,
         globals: {
-          ...project.packages.reduce((g, pkg) => {
-            g[pkg.scopedName] = pkg.jsName;
-            return g;
-          }, {}),
+          ...project.packages.reduce(
+            (g, packg) => {
+              g[packg.scopedName] = packg.jsName;
+              return g;
+            },
+            {}
+          ),
           'tslib': 'tslib'
         },
         format: 'umd',
@@ -130,10 +133,13 @@ async function bundle() {
         exports: 'named',
         name: pkg.jsName,
         globals: {
-          ...project.packages.reduce((g, pkg) => {
-            g[pkg.scopedName] = pkg.jsName;
-            return g;
-          }, {}),
+          ...project.packages.reduce(
+            (g, packg) => {
+              g[packg.scopedName] = packg.jsName;
+              return g;
+            },
+            {}
+          ),
           'tslib': 'tslib'
         },
         format: 'amd',
@@ -151,10 +157,13 @@ async function bundle() {
         exports: 'named',
         name: pkg.fullName,
         globals: {
-          ...project.packages.reduce((g, pkg) => {
-            g[pkg.scopedName] = pkg.fullName;
-            return g;
-          }, {}),
+          ...project.packages.reduce(
+            (g, packg) => {
+              g[packg.scopedName] = packg.fullName;
+              return g;
+            },
+            {}
+          ),
           'tslib': 'tslib'
         },
         format: 'iife',
@@ -165,20 +174,19 @@ async function bundle() {
     log(`${logPrefix} ${c.greenBright('done')}`);
   }
 
-
   if (outputs.indexOf('iife') !== -1) {
     const logPrefix = c.grey(`au.bundle.js`);
 
     log(`${logPrefix} creating iife full bundle`);
 
-    const pkg = project.packages.find(p => p.name === 'jit');
+    const jitPkg = project.packages.find(p => p.name === 'jit');
 
     const bundle = await rollup.rollup({
-      input: join(pkg.src, 'index.full.ts'),
+      input: join(jitPkg.src, 'index.full.ts'),
       plugins: [
         resolve({ jsnext: true }),
         typescript2({
-          tsconfig: join(pkg.path, 'tsconfig.json'),
+          tsconfig: join(jitPkg.path, 'tsconfig.json'),
           typescript: ts,
           tsconfigOverride: {
             module: 'esnext',
@@ -192,7 +200,7 @@ async function bundle() {
       ]
     });
 
-    const fullBundle = pkg.iife.replace('jit', 'au.bundle');
+    const fullBundle = jitPkg.iife.replace('jit', 'au.bundle');
     log(`${logPrefix} writing iife - ${fullBundle}`);
 
     await bundle.write({
@@ -200,10 +208,13 @@ async function bundle() {
       exports: 'named',
       name: 'au',
       globals: {
-        ...project.packages.reduce((g, pkg) => {
-          g[pkg.scopedName] = pkg.fullName;
-          return g;
-        }, {}),
+        ...project.packages.reduce(
+          (g, packg) => {
+            g[packg.scopedName] = packg.fullName;
+            return g;
+          },
+          {}
+        ),
         'tslib': 'tslib'
       },
       format: 'iife',
@@ -212,4 +223,4 @@ async function bundle() {
   }
 }
 
-bundle();
+createBundle();

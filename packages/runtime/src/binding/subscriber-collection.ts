@@ -1,7 +1,7 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
 import {
-  BindingFlags, IBatchedCollectionSubscriber, IBatchedSubscriberCollection, IndexMap,
-  IPropertySubscriber, ISubscriberCollection, MutationKind, MutationKindToBatchedSubscriber,
+  IBatchedCollectionSubscriber, IBatchedSubscriberCollection, IndexMap, IPropertySubscriber,
+  ISubscriberCollection, LifecycleFlags, MutationKind, MutationKindToBatchedSubscriber,
   MutationKindToSubscriber, SubscriberFlags
 } from '../observation';
 
@@ -88,7 +88,7 @@ function callPropertySubscribers(
   this: ISubscriberCollection<MutationKind.instance>,
   newValue: IIndexable | Primitive,
   previousValue: IIndexable | Primitive,
-  flags: BindingFlags): void {
+  flags: LifecycleFlags): void {
   /**
    * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
    * callSubscribers invocation, so we're caching them all before invoking any.
@@ -112,8 +112,8 @@ function callPropertySubscribers(
   if (subscriber2 !== null) {
     subscriber2.handleChange(newValue, previousValue, flags);
   }
-  const length = subscribers && subscribers.length || 0;
-  if (length > 0) {
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
     for (let i = 0; i < length; ++i) {
       const subscriber = subscribers[i];
       if (subscriber !== null) {
@@ -123,7 +123,7 @@ function callPropertySubscribers(
   }
 }
 
-function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.collection> & Required<IBatchedSubscriberCollection<MutationKind.collection>>, origin: string, args: IArguments | null, flags: BindingFlags): void {
+function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.collection> & Required<IBatchedSubscriberCollection<MutationKind.collection>>, origin: string, args: IArguments | null, flags: LifecycleFlags): void {
   const subscriber0 = this._subscriber0;
   const subscriber1 = this._subscriber1;
   const subscriber2 = this._subscriber2;
@@ -140,8 +140,8 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
   if (subscriber2 !== null) {
     subscriber2.handleChange(origin, args, flags);
   }
-  const length = subscribers && subscribers.length || 0;
-  if (length > 0) {
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
     for (let i = 0; i < length; ++i) {
       const subscriber = subscribers[i];
       if (subscriber !== null) {
@@ -149,7 +149,7 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
       }
     }
   }
-  this.changeSet.add(this);
+  this.lifecycle.enqueueFlush(this);
 }
 
 function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>): boolean {
@@ -278,8 +278,8 @@ function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<Mut
   if (subscriber2 !== null) {
     subscriber2.handleBatchedChange(indexMap);
   }
-  const length = subscribers && subscribers.length || 0;
-  if (length > 0) {
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
     for (let i = 0; i < length; ++i) {
       const subscriber = subscribers[i];
       if (subscriber !== null) {

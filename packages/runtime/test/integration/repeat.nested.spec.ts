@@ -7,14 +7,14 @@ import {
   BindingIdentifier,
   Aurelia,
   Repeat,
-  IChangeSet,
+  ILifecycle,
   DOM,
   INode,
   ICustomElement,
   IExpressionParser,
   Binding,
   IObservedArray,
-  BindingFlags,
+  LifecycleFlags,
   AccessScope,
   AccessMember,
   ViewFactory,
@@ -22,11 +22,9 @@ import {
   RuntimeBehavior,
   ObserverLocator,
   Lifecycle,
-  LifecycleFlags,
-  LinkedChangeList,
   IView,
   Interpolation,
-  LifecycleState
+  State
 } from '../../src/index';
 import { IContainer, DI } from '../../../kernel/src/index';
 import { createAureliaRepeaterConfig, createRepeater } from '../unit/util';
@@ -57,22 +55,23 @@ function verifyViewBindingContexts(views: IView[], items: any[]): void {
 }
 
 function setup<T extends ObservedCollection>() {
-  const cs = new LinkedChangeList();
   const host = document.createElement('div');
   const location = document.createComment('au-loc');
   host.appendChild(location);
+  const container = DI.createContainer();
+  const lifecycle = container.get(ILifecycle) as Lifecycle;
 
-  const observerLocator = new ObserverLocator(cs, null, null, null);
-  const factory = new ViewFactory(null, <any>new MockIfElseTextNodeTemplate(expressions.show, observerLocator, cs));
+  const observerLocator = new ObserverLocator(lifecycle, null, null, null);
+  const factory = new ViewFactory(null, <any>new MockIfElseTextNodeTemplate(expressions.show, observerLocator, lifecycle, container), lifecycle);
   const renderable = { } as any;
-  const sut = new Repeat<T>(cs, location, renderable, factory);
-  renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null);
+  const sut = new Repeat<T>(location, renderable, factory);
+  renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, <any>container);
   sut.$state = 0;
   sut.$scope = null;
   const behavior = RuntimeBehavior.create(<any>Repeat, sut);
-  behavior.applyTo(sut, cs);
+  behavior.applyTo(sut, lifecycle);
 
-  return { sut, host, cs };
+  return { sut, host, lifecycle };
 }
 
 describe(`Repeat`, () => {
@@ -84,16 +83,18 @@ describe(`Repeat`, () => {
       () => [[{if:1,else:2},{if:3,else:4}],   2, false, `13`, `24`, `[{if:1,else:2},{if:3,else:4}] show=false`]
     ],
     // first operation "execute1" (initial bind + attach)
-    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
+    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string])[]>[
 
-      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
-        sut.$bind(BindingFlags.fromBind, createScopeForTest({ show }));
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, lifecycle) => {
+        sut.$bind(LifecycleFlags.fromBind, createScopeForTest({ show }));
 
         expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
         verifyViewBindingContexts(sut.views, items);
 
-        Lifecycle.beginAttach(cs, host, LifecycleFlags.none).attach(sut).end();
+        lifecycle.beginAttach();
+        sut.$attach(LifecycleFlags.none);
+        lifecycle.endAttach(LifecycleFlags.none);
 
         expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
         expect(sut.$scope.bindingContext.show).to.equal(show);
@@ -101,14 +102,16 @@ describe(`Repeat`, () => {
 
       }, `$bind(fromBind)  -> $attach(none)`],
 
-      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
-        sut.$bind(BindingFlags.fromFlushChanges, createScopeForTest({ show }));
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, lifecycle) => {
+        sut.$bind(LifecycleFlags.fromFlush, createScopeForTest({ show }));
 
         expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
         verifyViewBindingContexts(sut.views, items);
 
-        Lifecycle.beginAttach(cs, host, LifecycleFlags.none).attach(sut).end();
+        lifecycle.beginAttach();
+        sut.$attach(LifecycleFlags.none);
+        lifecycle.endAttach(LifecycleFlags.none);
 
         expect(sut.$scope.bindingContext.show).to.equal(show);
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute1, host.textContent`);
@@ -116,10 +119,10 @@ describe(`Repeat`, () => {
       }, `$bind(fromFlush) -> $attach(none)`]
     ],
     // second operation "execute2" (second bind or noop)
-    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
+    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string])[]>[
 
-      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
-        sut.$bind(BindingFlags.fromBind, sut.$scope);
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, lifecycle) => {
+        sut.$bind(LifecycleFlags.fromBind, sut.$scope);
 
         expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
         verifyViewBindingContexts(sut.views, items);
@@ -129,23 +132,23 @@ describe(`Repeat`, () => {
 
       }, `$bind(fromBind), same scope`],
 
-      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
-        sut.$bind(BindingFlags.fromBind, createScopeForTest({ show }));
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, lifecycle) => {
+        sut.$bind(LifecycleFlags.fromBind, createScopeForTest({ show }));
 
         expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
         verifyViewBindingContexts(sut.views, items);
 
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute2, host.textContent`);
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(sut.$scope.bindingContext.show).to.equal(show);
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute2, host.textContent`);
 
       }, `$bind(fromBind), new scope `],
 
-      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
-        sut.$bind(BindingFlags.fromFlushChanges, createScopeForTest({ show }));
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, lifecycle) => {
+        sut.$bind(LifecycleFlags.fromFlush, createScopeForTest({ show }));
 
         expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
         verifyViewBindingContexts(sut.views, items);
@@ -160,25 +163,25 @@ describe(`Repeat`, () => {
       }, `noop                       `]
     ],
     // third operation "execute3" (change value)
-    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
+    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string])[]>[
 
-      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, lifecycle) => {
         sut.$scope.bindingContext.show = !sut.$scope.bindingContext.show;
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(sut.$scope.bindingContext.show).not.to.equal(show);
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute3, host.textContent`);
 
       }, `show=!show    `],
 
-      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, lifecycle) => {
         sut.$scope.bindingContext.show = !sut.$scope.bindingContext.show;
         expect(sut.$scope.bindingContext.show).not.to.equal(show);
         sut.$scope.bindingContext.show = !sut.$scope.bindingContext.show;
         expect(sut.$scope.bindingContext.show).to.equal(show);
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute3, host.textContent`);
 
@@ -187,22 +190,22 @@ describe(`Repeat`, () => {
       // NOTE: these (and other tests) need to get fixed. Currently mutations don't appear to be picked up automatically.
       // Not sure yet whether this is a repeater problem or an if/else problem (or perhaps both)
 
-      // ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+      // ([items, count, show, trueValue, falseValue]) => [(sut, host, lifecycle) => {
       //   const newItems = sut.items = [{if:'a',else:'b'}];
-      //   sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+      //   sut.itemsChanged(newItems, items, LifecycleFlags.updateTargetInstance);
       //   verifyViewBindingContexts(sut.views, newItems);
 
-      //   cs.flushChanges();
+      //   lifecycle.processFlushQueue(LifecycleFlags.none)
 
       //   expect(sut.views.length).to.equal(1, `execute3, sut.views.length`);
       //   expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? 'a' : 'b', `execute3, host.textContent`);
 
       // }, `assign=[{if:'a',else:'b'}]`],
 
-      // ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+      // ([items, count, show, trueValue, falseValue]) => [(sut, host, lifecycle) => {
       //   sut.items.push({if:'a',else:'b'});
 
-      //   cs.flushChanges();
+      //   lifecycle.processFlushQueue(LifecycleFlags.none)
       //   verifyViewBindingContexts(sut.views, sut.items);
 
       //   expect(sut.views.length).to.equal(count + 1, `execute3, sut.views.length`);
@@ -216,12 +219,12 @@ describe(`Repeat`, () => {
     [exec2, exec2Text],
     [exec3, exec3Text]) => {
     it(`assign=${text1} -> ${exec1Text} -> ${exec2Text} -> ${exec3Text}`, () => {
-      const { sut, host, cs } = setup<IObservedArray>();
+      const { sut, host, lifecycle } = setup<IObservedArray>();
       sut.items = items1;
 
-      exec1(sut, host, cs);
-      exec2(sut, host, cs);
-      exec3(sut, host, cs);
+      exec1(sut, host, lifecycle);
+      exec2(sut, host, lifecycle);
+      exec3(sut, host, lifecycle);
     });
   });
 });
@@ -229,7 +232,7 @@ describe(`Repeat`, () => {
 
 describe('ArrayRepeater - render html', () => {
   let container: IContainer;
-  let changeSet: IChangeSet;
+  let lifecycle: ILifecycle;
   let au: Aurelia;
   let host: INode;
 
@@ -238,8 +241,8 @@ describe('ArrayRepeater - render html', () => {
 
   beforeEach(() => {
     container = DI.createContainer();
-    changeSet = container.get(IChangeSet);
-    au = new Aurelia(container);
+    lifecycle = container.get(ILifecycle);
+    au = new Aurelia(<any>container);
     host = DOM.createElement('app');
     DOM.appendChild(document.body, host);
   });
@@ -285,7 +288,7 @@ describe('ArrayRepeater - render html', () => {
         container.register(<any>Repeat);
       }
     };
-    au.register(aureliaConfig);
+    au.register(<any>aureliaConfig);
     const templateSource: ITemplateDefinition = {
       name: 'app',
       build: { required: false },
@@ -355,7 +358,7 @@ describe('ArrayRepeater - render html', () => {
 
     au.app({ host, component });
     au.start();
-    changeSet.flushChanges();
+    lifecycle.processFlushQueue(LifecycleFlags.none);
 
     const expectedText = initItems.map(i => `${i.id}${i.innerTodos.length}${i.innerTodos.map(ii => `${ii.innerId}${ii.innerInnerTodos.length}${ii.innerInnerTodos.map(iii => `${iii.innerInnerId}`).join('')}`).join(' ')}`).join(' ');
     expect(host['innerText'].trim()).to.equal(expectedText);

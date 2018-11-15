@@ -1,8 +1,8 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { BindingFlags, CollectionKind, IChangeSet, ICollectionObserver, IObservedMap } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
 import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
-// tslint:disable:no-reserved-keywords
 
 const proto = Map.prototype;
 export const nativeSet = proto.set; // TODO: probably want to make these internal again
@@ -35,7 +35,7 @@ function observeSet(this: IObservedMap, key: IIndexable | Primitive, value: IInd
     return this;
   }
   o.indexMap[oldSize] = -2;
-  o.callSubscribers('set', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('set', arguments, LifecycleFlags.isCollectionMutation);
   return this;
 }
 
@@ -57,7 +57,7 @@ function observeClear(this: IObservedMap): ReturnType<typeof nativeClear>  {
     }
     nativeClear.call(this);
     indexMap.length = 0;
-    o.callSubscribers('clear', arguments, BindingFlags.isCollectionMutation);
+    o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
   }
   return undefined;
 }
@@ -84,7 +84,7 @@ function observeDelete(this: IObservedMap, value: IIndexable | Primitive): Retur
     }
     i++;
   }
-  o.callSubscribers('delete', arguments, BindingFlags.isCollectionMutation);
+  o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
   return false;
 }
 
@@ -111,18 +111,18 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 @collectionObserver(CollectionKind.map)
 export class MapObserver implements MapObserver {
   public resetIndexMap: () => void;
-  public changeSet: IChangeSet;
+  public lifecycle: ILifecycle;
 
   public collection: IObservedMap;
 
-  constructor(changeSet: IChangeSet, map: IObservedMap) {
-    this.changeSet = changeSet;
+  constructor(lifecycle: ILifecycle, map: IObservedMap) {
+    this.lifecycle = lifecycle;
     map.$observer = this;
     this.collection = map;
     this.resetIndexMap();
   }
 }
 
-export function getMapObserver(changeSet: IChangeSet, map: IObservedMap): MapObserver {
-  return (map.$observer as MapObserver) || new MapObserver(changeSet, map);
+export function getMapObserver(lifecycle: ILifecycle, map: IObservedMap): MapObserver {
+  return (map.$observer as MapObserver) || new MapObserver(lifecycle, map);
 }

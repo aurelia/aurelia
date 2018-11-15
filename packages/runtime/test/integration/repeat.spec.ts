@@ -5,22 +5,22 @@ import {
   AccessScope,
   Binding,
   IObservedArray,
-  BindingFlags,
+  LifecycleFlags,
   BindingMode,
   ViewFactory,
   ObservedCollection,
   RuntimeBehavior,
   ObserverLocator,
   Lifecycle,
-  LifecycleFlags,
-  LinkedChangeList,
   IView,
-  LifecycleState
+  State,
+  ILifecycle
 } from '../../src/index';
 import { expect } from 'chai';
 import { MockTextNodeTemplate } from '../unit/mock';
 import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import { createScopeForTest } from '../unit/binding/shared';
+import { DI } from '../../../kernel/src/index';
 
 
 const expressions = {
@@ -45,23 +45,24 @@ function verifyViewBindingContexts(views: IView[], items: any[]): void {
 
 
 function setup<T extends ObservedCollection>() {
-  const cs = new LinkedChangeList();
+  const container = DI.createContainer();
+  const lifecycle = container.get(ILifecycle) as Lifecycle;
   const host = document.createElement('div');
   const location = document.createComment('au-loc');
   host.appendChild(location);
 
-  const observerLocator = new ObserverLocator(cs, null, null, null);
-  const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.item, observerLocator))
+  const observerLocator = new ObserverLocator(lifecycle, null, null, null);
+  const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.item, observerLocator, container), lifecycle)
   const renderable = { } as any;
-  const sut = new Repeat<T>(cs, location, renderable, factory);
-  renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null);
+  const sut = new Repeat<T>(location, renderable, factory);
+  renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, <any>container);
   sut.$state = 0;
   sut.$scope = null;
   const behavior = RuntimeBehavior.create(<any>Repeat, sut);
-  behavior.applyTo(sut, cs);
+  behavior.applyTo(sut, lifecycle);
 
 
-  return { sut, host, cs };
+  return { sut, host, lifecycle };
 }
 
 describe(`Repeat`, () => {
@@ -81,39 +82,39 @@ describe(`Repeat`, () => {
       () => [[1,2,3],   3, `123`  , `[1,2,3]  `]
     ],
     // first operation "execute1" (initial bind + attach)
-    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
+    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string])[]>[
 
-      ([items, count, expected]) => [(sut, host, cs) => {
-        sut.$bind(BindingFlags.fromBind, createScopeForTest({ }));
+      ([items, count, expected]) => [(sut, host, lifecycle) => {
+        sut.$bind(LifecycleFlags.fromBind, createScopeForTest({ }));
 
         expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
         verifyViewBindingContexts(sut.views, items);
 
-        Lifecycle.beginAttach(cs, host, LifecycleFlags.none).attach(sut).end();
+        sut.$attach(LifecycleFlags.none);
 
         expect(host.textContent).to.equal(expected, `execute1, host.textContent`);
 
       }, `$bind(fromBind)  -> $attach(none)`],
 
-      ([items, count, expected]) => [(sut, host, cs) => {
-        sut.$bind(BindingFlags.fromBind | BindingFlags.fromFlushChanges, createScopeForTest({ }));
+      ([items, count, expected]) => [(sut, host, lifecycle) => {
+        sut.$bind(LifecycleFlags.fromBind | LifecycleFlags.fromFlush, createScopeForTest({ }));
         verifyViewBindingContexts(sut.views, items);
 
         expect(sut.views.length).to.equal(count), `execute1, sut.views.length`;
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
 
-        Lifecycle.beginAttach(cs, host, LifecycleFlags.none).attach(sut).end();
+        sut.$attach(LifecycleFlags.none);
 
         expect(host.textContent).to.equal(expected, `execute1, host.textContent`);
 
       }, `$bind(fromFlush) -> $attach(none)`]
     ],
     // second operation "execute2" (second bind or noop)
-    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
+    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string])[]>[
 
       ([items, count, expected]) => [(sut, host) => {
-        sut.$bind(BindingFlags.fromBind, sut.$scope);
+        sut.$bind(LifecycleFlags.fromBind, sut.$scope);
         verifyViewBindingContexts(sut.views, items);
 
         expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
@@ -121,14 +122,14 @@ describe(`Repeat`, () => {
 
       }, `$bind(fromBind), same scope`],
 
-      ([items, count, expected]) => [(sut, host, cs) => {
-        sut.$bind(BindingFlags.fromBind, createScopeForTest({ }));
+      ([items, count, expected]) => [(sut, host, lifecycle) => {
+        sut.$bind(LifecycleFlags.fromBind, createScopeForTest({ }));
         verifyViewBindingContexts(sut.views, items);
 
         expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
         expect(host.textContent).to.equal(expected, `execute2, host.textContent`);
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
         expect(host.textContent).to.equal(expected, `execute2, host.textContent`);
@@ -136,7 +137,7 @@ describe(`Repeat`, () => {
       }, `$bind(fromBind), new scope `],
 
       ([items, count, expected]) => [(sut, host) => {
-        sut.$bind(BindingFlags.fromBind | BindingFlags.fromFlushChanges, createScopeForTest({ }));
+        sut.$bind(LifecycleFlags.fromBind | LifecycleFlags.fromFlush, createScopeForTest({ }));
         verifyViewBindingContexts(sut.views, items);
 
         expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
@@ -156,41 +157,41 @@ describe(`Repeat`, () => {
       ([items, count, expected, text]) => [items,   count, expected, text]
     ],
     // third operation "execute3" (assignment and/or mutation)
-    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
+    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string]) => [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string])[]>[
 
-      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, lifecycle) => {
         sut.items = newItems;
-        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        sut.itemsChanged(newItems, items, LifecycleFlags.updateTargetInstance);
         verifyViewBindingContexts(sut.views, newItems);
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length 1`);
         expect(host.textContent).to.equal(newExpected, `execute3, host.textContent 1`);
 
       }, `assign              `],
 
-      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, lifecycle) => {
         sut.items = newItems;
-        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        sut.itemsChanged(newItems, items, LifecycleFlags.updateTargetInstance);
         verifyViewBindingContexts(sut.views, newItems);
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length 1`);
         expect(host.textContent).to.equal(newExpected, `execute3, host.textContent 1`);
 
         if (!(Array.isArray(newItems)) || items === newItems) {
           const arr = sut.items = [];
-          sut.itemsChanged(arr, items, BindingFlags.updateTargetInstance);
+          sut.itemsChanged(arr, items, LifecycleFlags.updateTargetInstance);
 
-          cs.flushChanges();
+          lifecycle.processFlushQueue(LifecycleFlags.none)
 
           expect(sut.views.length).to.equal(0, `execute3, sut.views.length 2`);
           expect(host.textContent).to.equal('', `execute3, host.textContent 2`);
 
           sut.items.push(1);
-          cs.flushChanges();
+          lifecycle.processFlushQueue(LifecycleFlags.none)
 
           expect(sut.views.length).to.equal(1, `execute3, sut.views.length 3`);
           expect(host.textContent).to.equal('1', `execute3, host.textContent 3`);
@@ -199,7 +200,7 @@ describe(`Repeat`, () => {
           expect(host.textContent).to.equal(newExpected, `execute3, host.textContent 4`);
 
           sut.items.push(1);
-          cs.flushChanges();
+          lifecycle.processFlushQueue(LifecycleFlags.none)
 
           expect(sut.views.length).to.equal(newCount + 1, `execute3, sut.views.length 5`);
           expect(host.textContent).to.equal(newExpected + '1', `execute3, host.textContent 5`);
@@ -208,69 +209,69 @@ describe(`Repeat`, () => {
         let textParts = host.textContent.split('');
         textParts.reverse();
         sut.items.reverse();
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent 6`);
 
         textParts.sort();
         sut.items.sort();
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent 7`);
 
         textParts.pop();
         sut.items.pop();
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent 8`);
 
         textParts.unshift('1', '2', '3');
         sut.items.unshift(1, 2, 3);
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent 9`);
 
         textParts.splice(0, 2);
         sut.items.splice(0, 2);
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent 10`);
 
         textParts.splice(0, 1, '1', '2', '3');
         sut.items.splice(0, 1, 1, 2, 3);
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent 11`);
 
         textParts.shift();
         sut.items.shift();
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent 12`);
 
       }, `mutate       `],
 
-      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, lifecycle) => {
         sut.items = newItems;
-        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        sut.itemsChanged(newItems, items, LifecycleFlags.updateTargetInstance);
         verifyViewBindingContexts(sut.views, newItems);
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length 1`);
         expect(host.textContent).to.equal(newExpected, `execute3, host.textContent 1`);
 
         if (!(Array.isArray(newItems)) || items === newItems) {
           const arr = sut.items = [];
-          sut.itemsChanged(arr, items, BindingFlags.updateTargetInstance);
+          sut.itemsChanged(arr, items, LifecycleFlags.updateTargetInstance);
 
-          cs.flushChanges();
+          lifecycle.processFlushQueue(LifecycleFlags.none)
 
           expect(sut.views.length).to.equal(0, `execute3, sut.views.length 2`);
           expect(host.textContent).to.equal('', `execute3, host.textContent 2`);
 
           sut.items.push(1);
-          cs.flushChanges();
+          lifecycle.processFlushQueue(LifecycleFlags.none)
 
           expect(sut.views.length).to.equal(1, `execute3, sut.views.length 3`);
           expect(host.textContent).to.equal('1', `execute3, host.textContent 3`);
@@ -279,7 +280,7 @@ describe(`Repeat`, () => {
           expect(host.textContent).to.equal(newExpected, `execute3, host.textContent 4`);
 
           sut.items.push(1);
-          cs.flushChanges();
+          lifecycle.processFlushQueue(LifecycleFlags.none)
 
           expect(sut.views.length).to.equal(newCount + 1, `execute3, sut.views.length 5`);
           expect(host.textContent).to.equal(newExpected + '1', `execute3, host.textContent 5`);
@@ -330,34 +331,34 @@ describe(`Repeat`, () => {
         verifyViewBindingContexts(sut.views, itemsBeforeMutations);
         expect(host.textContent).to.equal(textBeforeMutations, `execute3, host.textContent 12`);
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         verifyViewBindingContexts(sut.views, sut.items);
         expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent 13`);
 
       }, `mutate(batch)`],
 
-      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, lifecycle) => {
         sut.items = newItems;
-        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        sut.itemsChanged(newItems, items, LifecycleFlags.updateTargetInstance);
         verifyViewBindingContexts(sut.views, newItems);
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length 1`);
         expect(host.textContent).to.equal(newExpected, `execute3, host.textContent 1`);
 
         if (!(Array.isArray(newItems)) || items === newItems) {
           const arr = sut.items = [];
-          sut.itemsChanged(arr, items, BindingFlags.updateTargetInstance);
+          sut.itemsChanged(arr, items, LifecycleFlags.updateTargetInstance);
 
-          cs.flushChanges();
+          lifecycle.processFlushQueue(LifecycleFlags.none)
 
           expect(sut.views.length).to.equal(0, `execute3, sut.views.length 2`);
           expect(host.textContent).to.equal('', `execute3, host.textContent 2`);
 
           sut.items.push(1);
-          cs.flushChanges();
+          lifecycle.processFlushQueue(LifecycleFlags.none)
 
           expect(sut.views.length).to.equal(1, `execute3, sut.views.length 3`);
           expect(host.textContent).to.equal('1', `execute3, host.textContent 3`);
@@ -366,7 +367,7 @@ describe(`Repeat`, () => {
           expect(host.textContent).to.equal(newExpected, `execute3, host.textContent 4`);
 
           sut.items.push(1);
-          cs.flushChanges();
+          lifecycle.processFlushQueue(LifecycleFlags.none)
 
           expect(sut.views.length).to.equal(newCount + 1, `execute3, sut.views.length 5`);
           expect(host.textContent).to.equal(newExpected + '1', `execute3, host.textContent 5`);
@@ -426,7 +427,7 @@ describe(`Repeat`, () => {
         verifyViewBindingContexts(sut.views, itemsBeforeMutations);
         expect(host.textContent).to.equal(textBeforeMutation, `execute3, host.textContent 12`);
 
-        cs.flushChanges();
+        lifecycle.processFlushQueue(LifecycleFlags.none)
 
         verifyViewBindingContexts(sut.views, sut.items);
         expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent 13`);
@@ -434,32 +435,37 @@ describe(`Repeat`, () => {
       }, `assign+mutate(batch)`]
     ],
     // fourth operation "execute4" (detach and unbind)
-    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
+    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string]) => [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string])[]>[
 
-      ([items, count], $2, $3, [newItems, newCount]) => [(sut, host, cs) => {
-        Lifecycle.beginDetach(cs, LifecycleFlags.none).detach(sut).end();
+      ([items, count], $2, $3, [newItems, newCount]) => [(sut, host, lifecycle) => {
+        lifecycle.beginDetach();
+        sut.$detach(LifecycleFlags.none);
+        lifecycle.endDetach(LifecycleFlags.none);
 
         const currentCount = sut.items && sut.items.length ? sut.items.length : sut.items === items ? count : sut.items === newItems ? newCount : 0;
 
         expect(sut.views.length).to.equal(currentCount, `execute4, sut.views.length 1`);
         expect(host.textContent).to.equal('', `execute4, host.textContent 1`);
 
-        sut.$unbind(BindingFlags.fromUnbind);
+        sut.$unbind(LifecycleFlags.fromUnbind);
 
         expect(sut.views.length).to.equal(currentCount, `execute4, sut.views.length 2`);
         expect(host.textContent).to.equal('', `execute4, host.textContent 2`);
 
       }, `$detach(none)   -> $unbind(fromUnbind)`],
 
-      ([items, count], $2, $3, [newItems, newCount]) => [(sut, host, cs) => {
-        Lifecycle.beginDetach(cs, LifecycleFlags.unbindAfterDetached).detach(sut).end();
+      ([items, count], $2, $3, [newItems, newCount]) => [(sut, host, lifecycle) => {
+        lifecycle.beginDetach();
+        sut.$detach(LifecycleFlags.none);
+        lifecycle.enqueueUnbindAfterDetach(sut);
+        lifecycle.endDetach(LifecycleFlags.none);
 
         const currentCount = sut.items && sut.items.length ? sut.items.length : sut.items === items ? count : sut.items === newItems ? newCount : 0;
 
         expect(sut.views.length).to.equal(currentCount, `execute4, sut.views.length 3`);
         expect(host.textContent).to.equal('', `execute4, host.textContent 3`);
 
-        sut.$unbind(BindingFlags.fromUnbind);
+        sut.$unbind(LifecycleFlags.fromUnbind);
 
         expect(sut.views.length).to.equal(currentCount, `execute4, sut.views.length 4`);
         expect(host.textContent).to.equal('', `execute4, host.textContent 4`);
@@ -467,10 +473,10 @@ describe(`Repeat`, () => {
       }, `$detach(unbind) -> $unbind(fromUnbind)`],
     ],
     // fifth operation "execute5" (second unbind)
-    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string]) => [(sut: Repeat, host: Node, cs: LinkedChangeList) => void, string])[]>[
+    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string]) => [(sut: Repeat, host: Node, lifecycle: Lifecycle) => void, string])[]>[
 
       ([items, count], $2, $3, [newItems, newCount]) => [(sut, host) => {
-        sut.$unbind(BindingFlags.fromUnbind);
+        sut.$unbind(LifecycleFlags.fromUnbind);
 
         const currentCount = sut.items && sut.items.length ? sut.items.length : sut.items === items ? count : sut.items === newItems ? newCount : 0;
 
@@ -488,14 +494,14 @@ describe(`Repeat`, () => {
     [exec4, exec4Text],
     [exec5, exec5Text]) => {
     it(`assign=${text1} -> ${exec1Text} -> ${exec2Text} -> assign=${text2} -> ${exec3Text} -> ${exec4Text} -> ${exec5Text}`, () => {
-      const { sut, host, cs } = setup<IObservedArray>();
+      const { sut, host, lifecycle } = setup<IObservedArray>();
       sut.items = items1;
 
-      exec1(sut, host, cs);
-      exec2(sut, host, cs);
-      exec3(sut, host, cs);
-      exec4(sut, host, cs);
-      exec5(sut, host, cs);
+      exec1(sut, host, lifecycle);
+      exec2(sut, host, lifecycle);
+      exec3(sut, host, lifecycle);
+      exec4(sut, host, lifecycle);
+      exec5(sut, host, lifecycle);
     });
   });
 });

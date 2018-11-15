@@ -1,7 +1,7 @@
 import {
   IView,
   IViewFactory,
-  BindingFlags,
+  LifecycleFlags,
   IScope,
   INode,
   IRenderContext,
@@ -10,101 +10,105 @@ import {
   DOM,
   INodeSequence,
   IRenderLocation,
-  IDetachLifecycle,
-  IAttachLifecycle,
+  ILifecycle,
+  Lifecycle,
   NodeSequenceFactory,
-  LifecycleState
+  State,
+  IMountable,
+  ILifecycleUnbind
 } from "../../../../src/index";
 
 export class ViewFake implements IView {
-  $nextBind: IBindScope = null;
-  $prevBind: IBindScope = null;
-  $bindableHead?: IBindScope = null;
-  $bindableTail?: IBindScope = null;
-  $attachableHead?: IAttach = null;
-  $attachableTail?: IAttach = null;
-  $nextAttach: IAttach = null;
-  $prevAttach: IAttach = null;
+  public $bindableHead: IBindScope = null;
+  public $bindableTail: IBindScope = null;
 
-  $state: LifecycleState = LifecycleState.none;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
-  lockScope(scope: IScope): void {
+  public $attachableHead: IAttach = null;
+  public $attachableTail: IAttach = null;
+
+  public $nextAttach: IAttach = null;
+  public $prevAttach: IAttach = null;
+
+  public $nextMount: IMountable = null;
+  public $mountFlags: LifecycleFlags = 0;
+  public $nextUnmount: IMountable = null;
+  public $unmountFlags: LifecycleFlags = 0;
+
+  public $nextUnbindAfterDetach: ILifecycleUnbind = null;
+
+  public $state: State = State.none;
+  public $scope: IScope = null;
+  public $nodes: INodeSequence;
+  public $context: IRenderContext;
+  public location: IRenderLocation;
+  public isFree: boolean = false;
+
+  public cache: IViewFactory;
+
+  constructor(public $lifecycle: Lifecycle) {
+    this.$nodes = NodeSequenceFactory.createFor('<div>Fake View</div>').createNodeSequence();
+  }
+
+  public lockScope(scope: IScope): void {
     this.$scope = scope;
     this.$bind = () => {
-      this.$state |= LifecycleState.isBound;
+      this.$state |= State.isBound;
     };
   }
 
-  $addChild(child: IBindScope | IAttach, flags: BindingFlags): void {
+  public $addChild(child: IBindScope | IAttach, flags: LifecycleFlags): void {
   }
 
-  $removeChild(child: IBindScope | IAttach): void {
+  public $removeChild(child: IBindScope | IAttach): void {
   }
 
-  $mount() {
-    this.$state &= ~LifecycleState.needsMount;
+  public $mount() {
+    this.$state &= ~State.needsMount;
     this.$nodes.insertBefore(this.location);
   }
 
-  $unmount() {
-    this.$state |= LifecycleState.needsMount;
+  public $unmount() {
+    this.$state |= State.needsMount;
     this.$nodes.remove();
   }
 
-  $cache() {}
+  public $cache() {}
 
-  hold(location: IRenderLocation): void {
-    this.$state |= LifecycleState.needsMount;
+  public hold(location: IRenderLocation): void {
+    this.$state |= State.needsMount;
     this.location = location;
   }
 
-  release() {
+  public release() {
     return this.isFree = true;
   }
 
-  // IView impl
-  cache: IViewFactory;
-  location: IRenderLocation;
-  private isFree: boolean = false;
-
-  tryReturnToCache(): boolean {
+  public tryReturnToCache(): boolean {
     return true;
   }
 
   // IBindScope impl
-  $bind(flags: BindingFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope): void {
     this.$scope = scope;
-    this.$state |= LifecycleState.isBound;
+    this.$state |= State.isBound;
   }
 
-  $unbind(): void {
-    this.$state &= ~LifecycleState.isBound;
+  public $unbind(): void {
+    this.$state &= ~State.isBound;
   }
 
   // IAttach impl
-  $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    if (this.$state & LifecycleState.needsMount) {
-      lifecycle.queueMount(this);
+  public $attach(): void {
+    if (this.$state & State.needsMount) {
+      this.$lifecycle.enqueueMount(this);
     }
-    this.$state |= LifecycleState.isAttached;
+    this.$state |= State.isAttached;
   }
 
-  $detach(lifecycle: IDetachLifecycle): void {
-    lifecycle.queueUnmount(this);
-    this.$state &= ~LifecycleState.isAttached;
-  }
-
-  // IViewOwner impl
-  $context: IRenderContext;
-  $nodes: INodeSequence;
-  $scope: IScope;
-
-  $bindables: IBindScope[];
-  $attachables: IAttach[];
-
-  constructor() {
-    this.$bindableHead = this.$bindableTail = null;
-    this.$attachableHead = this.$attachableTail = null;
-    this.$nodes = NodeSequenceFactory.createFor('<div>Fake View</div>').createNodeSequence();
+  public $detach(): void {
+    this.$lifecycle.enqueueUnmount(this);
+    this.$state &= ~State.isAttached;
   }
 }

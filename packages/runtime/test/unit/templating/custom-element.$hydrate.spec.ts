@@ -1,4 +1,4 @@
-import { LifecycleHooks, INode,  ICustomElementType, IRenderingEngine, ITemplate, IRuntimeBehavior } from '../../../src/index';
+import { Hooks, INode,  ICustomElementType, IRenderingEngine, ITemplate, RuntimeBehavior } from '../../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../util';
 import { CustomElement, createCustomElement } from './custom-element._builder';
@@ -7,30 +7,30 @@ describe('@customElement', () => {
 
   describe('$hydrate', () => {
 
-    const behaviorSpecs = [
+    const hooksSpecs = [
       {
-        description: '$behavior.hasCreated: true',
+        description: 'hooks.hasCreated',
         expectation: 'calls created()',
-        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.hasCreated }; },
+        getHooks() { return Hooks.hasCreated; },
         verifyBehaviorInvocation(sut: CustomElement) {
           sut.verifyCreatedCalled();
           sut.verifyNoFurtherCalls();
         }
       },
       {
-        description: '$behavior.hasCreated: false',
+        description: 'Hooks.none',
         expectation: 'does NOT call created()',
-        getBehavior() { return <IRuntimeBehavior>{ hooks: LifecycleHooks.none }; },
+        getHooks() { return Hooks.none; },
         verifyBehaviorInvocation(sut: CustomElement) {
           sut.verifyNoFurtherCalls();
         }
       }
     ];
 
-    eachCartesianJoin([behaviorSpecs],
-      (behaviorSpec) => {
+    eachCartesianJoin([hooksSpecs],
+      (hooksSpec) => {
 
-      it(`sets properties, applies runtime behavior and ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+      it(`sets properties, applies runtime behavior and ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
         // Arrange
         const { Type, sut } = createCustomElement('foo');
 
@@ -54,7 +54,7 @@ describe('@customElement', () => {
         let getElementTemplateType;
         const renderingEngine: IRenderingEngine = <any>{
           applyRuntimeBehavior(type: ICustomElementType, instance: CustomElement) {
-            instance.$behavior = behaviorSpec.getBehavior();
+            instance.$hooks = hooksSpec.getHooks();
             appliedType = type;
             appliedInstance = instance;
           },
@@ -77,7 +77,7 @@ describe('@customElement', () => {
 
         expect(appliedType).to.equal(Type, 'appliedType');
         expect(appliedInstance).to.equal(sut, 'appliedInstance');
-        behaviorSpec.verifyBehaviorInvocation(sut);
+        hooksSpec.verifyBehaviorInvocation(sut);
       });
     });
   });

@@ -46,7 +46,7 @@ var Monitoring = Monitoring || (function() {
         msText.textContent = "Repaint rate: " + (sum / bucket.length).toFixed(2) + "/sec";
         lastTime = stop;
       }
-    }
+    };
   };
 
   var renderRate = new RenderRate();

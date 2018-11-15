@@ -1,7 +1,7 @@
 // tslint:disable:typedef
 // tslint:disable:function-name
 import { By, until } from 'selenium-webdriver';
-import { browser, waitForElement } from '../common/browser';
+import { browser } from '../common/browser';
 import { AppConstants } from './app.constants';
 
 const { cssSelectors } = AppConstants;

@@ -10,7 +10,7 @@ async function main(): Promise<void> {
     }
   }
 
-  const resp = await CIEnv.githubPost(`repos/aurelia/aurelia/issues/${CIEnv.CIRCLE_PULL_REQUEST.split('/').pop()}/comments`, {
+  await CIEnv.githubPost(`repos/aurelia/aurelia/issues/${CIEnv.CIRCLE_PULL_REQUEST.split('/').pop()}/comments`, {
     body: `Allure Report: ${url}`
   });
 }

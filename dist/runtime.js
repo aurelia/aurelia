@@ -854,6 +854,7 @@ this.au.runtime = (function (exports,kernel) {
         return node.textContent === 'au-end';
     }
     const INode = kernel.DI.createInterface().noDefault();
+    const IEncapsulationSource = kernel.DI.createInterface().noDefault();
     const IRenderLocation = kernel.DI.createInterface().noDefault();
     // tslint:disable:no-any
     const DOM = {
@@ -6185,7 +6186,7 @@ this.au.runtime = (function (exports,kernel) {
     }
 
     /*@internal*/
-    function $attachAttribute(flags) {
+    function $attachAttribute(flags, encapsulationSource) {
         if (this.$state & 8 /* isAttached */) {
             return;
         }
@@ -6196,7 +6197,7 @@ this.au.runtime = (function (exports,kernel) {
         flags |= exports.LifecycleFlags.fromAttach;
         const hooks = this.$hooks;
         if (hooks & 16 /* hasAttaching */) {
-            this.attaching(flags);
+            this.attaching(flags, encapsulationSource);
         }
         // add isAttached flag, remove isAttaching flag
         this.$state |= 8 /* isAttached */;
@@ -6207,7 +6208,7 @@ this.au.runtime = (function (exports,kernel) {
         lifecycle.endAttach(flags);
     }
     /*@internal*/
-    function $attachElement(flags) {
+    function $attachElement(flags, encapsulationSource) {
         if (this.$state & 8 /* isAttached */) {
             return;
         }
@@ -6217,12 +6218,13 @@ this.au.runtime = (function (exports,kernel) {
         this.$state |= 4 /* isAttaching */;
         flags |= exports.LifecycleFlags.fromAttach;
         const hooks = this.$hooks;
+        encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource === undefined ? this.$host : encapsulationSource);
         if (hooks & 16 /* hasAttaching */) {
-            this.attaching(flags);
+            this.attaching(flags, encapsulationSource);
         }
         let current = this.$attachableHead;
         while (current !== null) {
-            current.$attach(flags);
+            current.$attach(flags, encapsulationSource);
             current = current.$nextAttach;
         }
         if (!(this.$state & 16 /* isMounted */)) {
@@ -6237,7 +6239,7 @@ this.au.runtime = (function (exports,kernel) {
         lifecycle.endAttach(flags);
     }
     /*@internal*/
-    function $attachView(flags) {
+    function $attachView(flags, encapsulationSource) {
         if (this.$state & 8 /* isAttached */) {
             return;
         }
@@ -6246,7 +6248,7 @@ this.au.runtime = (function (exports,kernel) {
         flags |= exports.LifecycleFlags.fromAttach;
         let current = this.$attachableHead;
         while (current !== null) {
-            current.$attach(flags);
+            current.$attach(flags, encapsulationSource);
             current = current.$nextAttach;
         }
         if (!(this.$state & 16 /* isMounted */)) {
@@ -6702,6 +6704,8 @@ this.au.runtime = (function (exports,kernel) {
         const Type = this.constructor;
         const description = Type.description;
         this.$scope = Scope.create(this, null);
+        this.$host = host;
+        this.$projector = determineProjector(this, host, description);
         renderingEngine.applyRuntimeBehavior(Type, this);
         if (this.$hooks & 1024 /* hasRender */) {
             const result = this.render(host, options.parts);
@@ -6714,8 +6718,6 @@ this.au.runtime = (function (exports,kernel) {
             const template = renderingEngine.getElementTemplate(description, Type);
             template.render(this, host, options.parts);
         }
-        this.$host = host;
-        this.$projector = determineProjector(this, host, description);
         if (this.$hooks & 2 /* hasCreated */) {
             this.created();
         }
@@ -8007,7 +8009,7 @@ this.au.runtime = (function (exports,kernel) {
                     component.$hydrate(re, host);
                 }
                 component.$bind(exports.LifecycleFlags.fromStartTask | exports.LifecycleFlags.fromBind);
-                component.$attach(exports.LifecycleFlags.fromStartTask);
+                component.$attach(exports.LifecycleFlags.fromStartTask, host);
             };
             this.startTasks.push(startTask);
             this.stopTasks.push(() => {
@@ -8213,6 +8215,7 @@ this.au.runtime = (function (exports,kernel) {
     exports.COMMENT_NODE = COMMENT_NODE;
     exports.DOCUMENT_FRAGMENT_NODE = DOCUMENT_FRAGMENT_NODE;
     exports.INode = INode;
+    exports.IEncapsulationSource = IEncapsulationSource;
     exports.IRenderLocation = IRenderLocation;
     exports.DOM = DOM;
     exports.NodeSequence = NodeSequence;

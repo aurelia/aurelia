@@ -1522,6 +1522,7 @@ var au = (function (exports) {
       return node.textContent === 'au-end';
   }
   const INode = DI.createInterface().noDefault();
+  const IEncapsulationSource = DI.createInterface().noDefault();
   const IRenderLocation = DI.createInterface().noDefault();
   // tslint:disable:no-any
   const DOM = {
@@ -6855,7 +6856,7 @@ var au = (function (exports) {
   }
 
   /*@internal*/
-  function $attachAttribute(flags) {
+  function $attachAttribute(flags, encapsulationSource) {
       if (this.$state & 8 /* isAttached */) {
           return;
       }
@@ -6866,7 +6867,7 @@ var au = (function (exports) {
       flags |= LifecycleFlags.fromAttach;
       const hooks = this.$hooks;
       if (hooks & 16 /* hasAttaching */) {
-          this.attaching(flags);
+          this.attaching(flags, encapsulationSource);
       }
       // add isAttached flag, remove isAttaching flag
       this.$state |= 8 /* isAttached */;
@@ -6877,7 +6878,7 @@ var au = (function (exports) {
       lifecycle.endAttach(flags);
   }
   /*@internal*/
-  function $attachElement(flags) {
+  function $attachElement(flags, encapsulationSource) {
       if (this.$state & 8 /* isAttached */) {
           return;
       }
@@ -6887,12 +6888,13 @@ var au = (function (exports) {
       this.$state |= 4 /* isAttaching */;
       flags |= LifecycleFlags.fromAttach;
       const hooks = this.$hooks;
+      encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource === undefined ? this.$host : encapsulationSource);
       if (hooks & 16 /* hasAttaching */) {
-          this.attaching(flags);
+          this.attaching(flags, encapsulationSource);
       }
       let current = this.$attachableHead;
       while (current !== null) {
-          current.$attach(flags);
+          current.$attach(flags, encapsulationSource);
           current = current.$nextAttach;
       }
       if (!(this.$state & 16 /* isMounted */)) {
@@ -6907,7 +6909,7 @@ var au = (function (exports) {
       lifecycle.endAttach(flags);
   }
   /*@internal*/
-  function $attachView(flags) {
+  function $attachView(flags, encapsulationSource) {
       if (this.$state & 8 /* isAttached */) {
           return;
       }
@@ -6916,7 +6918,7 @@ var au = (function (exports) {
       flags |= LifecycleFlags.fromAttach;
       let current = this.$attachableHead;
       while (current !== null) {
-          current.$attach(flags);
+          current.$attach(flags, encapsulationSource);
           current = current.$nextAttach;
       }
       if (!(this.$state & 16 /* isMounted */)) {
@@ -7373,6 +7375,8 @@ var au = (function (exports) {
       const Type = this.constructor;
       const description = Type.description;
       this.$scope = Scope.create(this, null);
+      this.$host = host;
+      this.$projector = determineProjector(this, host, description);
       renderingEngine.applyRuntimeBehavior(Type, this);
       if (this.$hooks & 1024 /* hasRender */) {
           const result = this.render(host, options.parts);
@@ -7385,8 +7389,6 @@ var au = (function (exports) {
           const template = renderingEngine.getElementTemplate(description, Type);
           template.render(this, host, options.parts);
       }
-      this.$host = host;
-      this.$projector = determineProjector(this, host, description);
       if (this.$hooks & 2 /* hasCreated */) {
           this.created();
       }
@@ -8678,7 +8680,7 @@ var au = (function (exports) {
                   component.$hydrate(re, host);
               }
               component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-              component.$attach(LifecycleFlags.fromStartTask);
+              component.$attach(LifecycleFlags.fromStartTask, host);
           };
           this.startTasks.push(startTask);
           this.stopTasks.push(() => {
@@ -8928,6 +8930,7 @@ var au = (function (exports) {
     COMMENT_NODE: COMMENT_NODE,
     DOCUMENT_FRAGMENT_NODE: DOCUMENT_FRAGMENT_NODE,
     INode: INode,
+    IEncapsulationSource: IEncapsulationSource,
     IRenderLocation: IRenderLocation,
     DOM: DOM,
     NodeSequence: NodeSequence,

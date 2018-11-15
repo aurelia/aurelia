@@ -857,6 +857,7 @@ function isRenderLocation(node) {
     return node.textContent === 'au-end';
 }
 const INode = DI.createInterface().noDefault();
+const IEncapsulationSource = DI.createInterface().noDefault();
 const IRenderLocation = DI.createInterface().noDefault();
 // tslint:disable:no-any
 const DOM = {
@@ -6190,7 +6191,7 @@ function addChildren(parent, children, allInstructions, dependencies) {
 }
 
 /*@internal*/
-function $attachAttribute(flags) {
+function $attachAttribute(flags, encapsulationSource) {
     if (this.$state & 8 /* isAttached */) {
         return;
     }
@@ -6201,7 +6202,7 @@ function $attachAttribute(flags) {
     flags |= LifecycleFlags.fromAttach;
     const hooks = this.$hooks;
     if (hooks & 16 /* hasAttaching */) {
-        this.attaching(flags);
+        this.attaching(flags, encapsulationSource);
     }
     // add isAttached flag, remove isAttaching flag
     this.$state |= 8 /* isAttached */;
@@ -6212,7 +6213,7 @@ function $attachAttribute(flags) {
     lifecycle.endAttach(flags);
 }
 /*@internal*/
-function $attachElement(flags) {
+function $attachElement(flags, encapsulationSource) {
     if (this.$state & 8 /* isAttached */) {
         return;
     }
@@ -6222,12 +6223,13 @@ function $attachElement(flags) {
     this.$state |= 4 /* isAttaching */;
     flags |= LifecycleFlags.fromAttach;
     const hooks = this.$hooks;
+    encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource === undefined ? this.$host : encapsulationSource);
     if (hooks & 16 /* hasAttaching */) {
-        this.attaching(flags);
+        this.attaching(flags, encapsulationSource);
     }
     let current = this.$attachableHead;
     while (current !== null) {
-        current.$attach(flags);
+        current.$attach(flags, encapsulationSource);
         current = current.$nextAttach;
     }
     if (!(this.$state & 16 /* isMounted */)) {
@@ -6242,7 +6244,7 @@ function $attachElement(flags) {
     lifecycle.endAttach(flags);
 }
 /*@internal*/
-function $attachView(flags) {
+function $attachView(flags, encapsulationSource) {
     if (this.$state & 8 /* isAttached */) {
         return;
     }
@@ -6251,7 +6253,7 @@ function $attachView(flags) {
     flags |= LifecycleFlags.fromAttach;
     let current = this.$attachableHead;
     while (current !== null) {
-        current.$attach(flags);
+        current.$attach(flags, encapsulationSource);
         current = current.$nextAttach;
     }
     if (!(this.$state & 16 /* isMounted */)) {
@@ -6708,6 +6710,8 @@ function $hydrateElement(renderingEngine, host, options = PLATFORM.emptyObject) 
     const Type = this.constructor;
     const description = Type.description;
     this.$scope = Scope.create(this, null);
+    this.$host = host;
+    this.$projector = determineProjector(this, host, description);
     renderingEngine.applyRuntimeBehavior(Type, this);
     if (this.$hooks & 1024 /* hasRender */) {
         const result = this.render(host, options.parts);
@@ -6720,8 +6724,6 @@ function $hydrateElement(renderingEngine, host, options = PLATFORM.emptyObject) 
         const template = renderingEngine.getElementTemplate(description, Type);
         template.render(this, host, options.parts);
     }
-    this.$host = host;
-    this.$projector = determineProjector(this, host, description);
     if (this.$hooks & 2 /* hasCreated */) {
         this.created();
     }
@@ -8013,7 +8015,7 @@ class Aurelia {
                 component.$hydrate(re, host);
             }
             component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-            component.$attach(LifecycleFlags.fromStartTask);
+            component.$attach(LifecycleFlags.fromStartTask, host);
         };
         this.startTasks.push(startTask);
         this.stopTasks.push(() => {
@@ -8046,5 +8048,5 @@ class Aurelia {
 }
 PLATFORM.global.Aurelia = Aurelia;
 
-export { ArrayObserver, enableArrayObservation, disableArrayObservation, nativePush, nativePop, nativeShift, nativeUnshift, nativeSplice, nativeReverse, nativeSort, MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear, SetObserver, enableSetObservation, disableSetObservation, nativeAdd, nativeDelete$1 as nativeSetDelete, nativeClear$1 as nativeSetClear, AttrBindingBehavior, BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, debounceCallSource, debounceCall, DebounceBindingBehavior, ISanitizer, SanitizeValueConverter, handleSelfEvent, SelfBindingBehavior, SignalBindingBehavior, throttle, ThrottleBindingBehavior, UpdateTriggerBindingBehavior, connects, observes, callsFunction, hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, arePureLiterals, isPureLiteral, BindingBehavior, ValueConverter, Assign, Conditional, AccessThis, AccessScope, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, Binary, Unary, PrimitiveLiteral, HtmlLiteral, ArrayLiteral, ObjectLiteral, Template, TaggedTemplate, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, IterateForOfStatement, CountForOfStatement, bindingBehavior, BindingBehaviorResource, InternalObserversLookup, BindingContext, Scope, OverrideContext, BindingMode, Binding, Call, collectionObserver, CollectionLengthObserver, computed, createComputedObserver, CustomSetterObserver, GetterObserver, GetterController, IDirtyChecker, DirtyChecker, DirtyCheckProperty, ValueAttributeObserver, CheckedObserver, SelectValueObserver, findOriginalEventTarget, ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, DelegationStrategy, EventSubscriber, IEventManager, EventManager, IExpressionParser, ExpressionParser, MultiInterpolationBinding, InterpolationBinding, LetBinding, Listener, IObserverLocator, ObserverLocator, getCollectionObserver, PrimitiveObserver, SetterObserver, Observer, Ref, ISignaler, Signaler, subscriberCollection, batchedSubscriberCollection, ISVGAnalyzer, XLinkAttributeAccessor, DataAttributeAccessor, StyleAttributeAccessor, ClassAttributeAccessor, ElementPropertyAccessor, PropertyAccessor, targetObserver, valueConverter, ValueConverterResource, Compose, If, Else, Repeat, Replaceable, With, bindable, createElement, RenderPlan, customAttribute, templateController, CustomAttributeResource, registerAttribute, createCustomAttributeDescription, customElement, useShadowDOM, containerless, CustomElementResource, registerElement, $attachAttribute, $attachElement, $attachView, $detachAttribute, $detachElement, $detachView, $cacheAttribute, $cacheElement, $cacheView, $mountElement, $unmountElement, $mountView, $unmountView, $bindAttribute, $bindElement, $bindView, $unbindAttribute, $unbindElement, $unbindView, renderStrategy, RenderStrategyResource, registerRenderStrategy, ITemplateCompiler, ViewCompileFlags, $hydrateAttribute, $hydrateElement, defaultShadowOptions, IRenderingEngine, RenderingEngine, ShadowDOMProjector, ContainerlessProjector, HostProjector, RuntimeBehavior, ChildrenObserver, findElements, RuntimeCompilationResources, CompiledTemplate, noViewTemplate, createRenderContext, InstanceProvider, ViewFactoryProvider, addBindable, addAttachable, Renderer, View, ViewFactory, Aurelia, customElementName, customElementKey, customElementBehavior, customAttributeName, customAttributeKey, ITargetedInstruction, isTargetedInstruction, buildRequired, buildTemplateDefinition, ELEMENT_NODE, ATTRIBUTE_NODE, TEXT_NODE, COMMENT_NODE, DOCUMENT_FRAGMENT_NODE, INode, IRenderLocation, DOM, NodeSequence, TextNodeSequence, FragmentNodeSequence, NodeSequenceFactory, AuMarker, IRenderable, IViewFactory, ILifecycle, IFlushLifecycle, IBindLifecycle, IAttachLifecycle, Lifecycle, CompositionCoordinator, LifecycleTask, AggregateLifecycleTask, PromiseSwap, PromiseTask, LifecycleFlags, MutationKind };
+export { ArrayObserver, enableArrayObservation, disableArrayObservation, nativePush, nativePop, nativeShift, nativeUnshift, nativeSplice, nativeReverse, nativeSort, MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear, SetObserver, enableSetObservation, disableSetObservation, nativeAdd, nativeDelete$1 as nativeSetDelete, nativeClear$1 as nativeSetClear, AttrBindingBehavior, BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, debounceCallSource, debounceCall, DebounceBindingBehavior, ISanitizer, SanitizeValueConverter, handleSelfEvent, SelfBindingBehavior, SignalBindingBehavior, throttle, ThrottleBindingBehavior, UpdateTriggerBindingBehavior, connects, observes, callsFunction, hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, arePureLiterals, isPureLiteral, BindingBehavior, ValueConverter, Assign, Conditional, AccessThis, AccessScope, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, Binary, Unary, PrimitiveLiteral, HtmlLiteral, ArrayLiteral, ObjectLiteral, Template, TaggedTemplate, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, IterateForOfStatement, CountForOfStatement, bindingBehavior, BindingBehaviorResource, InternalObserversLookup, BindingContext, Scope, OverrideContext, BindingMode, Binding, Call, collectionObserver, CollectionLengthObserver, computed, createComputedObserver, CustomSetterObserver, GetterObserver, GetterController, IDirtyChecker, DirtyChecker, DirtyCheckProperty, ValueAttributeObserver, CheckedObserver, SelectValueObserver, findOriginalEventTarget, ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, DelegationStrategy, EventSubscriber, IEventManager, EventManager, IExpressionParser, ExpressionParser, MultiInterpolationBinding, InterpolationBinding, LetBinding, Listener, IObserverLocator, ObserverLocator, getCollectionObserver, PrimitiveObserver, SetterObserver, Observer, Ref, ISignaler, Signaler, subscriberCollection, batchedSubscriberCollection, ISVGAnalyzer, XLinkAttributeAccessor, DataAttributeAccessor, StyleAttributeAccessor, ClassAttributeAccessor, ElementPropertyAccessor, PropertyAccessor, targetObserver, valueConverter, ValueConverterResource, Compose, If, Else, Repeat, Replaceable, With, bindable, createElement, RenderPlan, customAttribute, templateController, CustomAttributeResource, registerAttribute, createCustomAttributeDescription, customElement, useShadowDOM, containerless, CustomElementResource, registerElement, $attachAttribute, $attachElement, $attachView, $detachAttribute, $detachElement, $detachView, $cacheAttribute, $cacheElement, $cacheView, $mountElement, $unmountElement, $mountView, $unmountView, $bindAttribute, $bindElement, $bindView, $unbindAttribute, $unbindElement, $unbindView, renderStrategy, RenderStrategyResource, registerRenderStrategy, ITemplateCompiler, ViewCompileFlags, $hydrateAttribute, $hydrateElement, defaultShadowOptions, IRenderingEngine, RenderingEngine, ShadowDOMProjector, ContainerlessProjector, HostProjector, RuntimeBehavior, ChildrenObserver, findElements, RuntimeCompilationResources, CompiledTemplate, noViewTemplate, createRenderContext, InstanceProvider, ViewFactoryProvider, addBindable, addAttachable, Renderer, View, ViewFactory, Aurelia, customElementName, customElementKey, customElementBehavior, customAttributeName, customAttributeKey, ITargetedInstruction, isTargetedInstruction, buildRequired, buildTemplateDefinition, ELEMENT_NODE, ATTRIBUTE_NODE, TEXT_NODE, COMMENT_NODE, DOCUMENT_FRAGMENT_NODE, INode, IEncapsulationSource, IRenderLocation, DOM, NodeSequence, TextNodeSequence, FragmentNodeSequence, NodeSequenceFactory, AuMarker, IRenderable, IViewFactory, ILifecycle, IFlushLifecycle, IBindLifecycle, IAttachLifecycle, Lifecycle, CompositionCoordinator, LifecycleTask, AggregateLifecycleTask, PromiseSwap, PromiseTask, LifecycleFlags, MutationKind };
 //# sourceMappingURL=index.es6.js.map

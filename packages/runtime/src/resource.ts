@@ -8,6 +8,9 @@ export interface IResourceKind<TSource, TType extends IResourceType<TSource> = I
   readonly name: string;
   keyFrom(name: string): string;
   isType<T extends Constructable & Partial<TType>>(Type: T): Type is T & TType;
+
+  define<T extends Constructable>(name: string, ctor: T): T & TType;
+  define<T extends Constructable>(definition: TSource, ctor: T): T & TType;
   define<T extends Constructable>(nameOrDefinition: string | TSource, ctor: T): T & TType;
 }
 

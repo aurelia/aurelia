@@ -385,7 +385,14 @@ export const enum ResolverStrategy {
 
 /*@internal*/
 export class Resolver implements IResolver, IRegistration {
-  constructor(public key: any, public strategy: ResolverStrategy, public state: any) {}
+  public key: any;
+  public strategy: ResolverStrategy;
+  public state: any;
+  constructor(key: any, strategy: ResolverStrategy, state: any) {
+    this.key = key;
+    this.strategy = strategy;
+    this.state = state;
+  }
 
   public register(container: IContainer, key?: any): IResolver {
     return container.registerResolver(key || this.key, this);
@@ -436,9 +443,17 @@ export interface IInvoker {
 
 /*@internal*/
 export class Factory implements IFactory {
-  private transformers: ((instance: any) => any)[] | null = null;
+  public type: Function;
+  private invoker: IInvoker;
+  private dependencies: any[];
+  private transformers: ((instance: any) => any)[] | null;
 
-  constructor(public type: Function, private invoker: IInvoker, private dependencies: any[]) { }
+  constructor(type: Function, invoker: IInvoker, dependencies: any[]) {
+    this.type = type;
+    this.invoker = invoker;
+    this.dependencies = dependencies;
+    this.transformers = null;
+  }
 
   public static create(type: Function): IFactory {
     const dependencies = DI.getDependencies(type);
@@ -490,12 +505,14 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
 
 /*@internal*/
 export class Container implements IContainer {
-  private parent: Container | null = null;
-  private resolvers: Map<any, IResolver> = new Map<any, IResolver>();
+  private parent: Container | null;
+  private resolvers: Map<any, IResolver>;
   private factories: Map<Function, IFactory>;
   private configuration: IContainerConfiguration;
 
   constructor(configuration: IContainerConfiguration = {}) {
+    this.parent = null;
+    this.resolvers = new Map<any, IResolver>();
     this.configuration = configuration;
     this.factories = configuration.factories || (configuration.factories = new Map());
     this.resolvers.set(IContainer, containerResolver);

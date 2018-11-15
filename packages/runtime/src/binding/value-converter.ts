@@ -18,29 +18,34 @@ export function valueConverter(nameOrDefinition: string | IValueConverterDefinit
   return target => ValueConverterResource.define(nameOrDefinition, target);
 }
 
+function keyFrom(name: string): string {
+  return `${this.name}:${name}`;
+}
+
+function isType<T extends Constructable & Partial<IValueConverterType>>(Type: T): Type is T & IValueConverterType {
+  return Type.kind === this;
+}
+
+function define<T extends Constructable>(name: string, ctor: T): T & IValueConverterType;
+function define<T extends Constructable>(definition: IValueConverterDefinition, ctor: T): T & IValueConverterType;
+function define<T extends Constructable>(nameOrDefinition: string | IValueConverterDefinition, ctor: T): T & IValueConverterType {
+  const Type = ctor as T & IValueConverterType;
+  const description = typeof nameOrDefinition === 'string'
+    ? { name: nameOrDefinition }
+    : nameOrDefinition;
+
+  (Type as Writable<IValueConverterType>).kind = ValueConverterResource;
+  (Type as Writable<IValueConverterType>).description = description;
+  Type.register = register;
+
+  return Type;
+}
+
 export const ValueConverterResource: IResourceKind<IValueConverterDefinition, IValueConverterType> = {
   name: 'value-converter',
-
-  keyFrom(name: string): string {
-    return `${this.name}:${name}`;
-  },
-
-  isType<T extends Constructable & Partial<IValueConverterType>>(Type: T): Type is T & IValueConverterType {
-    return Type.kind === this;
-  },
-
-  define<T extends Constructable>(nameOrDefinition: string | IValueConverterDefinition, ctor: T): T & IValueConverterType {
-    const Type = ctor as T & IValueConverterType;
-    const description = typeof nameOrDefinition === 'string'
-      ? { name: nameOrDefinition }
-      : nameOrDefinition;
-
-    (Type as Writable<IValueConverterType>).kind = ValueConverterResource;
-    (Type as Writable<IValueConverterType>).description = description;
-    Type.register = register;
-
-    return Type;
-  }
+  keyFrom,
+  isType,
+  define
 };
 
 function register(this: IValueConverterType, container: IContainer): void {

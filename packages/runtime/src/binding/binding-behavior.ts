@@ -20,29 +20,34 @@ export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefin
   return target => BindingBehaviorResource.define(nameOrDefinition, target);
 }
 
+function keyFrom(name: string): string {
+  return `${this.name}:${name}`;
+}
+
+function isType<T extends Constructable & Partial<IBindingBehaviorType>>(Type: T): Type is T & IBindingBehaviorType {
+  return Type.kind === this;
+}
+
+function define<T extends Constructable>(name: string, ctor: T): T & IBindingBehaviorType;
+function define<T extends Constructable>(ndefinition: IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType;
+function define<T extends Constructable>(nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType {
+  const Type = ctor as T & IBindingBehaviorType;
+  const description = typeof nameOrDefinition === 'string'
+    ? { name: nameOrDefinition }
+    : nameOrDefinition;
+
+  (Type as Writable<IBindingBehaviorType>).kind = BindingBehaviorResource;
+  (Type as Writable<IBindingBehaviorType>).description = description;
+  Type.register = register;
+
+  return Type;
+}
+
 export const BindingBehaviorResource: IResourceKind<IBindingBehaviorDefinition, IBindingBehaviorType> = {
   name: 'binding-behavior',
-
-  keyFrom(name: string): string {
-    return `${this.name}:${name}`;
-  },
-
-  isType<T extends Constructable & Partial<IBindingBehaviorType>>(Type: T): Type is T & IBindingBehaviorType {
-    return Type.kind === this;
-  },
-
-  define<T extends Constructable>(nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType {
-    const Type = ctor as T & IBindingBehaviorType;
-    const description = typeof nameOrDefinition === 'string'
-      ? { name: nameOrDefinition }
-      : nameOrDefinition;
-
-    (Type as Writable<IBindingBehaviorType>).kind = BindingBehaviorResource;
-    (Type as Writable<IBindingBehaviorType>).description = description;
-    Type.register = register;
-
-    return Type;
-  }
+  keyFrom,
+  isType,
+  define
 };
 
 function register(this: IBindingBehaviorType, container: IContainer): void {

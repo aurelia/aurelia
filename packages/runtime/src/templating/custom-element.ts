@@ -74,92 +74,94 @@ export function containerless<T extends Constructable>(target?: T & HasContainer
   return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
 }
 
+function isType<T extends Constructable & Partial<ICustomElementType>>(Type: T): Type is T & ICustomElementType {
+  return Type.kind === this;
+}
+
+function define<T extends Constructable>(name: string, ctor: T): T & ICustomElementType;
+function define<T extends Constructable>(definition: ITemplateDefinition, ctor: T): T & ICustomElementType;
+function define<T extends Constructable>(nameOrDefinition: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
+  if (!nameOrDefinition) {
+    throw Reporter.error(70);
+  }
+  const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
+  const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrDefinition);
+  const proto: Writable<ICustomElement> = Type.prototype;
+
+  Type.kind = CustomElementResource;
+  Type.description = description;
+  Type.register = registerElement;
+
+  proto.$hydrate = $hydrateElement;
+  proto.$bind = $bindElement;
+  proto.$attach = $attachElement;
+  proto.$detach = $detachElement;
+  proto.$unbind = $unbindElement;
+  proto.$cache = $cacheElement;
+
+  proto.$prevBind = null;
+  proto.$nextBind = null;
+  proto.$prevAttach = null;
+  proto.$nextAttach = null;
+
+  proto.$nextUnbindAfterDetach = null;
+
+  proto.$scope = null;
+  proto.$hooks = 0;
+  proto.$state = State.needsMount;
+
+  proto.$bindableHead = null;
+  proto.$bindableTail = null;
+  proto.$attachableHead = null;
+  proto.$attachableTail = null;
+
+  proto.$mount = $mountElement;
+  proto.$unmount = $unmountElement;
+
+  proto.$nextMount = null;
+  proto.$nextUnmount = null;
+
+  proto.$projector = null;
+
+  if ('flush' in proto) {
+    proto.$nextFlush = null;
+  }
+
+  if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
+  if ('bound' in proto) {
+    proto.$hooks |= Hooks.hasBound;
+    proto.$nextBound = null;
+  }
+
+  if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
+  if ('unbound' in proto) {
+    proto.$hooks |= Hooks.hasUnbound;
+    proto.$nextUnbound = null;
+  }
+
+  if ('render' in proto) proto.$hooks |= Hooks.hasRender;
+  if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
+  if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
+  if ('attached' in proto) {
+    proto.$hooks |= Hooks.hasAttached;
+    proto.$nextAttached = null;
+  }
+  if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
+  if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
+  if ('detached' in proto) {
+    proto.$hooks |= Hooks.hasDetached;
+    proto.$nextDetached = null;
+  }
+
+  return <ICustomElementType & T>Type;
+}
+
 export const CustomElementResource: ICustomElementResource = {
   name: customElementName,
-
   keyFrom: customElementKey,
-
-  isType<T extends Constructable & Partial<ICustomElementType>>(Type: T): Type is T & ICustomElementType {
-    return Type.kind === this;
-  },
-
+  isType,
   behaviorFor: <(node: ICustomElementHost) => ICustomElement | null>customElementBehavior,
-
-  define<T extends Constructable>(nameOrDefinition: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
-    if (!nameOrDefinition) {
-      throw Reporter.error(70);
-    }
-    const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
-    const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrDefinition);
-    const proto: Writable<ICustomElement> = Type.prototype;
-
-    Type.kind = CustomElementResource;
-    Type.description = description;
-    Type.register = registerElement;
-
-    proto.$hydrate = $hydrateElement;
-    proto.$bind = $bindElement;
-    proto.$attach = $attachElement;
-    proto.$detach = $detachElement;
-    proto.$unbind = $unbindElement;
-    proto.$cache = $cacheElement;
-
-    proto.$prevBind = null;
-    proto.$nextBind = null;
-    proto.$prevAttach = null;
-    proto.$nextAttach = null;
-
-    proto.$nextUnbindAfterDetach = null;
-
-    proto.$scope = null;
-    proto.$hooks = 0;
-    proto.$state = State.needsMount;
-
-    proto.$bindableHead = null;
-    proto.$bindableTail = null;
-    proto.$attachableHead = null;
-    proto.$attachableTail = null;
-
-    proto.$mount = $mountElement;
-    proto.$unmount = $unmountElement;
-
-    proto.$nextMount = null;
-    proto.$nextUnmount = null;
-
-    proto.$projector = null;
-
-    if ('flush' in proto) {
-      proto.$nextFlush = null;
-    }
-
-    if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
-    if ('bound' in proto) {
-      proto.$hooks |= Hooks.hasBound;
-      proto.$nextBound = null;
-    }
-
-    if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
-    if ('unbound' in proto) {
-      proto.$hooks |= Hooks.hasUnbound;
-      proto.$nextUnbound = null;
-    }
-
-    if ('render' in proto) proto.$hooks |= Hooks.hasRender;
-    if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
-    if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
-    if ('attached' in proto) {
-      proto.$hooks |= Hooks.hasAttached;
-      proto.$nextAttached = null;
-    }
-    if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
-    if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
-    if ('detached' in proto) {
-      proto.$hooks |= Hooks.hasDetached;
-      proto.$nextDetached = null;
-    }
-
-    return <ICustomElementType & T>Type;
-  }
+  define
 };
 
 /*@internal*/

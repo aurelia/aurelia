@@ -49,73 +49,76 @@ export function templateController(nameOrDefinition: string | Omit<IAttributeDef
     target);
 }
 
+function isType<T extends Constructable & Partial<ICustomAttributeType>>(Type: T): Type is T & ICustomAttributeType {
+  return Type.kind === this;
+}
+
+function define<T extends Constructable>(name: string, ctor: T): T & ICustomAttributeType;
+function define<T extends Constructable>(definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType;
+function define<T extends Constructable>(nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
+  const Type = ctor as T & Writable<ICustomAttributeType>;
+  const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, <T & ICustomAttributeType>Type);
+  const proto: Writable<ICustomAttribute> = Type.prototype;
+
+  Type.kind = CustomAttributeResource;
+  Type.description = description;
+  Type.register = registerAttribute;
+
+  proto.$hydrate = $hydrateAttribute;
+  proto.$bind = $bindAttribute;
+  proto.$attach = $attachAttribute;
+  proto.$detach = $detachAttribute;
+  proto.$unbind = $unbindAttribute;
+  proto.$cache = $cacheAttribute;
+
+  proto.$prevBind = null;
+  proto.$nextBind = null;
+  proto.$prevAttach = null;
+  proto.$nextAttach = null;
+
+  proto.$nextUnbindAfterDetach = null;
+
+  proto.$scope = null;
+  proto.$hooks = 0;
+  proto.$state = 0;
+
+  if ('flush' in proto) {
+    proto.$nextFlush = null;
+  }
+
+  if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
+  if ('bound' in proto) {
+    proto.$hooks |= Hooks.hasBound;
+    proto.$nextBound = null;
+  }
+
+  if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
+  if ('unbound' in proto) {
+    proto.$hooks |= Hooks.hasUnbound;
+    proto.$nextUnbound = null;
+  }
+
+  if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
+  if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
+  if ('attached' in proto) {
+    proto.$hooks |= Hooks.hasAttached;
+    proto.$nextAttached = null;
+  }
+  if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
+  if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
+  if ('detached' in proto) {
+    proto.$hooks |= Hooks.hasDetached;
+    proto.$nextDetached = null;
+  }
+
+  return <ICustomAttributeType & T>Type;
+}
+
 export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICustomAttributeType> = {
   name: customAttributeName,
-
   keyFrom: customAttributeKey,
-
-  isType<T extends Constructable & Partial<ICustomAttributeType>>(Type: T): Type is T & ICustomAttributeType {
-    return Type.kind === this;
-  },
-
-  define<T extends Constructable>(nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
-    const Type = ctor as T & Writable<ICustomAttributeType>;
-    const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, <T & ICustomAttributeType>Type);
-    const proto: Writable<ICustomAttribute> = Type.prototype;
-
-    Type.kind = CustomAttributeResource;
-    Type.description = description;
-    Type.register = registerAttribute;
-
-    proto.$hydrate = $hydrateAttribute;
-    proto.$bind = $bindAttribute;
-    proto.$attach = $attachAttribute;
-    proto.$detach = $detachAttribute;
-    proto.$unbind = $unbindAttribute;
-    proto.$cache = $cacheAttribute;
-
-    proto.$prevBind = null;
-    proto.$nextBind = null;
-    proto.$prevAttach = null;
-    proto.$nextAttach = null;
-
-    proto.$nextUnbindAfterDetach = null;
-
-    proto.$scope = null;
-    proto.$hooks = 0;
-    proto.$state = 0;
-
-    if ('flush' in proto) {
-      proto.$nextFlush = null;
-    }
-
-    if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
-    if ('bound' in proto) {
-      proto.$hooks |= Hooks.hasBound;
-      proto.$nextBound = null;
-    }
-
-    if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
-    if ('unbound' in proto) {
-      proto.$hooks |= Hooks.hasUnbound;
-      proto.$nextUnbound = null;
-    }
-
-    if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
-    if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
-    if ('attached' in proto) {
-      proto.$hooks |= Hooks.hasAttached;
-      proto.$nextAttached = null;
-    }
-    if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
-    if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
-    if ('detached' in proto) {
-      proto.$hooks |= Hooks.hasDetached;
-      proto.$nextDetached = null;
-    }
-
-    return <ICustomAttributeType & T>Type;
-  }
+  isType,
+  define
 };
 
 /*@internal*/

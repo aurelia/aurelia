@@ -40,33 +40,38 @@ export function bindingCommand(nameOrDefinition: string | IBindingCommandDefinit
   return target => BindingCommandResource.define(nameOrDefinition, target);
 }
 
+function keyFrom(name: string): string {
+  return `${this.name}:${name}`;
+}
+
+function isType<T extends Constructable & Partial<IBindingCommandType>>(Type: T): Type is T & IBindingCommandType {
+  return Type.kind === this;
+}
+
+function define<T extends Constructable>(name: string, ctor: T): T & IBindingCommandType;
+function define<T extends Constructable>(definition: IBindingCommandDefinition, ctor: T): T & IBindingCommandType;
+function define<T extends Constructable>(nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
+  const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
+  const Type = ctor as T & IBindingCommandType;
+
+  (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
+  (Type as Writable<IBindingCommandType>).description = description;
+  Type.register = function(container: IContainer): void {
+    container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
+  };
+
+  const proto = Type.prototype;
+
+  proto.handles = proto.handles || defaultHandles;
+
+  return Type;
+}
+
 export const BindingCommandResource: IResourceKind<IBindingCommandDefinition, IBindingCommandType> = {
   name: 'binding-command',
-
-  keyFrom(name: string): string {
-    return `${this.name}:${name}`;
-  },
-
-  isType<T extends Constructable & Partial<IBindingCommandType>>(Type: T): Type is T & IBindingCommandType {
-    return Type.kind === this;
-  },
-
-  define<T extends Constructable>(nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
-    const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
-    const Type = ctor as T & IBindingCommandType;
-
-    (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
-    (Type as Writable<IBindingCommandType>).description = description;
-    Type.register = function(container: IContainer): void {
-      container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
-    };
-
-    const proto = Type.prototype;
-
-    proto.handles = proto.handles || defaultHandles;
-
-    return Type;
-  }
+  keyFrom,
+  isType,
+  define
 };
 
 function defaultHandles(this: IBindingCommand, $symbol: IAttributeSymbol): boolean {

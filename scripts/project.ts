@@ -1,7 +1,7 @@
 import { join, resolve } from 'path';
-import { PLATFORM } from '../packages/kernel/src/platform';
 import * as lernaJson from '../lerna.json';
 import * as packageJson from '../package.json';
+import { PLATFORM } from '../packages/kernel/src/platform';
 
 // TODO: generate this file automatically
 
@@ -73,4 +73,4 @@ export default {
   'lerna.json': {
     'path': join(rootPath, 'lerna.json')
   }
-}
+};

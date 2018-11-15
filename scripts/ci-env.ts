@@ -1,6 +1,6 @@
-import * as request from 'request';
 import * as os from 'os';
-import { createLogger, c } from './logger';
+import * as request from 'request';
+import { c, createLogger } from './logger';
 
 const log = createLogger('ci-env');
 
@@ -267,14 +267,17 @@ export class CIEnv {
   public static async circleGet(path: string): Promise<any> {
     const baseUrl = 'https://circleci.com/api/v1.1';
     return new Promise(resolve => {
-      request.get({
-        url: `${baseUrl}/${path}?circle-token=${CIEnv.CIRCLE_TOKEN}`,
-        headers: {
-          'Accept': 'application/json'
+      request.get(
+        {
+          url: `${baseUrl}/${path}?circle-token=${CIEnv.CIRCLE_TOKEN}`,
+          headers: {
+            'Accept': 'application/json'
+          }
+        },
+        (_err, _resp, body) => {
+          resolve(JSON.parse(body));
         }
-      }, (err, resp, body) => {
-        resolve(JSON.parse(body));
-      });
+      );
     });
   }
 
@@ -289,7 +292,7 @@ export class CIEnv {
           'User-Agent': 'request'
         },
         body: JSON.stringify(body)
-      }, (err, resp, body) => {
+      }, (_err, resp, _body) => {
         resolve(resp);
       });
     });
@@ -299,17 +302,20 @@ export class CIEnv {
     const baseUrl = 'https://api.browserstack.com/automate';
     const auth = new Buffer(`${CIEnv.BS_USER}:${CIEnv.BS_KEY}`).toString('base64');
     return new Promise(resolve => {
-      request.put({
-        url: `${baseUrl}/${path}`,
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'request'
+      request.put(
+        {
+          url: `${baseUrl}/${path}`,
+          headers: {
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/json',
+            'User-Agent': 'request'
+          },
+          body: JSON.stringify(body)
         },
-        body: JSON.stringify(body)
-      }, (err, resp, body) => {
-        resolve(resp);
-      });
+        (_err, resp, _body) => {
+          resolve(resp);
+        }
+      );
     });
   }
 }

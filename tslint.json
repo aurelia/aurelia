@@ -91,7 +91,7 @@
     "no-unused-expression": true,
     "no-use-before-declare": false,
     "no-with-statement": true,
-    "promise-function-async": true,
+    "promise-function-async": false, // See https://github.com/aurelia/aurelia/issues/273
     "promise-must-complete": true,
     "radix": true,
     "react-this-binding-issue": true,

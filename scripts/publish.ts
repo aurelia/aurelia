@@ -1,19 +1,19 @@
 import lerna from 'lerna';
-import { createLogger, c } from './logger';
 import { getCurrentVersion, getNewVersion, updateDependencyVersions } from './bump-version';
+import { createLogger } from './logger';
 
 const log = createLogger('publish');
 
-function parseArgs() {
+function parseArgs(): {tag: string} {
   const args = process.argv.slice(2);
   const tag = args[0];
   log(args.join(' '));
   return { tag };
 }
 
-async function run() {
+async function run(): Promise<void> {
   const { tag } = parseArgs();
-  const { major, minor, patch } = await getCurrentVersion();
+  const { major, minor, patch } = getCurrentVersion();
   const newVersion = getNewVersion(major, minor, patch, tag);
   if (tag === 'dev') {
     await updateDependencyVersions(newVersion);

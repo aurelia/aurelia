@@ -72,15 +72,31 @@ This brings us to a **leaf combination set** with total of 2x2x2x2x6=96 **leaf t
 
 ### 3. Test vectors for parent/child templates with behavior combinations
 
-  - **behavior combination**:
+  (empty space symbolizes a leaf template)
 
-  - **order**: the same set of template controllers (and optionally bindings) on the same element, but in a different order (results in completely different rendering and output):
+  - **behavior set**: different combinations of template controllers on the same element, distinguished only by the number of unique behaviors:
 
-    1. `<div repeat.for="a of b" if.bind="c">${x}</div>` (outer repeat, inner if)
-    2. `<div if.bind="c" repeat.for="a of b">${x}</div>` (outer if, inner repeat)
+    1. `<div if.bind="a"> </div>`
+    2. `<div if.bind="a"> </div><div else> </div>`
+    3. `<div repeat.for="a of b"> </div>`
+    4. `<div if.bind="a" repeat.for="a of b"> </div>`
+    5. `<div if.bind="a" repeat.for="a of b"> </div><div else> </div>` (adding a repeater to the `else` would not make this a different set)
 
-  - **placement**: the same set of template controllers in the same order, but either on the same element or nested (results in the same rendered output but is compiled/rendered via different paths):
 
-    1. `<div repeat.for="a of b" if.bind="c">${x}</div>` (if+repeat on same element)
-    2. `<div repeat.for="a of b"><div if.bind="c">${x}</div></div>` (if with nested repeat)
+  - **order**: the same behavior set on the same element, but in a different order (results in completely different rendering and output):
+
+    1. `<div repeat.for="a of b" if.bind="c"> </div>` (outer repeat, inner if)
+    2. `<div if.bind="c" repeat.for="a of b"> </div>` (outer if, inner repeat)
+
+  - **placement**: the same behavior set in the same order, but either on the same element or nested (results in the same rendered output but is compiled/rendered via different paths):
+
+    1. `<div repeat.for="a of b" if.bind="c"> </div>` (if+repeat on same element)
+    2. `<div repeat.for="a of b"><div if.bind="c"> </div></div>` (if with nested repeat)
+
+  - **nested repetition count**: the number of nested template controllers of the same type (one or more types):
+
+    1. `<div if.bind="a"><div if.bind="b"> </div></div>`
+    2. `<div repeat.for="a of b" if.bind="c"><div if.bind="d"> </div></div>`
+    3. `<div repeat.for="a of b" if.bind="c"><div repeat.for="d of e"> </div></div>`
+    4. `<div repeat.for="a of b" if.bind="c"><div repeat.for="d of e" if.bind="f"> </div></div>`
 

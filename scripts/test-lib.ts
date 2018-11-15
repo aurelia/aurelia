@@ -2,6 +2,9 @@ import { expect } from 'chai';
 import { SinonStub, spy } from 'sinon';
 import sinon from 'sinon';
 
+var Node;
+var document;
+
 const toStringTag = Object.prototype.toString;
 
 // tslint:disable:whitespace
@@ -157,7 +160,7 @@ export function jsonStringify(o: any): string {
   let cache = [];
   const result = JSON.stringify(o, function(_key: string, value: any): string {
     if (typeof value === 'object' && value !== null) {
-      if (value instanceof Node) {
+      if (value.nodeType) {
         return htmlStringify(value);
       }
       if (cache.indexOf(value) !== -1) {
@@ -221,7 +224,7 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
     }
     return;
   }
-  if (expected instanceof Node) {
+  if (expected.nodeType) {
     if (expected.nodeType === 11) {
       for (let i = 0; i < expected.childNodes.length; i++) {
         verifyEqual(actual.childNodes.item(i), expected.childNodes.item(i), depth + 1, property, i);

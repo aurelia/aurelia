@@ -5,47 +5,59 @@ import { createElement, _ } from './util';
 const toString = Object.prototype.toString;
 
 describe(`The PLATFORM object`, () => {
-  it(`global references window`, () => {
-    expect(PLATFORM.global).to.equal(window);
-  });
-
-  it(`now() returns a timestamp`, async () => {
-    const $1 = PLATFORM.now();
-
-    await Promise.resolve();
-    const $2 = PLATFORM.now();
-    expect($2).to.be.gte($1);
-
-    await Promise.resolve();
-    const $3 = PLATFORM.now();
-    expect($3).to.be.gte($2);
-
-    await Promise.resolve();
-    const $4 = PLATFORM.now();
-    expect($4).to.be.gte($3);
-
-    await Promise.resolve();
-    const $5 = PLATFORM.now();
-    expect($5).to.be.gte($4);
-  });
-
-  it(`requestAnimationFrame() resolves after microtasks`, done => {
-    let rafResolved = false;
-    let promiseResolved = false;
-    PLATFORM.requestAnimationFrame(() => {
-      rafResolved = true;
-      expect(promiseResolved).to.be.true;
-      done();
+  if (typeof window !== 'undefined') {
+    it(`global references window`, () => {
+      expect(PLATFORM.global).to.equal(window);
     });
-    Promise.resolve().then(() => {
+  } else {
+    it(`global references global`, () => {
+      expect(PLATFORM.global).to.equal(global);
+    });
+  }
+
+  // do not run this test in nodejs
+  if (typeof window !== 'undefined') {
+    it(`now() returns a timestamp`, async () => {
+      const $1 = PLATFORM.now();
+
+      await Promise.resolve();
+      const $2 = PLATFORM.now();
+      expect($2).to.be.gte($1);
+
+      await Promise.resolve();
+      const $3 = PLATFORM.now();
+      expect($3).to.be.gte($2);
+
+      await Promise.resolve();
+      const $4 = PLATFORM.now();
+      expect($4).to.be.gte($3);
+
+      await Promise.resolve();
+      const $5 = PLATFORM.now();
+      expect($5).to.be.gte($4);
+    });
+  }
+
+  // do not run this test in nodejs
+  if (typeof window !== 'undefined') {
+    it(`requestAnimationFrame() resolves after microtasks`, done => {
+      let rafResolved = false;
+      let promiseResolved = false;
+      PLATFORM.requestAnimationFrame(() => {
+        rafResolved = true;
+        expect(promiseResolved).to.be.true;
+        done();
+      });
       Promise.resolve().then(() => {
         Promise.resolve().then(() => {
-          expect(rafResolved).to.be.false;
-          promiseResolved = true;
+          Promise.resolve().then(() => {
+            expect(rafResolved).to.be.false;
+            promiseResolved = true;
+          });
         });
       });
     });
-  });
+  }
 
   describe(`camelCase()`, () => {
     for (const sep of ['.', '_', '-']) {
@@ -92,23 +104,26 @@ describe(`The PLATFORM object`, () => {
     }
   });
 
-  describe(`toArray()`, () => {
-    for (const input of <ArrayLike<any>[]>[
-      [1, 2, 3, 4, 5],
-      createElement('<div><div></div><div></div><div></div><div></div><div></div></div>').childNodes
-    ]) {
-      it(_`converts ${input} to array`, () => {
-        const expected = Array.from(input);
-        const actual = PLATFORM.toArray(input);
-        expect(typeof expected).to.equal(typeof actual);
-        expect(toString.call(expected)).to.equal(toString.call(actual));
-        expect(expected instanceof Array).to.equal(actual instanceof Array);
-        expect(expected.length).to.equal(actual.length);
-        for (let i = 0, ii = expected.length; i < ii; ++i) {
-          expect(expected[i]).to.equal(actual[i]);
-        }
-      });
-    }
-  });
+  // do not run this test in nodejs
+  if (typeof window !== 'undefined') {
+    describe(`toArray()`, () => {
+      for (const input of <ArrayLike<any>[]>[
+        [1, 2, 3, 4, 5],
+        createElement('<div><div></div><div></div><div></div><div></div><div></div></div>').childNodes
+      ]) {
+        it(_`converts ${input} to array`, () => {
+          const expected = Array.from(input);
+          const actual = PLATFORM.toArray(input);
+          expect(typeof expected).to.equal(typeof actual);
+          expect(toString.call(expected)).to.equal(toString.call(actual));
+          expect(expected instanceof Array).to.equal(actual instanceof Array);
+          expect(expected.length).to.equal(actual.length);
+          for (let i = 0, ii = expected.length; i < ii; ++i) {
+            expect(expected[i]).to.equal(actual[i]);
+          }
+        });
+      }
+    });
+  }
 
 });

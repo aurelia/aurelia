@@ -31,6 +31,7 @@
     "lint": "cross-env tslint --project tsconfig-test.json -e \"test/**\" -t stylish",
     "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=kernel --browsers=ChromeHeadlessOpt --single-run --coverage",
     "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=kernel --browsers=FirefoxHeadless --single-run --coverage",
+    "test-nodejs": "mocha --require test/setup-node.js --reporter progress --ui bdd --recursive --colors test/unit/**/*.spec.ts",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=kernel --browsers=ChromeHeadlessOpt --coverage",
     "test:watch:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=kernel --browsers=ChromeHeadlessOpt --coverage --reporter=mocha",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=kernel --browsers=ChromeDebugging",

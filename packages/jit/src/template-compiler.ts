@@ -32,11 +32,19 @@ import { AttributeSymbol, ElementSymbol, IAttributeSymbol, SemanticModel } from 
 
 @inject(IExpressionParser, IElementParser, IAttributeParser)
 export class TemplateCompiler implements ITemplateCompiler {
+  public exprParser: IExpressionParser;
+  public elParser: IElementParser;
+  public attrParser: IAttributeParser;
+
   public get name(): string {
     return 'default';
   }
 
-  constructor(public exprParser: IExpressionParser, public elParser: IElementParser, public attrParser: IAttributeParser) { }
+  constructor(exprParser: IExpressionParser, elParser: IElementParser, attrParser: IAttributeParser) {
+    this.exprParser = exprParser;
+    this.elParser = elParser;
+    this.attrParser = attrParser;
+  }
 
   public compile(definition: ITemplateDefinition, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
     const model = SemanticModel.create(definition, resources, this.attrParser, this.elParser, this.exprParser);

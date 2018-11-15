@@ -2,11 +2,17 @@ import { DI } from '@aurelia/kernel';
 import { Char } from './common';
 
 export class AttrSyntax {
-  constructor(
-    public readonly rawName: string,
-    public readonly rawValue: string,
-    public readonly target: string,
-    public readonly command: string | null) { }
+  public readonly rawName: string;
+  public readonly rawValue: string;
+  public readonly target: string;
+  public readonly command: string | null;
+
+  constructor(rawName: string, rawValue: string, target: string, command: string | null) {
+    this.rawName = rawName;
+    this.rawValue = rawValue;
+    this.target = target;
+    this.command = command;
+  }
 }
 
 export interface IAttributeParser {

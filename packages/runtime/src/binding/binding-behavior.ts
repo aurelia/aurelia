@@ -30,8 +30,8 @@ export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBin
     return `${this.name}:${name}`;
   },
 
-  isType<T extends Constructable>(Type: T): Type is T & IBindingBehaviorType {
-    return (Type as T & IBindingBehaviorType).kind === this;
+  isType<T extends Constructable & Partial<IBindingBehaviorType>>(Type: T): Type is T & IBindingBehaviorType {
+    return Type.kind === this;
   },
 
   define<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & IBindingBehaviorType {

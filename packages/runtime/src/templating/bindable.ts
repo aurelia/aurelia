@@ -37,7 +37,7 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
     if (!config.callback) {
       config.callback = `${$prop}Changed`;
     }
-    if (!config.mode) {
+    if (config.mode === undefined) {
       config.mode = BindingMode.toView;
     }
     if (arguments.length > 1) {
@@ -54,7 +54,8 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
     // Non invocation:
     // - @bindable
     config = {};
-    return decorator(configOrTarget as T, prop);
+    decorator(configOrTarget as T, prop);
+    return;
   } else if (typeof configOrTarget === 'string') {
     // ClassDecorator
     // - @bindable('bar')

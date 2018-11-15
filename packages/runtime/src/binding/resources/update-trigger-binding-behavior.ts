@@ -1,4 +1,4 @@
-import { inject, Reporter } from '@aurelia/kernel';
+import { inject, IRegistry, Reporter } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
@@ -18,6 +18,8 @@ export type UpdateTriggerableBinding = Binding & {
 @bindingBehavior('updateTrigger')
 @inject(IObserverLocator)
 export class UpdateTriggerBindingBehavior {
+  public static register: IRegistry['register'];
+
   constructor(private observerLocator: IObserverLocator) {}
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void {

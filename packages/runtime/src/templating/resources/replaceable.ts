@@ -1,4 +1,4 @@
-import { inject } from '@aurelia/kernel';
+import { inject, IRegistry } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
@@ -9,6 +9,8 @@ export interface Replaceable extends ICustomAttribute {}
 @templateController('replaceable')
 @inject(IViewFactory, IRenderLocation)
 export class Replaceable {
+  public static register: IRegistry['register'];
+
   private currentView: IView;
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {

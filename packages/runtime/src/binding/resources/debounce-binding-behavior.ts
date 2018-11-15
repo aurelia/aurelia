@@ -1,17 +1,16 @@
+import { IRegistry } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../../observation';
-import { Binding } from '../binding';
+import { Binding, IBinding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingMode } from '../binding-mode';
-import { Call } from '../call';
-import { Listener } from '../listener';
 
-export type DebounceableBinding = (Binding | Call | Listener) & {
-  debouncedMethod: ((newValue: any, oldValue: any, flags: LifecycleFlags) => void) & { originalName: string };
+export type DebounceableBinding = IBinding & {
+  debouncedMethod: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) & { originalName: string };
   debounceState: {
     callContextToDebounce: LifecycleFlags;
     delay: number;
-    timeoutId: any;
-    oldValue: any;
+    timeoutId: number;
+    oldValue: unknown;
   };
 };
 
@@ -25,7 +24,7 @@ export function debounceCallSource(event: Event): void {
 }
 
 /*@internal*/
-export function debounceCall(this: DebounceableBinding, newValue: any, oldValue: any, flags: LifecycleFlags): void {
+export function debounceCall(this: DebounceableBinding, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
   if (!(flags & state.callContextToDebounce)) {
@@ -36,7 +35,8 @@ export function debounceCall(this: DebounceableBinding, newValue: any, oldValue:
   if (state.oldValue === unset) {
     state.oldValue = oldValue;
   }
-  state.timeoutId = setTimeout(
+  // To disambiguate between "number" and "NodeJS.Timer" we cast it to an unknown, so we can subsequently cast it to number.
+  const timeoutId: unknown = setTimeout(
     () => {
       const ov = state.oldValue;
       state.oldValue = unset;
@@ -44,12 +44,15 @@ export function debounceCall(this: DebounceableBinding, newValue: any, oldValue:
     },
     state.delay
   );
+  state.timeoutId = timeoutId as number;
 }
 
 const fromView = BindingMode.fromView;
 
 @bindingBehavior('debounce')
 export class DebounceBindingBehavior {
+  public static register: IRegistry['register'];
+
   public bind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding, delay: number = 200): void {
     let methodToDebounce;
     let callContextToDebounce;

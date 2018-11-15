@@ -25,7 +25,7 @@ export class RenderPlan {
 
   public get definition(): TemplateDefinition {
     return this.lazyDefinition || (this.lazyDefinition =
-      buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies))
+      buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies));
   }
 
   public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate {

@@ -1,4 +1,4 @@
-import { inject, Reporter } from '@aurelia/kernel';
+import { inject, IRegistry, Reporter } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
@@ -11,15 +11,17 @@ export type SignalableBinding = Binding & {
 @bindingBehavior('signal')
 @inject(ISignaler)
 export class SignalBindingBehavior {
+  public static register: IRegistry['register'];
+
   constructor(private signaler: ISignaler) {}
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding): void {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding, ...args: string[]): void {
     if (!binding.updateTarget) {
       throw Reporter.error(11);
     }
 
     if (arguments.length === 4) {
-      const name = arguments[3];
+      const name = args[0];
       this.signaler.addSignalListener(name, binding);
       binding.signal = name;
     } else if (arguments.length > 4) {

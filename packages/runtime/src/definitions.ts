@@ -5,6 +5,7 @@ import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
 import { INode } from './dom';
 import { ResourceDescription } from './resource';
+import { ICustomElement, ICustomElementHost } from './templating/lifecycle-render';
 
 /*@internal*/
 export const customElementName = 'custom-element';
@@ -13,8 +14,8 @@ export function customElementKey(name: string): string {
   return `${customElementName}:${name}`;
 }
 /*@internal*/
-export function customElementBehavior(node: any): any {
-  return node.$customElement || null;
+export function customElementBehavior(node: ICustomElementHost): ICustomElement {
+  return node.$customElement === undefined ? null : node.$customElement;
 }
 
 /*@internal*/

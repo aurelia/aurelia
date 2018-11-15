@@ -1,6 +1,6 @@
 import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { IBindScope, ILifecycle, State } from '../lifecycle';
+import { IBindScope, State } from '../lifecycle';
 import { IAccessor, IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IConnectableBinding } from './connectable';
@@ -80,8 +80,12 @@ export class Call {
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
   }
-  // tslint:disable:no-empty no-any
-  public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }
-  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void { }
-  // tslint:enable:no-empty no-any
+
+  public observeProperty(obj: StrictAny, propertyName: StrictAny): void {
+    return;
+  }
+
+  public handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void {
+    return;
+  }
 }

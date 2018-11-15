@@ -342,7 +342,6 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
    *
    * @param name The name for the new slot to add. This is only used for generating the title of the test.
    */
-  // tslint:disable-next-line:unified-signatures
   public addActionSlot(name: string): this['asHead'];
   public addActionSlot(nameOrSlot?: this['asHead'] | string): this['asHead'] {
     if (!(nameOrSlot instanceof TestActionSlot)) {

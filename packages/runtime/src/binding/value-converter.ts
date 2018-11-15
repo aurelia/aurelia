@@ -20,8 +20,8 @@ export const ValueConverterResource: IResourceKind<IValueConverterSource, IValue
     return `${this.name}:${name}`;
   },
 
-  isType<T extends Constructable>(Type: T): Type is T & IValueConverterType {
-    return (Type as T & IValueConverterType).kind === this;
+  isType<T extends Constructable & Partial<IValueConverterType>>(Type: T): Type is T & IValueConverterType {
+    return Type.kind === this;
   },
 
   define<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & IValueConverterType {

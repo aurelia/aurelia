@@ -191,7 +191,7 @@
       "member-variable-declaration"
     ],
     "underscore-consistent-invocation": true,
-    "unified-signatures": true,
+    "unified-signatures": false,
     "use-default-type-parameter": true,
     "variable-name": [true, "ban-keywords", "allow-leading-underscore", "allow-pascal-case"],
 

@@ -1,3 +1,4 @@
+import { IRegistry } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
@@ -23,6 +24,8 @@ export abstract class BindingModeBehavior {
 
 @bindingBehavior('oneTime')
 export class OneTimeBindingBehavior extends BindingModeBehavior {
+  public static register: IRegistry['register'];
+
   constructor() {
     super(oneTime);
   }
@@ -30,6 +33,8 @@ export class OneTimeBindingBehavior extends BindingModeBehavior {
 
 @bindingBehavior('toView')
 export class ToViewBindingBehavior extends BindingModeBehavior {
+  public static register: IRegistry['register'];
+
   constructor() {
     super(toView);
   }
@@ -37,6 +42,8 @@ export class ToViewBindingBehavior extends BindingModeBehavior {
 
 @bindingBehavior('fromView')
 export class FromViewBindingBehavior extends BindingModeBehavior {
+  public static register: IRegistry['register'];
+
   constructor() {
     super(fromView);
   }
@@ -44,6 +51,8 @@ export class FromViewBindingBehavior extends BindingModeBehavior {
 
 @bindingBehavior('twoWay')
 export class TwoWayBindingBehavior extends BindingModeBehavior {
+  public static register: IRegistry['register'];
+
   constructor() {
     super(twoWay);
   }

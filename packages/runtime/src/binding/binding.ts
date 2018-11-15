@@ -1,12 +1,10 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { AccessorOrObserver, IBindingTargetObserver, IScope, LifecycleFlags } from '../observation';
-import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
+import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
-
-// tslint:disable:no-any
 
 export interface IBinding extends IBindScope {
   readonly locator: IServiceLocator;
@@ -46,15 +44,15 @@ export class Binding implements IPartialConnectableBinding {
     this.$lifecycle = locator.get(ILifecycle);
   }
 
-  public updateTarget(value: any, flags: LifecycleFlags): void {
+  public updateTarget(value: StrictAny, flags: LifecycleFlags): void {
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
-  public updateSource(value: any, flags: LifecycleFlags): void {
+  public updateSource(value: StrictAny, flags: LifecycleFlags): void {
     this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
-  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void {
+  public handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }

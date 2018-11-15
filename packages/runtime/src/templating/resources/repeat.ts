@@ -1,4 +1,4 @@
-import { inject } from '@aurelia/kernel';
+import { inject, IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
 import { BindingContext, Scope } from '../../binding/binding-context';
@@ -16,6 +16,8 @@ export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, 
 @inject(IRenderLocation, IRenderable, IViewFactory)
 @templateController('repeat')
 export class Repeat<T extends ObservedCollection = IObservedArray> {
+  public static register: IRegistry['register'];
+
   @bindable public items: T;
 
   public $scope: IScope;

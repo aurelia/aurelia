@@ -16,7 +16,6 @@ export type RequireConfig = {
 
 /*@internal*/
 export type RequireOnLoad = {
-  // tslint:disable-next-line:no-reserved-keywords
   (content: string|{}): void;
   error?(error: Error): void;
 };

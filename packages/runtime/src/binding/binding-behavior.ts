@@ -1,16 +1,26 @@
-import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, Decoratable, Decorated, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { IScope, LifecycleFlags } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
+import { IBinding } from './binding';
+
+export interface IBindingBehavior {
+  bind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
+  unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
+}
 
 export interface IBindingBehaviorSource {
   name: string;
 }
 
-export type IBindingBehaviorType = IResourceType<IBindingBehaviorSource>;
+export interface IBindingBehaviorType extends IResourceType<IBindingBehaviorSource> {
+}
 
-export function bindingBehavior(nameOrSource: string | IBindingBehaviorSource): <T extends Constructable>(target: T) => T & IResourceType<IBindingBehaviorSource> {
-  return function<T extends Constructable>(target: T): T & IResourceType<IBindingBehaviorSource> {
-    return BindingBehaviorResource.define(nameOrSource, target);
-  };
+type BindingBehaviorDecorator = <T extends Constructable>(target: Decoratable<IBindingBehavior, T>) => Decorated<IBindingBehavior, T> & IBindingBehaviorType;
+
+export function bindingBehavior(name: string): BindingBehaviorDecorator;
+export function bindingBehavior(source: IBindingBehaviorSource): BindingBehaviorDecorator;
+export function bindingBehavior(nameOrSource: string | IBindingBehaviorSource): BindingBehaviorDecorator {
+  return target => BindingBehaviorResource.define(nameOrSource, target);
 }
 
 export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBindingBehaviorType> = {
@@ -20,8 +30,8 @@ export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBin
     return `${this.name}:${name}`;
   },
 
-  isType<T extends Constructable>(Type: T): Type is T & IBindingBehaviorType {
-    return (Type as T & IBindingBehaviorType).kind === this;
+  isType<T extends Constructable & Partial<IBindingBehaviorType>>(Type: T): Type is T & IBindingBehaviorType {
+    return Type.kind === this;
   },
 
   define<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & IBindingBehaviorType {

@@ -1,4 +1,4 @@
-import { all, Constructable, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IResolver, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { all, Constructable, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { Interpolation } from '../binding/ast';
 import { Binding } from '../binding/binding';
 import { Scope } from '../binding/binding-context';
@@ -170,6 +170,8 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
   const description = Type.description;
 
   this.$scope = Scope.create(this, null);
+  this.$host = host;
+  this.$projector = determineProjector(this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
@@ -184,8 +186,6 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
     const template = renderingEngine.getElementTemplate(description, Type);
     template.render(this, host, options.parts);
   }
-  this.$host = host;
-  this.$projector = determineProjector(this, host, description);
 
   if (this.$hooks & Hooks.hasCreated) {
     this.created();
@@ -286,7 +286,7 @@ export class RenderingEngine implements IRenderingEngine {
     let factory = this.factoryLookup.get(definition);
 
     if (!factory) {
-      const validSource = buildTemplateDefinition(null, definition)
+      const validSource = buildTemplateDefinition(null, definition);
       const template = this.templateFromSource(validSource, parentContext);
       factory = new ViewFactory(validSource.name, template, this.lifecycle);
       factory.setCacheSize(validSource.cache, true);
@@ -551,7 +551,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   public getValue(): ICustomElement[] {
     if (!this.observing) {
       this.observing = true;
-      this.customElement.$projector.subscribeToChildrenChange(() => this.onChildrenChanged());
+      this.customElement.$projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
       this.children = findElements(this.customElement.$projector.children);
     }
 
@@ -613,7 +613,8 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
       const factory = resolver.getFactory(this.context);
 
       if (factory !== null) {
-        return (factory.type as IResourceType<TSource>).description || null;
+        const description = (factory.type as IResourceType<TSource>).description;
+        return description === undefined ? null : description;
       }
     }
 
@@ -623,7 +624,8 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
   public create<TSource, TType extends IResourceType<TSource>>(kind: IResourceKind<TSource, TType>, name: string): InstanceType<TType> | null {
     const key = kind.keyFrom(name);
     if (this.context.has(key, false)) {
-      return this.context.get<any>(key) || null;
+      const context = this.context.get<any>(key);
+      return context === undefined ? null : context;
     }
     return null;
   }
@@ -672,11 +674,10 @@ export const noViewTemplate: ITemplate = {
   }
 };
 
-
 /*@internal*/
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
-export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<any>): IRenderContext {
+export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext {
   const context = <ExposedContext>parentRenderContext.createChild();
   const renderableProvider = new InstanceProvider();
   const elementProvider = new InstanceProvider();
@@ -917,7 +918,7 @@ export class Renderer implements IRenderer {
 
   public [TargetedInstructionType.stylePropertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IStylePropertyBindingInstruction>): void {
     const $from = instruction.from as any;
-    addBindable(renderable, new Binding($from.$kind ? $from : this.parser.parse($from, BindingType.IsPropertyCommand | BindingMode.toView), (<any>target).style, instruction.to, BindingMode.toView, this.observerLocator, this.context));
+    addBindable(renderable, new Binding($from.$kind ? $from : this.parser.parse($from, BindingType.IsPropertyCommand | BindingMode.toView), target.style, instruction.to, BindingMode.toView, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.setProperty](renderable: IRenderable, target: any, instruction: Immutable<ISetPropertyInstruction>): void {

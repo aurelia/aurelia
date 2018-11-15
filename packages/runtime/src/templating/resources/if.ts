@@ -1,4 +1,4 @@
-import { inject } from '@aurelia/kernel';
+import { inject, IRegistry } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
@@ -10,6 +10,8 @@ export interface If extends ICustomAttribute {}
 @templateController('if')
 @inject(IViewFactory, IRenderLocation, CompositionCoordinator)
 export class If {
+  public static register: IRegistry['register'];
+
   @bindable public value: boolean = false;
 
   public elseFactory: IViewFactory = null;
@@ -98,6 +100,8 @@ export interface Else extends ICustomAttribute {}
 @templateController('else')
 @inject(IViewFactory)
 export class Else {
+  public static register: IRegistry['register'];
+
   constructor(private factory: IViewFactory) { }
 
   public link(ifBehavior: If): void {

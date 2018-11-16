@@ -108,7 +108,7 @@ export class Unparser implements AST.IVisitor<void> {
   public visitPrimitiveLiteral(expr: AST.PrimitiveLiteral): void {
     this.text += '(';
     if (typeof expr.value === 'string') {
-      const escaped = expr.value.replace(/'/g, '\'');
+      const escaped = expr.value.replace(/'/g, '\\\'');
       this.text += `'${escaped}'`;
     } else {
       this.text += `${expr.value}`;

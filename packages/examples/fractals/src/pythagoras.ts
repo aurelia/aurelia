@@ -3,7 +3,6 @@ import { State } from './state';
 import view from './pythagoras.html';
 
 const MAX_LEVEL = 10;
-let count = 0;
 
 @customElement({
   name: 'pythagoras',

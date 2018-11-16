@@ -1,8 +1,8 @@
-import { IDisposable, IServiceLocator } from '@aurelia/kernel';
+import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
-import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
+import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
@@ -107,8 +107,12 @@ export class Listener implements IBinding {
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
   }
-  // tslint:disable:no-empty no-any
-  public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }
-  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void { }
-  // tslint:enable:no-empty no-any
+
+  public observeProperty(obj: IIndexable, propertyName: string): void {
+    return;
+  }
+
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+    return;
+  }
 }

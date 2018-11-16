@@ -52,7 +52,7 @@ export function createComputedObserver(
           : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
         }
 
-      return new CustomSetterObserver(instance, propertyName, descriptor);
+      return new CustomSetterObserver(instance, propertyName, descriptor, lifecycle);
     }
 
     return noProxy
@@ -77,8 +77,9 @@ export class CustomSetterObserver implements CustomSetterObserver {
   public propertyKey: string;
 
   private descriptor: PropertyDescriptor;
+  private lifecycle: ILifecycle;
 
-  constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
+  constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, lifecycle: ILifecycle) {
     this.$nextFlush = null;
 
     this.obj = obj;
@@ -86,6 +87,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
     this.propertyKey = propertyKey;
 
     this.descriptor = descriptor;
+    this.lifecycle = lifecycle;
   }
 
   public getValue(): IIndexable | Primitive {

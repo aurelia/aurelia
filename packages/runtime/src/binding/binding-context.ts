@@ -34,11 +34,10 @@ export class BindingContext implements IBindingContext {
     if (keyOrObj !== undefined) {
       if (value !== undefined) {
         // if value is defined then it's just a property and a value to initialize with
-        // tslint:disable-next-line:no-any
-        this[<any>keyOrObj] = value;
+        this[keyOrObj as string] = value;
       } else {
         // can either be some random object or another bindingContext to clone from
-        for (const prop in <IIndexable>keyOrObj) {
+        for (const prop in keyOrObj as IIndexable) {
           if (keyOrObj.hasOwnProperty(prop)) {
             this[prop] = keyOrObj[prop];
           }

@@ -1,7 +1,7 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
-import { IExpression, StrictAny } from './ast';
+import { IExpression } from './ast';
 import { IBindingTarget } from './binding';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
@@ -40,7 +40,7 @@ export class LetBinding implements IPartialConnectableBinding {
     this.toViewModel = toViewModel;
   }
 
-  public handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }

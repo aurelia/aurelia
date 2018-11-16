@@ -68,31 +68,32 @@
       return c > 3 && r && Object.defineProperty(target, key, r), r;
   }
 
-  function bindingCommand(nameOrSource) {
-      return function (target) {
-          return BindingCommandResource.define(nameOrSource, target);
+  function bindingCommand(nameOrDefinition) {
+      return target => BindingCommandResource.define(nameOrDefinition, target);
+  }
+  function keyFrom(name) {
+      return `${this.name}:${name}`;
+  }
+  function isType(Type) {
+      return Type.kind === this;
+  }
+  function define(nameOrDefinition, ctor) {
+      const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
+      const Type = ctor;
+      Type.kind = BindingCommandResource;
+      Type.description = description;
+      Type.register = function (container) {
+          container.register(kernel.Registration.singleton(Type.kind.keyFrom(description.name), Type));
       };
+      const proto = Type.prototype;
+      proto.handles = proto.handles || defaultHandles;
+      return Type;
   }
   const BindingCommandResource = {
       name: 'binding-command',
-      keyFrom(name) {
-          return `${this.name}:${name}`;
-      },
-      isType(Type) {
-          return Type.kind === this;
-      },
-      define(nameOrSource, ctor) {
-          const description = typeof nameOrSource === 'string' ? { name: nameOrSource, target: null } : nameOrSource;
-          const Type = ctor;
-          Type.kind = BindingCommandResource;
-          Type.description = description;
-          Type.register = function (container) {
-              container.register(kernel.Registration.singleton(Type.kind.keyFrom(description.name), Type));
-          };
-          const proto = Type.prototype;
-          proto.handles = proto.handles || defaultHandles;
-          return Type;
-      }
+      keyFrom,
+      isType,
+      define
   };
   function defaultHandles($symbol) {
       return !$symbol.isTemplateController;

@@ -112,7 +112,7 @@ class Unparser {
     visitPrimitiveLiteral(expr) {
         this.text += '(';
         if (typeof expr.value === 'string') {
-            const escaped = expr.value.replace(/'/g, '\'');
+            const escaped = expr.value.replace(/'/g, '\\\'');
             this.text += `'${escaped}'`;
         }
         else {

@@ -1,9 +1,10 @@
-import { Constructable, Immutable, Omit } from '@aurelia/kernel';
+import { Immutable, Omit } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
 import { INode } from './dom';
-import { ResourceDescription } from './resource';
+import { IResourceDefinition, ResourceDescription } from './resource';
+import { CustomElementConstructor } from './templating/custom-element';
 export declare type BindableSource = Omit<IBindableDescription, 'property'>;
 export interface IBindableDescription {
     mode?: BindingMode;
@@ -32,8 +33,7 @@ export interface IBuildInstruction {
     required: boolean;
     compiler?: string;
 }
-export interface ITemplateDefinition {
-    name?: string;
+export interface ITemplateDefinition extends IResourceDefinition {
     cache?: '*' | number;
     template?: string | INode;
     instructions?: TargetedInstruction[][];
@@ -48,8 +48,7 @@ export interface ITemplateDefinition {
 export declare type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 export declare type TemplatePartDefinitions = Record<string, Immutable<ITemplateDefinition>>;
 export declare type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
-export interface IAttributeDefinition {
-    name: string;
+export interface IAttributeDefinition extends IResourceDefinition {
     defaultBindingMode?: BindingMode;
     aliases?: string[];
     isTemplateController?: boolean;
@@ -149,15 +148,10 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
     from: string | IsBindingBehavior | Interpolation;
     to: string;
 }
-declare type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
-declare type CustomAttributeStaticProperties = Pick<AttributeDefinition, 'bindables'>;
-export declare type CustomElementConstructor = Constructable & CustomElementStaticProperties;
-export declare type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor, name: string): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: null, def: Immutable<ITemplateDefinition>): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, nameOrDef: string | Immutable<ITemplateDefinition>): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: string | INode, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: ReadonlyArray<ReadonlyArray<TargetedInstruction>> | null, dependencies?: ReadonlyArray<unknown> | null, surrogates?: ReadonlyArray<TargetedInstruction> | null, containerless?: boolean | null, shadowOptions?: {
     mode: 'open' | 'closed';
 } | null, hasSlots?: boolean | null): TemplateDefinition;
-export {};
 //# sourceMappingURL=definitions.d.ts.map

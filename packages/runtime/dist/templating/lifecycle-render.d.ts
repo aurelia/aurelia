@@ -1,9 +1,11 @@
-import { Decoratable, Decorated, IContainer, Immutable, ImmutableArray, IRegistry, Omit } from '@aurelia/kernel';
-import { CustomElementConstructor, IAttributeDefinition, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
+import { Decoratable, Decorated, IContainer, Immutable, ImmutableArray, IRegistry } from '@aurelia/kernel';
+import { IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext, IState, IViewFactory } from '../lifecycle';
-import { IAccessor, IChangeTracker, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
-import { IResourceDescriptions, IResourceKind, IResourceType } from '../resource';
+import { ILifecycle, IRenderable, IRenderContext, IViewFactory } from '../lifecycle';
+import { IAccessor, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
+import { IResourceDescriptions, IResourceKind } from '../resource';
+import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
+import { ICustomElement, ICustomElementType } from './custom-element';
 export interface ITemplateCompiler {
     readonly name: string;
     compile(definition: ITemplateDefinition, resources: IResourceDescriptions, viewCompileFlags?: ViewCompileFlags): TemplateDefinition;
@@ -14,14 +16,7 @@ export declare enum ViewCompileFlags {
     surrogate = 2,
     shadowDOM = 4
 }
-export interface ICustomElementType extends IResourceType<ITemplateDefinition, ICustomElement>, CustomElementConstructor {
-}
 export declare type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
-export interface ICustomElement extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IBindSelf, ILifecycleUnbindAfterDetach, IAttach, IMountable, IState, IRenderable {
-    readonly $projector: IElementProjector;
-    readonly $host: ICustomElementHost;
-    $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
-}
 export interface ICustomElementHost extends IRenderLocation {
     $customElement?: ICustomElement;
 }
@@ -37,10 +32,6 @@ export interface IElementProjector {
     take(nodes: INodeSequence): void;
     subscribeToChildrenChange(callback: () => void): void;
 }
-export interface ICustomAttributeType extends IResourceType<IAttributeDefinition, ICustomAttribute>, Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> {
-}
-declare type OptionalHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
-declare type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & IState;
 export interface IElementTemplateProvider {
     getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType): ITemplate;
 }
@@ -69,9 +60,6 @@ export interface ILifecycleRender {
      * which can happen many times per instance), though it can happen many times per type (once for each instance)
      */
     render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
-}
-export interface ICustomAttribute extends Partial<IChangeTracker>, IBindScope, ILifecycleUnbindAfterDetach, IAttach, OptionalHooks, RequiredLifecycleProperties {
-    $hydrate(renderingEngine: IRenderingEngine): void;
 }
 export interface IRenderingEngine {
     getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;

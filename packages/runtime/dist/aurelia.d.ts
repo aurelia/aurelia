@@ -1,8 +1,9 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
-import { ICustomElement } from './templating/lifecycle-render';
+import { INode } from './dom';
+import { ICustomElement } from './templating/custom-element';
 export interface ISinglePageApp {
-    host: any;
-    component: any;
+    host: INode;
+    component: unknown;
 }
 export declare class Aurelia {
     private container;

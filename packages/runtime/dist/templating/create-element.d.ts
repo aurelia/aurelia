@@ -2,7 +2,8 @@ import { Constructable, IIndexable } from '@aurelia/kernel';
 import { TargetedInstruction, TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
-import { ICustomElementType, IRenderingEngine, ITemplate } from './lifecycle-render';
+import { ICustomElementType } from './custom-element';
+import { IRenderingEngine, ITemplate } from './lifecycle-render';
 declare type ChildType = RenderPlan | string | INode;
 export declare function createElement(tagOrType: string | Constructable, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan;
 export declare class RenderPlan {

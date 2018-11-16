@@ -3,7 +3,8 @@ import { IHydrateElementInstruction, TemplateDefinition } from '../../definition
 import { CompositionCoordinator, IRenderable, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { RenderPlan } from '../create-element';
-import { ICustomElement, IRenderingEngine } from '../lifecycle-render';
+import { ICustomElement } from '../custom-element';
+import { IRenderingEngine } from '../lifecycle-render';
 declare type Subject = IViewFactory | IView | RenderPlan | Constructable | TemplateDefinition;
 export interface Compose extends ICustomElement {
 }

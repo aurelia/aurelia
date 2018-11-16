@@ -118,13 +118,13 @@ export declare function isResource(expr: IsExpressionOrStatement): expr is IsRes
 export declare function hasBind(expr: IsExpressionOrStatement): expr is HasBind;
 export declare function hasUnbind(expr: IsExpressionOrStatement): expr is HasUnbind;
 export declare function isLiteral(expr: IsExpressionOrStatement): expr is IsLiteral;
-export declare function arePureLiterals(expressions: ReadonlyArray<IsExpressionOrStatement>): expressions is IsLiteral[];
+export declare function arePureLiterals(expressions: ReadonlyArray<IsExpressionOrStatement> | undefined): expressions is IsLiteral[];
 export declare function isPureLiteral(expr: IsExpressionOrStatement): expr is IsLiteral;
 export declare class BindingBehavior implements IExpression {
+    $kind: ExpressionKind.BindingBehavior;
     readonly expression: IsBindingBehavior;
     readonly name: string;
     readonly args: ReadonlyArray<IsAssign>;
-    $kind: ExpressionKind.BindingBehavior;
     readonly behaviorKey: string;
     private readonly expressionHasBind;
     private readonly expressionHasUnbind;
@@ -137,10 +137,10 @@ export declare class BindingBehavior implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class ValueConverter implements IExpression {
+    $kind: ExpressionKind.ValueConverter;
     readonly expression: IsValueConverter;
     readonly name: string;
     readonly args: ReadonlyArray<IsAssign>;
-    $kind: ExpressionKind.ValueConverter;
     readonly converterKey: string;
     constructor(expression: IsValueConverter, name: string, args: ReadonlyArray<IsAssign>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
@@ -150,9 +150,9 @@ export declare class ValueConverter implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class Assign implements IExpression {
+    $kind: ExpressionKind.Assign;
     readonly target: IsAssignable;
     readonly value: IsAssign;
-    $kind: ExpressionKind.Assign;
     constructor(target: IsAssignable, value: IsAssign);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
@@ -160,31 +160,31 @@ export declare class Assign implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class Conditional implements IExpression {
+    $kind: ExpressionKind.Conditional;
+    assign: IExpression['assign'];
     readonly condition: IsBinary;
     readonly yes: IsAssign;
     readonly no: IsAssign;
-    $kind: ExpressionKind.Conditional;
-    assign: IExpression['assign'];
     constructor(condition: IsBinary, yes: IsAssign, no: IsAssign);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class AccessThis implements IExpression {
-    readonly ancestor: number;
     static readonly $this: AccessThis;
     static readonly $parent: AccessThis;
     $kind: ExpressionKind.AccessThis;
     assign: IExpression['assign'];
     connect: IExpression['connect'];
+    readonly ancestor: number;
     constructor(ancestor?: number);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class AccessScope implements IExpression {
+    $kind: ExpressionKind.AccessScope;
     readonly name: string;
     readonly ancestor: number;
-    $kind: ExpressionKind.AccessScope;
     constructor(name: string, ancestor?: number);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny;
@@ -192,9 +192,9 @@ export declare class AccessScope implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class AccessMember implements IExpression {
+    $kind: ExpressionKind.AccessMember;
     readonly object: IsLeftHandSide;
     readonly name: string;
-    $kind: ExpressionKind.AccessMember;
     constructor(object: IsLeftHandSide, name: string);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny;
@@ -202,9 +202,9 @@ export declare class AccessMember implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class AccessKeyed implements IExpression {
+    $kind: ExpressionKind.AccessKeyed;
     readonly object: IsLeftHandSide;
     readonly key: IsAssign;
-    $kind: ExpressionKind.AccessKeyed;
     constructor(object: IsLeftHandSide, key: IsAssign);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny;
@@ -212,32 +212,32 @@ export declare class AccessKeyed implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class CallScope implements IExpression {
+    $kind: ExpressionKind.CallScope;
+    assign: IExpression['assign'];
     readonly name: string;
     readonly args: ReadonlyArray<IsAssign>;
     readonly ancestor: number;
-    $kind: ExpressionKind.CallScope;
-    assign: IExpression['assign'];
     constructor(name: string, args: ReadonlyArray<IsAssign>, ancestor?: number);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): StrictAny;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class CallMember implements IExpression {
+    $kind: ExpressionKind.CallMember;
+    assign: IExpression['assign'];
     readonly object: IsLeftHandSide;
     readonly name: string;
     readonly args: ReadonlyArray<IsAssign>;
-    $kind: ExpressionKind.CallMember;
-    assign: IExpression['assign'];
     constructor(object: IsLeftHandSide, name: string, args: ReadonlyArray<IsAssign>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class CallFunction implements IExpression {
-    readonly func: IsLeftHandSide;
-    readonly args: ReadonlyArray<IsAssign>;
     $kind: ExpressionKind.CallFunction;
     assign: IExpression['assign'];
+    readonly func: IsLeftHandSide;
+    readonly args: ReadonlyArray<IsAssign>;
     constructor(func: IsLeftHandSide, args: ReadonlyArray<IsAssign>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
@@ -245,11 +245,11 @@ export declare class CallFunction implements IExpression {
 }
 export declare type BinaryOperator = '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
 export declare class Binary implements IExpression {
+    $kind: ExpressionKind.Binary;
+    assign: IExpression['assign'];
     readonly operation: BinaryOperator;
     readonly left: IsBinary;
     readonly right: IsBinary;
-    $kind: ExpressionKind.Binary;
-    assign: IExpression['assign'];
     constructor(operation: BinaryOperator, left: IsBinary, right: IsBinary);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
@@ -274,10 +274,10 @@ export declare class Binary implements IExpression {
 }
 export declare type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 export declare class Unary implements IExpression {
-    readonly operation: UnaryOperator;
-    readonly expression: IsLeftHandSide;
     $kind: ExpressionKind.Unary;
     assign: IExpression['assign'];
+    readonly operation: UnaryOperator;
+    readonly expression: IsLeftHandSide;
     constructor(operation: UnaryOperator, expression: IsLeftHandSide);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
@@ -289,7 +289,6 @@ export declare class Unary implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> implements IExpression {
-    readonly value: TValue;
     static readonly $undefined: PrimitiveLiteral<undefined>;
     static readonly $null: PrimitiveLiteral<null>;
     static readonly $true: PrimitiveLiteral<true>;
@@ -298,59 +297,60 @@ export declare class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPri
     $kind: ExpressionKind.PrimitiveLiteral;
     connect: IExpression['connect'];
     assign: IExpression['assign'];
+    readonly value: TValue;
     constructor(value: TValue);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): TValue;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class HtmlLiteral implements IExpression {
-    readonly parts: ReadonlyArray<HtmlLiteral>;
     $kind: ExpressionKind.HtmlLiteral;
     assign: IExpression['assign'];
+    readonly parts: ReadonlyArray<HtmlLiteral>;
     constructor(parts: ReadonlyArray<HtmlLiteral>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class ArrayLiteral implements IExpression {
-    readonly elements: ReadonlyArray<IsAssign>;
     static readonly $empty: ArrayLiteral;
     $kind: ExpressionKind.ArrayLiteral;
     assign: IExpression['assign'];
+    readonly elements: ReadonlyArray<IsAssign>;
     constructor(elements: ReadonlyArray<IsAssign>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): ReadonlyArray<StrictAny>;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class ObjectLiteral implements IExpression {
-    readonly keys: ReadonlyArray<number | string>;
-    readonly values: ReadonlyArray<IsAssign>;
     static readonly $empty: ObjectLiteral;
     $kind: ExpressionKind.ObjectLiteral;
     assign: IExpression['assign'];
+    readonly keys: ReadonlyArray<number | string>;
+    readonly values: ReadonlyArray<IsAssign>;
     constructor(keys: ReadonlyArray<number | string>, values: ReadonlyArray<IsAssign>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): Record<string, StrictAny>;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class Template implements IExpression {
-    readonly cooked: ReadonlyArray<string>;
-    readonly expressions?: ReadonlyArray<IsAssign>;
     static readonly $empty: Template;
     $kind: ExpressionKind.Template;
     assign: IExpression['assign'];
+    readonly cooked: ReadonlyArray<string>;
+    readonly expressions: ReadonlyArray<IsAssign>;
     constructor(cooked: ReadonlyArray<string>, expressions?: ReadonlyArray<IsAssign>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class TaggedTemplate implements IExpression {
+    $kind: ExpressionKind.TaggedTemplate;
+    assign: IExpression['assign'];
     readonly cooked: ReadonlyArray<string> & {
         raw?: ReadonlyArray<string>;
     };
     readonly func: IsLeftHandSide;
-    readonly expressions?: ReadonlyArray<IsAssign>;
-    $kind: ExpressionKind.TaggedTemplate;
-    assign: IExpression['assign'];
+    readonly expressions: ReadonlyArray<IsAssign>;
     constructor(cooked: ReadonlyArray<string> & {
         raw?: ReadonlyArray<string>;
     }, raw: ReadonlyArray<string>, func: IsLeftHandSide, expressions?: ReadonlyArray<IsAssign>);
@@ -359,8 +359,8 @@ export declare class TaggedTemplate implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class ArrayBindingPattern implements IExpression {
-    readonly elements: ReadonlyArray<IsAssign>;
     $kind: ExpressionKind.ArrayBindingPattern;
+    readonly elements: ReadonlyArray<IsAssign>;
     constructor(elements: ReadonlyArray<IsAssign>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): any;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): any;
@@ -368,9 +368,9 @@ export declare class ArrayBindingPattern implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class ObjectBindingPattern implements IExpression {
+    $kind: ExpressionKind.ObjectBindingPattern;
     readonly keys: ReadonlyArray<string | number>;
     readonly values: ReadonlyArray<IsAssign>;
-    $kind: ExpressionKind.ObjectBindingPattern;
     constructor(keys: ReadonlyArray<string | number>, values: ReadonlyArray<IsAssign>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): any;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): any;
@@ -378,8 +378,8 @@ export declare class ObjectBindingPattern implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class BindingIdentifier implements IExpression {
-    readonly name: string;
     $kind: ExpressionKind.BindingIdentifier;
+    readonly name: string;
     constructor(name: string);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
@@ -387,10 +387,10 @@ export declare class BindingIdentifier implements IExpression {
 }
 export declare type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern;
 export declare class ForOfStatement implements IExpression {
-    readonly declaration: BindingIdentifierOrPattern;
-    readonly iterable: IsBindingBehavior;
     $kind: ExpressionKind.ForOfStatement;
     assign: IExpression['assign'];
+    readonly declaration: BindingIdentifierOrPattern;
+    readonly iterable: IsBindingBehavior;
     constructor(declaration: BindingIdentifierOrPattern, iterable: IsBindingBehavior);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny;
     count(result: ObservedCollection | number | null | undefined): number;
@@ -399,13 +399,13 @@ export declare class ForOfStatement implements IExpression {
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class Interpolation implements IExpression {
-    readonly parts: ReadonlyArray<string>;
-    readonly expressions: ReadonlyArray<IsBindingBehavior>;
     $kind: ExpressionKind.Interpolation;
     assign: IExpression['assign'];
+    readonly parts: ReadonlyArray<string>;
+    readonly expressions: ReadonlyArray<IsBindingBehavior>;
     readonly isMulti: boolean;
     readonly firstExpression: IsBindingBehavior;
-    constructor(parts: ReadonlyArray<string>, expressions: ReadonlyArray<IsBindingBehavior>);
+    constructor(parts: ReadonlyArray<string>, expressions?: ReadonlyArray<IsBindingBehavior>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;

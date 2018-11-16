@@ -2,7 +2,7 @@ import { IRegistry } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
-import { ICustomAttribute } from '../lifecycle-render';
+import { ICustomAttribute } from '../custom-attribute';
 export interface Replaceable extends ICustomAttribute {
 }
 export declare class Replaceable {

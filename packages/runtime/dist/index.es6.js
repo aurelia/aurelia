@@ -820,27 +820,30 @@ class PromiseTask {
     }
 }
 
-function bindingBehavior(nameOrSource) {
-    return target => BindingBehaviorResource.define(nameOrSource, target);
+function bindingBehavior(nameOrDefinition) {
+    return target => BindingBehaviorResource.define(nameOrDefinition, target);
+}
+function keyFrom(name) {
+    return `${this.name}:${name}`;
+}
+function isType(Type) {
+    return Type.kind === this;
+}
+function define(nameOrDefinition, ctor) {
+    const Type = ctor;
+    const description = typeof nameOrDefinition === 'string'
+        ? { name: nameOrDefinition }
+        : nameOrDefinition;
+    Type.kind = BindingBehaviorResource;
+    Type.description = description;
+    Type.register = register;
+    return Type;
 }
 const BindingBehaviorResource = {
     name: 'binding-behavior',
-    keyFrom(name) {
-        return `${this.name}:${name}`;
-    },
-    isType(Type) {
-        return Type.kind === this;
-    },
-    define(nameOrSource, ctor) {
-        const Type = ctor;
-        const description = typeof nameOrSource === 'string'
-            ? { name: nameOrSource }
-            : nameOrSource;
-        Type.kind = BindingBehaviorResource;
-        Type.description = description;
-        Type.register = register;
-        return Type;
-    }
+    keyFrom,
+    isType,
+    define
 };
 function register(container) {
     container.register(Registration.singleton(BindingBehaviorResource.keyFrom(this.description.name), this));
@@ -1649,7 +1652,7 @@ let StyleAttributeAccessor = class StyleAttributeAccessor {
                 }
             }
             else if (newValue.length) {
-                const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:^"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
+                const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
                 let pair;
                 while ((pair = rx.exec(newValue)) !== null) {
                     style = pair[1];
@@ -2118,29 +2121,30 @@ class Signaler {
     }
 }
 
-function valueConverter(nameOrSource) {
-    return function (target) {
-        return ValueConverterResource.define(nameOrSource, target);
-    };
+function valueConverter(nameOrDefinition) {
+    return target => ValueConverterResource.define(nameOrDefinition, target);
+}
+function keyFrom$1(name) {
+    return `${this.name}:${name}`;
+}
+function isType$1(Type) {
+    return Type.kind === this;
+}
+function define$1(nameOrDefinition, ctor) {
+    const Type = ctor;
+    const description = typeof nameOrDefinition === 'string'
+        ? { name: nameOrDefinition }
+        : nameOrDefinition;
+    Type.kind = ValueConverterResource;
+    Type.description = description;
+    Type.register = register$1;
+    return Type;
 }
 const ValueConverterResource = {
     name: 'value-converter',
-    keyFrom(name) {
-        return `${this.name}:${name}`;
-    },
-    isType(Type) {
-        return Type.kind === this;
-    },
-    define(nameOrSource, ctor) {
-        const Type = ctor;
-        const description = typeof nameOrSource === 'string'
-            ? { name: nameOrSource }
-            : nameOrSource;
-        Type.kind = ValueConverterResource;
-        Type.description = description;
-        Type.register = register$1;
-        return Type;
-    }
+    keyFrom: keyFrom$1,
+    isType: isType$1,
+    define: define$1
 };
 function register$1(container) {
     container.register(Registration.singleton(ValueConverterResource.keyFrom(this.description.name), this));
@@ -2207,6 +2211,7 @@ function isPureLiteral(expr) {
 }
 class BindingBehavior {
     constructor(expression, name, args) {
+        this.$kind = 38962 /* BindingBehavior */;
         this.expression = expression;
         this.name = name;
         this.args = args;
@@ -2265,6 +2270,7 @@ class BindingBehavior {
 }
 class ValueConverter {
     constructor(expression, name, args) {
+        this.$kind = 36913 /* ValueConverter */;
         this.expression = expression;
         this.name = name;
         this.args = args;
@@ -2353,6 +2359,7 @@ class ValueConverter {
 }
 class Assign {
     constructor(target, value) {
+        this.$kind = 8208 /* Assign */;
         this.target = target;
         this.value = value;
     }
@@ -2372,6 +2379,8 @@ class Assign {
 }
 class Conditional {
     constructor(condition, yes, no) {
+        this.$kind = 63 /* Conditional */;
+        this.assign = PLATFORM.noop;
         this.condition = condition;
         this.yes = yes;
         this.no = no;
@@ -2398,6 +2407,9 @@ class Conditional {
 }
 class AccessThis {
     constructor(ancestor = 0) {
+        this.$kind = 1793 /* AccessThis */;
+        this.assign = PLATFORM.noop;
+        this.connect = PLATFORM.noop;
         this.ancestor = ancestor;
     }
     evaluate(flags, scope, locator) {
@@ -2422,6 +2434,7 @@ AccessThis.$this = new AccessThis(0);
 AccessThis.$parent = new AccessThis(1);
 class AccessScope {
     constructor(name, ancestor = 0) {
+        this.$kind = 10082 /* AccessScope */;
         this.name = name;
         this.ancestor = ancestor;
     }
@@ -2445,6 +2458,7 @@ class AccessScope {
 }
 class AccessMember {
     constructor(object, name) {
+        this.$kind = 9323 /* AccessMember */;
         this.object = object;
         this.name = name;
     }
@@ -2474,6 +2488,7 @@ class AccessMember {
 }
 class AccessKeyed {
     constructor(object, key) {
+        this.$kind = 9324 /* AccessKeyed */;
         this.object = object;
         this.key = key;
     }
@@ -2513,6 +2528,8 @@ class AccessKeyed {
 }
 class CallScope {
     constructor(name, args, ancestor = 0) {
+        this.$kind = 1448 /* CallScope */;
+        this.assign = PLATFORM.noop;
         this.name = name;
         this.args = args;
         this.ancestor = ancestor;
@@ -2538,6 +2555,8 @@ class CallScope {
 }
 class CallMember {
     constructor(object, name, args) {
+        this.$kind = 1161 /* CallMember */;
+        this.assign = PLATFORM.noop;
         this.object = object;
         this.name = name;
         this.args = args;
@@ -2567,6 +2586,8 @@ class CallMember {
 }
 class CallFunction {
     constructor(func, args) {
+        this.$kind = 1162 /* CallFunction */;
+        this.assign = PLATFORM.noop;
         this.func = func;
         this.args = args;
     }
@@ -2596,6 +2617,8 @@ class CallFunction {
 }
 class Binary {
     constructor(operation, left, right) {
+        this.$kind = 46 /* Binary */;
+        this.assign = PLATFORM.noop;
         this.operation = operation;
         this.left = left;
         this.right = right;
@@ -2692,6 +2715,8 @@ class Binary {
 }
 class Unary {
     constructor(operation, expression) {
+        this.$kind = 39 /* Unary */;
+        this.assign = PLATFORM.noop;
         this.operation = operation;
         this.expression = expression;
         // see Binary (we're doing the same thing here)
@@ -2719,13 +2744,15 @@ class Unary {
     ['+'](f, s, l) {
         return +this.expression.evaluate(f, s, l);
     }
-    // tslint:disable-next-line:member-ordering
     accept(visitor) {
         return visitor.visitUnary(this);
     }
 }
 class PrimitiveLiteral {
     constructor(value) {
+        this.$kind = 17925 /* PrimitiveLiteral */;
+        this.assign = PLATFORM.noop;
+        this.connect = PLATFORM.noop;
         this.value = value;
     }
     evaluate(flags, scope, locator) {
@@ -2742,6 +2769,8 @@ PrimitiveLiteral.$false = new PrimitiveLiteral(false);
 PrimitiveLiteral.$empty = new PrimitiveLiteral('');
 class HtmlLiteral {
     constructor(parts) {
+        this.$kind = 51 /* HtmlLiteral */;
+        this.assign = PLATFORM.noop;
         this.parts = parts;
     }
     evaluate(flags, scope, locator) {
@@ -2767,6 +2796,8 @@ class HtmlLiteral {
 }
 class ArrayLiteral {
     constructor(elements) {
+        this.$kind = 17955 /* ArrayLiteral */;
+        this.assign = PLATFORM.noop;
         this.elements = elements;
     }
     evaluate(flags, scope, locator) {
@@ -2791,6 +2822,8 @@ class ArrayLiteral {
 ArrayLiteral.$empty = new ArrayLiteral(PLATFORM.emptyArray);
 class ObjectLiteral {
     constructor(keys, values) {
+        this.$kind = 17956 /* ObjectLiteral */;
+        this.assign = PLATFORM.noop;
         this.keys = keys;
         this.values = values;
     }
@@ -2817,9 +2850,10 @@ class ObjectLiteral {
 ObjectLiteral.$empty = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
 class Template {
     constructor(cooked, expressions) {
+        this.$kind = 17958 /* Template */;
+        this.assign = PLATFORM.noop;
         this.cooked = cooked;
-        this.expressions = expressions;
-        this.expressions = expressions || PLATFORM.emptyArray;
+        this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
     }
     evaluate(flags, scope, locator) {
         const expressions = this.expressions;
@@ -2845,11 +2879,12 @@ class Template {
 Template.$empty = new Template(['']);
 class TaggedTemplate {
     constructor(cooked, raw, func, expressions) {
+        this.$kind = 1197 /* TaggedTemplate */;
+        this.assign = PLATFORM.noop;
         this.cooked = cooked;
+        this.cooked.raw = raw;
         this.func = func;
-        this.expressions = expressions;
-        cooked.raw = raw;
-        this.expressions = expressions || PLATFORM.emptyArray;
+        this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
     }
     evaluate(flags, scope, locator) {
         const expressions = this.expressions;
@@ -2878,6 +2913,7 @@ class TaggedTemplate {
 class ArrayBindingPattern {
     // We'll either have elements, or keys+values, but never all 3
     constructor(elements) {
+        this.$kind = 65556 /* ArrayBindingPattern */;
         this.elements = elements;
     }
     // tslint:disable-next-line:no-any
@@ -2898,6 +2934,7 @@ class ArrayBindingPattern {
 class ObjectBindingPattern {
     // We'll either have elements, or keys+values, but never all 3
     constructor(keys, values) {
+        this.$kind = 65557 /* ObjectBindingPattern */;
         this.keys = keys;
         this.values = values;
     }
@@ -2918,6 +2955,7 @@ class ObjectBindingPattern {
 }
 class BindingIdentifier {
     constructor(name) {
+        this.$kind = 65558 /* BindingIdentifier */;
         this.name = name;
     }
     evaluate(flags, scope, locator) {
@@ -2935,6 +2973,8 @@ const toStringTag = Object.prototype.toString;
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 class ForOfStatement {
     constructor(declaration, iterable) {
+        this.$kind = 55 /* ForOfStatement */;
+        this.assign = PLATFORM.noop;
         this.declaration = declaration;
         this.iterable = iterable;
     }
@@ -2963,8 +3003,10 @@ class ForOfStatement {
 */
 class Interpolation {
     constructor(parts, expressions) {
+        this.$kind = 24 /* Interpolation */;
+        this.assign = PLATFORM.noop;
         this.parts = parts;
-        this.expressions = expressions;
+        this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
         this.isMulti = expressions.length > 1;
         this.firstExpression = expressions[0];
     }
@@ -3103,18 +3145,6 @@ const CountForOfStatement = {
     ['[object Null]'](result) { return 0; },
     ['[object Undefined]'](result) { return 0; }
 };
-// Give each AST class a noop for each interface method if and only if it's not already defined
-// This accomplishes the following:
-//   1) no runtime error due to bad AST structure (it's the parser's job to guard against that)
-//   2) no runtime error due to a bad binding such as two-way on a literal (no need, since it doesn't threaten the integrity of the app's state)
-//   3) should we decide something else, we can easily change the global behavior of 1) and 2) by simply assigning a different method here (either in the source or via AOT)
-const ast = [AccessThis, AccessScope, ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template, Unary, CallFunction, CallMember, CallScope, AccessMember, AccessKeyed, TaggedTemplate, Binary, Conditional, Assign, ForOfStatement];
-for (let i = 0, ii = ast.length; i < ii; ++i) {
-    const proto = ast[i].prototype;
-    // tslint:disable-next-line:no-any
-    proto.assign = proto.assign || PLATFORM.noop;
-    proto.connect = proto.connect || PLATFORM.noop;
-}
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 const slotNames = [];
@@ -4267,7 +4297,8 @@ function computed(config) {
         (target.computed || (target.computed = {}))[key] = config;
     };
 }
-const noProxy = !(typeof Proxy !== undefined);
+// tslint:disable-next-line:no-typeof-undefined
+const noProxy = !(typeof Proxy !== 'undefined');
 const computedOverrideDefaults = { static: false, volatile: false };
 /* @internal */
 function createComputedObserver(observerLocator, dirtyChecker, lifecycle, 
@@ -7201,11 +7232,8 @@ Renderer = __decorate([
     inject(all(IInstructionRenderer))
 ], Renderer);
 
-/**
- * Decorator: Indicates that the decorated class is a custom element.
- */
-function customElement(nameOrSource) {
-    return target => CustomElementResource.define(nameOrSource, target);
+function customElement(nameOrDefinition) {
+    return target => CustomElementResource.define(nameOrDefinition, target);
 }
 function useShadowDOM(targetOrOptions) {
     const options = typeof targetOrOptions === 'function' || !targetOrOptions
@@ -7224,82 +7252,84 @@ function containerlessDecorator(target) {
 function containerless(target) {
     return target === undefined ? containerlessDecorator : containerlessDecorator(target);
 }
+function isType$2(Type) {
+    return Type.kind === this;
+}
+function define$2(nameOrDefinition, ctor = null) {
+    if (!nameOrDefinition) {
+        throw Reporter.error(70);
+    }
+    const Type = (ctor === null ? class HTMLOnlyElement {
+    } : ctor);
+    const description = buildTemplateDefinition(Type, nameOrDefinition);
+    const proto = Type.prototype;
+    Type.kind = CustomElementResource;
+    Type.description = description;
+    Type.register = registerElement;
+    proto.$hydrate = $hydrateElement;
+    proto.$bind = $bindElement;
+    proto.$attach = $attachElement;
+    proto.$detach = $detachElement;
+    proto.$unbind = $unbindElement;
+    proto.$cache = $cacheElement;
+    proto.$prevBind = null;
+    proto.$nextBind = null;
+    proto.$prevAttach = null;
+    proto.$nextAttach = null;
+    proto.$nextUnbindAfterDetach = null;
+    proto.$scope = null;
+    proto.$hooks = 0;
+    proto.$state = 256 /* needsMount */;
+    proto.$bindableHead = null;
+    proto.$bindableTail = null;
+    proto.$attachableHead = null;
+    proto.$attachableTail = null;
+    proto.$mount = $mountElement;
+    proto.$unmount = $unmountElement;
+    proto.$nextMount = null;
+    proto.$nextUnmount = null;
+    proto.$projector = null;
+    if ('flush' in proto) {
+        proto.$nextFlush = null;
+    }
+    if ('binding' in proto)
+        proto.$hooks |= 4 /* hasBinding */;
+    if ('bound' in proto) {
+        proto.$hooks |= 8 /* hasBound */;
+        proto.$nextBound = null;
+    }
+    if ('unbinding' in proto)
+        proto.$hooks |= 256 /* hasUnbinding */;
+    if ('unbound' in proto) {
+        proto.$hooks |= 512 /* hasUnbound */;
+        proto.$nextUnbound = null;
+    }
+    if ('render' in proto)
+        proto.$hooks |= 1024 /* hasRender */;
+    if ('created' in proto)
+        proto.$hooks |= 2 /* hasCreated */;
+    if ('attaching' in proto)
+        proto.$hooks |= 16 /* hasAttaching */;
+    if ('attached' in proto) {
+        proto.$hooks |= 32 /* hasAttached */;
+        proto.$nextAttached = null;
+    }
+    if ('detaching' in proto)
+        proto.$hooks |= 64 /* hasDetaching */;
+    if ('caching' in proto)
+        proto.$hooks |= 2048 /* hasCaching */;
+    if ('detached' in proto) {
+        proto.$hooks |= 128 /* hasDetached */;
+        proto.$nextDetached = null;
+    }
+    return Type;
+}
 const CustomElementResource = {
     name: customElementName,
     keyFrom: customElementKey,
-    isType(Type) {
-        return Type.kind === this;
-    },
+    isType: isType$2,
     behaviorFor: customElementBehavior,
-    define(nameOrSource, ctor = null) {
-        if (!nameOrSource) {
-            throw Reporter.error(70);
-        }
-        const Type = (ctor === null ? class HTMLOnlyElement {
-        } : ctor);
-        const description = buildTemplateDefinition(Type, nameOrSource);
-        const proto = Type.prototype;
-        Type.kind = CustomElementResource;
-        Type.description = description;
-        Type.register = registerElement;
-        proto.$hydrate = $hydrateElement;
-        proto.$bind = $bindElement;
-        proto.$attach = $attachElement;
-        proto.$detach = $detachElement;
-        proto.$unbind = $unbindElement;
-        proto.$cache = $cacheElement;
-        proto.$prevBind = null;
-        proto.$nextBind = null;
-        proto.$prevAttach = null;
-        proto.$nextAttach = null;
-        proto.$nextUnbindAfterDetach = null;
-        proto.$scope = null;
-        proto.$hooks = 0;
-        proto.$state = 256 /* needsMount */;
-        proto.$bindableHead = null;
-        proto.$bindableTail = null;
-        proto.$attachableHead = null;
-        proto.$attachableTail = null;
-        proto.$mount = $mountElement;
-        proto.$unmount = $unmountElement;
-        proto.$nextMount = null;
-        proto.$nextUnmount = null;
-        proto.$projector = null;
-        if ('flush' in proto) {
-            proto.$nextFlush = null;
-        }
-        if ('binding' in proto)
-            proto.$hooks |= 4 /* hasBinding */;
-        if ('bound' in proto) {
-            proto.$hooks |= 8 /* hasBound */;
-            proto.$nextBound = null;
-        }
-        if ('unbinding' in proto)
-            proto.$hooks |= 256 /* hasUnbinding */;
-        if ('unbound' in proto) {
-            proto.$hooks |= 512 /* hasUnbound */;
-            proto.$nextUnbound = null;
-        }
-        if ('render' in proto)
-            proto.$hooks |= 1024 /* hasRender */;
-        if ('created' in proto)
-            proto.$hooks |= 2 /* hasCreated */;
-        if ('attaching' in proto)
-            proto.$hooks |= 16 /* hasAttaching */;
-        if ('attached' in proto) {
-            proto.$hooks |= 32 /* hasAttached */;
-            proto.$nextAttached = null;
-        }
-        if ('detaching' in proto)
-            proto.$hooks |= 64 /* hasDetaching */;
-        if ('caching' in proto)
-            proto.$hooks |= 2048 /* hasCaching */;
-        if ('detached' in proto) {
-            proto.$hooks |= 128 /* hasDetached */;
-            proto.$nextDetached = null;
-        }
-        return Type;
-    }
+    define: define$2
 };
 /*@internal*/
 function registerElement(container) {
@@ -7430,82 +7460,76 @@ Compose = __decorate([
     inject(IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator)
 ], Compose);
 
-/**
- * Decorator: Indicates that the decorated class is a custom attribute.
- */
-function customAttribute(nameOrDef) {
-    return target => CustomAttributeResource.define(nameOrDef, target);
+function customAttribute(nameOrDefinition) {
+    return target => CustomAttributeResource.define(nameOrDefinition, target);
 }
-/**
- * Decorator: Applied to custom attributes. Indicates that whatever element the
- * attribute is placed on should be converted into a template and that this
- * attribute controls the instantiation of the template.
- */
-function templateController(nameOrDef) {
-    return target => CustomAttributeResource.define(typeof nameOrDef === 'string'
-        ? { isTemplateController: true, name: nameOrDef }
-        : Object.assign({ isTemplateController: true }, nameOrDef), target);
+function templateController(nameOrDefinition) {
+    return target => CustomAttributeResource.define(typeof nameOrDefinition === 'string'
+        ? { isTemplateController: true, name: nameOrDefinition }
+        : Object.assign({ isTemplateController: true }, nameOrDefinition), target);
+}
+function isType$3(Type) {
+    return Type.kind === this;
+}
+function define$3(nameOrDefinition, ctor) {
+    const Type = ctor;
+    const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
+    const proto = Type.prototype;
+    Type.kind = CustomAttributeResource;
+    Type.description = description;
+    Type.register = registerAttribute;
+    proto.$hydrate = $hydrateAttribute;
+    proto.$bind = $bindAttribute;
+    proto.$attach = $attachAttribute;
+    proto.$detach = $detachAttribute;
+    proto.$unbind = $unbindAttribute;
+    proto.$cache = $cacheAttribute;
+    proto.$prevBind = null;
+    proto.$nextBind = null;
+    proto.$prevAttach = null;
+    proto.$nextAttach = null;
+    proto.$nextUnbindAfterDetach = null;
+    proto.$scope = null;
+    proto.$hooks = 0;
+    proto.$state = 0;
+    if ('flush' in proto) {
+        proto.$nextFlush = null;
+    }
+    if ('binding' in proto)
+        proto.$hooks |= 4 /* hasBinding */;
+    if ('bound' in proto) {
+        proto.$hooks |= 8 /* hasBound */;
+        proto.$nextBound = null;
+    }
+    if ('unbinding' in proto)
+        proto.$hooks |= 256 /* hasUnbinding */;
+    if ('unbound' in proto) {
+        proto.$hooks |= 512 /* hasUnbound */;
+        proto.$nextUnbound = null;
+    }
+    if ('created' in proto)
+        proto.$hooks |= 2 /* hasCreated */;
+    if ('attaching' in proto)
+        proto.$hooks |= 16 /* hasAttaching */;
+    if ('attached' in proto) {
+        proto.$hooks |= 32 /* hasAttached */;
+        proto.$nextAttached = null;
+    }
+    if ('detaching' in proto)
+        proto.$hooks |= 64 /* hasDetaching */;
+    if ('caching' in proto)
+        proto.$hooks |= 2048 /* hasCaching */;
+    if ('detached' in proto) {
+        proto.$hooks |= 128 /* hasDetached */;
+        proto.$nextDetached = null;
+    }
+    return Type;
 }
 const CustomAttributeResource = {
     name: customAttributeName,
     keyFrom: customAttributeKey,
-    isType(Type) {
-        return Type.kind === this;
-    },
-    define(nameOrSource, ctor) {
-        const Type = ctor;
-        const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
-        const proto = Type.prototype;
-        Type.kind = CustomAttributeResource;
-        Type.description = description;
-        Type.register = registerAttribute;
-        proto.$hydrate = $hydrateAttribute;
-        proto.$bind = $bindAttribute;
-        proto.$attach = $attachAttribute;
-        proto.$detach = $detachAttribute;
-        proto.$unbind = $unbindAttribute;
-        proto.$cache = $cacheAttribute;
-        proto.$prevBind = null;
-        proto.$nextBind = null;
-        proto.$prevAttach = null;
-        proto.$nextAttach = null;
-        proto.$nextUnbindAfterDetach = null;
-        proto.$scope = null;
-        proto.$hooks = 0;
-        proto.$state = 0;
-        if ('flush' in proto) {
-            proto.$nextFlush = null;
-        }
-        if ('binding' in proto)
-            proto.$hooks |= 4 /* hasBinding */;
-        if ('bound' in proto) {
-            proto.$hooks |= 8 /* hasBound */;
-            proto.$nextBound = null;
-        }
-        if ('unbinding' in proto)
-            proto.$hooks |= 256 /* hasUnbinding */;
-        if ('unbound' in proto) {
-            proto.$hooks |= 512 /* hasUnbound */;
-            proto.$nextUnbound = null;
-        }
-        if ('created' in proto)
-            proto.$hooks |= 2 /* hasCreated */;
-        if ('attaching' in proto)
-            proto.$hooks |= 16 /* hasAttaching */;
-        if ('attached' in proto) {
-            proto.$hooks |= 32 /* hasAttached */;
-            proto.$nextAttached = null;
-        }
-        if ('detaching' in proto)
-            proto.$hooks |= 64 /* hasDetaching */;
-        if ('caching' in proto)
-            proto.$hooks |= 2048 /* hasCaching */;
-        if ('detached' in proto) {
-            proto.$hooks |= 128 /* hasDetached */;
-            proto.$nextDetached = null;
-        }
-        return Type;
-    }
+    isType: isType$3,
+    define: define$3
 };
 /*@internal*/
 function registerAttribute(container) {

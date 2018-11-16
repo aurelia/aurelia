@@ -179,7 +179,7 @@ const DI = {
                 fn.inject = dependencies;
             }
             else { // It's a class decorator.
-                if (!dependencies || dependencies.length === 0) {
+                if (dependencies.length === 0) {
                     target.inject = DI.getDesignParamTypes(target).slice();
                 }
                 else {

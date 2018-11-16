@@ -1,16 +1,19 @@
-import { IRegistry } from '@aurelia/kernel';
-import { IExpressionParser, IResourceKind, IResourceType, TargetedInstruction } from '@aurelia/runtime';
+import { Constructable, Decoratable, Decorated, IRegistry } from '@aurelia/kernel';
+import { IExpressionParser, IResourceDefinition, IResourceKind, IResourceType, TargetedInstruction } from '@aurelia/runtime';
 import { IAttributeSymbol } from './semantic-model';
-export interface IBindingCommandSource {
-    name: string;
-}
 export interface IBindingCommand {
     compile($symbol: IAttributeSymbol): TargetedInstruction;
-    handles($symbol: IAttributeSymbol): boolean;
+    handles?($symbol: IAttributeSymbol): boolean;
 }
-export declare type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
-export declare function bindingCommand(nameOrSource: string | IBindingCommandSource): any;
-export declare const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindingCommandType>;
+export interface IBindingCommandDefinition extends IResourceDefinition {
+}
+export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand> {
+    inject: Function[];
+}
+declare type BindingCommandDecorator = <T extends Constructable>(target: Decoratable<IBindingCommand, T>) => Decorated<IBindingCommand, T> & IBindingCommandType;
+export declare function bindingCommand(name: string): BindingCommandDecorator;
+export declare function bindingCommand(definition: IBindingCommandDefinition): BindingCommandDecorator;
+export declare const BindingCommandResource: IResourceKind<IBindingCommandDefinition, IBindingCommandType>;
 export interface OneTimeBindingCommand extends IBindingCommand {
 }
 export declare class OneTimeBindingCommand implements IBindingCommand {
@@ -104,4 +107,5 @@ export declare class ForBindingCommand implements IBindingCommand {
     compile($symbol: IAttributeSymbol): TargetedInstruction;
     handles($symbol: IAttributeSymbol): boolean;
 }
+export {};
 //# sourceMappingURL=binding-command.d.ts.map

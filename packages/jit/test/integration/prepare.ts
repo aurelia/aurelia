@@ -18,7 +18,7 @@ export function cleanup(): void {
 
 @valueConverter('sort')
 export class SortValueConverter {
-  public toView(arr: any[], prop?: string, dir: 'asc' | 'desc' = 'asc'): any[] {
+  public toView(arr: unknown[], prop?: string, dir: 'asc' | 'desc' = 'asc'): unknown[] {
     if (Array.isArray(arr)) {
       const factor = dir === 'asc' ? 1 : -1;
       if (prop && prop.length) {
@@ -33,10 +33,10 @@ export class SortValueConverter {
 
 @valueConverter('json')
 export class JsonValueConverter {
-  public toView(input: any): string {
+  public toView(input: unknown): string {
     return JSON.stringify(input);
   }
-  public fromView(input: string): any {
+  public fromView(input: string): unknown {
     return JSON.parse(input);
   }
 }

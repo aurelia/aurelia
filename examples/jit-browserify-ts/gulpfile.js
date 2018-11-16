@@ -18,8 +18,8 @@ const b = browserify({
   .plugin(tsify)
   .transform(stringify, { appliesTo: { includeExtensions: ['.html'] } });
 
-function bundle() {
-  return b
+function bundle(input) {
+  return input
     .bundle()
     .pipe(source('bundle.js'))
     .pipe(gulp.dest('dist'));

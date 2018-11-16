@@ -1,21 +1,30 @@
-import { DI, IContainer, IRegistry, PLATFORM, Registration, Constructable } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
+import { INode } from './dom';
 import { LifecycleFlags } from './observation';
-import { ICustomElement, IRenderingEngine } from './templating/lifecycle-render';
-import { CustomElementResource } from './templating/custom-element';
+import { CustomElementResource, ICustomElement, ICustomElementType } from './templating/custom-element';
+import { IRenderingEngine } from './templating/lifecycle-render';
 
 export interface ISinglePageApp {
-  host: any;
-  component: any;
+  host: INode;
+  component: unknown;
 }
 
 export class Aurelia {
-  private components: ICustomElement[] = [];
-  private startTasks: (() => void)[] = [];
-  private stopTasks: (() => void)[] = [];
-  private isStarted: boolean = false;
-  private _root: ICustomElement = null;
+  private container: IContainer;
+  private components: ICustomElement[];
+  private startTasks: (() => void)[];
+  private stopTasks: (() => void)[];
+  private isStarted: boolean;
+  private _root: ICustomElement | null;
 
-  constructor(private container: IContainer = DI.createContainer()) {
+  constructor(container: IContainer = DI.createContainer()) {
+    this.container = container;
+    this.components = [];
+    this.startTasks = [];
+    this.stopTasks = [];
+    this.isStarted = false;
+    this._root = null;
+
     Registration
       .instance(Aurelia, this)
       .register(container, Aurelia);
@@ -27,12 +36,15 @@ export class Aurelia {
   }
 
   public app(config: ISinglePageApp): this {
-    let component = config.component;
-    if (CustomElementResource.isType(component)) {
-      this.container.register(component);
-      component = this.container.get(CustomElementResource.keyFrom(component.description.name));
+    const host = config.host as INode & {$au?: Aurelia | null};
+    let component: ICustomElement;
+    const componentOrType = config.component as ICustomElement | ICustomElementType;
+    if (CustomElementResource.isType(<ICustomElementType>componentOrType)) {
+      this.container.register(<ICustomElementType>componentOrType);
+      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((<ICustomElementType>componentOrType).description.name));
+    } else {
+      component = <ICustomElement>componentOrType;
     }
-    const host = config.host;
 
     const startTask = () => {
       host.$au = this;
@@ -83,4 +95,4 @@ export class Aurelia {
   }
 }
 
-(<any>PLATFORM.global).Aurelia = Aurelia;
+(<{Aurelia: unknown}>PLATFORM.global).Aurelia = Aurelia;

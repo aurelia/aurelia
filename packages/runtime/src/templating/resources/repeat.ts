@@ -8,8 +8,7 @@ import { INode, IRenderLocation } from '../../dom';
 import { IRenderable, IView, IViewFactory, State } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
-import { templateController } from '../custom-attribute';
-import { ICustomAttribute } from '../lifecycle-render';
+import { ICustomAttribute, templateController } from '../custom-attribute';
 
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}
 

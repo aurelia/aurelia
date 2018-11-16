@@ -10,8 +10,8 @@ import { CompositionCoordinator, IRenderable, IView, IViewFactory } from '../../
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { createElement, RenderPlan } from '../create-element';
-import { customElement } from '../custom-element';
-import { ICustomElement, IRenderingEngine } from '../lifecycle-render';
+import { customElement, ICustomElement } from '../custom-element';
+import { IRenderingEngine } from '../lifecycle-render';
 
 const composeSource: ITemplateDefinition = {
   name: 'au-compose',

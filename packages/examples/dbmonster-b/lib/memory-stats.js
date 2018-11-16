@@ -71,7 +71,7 @@ var MemoryStats = function (){
 
 			// refresh only 30time per second
 			if( Date.now() - lastTime < 1000/30 )	return;
-			lastTime	= Date.now()
+			lastTime	= Date.now();
 
 			var delta	= perf.memory.usedJSHeapSize - lastUsedHeap;
 			lastUsedHeap	= perf.memory.usedJSHeapSize;

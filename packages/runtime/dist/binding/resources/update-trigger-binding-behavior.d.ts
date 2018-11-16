@@ -1,3 +1,4 @@
+import { IRegistry } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from '../element-observation';
@@ -11,6 +12,7 @@ export declare type UpdateTriggerableBinding = Binding & {
 };
 export declare class UpdateTriggerBindingBehavior {
     private observerLocator;
+    static register: IRegistry['register'];
     constructor(observerLocator: IObserverLocator);
     bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void;

@@ -1,4 +1,4 @@
-import { Constructable, Immutable } from '@aurelia/kernel';
+import { Constructable, Immutable, IRegistry } from '@aurelia/kernel';
 import { IHydrateElementInstruction, TemplateDefinition } from '../../definitions';
 import { CompositionCoordinator, IRenderable, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
@@ -11,6 +11,7 @@ export declare class Compose {
     private renderable;
     private renderingEngine;
     private coordinator;
+    static register: IRegistry['register'];
     subject: Subject | Promise<Subject>;
     composing: boolean;
     private properties;
@@ -21,7 +22,7 @@ export declare class Compose {
     detaching(flags: LifecycleFlags): void;
     unbinding(flags: LifecycleFlags): void;
     caching(flags: LifecycleFlags): void;
-    subjectChanged(newValue: any, previousValue: any, flags: LifecycleFlags): void;
+    subjectChanged(newValue: Subject | Promise<Subject>, previousValue: Subject | Promise<Subject>, flags: LifecycleFlags): void;
     private startComposition;
     private resolveView;
     private provideViewFor;

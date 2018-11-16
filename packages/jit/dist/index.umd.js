@@ -68,165 +68,6 @@
       return c > 3 && r && Object.defineProperty(target, key, r), r;
   }
 
-  // tslint:disable:no-reserved-keywords
-  // tslint:disable:no-any
-  class TextBindingInstruction {
-      constructor(from) {
-          this.from = from;
-          this.type = "a" /* textBinding */;
-      }
-  }
-  class InterpolationInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "b" /* interpolation */;
-      }
-  }
-  class OneTimeBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "c" /* propertyBinding */;
-          this.oneTime = true;
-          this.mode = runtime.BindingMode.oneTime;
-      }
-  }
-  class ToViewBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "c" /* propertyBinding */;
-          this.oneTime = false;
-          this.mode = runtime.BindingMode.toView;
-      }
-  }
-  class FromViewBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "c" /* propertyBinding */;
-          this.oneTime = false;
-          this.mode = runtime.BindingMode.fromView;
-      }
-  }
-  class TwoWayBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "c" /* propertyBinding */;
-          this.oneTime = false;
-          this.mode = runtime.BindingMode.twoWay;
-      }
-  }
-  class IteratorBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "d" /* iteratorBinding */;
-      }
-  }
-  class TriggerBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "e" /* listenerBinding */;
-          this.strategy = runtime.DelegationStrategy.none;
-          this.preventDefault = true;
-      }
-  }
-  class DelegateBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "e" /* listenerBinding */;
-          this.strategy = runtime.DelegationStrategy.bubbling;
-          this.preventDefault = false;
-      }
-  }
-  class CaptureBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "e" /* listenerBinding */;
-          this.strategy = runtime.DelegationStrategy.capturing;
-          this.preventDefault = false;
-      }
-  }
-  class CallBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "f" /* callBinding */;
-      }
-  }
-  class RefBindingInstruction {
-      constructor(from) {
-          this.from = from;
-          this.type = "g" /* refBinding */;
-      }
-  }
-  class StylePropertyBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "h" /* stylePropertyBinding */;
-      }
-  }
-  class SetPropertyInstruction {
-      constructor(value, to) {
-          this.value = value;
-          this.to = to;
-          this.type = "i" /* setProperty */;
-      }
-  }
-  class SetAttributeInstruction {
-      constructor(value, to) {
-          this.value = value;
-          this.to = to;
-          this.type = "j" /* setAttribute */;
-      }
-  }
-  class HydrateElementInstruction {
-      constructor(res, instructions, parts, contentOverride) {
-          this.res = res;
-          this.instructions = instructions;
-          this.parts = parts;
-          this.contentOverride = contentOverride;
-          this.type = "k" /* hydrateElement */;
-      }
-  }
-  class HydrateAttributeInstruction {
-      constructor(res, instructions) {
-          this.res = res;
-          this.instructions = instructions;
-          this.type = "l" /* hydrateAttribute */;
-      }
-  }
-  class HydrateTemplateController {
-      constructor(def, res, instructions, link) {
-          this.def = def;
-          this.res = res;
-          this.instructions = instructions;
-          this.link = link;
-          this.type = "m" /* hydrateTemplateController */;
-      }
-  }
-  class LetElementInstruction {
-      constructor(instructions, toViewModel) {
-          this.instructions = instructions;
-          this.toViewModel = toViewModel;
-          this.type = "n" /* letElement */;
-      }
-  }
-  class LetBindingInstruction {
-      constructor(from, to) {
-          this.from = from;
-          this.to = to;
-          this.type = "o" /* letBinding */;
-      }
-  }
-
   function bindingCommand(nameOrSource) {
       return function (target) {
           return BindingCommandResource.define(nameOrSource, target);
@@ -237,9 +78,8 @@
       keyFrom(name) {
           return `${this.name}:${name}`;
       },
-      // tslint:disable-next-line:no-reserved-keywords
-      isType(type) {
-          return type.kind === this;
+      isType(Type) {
+          return Type.kind === this;
       },
       define(nameOrSource, ctor) {
           const description = typeof nameOrSource === 'string' ? { name: nameOrSource, target: null } : nameOrSource;
@@ -262,7 +102,7 @@
           this.parser = parser;
       }
       compile($symbol) {
-          return new OneTimeBindingInstruction(this.parser.parse($symbol.rawValue, 49 /* OneTimeCommand */), $symbol.to);
+          return new runtime.OneTimeBindingInstruction(this.parser.parse($symbol.rawValue, 49 /* OneTimeCommand */), $symbol.to);
       }
   };
   exports.OneTimeBindingCommand.inject = [runtime.IExpressionParser];
@@ -274,7 +114,7 @@
           this.parser = parser;
       }
       compile($symbol) {
-          return new ToViewBindingInstruction(this.parser.parse($symbol.rawValue, 50 /* ToViewCommand */), $symbol.to);
+          return new runtime.ToViewBindingInstruction(this.parser.parse($symbol.rawValue, 50 /* ToViewCommand */), $symbol.to);
       }
   };
   exports.ToViewBindingCommand.inject = [runtime.IExpressionParser];
@@ -286,7 +126,7 @@
           this.parser = parser;
       }
       compile($symbol) {
-          return new FromViewBindingInstruction(this.parser.parse($symbol.rawValue, 51 /* FromViewCommand */), $symbol.to);
+          return new runtime.FromViewBindingInstruction(this.parser.parse($symbol.rawValue, 51 /* FromViewCommand */), $symbol.to);
       }
   };
   exports.FromViewBindingCommand.inject = [runtime.IExpressionParser];
@@ -298,7 +138,7 @@
           this.parser = parser;
       }
       compile($symbol) {
-          return new TwoWayBindingInstruction(this.parser.parse($symbol.rawValue, 52 /* TwoWayCommand */), $symbol.to);
+          return new runtime.TwoWayBindingInstruction(this.parser.parse($symbol.rawValue, 52 /* TwoWayCommand */), $symbol.to);
       }
   };
   exports.TwoWayBindingCommand.inject = [runtime.IExpressionParser];
@@ -311,6 +151,10 @@
   exports.DefaultBindingCommand = class DefaultBindingCommand {
       constructor(parser) {
           this.parser = parser;
+          this.$1 = exports.OneTimeBindingCommand.prototype.compile;
+          this.$2 = exports.ToViewBindingCommand.prototype.compile;
+          this.$4 = exports.FromViewBindingCommand.prototype.compile;
+          this.$6 = exports.TwoWayBindingCommand.prototype.compile;
       }
       compile($symbol) {
           return this[compileMode[$symbol.mode]]($symbol);
@@ -320,16 +164,12 @@
   exports.DefaultBindingCommand = __decorate([
       bindingCommand('bind')
   ], exports.DefaultBindingCommand);
-  exports.DefaultBindingCommand.prototype.$1 = exports.OneTimeBindingCommand.prototype.compile;
-  exports.DefaultBindingCommand.prototype.$2 = exports.ToViewBindingCommand.prototype.compile;
-  exports.DefaultBindingCommand.prototype.$4 = exports.FromViewBindingCommand.prototype.compile;
-  exports.DefaultBindingCommand.prototype.$6 = exports.TwoWayBindingCommand.prototype.compile;
   exports.TriggerBindingCommand = class TriggerBindingCommand {
       constructor(parser) {
           this.parser = parser;
       }
       compile($symbol) {
-          return new TriggerBindingInstruction(this.parser.parse($symbol.rawValue, 86 /* TriggerCommand */), $symbol.to);
+          return new runtime.TriggerBindingInstruction(this.parser.parse($symbol.rawValue, 86 /* TriggerCommand */), $symbol.to);
       }
   };
   exports.TriggerBindingCommand.inject = [runtime.IExpressionParser];
@@ -341,7 +181,7 @@
           this.parser = parser;
       }
       compile($symbol) {
-          return new DelegateBindingInstruction(this.parser.parse($symbol.rawValue, 88 /* DelegateCommand */), $symbol.to);
+          return new runtime.DelegateBindingInstruction(this.parser.parse($symbol.rawValue, 88 /* DelegateCommand */), $symbol.to);
       }
   };
   exports.DelegateBindingCommand.inject = [runtime.IExpressionParser];
@@ -353,7 +193,7 @@
           this.parser = parser;
       }
       compile($symbol) {
-          return new CaptureBindingInstruction(this.parser.parse($symbol.rawValue, 87 /* CaptureCommand */), $symbol.to);
+          return new runtime.CaptureBindingInstruction(this.parser.parse($symbol.rawValue, 87 /* CaptureCommand */), $symbol.to);
       }
   };
   exports.CaptureBindingCommand.inject = [runtime.IExpressionParser];
@@ -365,7 +205,7 @@
           this.parser = parser;
       }
       compile($symbol) {
-          return new CallBindingInstruction(this.parser.parse($symbol.rawValue, 153 /* CallCommand */), $symbol.to);
+          return new runtime.CallBindingInstruction(this.parser.parse($symbol.rawValue, 153 /* CallCommand */), $symbol.to);
       }
   };
   exports.CallBindingCommand.inject = [runtime.IExpressionParser];
@@ -382,11 +222,11 @@
               template: $symbol.$element.node,
               instructions: []
           };
-          return new HydrateTemplateController(def, 'repeat', [
-              new IteratorBindingInstruction(this.parser.parse($symbol.rawValue, 539 /* ForCommand */), 'items'),
-              new SetPropertyInstruction('item', 'local')
-              // tslint:disable-next-line:align
-          ], false);
+          const instructions = [
+              new runtime.IteratorBindingInstruction(this.parser.parse($symbol.rawValue, 539 /* ForCommand */), 'items'),
+              new runtime.SetPropertyInstruction('item', 'local')
+          ];
+          return new runtime.HydrateTemplateController(def, 'repeat', instructions, false);
       }
       handles($symbol) {
           return $symbol.target === 'repeat';
@@ -1431,11 +1271,11 @@
 
   class SemanticModel {
       constructor(definition, resources, attrParser, elParser, exprParser) {
+          this.isSemanticModel = true;
           this.resources = resources;
           this.attrParser = attrParser;
           this.elParser = elParser;
           this.exprParser = exprParser;
-          this.isSemanticModel = true;
           this.attrDefCache = {};
           this.elDefCache = {};
           this.commandCache = {};
@@ -1520,25 +1360,28 @@
       constructor(semanticModel, $parent, syntax, command) {
           this.semanticModel = semanticModel;
           this.$parent = $parent;
+          this.$element = null;
           this.syntax = syntax;
           this.command = command;
-          this.isMultiAttrBinding = true;
-          this.res = null;
-          this.bindable = null;
-          this.isTemplateController = false;
-          this.isCustomAttribute = true;
-          this.isAttributeBindable = false;
-          this.isDefaultAttributeBindable = false;
-          this.onCustomElement = false;
-          this.isElementBindable = false;
-          this.$element = null;
           this.target = syntax.target;
+          this.res = null;
+          const parentDefinition = $parent.definition;
+          // this.to, this.mode and this.bindable will be overridden if there is a matching bindable property
+          this.to = syntax.target;
+          this.mode = parentDefinition.defaultBindingMode === undefined ? runtime.BindingMode.toView : parentDefinition.defaultBindingMode;
+          this.bindable = null;
           this.rawName = syntax.rawName;
           this.rawValue = syntax.rawValue;
           this.rawCommand = syntax.command;
           this.hasBindingCommand = !!command;
+          this.isMultiAttrBinding = true;
           this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
-          const bindables = $parent.definition.bindables;
+          this.isTemplateController = false;
+          this.isCustomAttribute = true;
+          this.isAttributeBindable = false;
+          this.onCustomElement = false;
+          this.isElementBindable = false;
+          const bindables = parentDefinition.bindables;
           for (const prop in bindables) {
               const b = bindables[prop];
               if (b.property === syntax.target) {
@@ -1549,36 +1392,38 @@
                   break;
               }
           }
-          if (!this.isAttributeBindable) {
-              const defaultBindingMode = $parent.definition.defaultBindingMode;
-              this.to = syntax.target;
-              this.mode = defaultBindingMode === undefined ? runtime.BindingMode.toView : defaultBindingMode;
-          }
       }
   }
   class AttributeSymbol {
+      get isProcessed() {
+          return this._isProcessed;
+      }
       constructor(semanticModel, $element, syntax, definition, command) {
           this.semanticModel = semanticModel;
+          this.definition = definition;
           this.$element = $element;
           this.syntax = syntax;
-          this.definition = definition;
           this.command = command;
-          this.isMultiAttrBinding = false;
-          this.res = null;
-          this.bindable = null;
-          this.isAttributeBindable = false;
-          this.isDefaultAttributeBindable = false;
-          this.isElementBindable = false;
-          this.isBindable = false;
-          this.isTemplateController = false;
           this.target = syntax.target;
+          this.res = null;
+          // this.to, this.mode and this.bindable will be overridden if there is a matching bindable property
+          this.to = syntax.target;
+          this.mode = runtime.BindingMode.toView;
+          this.bindable = null;
           this.rawName = syntax.rawName;
           this.rawValue = syntax.rawValue;
           this.rawCommand = syntax.command;
-          this.isCustomAttribute = !!definition;
           this.hasBindingCommand = !!command;
+          this.isMultiAttrBinding = false;
           this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
+          this.isTemplateController = false;
+          this.isCustomAttribute = !!definition;
+          this.isAttributeBindable = false;
+          this.isDefaultAttributeBindable = false;
           this.onCustomElement = $element.isCustomElement;
+          this.isElementBindable = false;
+          this.$multiAttrBindings = kernel.PLATFORM.emptyArray;
+          this.isBindable = false;
           this._isProcessed = this.rawName === 'as-element'; // as-element is processed by the semantic model and shouldn't be processed by the template compiler
           if (this.isCustomAttribute) {
               this.isTemplateController = !!definition.isTemplateController;
@@ -1607,7 +1452,9 @@
                       }
                   }
               }
-              this.$multiAttrBindings = this.isMultiAttrBinding ? multiAttrBindings : kernel.PLATFORM.emptyArray;
+              if (this.isMultiAttrBinding) {
+                  this.$multiAttrBindings = multiAttrBindings;
+              }
               const bindables = definition.bindables;
               if (!this.isMultiAttrBinding) {
                   for (const prop in bindables) {
@@ -1643,13 +1490,6 @@
                   this.mode = runtime.BindingMode.toView;
               }
           }
-          else {
-              this.to = syntax.target;
-              this.mode = runtime.BindingMode.toView;
-          }
-      }
-      get isProcessed() {
-          return this._isProcessed;
       }
       markAsProcessed() {
           this._isProcessed = true;
@@ -1659,59 +1499,6 @@
       }
   }
   class ElementSymbol {
-      constructor(semanticModel, isRoot, $root, $parent, syntax, definition) {
-          this.semanticModel = semanticModel;
-          this.isRoot = isRoot;
-          this.$root = $root;
-          this.$parent = $parent;
-          this.definition = definition;
-          this._$content = null;
-          this._isMarker = false;
-          this._isTemplate = false;
-          this._isSlot = false;
-          this._isLet = false;
-          this._isLifted = false;
-          this.$root = isRoot ? this : $root;
-          this._node = syntax.node;
-          this._syntax = syntax;
-          this._name = this.node.nodeName;
-          switch (this.name) {
-              case 'TEMPLATE':
-                  this._isTemplate = true;
-                  this._$content = this.semanticModel.getElementSymbol(syntax.$content, this);
-                  break;
-              case 'SLOT':
-                  this._isSlot = true;
-                  break;
-              case 'LET':
-                  this._isLet = true;
-          }
-          this._isCustomElement = !isRoot && !!definition;
-          const attributes = syntax.$attributes;
-          const attrLen = attributes.length;
-          if (attrLen > 0) {
-              const attrSymbols = Array(attrLen);
-              for (let i = 0, ii = attrLen; i < ii; ++i) {
-                  attrSymbols[i] = this.semanticModel.getAttributeSymbol(attributes[i], this);
-              }
-              this.$attributes = attrSymbols;
-          }
-          else {
-              this.$attributes = kernel.PLATFORM.emptyArray;
-          }
-          const children = syntax.$children;
-          const childLen = children.length;
-          if (childLen > 0) {
-              const childSymbols = Array(childLen);
-              for (let i = 0, ii = childLen; i < ii; ++i) {
-                  childSymbols[i] = this.semanticModel.getElementSymbol(children[i], this);
-              }
-              this.$children = childSymbols;
-          }
-          else {
-              this.$children = kernel.PLATFORM.emptyArray;
-          }
-      }
       get $content() {
           return this._$content;
       }
@@ -1761,6 +1548,59 @@
       }
       get isLifted() {
           return this._isLifted;
+      }
+      constructor(semanticModel, isRoot, $root, $parent, syntax, definition) {
+          this.semanticModel = semanticModel;
+          this.isRoot = isRoot;
+          this.$root = isRoot ? this : $root;
+          this.$parent = $parent;
+          this.definition = definition;
+          this._$content = null;
+          this._isMarker = false;
+          this._isTemplate = false;
+          this._isSlot = false;
+          this._isLet = false;
+          this._node = syntax.node;
+          this._syntax = syntax;
+          this._name = this.node.nodeName;
+          this._isCustomElement = false;
+          this._isLifted = false;
+          switch (this.name) {
+              case 'TEMPLATE':
+                  this._isTemplate = true;
+                  this._$content = this.semanticModel.getElementSymbol(syntax.$content, this);
+                  break;
+              case 'SLOT':
+                  this._isSlot = true;
+                  break;
+              case 'LET':
+                  this._isLet = true;
+          }
+          this._isCustomElement = !isRoot && !!definition;
+          const attributes = syntax.$attributes;
+          const attrLen = attributes.length;
+          if (attrLen > 0) {
+              const attrSymbols = Array(attrLen);
+              for (let i = 0, ii = attrLen; i < ii; ++i) {
+                  attrSymbols[i] = this.semanticModel.getAttributeSymbol(attributes[i], this);
+              }
+              this.$attributes = attrSymbols;
+          }
+          else {
+              this.$attributes = kernel.PLATFORM.emptyArray;
+          }
+          const children = syntax.$children;
+          const childLen = children.length;
+          if (childLen > 0) {
+              const childSymbols = Array(childLen);
+              for (let i = 0, ii = childLen; i < ii; ++i) {
+                  childSymbols[i] = this.semanticModel.getElementSymbol(children[i], this);
+              }
+              this.$children = childSymbols;
+          }
+          else {
+              this.$children = kernel.PLATFORM.emptyArray;
+          }
       }
       makeTarget() {
           this.node.classList.add('au');
@@ -1878,7 +1718,7 @@
                       return $el;
                   }
                   $el.replaceTextNodeWithMarker();
-                  $el.addInstructions([new TextBindingInstruction(expression)]);
+                  $el.addInstructions([new runtime.TextBindingInstruction(expression)]);
                   return nextSibling;
               case 8 /* Comment */:
                   return nextSibling;
@@ -1909,10 +1749,10 @@
                       switch (name) {
                           // TODO: handle simple surrogate style attribute
                           case 'style':
-                              attrInst = new SetAttributeInstruction($attr.rawValue, name);
+                              attrInst = new runtime.SetAttributeInstruction($attr.rawValue, name);
                               break;
                           default:
-                              attrInst = new SetAttributeInstruction($attr.rawValue, name);
+                              attrInst = new runtime.SetAttributeInstruction($attr.rawValue, name);
                       }
                       $el.definition.surrogates.push(attrInst);
                   }
@@ -1938,7 +1778,7 @@
                   // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
                   if (instruction.type !== "m" /* hydrateTemplateController */) {
                       const name = $attr.res;
-                      instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
+                      instruction = new runtime.HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
                   }
                   // all attribute instructions preceding the template controller become children of the hydrate instruction
                   instruction.instructions.push(...attributeInstructions);
@@ -1962,7 +1802,7 @@
       }
       compileCustomElement($el) {
           if ($el.$attributes.length === 0) {
-              $el.addInstructions([new HydrateElementInstruction($el.definition.name, kernel.PLATFORM.emptyArray)]);
+              $el.addInstructions([new runtime.HydrateElementInstruction($el.definition.name, kernel.PLATFORM.emptyArray)]);
               if ($el.definition.containerless) {
                   $el.replaceNodeWithMarker();
               }
@@ -1986,7 +1826,7 @@
                   // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
                   if (instruction.type !== "m" /* hydrateTemplateController */) {
                       const name = $attr.res;
-                      instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
+                      instruction = new runtime.HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
                   }
                   // all attribute instructions preceding the template controller become children of the hydrate instruction
                   instruction.instructions.push(...attributeInstructions);
@@ -2013,7 +1853,7 @@
                   }
               }
           }
-          $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
+          $el.addInstructions([new runtime.HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
           if ($el.definition.containerless) {
               $el.replaceNodeWithMarker();
           }
@@ -2032,7 +1872,7 @@
           else {
               childInstructions.push(this.compileAttribute($attr));
           }
-          return new HydrateAttributeInstruction($attr.res, childInstructions);
+          return new runtime.HydrateAttributeInstruction($attr.res, childInstructions);
       }
       compileLetElement($el) {
           const letInstructions = [];
@@ -2043,7 +1883,7 @@
               const to = kernel.PLATFORM.camelCase($attr.to);
               if ($attr.hasBindingCommand) {
                   const expr = this.exprParser.parse($attr.rawValue, 53 /* BindCommand */);
-                  letInstructions.push(new LetBindingInstruction(expr, to));
+                  letInstructions.push(new runtime.LetBindingInstruction(expr, to));
               }
               else if ($attr.rawName === 'to-view-model') {
                   toViewModel = true;
@@ -2055,10 +1895,10 @@
                       // Should just be a warning, but throw for now
                       throw new Error(`Invalid let binding. String liternal given for attribute: ${$attr.to}`);
                   }
-                  letInstructions.push(new LetBindingInstruction(expr, to));
+                  letInstructions.push(new runtime.LetBindingInstruction(expr, to));
               }
           }
-          $el.addInstructions([new LetElementInstruction(letInstructions, toViewModel)]);
+          $el.addInstructions([new runtime.LetElementInstruction(letInstructions, toViewModel)]);
           // theoretically there's no need to replace, but to keep it consistent
           $el.replaceNodeWithMarker();
       }
@@ -2071,7 +1911,7 @@
           // simple path for ref binding
           const parser = this.exprParser;
           if ($attr.target === 'ref') {
-              return new RefBindingInstruction(parser.parse($attr.rawValue, 1280 /* IsRef */));
+              return new runtime.RefBindingInstruction(parser.parse($attr.rawValue, 1280 /* IsRef */));
           }
           // simple path for style bindings (TODO: this doesnt work, but we need to use StylePropertyBindingInstruction right?)
           // if (target === 'style' || target === 'css') {
@@ -2086,10 +1926,10 @@
               if (!$attr.hasBindingCommand) {
                   const expression = parser.parse($attr.rawValue, 2048 /* Interpolation */);
                   if (expression !== null) {
-                      return new InterpolationInstruction(expression, $attr.to);
+                      return new runtime.InterpolationInstruction(expression, $attr.to);
                   }
                   if ($attr.isMultiAttrBinding) {
-                      return new SetPropertyInstruction($attr.rawValue, $attr.to);
+                      return new runtime.SetPropertyInstruction($attr.rawValue, $attr.to);
                   }
               }
               // intentional nested block without a statement to ensure the expression variable isn't shadowed
@@ -2098,14 +1938,14 @@
                   const expression = parser.parse($attr.rawValue, 50 /* ToViewCommand */);
                   switch ($attr.mode) {
                       case runtime.BindingMode.oneTime:
-                          return new OneTimeBindingInstruction(expression, $attr.to);
+                          return new runtime.OneTimeBindingInstruction(expression, $attr.to);
                       case runtime.BindingMode.fromView:
-                          return new FromViewBindingInstruction(expression, $attr.to);
+                          return new runtime.FromViewBindingInstruction(expression, $attr.to);
                       case runtime.BindingMode.twoWay:
-                          return new TwoWayBindingInstruction(expression, $attr.to);
+                          return new runtime.TwoWayBindingInstruction(expression, $attr.to);
                       case runtime.BindingMode.toView:
                       default:
-                          return new ToViewBindingInstruction(expression, $attr.to);
+                          return new runtime.ToViewBindingInstruction(expression, $attr.to);
                   }
               }
           }
@@ -2116,10 +1956,10 @@
                   const expression = parser.parse($attr.rawValue, 2048 /* Interpolation */);
                   if (expression === null) {
                       // no interpolation -> make it a setProperty on the component
-                      return new SetPropertyInstruction($attr.rawValue, $attr.to);
+                      return new runtime.SetPropertyInstruction($attr.rawValue, $attr.to);
                   }
                   // interpolation -> behave like toView (e.g. foo="${someProp}")
-                  return new InterpolationInstruction(expression, $attr.to);
+                  return new runtime.InterpolationInstruction(expression, $attr.to);
               }
           }
           {
@@ -2130,7 +1970,7 @@
                   return null;
               }
               // interpolation -> behave like toView (e.g. id="${someId}")
-              return new InterpolationInstruction(expression, $attr.to);
+              return new runtime.InterpolationInstruction(expression, $attr.to);
           }
       }
   };
@@ -2171,7 +2011,7 @@
   ];
   const BasicConfiguration = {
       register(container) {
-          container.register(ParserRegistration, kernel.Registration.singleton(runtime.ITemplateCompiler, exports.TemplateCompiler), ...globalResources, ...defaultBindingLanguage);
+          container.register(ParserRegistration, runtime.HtmlRenderer, kernel.Registration.singleton(runtime.ITemplateCompiler, exports.TemplateCompiler), ...globalResources, ...defaultBindingLanguage);
       }
   };
 
@@ -2188,26 +2028,6 @@
   exports.ParserState = ParserState;
   exports.parseCore = parseCore;
   exports.parse = parse;
-  exports.TextBindingInstruction = TextBindingInstruction;
-  exports.InterpolationInstruction = InterpolationInstruction;
-  exports.OneTimeBindingInstruction = OneTimeBindingInstruction;
-  exports.ToViewBindingInstruction = ToViewBindingInstruction;
-  exports.FromViewBindingInstruction = FromViewBindingInstruction;
-  exports.TwoWayBindingInstruction = TwoWayBindingInstruction;
-  exports.IteratorBindingInstruction = IteratorBindingInstruction;
-  exports.TriggerBindingInstruction = TriggerBindingInstruction;
-  exports.DelegateBindingInstruction = DelegateBindingInstruction;
-  exports.CaptureBindingInstruction = CaptureBindingInstruction;
-  exports.CallBindingInstruction = CallBindingInstruction;
-  exports.RefBindingInstruction = RefBindingInstruction;
-  exports.StylePropertyBindingInstruction = StylePropertyBindingInstruction;
-  exports.SetPropertyInstruction = SetPropertyInstruction;
-  exports.SetAttributeInstruction = SetAttributeInstruction;
-  exports.HydrateElementInstruction = HydrateElementInstruction;
-  exports.HydrateAttributeInstruction = HydrateAttributeInstruction;
-  exports.HydrateTemplateController = HydrateTemplateController;
-  exports.LetElementInstruction = LetElementInstruction;
-  exports.LetBindingInstruction = LetBindingInstruction;
   exports.SemanticModel = SemanticModel;
   exports.MultiAttributeBindingSymbol = MultiAttributeBindingSymbol;
   exports.AttributeSymbol = AttributeSymbol;

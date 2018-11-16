@@ -515,7 +515,7 @@ export declare class CompositionCoordinator {
     private isAttached;
     constructor($lifecycle: ILifecycle);
     static register(container: IContainer): IResolver<CompositionCoordinator>;
-    compose(value: IView, flags: LifecycleFlags): void;
+    compose(value: IView | Promise<IView>, flags: LifecycleFlags): void;
     binding(flags: LifecycleFlags, scope: IScope): void;
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;

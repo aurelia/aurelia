@@ -1,7 +1,7 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
-import { IExpression } from './ast';
+import { IExpression, StrictAny } from './ast';
 import { IBindingTarget } from './binding';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
@@ -20,7 +20,7 @@ export declare class LetBinding implements IPartialConnectableBinding {
     $lifecycle: ILifecycle;
     target: IBindingTarget;
     constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel?: boolean);
-    handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void;
+    handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
 }

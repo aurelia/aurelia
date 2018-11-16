@@ -1,5 +1,5 @@
 import { DI, Registration, Reporter, inject, PLATFORM } from '@aurelia/kernel';
-import { BindingMode, DelegationStrategy, IExpressionParser, AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, DOM, CustomAttributeResource, CustomElementResource, ViewCompileFlags, AttrBindingBehavior, Compose, DebounceBindingBehavior, Else, FromViewBindingBehavior, If, ITemplateCompiler, OneTimeBindingBehavior, Repeat, Replaceable, SanitizeValueConverter, SelfBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior, UpdateTriggerBindingBehavior, With } from '@aurelia/runtime';
+import { CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateTemplateController, IExpressionParser, IteratorBindingInstruction, OneTimeBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction, AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, DOM, BindingMode, CustomAttributeResource, CustomElementResource, HydrateAttributeInstruction, HydrateElementInstruction, InterpolationInstruction, LetBindingInstruction, LetElementInstruction, RefBindingInstruction, SetAttributeInstruction, TextBindingInstruction, ViewCompileFlags, AttrBindingBehavior, Compose, DebounceBindingBehavior, Else, FromViewBindingBehavior, HtmlRenderer, If, ITemplateCompiler, OneTimeBindingBehavior, Repeat, Replaceable, SanitizeValueConverter, SelfBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior, UpdateTriggerBindingBehavior, With } from '@aurelia/runtime';
 
 class AttrSyntax {
     constructor(rawName, rawValue, target, command) {
@@ -65,165 +65,6 @@ function __decorate(decorators, target, key, desc) {
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 
-// tslint:disable:no-reserved-keywords
-// tslint:disable:no-any
-class TextBindingInstruction {
-    constructor(from) {
-        this.from = from;
-        this.type = "a" /* textBinding */;
-    }
-}
-class InterpolationInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "b" /* interpolation */;
-    }
-}
-class OneTimeBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "c" /* propertyBinding */;
-        this.oneTime = true;
-        this.mode = BindingMode.oneTime;
-    }
-}
-class ToViewBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "c" /* propertyBinding */;
-        this.oneTime = false;
-        this.mode = BindingMode.toView;
-    }
-}
-class FromViewBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "c" /* propertyBinding */;
-        this.oneTime = false;
-        this.mode = BindingMode.fromView;
-    }
-}
-class TwoWayBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "c" /* propertyBinding */;
-        this.oneTime = false;
-        this.mode = BindingMode.twoWay;
-    }
-}
-class IteratorBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "d" /* iteratorBinding */;
-    }
-}
-class TriggerBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "e" /* listenerBinding */;
-        this.strategy = DelegationStrategy.none;
-        this.preventDefault = true;
-    }
-}
-class DelegateBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "e" /* listenerBinding */;
-        this.strategy = DelegationStrategy.bubbling;
-        this.preventDefault = false;
-    }
-}
-class CaptureBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "e" /* listenerBinding */;
-        this.strategy = DelegationStrategy.capturing;
-        this.preventDefault = false;
-    }
-}
-class CallBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "f" /* callBinding */;
-    }
-}
-class RefBindingInstruction {
-    constructor(from) {
-        this.from = from;
-        this.type = "g" /* refBinding */;
-    }
-}
-class StylePropertyBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "h" /* stylePropertyBinding */;
-    }
-}
-class SetPropertyInstruction {
-    constructor(value, to) {
-        this.value = value;
-        this.to = to;
-        this.type = "i" /* setProperty */;
-    }
-}
-class SetAttributeInstruction {
-    constructor(value, to) {
-        this.value = value;
-        this.to = to;
-        this.type = "j" /* setAttribute */;
-    }
-}
-class HydrateElementInstruction {
-    constructor(res, instructions, parts, contentOverride) {
-        this.res = res;
-        this.instructions = instructions;
-        this.parts = parts;
-        this.contentOverride = contentOverride;
-        this.type = "k" /* hydrateElement */;
-    }
-}
-class HydrateAttributeInstruction {
-    constructor(res, instructions) {
-        this.res = res;
-        this.instructions = instructions;
-        this.type = "l" /* hydrateAttribute */;
-    }
-}
-class HydrateTemplateController {
-    constructor(def, res, instructions, link) {
-        this.def = def;
-        this.res = res;
-        this.instructions = instructions;
-        this.link = link;
-        this.type = "m" /* hydrateTemplateController */;
-    }
-}
-class LetElementInstruction {
-    constructor(instructions, toViewModel) {
-        this.instructions = instructions;
-        this.toViewModel = toViewModel;
-        this.type = "n" /* letElement */;
-    }
-}
-class LetBindingInstruction {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-        this.type = "o" /* letBinding */;
-    }
-}
-
 function bindingCommand(nameOrSource) {
     return function (target) {
         return BindingCommandResource.define(nameOrSource, target);
@@ -234,9 +75,8 @@ const BindingCommandResource = {
     keyFrom(name) {
         return `${this.name}:${name}`;
     },
-    // tslint:disable-next-line:no-reserved-keywords
-    isType(type) {
-        return type.kind === this;
+    isType(Type) {
+        return Type.kind === this;
     },
     define(nameOrSource, ctor) {
         const description = typeof nameOrSource === 'string' ? { name: nameOrSource, target: null } : nameOrSource;
@@ -308,6 +148,10 @@ const compileMode = ['', '$1', '$2', '', '$4', '', '$6'];
 let DefaultBindingCommand = class DefaultBindingCommand {
     constructor(parser) {
         this.parser = parser;
+        this.$1 = OneTimeBindingCommand.prototype.compile;
+        this.$2 = ToViewBindingCommand.prototype.compile;
+        this.$4 = FromViewBindingCommand.prototype.compile;
+        this.$6 = TwoWayBindingCommand.prototype.compile;
     }
     compile($symbol) {
         return this[compileMode[$symbol.mode]]($symbol);
@@ -317,10 +161,6 @@ DefaultBindingCommand.inject = [IExpressionParser];
 DefaultBindingCommand = __decorate([
     bindingCommand('bind')
 ], DefaultBindingCommand);
-DefaultBindingCommand.prototype.$1 = OneTimeBindingCommand.prototype.compile;
-DefaultBindingCommand.prototype.$2 = ToViewBindingCommand.prototype.compile;
-DefaultBindingCommand.prototype.$4 = FromViewBindingCommand.prototype.compile;
-DefaultBindingCommand.prototype.$6 = TwoWayBindingCommand.prototype.compile;
 let TriggerBindingCommand = class TriggerBindingCommand {
     constructor(parser) {
         this.parser = parser;
@@ -379,11 +219,11 @@ let ForBindingCommand = class ForBindingCommand {
             template: $symbol.$element.node,
             instructions: []
         };
-        return new HydrateTemplateController(def, 'repeat', [
+        const instructions = [
             new IteratorBindingInstruction(this.parser.parse($symbol.rawValue, 539 /* ForCommand */), 'items'),
             new SetPropertyInstruction('item', 'local')
-            // tslint:disable-next-line:align
-        ], false);
+        ];
+        return new HydrateTemplateController(def, 'repeat', instructions, false);
     }
     handles($symbol) {
         return $symbol.target === 'repeat';
@@ -1428,11 +1268,11 @@ ElementParser = __decorate([
 
 class SemanticModel {
     constructor(definition, resources, attrParser, elParser, exprParser) {
+        this.isSemanticModel = true;
         this.resources = resources;
         this.attrParser = attrParser;
         this.elParser = elParser;
         this.exprParser = exprParser;
-        this.isSemanticModel = true;
         this.attrDefCache = {};
         this.elDefCache = {};
         this.commandCache = {};
@@ -1517,25 +1357,28 @@ class MultiAttributeBindingSymbol {
     constructor(semanticModel, $parent, syntax, command) {
         this.semanticModel = semanticModel;
         this.$parent = $parent;
+        this.$element = null;
         this.syntax = syntax;
         this.command = command;
-        this.isMultiAttrBinding = true;
-        this.res = null;
-        this.bindable = null;
-        this.isTemplateController = false;
-        this.isCustomAttribute = true;
-        this.isAttributeBindable = false;
-        this.isDefaultAttributeBindable = false;
-        this.onCustomElement = false;
-        this.isElementBindable = false;
-        this.$element = null;
         this.target = syntax.target;
+        this.res = null;
+        const parentDefinition = $parent.definition;
+        // this.to, this.mode and this.bindable will be overridden if there is a matching bindable property
+        this.to = syntax.target;
+        this.mode = parentDefinition.defaultBindingMode === undefined ? BindingMode.toView : parentDefinition.defaultBindingMode;
+        this.bindable = null;
         this.rawName = syntax.rawName;
         this.rawValue = syntax.rawValue;
         this.rawCommand = syntax.command;
         this.hasBindingCommand = !!command;
+        this.isMultiAttrBinding = true;
         this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
-        const bindables = $parent.definition.bindables;
+        this.isTemplateController = false;
+        this.isCustomAttribute = true;
+        this.isAttributeBindable = false;
+        this.onCustomElement = false;
+        this.isElementBindable = false;
+        const bindables = parentDefinition.bindables;
         for (const prop in bindables) {
             const b = bindables[prop];
             if (b.property === syntax.target) {
@@ -1546,36 +1389,38 @@ class MultiAttributeBindingSymbol {
                 break;
             }
         }
-        if (!this.isAttributeBindable) {
-            const defaultBindingMode = $parent.definition.defaultBindingMode;
-            this.to = syntax.target;
-            this.mode = defaultBindingMode === undefined ? BindingMode.toView : defaultBindingMode;
-        }
     }
 }
 class AttributeSymbol {
+    get isProcessed() {
+        return this._isProcessed;
+    }
     constructor(semanticModel, $element, syntax, definition, command) {
         this.semanticModel = semanticModel;
+        this.definition = definition;
         this.$element = $element;
         this.syntax = syntax;
-        this.definition = definition;
         this.command = command;
-        this.isMultiAttrBinding = false;
-        this.res = null;
-        this.bindable = null;
-        this.isAttributeBindable = false;
-        this.isDefaultAttributeBindable = false;
-        this.isElementBindable = false;
-        this.isBindable = false;
-        this.isTemplateController = false;
         this.target = syntax.target;
+        this.res = null;
+        // this.to, this.mode and this.bindable will be overridden if there is a matching bindable property
+        this.to = syntax.target;
+        this.mode = BindingMode.toView;
+        this.bindable = null;
         this.rawName = syntax.rawName;
         this.rawValue = syntax.rawValue;
         this.rawCommand = syntax.command;
-        this.isCustomAttribute = !!definition;
         this.hasBindingCommand = !!command;
+        this.isMultiAttrBinding = false;
         this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
+        this.isTemplateController = false;
+        this.isCustomAttribute = !!definition;
+        this.isAttributeBindable = false;
+        this.isDefaultAttributeBindable = false;
         this.onCustomElement = $element.isCustomElement;
+        this.isElementBindable = false;
+        this.$multiAttrBindings = PLATFORM.emptyArray;
+        this.isBindable = false;
         this._isProcessed = this.rawName === 'as-element'; // as-element is processed by the semantic model and shouldn't be processed by the template compiler
         if (this.isCustomAttribute) {
             this.isTemplateController = !!definition.isTemplateController;
@@ -1604,7 +1449,9 @@ class AttributeSymbol {
                     }
                 }
             }
-            this.$multiAttrBindings = this.isMultiAttrBinding ? multiAttrBindings : PLATFORM.emptyArray;
+            if (this.isMultiAttrBinding) {
+                this.$multiAttrBindings = multiAttrBindings;
+            }
             const bindables = definition.bindables;
             if (!this.isMultiAttrBinding) {
                 for (const prop in bindables) {
@@ -1640,13 +1487,6 @@ class AttributeSymbol {
                 this.mode = BindingMode.toView;
             }
         }
-        else {
-            this.to = syntax.target;
-            this.mode = BindingMode.toView;
-        }
-    }
-    get isProcessed() {
-        return this._isProcessed;
     }
     markAsProcessed() {
         this._isProcessed = true;
@@ -1656,59 +1496,6 @@ class AttributeSymbol {
     }
 }
 class ElementSymbol {
-    constructor(semanticModel, isRoot, $root, $parent, syntax, definition) {
-        this.semanticModel = semanticModel;
-        this.isRoot = isRoot;
-        this.$root = $root;
-        this.$parent = $parent;
-        this.definition = definition;
-        this._$content = null;
-        this._isMarker = false;
-        this._isTemplate = false;
-        this._isSlot = false;
-        this._isLet = false;
-        this._isLifted = false;
-        this.$root = isRoot ? this : $root;
-        this._node = syntax.node;
-        this._syntax = syntax;
-        this._name = this.node.nodeName;
-        switch (this.name) {
-            case 'TEMPLATE':
-                this._isTemplate = true;
-                this._$content = this.semanticModel.getElementSymbol(syntax.$content, this);
-                break;
-            case 'SLOT':
-                this._isSlot = true;
-                break;
-            case 'LET':
-                this._isLet = true;
-        }
-        this._isCustomElement = !isRoot && !!definition;
-        const attributes = syntax.$attributes;
-        const attrLen = attributes.length;
-        if (attrLen > 0) {
-            const attrSymbols = Array(attrLen);
-            for (let i = 0, ii = attrLen; i < ii; ++i) {
-                attrSymbols[i] = this.semanticModel.getAttributeSymbol(attributes[i], this);
-            }
-            this.$attributes = attrSymbols;
-        }
-        else {
-            this.$attributes = PLATFORM.emptyArray;
-        }
-        const children = syntax.$children;
-        const childLen = children.length;
-        if (childLen > 0) {
-            const childSymbols = Array(childLen);
-            for (let i = 0, ii = childLen; i < ii; ++i) {
-                childSymbols[i] = this.semanticModel.getElementSymbol(children[i], this);
-            }
-            this.$children = childSymbols;
-        }
-        else {
-            this.$children = PLATFORM.emptyArray;
-        }
-    }
     get $content() {
         return this._$content;
     }
@@ -1758,6 +1545,59 @@ class ElementSymbol {
     }
     get isLifted() {
         return this._isLifted;
+    }
+    constructor(semanticModel, isRoot, $root, $parent, syntax, definition) {
+        this.semanticModel = semanticModel;
+        this.isRoot = isRoot;
+        this.$root = isRoot ? this : $root;
+        this.$parent = $parent;
+        this.definition = definition;
+        this._$content = null;
+        this._isMarker = false;
+        this._isTemplate = false;
+        this._isSlot = false;
+        this._isLet = false;
+        this._node = syntax.node;
+        this._syntax = syntax;
+        this._name = this.node.nodeName;
+        this._isCustomElement = false;
+        this._isLifted = false;
+        switch (this.name) {
+            case 'TEMPLATE':
+                this._isTemplate = true;
+                this._$content = this.semanticModel.getElementSymbol(syntax.$content, this);
+                break;
+            case 'SLOT':
+                this._isSlot = true;
+                break;
+            case 'LET':
+                this._isLet = true;
+        }
+        this._isCustomElement = !isRoot && !!definition;
+        const attributes = syntax.$attributes;
+        const attrLen = attributes.length;
+        if (attrLen > 0) {
+            const attrSymbols = Array(attrLen);
+            for (let i = 0, ii = attrLen; i < ii; ++i) {
+                attrSymbols[i] = this.semanticModel.getAttributeSymbol(attributes[i], this);
+            }
+            this.$attributes = attrSymbols;
+        }
+        else {
+            this.$attributes = PLATFORM.emptyArray;
+        }
+        const children = syntax.$children;
+        const childLen = children.length;
+        if (childLen > 0) {
+            const childSymbols = Array(childLen);
+            for (let i = 0, ii = childLen; i < ii; ++i) {
+                childSymbols[i] = this.semanticModel.getElementSymbol(children[i], this);
+            }
+            this.$children = childSymbols;
+        }
+        else {
+            this.$children = PLATFORM.emptyArray;
+        }
     }
     makeTarget() {
         this.node.classList.add('au');
@@ -2168,9 +2008,9 @@ const defaultBindingLanguage = [
 ];
 const BasicConfiguration = {
     register(container) {
-        container.register(ParserRegistration, Registration.singleton(ITemplateCompiler, TemplateCompiler), ...globalResources, ...defaultBindingLanguage);
+        container.register(ParserRegistration, HtmlRenderer, Registration.singleton(ITemplateCompiler, TemplateCompiler), ...globalResources, ...defaultBindingLanguage);
     }
 };
 
-export { AttrSyntax, IAttributeParser, AttributeParser, bindingCommand, BindingCommandResource, OneTimeBindingCommand, ToViewBindingCommand, FromViewBindingCommand, TwoWayBindingCommand, DefaultBindingCommand, TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, CallBindingCommand, ForBindingCommand, unescapeCode, BasicConfiguration, ElementSyntax, IElementParser, ElementParser, ParserRegistration, ParserState, parseCore, parse, TextBindingInstruction, InterpolationInstruction, OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, IteratorBindingInstruction, TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, CallBindingInstruction, RefBindingInstruction, StylePropertyBindingInstruction, SetPropertyInstruction, SetAttributeInstruction, HydrateElementInstruction, HydrateAttributeInstruction, HydrateTemplateController, LetElementInstruction, LetBindingInstruction, SemanticModel, MultiAttributeBindingSymbol, AttributeSymbol, ElementSymbol, TemplateCompiler };
+export { AttrSyntax, IAttributeParser, AttributeParser, bindingCommand, BindingCommandResource, OneTimeBindingCommand, ToViewBindingCommand, FromViewBindingCommand, TwoWayBindingCommand, DefaultBindingCommand, TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, CallBindingCommand, ForBindingCommand, unescapeCode, BasicConfiguration, ElementSyntax, IElementParser, ElementParser, ParserRegistration, ParserState, parseCore, parse, SemanticModel, MultiAttributeBindingSymbol, AttributeSymbol, ElementSymbol, TemplateCompiler };
 //# sourceMappingURL=index.es6.js.map

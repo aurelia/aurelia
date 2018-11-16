@@ -1,22 +1,9 @@
-import { Constructable, Decoratable, Decorated, IContainer, Immutable, ImmutableArray, Omit } from '@aurelia/kernel';
-import { IEventManager } from '../binding/event-manager';
-import { IExpressionParser } from '../binding/expression-parser';
-import { IObserverLocator } from '../binding/observer-locator';
-import { CustomElementConstructor, IAttributeDefinition, IHydrateElementInstruction, IRenderStrategyInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
+import { Decoratable, Decorated, IContainer, Immutable, ImmutableArray, IRegistry, Omit } from '@aurelia/kernel';
+import { CustomElementConstructor, IAttributeDefinition, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IAttach, IAttachables, IBindables, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext, IState, IViewFactory } from '../lifecycle';
+import { IAttach, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext, IState, IViewFactory } from '../lifecycle';
 import { IAccessor, IChangeTracker, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
 import { IResourceDescriptions, IResourceKind, IResourceType } from '../resource';
-export interface IRenderStrategy<TTarget = any, TInstruction extends IRenderStrategyInstruction = any> {
-    render(renderable: IRenderable, target: TTarget, instruction: TInstruction): void;
-}
-export interface IRenderStrategySource {
-    name: string;
-}
-export declare type IRenderStrategyType = IResourceType<IRenderStrategySource, IRenderStrategy>;
-declare type RenderStrategyDecorator = <T extends Constructable>(target: Decoratable<IRenderStrategy, T>) => Decorated<IRenderStrategy, T> & IRenderStrategyType;
-export declare function renderStrategy(nameOrSource: string | IRenderStrategySource): RenderStrategyDecorator;
-export declare const RenderStrategyResource: IResourceKind<IRenderStrategySource, IRenderStrategyType>;
 export interface ITemplateCompiler {
     readonly name: string;
     compile(definition: ITemplateDefinition, resources: IResourceDescriptions, viewCompileFlags?: ViewCompileFlags): TemplateDefinition;
@@ -91,24 +78,19 @@ export interface IRenderingEngine {
     getViewFactory(source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory;
     applyRuntimeBehavior(Type: ICustomAttributeType, instance: ICustomAttribute): void;
     applyRuntimeBehavior(Type: ICustomElementType, instance: ICustomElement): void;
-    createRenderer(context: IRenderContext): IRenderer;
 }
 export declare const IRenderingEngine: import("@aurelia/kernel/dist/di").InterfaceSymbol<IRenderingEngine>;
 export declare class RenderingEngine implements IRenderingEngine {
     private container;
     private lifecycle;
-    private observerLocator;
-    private eventManager;
-    private parser;
     private templateLookup;
     private factoryLookup;
     private behaviorLookup;
     private compilers;
-    constructor(container: IContainer, lifecycle: ILifecycle, observerLocator: IObserverLocator, eventManager: IEventManager, parser: IExpressionParser, templateCompilers: ITemplateCompiler[]);
+    constructor(container: IContainer, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]);
     getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
     getViewFactory(definition: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory;
     applyRuntimeBehavior(Type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement): void;
-    createRenderer(context: IRenderContext): IRenderer;
     private templateFromSource;
 }
 export interface IChildrenObserver extends IAccessor, ISubscribable<MutationKind.instance>, ISubscriberCollection<MutationKind.instance> {
@@ -117,12 +99,22 @@ export interface ITemplate {
     readonly renderContext: IRenderContext;
     render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void;
 }
-export declare function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<any>): IRenderContext;
-export declare function addBindable(renderable: IBindables, bindable: IBindScope): void;
-export declare function addAttachable(renderable: IAttachables, attachable: IAttach): void;
+export declare function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext;
 export interface IRenderer {
-    render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-    hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
+    instructionRenderers: Record<string, IInstructionRenderer>;
+    render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
 }
+export declare const IRenderer: import("@aurelia/kernel/dist/di").InterfaceSymbol<IRenderer>;
+export interface IInstructionTypeClassifier<TType extends string = string> {
+    instructionType: TType;
+}
+export interface IInstructionRenderer<TType extends string = string> extends Partial<IInstructionTypeClassifier<TType>> {
+    render(context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
+}
+export declare const IInstructionRenderer: import("@aurelia/kernel/dist/di").InterfaceSymbol<IInstructionRenderer<string>>;
+declare type DecoratableInstructionRenderer<TType extends string> = Decoratable<IInstructionTypeClassifier<TType>, Pick<IInstructionRenderer, 'render'>> & Partial<IRegistry>;
+declare type DecoratedInstructionRenderer<TType extends string> = Decorated<IInstructionTypeClassifier<TType>, Pick<IInstructionRenderer, 'render'>> & IRegistry;
+declare type InstructionRendererDecorator<TType extends string> = (target: DecoratableInstructionRenderer<TType>) => DecoratedInstructionRenderer<TType>;
+export declare function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType>;
 export {};
 //# sourceMappingURL=lifecycle-render.d.ts.map

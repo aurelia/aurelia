@@ -1,3 +1,4 @@
+import { IRegistry } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
@@ -8,6 +9,7 @@ export declare class If {
     ifFactory: IViewFactory;
     location: IRenderLocation;
     coordinator: CompositionCoordinator;
+    static register: IRegistry['register'];
     value: boolean;
     elseFactory: IViewFactory;
     ifView: IView;
@@ -25,6 +27,7 @@ export interface Else extends ICustomAttribute {
 }
 export declare class Else {
     private factory;
+    static register: IRegistry['register'];
     constructor(factory: IViewFactory);
     link(ifBehavior: If): void;
 }

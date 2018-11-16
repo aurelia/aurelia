@@ -1,4 +1,8 @@
-import { BindingMode, DelegationStrategy, ForOfStatement, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, INode, Interpolation, IPropertyBindingInstruction, IRefBindingInstruction, IsBindingBehavior, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType } from '@aurelia/runtime';
+import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
+import { BindingMode } from './binding/binding-mode';
+import { DelegationStrategy } from './binding/event-manager';
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType } from './definitions';
+import { INode } from './dom';
 export declare class TextBindingInstruction implements ITextBindingInstruction {
     from: string | Interpolation;
     type: TargetedInstructionType.textBinding;
@@ -90,38 +94,38 @@ export declare class StylePropertyBindingInstruction implements IStylePropertyBi
     constructor(from: string | IsBindingBehavior, to: string);
 }
 export declare class SetPropertyInstruction implements ISetPropertyInstruction {
-    value: any;
+    value: unknown;
     to: string;
     type: TargetedInstructionType.setProperty;
-    constructor(value: any, to: string);
+    constructor(value: unknown, to: string);
 }
 export declare class SetAttributeInstruction implements ITargetedInstruction {
-    value: any;
+    value: unknown;
     to: string;
     type: TargetedInstructionType.setAttribute;
-    constructor(value: any, to: string);
+    constructor(value: unknown, to: string);
 }
 export declare class HydrateElementInstruction implements IHydrateElementInstruction {
-    res: any;
+    res: string;
     instructions: TargetedInstruction[];
     parts?: Record<string, ITemplateDefinition>;
     contentOverride?: INode;
     type: TargetedInstructionType.hydrateElement;
-    constructor(res: any, instructions: TargetedInstruction[], parts?: Record<string, ITemplateDefinition>, contentOverride?: INode);
+    constructor(res: string, instructions: TargetedInstruction[], parts?: Record<string, ITemplateDefinition>, contentOverride?: INode);
 }
 export declare class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
-    res: any;
+    res: string;
     instructions: TargetedInstruction[];
     type: TargetedInstructionType.hydrateAttribute;
-    constructor(res: any, instructions: TargetedInstruction[]);
+    constructor(res: string, instructions: TargetedInstruction[]);
 }
 export declare class HydrateTemplateController implements IHydrateTemplateController {
     def: ITemplateDefinition;
-    res: any;
+    res: string;
     instructions: TargetedInstruction[];
     link?: boolean;
     type: TargetedInstructionType.hydrateTemplateController;
-    constructor(def: ITemplateDefinition, res: any, instructions: TargetedInstruction[], link?: boolean);
+    constructor(def: ITemplateDefinition, res: string, instructions: TargetedInstruction[], link?: boolean);
 }
 export declare class LetElementInstruction implements ILetElementInstruction {
     instructions: ILetBindingInstruction[];

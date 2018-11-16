@@ -20,6 +20,6 @@ export declare class Call {
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(obj: StrictAny, propertyName: StrictAny): void;
-    handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void;
+    handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=call.d.ts.map

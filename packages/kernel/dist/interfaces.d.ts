@@ -90,7 +90,7 @@ export declare type Decorated<TOptional, TRequired> = Function & {
     new (...args: unknown[]): any;
 };
 export declare type Injectable<T = {}> = Constructable<T> & {
-    inject?: unknown[];
+    inject?: Function[];
 };
 export declare type IIndexable<T extends object = object> = T & {
     [key: string]: any;

@@ -26,8 +26,7 @@ export declare const enum TargetedInstructionType {
     hydrateAttribute = "l",
     hydrateTemplateController = "m",
     letElement = "n",
-    letBinding = "o",
-    renderStrategy = "z"
+    letBinding = "o"
 }
 export interface IBuildInstruction {
     required: boolean;
@@ -61,7 +60,7 @@ export declare const ITargetedInstruction: import("@aurelia/kernel/dist/di").IDe
 export interface ITargetedInstruction {
     type: TargetedInstructionType;
 }
-export declare type TargetedInstruction = ITextBindingInstruction | IInterpolationInstruction | IPropertyBindingInstruction | IIteratorBindingInstruction | IListenerBindingInstruction | ICallBindingInstruction | IRefBindingInstruction | IStylePropertyBindingInstruction | ISetPropertyInstruction | ISetAttributeInstruction | IHydrateElementInstruction | IHydrateAttributeInstruction | IHydrateTemplateController | IRenderStrategyInstruction | ILetElementInstruction;
+export declare type TargetedInstruction = ITextBindingInstruction | IInterpolationInstruction | IPropertyBindingInstruction | IIteratorBindingInstruction | IListenerBindingInstruction | ICallBindingInstruction | IRefBindingInstruction | IStylePropertyBindingInstruction | ISetPropertyInstruction | ISetAttributeInstruction | IHydrateElementInstruction | IHydrateAttributeInstruction | IHydrateTemplateController | ILetElementInstruction;
 export declare function isTargetedInstruction(value: {
     type?: string;
 }): value is TargetedInstruction;
@@ -139,10 +138,6 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
     instructions: TargetedInstruction[];
     def: ITemplateDefinition;
     link?: boolean;
-}
-export interface IRenderStrategyInstruction extends ITargetedInstruction {
-    type: TargetedInstructionType.renderStrategy;
-    name: string;
 }
 export interface ILetElementInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.letElement;

@@ -18,6 +18,9 @@ export interface INode extends INodeLike {
     readonly nodeName: string;
     readonly nodeType: number;
 }
+export interface IRemovableNode extends INode {
+    remove(): void;
+}
 export declare const IEncapsulationSource: import("@aurelia/kernel/dist/di").InterfaceSymbol<IEncapsulationSource>;
 export interface IEncapsulationSource extends INode {
 }

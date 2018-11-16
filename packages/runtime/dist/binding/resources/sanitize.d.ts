@@ -1,3 +1,4 @@
+import { IRegistry } from '@aurelia/kernel';
 export interface ISanitizer {
     /**
      * Sanitizes the provided input.
@@ -11,6 +12,7 @@ export declare const ISanitizer: import("@aurelia/kernel/dist/di").InterfaceSymb
  */
 export declare class SanitizeValueConverter {
     private sanitizer;
+    static register: IRegistry['register'];
     constructor(sanitizer: ISanitizer);
     /**
      * Process the provided markup that flows to the view.

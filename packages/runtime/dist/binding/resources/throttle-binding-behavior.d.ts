@@ -1,19 +1,19 @@
+import { IRegistry } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../../observation';
-import { Binding } from '../binding';
-import { Call } from '../call';
-import { Listener } from '../listener';
-export declare type ThrottleableBinding = (Binding | Call | Listener) & {
-    throttledMethod: ((value: any) => any) & {
+import { IBinding } from '../binding';
+export declare type ThrottleableBinding = IBinding & {
+    throttledMethod: ((value: unknown) => unknown) & {
         originalName: string;
     };
     throttleState: {
         delay: number;
-        timeoutId: any;
-        last: any;
-        newValue?: any;
+        timeoutId: number;
+        last: number;
+        newValue?: unknown;
     };
 };
 export declare class ThrottleBindingBehavior {
+    static register: IRegistry['register'];
     bind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding, delay?: number): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding): void;
 }

@@ -1,3 +1,4 @@
+import { IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
@@ -10,6 +11,7 @@ export declare class Repeat<T extends ObservedCollection = IObservedArray> {
     location: IRenderLocation;
     renderable: IRenderable;
     factory: IViewFactory;
+    static register: IRegistry['register'];
     items: T;
     $scope: IScope;
     $observers: {

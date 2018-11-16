@@ -1,3 +1,4 @@
+import { IRegistry } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
@@ -6,6 +7,7 @@ export interface With extends ICustomAttribute {
 }
 export declare class With {
     private factory;
+    static register: IRegistry['register'];
     value: any;
     private currentView;
     constructor(factory: IViewFactory, location: IRenderLocation);

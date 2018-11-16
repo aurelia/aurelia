@@ -1,11 +1,12 @@
 // tslint:disable:no-reserved-keywords
-import { Constructable, DI, Immutable, Omit, PLATFORM } from '@aurelia/kernel';
+import { DI, Immutable, Omit, PLATFORM } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
 import { INode } from './dom';
-import { ResourceDescription } from './resource';
-import { ICustomElement, ICustomElementHost } from './templating/lifecycle-render';
+import { IResourceDefinition, ResourceDescription } from './resource';
+import { CustomElementConstructor, ICustomElement } from './templating/custom-element';
+import { ICustomElementHost } from './templating/lifecycle-render';
 
 /*@internal*/
 export const customElementName = 'custom-element';
@@ -59,8 +60,7 @@ export interface IBuildInstruction {
   compiler?: string;
 }
 
-export interface ITemplateDefinition {
-  name?: string;
+export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: string | INode;
   instructions?: TargetedInstruction[][];
@@ -77,8 +77,7 @@ export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 export type TemplatePartDefinitions = Record<string, Immutable<ITemplateDefinition>>;
 export type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
 
-export interface IAttributeDefinition {
-  name: string;
+export interface IAttributeDefinition extends IResourceDefinition {
   defaultBindingMode?: BindingMode;
   aliases?: string[];
   isTemplateController?: boolean;
@@ -213,12 +212,6 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
   from: string | IsBindingBehavior | Interpolation;
   to: string;
 }
-
-type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
-type CustomAttributeStaticProperties = Pick<AttributeDefinition, 'bindables'>;
-
-export type CustomElementConstructor = Constructable & CustomElementStaticProperties;
-export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
 /*@internal*/
 export const buildRequired: IBuildInstruction = Object.freeze({

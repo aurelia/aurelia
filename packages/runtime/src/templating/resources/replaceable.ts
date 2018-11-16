@@ -2,8 +2,7 @@ import { inject, IRegistry } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
-import { templateController } from '../custom-attribute';
-import { ICustomAttribute } from '../lifecycle-render';
+import { ICustomAttribute, templateController } from '../custom-attribute';
 
 export interface Replaceable extends ICustomAttribute {}
 @templateController('replaceable')

@@ -1,7 +1,8 @@
 import { Writable } from '@aurelia/kernel';
 import { Hooks, IView, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
-import { ICustomAttribute, ICustomElement } from './lifecycle-render';
+import { ICustomAttribute } from './custom-attribute';
+import { ICustomElement } from './custom-element';
 
 /*@internal*/
 export function $bindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, scope: IScope): void {

@@ -4,8 +4,7 @@ import { IRenderLocation } from '../../dom';
 import { IView, IViewFactory, State } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
-import { templateController } from '../custom-attribute';
-import { ICustomAttribute } from '../lifecycle-render';
+import { ICustomAttribute, templateController } from '../custom-attribute';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')

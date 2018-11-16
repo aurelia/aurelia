@@ -1,4 +1,4 @@
-import { Class, Constructable, Decorated, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
 import { Hooks, IAttach, IBindSelf, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IState, State } from '../lifecycle';
@@ -60,19 +60,19 @@ type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
 /**
  * Decorator: Indicates that the custom element should render its view in ShadowDOM.
  */
-export function useShadowDOM<T extends Constructable>(options?: HasShadowOptions['shadowOptions']): (target: T & HasShadowOptions) => Decorated<HasShadowOptions, T>;
+export function useShadowDOM<T extends Constructable>(options?: HasShadowOptions['shadowOptions']): (target: T & HasShadowOptions) => T & Required<HasShadowOptions>;
 /**
  * Decorator: Indicates that the custom element should render its view in ShadowDOM.
  */
-export function useShadowDOM<T extends Constructable>(target: (T & HasShadowOptions)): Decorated<HasShadowOptions, T>;
-export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & HasShadowOptions) | HasShadowOptions['shadowOptions']):  Decorated<HasShadowOptions, T> | ((target: T & HasShadowOptions) => Decorated<HasShadowOptions, T>) {
+export function useShadowDOM<T extends Constructable>(target: T & HasShadowOptions): T & Required<HasShadowOptions>;
+export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & HasShadowOptions) | HasShadowOptions['shadowOptions']): (T & Required<HasShadowOptions>) | ((target: T & HasShadowOptions) => (T & Required<HasShadowOptions>)) {
   const options = typeof targetOrOptions === 'function' || !targetOrOptions
     ? defaultShadowOptions
     : targetOrOptions as HasShadowOptions['shadowOptions'];
 
-  function useShadowDOMDecorator(target: T & HasShadowOptions): Decorated<HasShadowOptions, T> {
+  function useShadowDOMDecorator(target: T & HasShadowOptions): T & Required<HasShadowOptions> {
     target.shadowOptions = options;
-    return target;
+    return <T & Required<HasShadowOptions>>target;
   }
 
   return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
@@ -80,9 +80,9 @@ export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & Has
 
 type HasContainerless = Pick<ITemplateDefinition, 'containerless'>;
 
-function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): Decorated<HasContainerless, T> {
+function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless> {
   target.containerless = true;
-  return target;
+  return <T & Required<HasContainerless>>target;
 }
 
 /**
@@ -92,8 +92,8 @@ export function containerless(): typeof containerlessDecorator;
 /**
  * Decorator: Indicates that the custom element should be rendered without its element container.
  */
-export function containerless<T extends Constructable>(target: T & HasContainerless): Decorated<HasContainerless, T>;
-export function containerless<T extends Constructable>(target?: T & HasContainerless): Decorated<HasContainerless, T> | typeof containerlessDecorator {
+export function containerless<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless>;
+export function containerless<T extends Constructable>(target?: T & HasContainerless): T & Required<HasContainerless> | typeof containerlessDecorator {
   return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
 }
 

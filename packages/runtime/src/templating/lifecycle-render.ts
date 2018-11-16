@@ -1,12 +1,14 @@
-import { all, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { all, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { Scope } from '../binding/binding-context';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
-import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, CustomElementConstructor, IAttributeDefinition, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
+import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
-import { Hooks, IAttach, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext, IState, IViewFactory, State } from '../lifecycle';
-import { IAccessor, IChangeTracker, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
+import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory, State } from '../lifecycle';
+import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
+import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
+import { ICustomElement, ICustomElementType } from './custom-element';
 import { ViewFactory } from './view';
 
 export interface ITemplateCompiler {
@@ -22,17 +24,7 @@ export enum ViewCompileFlags {
   shadowDOM   = 0b0_100,
 }
 
-export interface ICustomElementType extends
-  IResourceType<ITemplateDefinition, ICustomElement>,
-  CustomElementConstructor { }
-
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
-
-export interface ICustomElement extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IBindSelf, ILifecycleUnbindAfterDetach, IAttach, IMountable, IState, IRenderable {
-  readonly $projector: IElementProjector;
-  readonly $host: ICustomElementHost;
-  $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
-}
 
 export interface ICustomElementHost extends IRenderLocation {
   $customElement?: ICustomElement;
@@ -54,13 +46,6 @@ export interface IElementProjector {
 
   subscribeToChildrenChange(callback: () => void): void;
 }
-
-export interface ICustomAttributeType extends
-  IResourceType<IAttributeDefinition, ICustomAttribute>,
-  Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
-
-type OptionalHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
-type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & IState;
 
 export interface IElementTemplateProvider {
   getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType): ITemplate;
@@ -91,10 +76,6 @@ export interface ILifecycleRender {
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
   render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
-}
-
-export interface ICustomAttribute extends Partial<IChangeTracker>, IBindScope, ILifecycleUnbindAfterDetach, IAttach, OptionalHooks, RequiredLifecycleProperties {
-  $hydrate(renderingEngine: IRenderingEngine): void;
 }
 
 /*@internal*/

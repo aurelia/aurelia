@@ -1,16 +1,35 @@
 import { Constructable, Decoratable, Decorated, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
-import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition } from '../definitions';
-import { Hooks, State } from '../lifecycle';
+import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
+import { INode } from '../dom';
+import { Hooks, IAttach, IBindSelf, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IState, State } from '../lifecycle';
+import { IChangeTracker } from '../observation';
+import { IResourceType } from '../resource';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindElement, $unbindElement } from './lifecycle-bind';
-import { $hydrateElement, defaultShadowOptions, ICustomElement, ICustomElementHost, ICustomElementResource, ICustomElementType } from './lifecycle-render';
+import { $hydrateElement, defaultShadowOptions, ICustomElementHost, ICustomElementResource, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
+
+type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
+
+export type CustomElementConstructor = Constructable & CustomElementStaticProperties;
+
+export interface ICustomElementType extends
+  IResourceType<ITemplateDefinition, ICustomElement>,
+  CustomElementConstructor { }
+
+export interface ICustomElement extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IBindSelf, ILifecycleUnbindAfterDetach, IAttach, IMountable, IState, IRenderable {
+  readonly $projector: IElementProjector;
+  readonly $host: ICustomElementHost;
+  $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+}
 
 type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T> & ICustomElementType;
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-export function customElement(nameOrSource: string | ITemplateDefinition): CustomElementDecorator {
-  return target => CustomElementResource.define(nameOrSource, target);
+export function customElement(name: string): CustomElementDecorator;
+export function customElement(definition: ITemplateDefinition): CustomElementDecorator;
+export function customElement(nameOrDefinition: string | ITemplateDefinition): CustomElementDecorator {
+  return target => CustomElementResource.define(nameOrDefinition, target);
 }
 
 type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
@@ -55,92 +74,94 @@ export function containerless<T extends Constructable>(target?: T & HasContainer
   return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
 }
 
+function isType<T extends Constructable & Partial<ICustomElementType>>(Type: T): Type is T & ICustomElementType {
+  return Type.kind === this;
+}
+
+function define<T extends Constructable>(name: string, ctor: T): T & ICustomElementType;
+function define<T extends Constructable>(definition: ITemplateDefinition, ctor: T): T & ICustomElementType;
+function define<T extends Constructable>(nameOrDefinition: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
+  if (!nameOrDefinition) {
+    throw Reporter.error(70);
+  }
+  const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
+  const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrDefinition);
+  const proto: Writable<ICustomElement> = Type.prototype;
+
+  Type.kind = CustomElementResource;
+  Type.description = description;
+  Type.register = registerElement;
+
+  proto.$hydrate = $hydrateElement;
+  proto.$bind = $bindElement;
+  proto.$attach = $attachElement;
+  proto.$detach = $detachElement;
+  proto.$unbind = $unbindElement;
+  proto.$cache = $cacheElement;
+
+  proto.$prevBind = null;
+  proto.$nextBind = null;
+  proto.$prevAttach = null;
+  proto.$nextAttach = null;
+
+  proto.$nextUnbindAfterDetach = null;
+
+  proto.$scope = null;
+  proto.$hooks = 0;
+  proto.$state = State.needsMount;
+
+  proto.$bindableHead = null;
+  proto.$bindableTail = null;
+  proto.$attachableHead = null;
+  proto.$attachableTail = null;
+
+  proto.$mount = $mountElement;
+  proto.$unmount = $unmountElement;
+
+  proto.$nextMount = null;
+  proto.$nextUnmount = null;
+
+  proto.$projector = null;
+
+  if ('flush' in proto) {
+    proto.$nextFlush = null;
+  }
+
+  if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
+  if ('bound' in proto) {
+    proto.$hooks |= Hooks.hasBound;
+    proto.$nextBound = null;
+  }
+
+  if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
+  if ('unbound' in proto) {
+    proto.$hooks |= Hooks.hasUnbound;
+    proto.$nextUnbound = null;
+  }
+
+  if ('render' in proto) proto.$hooks |= Hooks.hasRender;
+  if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
+  if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
+  if ('attached' in proto) {
+    proto.$hooks |= Hooks.hasAttached;
+    proto.$nextAttached = null;
+  }
+  if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
+  if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
+  if ('detached' in proto) {
+    proto.$hooks |= Hooks.hasDetached;
+    proto.$nextDetached = null;
+  }
+
+  return <ICustomElementType & T>Type;
+}
+
 export const CustomElementResource: ICustomElementResource = {
   name: customElementName,
-
   keyFrom: customElementKey,
-
-  isType<T extends Constructable & Partial<ICustomElementType>>(Type: T): Type is T & ICustomElementType {
-    return Type.kind === this;
-  },
-
+  isType,
   behaviorFor: <(node: ICustomElementHost) => ICustomElement | null>customElementBehavior,
-
-  define<T extends Constructable>(nameOrSource: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
-    if (!nameOrSource) {
-      throw Reporter.error(70);
-    }
-    const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
-    const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrSource);
-    const proto: Writable<ICustomElement> = Type.prototype;
-
-    Type.kind = CustomElementResource;
-    Type.description = description;
-    Type.register = registerElement;
-
-    proto.$hydrate = $hydrateElement;
-    proto.$bind = $bindElement;
-    proto.$attach = $attachElement;
-    proto.$detach = $detachElement;
-    proto.$unbind = $unbindElement;
-    proto.$cache = $cacheElement;
-
-    proto.$prevBind = null;
-    proto.$nextBind = null;
-    proto.$prevAttach = null;
-    proto.$nextAttach = null;
-
-    proto.$nextUnbindAfterDetach = null;
-
-    proto.$scope = null;
-    proto.$hooks = 0;
-    proto.$state = State.needsMount;
-
-    proto.$bindableHead = null;
-    proto.$bindableTail = null;
-    proto.$attachableHead = null;
-    proto.$attachableTail = null;
-
-    proto.$mount = $mountElement;
-    proto.$unmount = $unmountElement;
-
-    proto.$nextMount = null;
-    proto.$nextUnmount = null;
-
-    proto.$projector = null;
-
-    if ('flush' in proto) {
-      proto.$nextFlush = null;
-    }
-
-    if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
-    if ('bound' in proto) {
-      proto.$hooks |= Hooks.hasBound;
-      proto.$nextBound = null;
-    }
-
-    if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
-    if ('unbound' in proto) {
-      proto.$hooks |= Hooks.hasUnbound;
-      proto.$nextUnbound = null;
-    }
-
-    if ('render' in proto) proto.$hooks |= Hooks.hasRender;
-    if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
-    if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
-    if ('attached' in proto) {
-      proto.$hooks |= Hooks.hasAttached;
-      proto.$nextAttached = null;
-    }
-    if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
-    if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
-    if ('detached' in proto) {
-      proto.$hooks |= Hooks.hasDetached;
-      proto.$nextDetached = null;
-    }
-
-    return <ICustomElementType & T>Type;
-  }
+  define
 };
 
 /*@internal*/

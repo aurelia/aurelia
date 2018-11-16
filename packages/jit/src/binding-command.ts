@@ -1,4 +1,4 @@
-import { Constructable, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, Decoratable, Decorated, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
 import {
   BindingType,
   CallBindingInstruction,
@@ -7,6 +7,7 @@ import {
   FromViewBindingInstruction,
   HydrateTemplateController,
   IExpressionParser,
+  IResourceDefinition,
   IResourceKind,
   IResourceType,
   ITemplateDefinition,
@@ -20,50 +21,57 @@ import {
 } from '@aurelia/runtime';
 import { IAttributeSymbol } from './semantic-model';
 
-export interface IBindingCommandSource {
-  name: string;
-}
-
 export interface IBindingCommand {
   compile($symbol: IAttributeSymbol): TargetedInstruction;
-  handles($symbol: IAttributeSymbol): boolean;
+  handles?($symbol: IAttributeSymbol): boolean;
 }
 
-export type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
+export interface IBindingCommandDefinition extends IResourceDefinition { }
 
-export function bindingCommand(nameOrSource: string | IBindingCommandSource): any {
-  return function<T extends Constructable>(target: T): T & IResourceType<IBindingCommandSource, IBindingCommand> {
-    return BindingCommandResource.define(nameOrSource, target);
+export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand> {
+  inject: Function[];
+}
+
+type BindingCommandDecorator = <T extends Constructable>(target: Decoratable<IBindingCommand, T>) => Decorated<IBindingCommand, T> & IBindingCommandType;
+
+export function bindingCommand(name: string): BindingCommandDecorator;
+export function bindingCommand(definition: IBindingCommandDefinition): BindingCommandDecorator;
+export function bindingCommand(nameOrDefinition: string | IBindingCommandDefinition): BindingCommandDecorator {
+  return target => BindingCommandResource.define(nameOrDefinition, target);
+}
+
+function keyFrom(name: string): string {
+  return `${this.name}:${name}`;
+}
+
+function isType<T extends Constructable & Partial<IBindingCommandType>>(Type: T): Type is T & IBindingCommandType {
+  return Type.kind === this;
+}
+
+function define<T extends Constructable>(name: string, ctor: T): T & IBindingCommandType;
+function define<T extends Constructable>(definition: IBindingCommandDefinition, ctor: T): T & IBindingCommandType;
+function define<T extends Constructable>(nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
+  const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
+  const Type = ctor as T & IBindingCommandType;
+
+  (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
+  (Type as Writable<IBindingCommandType>).description = description;
+  Type.register = function(container: IContainer): void {
+    container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
   };
+
+  const proto = Type.prototype;
+
+  proto.handles = proto.handles || defaultHandles;
+
+  return Type;
 }
 
-export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindingCommandType> = {
+export const BindingCommandResource: IResourceKind<IBindingCommandDefinition, IBindingCommandType> = {
   name: 'binding-command',
-
-  keyFrom(name: string): string {
-    return `${this.name}:${name}`;
-  },
-
-  isType<T extends Constructable & Partial<IBindingCommandType>>(Type: T): Type is T & IBindingCommandType {
-    return Type.kind === this;
-  },
-
-  define<T extends Constructable>(nameOrSource: string | IBindingCommandSource, ctor: T): T & IBindingCommandType {
-    const description = typeof nameOrSource === 'string' ? { name: nameOrSource, target: null } : nameOrSource;
-    const Type = ctor as T & IBindingCommandType;
-
-    (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
-    (Type as Writable<IBindingCommandType>).description = description;
-    Type.register = function(container: IContainer): void {
-      container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
-    };
-
-    const proto = Type.prototype;
-
-    proto.handles = proto.handles || defaultHandles;
-
-    return Type;
-  }
+  keyFrom,
+  isType,
+  define
 };
 
 function defaultHandles(this: IBindingCommand, $symbol: IAttributeSymbol): boolean {

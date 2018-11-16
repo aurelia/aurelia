@@ -8,20 +8,22 @@ import { IObserverLocator } from './observer-locator';
 
 export interface Call extends IConnectableBinding {}
 export class Call {
-  public $nextBind: IBindScope = null;
-  public $prevBind: IBindScope = null;
-
-  public $state: State = State.none;
+  public $nextBind: IBindScope;
+  public $prevBind: IBindScope;
+  public $state: State;
   public $scope: IScope;
 
+  public locator: IServiceLocator;
+  public sourceExpression: IsBindingBehavior;
   public targetObserver: IAccessor;
 
-  constructor(
-    public sourceExpression: IsBindingBehavior,
-    target: INode,
-    targetProperty: string,
-    observerLocator: IObserverLocator,
-    public locator: IServiceLocator) {
+  constructor(sourceExpression: IsBindingBehavior, target: INode, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator) {
+    this.$nextBind = null;
+    this.$prevBind = null;
+    this.$state = State.none;
+
+    this.locator = locator;
+    this.sourceExpression = sourceExpression;
     this.targetObserver = observerLocator.getObserver(target, targetProperty);
   }
 

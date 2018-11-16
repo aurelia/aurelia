@@ -24,11 +24,13 @@ export class InternalObserversLookup {
 export class BindingContext implements IBindingContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
 
-  public readonly $synthetic: true = true;
+  public readonly $synthetic: true;
 
   public $observers: ObserversLookup<IOverrideContext>;
 
   private constructor(keyOrObj?: string | IIndexable, value?: ObservedCollection | StrictPrimitive | IIndexable) {
+    this.$synthetic = true;
+
     if (keyOrObj !== undefined) {
       if (value !== undefined) {
         // if value is defined then it's just a property and a value to initialize with
@@ -98,10 +100,13 @@ export class BindingContext implements IBindingContext {
 }
 
 export class Scope implements IScope {
-  private constructor(
-    public readonly bindingContext: IBindingContext | IBindScope,
-    public readonly overrideContext: IOverrideContext
-  ) { }
+  public readonly bindingContext: IBindingContext | IBindScope;
+  public readonly overrideContext: IOverrideContext;
+
+  private constructor(bindingContext: IBindingContext | IBindScope, overrideContext: IOverrideContext) {
+    this.bindingContext = bindingContext;
+    this.overrideContext = overrideContext;
+  }
 
   public static create(bc: IBindingContext | IBindScope, oc: IOverrideContext | null): Scope {
     return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc) : oc);
@@ -125,12 +130,15 @@ export class Scope implements IScope {
 export class OverrideContext implements IOverrideContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
 
-  public readonly $synthetic: true = true;
+  public readonly $synthetic: true;
+  public readonly bindingContext: IBindingContext | IBindScope;
+  public readonly parentOverrideContext: IOverrideContext | null;
 
-  private constructor(
-    public readonly bindingContext: IBindingContext | IBindScope,
-    public readonly parentOverrideContext: IOverrideContext | null
-  ) { }
+  private constructor(bindingContext: IBindingContext | IBindScope, parentOverrideContext: IOverrideContext | null) {
+    this.$synthetic = true;
+    this.bindingContext = bindingContext;
+    this.parentOverrideContext = parentOverrideContext;
+  }
 
   public static create(bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext {
     return new OverrideContext(bc, poc === undefined ? null : poc);

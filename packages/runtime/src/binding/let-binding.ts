@@ -10,22 +10,34 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
-  public $nextBind: IBindScope = null;
-  public $prevBind: IBindScope = null;
-
-  public $state: State = State.none;
-  public $scope: IScope = null;
+  public $nextBind: IBindScope;
+  public $prevBind: IBindScope;
+  public $state: State;
   public $lifecycle: ILifecycle;
+  public $scope: IScope;
 
-  public target: IBindingTarget = null;
+  public locator: IServiceLocator;
+  public observerLocator: IObserverLocator;
+  public sourceExpression: IExpression;
+  public target: IBindingTarget;
+  public targetProperty: string;
 
-  constructor(
-    public sourceExpression: IExpression,
-    public targetProperty: string,
-    public observerLocator: IObserverLocator,
-    public locator: IServiceLocator,
-    private toViewModel: boolean = false) {
+  private toViewModel: boolean;
+
+  constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel: boolean = false) {
+    this.$nextBind = null;
+    this.$prevBind = null;
+    this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
+    this.$scope = null;
+
+    this.locator = locator;
+    this.observerLocator = observerLocator;
+    this.sourceExpression = sourceExpression;
+    this.target = null;
+    this.targetProperty = targetProperty;
+
+    this.toViewModel = toViewModel;
   }
 
   public handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void {

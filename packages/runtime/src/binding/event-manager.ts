@@ -85,13 +85,17 @@ function handleDelegatedEvent(event: IEventWithStandardPropagation): void {
 }
 
 export class ListenerTracker {
-  private count: number = 0;
+  private capture: boolean;
+  private count: number;
+  private eventName: string;
+  private listener: EventListenerOrEventListenerObject;
 
-  constructor(
-    private eventName: string,
-    private listener: EventListenerOrEventListenerObject,
-    private capture: boolean
-  ) { }
+  constructor(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean) {
+    this.capture = capture;
+    this.count = 0;
+    this.eventName = eventName;
+    this.listener = listener;
+  }
 
   public increment(): void {
     this.count++;

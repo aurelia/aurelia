@@ -42,19 +42,22 @@ export interface ValueAttributeObserver extends
 
 @targetObserver('')
 export class ValueAttributeObserver implements ValueAttributeObserver {
-  public currentValue: Primitive | IIndexable;
   public currentFlags: LifecycleFlags;
-  public oldValue: Primitive | IIndexable;
+  public currentValue: Primitive | IIndexable;
   public defaultValue: Primitive | IIndexable;
-
+  public oldValue: Primitive | IIndexable;
   public flush: () => void;
+  public handler: IEventSubscriber;
+  public lifecycle: ILifecycle;
+  public obj: INode;
+  public propertyKey: string;
 
-  constructor(
-    public lifecycle: ILifecycle,
-    public obj: INode,
-    public propertyKey: string,
-    public handler: IEventSubscriber
-  ) {
+  constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber) {
+    this.handler = handler;
+    this.lifecycle = lifecycle;
+    this.obj = obj;
+    this.propertyKey = propertyKey;
+
     // note: input.files can be assigned and this was fixed in Firefox 57:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
 
@@ -138,22 +141,25 @@ export interface CheckedObserver extends
 
 @targetObserver()
 export class CheckedObserver implements CheckedObserver {
-  public currentValue: Primitive | IIndexable;
   public currentFlags: LifecycleFlags;
-  public oldValue: Primitive | IIndexable;
+  public currentValue: Primitive | IIndexable;
   public defaultValue: Primitive | IIndexable;
-
   public flush: () => void;
+  public handler: IEventSubscriber;
+  public lifecycle: ILifecycle;
+  public obj: IInternalInputElement;
+  public observerLocator: IObserverLocator;
+  public oldValue: Primitive | IIndexable;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver | SetterObserver;
 
-  constructor(
-    public lifecycle: ILifecycle,
-    public obj: IInternalInputElement,
-    public handler: IEventSubscriber,
-    public observerLocator: IObserverLocator
-  ) { }
+  constructor(lifecycle: ILifecycle, obj: IInternalInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
+    this.handler = handler;
+    this.lifecycle = lifecycle;
+    this.obj = obj;
+    this.observerLocator = observerLocator;
+  }
 
   public getValue(): Primitive | IIndexable {
     return this.currentValue;

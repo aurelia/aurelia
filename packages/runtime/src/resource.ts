@@ -9,9 +9,9 @@ export interface IResourceKind<TDef, TProto, TClass extends Class<TProto, unknow
   keyFrom(name: string): string;
   isType<T>(Type: T & Partial<IResourceType<TDef, TProto>>): Type is T & TClass & IResourceType<TDef, TProto>;
 
-  define<T>(name: string, ctor: T & Partial<IResourceType<TDef, TProto>>): T & TClass & IResourceType<TDef, TProto>;
-  define<T>(definition: TDef, ctor: T & Partial<IResourceType<TDef, TProto>>): T & TClass & IResourceType<TDef, TProto>;
-  define<T>(nameOrDefinition: string | TDef, ctor: T & Partial<IResourceType<TDef, TProto>>): T & TClass & IResourceType<TDef, TProto>;
+  define<T>(name: string, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
+  define<T>(definition: TDef, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
+  define<T>(nameOrDefinition: string | TDef, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
 }
 
 export type ResourceDescription<TDef> = Immutable<Required<TDef>>;

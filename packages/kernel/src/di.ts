@@ -59,9 +59,7 @@ export interface IContainer extends IServiceLocator {
   register(...params: Record<string, Partial<IRegistry>>[]): void;
   register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void;
   register(registry: Record<string, Partial<IRegistry>>): void;
-  // tslint:disable-next-line:unified-signatures
   register(registry: IRegistry): void;
-  // tslint:disable-next-line:unified-signatures
   register(registry: IRegistry | Record<string, Partial<IRegistry>>): void;
 
   registerResolver<T>(key: Key<T>, resolver: IResolver<T>): IResolver<T>;
@@ -113,18 +111,18 @@ export const DI = {
     return new Container();
   },
 
-  getDesignParamTypes(target: Object): any[] {
+  getDesignParamTypes(target: Function): Function[] {
     return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
-  getDependencies(type: Function & { inject?: any }): any[] {
-    let dependencies: any[];
+  getDependencies(type: Function | Injectable): Function[] {
+    let dependencies: Function[];
 
-    if (type.inject === undefined) {
+    if ((type as Injectable).inject === undefined) {
       dependencies = DI.getDesignParamTypes(type);
     } else {
       dependencies = [];
-      let ctor = type;
+      let ctor = type as Injectable;
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
@@ -181,8 +179,8 @@ export const DI = {
     return Key;
   },
 
-  inject(...dependencies: any[]): (target: any, property?: string, descriptor?: PropertyDescriptor | number) => any {
-    return function(target: any, key?: any, descriptor?: any): void {
+  inject(...dependencies: Function[]): (target: any, key?: string, descriptor?: PropertyDescriptor | number) => void {
+    return function(target: any, key?: string, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!target.hasOwnProperty('inject')) {
           target.inject = DI.getDesignParamTypes(target).slice();
@@ -387,7 +385,14 @@ export const enum ResolverStrategy {
 
 /*@internal*/
 export class Resolver implements IResolver, IRegistration {
-  constructor(public key: any, public strategy: ResolverStrategy, public state: any) {}
+  public key: any;
+  public strategy: ResolverStrategy;
+  public state: any;
+  constructor(key: any, strategy: ResolverStrategy, state: any) {
+    this.key = key;
+    this.strategy = strategy;
+    this.state = state;
+  }
 
   public register(container: IContainer, key?: any): IResolver {
     return container.registerResolver(key || this.key, this);
@@ -438,9 +443,17 @@ export interface IInvoker {
 
 /*@internal*/
 export class Factory implements IFactory {
-  private transformers: ((instance: any) => any)[] | null = null;
+  public type: Function;
+  private invoker: IInvoker;
+  private dependencies: any[];
+  private transformers: ((instance: any) => any)[] | null;
 
-  constructor(public type: Function, private invoker: IInvoker, private dependencies: any[]) { }
+  constructor(type: Function, invoker: IInvoker, dependencies: any[]) {
+    this.type = type;
+    this.invoker = invoker;
+    this.dependencies = dependencies;
+    this.transformers = null;
+  }
 
   public static create(type: Function): IFactory {
     const dependencies = DI.getDependencies(type);
@@ -492,12 +505,14 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
 
 /*@internal*/
 export class Container implements IContainer {
-  private parent: Container | null = null;
-  private resolvers: Map<any, IResolver> = new Map<any, IResolver>();
+  private parent: Container | null;
+  private resolvers: Map<any, IResolver>;
   private factories: Map<Function, IFactory>;
   private configuration: IContainerConfiguration;
 
   constructor(configuration: IContainerConfiguration = {}) {
+    this.parent = null;
+    this.resolvers = new Map<any, IResolver>();
     this.configuration = configuration;
     this.factories = configuration.factories || (configuration.factories = new Map());
     this.resolvers.set(IContainer, containerResolver);
@@ -738,7 +753,7 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
     const results = new Array(i);
 
     while (i--) {
-      results[i] = state[i].get(handler, requestor);
+      results[i] = state[i].resolve(handler, requestor);
     }
 
     return results;

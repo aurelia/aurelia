@@ -1,4 +1,4 @@
-import { inject } from '@aurelia/kernel';
+import { inject, IRegistry } from '@aurelia/kernel';
 import { Scope } from '../../binding/binding-context';
 import { IRenderLocation } from '../../dom';
 import { IView, IViewFactory, State } from '../../lifecycle';
@@ -11,6 +11,8 @@ export interface With extends ICustomAttribute {}
 @templateController('with')
 @inject(IViewFactory, IRenderLocation)
 export class With {
+  public static register: IRegistry['register'];
+
   @bindable public value: any = null;
 
   private currentView: IView = null;

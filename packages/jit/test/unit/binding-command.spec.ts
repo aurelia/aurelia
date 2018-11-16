@@ -1,15 +1,13 @@
 import { ParserRegistration, AttributeSymbol, bindingCommand, IBindingCommand, BasicConfiguration } from "../../src";
 import {
   IExpressionParser, INode, TargetedInstructionType, BindingType, IRenderable,
-  IRenderStrategyInstruction, renderStrategy, IRenderStrategy, Aurelia,
-  CustomElementResource, IEventManager, Listener, IExpression,
-  DelegationStrategy, AttributeDefinition, ElementDefinition, TargetedInstruction, addBindable
+  Aurelia, CustomElementResource, IEventManager, Listener, IExpression,
+  DelegationStrategy, addBindable, IInstructionRenderer, instructionRenderer,
+  IRenderContext
 } from "../../../runtime/src";
 import { IIndexable, DI, IContainer, IServiceLocator, inject } from "../../../kernel/src";
 import { expect } from "chai";
 import { spy } from "sinon";
-
-
 
 @bindingCommand('keyup')
 @inject(IExpressionParser)
@@ -18,10 +16,9 @@ export class KeyupBindingCommand implements IBindingCommand {
 
   public compile($attr: AttributeSymbol): any {
     return {
-      type: TargetedInstructionType.renderStrategy,
+      type: 'keyup',
       expr: this.parser.parse($attr.rawValue, BindingType.TriggerCommand),
-      keys: $attr.target.split('+'),
-      name: 'keyup'
+      keys: $attr.target.split('+')
     };
   }
 
@@ -30,12 +27,12 @@ export class KeyupBindingCommand implements IBindingCommand {
   }
 }
 
-@renderStrategy('keyup')
+@instructionRenderer('keyup')
 @inject(IContainer, IEventManager)
-export class KeyupRenderStrategy implements IRenderStrategy {
+export class KeyupRenderStrategy implements IInstructionRenderer {
   constructor(private context: IContainer, private eventManager: IEventManager) {}
 
-  public render(renderable: IRenderable, target: any, instruction: IRenderStrategyInstruction & IIndexable): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IIndexable): void {
     const binding = new KeyupListener(instruction.keys, instruction.expr, target, this.eventManager, this.context);
     addBindable(renderable, binding);
   }

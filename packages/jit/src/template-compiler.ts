@@ -2,43 +2,49 @@ import { inject, PLATFORM } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
-  IExpressionParser,
-  ILetBindingInstruction,
-  IResourceDescriptions,
-  ITemplateCompiler,
-  ITemplateDefinition,
-  TargetedInstruction,
-  TargetedInstructionType,
-  TemplateDefinition,
-  ViewCompileFlags
-} from '@aurelia/runtime';
-import { IAttributeParser } from './attribute-parser';
-import {  IElementParser, NodeType } from './element-parser';
-import {
   FromViewBindingInstruction,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
+  IExpressionParser,
+  ILetBindingInstruction,
   InterpolationInstruction,
+  IResourceDescriptions,
+  ITemplateCompiler,
+  ITemplateDefinition,
   LetBindingInstruction,
   LetElementInstruction,
   OneTimeBindingInstruction,
   RefBindingInstruction,
   SetAttributeInstruction,
   SetPropertyInstruction,
+  TargetedInstruction,
+  TargetedInstructionType,
+  TemplateDefinition,
   TextBindingInstruction,
   ToViewBindingInstruction,
-  TwoWayBindingInstruction
-} from './instructions';
+  TwoWayBindingInstruction,
+  ViewCompileFlags
+} from '@aurelia/runtime';
+import { IAttributeParser } from './attribute-parser';
+import {  IElementParser, NodeType } from './element-parser';
 import { AttributeSymbol, ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 
 @inject(IExpressionParser, IElementParser, IAttributeParser)
 export class TemplateCompiler implements ITemplateCompiler {
+  public exprParser: IExpressionParser;
+  public elParser: IElementParser;
+  public attrParser: IAttributeParser;
+
   public get name(): string {
     return 'default';
   }
 
-  constructor(public exprParser: IExpressionParser, public elParser: IElementParser, public attrParser: IAttributeParser) { }
+  constructor(exprParser: IExpressionParser, elParser: IElementParser, attrParser: IAttributeParser) {
+    this.exprParser = exprParser;
+    this.elParser = elParser;
+    this.attrParser = attrParser;
+  }
 
   public compile(definition: ITemplateDefinition, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
     const model = SemanticModel.create(definition, resources, this.attrParser, this.elParser, this.exprParser);

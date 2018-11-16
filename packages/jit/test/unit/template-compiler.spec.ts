@@ -19,6 +19,7 @@ import {
   IBindableDescription,
   DelegationStrategy,
   CustomElementResource,
+  HydrateTemplateController,
   ForOfStatement,
   BindingIdentifier,
   IExpression,
@@ -26,7 +27,6 @@ import {
 } from '../../../runtime/src';
 import {
   TemplateCompiler,
-  HydrateTemplateController,
   BasicConfiguration,
   parseCore,
   AttributeParser,

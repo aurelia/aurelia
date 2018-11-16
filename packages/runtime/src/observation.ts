@@ -88,7 +88,6 @@ export interface IBindingTargetObserver<
 
 export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 
-
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
  *
@@ -208,7 +207,6 @@ export interface ISubscribable<T extends MutationKind> {
   subscribe(subscriber: MutationKindToSubscriber<T>): void;
   unsubscribe(subscriber: MutationKindToSubscriber<T>): void;
 }
-
 
 /**
  * A collection of property or collection subscribers
@@ -344,7 +342,6 @@ export interface ICollectionObserver<T extends CollectionKind> extends
     getLengthObserver(): IBindingTargetObserver;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
-
 
 export interface IBindingContext {
   [key: string]: unknown;

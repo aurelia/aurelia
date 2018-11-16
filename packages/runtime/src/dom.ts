@@ -24,6 +24,9 @@ export interface INode extends INodeLike {
   readonly nodeName: string;
   readonly nodeType: number;
 }
+export interface IRemovableNode extends INode {
+  remove(): void;
+}
 export const IEncapsulationSource = DI.createInterface<IEncapsulationSource>().noDefault();
 export interface IEncapsulationSource extends INode {}
 

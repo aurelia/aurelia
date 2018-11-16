@@ -21,8 +21,8 @@ describe(`CompiledTemplate`, () => {
       class Foo{}
       class Bar{static register(container: Container){ container.register(Registration.singleton(Bar, Bar)) }}
       const def = { template: createElement('<div>foo</div>'), dependencies: [Foo, Bar] };
-      const viewFactory = new ViewFactory(null, null);
-      const renderer = new Renderer(null, null, null, null, null);
+      const viewFactory = new ViewFactory(null, null, null);
+      const renderer = new Renderer([]);
       const renderingEngine = new MockRenderingEngine(null, viewFactory, renderer, null);
       const container = new Container();
       const sut = new CompiledTemplate(renderingEngine, container as any, def as any);

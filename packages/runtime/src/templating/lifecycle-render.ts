@@ -1,69 +1,13 @@
-import { all, Constructable, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IResolver, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
-import { Interpolation } from '../binding/ast';
-import { Binding } from '../binding/binding';
+import { all, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, Omit, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { Scope } from '../binding/binding-context';
-import { BindingMode } from '../binding/binding-mode';
-import { Call } from '../binding/call';
-import { IEventManager } from '../binding/event-manager';
-import { BindingType, IExpressionParser } from '../binding/expression-parser';
-import { InterpolationBinding, MultiInterpolationBinding } from '../binding/interpolation-binding';
-import { LetBinding } from '../binding/let-binding';
-import { Listener } from '../binding/listener';
-import { IObserverLocator } from '../binding/observer-locator';
 import { Observer } from '../binding/property-observation';
-import { Ref } from '../binding/ref';
 import { subscriberCollection } from '../binding/subscriber-collection';
-import { BindableDefinitions, buildTemplateDefinition, customAttributeKey, customElementBehavior, CustomElementConstructor, customElementKey, IAttributeDefinition, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, IRenderStrategyInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
+import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, CustomElementConstructor, IAttributeDefinition, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
-import { Hooks, IAttach, IAttachables, IBindables, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext, IState, IViewFactory, State } from '../lifecycle';
+import { Hooks, IAttach, IBindScope, IBindSelf, ILifecycle, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext, IState, IViewFactory, State } from '../lifecycle';
 import { IAccessor, IChangeTracker, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { ViewFactory } from './view';
-
-export interface IRenderStrategy<TTarget = any, TInstruction extends IRenderStrategyInstruction = any> {
-  render(renderable: IRenderable, target: TTarget, instruction: TInstruction): void;
-}
-
-export interface IRenderStrategySource {
-  name: string;
-}
-
-export type IRenderStrategyType = IResourceType<IRenderStrategySource, IRenderStrategy>;
-
-type RenderStrategyDecorator = <T extends Constructable>(target: Decoratable<IRenderStrategy, T>) => Decorated<IRenderStrategy, T> & IRenderStrategyType;
-
-export function renderStrategy(nameOrSource: string | IRenderStrategySource): RenderStrategyDecorator {
-  return target => RenderStrategyResource.define(nameOrSource, target);
-}
-
-export const RenderStrategyResource: IResourceKind<IRenderStrategySource, IRenderStrategyType> = {
-  name: 'render-strategy',
-
-  keyFrom(name: string): string {
-    return `${this.name}:${name}`;
-  },
-
-  isType<T extends Constructable & Partial<IRenderStrategyType>>(Type: T): Type is T & IRenderStrategyType {
-    return Type.kind === this;
-  },
-
-  define<T extends Constructable>(nameOrSource: string | IRenderStrategySource, ctor: T): T & IRenderStrategyType {
-    const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
-    const Type = ctor as T & Writable<IRenderStrategyType>;
-
-    Type.kind = RenderStrategyResource;
-    Type.description = description;
-    Type.register = registerRenderStrategy;
-
-    return <IRenderStrategyType & T>Type;
-  }
-};
-
-/*@internal*/
-export function registerRenderStrategy(this: IRenderStrategyType, container: IContainer): void {
-  const resourceKey = RenderStrategyResource.keyFrom(this.description.name);
-  container.register(Registration.singleton(resourceKey, this));
-}
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -223,8 +167,6 @@ export interface IRenderingEngine {
 
   applyRuntimeBehavior(Type: ICustomAttributeType, instance: ICustomAttribute): void;
   applyRuntimeBehavior(Type: ICustomElementType, instance: ICustomElement): void;
-
-  createRenderer(context: IRenderContext): IRenderer;
 }
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>()
@@ -232,7 +174,7 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>()
 
 const defaultCompilerName = 'default';
 
-@inject(IContainer, ILifecycle, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
+@inject(IContainer, ILifecycle, all(ITemplateCompiler))
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
   private templateLookup: Map<TemplateDefinition, ITemplate> = new Map();
@@ -240,14 +182,7 @@ export class RenderingEngine implements IRenderingEngine {
   private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior> = new Map();
   private compilers: Record<string, ITemplateCompiler>;
 
-  constructor(
-    private container: IContainer,
-    private lifecycle: ILifecycle,
-    private observerLocator: IObserverLocator,
-    private eventManager: IEventManager,
-    private parser: IExpressionParser,
-    templateCompilers: ITemplateCompiler[]
-  ) {
+  constructor(private container: IContainer, private lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
     this.compilers = templateCompilers.reduce(
       (acc, item) => {
         acc[item.name] = item;
@@ -286,7 +221,7 @@ export class RenderingEngine implements IRenderingEngine {
     let factory = this.factoryLookup.get(definition);
 
     if (!factory) {
-      const validSource = buildTemplateDefinition(null, definition)
+      const validSource = buildTemplateDefinition(null, definition);
       const template = this.templateFromSource(validSource, parentContext);
       factory = new ViewFactory(validSource.name, template, this.lifecycle);
       factory.setCacheSize(validSource.cache, true);
@@ -305,16 +240,6 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     found.applyTo(instance, this.lifecycle);
-  }
-
-  public createRenderer(context: IRenderContext): IRenderer {
-    return new Renderer(
-      context,
-      this.observerLocator,
-      this.eventManager,
-      this.parser,
-      this
-    );
   }
 
   private templateFromSource(definition: TemplateDefinition, parentContext?: IRenderContext): ITemplate {
@@ -551,7 +476,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   public getValue(): ICustomElement[] {
     if (!this.observing) {
       this.observing = true;
-      this.customElement.$projector.subscribeToChildrenChange(() => this.onChildrenChanged());
+      this.customElement.$projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
       this.children = findElements(this.customElement.$projector.children);
     }
 
@@ -613,7 +538,8 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
       const factory = resolver.getFactory(this.context);
 
       if (factory !== null) {
-        return (factory.type as IResourceType<TSource>).description || null;
+        const description = (factory.type as IResourceType<TSource>).description;
+        return description === undefined ? null : description;
       }
     }
 
@@ -623,7 +549,8 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
   public create<TSource, TType extends IResourceType<TSource>>(kind: IResourceKind<TSource, TType>, name: string): InstanceType<TType> | null {
     const key = kind.keyFrom(name);
     if (this.context.has(key, false)) {
-      return this.context.get<any>(key) || null;
+      const context = this.context.get<any>(key);
+      return context === undefined ? null : context;
     }
     return null;
   }
@@ -672,18 +599,17 @@ export const noViewTemplate: ITemplate = {
   }
 };
 
-
 /*@internal*/
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
-export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<any>): IRenderContext {
+export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext {
   const context = <ExposedContext>parentRenderContext.createChild();
   const renderableProvider = new InstanceProvider();
   const elementProvider = new InstanceProvider();
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
   const factoryProvider = new ViewFactoryProvider(renderingEngine);
   const renderLocationProvider = new InstanceProvider<IRenderLocation>();
-  const renderer = renderingEngine.createRenderer(context);
+  const renderer = context.get(IRenderer);
 
   DOM.registerElementResolver(context, elementProvider);
 
@@ -696,8 +622,8 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     context.register(...dependencies);
   }
 
-  context.render = function(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
-    renderer.render(renderable, targets, templateDefinition, host, parts);
+  context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+    renderer.render(this, renderable, targets, templateDefinition, host, parts);
   };
 
   context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
@@ -781,48 +707,66 @@ export class ViewFactoryProvider implements IResolver {
   }
 }
 
-export function addBindable(renderable: IBindables, bindable: IBindScope): void {
-  bindable.$prevBind = renderable.$bindableTail;
-  bindable.$nextBind = null;
-  if (renderable.$bindableTail === null) {
-    renderable.$bindableHead = bindable;
-  } else {
-    renderable.$bindableTail.$nextBind = bindable;
-  }
-  renderable.$bindableTail = bindable;
-}
-
-export function addAttachable(renderable: IAttachables, attachable: IAttach): void {
-  attachable.$prevAttach = renderable.$attachableTail;
-  attachable.$nextAttach = null;
-  if (renderable.$attachableTail === null) {
-    renderable.$attachableHead = attachable;
-  } else {
-    renderable.$attachableTail.$nextAttach = attachable;
-  }
-  renderable.$attachableTail = attachable;
-}
-
 export interface IRenderer {
-  render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
+  instructionRenderers: Record<string, IInstructionRenderer>;
+  render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
 }
 
-// tslint:disable:function-name
-// tslint:disable:no-any
+export const IRenderer = DI.createInterface<IRenderer>().withDefault(x => x.singleton(Renderer));
+
+export interface IInstructionTypeClassifier<TType extends string = string> {
+  instructionType: TType;
+}
+
+export interface IInstructionRenderer<TType extends string = string> extends Partial<IInstructionTypeClassifier<TType>> {
+  render(context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
+}
+
+export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>().noDefault();
+
+type DecoratableInstructionRenderer<TType extends string> = Decoratable<IInstructionTypeClassifier<TType>, Pick<IInstructionRenderer, 'render'>> & Partial<IRegistry>;
+type DecoratedInstructionRenderer<TType extends string> = Decorated<IInstructionTypeClassifier<TType>, Pick<IInstructionRenderer, 'render'>> & IRegistry;
+
+type InstructionRendererDecorator<TType extends string> = (target: DecoratableInstructionRenderer<TType>) => DecoratedInstructionRenderer<TType>;
+
+export function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
+  return function decorator(target: DecoratableInstructionRenderer<TType>): DecoratedInstructionRenderer<TType> {
+    // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
+    const decoratedTarget = function(...args: unknown[]): InstanceType<DecoratedInstructionRenderer<TType>> {
+      const instance = new target(...args);
+      instance.instructionType = instructionType;
+      return instance;
+    } as unknown as DecoratedInstructionRenderer<TType>;
+    // make sure we register the decorated constructor with DI
+    decoratedTarget.register = function register(container: IContainer): IResolver {
+      return Registration.singleton(IInstructionRenderer, decoratedTarget).register(container, IInstructionRenderer);
+    };
+    // copy over any static properties such as inject (set by preceding decorators)
+    // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
+    // the length (number of ctor arguments) is copied for the same reason
+    const ownProperties = Object.getOwnPropertyDescriptors(target);
+    Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
+      Reflect.defineProperty(decoratedTarget, prop, ownProperties[prop]);
+    });
+    return decoratedTarget;
+  };
+}
 
 /* @internal */
+@inject(all(IInstructionRenderer))
 export class Renderer implements IRenderer {
-  constructor(
-    private context: IRenderContext,
-    private observerLocator: IObserverLocator,
-    private eventManager: IEventManager,
-    private parser: IExpressionParser,
-    private renderingEngine: IRenderingEngine
-  ) { }
+  public instructionRenderers: Record<string, IInstructionRenderer>;
 
-  public render(renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  constructor(instructionRenderers: IInstructionRenderer[]) {
+    const record = this.instructionRenderers = {};
+    instructionRenderers.forEach(item => {
+      record[item.instructionType] = item;
+    });
+  }
+
+  public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
+    const instructionRenderers = this.instructionRenderers;
 
     if (targets.length !== targetInstructions.length) {
       if (targets.length > targetInstructions.length) {
@@ -837,7 +781,7 @@ export class Renderer implements IRenderer {
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
         const current = instructions[j];
-        (this as any)[current.type](renderable, target, current, parts);
+        instructionRenderers[current.type].render(context, renderable, target, current, parts);
       }
     }
 
@@ -846,166 +790,8 @@ export class Renderer implements IRenderer {
 
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
         const current = surrogateInstructions[i];
-        (this as any)[current.type](renderable, host, current, parts);
+        instructionRenderers[current.type].render(context, renderable, host, current, parts);
       }
-    }
-  }
-
-  public hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void {
-    const childInstructions = instruction.instructions;
-
-    component.$hydrate(this.renderingEngine, target, instruction);
-
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      const current = childInstructions[i];
-      const currentType = current.type;
-
-      (this as any)[currentType](renderable, component, current);
-    }
-
-    addBindable(renderable, component);
-    addAttachable(renderable, component);
-  }
-
-  public [TargetedInstructionType.textBinding](renderable: IRenderable, target: any, instruction: Immutable<ITextBindingInstruction>): void {
-    const next = target.nextSibling;
-    DOM.treatAsNonWhitespace(next);
-    DOM.remove(target);
-    const $from = instruction.from as any;
-    const expr = ($from.$kind ? $from : this.parser.parse($from, BindingType.Interpolation)) as Interpolation;
-    if (expr.isMulti) {
-      addBindable(renderable, new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, this.context));
-    } else {
-      addBindable(renderable, new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, this.context, true));
-    }
-  }
-
-  public [TargetedInstructionType.interpolation](renderable: IRenderable, target: any, instruction: Immutable<IInterpolationInstruction>): void {
-    const $from = instruction.from as any;
-    const expr = ($from.$kind ? $from : this.parser.parse($from, BindingType.Interpolation)) as Interpolation;
-    if (expr.isMulti) {
-      addBindable(renderable, new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.to, BindingMode.toView, this.context));
-    } else {
-      addBindable(renderable, new InterpolationBinding(expr.firstExpression, expr, target, instruction.to, BindingMode.toView, this.observerLocator, this.context, true));
-    }
-  }
-
-  public [TargetedInstructionType.propertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IPropertyBindingInstruction>): void {
-    const $from = instruction.from as any;
-    addBindable(renderable, new Binding($from.$kind ? $from : this.parser.parse($from, BindingType.IsPropertyCommand | instruction.mode), target, instruction.to, instruction.mode, this.observerLocator, this.context));
-  }
-
-  public [TargetedInstructionType.iteratorBinding](renderable: IRenderable, target: any, instruction: Immutable<IIteratorBindingInstruction>): void {
-    const $from = instruction.from as any;
-    addBindable(renderable, new Binding($from.$kind ? $from : this.parser.parse($from, BindingType.ForCommand), target, instruction.to, BindingMode.toView, this.observerLocator, this.context));
-  }
-
-  public [TargetedInstructionType.listenerBinding](renderable: IRenderable, target: any, instruction: Immutable<IListenerBindingInstruction>): void {
-    const $from = instruction.from as any;
-    addBindable(renderable, new Listener(instruction.to, instruction.strategy, $from.$kind ? $from : this.parser.parse($from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta)), target, instruction.preventDefault, this.eventManager, this.context));
-  }
-
-  public [TargetedInstructionType.callBinding](renderable: IRenderable, target: any, instruction: Immutable<ICallBindingInstruction>): void {
-    const $from = instruction.from as any;
-    addBindable(renderable, new Call($from.$kind ? $from : this.parser.parse($from, BindingType.CallCommand), target, instruction.to, this.observerLocator, this.context));
-  }
-
-  public [TargetedInstructionType.refBinding](renderable: IRenderable, target: any, instruction: Immutable<IRefBindingInstruction>): void {
-    const $from = instruction.from as any;
-    addBindable(renderable, new Ref($from.$kind ? $from : this.parser.parse($from, BindingType.IsRef), target, this.context));
-  }
-
-  public [TargetedInstructionType.stylePropertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IStylePropertyBindingInstruction>): void {
-    const $from = instruction.from as any;
-    addBindable(renderable, new Binding($from.$kind ? $from : this.parser.parse($from, BindingType.IsPropertyCommand | BindingMode.toView), (<any>target).style, instruction.to, BindingMode.toView, this.observerLocator, this.context));
-  }
-
-  public [TargetedInstructionType.setProperty](renderable: IRenderable, target: any, instruction: Immutable<ISetPropertyInstruction>): void {
-    target[instruction.to] = instruction.value;
-  }
-
-  public [TargetedInstructionType.setAttribute](renderable: IRenderable, target: any, instruction: Immutable<ISetAttributeInstruction>): void {
-    DOM.setAttribute(target, instruction.to, instruction.value);
-  }
-
-  public [TargetedInstructionType.hydrateElement](renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>): void {
-    const context = this.context;
-    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
-    const component = context.get<ICustomElement>(customElementKey(instruction.res));
-
-    this.hydrateElementInstance(renderable, target, instruction, component);
-    operation.dispose();
-  }
-
-  public [TargetedInstructionType.hydrateAttribute](renderable: IRenderable, target: any, instruction: Immutable<IHydrateAttributeInstruction>): void {
-    const childInstructions = instruction.instructions;
-    const context = this.context;
-
-    const operation = context.beginComponentOperation(renderable, target, instruction);
-    const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
-    component.$hydrate(this.renderingEngine);
-
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      const current = childInstructions[i];
-      (this as any)[current.type](renderable, component, current);
-    }
-
-    addBindable(renderable, component);
-    addAttachable(renderable, component);
-
-    operation.dispose();
-  }
-
-  public [TargetedInstructionType.hydrateTemplateController](renderable: IRenderable, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions): void {
-    const childInstructions = instruction.instructions;
-    const factory = this.renderingEngine.getViewFactory(instruction.def, this.context);
-    const context = this.context;
-    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
-
-    const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
-    component.$hydrate(this.renderingEngine);
-
-    if (instruction.link) {
-      (component as any).link(renderable.$attachableTail);
-    }
-
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      const current = childInstructions[i];
-      (this as any)[current.type](renderable, component, current);
-    }
-
-    addBindable(renderable, component);
-    addAttachable(renderable, component);
-
-    operation.dispose();
-  }
-
-  public [TargetedInstructionType.renderStrategy](renderable: IRenderable, target: any, instruction: Immutable<IRenderStrategyInstruction>): void {
-    const strategyName = instruction.name;
-    if (this[strategyName] === undefined) {
-      const strategy = this.context.get<IRenderStrategy>(RenderStrategyResource.keyFrom(strategyName));
-      if (strategy === null || strategy === undefined) {
-        throw new Error(`Unknown renderStrategy "${strategyName}"`);
-      }
-      this[strategyName] = strategy.render.bind(strategy);
-    }
-    this[strategyName](renderable, target, instruction);
-  }
-
-  public [TargetedInstructionType.letElement](renderable: IRenderable, target: any, instruction: Immutable<ILetElementInstruction>): void {
-    target.remove();
-    const childInstructions = instruction.instructions;
-    const toViewModel = instruction.toViewModel;
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      const childInstruction = childInstructions[i];
-      const $from: any = childInstruction.from;
-      addBindable(renderable, new LetBinding(
-        $from.$kind ? $from : this.parser.parse($from, BindingType.IsPropertyCommand),
-        childInstruction.to,
-        this.observerLocator,
-        this.context,
-        toViewModel
-      ));
     }
   }
 }

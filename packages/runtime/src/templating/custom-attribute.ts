@@ -113,11 +113,13 @@ export function registerAttribute(this: ICustomAttributeType, container: IContai
 
 /*@internal*/
 export function createCustomAttributeDescription(def: IAttributeDefinition, Type: ICustomAttributeType): ResourceDescription<IAttributeDefinition> {
+  const aliases = def. aliases;
+  const defaultBindingMode = def.defaultBindingMode;
   return {
     name: def.name,
-    aliases: def.aliases || PLATFORM.emptyArray,
-    defaultBindingMode: def.defaultBindingMode || BindingMode.toView,
-    isTemplateController: def.isTemplateController || false,
+    aliases: aliases === undefined || aliases === null ? PLATFORM.emptyArray : aliases,
+    defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
+    isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
     bindables: {...Type.bindables, ...def.bindables}
   };
 }

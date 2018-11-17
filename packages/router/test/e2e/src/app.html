@@ -1,0 +1,33 @@
+<template>
+  <require from="./components/viewport"></require>
+
+  <p>${message}</p>
+
+  <div style="padding: 20px;">
+    <button click.trigger="clickAbc()">Abc</button>
+    <button click.trigger="clickAbcLeft()">Abc left</button>
+    <button click.trigger="clickAbcRight()">Abc right</button>
+    <button click.trigger="clickDef()">Def</button>
+    <button click.trigger="clickBack()">Back</button>
+    <button click.trigger="clickForward()">Forward</button>
+    <button click.trigger="clickBack2()">Back 2</button>
+    <button click.trigger="clickForward2()">Forward 2</button>
+    <button click.trigger="clickCancel()">Cancel</button>
+    <button click.trigger="clickReplace()">Replace</button>
+    <button click.trigger="clickRefresh()">Refresh</button>
+    <a href="#/test/abc">Abc</a>
+    <a href="#/test/def">Def</a>
+    <a href="http://www.google.com">Google</a>
+
+    <div style="padding: 10px;">
+      <pre>${title}</pre>
+    </div>
+
+    <div style="padding: 10px;">
+      <pre>${output}</pre>
+    </div>
+
+    <viewport name="left"></viewport>
+    <viewport name="right"></viewport>
+  </div>
+</template>

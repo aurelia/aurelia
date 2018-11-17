@@ -1,7 +1,6 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedSet, LifecycleFlags } from '../observation';
-// tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
 

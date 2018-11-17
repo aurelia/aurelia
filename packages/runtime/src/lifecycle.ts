@@ -1263,8 +1263,7 @@ export const LifecycleTask = {
   done: {
     done: true,
     canCancel(): boolean { return false; },
-    // tslint:disable-next-line:no-empty
-    cancel(): void {},
+    cancel(): void { return; },
     wait(): Promise<unknown> { return Promise.resolve(); }
   }
 };

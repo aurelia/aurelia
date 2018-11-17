@@ -1,7 +1,7 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { AccessorOrObserver, IBindingTargetObserver, IScope, LifecycleFlags } from '../observation';
-import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
+import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
@@ -57,15 +57,15 @@ export class Binding implements IPartialConnectableBinding {
     this.targetProperty = targetProperty;
   }
 
-  public updateTarget(value: StrictAny, flags: LifecycleFlags): void {
+  public updateTarget(value: unknown, flags: LifecycleFlags): void {
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
-  public updateSource(value: StrictAny, flags: LifecycleFlags): void {
+  public updateSource(value: unknown, flags: LifecycleFlags): void {
     this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
-  public handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }

@@ -372,7 +372,6 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 
   public findTargets(): ArrayLike<INode> {
-    // tslint:disable-next-line:no-any
     return this.targets;
   }
 

@@ -109,11 +109,11 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
   }
 
-  public updateTarget(value: any, flags: LifecycleFlags): void {
+  public updateTarget(value: unknown, flags: LifecycleFlags): void {
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
-  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }

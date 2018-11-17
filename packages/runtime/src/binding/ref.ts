@@ -1,7 +1,7 @@
-import { IServiceLocator } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
-import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
+import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { IConnectableBinding } from './connectable';
 
@@ -73,7 +73,7 @@ export class Ref implements IBinding {
     this.$state &= ~(State.isBound | State.isUnbinding);
   }
 
-  public observeProperty(obj: StrictAny, propertyName: StrictAny): void {
+  public observeProperty(obj: IIndexable, propertyName: string): void {
     return;
   }
 

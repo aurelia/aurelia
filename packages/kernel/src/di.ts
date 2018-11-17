@@ -37,13 +37,13 @@ export interface IFactory<T = any> {
 export interface IServiceLocator {
   has(key: any, searchAncestors: boolean): boolean;
 
-  get<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K):
+  get<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K):
     K extends InterfaceSymbol<infer T> ? T :
     K extends Constructable ? InstanceType<K> :
     K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? InstanceType<T1> : T1 :
     K;
 
-  getAll<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K):
+  getAll<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K):
     K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> :
     K extends Constructable ? ReadonlyArray<InstanceType<K>> :
     K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> :
@@ -78,8 +78,8 @@ export interface IContainer extends IServiceLocator {
 
 export interface IResolverBuilder<T> {
   instance(value: T & IIndexable): IResolver;
-  singleton(value: Constructable<T>): IResolver;
-  transient(value: Constructable<T>): IResolver;
+  singleton(value: Constructable): IResolver;
+  transient(value: Constructable): IResolver;
   callback(value: ResolveCallback<T>): IResolver;
   aliasTo(destinationKey: Key<T>): IResolver;
 }
@@ -95,13 +95,13 @@ export type RegisterSelf<T extends Constructable> = {
 if (!('getOwnMetadata' in Reflect)) {
   // tslint:disable-next-line:no-any
   Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
-    return target[metadataKey];
+    return (<IIndexable>target)[metadataKey];
   };
 
   // tslint:disable-next-line:no-any
   Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
     return function(target: Function): void {
-      target[metadataKey] = metadataValue;
+      (<IIndexable>target)[metadataKey] = metadataValue;
     };
   };
 }
@@ -765,31 +765,31 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
 /*@internal*/
 export const classInvokers: IInvoker[] = [
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T): K {
       return new Type();
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(container.get(deps[0]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -800,7 +800,7 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -820,7 +820,7 @@ export const fallbackInvoker: IInvoker = {
 };
 
 /*@internal*/
-export function invokeWithDynamicDependencies<T extends Constructable<K>, K>(
+export function invokeWithDynamicDependencies<T extends Constructable, K>(
   container: IContainer,
   Type: T,
   staticDependencies: any[],

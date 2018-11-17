@@ -1,27 +1,56 @@
-import { Constructable, Immutable, IRegistry } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, Immutable, IRegistry } from '@aurelia/kernel';
 
 export interface IResourceDefinition {
   name: string;
 }
 
-export interface IResourceKind<TSource, TType extends IResourceType<TSource> = IResourceType<TSource>> {
+export interface IResourceKind<TDef, TProto, TClass extends Class<TProto, unknown> = Class<TProto>> {
   readonly name: string;
   keyFrom(name: string): string;
-  isType<T extends Constructable & Partial<TType>>(Type: T): Type is T & TType;
+  isType<T>(Type: T & Partial<IResourceType<TDef, TProto>>): Type is T & TClass & IResourceType<TDef, TProto>;
 
-  define<T extends Constructable>(name: string, ctor: T): T & TType;
-  define<T extends Constructable>(definition: TSource, ctor: T): T & TType;
-  define<T extends Constructable>(nameOrDefinition: string | TSource, ctor: T): T & TType;
+  define<T>(name: string, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
+  define<T>(definition: TDef, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
+  define<T>(nameOrDefinition: string | TDef, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
 }
 
-export type ResourceDescription<TSource> = Immutable<Required<TSource>>;
+export type ResourceDescription<TDef> = Immutable<Required<TDef>>;
 
-export interface IResourceType<TSource = {}, T = {}> extends Constructable<T>, IRegistry {
-  readonly kind: IResourceKind<TSource, this>;
-  readonly description: ResourceDescription<TSource>;
+export interface IResourceType<TDef, TProto, TClass extends Class<TProto, unknown> = Class<TProto>> extends Class<TProto, unknown>, IRegistry {
+  readonly kind: IResourceKind<TDef, TProto, TClass>;
+  readonly description: ResourceDescription<TDef>;
 }
 
 export interface IResourceDescriptions {
-  find<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null;
-  create<TSource, TType extends IResourceType<TSource>>(kind: IResourceKind<TSource, TType>, name: string): InstanceType<TType> | null;
+  find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null;
+  create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto;
+}
+
+export class RuntimeCompilationResources implements IResourceDescriptions {
+  constructor(private context: IContainer) {}
+
+  public find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null {
+    const key = kind.keyFrom(name);
+    const resolver = this.context.getResolver(key, false);
+
+    if (resolver !== null && resolver.getFactory) {
+      const factory = resolver.getFactory(this.context);
+
+      if (factory !== null) {
+        const description = (factory.type as IResourceType<TDef, TProto>).description;
+        return description === undefined ? null : description;
+      }
+    }
+
+    return null;
+  }
+
+  public create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto {
+    const key = kind.keyFrom(name);
+    if (this.context.has(key, false)) {
+      const instance = this.context.get<Constructable>(key);
+      return instance === undefined ? null : instance;
+    }
+    return null;
+  }
 }

@@ -460,7 +460,7 @@ export interface INodeSequenceFactory {
 export class NodeSequenceFactory {
   private readonly deepClone: boolean;
   private readonly node: ICloneableNode;
-  private readonly Type: Constructable<INodeSequence>;
+  private readonly Type: Constructable;
   constructor(fragment: IDocumentFragment) {
     const childNodes = fragment.childNodes;
     switch (childNodes.length) {

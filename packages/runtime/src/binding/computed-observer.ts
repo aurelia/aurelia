@@ -118,11 +118,11 @@ export class CustomSetterObserver implements CustomSetterObserver {
       set: function(newValue: IIndexable | Primitive): void {
         setter.call(that.obj, newValue);
 
-        const oldValue = this.currentValue;
+        const oldValue = that.currentValue;
 
         if (oldValue !== newValue) {
           that.oldValue = oldValue;
-          this.lifecycle.queueFlush(that);
+          that.lifecycle.enqueueFlush(that);
 
           that.currentValue = newValue;
         }

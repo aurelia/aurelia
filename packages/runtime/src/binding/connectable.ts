@@ -1,4 +1,4 @@
-import { Decoratable, Decorated, IIndexable } from '@aurelia/kernel';
+import { Class, IIndexable } from '@aurelia/kernel';
 import { IBindingTargetObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { StrictAny } from './ast';
 import { IBinding } from './binding';
@@ -108,19 +108,19 @@ export function unobserve(this: IConnectableBinding, all?: boolean): void {
   }
 }
 
-type DecoratableConnectable = Decoratable<IConnectableBinding, IPartialConnectableBinding>;
-type DecoratedConnectable = Decorated<IConnectableBinding, IPartialConnectableBinding>;
+type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
+type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
 
-function connectableDecorator(target: DecoratableConnectable): DecoratedConnectable {
+function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
   if (!proto.hasOwnProperty('observeProperty')) proto.observeProperty = observeProperty;
   if (!proto.hasOwnProperty('unobserve')) proto.unobserve = unobserve;
   if (!proto.hasOwnProperty('addObserver')) proto.addObserver = addObserver;
-  return target as DecoratedConnectable;
+  return target as DecoratedConnectable<TProto, TClass>;
 }
 
 export function connectable(): typeof connectableDecorator;
-export function connectable(target: DecoratableConnectable): DecoratedConnectable;
-export function connectable(target?: DecoratableConnectable): DecoratedConnectable | typeof connectableDecorator {
+export function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
+export function connectable<TProto, TClass>(target?: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> | typeof connectableDecorator {
   return target === undefined ? connectableDecorator : connectableDecorator(target);
 }

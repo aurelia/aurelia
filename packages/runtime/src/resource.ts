@@ -37,7 +37,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
       const factory = resolver.getFactory(this.context);
 
       if (factory !== null) {
-        const description = (factory.type as IResourceType<TDef, TProto>).description;
+        const description = (factory.Type as IResourceType<TDef, TProto>).description;
         return description === undefined ? null : description;
       }
     }

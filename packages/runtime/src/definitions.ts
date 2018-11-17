@@ -1,4 +1,3 @@
-// tslint:disable:no-reserved-keywords
 import { DI, Immutable, Omit, PLATFORM } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
@@ -108,8 +107,8 @@ export type TargetedInstruction =
   ILetElementInstruction;
 
 export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
-  const type = value.type;
-  return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
+  const Type = value.type;
+  return typeof Type === 'string' && instructionTypeValues.indexOf(Type) !== -1;
 }
 
 export interface ITextBindingInstruction extends ITargetedInstruction {

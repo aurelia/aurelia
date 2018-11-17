@@ -7,27 +7,34 @@ import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
 
-// tslint:disable:no-any
-
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
-  public $nextBind: IBindScope = null;
-  public $prevBind: IBindScope = null;
+  public $nextBind: IBindScope;
+  public $prevBind: IBindScope;
+  public $state: State;
+  public $scope: IScope;
 
-  public $state: State = State.none;
-
-  public $scope: IScope = null;
-
+  public interpolation: Interpolation;
+  public observerLocator: IObserverLocator;
+  public locator: IServiceLocator;
+  public mode: BindingMode;
   public parts: InterpolationBinding[];
+  public target: IBindingTarget;
+  public targetProperty: string;
 
-  constructor(
-    public observerLocator: IObserverLocator,
-    public interpolation: Interpolation,
-    public target: IBindingTarget,
-    public targetProperty: string,
-    public mode: BindingMode,
-    public locator: IServiceLocator) {
+  constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, locator: IServiceLocator) {
+    this.$nextBind = null;
+    this.$prevBind = null;
+    this.$state = State.none;
+    this.$scope = null;
+
+    this.interpolation = interpolation;
+    this.locator = locator;
+    this.mode = mode;
+    this.observerLocator = observerLocator;
+    this.target = target;
+    this.targetProperty = targetProperty;
 
     // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
     // value converters and binding behaviors.
@@ -74,19 +81,30 @@ export interface InterpolationBinding extends IConnectableBinding {}
 @connectable()
 export class InterpolationBinding implements IPartialConnectableBinding {
   public $scope: IScope;
-  public $state: State = State.none;
+  public $state: State;
+
+  public interpolation: Interpolation;
+  public isFirst: boolean;
+  public locator: IServiceLocator;
+  public mode: BindingMode;
+  public observerLocator: IObserverLocator;
+  public sourceExpression: IExpression;
+  public target: IBindingTarget;
+  public targetProperty: string;
 
   public targetObserver: IBindingTargetAccessor;
 
-  constructor(
-    public sourceExpression: IExpression,
-    public interpolation: Interpolation,
-    public target: IBindingTarget,
-    public targetProperty: string,
-    public mode: BindingMode,
-    public observerLocator: IObserverLocator,
-    public locator: IServiceLocator,
-    public isFirst: boolean) {
+  constructor(sourceExpression: IExpression, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
+    this.$state = State.none;
+
+    this.interpolation = interpolation;
+    this.isFirst = isFirst;
+    this.mode = mode;
+    this.locator = locator;
+    this.observerLocator = observerLocator;
+    this.sourceExpression = sourceExpression;
+    this.target = target;
+    this.targetProperty = targetProperty;
 
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
   }

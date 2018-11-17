@@ -11,8 +11,13 @@ export const IDirtyChecker = DI.createInterface<IDirtyChecker>()
 
 /*@internal*/
 export class DirtyChecker {
-  private tracked: DirtyCheckProperty[] = [];
-  private checkDelay: number = 120;
+  private checkDelay: number;
+  private tracked: DirtyCheckProperty[];
+
+  public constructor() {
+    this.checkDelay = 120;
+    this.tracked = [];
+  }
 
   public createProperty(obj: IObservable, propertyName: string): DirtyCheckProperty {
     return new DirtyCheckProperty(this, obj, propertyName);
@@ -60,14 +65,18 @@ export interface DirtyCheckProperty extends IBindingTargetObserver { }
 /*@internal*/
 @propertyObserver()
 export class DirtyCheckProperty implements DirtyCheckProperty {
+  public obj: IObservable;
   public oldValue: IIndexable | Primitive;
+  public propertyKey: string;
 
-  constructor(
-    private dirtyChecker: DirtyChecker,
-    public obj: IObservable,
-    public propertyKey: string) {
+  private dirtyChecker: DirtyChecker;
 
-    }
+  constructor(dirtyChecker: DirtyChecker, obj: IObservable, propertyKey: string) {
+    this.obj = obj;
+    this.propertyKey = propertyKey;
+
+    this.dirtyChecker = dirtyChecker;
+  }
 
   public isDirty(): boolean {
     return this.oldValue !== this.obj[this.propertyKey];

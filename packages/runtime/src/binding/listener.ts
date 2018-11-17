@@ -9,23 +9,35 @@ import { DelegationStrategy, IEventManager } from './event-manager';
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
-  public $nextBind: IBindScope = null;
-  public $prevBind: IBindScope = null;
-
-  public $state: State = State.none;
-
+  public $nextBind: IBindScope;
+  public $prevBind: IBindScope;
+  public $state: State;
   public $scope: IScope;
 
+  public delegationStrategy: DelegationStrategy;
+  public locator: IServiceLocator;
+  public preventDefault: boolean;
+  public sourceExpression: IsBindingBehavior;
+  public target: INode;
+  public targetEvent: string;
+
+  private eventManager: IEventManager;
   private handler: IDisposable;
 
-  constructor(
-    public targetEvent: string,
-    public delegationStrategy: DelegationStrategy,
-    public sourceExpression: IsBindingBehavior,
-    public target: INode,
-    public preventDefault: boolean,
-    private eventManager: IEventManager,
-    public locator: IServiceLocator) { }
+  constructor(targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: INode, preventDefault: boolean, eventManager: IEventManager, locator: IServiceLocator) {
+    this.$nextBind = null;
+    this.$prevBind = null;
+    this.$state = State.none;
+
+    this.delegationStrategy = delegationStrategy;
+    this.locator = locator;
+    this.preventDefault = preventDefault;
+    this.sourceExpression = sourceExpression;
+    this.target = target;
+    this.targetEvent = targetEvent;
+
+    this.eventManager = eventManager;
+  }
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;

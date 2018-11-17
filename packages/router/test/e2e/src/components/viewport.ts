@@ -2,7 +2,7 @@ import { inject } from '@aurelia/kernel';
 import { bindable, RenderPlan, DOM, createElement } from "@aurelia/runtime";
 import { customElement } from '@aurelia/runtime';
 import * as template from './viewport.html';
-import { Router } from '../lib/router';
+import { Router } from '../../../../src/index';
 
 
 @inject(Router, Element)

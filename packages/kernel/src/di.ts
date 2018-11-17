@@ -1,5 +1,4 @@
 /// <reference types="reflect-metadata" />
-// tslint:disable:no-reserved-keywords
 import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
@@ -29,7 +28,7 @@ export interface IRegistration<T = any> {
 }
 
 export interface IFactory<T = any> {
-  readonly type: Function;
+  readonly Type: Function;
   registerTransformer(transformer: (instance: T) => T): boolean;
   construct(container: IContainer, dynamicDependencies?: any[]): T;
 }
@@ -71,7 +70,7 @@ export interface IContainer extends IServiceLocator {
   getResolver<T>(key: Key<T>, autoRegister?: boolean): IResolver<T> | null;
   getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>> | null;
 
-  getFactory<T extends Constructable>(type: T): IFactory<InstanceType<T>>;
+  getFactory<T extends Constructable>(Type: T): IFactory<InstanceType<T>>;
 
   createChild(): IContainer;
 }
@@ -115,14 +114,14 @@ export const DI = {
     return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
-  getDependencies(type: Function | Injectable): Function[] {
+  getDependencies(Type: Function | Injectable): Function[] {
     let dependencies: Function[];
 
-    if ((type as Injectable).inject === undefined) {
-      dependencies = DI.getDesignParamTypes(type);
+    if ((Type as Injectable).inject === undefined) {
+      dependencies = DI.getDesignParamTypes(Type);
     } else {
       dependencies = [];
-      let ctor = type as Injectable;
+      let ctor = Type as Injectable;
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
@@ -443,29 +442,29 @@ export interface IInvoker {
 
 /*@internal*/
 export class Factory implements IFactory {
-  public type: Function;
+  public Type: Function;
   private invoker: IInvoker;
   private dependencies: any[];
   private transformers: ((instance: any) => any)[] | null;
 
-  constructor(type: Function, invoker: IInvoker, dependencies: any[]) {
-    this.type = type;
+  constructor(Type: Function, invoker: IInvoker, dependencies: any[]) {
+    this.Type = Type;
     this.invoker = invoker;
     this.dependencies = dependencies;
     this.transformers = null;
   }
 
-  public static create(type: Function): IFactory {
-    const dependencies = DI.getDependencies(type);
+  public static create(Type: Function): IFactory {
+    const dependencies = DI.getDependencies(Type);
     const invoker = classInvokers[dependencies.length] || fallbackInvoker;
-    return new Factory(type, invoker, dependencies);
+    return new Factory(Type, invoker, dependencies);
   }
 
   public construct(container: IContainer, dynamicDependencies?: any[]): any {
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
-      ? this.invoker.invokeWithDynamicDependencies(container, this.type, this.dependencies, dynamicDependencies)
-      : this.invoker.invoke(container, this.type, this.dependencies);
+      ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
+      : this.invoker.invoke(container, this.Type, this.dependencies);
 
     if (transformers === null) {
       return instance;
@@ -611,6 +610,7 @@ export class Container implements IContainer {
       : false;
   }
 
+  // tslint:disable-next-line:no-reserved-keywords
   public get(key: any): any {
     validateKey(key);
 
@@ -657,12 +657,12 @@ export class Container implements IContainer {
     return PLATFORM.emptyArray;
   }
 
-  public getFactory(type: Function): IFactory {
-    let factory = this.factories.get(type);
+  public getFactory(Type: Function): IFactory {
+    let factory = this.factories.get(Type);
 
     if (factory === undefined) {
-      factory = Factory.create(type);
-      this.factories.set(type, factory);
+      factory = Factory.create(Type);
+      this.factories.set(Type, factory);
     }
 
     return factory;

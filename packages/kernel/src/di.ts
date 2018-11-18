@@ -30,7 +30,7 @@ export interface IRegistration<T = any> {
 export interface IFactory<T = any> {
   readonly Type: Function;
   registerTransformer(transformer: (instance: T) => T): boolean;
-  construct(container: IContainer, dynamicDependencies?: any[]): T;
+  construct(container: IContainer, dynamicDependencies?: Function[]): T;
 }
 
 export interface IServiceLocator {
@@ -181,8 +181,8 @@ export const DI = {
     return Key;
   },
 
-  inject(...dependencies: Function[]): (target: any, key?: string, descriptor?: PropertyDescriptor | number) => void {
-    return function(target: any, key?: string, descriptor?: PropertyDescriptor | number): void {
+  inject(...dependencies: Function[]): (target: Injectable, key?: string, descriptor?: PropertyDescriptor | number) => void {
+    return function(target: Injectable, key?: string, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!target.hasOwnProperty('inject')) {
           const types = DI.getDesignParamTypes(target)
@@ -193,8 +193,8 @@ export const DI = {
           target.inject[descriptor] = dependencies[0];
         }
       } else if (key) { // It's a property decorator. Not supported by the container without plugins.
-        const actualTarget = target.constructor;
-        (actualTarget.inject || (actualTarget.inject = {}))[key] = dependencies[0];
+        const actualTarget = target.constructor as Injectable;
+        (actualTarget.inject || ((actualTarget.inject as {}) = {}))[key] = dependencies[0];
       } else if (descriptor) { // It's a function decorator (not a Class constructor)
         const fn = descriptor.value;
         fn.inject = dependencies;
@@ -444,12 +444,12 @@ export class Resolver implements IResolver, IRegistration {
 
 /*@internal*/
 export interface IInvoker {
-  invoke(container: IContainer, fn: Function, dependencies: any[]): any;
+  invoke(container: IContainer, fn: Function, dependencies: Function[]): any;
   invokeWithDynamicDependencies(
     container: IContainer,
     fn: Function,
-    staticDependencies: any[],
-    dynamicDependencies: any[]
+    staticDependencies: Function[],
+    dynamicDependencies: Function[]
   ): any;
 }
 
@@ -457,10 +457,10 @@ export interface IInvoker {
 export class Factory implements IFactory {
   public Type: Function;
   private invoker: IInvoker;
-  private dependencies: any[];
+  private dependencies: Function[];
   private transformers: ((instance: any) => any)[] | null;
 
-  constructor(Type: Function, invoker: IInvoker, dependencies: any[]) {
+  constructor(Type: Function, invoker: IInvoker, dependencies: Function[]) {
     this.Type = Type;
     this.invoker = invoker;
     this.dependencies = dependencies;
@@ -473,7 +473,7 @@ export class Factory implements IFactory {
     return new Factory(Type, invoker, dependencies);
   }
 
-  public construct(container: IContainer, dynamicDependencies?: any[]): any {
+  public construct(container: IContainer, dynamicDependencies?: Function[]): any {
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
       ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
@@ -785,25 +785,25 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(container.get(deps[0]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -814,7 +814,7 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -829,7 +829,7 @@ export const classInvokers: IInvoker[] = [
 
 /*@internal*/
 export const fallbackInvoker: IInvoker = {
-  invoke: invokeWithDynamicDependencies as any,
+  invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Function, dependencies: Function[]) => any,
   invokeWithDynamicDependencies
 };
 
@@ -837,12 +837,12 @@ export const fallbackInvoker: IInvoker = {
 export function invokeWithDynamicDependencies<T extends Constructable, K>(
   container: IContainer,
   Type: T,
-  staticDependencies: any[],
-  dynamicDependencies: any[]
+  staticDependencies: Function[],
+  dynamicDependencies: Function[]
 ): K {
   let i = staticDependencies.length;
-  let args = new Array(i);
-  let lookup;
+  let args: Function[] = new Array(i);
+  let lookup: Function;
 
   while (i--) {
     lookup = staticDependencies[i];

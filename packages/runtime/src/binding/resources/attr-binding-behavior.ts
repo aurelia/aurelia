@@ -1,4 +1,5 @@
 import { IRegistry } from '@aurelia/kernel';
+import { INode } from '../../dom';
 import { ILifecycle } from '../../lifecycle';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
@@ -10,7 +11,7 @@ export class AttrBindingBehavior {
   public static register: IRegistry['register'];
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: Binding): void {
-    binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), binding.target, binding.targetProperty);
+    binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), binding.target as INode, binding.targetProperty);
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: Binding): void {

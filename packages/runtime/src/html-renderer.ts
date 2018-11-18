@@ -1,5 +1,5 @@
 import { IContainer, inject, IRegistry } from '@aurelia/kernel';
-import { Binding } from './binding/binding';
+import { Binding, IBindingTarget } from './binding/binding';
 import { BindingMode } from './binding/binding-mode';
 import { Call } from './binding/call';
 import { IEventManager } from './binding/event-manager';
@@ -203,7 +203,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IStylePropertyBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
-    const bindable = new Binding(expr, (<any>target).style, instruction.to, BindingMode.toView, this.observerLocator, context);
+    const bindable = new Binding(expr, (<INode & {style: IBindingTarget}>target).style, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBindable(renderable, bindable);
   }
 }
@@ -304,7 +304,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     component.$hydrate(this.renderingEngine);
 
     if (instruction.link) {
-      (component as any).link(renderable.$attachableTail);
+      (component as ICustomAttribute & { link(attachableTail: IAttach): void}).link(renderable.$attachableTail);
     }
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {

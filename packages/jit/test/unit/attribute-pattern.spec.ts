@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { SyntaxInterpreter } from '../../src/attribute-pattern';
 
 
-describe.only('@bindingSyntax', () => {
+describe('@bindingSyntax', () => {
   for (const [patterns, tests] of <[string[], [string, string][]][]>[
     [
       ['target.command'],

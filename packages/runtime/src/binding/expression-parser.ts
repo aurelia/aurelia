@@ -15,12 +15,13 @@ export const IExpressionParser = DI.createInterface<IExpressionParser>()
 /*@internal*/
 export class ExpressionParser implements IExpressionParser {
   private expressionLookup: Record<string, IsBindingBehavior>;
-  private interpolationLookup: Record<string, Interpolation>;
   private forOfLookup: Record<string, ForOfStatement>;
+  private interpolationLookup: Record<string, Interpolation>;
+
   constructor() {
     this.expressionLookup = Object.create(null);
-    this.interpolationLookup = Object.create(null);
     this.forOfLookup = Object.create(null);
+    this.interpolationLookup = Object.create(null);
   }
 
   public parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;

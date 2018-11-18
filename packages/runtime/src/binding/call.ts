@@ -2,33 +2,35 @@ import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IBindScope, State } from '../lifecycle';
 import { IAccessor, IScope, LifecycleFlags } from '../observation';
-import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
+import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { IConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
 
 export interface Call extends IConnectableBinding {}
 export class Call {
-  public $nextBind: IBindScope = null;
-  public $prevBind: IBindScope = null;
-
-  public $state: State = State.none;
+  public $nextBind: IBindScope;
+  public $prevBind: IBindScope;
+  public $state: State;
   public $scope: IScope;
 
+  public locator: IServiceLocator;
+  public sourceExpression: IsBindingBehavior;
   public targetObserver: IAccessor;
 
-  constructor(
-    public sourceExpression: IsBindingBehavior,
-    target: INode,
-    targetProperty: string,
-    observerLocator: IObserverLocator,
-    public locator: IServiceLocator) {
+  constructor(sourceExpression: IsBindingBehavior, target: INode, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator) {
+    this.$nextBind = null;
+    this.$prevBind = null;
+    this.$state = State.none;
+
+    this.locator = locator;
+    this.sourceExpression = sourceExpression;
     this.targetObserver = observerLocator.getObserver(target, targetProperty);
   }
 
   public callSource(args: IIndexable): Primitive | IIndexable {
     const overrideContext = this.$scope.overrideContext;
     Object.assign(overrideContext, args);
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator) as IIndexable;
 
     for (const prop in args) {
       delete overrideContext[prop];
@@ -81,11 +83,11 @@ export class Call {
     this.$state &= ~(State.isBound | State.isUnbinding);
   }
 
-  public observeProperty(obj: StrictAny, propertyName: StrictAny): void {
+  public observeProperty(obj: IIndexable, propertyName: string): void {
     return;
   }
 
-  public handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
   }
 }

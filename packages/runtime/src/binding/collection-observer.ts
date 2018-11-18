@@ -66,14 +66,20 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
   };
 }
 
-export interface CollectionLengthObserver extends IBindingTargetObserver<any, string> {}
+export interface CollectionLengthObserver extends IBindingTargetObserver<Collection, string> {}
 
 @targetObserver()
 export class CollectionLengthObserver implements CollectionLengthObserver {
   public currentValue: number;
   public currentFlags: LifecycleFlags;
 
-  constructor(public obj: Collection, public propertyKey: 'length' | 'size') {
+  public obj: Collection;
+  public propertyKey: 'length' | 'size';
+
+  constructor(obj: Collection, propertyKey: 'length' | 'size') {
+    this.obj = obj;
+    this.propertyKey = propertyKey;
+
     this.currentValue = obj[propertyKey];
   }
 

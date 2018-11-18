@@ -1,4 +1,4 @@
-import { all, Decoratable, Decorated, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { all, Class, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { Scope } from '../binding/binding-context';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
@@ -6,7 +6,7 @@ import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, IH
 import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
 import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory, State } from '../lifecycle';
 import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
-import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
+import { IResourceDescriptions, RuntimeCompilationResources } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { ViewFactory } from './view';
@@ -31,10 +31,6 @@ export interface ICustomElementHost extends IRenderLocation {
 }
 
 export type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
-
-export interface ICustomElementResource extends IResourceKind<ITemplateDefinition, ICustomElementType> {
-  behaviorFor(node: INode): ICustomElement | null;
-}
 
 export interface IElementProjector {
   readonly host: ICustomElementHost;
@@ -397,7 +393,7 @@ export class RuntimeBehavior {
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
       get: function(): unknown {
-        return this.$observers.$children.getValue();
+        return this['$observers'].$children.getValue();
       }
     });
   }
@@ -431,8 +427,8 @@ export class RuntimeBehavior {
 function createGetterSetter(instance: ICustomAttribute | ICustomElement, name: string): void {
   Reflect.defineProperty(instance, name, {
     enumerable: true,
-    get: function(): unknown { return this.$observers[name].getValue(); },
-    set: function(value: unknown): void { this.$observers[name].setValue(value, LifecycleFlags.updateTargetInstance); }
+    get: function(): unknown { return this['$observers'][name].getValue(); },
+    set: function(value: unknown): void { this['$observers'][name].setValue(value, LifecycleFlags.updateTargetInstance); }
   });
 }
 
@@ -505,36 +501,6 @@ export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
   }
 
   return components;
-}
-
-/*@internal*/
-export class RuntimeCompilationResources implements IResourceDescriptions {
-  constructor(private context: ExposedContext) {}
-
-  public find<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null {
-    const key = kind.keyFrom(name);
-    const resolver = this.context.getResolver<TSource>(key, false);
-
-    if (resolver !== null && resolver.getFactory) {
-      const factory = resolver.getFactory(this.context);
-
-      if (factory !== null) {
-        const description = (factory.type as IResourceType<TSource>).description;
-        return description === undefined ? null : description;
-      }
-    }
-
-    return null;
-  }
-
-  public create<TSource, TType extends IResourceType<TSource>>(kind: IResourceKind<TSource, TType>, name: string): InstanceType<TType> | null {
-    const key = kind.keyFrom(name);
-    if (this.context.has(key, false)) {
-      const context = this.context.get<any>(key);
-      return context === undefined ? null : context;
-    }
-    return null;
-  }
 }
 
 // The basic template abstraction that allows consumers to create
@@ -705,19 +671,19 @@ export interface IInstructionRenderer<TType extends string = string> extends Par
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>().noDefault();
 
-type DecoratableInstructionRenderer<TType extends string> = Decoratable<IInstructionTypeClassifier<TType>, Pick<IInstructionRenderer, 'render'>> & Partial<IRegistry>;
-type DecoratedInstructionRenderer<TType extends string> = Decorated<IInstructionTypeClassifier<TType>, Pick<IInstructionRenderer, 'render'>> & IRegistry;
+type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
+type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
 
-type InstructionRendererDecorator<TType extends string> = (target: DecoratableInstructionRenderer<TType>) => DecoratedInstructionRenderer<TType>;
+type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
 
 export function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
-  return function decorator(target: DecoratableInstructionRenderer<TType>): DecoratedInstructionRenderer<TType> {
+  return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
-    const decoratedTarget = function(...args: unknown[]): InstanceType<DecoratedInstructionRenderer<TType>> {
+    const decoratedTarget = function(...args: unknown[]): TProto {
       const instance = new target(...args);
       instance.instructionType = instructionType;
       return instance;
-    } as unknown as DecoratedInstructionRenderer<TType>;
+    } as unknown as DecoratedInstructionRenderer<TType, TProto, TClass>;
     // make sure we register the decorated constructor with DI
     decoratedTarget.register = function register(container: IContainer): IResolver {
       return Registration.singleton(IInstructionRenderer, decoratedTarget).register(container, IInstructionRenderer);

@@ -4,6 +4,9 @@ import { Binding, IBinding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingMode } from '../binding-mode';
 
+// defaults to nodejs setTimeout type otherwise
+declare var setTimeout: typeof window['setTimeout'];
+
 export type DebounceableBinding = IBinding & {
   debouncedMethod: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) & { originalName: string };
   debounceState: {
@@ -17,10 +20,10 @@ export type DebounceableBinding = IBinding & {
 const unset = {};
 
 /*@internal*/
-export function debounceCallSource(event: Event): void {
+export function debounceCallSource(this: DebounceableBinding, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
-  state.timeoutId = setTimeout(() => this.debouncedMethod(event), state.delay);
+  state.timeoutId = setTimeout(() => this.debouncedMethod(newValue, oldValue, flags), state.delay);
 }
 
 /*@internal*/

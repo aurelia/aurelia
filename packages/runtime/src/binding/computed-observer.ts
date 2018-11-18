@@ -50,7 +50,7 @@ export function createComputedObserver(
         return noProxy
           ? dirtyChecker.createProperty(instance, propertyName)
           : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
-      }
+        }
 
       return new CustomSetterObserver(instance, propertyName, descriptor, lifecycle);
     }
@@ -68,18 +68,27 @@ export interface CustomSetterObserver extends IBindingTargetObserver { }
 // Used when the getter is dependent solely on changes that happen within the setter.
 @subscriberCollection(MutationKind.instance)
 export class CustomSetterObserver implements CustomSetterObserver {
-  public $nextFlush: this = null;
-  public dispose: () => void;
-  public observing: boolean = false;
+  public $nextFlush: this;
   public currentValue: IIndexable | Primitive;
+  public dispose: () => void;
+  public observing: boolean;
+  public obj: IObservable;
   public oldValue: IIndexable | Primitive;
+  public propertyKey: string;
 
-  constructor(
-    public obj: IObservable,
-    public propertyKey: string,
-    private descriptor: PropertyDescriptor,
-    private lifecycle: ILifecycle
-  ) { }
+  private descriptor: PropertyDescriptor;
+  private lifecycle: ILifecycle;
+
+  constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, lifecycle: ILifecycle) {
+    this.$nextFlush = null;
+
+    this.obj = obj;
+    this.observing = false;
+    this.propertyKey = propertyKey;
+
+    this.descriptor = descriptor;
+    this.lifecycle = lifecycle;
+  }
 
   public getValue(): IIndexable | Primitive {
     return this.obj[this.propertyKey];
@@ -118,11 +127,11 @@ export class CustomSetterObserver implements CustomSetterObserver {
       set: function(newValue: IIndexable | Primitive): void {
         setter.call(that.obj, newValue);
 
-        const oldValue = this.currentValue;
+        const oldValue = that.currentValue;
 
         if (oldValue !== newValue) {
           that.oldValue = oldValue;
-          this.lifecycle.queueFlush(that);
+          that.lifecycle.enqueueFlush(that);
 
           that.currentValue = newValue;
         }
@@ -141,33 +150,25 @@ export interface GetterObserver extends IBindingTargetObserver { }
 @subscriberCollection(MutationKind.instance)
 export class GetterObserver implements GetterObserver {
   public dispose: () => void;
+  public obj: IObservable;
+  public propertyKey: string;
+
   private controller: GetterController;
 
-  constructor(
-    private overrides: ComputedOverrides,
-    public obj: IObservable,
-    public propertyKey: string,
-    private descriptor: PropertyDescriptor,
-    private observerLocator: IObserverLocator,
-    private lifecycle: ILifecycle
-  ) {
-    this.controller = new GetterController(
-      overrides,
-      obj,
-      propertyKey,
-      descriptor,
-      this,
-      observerLocator,
-      lifecycle
-    );
+  constructor(overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
+    this.obj = obj;
+    this.propertyKey = propertyKey;
+
+    this.controller = new GetterController(overrides, obj, propertyKey, descriptor, this, observerLocator, lifecycle);
   }
 
   public getValue(): IIndexable | Primitive {
     return this.controller.value;
   }
 
-  // tslint:disable-next-line:no-empty
-  public setValue(newValue: IIndexable | Primitive): void { }
+  public setValue(newValue: IIndexable | Primitive): void {
+    return;
+  }
 
   public flush(flags: LifecycleFlags): void {
     const oldValue = this.controller.value;
@@ -194,20 +195,27 @@ GetterObserver.prototype.dispose = PLATFORM.noop;
 /*@internal*/
 export class GetterController {
   public value: IIndexable | Primitive;
-  public isCollecting: boolean = false;
+  public isCollecting: boolean;
 
-  private dependencies: ISubscribable<MutationKind.instance>[] = [];
-  private subscriberCount: number = 0;
+  private dependencies: ISubscribable<MutationKind.instance>[];
+  private instance: IObservable;
+  private lifecycle: ILifecycle;
+  private overrides: ComputedOverrides;
+  private owner: GetterObserver;
+  private propertyName: string;
+  private subscriberCount: number;
 
-  constructor(
-    private overrides: ComputedOverrides,
-    private instance: IObservable,
-    private propertyName: string,
-    descriptor: PropertyDescriptor,
-    private owner: GetterObserver,
-    observerLocator: IObserverLocator,
-    private lifecycle: ILifecycle
-  ) {
+  constructor(overrides: ComputedOverrides, instance: IObservable, propertyName: string, descriptor: PropertyDescriptor, owner: GetterObserver, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
+    this.isCollecting = false;
+
+    this.dependencies = [];
+    this.instance = instance;
+    this.lifecycle = lifecycle;
+    this.overrides = overrides;
+    this.owner = owner;
+    this.propertyName = propertyName;
+    this.subscriberCount = 0;
+
     const proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
     const getter = descriptor.get;
     const ctrl = this;

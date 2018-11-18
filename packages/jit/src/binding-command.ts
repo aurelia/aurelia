@@ -1,4 +1,4 @@
-import { Constructable, Decoratable, Decorated, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, IIndexable, IRegistry, Registration, Writable } from '@aurelia/kernel';
 import {
   BindingType,
   CallBindingInstruction,
@@ -28,11 +28,17 @@ export interface IBindingCommand {
 
 export interface IBindingCommandDefinition extends IResourceDefinition { }
 
-export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand> {
-  inject: Function[];
-}
+export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand, IIndexable>> { }
 
-type BindingCommandDecorator = <T extends Constructable>(target: Decoratable<IBindingCommand, T>) => Decorated<IBindingCommand, T> & IBindingCommandType;
+export interface IBindingCommandResource extends
+  IResourceKind<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> { }
+
+type BindingCommandDecorator = <TProto, TClass>(target: Class<TProto, TClass> & Partial<IBindingCommandType>) => Class<TProto, TClass> & IBindingCommandType;
+
+function register(this: IBindingCommandType, container: IContainer): void {
+  const resourceKey = BindingCommandResource.keyFrom(this.description.name);
+  container.register(Registration.singleton(resourceKey, this));
+}
 
 export function bindingCommand(name: string): BindingCommandDecorator;
 export function bindingCommand(definition: IBindingCommandDefinition): BindingCommandDecorator;
@@ -40,25 +46,23 @@ export function bindingCommand(nameOrDefinition: string | IBindingCommandDefinit
   return target => BindingCommandResource.define(nameOrDefinition, target);
 }
 
-function keyFrom(name: string): string {
+function keyFrom(this: IBindingCommandResource, name: string): string {
   return `${this.name}:${name}`;
 }
 
-function isType<T extends Constructable & Partial<IBindingCommandType>>(Type: T): Type is T & IBindingCommandType {
+function isType<T>(this: IBindingCommandResource, Type: T & Partial<IBindingCommandType>): Type is T & IBindingCommandType {
   return Type.kind === this;
 }
 
-function define<T extends Constructable>(name: string, ctor: T): T & IBindingCommandType;
-function define<T extends Constructable>(definition: IBindingCommandDefinition, ctor: T): T & IBindingCommandType;
-function define<T extends Constructable>(nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
+function define<T extends Constructable>(this: IBindingCommandResource, name: string, ctor: T): T & IBindingCommandType;
+function define<T extends Constructable>(this: IBindingCommandResource, definition: IBindingCommandDefinition, ctor: T): T & IBindingCommandType;
+function define<T extends Constructable>(this: IBindingCommandResource, nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
+  const Type = ctor as T & Writable<IBindingCommandType>;
   const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
-  const Type = ctor as T & IBindingCommandType;
 
-  (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
-  (Type as Writable<IBindingCommandType>).description = description;
-  Type.register = function(container: IContainer): void {
-    container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
-  };
+  Type.kind = BindingCommandResource;
+  Type.description = description;
+  Type.register = register;
 
   const proto = Type.prototype;
 
@@ -67,7 +71,7 @@ function define<T extends Constructable>(nameOrDefinition: string | IBindingComm
   return Type;
 }
 
-export const BindingCommandResource: IResourceKind<IBindingCommandDefinition, IBindingCommandType> = {
+export const BindingCommandResource: IBindingCommandResource = {
   name: 'binding-command',
   keyFrom,
   isType,

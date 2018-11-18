@@ -1,5 +1,5 @@
-const camelCaseLookup = {};
-const kebabCaseLookup = {};
+const camelCaseLookup: Record<string, string> = {};
+const kebabCaseLookup: Record<string, string> = {};
 
 export const PLATFORM = {
   global: (function(): unknown {
@@ -23,8 +23,7 @@ export const PLATFORM = {
   })(),
   emptyArray: Object.freeze([]),
   emptyObject: Object.freeze({}),
-  /* tslint:disable-next-line:no-empty */
-  noop(): void { },
+  noop(): void { return; },
   now(): number {
     return performance.now();
   },

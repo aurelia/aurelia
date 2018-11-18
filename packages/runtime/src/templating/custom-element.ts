@@ -1,12 +1,12 @@
-import { Constructable, Decoratable, Decorated, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
 import { Hooks, IAttach, IBindSelf, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IState, State } from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { IResourceType } from '../resource';
+import { IResourceKind, IResourceType } from '../resource';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindElement, $unbindElement } from './lifecycle-bind';
-import { $hydrateElement, defaultShadowOptions, ICustomElementHost, ICustomElementResource, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
+import { $hydrateElement, defaultShadowOptions, ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
 
 type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
 
@@ -14,15 +14,39 @@ export type CustomElementConstructor = Constructable & CustomElementStaticProper
 
 export interface ICustomElementType extends
   IResourceType<ITemplateDefinition, ICustomElement>,
-  CustomElementConstructor { }
+  CustomElementStaticProperties { }
 
-export interface ICustomElement extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IBindSelf, ILifecycleUnbindAfterDetach, IAttach, IMountable, IState, IRenderable {
+type PartialCustomElementType<T> = T & Partial<IResourceType<ITemplateDefinition, unknown, Constructable>>;
+
+export interface ICustomElement extends
+  Partial<IChangeTracker>,
+  ILifecycleHooks,
+  ILifecycleRender,
+  IBindSelf,
+  ILifecycleUnbindAfterDetach,
+  IAttach,
+  IMountable,
+  IRenderable {
+
   readonly $projector: IElementProjector;
   readonly $host: ICustomElementHost;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
-type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T> & ICustomElementType;
+export interface ICustomElementResource extends
+  IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
+
+  behaviorFor(node: INode): ICustomElement | null;
+}
+
+type CustomElementDecorator = <T>(target: PartialCustomElementType<T>) => T & ICustomElementType;
+
+/*@internal*/
+export function registerElement(this: ICustomElementType, container: IContainer): void {
+  const resourceKey = this.kind.keyFrom(this.description.name);
+  container.register(Registration.transient(resourceKey, this));
+}
+
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
@@ -37,19 +61,19 @@ type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
 /**
  * Decorator: Indicates that the custom element should render its view in ShadowDOM.
  */
-export function useShadowDOM<T extends Constructable>(options?: HasShadowOptions['shadowOptions']): (target: T & HasShadowOptions) => Decorated<HasShadowOptions, T>;
+export function useShadowDOM<T extends Constructable>(options?: HasShadowOptions['shadowOptions']): (target: T & HasShadowOptions) => T & Required<HasShadowOptions>;
 /**
  * Decorator: Indicates that the custom element should render its view in ShadowDOM.
  */
-export function useShadowDOM<T extends Constructable>(target: (T & HasShadowOptions)): Decorated<HasShadowOptions, T>;
-export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & HasShadowOptions) | HasShadowOptions['shadowOptions']):  Decorated<HasShadowOptions, T> | ((target: T & HasShadowOptions) => Decorated<HasShadowOptions, T>) {
+export function useShadowDOM<T extends Constructable>(target: T & HasShadowOptions): T & Required<HasShadowOptions>;
+export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & HasShadowOptions) | HasShadowOptions['shadowOptions']): (T & Required<HasShadowOptions>) | ((target: T & HasShadowOptions) => (T & Required<HasShadowOptions>)) {
   const options = typeof targetOrOptions === 'function' || !targetOrOptions
     ? defaultShadowOptions
     : targetOrOptions as HasShadowOptions['shadowOptions'];
 
-  function useShadowDOMDecorator(target: T & HasShadowOptions): Decorated<HasShadowOptions, T> {
+  function useShadowDOMDecorator(target: T & HasShadowOptions): T & Required<HasShadowOptions> {
     target.shadowOptions = options;
-    return target;
+    return <T & Required<HasShadowOptions>>target;
   }
 
   return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
@@ -57,9 +81,9 @@ export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & Has
 
 type HasContainerless = Pick<ITemplateDefinition, 'containerless'>;
 
-function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): Decorated<HasContainerless, T> {
+function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless> {
   target.containerless = true;
-  return target;
+  return <T & Required<HasContainerless>>target;
 }
 
 /**
@@ -69,18 +93,18 @@ export function containerless(): typeof containerlessDecorator;
 /**
  * Decorator: Indicates that the custom element should be rendered without its element container.
  */
-export function containerless<T extends Constructable>(target: T & HasContainerless): Decorated<HasContainerless, T>;
-export function containerless<T extends Constructable>(target?: T & HasContainerless): Decorated<HasContainerless, T> | typeof containerlessDecorator {
+export function containerless<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless>;
+export function containerless<T extends Constructable>(target?: T & HasContainerless): T & Required<HasContainerless> | typeof containerlessDecorator {
   return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
 }
 
-function isType<T extends Constructable & Partial<ICustomElementType>>(Type: T): Type is T & ICustomElementType {
+function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType {
   return Type.kind === this;
 }
 
-function define<T extends Constructable>(name: string, ctor: T): T & ICustomElementType;
-function define<T extends Constructable>(definition: ITemplateDefinition, ctor: T): T & ICustomElementType;
-function define<T extends Constructable>(nameOrDefinition: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
+function define<T>(this: ICustomElementResource, name: string, ctor: PartialCustomElementType<T>): T & ICustomElementType;
+function define<T>(this: ICustomElementResource, definition: ITemplateDefinition, ctor: PartialCustomElementType<T>): T & ICustomElementType;
+function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: PartialCustomElementType<T> = null): T & ICustomElementType {
   if (!nameOrDefinition) {
     throw Reporter.error(70);
   }
@@ -160,15 +184,9 @@ export const CustomElementResource: ICustomElementResource = {
   name: customElementName,
   keyFrom: customElementKey,
   isType,
-  behaviorFor: <(node: ICustomElementHost) => ICustomElement | null>customElementBehavior,
+  behaviorFor: <ICustomElementResource['behaviorFor']>customElementBehavior,
   define
 };
-
-/*@internal*/
-export function registerElement(this: ICustomElementType, container: IContainer): void {
-  const resourceKey = CustomElementResource.keyFrom(this.description.name);
-  container.register(Registration.transient(resourceKey, this));
-}
 
 // tslint:enable:align
 

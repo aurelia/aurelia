@@ -13,7 +13,11 @@ export type SignalableBinding = Binding & {
 export class SignalBindingBehavior {
   public static register: IRegistry['register'];
 
-  constructor(private signaler: ISignaler) {}
+  private signaler: ISignaler;
+
+  constructor(signaler: ISignaler) {
+    this.signaler = signaler;
+  }
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding, ...args: string[]): void {
     if (!binding.updateTarget) {

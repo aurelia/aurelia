@@ -1,3 +1,4 @@
+export * from './ast';
 export * from './attribute-parser';
 export * from './attribute-pattern';
 export * from './binding-command';

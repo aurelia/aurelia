@@ -131,14 +131,6 @@ describe('@attributePattern', () => {
         ['value:bind',   null,           []],
         ['value@bind',   null,           []]
       ]
-    ],
-    [
-      [
-        { pattern: 'PART.PART', symbols: '.' },
-        { pattern: '@PART',     symbols: '@' },
-        { pattern: ':PART',     symbols: ':' },
-        { pattern: 'ng-PART',   symbols: '-' }
-      ]
     ]
   ]) {
     describe(`parse [${defs.map(d => d.pattern)}]`, () => {

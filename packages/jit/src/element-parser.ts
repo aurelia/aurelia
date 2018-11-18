@@ -1,6 +1,7 @@
 import { DI, inject, PLATFORM } from '@aurelia/kernel';
 import { DOM, IAttr, INode } from '@aurelia/runtime';
-import { AttrSyntax, IAttributeParser } from './attribute-parser';
+import { AttrSyntax, ElementSyntax } from './ast';
+import { IAttributeParser } from './attribute-parser';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 
@@ -17,35 +18,6 @@ export const enum NodeType {
   DocumentType = 10,
   DocumentFragment = 11,
   Notation = 12
-}
-
-const marker = DOM.createElement('au-marker') as Element;
-marker.classList.add('au');
-const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
-
-export class ElementSyntax {
-  public readonly node: Node;
-  public readonly name: string;
-  public readonly $content: ElementSyntax | null;
-  public readonly $children: ReadonlyArray<ElementSyntax>;
-  public readonly $attributes: ReadonlyArray<AttrSyntax>;
-
-  constructor(
-    node: Node,
-    name: string,
-    $content: ElementSyntax | null,
-    $children: ReadonlyArray<ElementSyntax>,
-    $attributes: ReadonlyArray<AttrSyntax>) {
-    this.node = node;
-    this.name = name;
-    this.$content = $content;
-    this.$children = $children;
-    this.$attributes = $attributes;
-  }
-
-  public static createMarker(): ElementSyntax {
-    return new ElementSyntax(createMarker(), 'au-marker', null, PLATFORM.emptyArray, PLATFORM.emptyArray);
-  }
 }
 
 export interface IElementParser {

@@ -1,19 +1,7 @@
-import { DI } from '@aurelia/kernel';
+import { all, DI, inject } from '@aurelia/kernel';
+import { AttrSyntax } from './ast';
+import { IAttributePattern, ISyntaxInterpreter } from './attribute-pattern';
 import { Char } from './common';
-
-export class AttrSyntax {
-  public readonly rawName: string;
-  public readonly rawValue: string;
-  public readonly target: string;
-  public readonly command: string | null;
-
-  constructor(rawName: string, rawValue: string, target: string, command: string | null) {
-    this.rawName = rawName;
-    this.rawValue = rawValue;
-    this.target = target;
-    this.command = command;
-  }
-}
 
 export interface IAttributeParser {
   parse(name: string, value: string): AttrSyntax;
@@ -23,11 +11,26 @@ export const IAttributeParser = DI.createInterface<IAttributeParser>()
   .withDefault(x => x.singleton(AttributeParser));
 
 /*@internal*/
+@inject(ISyntaxInterpreter, all(IAttributePattern))
 export class AttributeParser implements IAttributeParser {
+  private interpreter: ISyntaxInterpreter;
   private cache: Record<string, [string, string]>;
+  private patterns: Record<string, IAttributePattern>;
 
-  constructor() {
+  constructor(interpreter: ISyntaxInterpreter, attrPatterns: IAttributePattern[]) {
+    this.interpreter = interpreter;
     this.cache = {};
+    const patterns = this.patterns = {};
+    attrPatterns.forEach(attrPattern => {
+      const patternOrPatterns = attrPattern.$patternOrPatterns;
+      if (Array.isArray(patternOrPatterns)) {
+        patternOrPatterns.forEach(pattern => {
+          patterns[pattern] = attrPattern;
+        });
+      } else {
+        patterns[patternOrPatterns] = attrPattern;
+      }
+    });
   }
 
   public parse(name: string, value: string): AttrSyntax {
@@ -35,6 +38,7 @@ export class AttributeParser implements IAttributeParser {
     let command: string;
     const existing = this.cache[name];
     if (existing === undefined) {
+      const interpretation = this.interpreter.interpret(name);
       let lastIndex = 0;
       target = name;
       for (let i = 0, ii = name.length; i < ii; ++i) {

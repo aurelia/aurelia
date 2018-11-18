@@ -1,4 +1,5 @@
-import { DI, Constructable, IRegistry, IContainer, Registration, IResolver } from '@aurelia/kernel';
+import { Class, DI, IContainer, IRegistry, IResolver, Registration, Reporter } from '@aurelia/kernel';
+import { AttrSyntax } from './ast';
 
 /*@internal*/
 export class CharSpec {
@@ -65,8 +66,10 @@ export class Interpretation {
   }
 
   public next(): void {
-    this.parts.push(this.current);
-    this.current = '';
+    if (this.current.length > 0) {
+      this.parts.push(this.current);
+      this.current = '';
+    }
   }
 }
 
@@ -112,6 +115,7 @@ export class State {
   }
 
   public findMatches(ch: string, interpretation: Interpretation): State[] {
+    // TODO: reuse preallocated arrays
     const results = [];
     const nextStates = this.nextStates;
     const len = nextStates.length;
@@ -303,12 +307,17 @@ export class SyntaxInterpreter {
     });
 
     if (states.length > 0) {
-      interpretation.pattern = states[0].pattern;
+      const state = states[0];
+      if (!state.charSpec.separator) {
+        interpretation.next();
+      }
+      interpretation.pattern = state.pattern;
     }
     return interpretation;
   }
 
   public getNextStates(states: State[], ch: string, interpretation: Interpretation): State[] {
+    // TODO: reuse preallocated arrays
     const nextStates: State[] = [];
     let state: State = null;
     const len = states.length;
@@ -377,23 +386,98 @@ export class SyntaxInterpreter {
   }
 }
 
-export interface IAttributePattern {
+function validatePrototype(handler: IAttributePatternHandler, patternOrPatterns: string | string[]): void {
+  const patterns = Array.isArray(patternOrPatterns) ? patternOrPatterns : [patternOrPatterns];
+  for (const pattern of patterns) {
+    // note: we're intentionally not throwing here
+    if (!(pattern in handler)) {
+      Reporter.write(401, pattern); // TODO: organize error codes
+    } else if (typeof handler[pattern] !== 'function') {
+      Reporter.write(402, pattern); // TODO: organize error codes
+    }
+  }
+}
 
+export interface IAttributePattern {
+  $patternOrPatterns: string | string[];
+}
+
+export interface IAttributePatternHandler {
+  [pattern: string]: (rawName: string, rawValue: string, parts: string[]) => AttrSyntax;
 }
 
 export const IAttributePattern = DI.createInterface<IAttributePattern>().noDefault();
 
-type AttributePatternDecorator = <T extends Constructable>(target: T & Partial<IRegistry>) => T & IRegistry;
+type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<IAttributePattern>, TClass> & Partial<IRegistry>;
+type DecoratedAttributePattern<TProto, TClass> =  Class<TProto & IAttributePattern, TClass> & IRegistry;
+
+type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>) => DecoratedAttributePattern<TProto, TClass>;
 
 export function attributePattern(pattern: string): AttributePatternDecorator;
 export function attributePattern(patterns: string[]): AttributePatternDecorator;
 export function attributePattern(patternOrPatterns: string | string[]): AttributePatternDecorator;
 export function attributePattern(patternOrPatterns: string | string[]): AttributePatternDecorator {
-  return function decorator(target: Constructable & Partial<IRegistry>): Constructable & IRegistry {
-    target.register = function register(container: IContainer): IResolver {
-      return Registration.singleton(IAttributePattern, target).register(container, IAttributePattern);
-    };
+  return function decorator<TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass> {
+    const proto = target.prototype;
+    validatePrototype(proto as unknown as IAttributePatternHandler, patternOrPatterns);
 
-    return <typeof target & IRegistry>target;
+    // wrap the constructor to set the properties to the instance
+    const decoratedTarget = function(...args: unknown[]): TProto {
+      const instance = new target(...args);
+      instance.$patternOrPatterns = patternOrPatterns;
+      // assign any methods from the decorated target's prototype to the instance
+      // to account for dynamically added methods
+      const decoratedProto = decoratedTarget.prototype;
+      Object.keys(decoratedProto).forEach(key => {
+        instance[key] = decoratedProto[key];
+      });
+      return instance;
+    } as unknown as DecoratedAttributePattern<TProto, TClass>;
+
+    // make sure we register the decorated constructor with DI
+    decoratedTarget.register = function register(container: IContainer): IResolver {
+      return Registration.singleton(IAttributePattern, decoratedTarget).register(container, IAttributePattern);
+    };
+    // copy over any static properties such as inject (set by preceding decorators)
+    // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
+    // the length (number of ctor arguments) is copied for the same reason
+    const ownProperties = Object.getOwnPropertyDescriptors(target);
+    Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
+      Reflect.defineProperty(decoratedTarget, prop, ownProperties[prop]);
+    });
+    return decoratedTarget;
   } as AttributePatternDecorator;
+}
+
+export interface DotSeparatedAttributePattern extends IAttributePattern {}
+
+@attributePattern('target.command')
+export class DotSeparatedAttributePattern implements DotSeparatedAttributePattern {
+  public static register: IRegistry['register'];
+
+  public ['target.command'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
+  }
+}
+
+export interface ColonPrefixedBindAttributePattern extends IAttributePattern {}
+
+@attributePattern(':target')
+export class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttributePattern  {
+  public static register: IRegistry['register'];
+
+  public [':target'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
+  }
+}
+
+export interface AtPrefixedTriggerAttributePattern extends IAttributePattern {}
+
+@attributePattern('@target')
+export class AtPrefixedTriggerAttributePattern implements AtPrefixedTriggerAttributePattern  {
+  public static register: IRegistry['register'];
+
+  public ['@target'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+  }
 }

@@ -1,5 +1,4 @@
 /// <reference types="reflect-metadata" />
-// tslint:disable:no-reserved-keywords
 import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
@@ -29,7 +28,7 @@ export interface IRegistration<T = any> {
 }
 
 export interface IFactory<T = any> {
-  readonly type: Function;
+  readonly Type: Function;
   registerTransformer(transformer: (instance: T) => T): boolean;
   construct(container: IContainer, dynamicDependencies?: any[]): T;
 }
@@ -37,13 +36,13 @@ export interface IFactory<T = any> {
 export interface IServiceLocator {
   has(key: any, searchAncestors: boolean): boolean;
 
-  get<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K):
+  get<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K):
     K extends InterfaceSymbol<infer T> ? T :
     K extends Constructable ? InstanceType<K> :
     K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? InstanceType<T1> : T1 :
     K;
 
-  getAll<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K):
+  getAll<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K):
     K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> :
     K extends Constructable ? ReadonlyArray<InstanceType<K>> :
     K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> :
@@ -71,15 +70,15 @@ export interface IContainer extends IServiceLocator {
   getResolver<T>(key: Key<T>, autoRegister?: boolean): IResolver<T> | null;
   getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>> | null;
 
-  getFactory<T extends Constructable>(type: T): IFactory<InstanceType<T>>;
+  getFactory<T extends Constructable>(Type: T): IFactory<InstanceType<T>>;
 
   createChild(): IContainer;
 }
 
 export interface IResolverBuilder<T> {
   instance(value: T & IIndexable): IResolver;
-  singleton(value: Constructable<T>): IResolver;
-  transient(value: Constructable<T>): IResolver;
+  singleton(value: Constructable): IResolver;
+  transient(value: Constructable): IResolver;
   callback(value: ResolveCallback<T>): IResolver;
   aliasTo(destinationKey: Key<T>): IResolver;
 }
@@ -95,13 +94,13 @@ export type RegisterSelf<T extends Constructable> = {
 if (!('getOwnMetadata' in Reflect)) {
   // tslint:disable-next-line:no-any
   Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
-    return target[metadataKey];
+    return (<IIndexable>target)[metadataKey];
   };
 
   // tslint:disable-next-line:no-any
   Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
     return function(target: Function): void {
-      target[metadataKey] = metadataValue;
+      (<IIndexable>target)[metadataKey] = metadataValue;
     };
   };
 }
@@ -115,14 +114,14 @@ export const DI = {
     return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
-  getDependencies(type: Function | Injectable): Function[] {
+  getDependencies(Type: Function | Injectable): Function[] {
     let dependencies: Function[];
 
-    if ((type as Injectable).inject === undefined) {
-      dependencies = DI.getDesignParamTypes(type);
+    if ((Type as Injectable).inject === undefined) {
+      dependencies = DI.getDesignParamTypes(Type);
     } else {
       dependencies = [];
-      let ctor = type as Injectable;
+      let ctor = Type as Injectable;
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
@@ -443,29 +442,29 @@ export interface IInvoker {
 
 /*@internal*/
 export class Factory implements IFactory {
-  public type: Function;
+  public Type: Function;
   private invoker: IInvoker;
   private dependencies: any[];
   private transformers: ((instance: any) => any)[] | null;
 
-  constructor(type: Function, invoker: IInvoker, dependencies: any[]) {
-    this.type = type;
+  constructor(Type: Function, invoker: IInvoker, dependencies: any[]) {
+    this.Type = Type;
     this.invoker = invoker;
     this.dependencies = dependencies;
     this.transformers = null;
   }
 
-  public static create(type: Function): IFactory {
-    const dependencies = DI.getDependencies(type);
+  public static create(Type: Function): IFactory {
+    const dependencies = DI.getDependencies(Type);
     const invoker = classInvokers[dependencies.length] || fallbackInvoker;
-    return new Factory(type, invoker, dependencies);
+    return new Factory(Type, invoker, dependencies);
   }
 
   public construct(container: IContainer, dynamicDependencies?: any[]): any {
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
-      ? this.invoker.invokeWithDynamicDependencies(container, this.type, this.dependencies, dynamicDependencies)
-      : this.invoker.invoke(container, this.type, this.dependencies);
+      ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
+      : this.invoker.invoke(container, this.Type, this.dependencies);
 
     if (transformers === null) {
       return instance;
@@ -611,6 +610,7 @@ export class Container implements IContainer {
       : false;
   }
 
+  // tslint:disable-next-line:no-reserved-keywords
   public get(key: any): any {
     validateKey(key);
 
@@ -657,12 +657,12 @@ export class Container implements IContainer {
     return PLATFORM.emptyArray;
   }
 
-  public getFactory(type: Function): IFactory {
-    let factory = this.factories.get(type);
+  public getFactory(Type: Function): IFactory {
+    let factory = this.factories.get(Type);
 
     if (factory === undefined) {
-      factory = Factory.create(type);
-      this.factories.set(type, factory);
+      factory = Factory.create(Type);
+      this.factories.set(Type, factory);
     }
 
     return factory;
@@ -765,31 +765,31 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
 /*@internal*/
 export const classInvokers: IInvoker[] = [
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T): K {
       return new Type();
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(container.get(deps[0]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -800,7 +800,7 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -820,7 +820,7 @@ export const fallbackInvoker: IInvoker = {
 };
 
 /*@internal*/
-export function invokeWithDynamicDependencies<T extends Constructable<K>, K>(
+export function invokeWithDynamicDependencies<T extends Constructable, K>(
   container: IContainer,
   Type: T,
   staticDependencies: any[],

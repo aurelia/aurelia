@@ -1,4 +1,4 @@
-import { inject, IRegistry } from '@aurelia/kernel';
+import { IIndexable, inject, IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
 import { BindingContext, Scope } from '../../binding/binding-context';
@@ -6,7 +6,7 @@ import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
 import { IRenderable, IView, IViewFactory, State } from '../../lifecycle';
-import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
+import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IObservedMap, IObservedSet, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 
@@ -48,7 +48,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
       }
       current = current.$nextBind;
     }
-    this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
+    this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
 
     this.processViews(null, flags);
   }
@@ -126,7 +126,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
       $lifecycle.beginBind();
       if (indexMap === null) {
-        forOf.iterate(items, (arr, i, item) => {
+        forOf.iterate(items, (arr, i, item: (string | number | boolean | IObservedArray<unknown> | IObservedSet<unknown> | IObservedMap<unknown, unknown> | IIndexable)) => {
           const view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
@@ -135,7 +135,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           }
         });
       } else {
-        forOf.iterate(items, (arr, i, item) => {
+        forOf.iterate(items, (arr, i, item: (string | number | boolean | IObservedArray<unknown> | IObservedSet<unknown> | IObservedMap<unknown, unknown> | IIndexable)) => {
           const view = views[i];
           if (indexMap[i] === i && !!view.$scope) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));

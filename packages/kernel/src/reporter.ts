@@ -1,5 +1,4 @@
 export const Reporter = {
-  /* tslint:disable-next-line:no-empty */
-  write(code: number, ...params: unknown[]): void { },
+  write(code: number, ...params: unknown[]): void { return; },
   error(code: number, ...params: unknown[]): Error { return new Error(`Code ${code}`); }
 };

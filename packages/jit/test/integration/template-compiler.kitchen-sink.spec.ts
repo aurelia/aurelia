@@ -11,6 +11,19 @@ const spec = 'template-compiler.kitchen-sink';
 
 // TemplateCompiler - integration with various different parts
 describe(spec, () => {
+  it('startup with App type', () => {
+    const component = CustomElementResource.define({ name: 'app', template: `<template>\${message}</template>` }, class { message = 'Hello!' });
+    const host = DOM.createElement('div');
+    const au = new Aurelia().register(BasicConfiguration).app({ host, component }).start();
+    expect(host.textContent).to.equal('Hello!');
+    au.stop();
+    expect(host.textContent).to.equal('');
+    au.start();
+    expect(host.textContent).to.equal('Hello!');
+    au.stop();
+    expect(host.textContent).to.equal('');
+  });
+
   it('test', () => {
     const rows: any[] = [
       {

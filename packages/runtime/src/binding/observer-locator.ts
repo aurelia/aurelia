@@ -50,14 +50,19 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 @inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
 /*@internal*/
 export class ObserverLocator implements IObserverLocator {
-  private adapters: IObjectObservationAdapter[] = [];
+  private adapters: IObjectObservationAdapter[];
+  private dirtyChecker: IDirtyChecker;
+  private eventManager: IEventManager;
+  private lifecycle: ILifecycle;
+  private svgAnalyzer: ISVGAnalyzer;
 
-  constructor(
-    private lifecycle: ILifecycle,
-    private eventManager: IEventManager,
-    private dirtyChecker: IDirtyChecker,
-    private svgAnalyzer: ISVGAnalyzer
-  ) {}
+  constructor(lifecycle: ILifecycle, eventManager: IEventManager, dirtyChecker: IDirtyChecker, svgAnalyzer: ISVGAnalyzer) {
+    this.adapters = [];
+    this.dirtyChecker = dirtyChecker;
+    this.eventManager = eventManager;
+    this.lifecycle = lifecycle;
+    this.svgAnalyzer = svgAnalyzer;
+  }
 
   public getObserver(obj: IObservable | IBindingContext | IOverrideContext, propertyName: string): AccessorOrObserver {
     if (obj.$synthetic === true) {

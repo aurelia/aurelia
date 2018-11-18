@@ -55,7 +55,7 @@ describe('TemplateCompiler', () => {
     container.register(BasicConfiguration);
     expressionParser = container.get(IExpressionParser);
     sut = new TemplateCompiler(expressionParser as any, elParser, attrParser);
-    container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
+    container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ Type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
 

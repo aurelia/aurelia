@@ -372,7 +372,6 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 
   public findTargets(): ArrayLike<INode> {
-    // tslint:disable-next-line:no-any
     return this.targets;
   }
 
@@ -460,7 +459,7 @@ export interface INodeSequenceFactory {
 export class NodeSequenceFactory {
   private readonly deepClone: boolean;
   private readonly node: ICloneableNode;
-  private readonly Type: Constructable<INodeSequence>;
+  private readonly Type: Constructable;
   constructor(fragment: IDocumentFragment) {
     const childNodes = fragment.childNodes;
     switch (childNodes.length) {

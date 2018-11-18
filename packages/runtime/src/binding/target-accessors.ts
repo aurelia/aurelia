@@ -11,9 +11,13 @@ export interface XLinkAttributeAccessor extends IBindingTargetAccessor<IHTMLElem
 
 @targetObserver('')
 export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
+  public attributeName: string;
   public currentValue: string;
-  public oldValue: string;
   public defaultValue: string;
+  public lifecycle: ILifecycle;
+  public obj: IHTMLElement;
+  public oldValue: string;
+  public propertyKey: string;
 
   // xlink namespaced attributes require getAttributeNS/setAttributeNS
   // (even though the NS version doesn't work for other namespaces
@@ -22,13 +26,12 @@ export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
   // Using very HTML-specific code here since this isn't likely to get
   // called unless operating against a real HTML element.
 
-  constructor(
-    public lifecycle: ILifecycle,
-    public obj: IHTMLElement,
-    public propertyKey: string,
-    public attributeName: string) {
-
+  constructor(lifecycle: ILifecycle, obj: IHTMLElement, propertyKey: string, attributeName: string) {
+    this.attributeName = attributeName;
+    this.lifecycle = lifecycle;
+    this.obj = obj;
     this.oldValue = this.currentValue = this.getValue();
+    this.propertyKey = propertyKey;
   }
 
   public getValue(): string {
@@ -47,15 +50,17 @@ export interface DataAttributeAccessor extends IBindingTargetAccessor<INode, str
 @targetObserver()
 export class DataAttributeAccessor implements DataAttributeAccessor {
   public currentValue: string;
-  public oldValue: string;
   public defaultValue: string;
+  public lifecycle: ILifecycle;
+  public obj: INode;
+  public oldValue: string;
+  public propertyKey: string;
 
-  constructor(
-    public lifecycle: ILifecycle,
-    public obj: INode,
-    public propertyKey: string) {
-
+  constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string) {
+    this.lifecycle = lifecycle;
+    this.obj = obj;
     this.oldValue = this.currentValue = this.getValue();
+    this.propertyKey = propertyKey;
   }
 
   public getValue(): string {
@@ -76,18 +81,17 @@ export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElem
 @targetObserver()
 export class StyleAttributeAccessor implements StyleAttributeAccessor {
   public currentValue: string | IIndexable;
-  public oldValue: string | IIndexable;
   public defaultValue: string | IIndexable;
-
+  public lifecycle: ILifecycle;
+  public obj: IHTMLElement;
+  public oldValue: string | IIndexable;
   public propertyKey: 'style';
-
   public styles: IIndexable;
   public version: number;
 
-  constructor(
-    public lifecycle: ILifecycle,
-    public obj: IHTMLElement) {
-
+  constructor(lifecycle: ILifecycle, obj: IHTMLElement) {
+    this.lifecycle = lifecycle;
+    this.obj = obj;
     this.oldValue = this.currentValue = obj.style.cssText;
   }
 
@@ -95,7 +99,6 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
     return this.obj.style.cssText;
   }
 
-  // tslint:disable-next-line:function-name
   public _setProperty(style: string, value: string): void {
     let priority = '';
 
@@ -161,16 +164,18 @@ export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, st
 @targetObserver('')
 export class ClassAttributeAccessor implements ClassAttributeAccessor {
   public currentValue: string;
-  public oldValue: string;
   public defaultValue: string;
-
   public doNotCache: true;
-  public version: number;
+  public lifecycle: ILifecycle;
   public nameIndex: IIndexable;
+  public obj: INode;
+  public oldValue: string;
+  public version: number;
 
-  constructor(
-    public lifecycle: ILifecycle,
-    public obj: INode) { }
+  constructor(lifecycle: ILifecycle, obj: INode) {
+    this.lifecycle = lifecycle;
+    this.obj = obj;
+  }
 
   public getValue(): string {
     return this.currentValue;
@@ -229,10 +234,15 @@ export interface ElementPropertyAccessor extends IBindingTargetAccessor<IIndexab
 
 @targetObserver('')
 export class ElementPropertyAccessor implements ElementPropertyAccessor {
-  constructor(
-    public lifecycle: ILifecycle,
-    public obj: IIndexable,
-    public propertyKey: string) { }
+  public lifecycle: ILifecycle;
+  public obj: IIndexable;
+  public propertyKey: string;
+
+  constructor(lifecycle: ILifecycle, obj: IIndexable, propertyKey: string) {
+    this.lifecycle = lifecycle;
+    this.obj = obj;
+    this.propertyKey = propertyKey;
+  }
 
   public getValue(): Primitive | IIndexable {
     return this.obj[this.propertyKey];
@@ -246,7 +256,13 @@ export class ElementPropertyAccessor implements ElementPropertyAccessor {
 export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
 
 export class PropertyAccessor implements PropertyAccessor {
-  constructor(public obj: IIndexable, public propertyKey: string) { }
+  public obj: IIndexable;
+  public propertyKey: string;
+
+  constructor(obj: IIndexable, propertyKey: string) {
+    this.obj = obj;
+    this.propertyKey = propertyKey;
+  }
 
   public getValue(): Primitive | IIndexable {
     return this.obj[this.propertyKey];

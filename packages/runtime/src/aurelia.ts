@@ -1,7 +1,7 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
 import { INode } from './dom';
 import { LifecycleFlags } from './observation';
-import { ICustomElement } from './templating/custom-element';
+import { CustomElementResource, ICustomElement, ICustomElementType } from './templating/custom-element';
 import { IRenderingEngine } from './templating/lifecycle-render';
 
 export interface ISinglePageApp {
@@ -36,8 +36,15 @@ export class Aurelia {
   }
 
   public app(config: ISinglePageApp): this {
-    const component = config.component as ICustomElement;
     const host = config.host as INode & {$au?: Aurelia | null};
+    let component: ICustomElement;
+    const componentOrType = config.component as ICustomElement | ICustomElementType;
+    if (CustomElementResource.isType(<ICustomElementType>componentOrType)) {
+      this.container.register(<ICustomElementType>componentOrType);
+      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((<ICustomElementType>componentOrType).description.name));
+    } else {
+      component = <ICustomElement>componentOrType;
+    }
 
     const startTask = () => {
       host.$au = this;

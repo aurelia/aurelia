@@ -1,7 +1,7 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { AccessorOrObserver, IBindingTargetObserver, IScope, LifecycleFlags } from '../observation';
-import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
+import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
@@ -23,36 +23,49 @@ export interface Binding extends IConnectableBinding {}
 
 @connectable()
 export class Binding implements IPartialConnectableBinding {
-  public $nextConnect: IConnectableBinding = null;
-  public $nextPatch: IConnectableBinding = null;
-  public $nextBind: IBindScope = null;
-  public $prevBind: IBindScope = null;
-
-  public $state: State = State.none;
-  public $scope: IScope = null;
+  public $nextBind: IBindScope;
+  public $prevBind: IBindScope;
+  public $state: State;
   public $lifecycle: ILifecycle;
+  public $nextConnect: IConnectableBinding;
+  public $nextPatch: IConnectableBinding;
+  public $scope: IScope;
+
+  public locator: IServiceLocator;
+  public mode: BindingMode;
+  public observerLocator: IObserverLocator;
+  public sourceExpression: IsBindingBehavior | ForOfStatement;
+  public target: IBindingTarget;
+  public targetProperty: string;
 
   public targetObserver: AccessorOrObserver;
 
-  constructor(
-    public sourceExpression: IsBindingBehavior | ForOfStatement,
-    public target: IBindingTarget,
-    public targetProperty: string,
-    public mode: BindingMode,
-    public observerLocator: IObserverLocator,
-    public locator: IServiceLocator) {
+  constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
+    this.$nextBind = null;
+    this.$prevBind = null;
+    this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
+    this.$nextConnect = null;
+    this.$nextPatch = null;
+    this.$scope = null;
+
+    this.locator = locator;
+    this.mode = mode;
+    this.observerLocator = observerLocator;
+    this.sourceExpression = sourceExpression;
+    this.target = target;
+    this.targetProperty = targetProperty;
   }
 
-  public updateTarget(value: StrictAny, flags: LifecycleFlags): void {
+  public updateTarget(value: unknown, flags: LifecycleFlags): void {
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
-  public updateSource(value: StrictAny, flags: LifecycleFlags): void {
+  public updateSource(value: unknown, flags: LifecycleFlags): void {
     this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
-  public handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }

@@ -1,7 +1,6 @@
 import { all, DI, inject } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 import { IAttributePattern, IAttributePatternHandler, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
-import { Char } from './common';
 
 export interface IAttributeParser {
   parse(name: string, value: string): AttrSyntax;
@@ -22,15 +21,11 @@ export class AttributeParser implements IAttributeParser {
     this.cache = {};
     const patterns: AttributeParser['patterns'] = this.patterns = {};
     attrPatterns.forEach(attrPattern => {
-      const patternOrPatterns = attrPattern.$patterns;
-      interpreter.add(patternOrPatterns);
-      if (Array.isArray(patternOrPatterns)) {
-        patternOrPatterns.forEach(pattern => {
-          patterns[pattern] = attrPattern as unknown as IAttributePatternHandler;
-        });
-      } else {
-        patterns[patternOrPatterns] = attrPattern as unknown as IAttributePatternHandler;
-      }
+      const defs = attrPattern.$patternDefs;
+      interpreter.add(defs);
+      defs.forEach(def => {
+        patterns[def.pattern] = attrPattern as unknown as IAttributePatternHandler;
+      });
     });
   }
 

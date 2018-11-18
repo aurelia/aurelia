@@ -1,99 +1,155 @@
 import { expect } from 'chai';
-import { SyntaxInterpreter, attributePattern, IAttributePattern, ISyntaxInterpreter } from '../../src/attribute-pattern';
+import { SyntaxInterpreter, attributePattern, IAttributePattern, ISyntaxInterpreter, AttributePatternDefinition } from '../../src/attribute-pattern';
 import { DI } from '@aurelia/kernel';
 
-
-describe('SyntaxInterpreter', () => {
-  for (const [patterns, tests] of <[string[], [string, string, string[]][]][]>[
+describe('@attributePattern', () => {
+  for (const [defs, tests] of <[AttributePatternDefinition[], [string, string, string[]][]][]>[
     [
-      ['PART.PART'],
+      [
+        { pattern: 'PART.PART', symbols: '.' }
+      ],
       [
         ['value.bind',  'PART.PART', ['value', 'bind']],
-        ['.bind',       null,             []],
-        ['bind',        null,             ['bind']],
-        ['value.',      null,             ['value']],
-        ['value',       null,             ['value']],
-        ['.',           null,             []]
+        ['.bind',       null,        []],
+        ['bind',        null,        []],
+        ['value.',      null,        []],
+        ['value',       null,        []],
+        ['.',           null,        []]
       ]
     ],
     [
-      ['PART.PART', 'asdf.PART', 'PART.asdf'],
+      [
+        { pattern: 'PART.PART', symbols: '.' },
+        { pattern: 'asdf.PART', symbols: '.' },
+        { pattern: 'PART.asdf', symbols: '.' }
+      ],
       [
         ['value.bind', 'PART.PART',  ['value', 'bind']],
-        ['.bind',       null,             []],
-        ['bind',        null,             ['bind']],
-        ['value.',      null,             ['value']],
-        ['value',       null,             ['value']],
-        ['.',           null,             []]
+        ['.bind',       null,        []],
+        ['bind',        null,        []],
+        ['value.',      null,        []],
+        ['value',       null,        []],
+        ['.',           null,        []]
       ]
     ],
     [
-      ['PART.PART', ':PART'],
       [
-        ['value.bind',  'PART.PART', ['value', 'bind']],
+        { pattern: 'PART.PART', symbols: '.' },
+        { pattern: ':PART', symbols: ':' }
+      ],
+      [
+        ['value.bind',  'PART.PART',    ['value', 'bind']],
+        [':.:',         'PART.PART',    [':', ':']],
+        [':value.bind', 'PART.PART',    [':value', 'bind']],
+        ['value.bind:', 'PART.PART',    ['value', 'bind:']],
         [':value',      ':PART',        ['value']],
-        ['.bind',       null,             []],
-        ['bind',        null,             ['bind']],
-        ['value.',      null,             ['value']],
-        ['value',       null,             ['value']],
-        ['.',           null,             []],
-        ['value:',      null,             []],
-        [':',           null,             []],
-        [':.',          null,             []],
-        [':value.',     null,             []],
-        ['.value:',     null,             []],
-        [':value.bind', null,             []],
-        ['value.bind:', null,             ['value']],
-        ['value:bind',  null,             []]
-      ]
-    ]
-  ]) {
-    describe(`parse [${patterns}]`, () => {
-      for (const [value, match, values] of tests) {
-        it(`parse [${patterns}] -> interpret [${value}] -> match=[${match}]`, () => {
-          const sut = new SyntaxInterpreter();
-          sut.add(patterns);
-
-          const result = sut.interpret(value);
-          expect(result.pattern).to.equal(match);
-          expect(result.parts).to.deep.equal(values);
-        });
-      }
-    });
-  }
-});
-
-describe('@attributePattern', () => {
-  for (const [patterns, tests] of <[string[], [string, string, string[]][]][]>[
-    [
-      ['PART.PART'],
-      [
-        ['value.bind',  'PART.PART', ['value', 'bind']]
+        [':.',          ':PART',        ['.']],
+        [':value.',     ':PART',        ['value.']],
+        ['.bind',       null,           []],
+        ['bind',        null,           []],
+        ['value.',      null,           []],
+        ['value',       null,           []],
+        ['value:',      null,           []],
+        ['.',           null,           []],
+        [':',           null,           []],
+        ['::',          null,           []],
+        ['..',          null,           []],
+        ['.:',          null,           []],
+        ['.value:',     null,           []],
+        ['value:bind',  null,           []]
       ]
     ],
     [
-      ['PART.PART', 'asdf.PART', 'PART.asdf'],
       [
-        ['value.bind', 'PART.PART',  ['value', 'bind']]
+        { pattern: 'PART.PART', symbols: '.' },
+        { pattern: '@PART', symbols: '@' }
+      ],
+      [
+        ['value.bind',  'PART.PART',    ['value', 'bind']],
+        ['@.@',         'PART.PART',    ['@', '@']],
+        ['@value.bind', 'PART.PART',    ['@value', 'bind']],
+        ['value.bind@', 'PART.PART',    ['value', 'bind@']],
+        ['@value',      '@PART',        ['value']],
+        ['@.',          '@PART',        ['.']],
+        ['@value.',     '@PART',        ['value.']],
+        ['.bind',       null,           []],
+        ['bind',        null,           []],
+        ['value.',      null,           []],
+        ['value',       null,           []],
+        ['value@',      null,           []],
+        ['.',           null,           []],
+        ['@',           null,           []],
+        ['@@',          null,           []],
+        ['..',          null,           []],
+        ['.@',          null,           []],
+        ['.value@',     null,           []],
+        ['value@bind',  null,           []]
       ]
     ],
     [
-      ['PART.PART', ':PART'],
       [
-        ['value.bind',  'PART.PART', ['value', 'bind']],
-        [':value',      ':PART',        ['value']]
+        { pattern: 'PART.PART', symbols: '.' },
+        { pattern: '@PART', symbols: '@' },
+        { pattern: ':PART', symbols: ':' }
+      ],
+      [
+        ['value.bind',   'PART.PART',    ['value', 'bind']],
+        [':value',       ':PART',        ['value']],
+        ['@value',       '@PART',        ['value']],
+        [':.:',          'PART.PART',    [':', ':']],
+        ['@.@',          'PART.PART',    ['@', '@']],
+        [':value.bind',  'PART.PART',    [':value', 'bind']],
+        ['@value.bind',  'PART.PART',    ['@value', 'bind']],
+        ['@:value.bind', 'PART.PART',    ['@:value', 'bind']],
+        [':@value.bind', 'PART.PART',    [':@value', 'bind']],
+        ['@:value',      '@PART',        [':value']],
+        [':@value',      ':PART',        ['@value']],
+        ['value.bind:',  'PART.PART',    ['value', 'bind:']],
+        ['value.bind@',  'PART.PART',    ['value', 'bind@']],
+        [':value',       ':PART',        ['value']],
+        ['@value',       '@PART',        ['value']],
+        [':.',           ':PART',        ['.']],
+        ['@.',           '@PART',        ['.']],
+        [':value.',      ':PART',        ['value.']],
+        ['@value.',      '@PART',        ['value.']],
+        ['.bind',        null,           []],
+        ['bind',         null,           []],
+        ['value.',       null,           []],
+        ['value',        null,           []],
+        ['value:',       null,           []],
+        ['value@',       null,           []],
+        ['.',            null,           []],
+        ['..',           null,           []],
+        [':',            null,           []],
+        ['@',            null,           []],
+        ['::',           null,           []],
+        ['@@',           null,           []],
+        ['.:',           null,           []],
+        ['.@',           null,           []],
+        ['.value:',      null,           []],
+        ['.value@',      null,           []],
+        ['value:bind',   null,           []],
+        ['value@bind',   null,           []]
+      ]
+    ],
+    [
+      [
+        { pattern: 'PART.PART', symbols: '.' },
+        { pattern: '@PART',     symbols: '@' },
+        { pattern: ':PART',     symbols: ':' },
+        { pattern: 'ng-PART',   symbols: '-' }
       ]
     ]
   ]) {
-    describe(`parse [${patterns}]`, () => {
+    describe(`parse [${defs.map(d => d.pattern)}]`, () => {
       for (const [value, match, values] of tests) {
-        it(`parse [${patterns}] -> interpret [${value}] -> match=[${match}]`, () => {
+        it(`parse [${defs.map(d => d.pattern)}] -> interpret [${value}] -> match=[${match}]`, () => {
           let receivedRawName: string;
           let receivedRawValue: string;
           let receivedParts: string[];
-          @attributePattern(...patterns)
+          @attributePattern(...defs)
           class ThePattern {}
-          for (const pattern of patterns) {
+          for (const { pattern } of defs) {
             ThePattern.prototype[pattern] = (rawName, rawValue, parts) => {
               receivedRawName = rawName;
               receivedRawValue = rawValue;
@@ -104,15 +160,19 @@ describe('@attributePattern', () => {
           container.register(<any>ThePattern);
           const interpreter = container.get(ISyntaxInterpreter);
           const attrPattern = container.get(IAttributePattern);
-          interpreter.add(attrPattern.$patterns);
+          interpreter.add(attrPattern.$patternDefs);
 
           const result = interpreter.interpret(value);
-          expect(attrPattern.$patterns.indexOf(result.pattern)).to.be.gte(0);
+          if (match !== null) {
+            expect(attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern)).to.be.gte(0);
+            attrPattern[result.pattern](value, 'foo', result.parts);
+            expect(receivedRawName).to.equal(value);
+            expect(receivedRawValue).to.equal('foo');
+            expect(receivedParts).to.deep.equal(result.parts);
+          } else {
+            expect(attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern)).to.equal(-1);
+          }
 
-          attrPattern[result.pattern](value, 'foo', result.parts);
-          expect(receivedRawName).to.equal(value);
-          expect(receivedRawValue).to.equal('foo');
-          expect(receivedParts).to.deep.equal(result.parts);
           expect(result.parts).to.deep.equal(values);
         });
       }

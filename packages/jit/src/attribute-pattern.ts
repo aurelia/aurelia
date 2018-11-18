@@ -1,32 +1,65 @@
-import { Class, DI, IContainer, IRegistry, IResolver, Registration, Reporter } from '@aurelia/kernel';
+import { Class, DI, IContainer, IRegistry, IResolver, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 
+export interface AttributePatternDefinition {
+  pattern: string;
+  symbols: string;
+}
+
 /*@internal*/
-export class CharSpec {
+export interface ICharSpec {
+  chars: string;
+  repeat: boolean;
+  isSymbol: boolean;
+  isInverted: boolean;
+  has(char: string): boolean;
+  equals(other: ICharSpec): boolean;
+}
+
+/*@internal*/
+export class CharSpec implements ICharSpec {
   public chars: string;
   public repeat: boolean;
-  public separator: boolean;
+  public isSymbol: boolean;
+  public isInverted: boolean;
 
   public has: (char: string) => boolean;
 
-  constructor(chars: string, repeat: boolean, separator: boolean) {
+  constructor(chars: string, repeat: boolean, isSymbol: boolean, isInverted: boolean) {
     this.chars = chars;
     this.repeat = repeat;
-    this.separator = separator;
-    switch (chars.length) {
-      case 0:
-        this.has = this.hasOfNone;
-        break;
-      case 1:
-        this.has = this.hasOfSingle;
-        break;
-      default:
-        this.has = this.hasOfMultiple;
+    this.isSymbol = isSymbol;
+    this.isInverted = isInverted;
+    if (isInverted) {
+      switch (chars.length) {
+        case 0:
+          this.has = this.hasOfNoneInverse;
+          break;
+        case 1:
+          this.has = this.hasOfSingleInverse;
+          break;
+        default:
+          this.has = this.hasOfMultipleInverse;
+      }
+    } else {
+      switch (chars.length) {
+        case 0:
+          this.has = this.hasOfNone;
+          break;
+        case 1:
+          this.has = this.hasOfSingle;
+          break;
+        default:
+          this.has = this.hasOfMultiple;
+      }
     }
   }
 
-  public equals(other: CharSpec): boolean {
-    return this.chars === other.chars;
+  public equals(other: ICharSpec): boolean {
+    return this.chars === other.chars
+        && this.repeat === other.repeat
+        && this.isSymbol === other.isSymbol
+        && this.isInverted === other.isInverted;
   }
 
   private hasOfMultiple(char: string): boolean {
@@ -40,72 +73,113 @@ export class CharSpec {
   private hasOfNone(char: string): boolean {
     return false;
   }
-}
 
-const identifierChars = '-_$+abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-const asciiCharSpecs = Array(127);
-for (let i = 0; i < 127; ++i) {
-  const ch = String.fromCharCode(i);
-  asciiCharSpecs[i] = new CharSpec(ch, false, identifierChars.indexOf(ch) === -1);
+  private hasOfMultipleInverse(char: string): boolean {
+    return this.chars.indexOf(char) === -1;
+  }
+
+  private hasOfSingleInverse(char: string): boolean {
+    return this.chars !== char;
+  }
+
+  private hasOfNoneInverse(char: string): boolean {
+    return true;
+  }
 }
-const identifierCharSpec = new CharSpec(identifierChars, true, false);
 
 export class Interpretation {
-  public pattern: string | null;
-  public parts: string[];
-  private current: string;
+  public parts: ReadonlyArray<string>;
+  public get pattern(): string | null {
+    const value = this._pattern;
+    if (value === '') {
+      return null;
+    } else {
+      return value;
+    }
+  }
+  public set pattern(value: string | null) {
+    if (value === null) {
+      this._pattern = '';
+      this.parts = PLATFORM.emptyArray;
+    } else {
+      this._pattern = value;
+      this.parts = this.partsRecord[value];
+    }
+  }
+  private _pattern: string;
+  private currentRecord: Record<string, string>;
+  private partsRecord: Record<string, string[]>;
 
   constructor() {
-    this.pattern = null;
-    this.parts = [];
-    this.current = '';
+    this._pattern = '';
+    this.parts = PLATFORM.emptyArray;
+    this.currentRecord = {};
+    this.partsRecord = {};
   }
 
-  public append(ch: string): void {
-    this.current += ch;
+  public append(pattern: string, ch: string): void {
+    const { currentRecord } = this;
+    if (currentRecord[pattern] === undefined) {
+      currentRecord[pattern] = ch;
+    } else {
+      currentRecord[pattern] += ch;
+    }
   }
 
-  public next(): void {
-    if (this.current.length > 0) {
-      this.parts.push(this.current);
-      this.current = '';
+  public next(pattern: string): void {
+    const { currentRecord } = this;
+    if (currentRecord[pattern] !== undefined) {
+      const { partsRecord } = this;
+      if (partsRecord[pattern] === undefined) {
+        partsRecord[pattern] = [currentRecord[pattern]];
+      } else {
+        partsRecord[pattern].push(currentRecord[pattern]);
+      }
+      currentRecord[pattern] = undefined;
     }
   }
 }
 
 /*@internal*/
 export class State {
-  public charSpec: CharSpec;
+  public charSpec: ICharSpec;
   public nextStates: State[];
   public types: SegmentTypes | null;
-  public pattern: string | null;
+  public patterns: string[];
+  public isEndpoint: boolean;
+  public get pattern(): string | null {
+    return this.isEndpoint ? this.patterns[0] : null;
+  }
 
-  constructor(charSpec: CharSpec) {
+  constructor(charSpec: ICharSpec, ...patterns: string[]) {
     this.charSpec = charSpec;
     this.nextStates = [];
     this.types = null;
-    this.pattern = null;
+    this.patterns = patterns;
+    this.isEndpoint = false;
   }
 
-  public findChild(charSpec: CharSpec): State {
+  public findChild(charSpec: ICharSpec): State {
     const nextStates = this.nextStates;
     const len = nextStates.length;
     let child: State = null;
-    let i = 0;
-    while (i < len) {
+    for (let i = 0; i < len; ++i) {
       child = nextStates[i];
       if (charSpec.equals(child.charSpec)) {
         return child;
       }
-      ++i;
     }
     return null;
   }
 
-  public append(charSpec: CharSpec): State {
+  public append(charSpec: ICharSpec, pattern: string): State {
+    const { patterns } = this;
+    if (patterns.indexOf(pattern) === -1) {
+      patterns.push(pattern);
+    }
     let state = this.findChild(charSpec);
     if (state === null) {
-      state = new State(charSpec);
+      state = new State(charSpec, pattern);
       this.nextStates.push(state);
       if (charSpec.repeat) {
         state.nextStates.push(state);
@@ -119,23 +193,25 @@ export class State {
     const results = [];
     const nextStates = this.nextStates;
     const len = nextStates.length;
+    let childLen = 0;
     let child: State = null;
-    let consumed: boolean = false;
     let i = 0;
-    while (i < len) {
+    let j = 0;
+    for (; i < len; ++i) {
       child = nextStates[i];
       if (child.charSpec.has(ch)) {
         results.push(child);
-        if (consumed === false) {
-          consumed = true;
-          if (child.charSpec.separator) {
-            interpretation.next();
-          } else {
-            interpretation.append(ch);
+        childLen = child.patterns.length;
+        if (child.charSpec.isSymbol) {
+          for (; j < childLen; ++j) {
+            interpretation.next(child.patterns[j]);
+          }
+        } else {
+          for (; j < childLen; ++j) {
+            interpretation.append(child.patterns[j], ch);
           }
         }
       }
-      ++i;
     }
     return results;
   }
@@ -157,33 +233,31 @@ export class StaticSegment implements ISegment {
     this.text = text;
     const len = this.len = text.length;
     const specs = this.specs = [];
-    let i = 0;
-    while (i < len) {
-      specs.push(asciiCharSpecs[text[i].charCodeAt(0)]);
-      ++i;
+    for (let i = 0; i < len; ++i) {
+      specs.push(new CharSpec(text[i], false, false, false));
     }
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
     const { len, specs } = this;
-    let i = 0;
-    while (i < len) {
+    for (let i = 0; i < len; ++i) {
       callback(specs[i]);
-      ++i;
     }
   }
 }
 
 /*@internal*/
-export class PartSegment implements ISegment {
+export class DynamicSegment implements ISegment {
   public text: string;
+  private spec: CharSpec;
 
-  constructor() {
+  constructor(symbols: string) {
     this.text = 'PART';
+    this.spec = new CharSpec(symbols, true, false, true);
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
-    callback(identifierCharSpec);
+    callback(this.spec);
   }
 }
 
@@ -194,7 +268,7 @@ export class SymbolSegment implements ISegment {
 
   constructor(text: string) {
     this.text = text;
-    this.spec = asciiCharSpecs[this.text.charCodeAt(0)];
+    this.spec = new CharSpec(text, false, true, false);
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
@@ -204,21 +278,21 @@ export class SymbolSegment implements ISegment {
 
 /*@internal*/
 export class SegmentTypes {
-  public identifiers: number;
-  public parts: number;
+  public statics: number;
+  public dynamics: number;
   public symbols: number;
 
   constructor() {
-    this.identifiers = 0;
-    this.parts = 0;
+    this.statics = 0;
+    this.dynamics = 0;
     this.symbols = 0;
   }
 }
 
 export interface ISyntaxInterpreter {
-  add(pattern: string): void;
-  add(patterns: string[]): void;
-  add(patternOrPatterns: string | string[]): void;
+  add(def: AttributePatternDefinition): void;
+  add(defs: AttributePatternDefinition[]): void;
+  add(defOrDefs: AttributePatternDefinition | AttributePatternDefinition[]): void;
   interpret(value: string): Interpretation;
 }
 
@@ -234,53 +308,60 @@ export class SyntaxInterpreter {
     this.initialStates = [this.rootState];
   }
 
-  public add(pattern: string): void;
-  public add(patterns: string[]): void;
-  public add(patternOrPatterns: string | string[]): void {
+  public add(def: AttributePatternDefinition): void;
+  public add(defs: AttributePatternDefinition[]): void;
+  public add(defOrDefs: AttributePatternDefinition | AttributePatternDefinition[]): void {
     let i = 0;
-    if (Array.isArray(patternOrPatterns)) {
-      const ii = patternOrPatterns.length;
+    if (Array.isArray(defOrDefs)) {
+      const ii = defOrDefs.length;
       for (; i < ii; ++i) {
-        this.add(patternOrPatterns[i]);
+        this.add(defOrDefs[i]);
       }
       return;
     }
     let currentState = this.rootState;
+    const def = defOrDefs;
+    const pattern = def.pattern;
     const types = new SegmentTypes();
-    const segments = this.parse(patternOrPatterns, types);
+    const segments = this.parse(def, types);
     const len = segments.length;
-    i = 0;
-    while (i < len) {
+    for (i = 0; i < len; ++i) {
       segments[i].eachChar(ch => {
-        currentState = currentState.append(ch);
+        currentState = currentState.append(ch, pattern);
       });
-      ++i;
     }
     currentState.types = types;
-    currentState.pattern = patternOrPatterns;
+    currentState.isEndpoint = true;
   }
 
-  public interpret(value: string): Interpretation {
+  public interpret(name: string): Interpretation {
     const interpretation = new Interpretation();
     let states = this.initialStates;
-    const len = value.length;
-    let i = 0;
-    while (i < len) {
-      states = this.getNextStates(states, value.charAt(i), interpretation);
+    const len = name.length;
+    for (let i = 0; i < len; ++i) {
+      states = this.getNextStates(states, name.charAt(i), interpretation);
       if (states.length === 0) {
         break;
       }
-      ++i;
     }
 
     states.sort((a, b) => {
+      if (a.isEndpoint) {
+        if (!b.isEndpoint) {
+          return -1;
+        }
+      } else if (b.isEndpoint) {
+        return 1;
+      } else {
+        return 0;
+      }
       const aTypes = a.types;
       const bTypes = b.types;
-      if (aTypes.identifiers !== bTypes.identifiers) {
-        return bTypes.identifiers - aTypes.identifiers;
+      if (aTypes.statics !== bTypes.statics) {
+        return bTypes.statics - aTypes.statics;
       }
-      if (aTypes.parts !== bTypes.parts) {
-        return bTypes.parts - aTypes.parts;
+      if (aTypes.dynamics !== bTypes.dynamics) {
+        return bTypes.dynamics - aTypes.dynamics;
       }
       if (aTypes.symbols !== bTypes.symbols) {
         return bTypes.symbols - aTypes.symbols;
@@ -290,8 +371,8 @@ export class SyntaxInterpreter {
 
     if (states.length > 0) {
       const state = states[0];
-      if (!state.charSpec.separator) {
-        interpretation.next();
+      if (!state.charSpec.isSymbol) {
+        interpretation.next(state.pattern);
       }
       interpretation.pattern = state.pattern;
     }
@@ -303,31 +384,30 @@ export class SyntaxInterpreter {
     const nextStates: State[] = [];
     let state: State = null;
     const len = states.length;
-    let i = 0;
-    while (i < len) {
+    for (let i = 0; i < len; ++i) {
       state = states[i];
       nextStates.push(...state.findMatches(ch, interpretation));
-      ++i;
     }
 
     return nextStates;
   }
 
-  private parse(input: string, types: SegmentTypes): ISegment[] {
+  private parse(def: AttributePatternDefinition, types: SegmentTypes): ISegment[] {
     const result = [];
-    const len = input.length;
+    const pattern = def.pattern;
+    const len = pattern.length;
     let i = 0;
     let start = 0;
     let c = '';
 
     while (i < len) {
-      c = input.charAt(i);
-      if (identifierChars.indexOf(c) !== -1) {
+      c = pattern.charAt(i);
+      if (def.symbols.indexOf(c) === -1) {
         if (i === start) {
-          if (c === 'P' && input.slice(i, i + 4) === 'PART') {
+          if (c === 'P' && pattern.slice(i, i + 4) === 'PART') {
             start = i = (i + 4);
-            result.push(new PartSegment());
-            ++types.parts;
+            result.push(new DynamicSegment(def.symbols));
+            ++types.dynamics;
           } else {
             ++i;
           }
@@ -335,42 +415,41 @@ export class SyntaxInterpreter {
           ++i;
         }
       } else if (i !== start) {
-        result.push(new StaticSegment(input.slice(start, i)));
-        ++types.identifiers;
+        result.push(new StaticSegment(pattern.slice(start, i)));
+        ++types.statics;
         start = i;
       } else {
-        result.push(new SymbolSegment(input.slice(start, i + 1)));
+        result.push(new SymbolSegment(pattern.slice(start, i + 1)));
         ++types.symbols;
         start = ++i;
       }
     }
     if (start !== i) {
-      result.push(new StaticSegment(input.slice(start, i)));
-      ++types.identifiers;
+      result.push(new StaticSegment(pattern.slice(start, i)));
+      ++types.statics;
     }
 
     return result;
   }
 }
 
-function validatePrototype(handler: IAttributePatternHandler, patternOrPatterns: string | string[]): void {
-  const patterns = Array.isArray(patternOrPatterns) ? patternOrPatterns : [patternOrPatterns];
-  for (const pattern of patterns) {
+function validatePrototype(handler: IAttributePatternHandler, patternDefs: AttributePatternDefinition[]): void {
+  for (const def of patternDefs) {
     // note: we're intentionally not throwing here
-    if (!(pattern in handler)) {
-      Reporter.write(401, pattern); // TODO: organize error codes
-    } else if (typeof handler[pattern] !== 'function') {
-      Reporter.write(402, pattern); // TODO: organize error codes
+    if (!(def.pattern in handler)) {
+      Reporter.write(401, def); // TODO: organize error codes
+    } else if (typeof handler[def.pattern] !== 'function') {
+      Reporter.write(402, def); // TODO: organize error codes
     }
   }
 }
 
 export interface IAttributePattern {
-  $patterns: string[];
+  $patternDefs: AttributePatternDefinition[];
 }
 
 export interface IAttributePatternHandler {
-  [pattern: string]: (rawName: string, rawValue: string, parts: string[]) => AttrSyntax;
+  [pattern: string]: (rawName: string, rawValue: string, parts: ReadonlyArray<string>) => AttrSyntax;
 }
 
 export const IAttributePattern = DI.createInterface<IAttributePattern>().noDefault();
@@ -380,11 +459,11 @@ type DecoratedAttributePattern<TProto, TClass> =  Class<TProto & IAttributePatte
 
 type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>) => DecoratedAttributePattern<TProto, TClass>;
 
-export function attributePattern(...patterns: string[]): AttributePatternDecorator {
+export function attributePattern(...patternDefs: AttributePatternDefinition[]): AttributePatternDecorator {
   return function decorator<TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass> {
     const proto = target.prototype;
-    validatePrototype(proto as unknown as IAttributePatternHandler, patterns);
-    proto.$patterns = patterns;
+    validatePrototype(proto as unknown as IAttributePatternHandler, patternDefs);
+    proto.$patternDefs = patternDefs;
 
     target.register = function register(container: IContainer): IResolver {
       return Registration.singleton(IAttributePattern, target).register(container, IAttributePattern);
@@ -395,7 +474,10 @@ export function attributePattern(...patterns: string[]): AttributePatternDecorat
 
 export interface DotSeparatedAttributePattern extends IAttributePattern {}
 
-@attributePattern('PART.PART', 'PART.PART.PART')
+@attributePattern(
+  { pattern: 'PART.PART', symbols: '.' },
+  { pattern: 'PART.PART.PART', symbols: '.' }
+)
 export class DotSeparatedAttributePattern implements DotSeparatedAttributePattern {
   public static register: IRegistry['register'];
 
@@ -410,7 +492,7 @@ export class DotSeparatedAttributePattern implements DotSeparatedAttributePatter
 
 export interface ColonPrefixedBindAttributePattern extends IAttributePattern {}
 
-@attributePattern(':PART')
+@attributePattern({ pattern: ':PART', symbols: ':' })
 export class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttributePattern  {
   public static register: IRegistry['register'];
 
@@ -421,7 +503,7 @@ export class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttri
 
 export interface AtPrefixedTriggerAttributePattern extends IAttributePattern {}
 
-@attributePattern('@PART')
+@attributePattern({ pattern: '@PART', symbols: '@' })
 export class AtPrefixedTriggerAttributePattern implements AtPrefixedTriggerAttributePattern  {
   public static register: IRegistry['register'];
 

@@ -1,13 +1,17 @@
+import { DI, Constructable, IRegistry, IContainer, Registration, IResolver } from '@aurelia/kernel';
 
+/*@internal*/
 export class CharSpec {
   public chars: string;
   public repeat: boolean;
+  public separator: boolean;
 
   public has: (char: string) => boolean;
 
-  constructor(chars: string, repeat: boolean) {
+  constructor(chars: string, repeat: boolean, separator: boolean) {
     this.chars = chars;
     this.repeat = repeat;
+    this.separator = separator;
     switch (chars.length) {
       case 0:
         this.has = this.hasOfNone;
@@ -37,12 +41,36 @@ export class CharSpec {
   }
 }
 
+const identifierChars = '-abcdefghijklmnopqrstuvwxyz';
 const asciiCharSpecs = Array(127);
 for (let i = 0; i < 127; ++i) {
-  asciiCharSpecs[i] = new CharSpec(String.fromCharCode(i), false);
+  const ch = String.fromCharCode(i);
+  asciiCharSpecs[i] = new CharSpec(ch, false, identifierChars.indexOf(ch) === -1);
 }
-const identifierCharSpec = new CharSpec('-abcdefghijklmnopqrstuvwxyz', true);
+const identifierCharSpec = new CharSpec(identifierChars, true, false);
 
+export class Interpretation {
+  public pattern: string;
+  public parts: string[];
+  private current: string;
+
+  constructor() {
+    this.pattern = null;
+    this.parts = [];
+    this.current = '';
+  }
+
+  public append(ch: string): void {
+    this.current += ch;
+  }
+
+  public next(): void {
+    this.parts.push(this.current);
+    this.current = '';
+  }
+}
+
+/*@internal*/
 export class State {
   public charSpec: CharSpec;
   public nextStates: State[];
@@ -83,16 +111,25 @@ export class State {
     return state;
   }
 
-  public findMatches(ch: string): State[] {
+  public findMatches(ch: string, interpretation: Interpretation): State[] {
     const results = [];
     const nextStates = this.nextStates;
     const len = nextStates.length;
     let child: State = null;
+    let consumed: boolean = false;
     let i = 0;
     while (i < len) {
       child = nextStates[i];
       if (child.charSpec.has(ch)) {
         results.push(child);
+        if (consumed === false) {
+          consumed = true;
+          if (child.charSpec.separator) {
+            interpretation.next();
+          } else {
+            interpretation.append(ch);
+          }
+        }
       }
       ++i;
     }
@@ -100,11 +137,13 @@ export class State {
   }
 }
 
+/*@internal*/
 export interface ISegment {
   text: string;
   eachChar(callback: (spec: CharSpec) => void): void;
 }
 
+/*@internal*/
 export class StaticSegment implements ISegment {
   public text: string;
   private len: number;
@@ -131,6 +170,7 @@ export class StaticSegment implements ISegment {
   }
 }
 
+/*@internal*/
 export class CommandSegment implements ISegment {
   public text: string;
 
@@ -143,6 +183,7 @@ export class CommandSegment implements ISegment {
   }
 }
 
+/*@internal*/
 export class TargetSegment implements ISegment {
   public text: string;
 
@@ -155,6 +196,7 @@ export class TargetSegment implements ISegment {
   }
 }
 
+/*@internal*/
 export class SymbolSegment implements ISegment {
   public text: string;
   private spec: CharSpec;
@@ -169,6 +211,7 @@ export class SymbolSegment implements ISegment {
   }
 }
 
+/*@internal*/
 export class SegmentTypes {
   public identifiers: number;
   public commands: number;
@@ -183,6 +226,16 @@ export class SegmentTypes {
   }
 }
 
+export interface ISyntaxInterpreter {
+  add(pattern: string): void;
+  add(patterns: string[]): void;
+  add(patternOrPatterns: string | string[]): void;
+  interpret(value: string): Interpretation;
+}
+
+export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>().withDefault(x => x.singleton(SyntaxInterpreter));
+
+/*@internal*/
 export class SyntaxInterpreter {
   public rootState: State;
   private initialStates: State[];
@@ -192,9 +245,9 @@ export class SyntaxInterpreter {
     this.initialStates = [this.rootState];
   }
 
-  public add(pattern: string): State;
-  public add(patterns: string[]): State;
-  public add(patternOrPatterns: string | string[]): State {
+  public add(pattern: string): void;
+  public add(patterns: string[]): void;
+  public add(patternOrPatterns: string | string[]): void {
     let i = 0;
     if (Array.isArray(patternOrPatterns)) {
       const ii = patternOrPatterns.length;
@@ -216,16 +269,15 @@ export class SyntaxInterpreter {
     }
     currentState.types = types;
     currentState.pattern = patternOrPatterns;
-
-    return currentState;
   }
 
-  public interpret(value: string): string | null {
+  public interpret(value: string): Interpretation {
+    const interpretation = new Interpretation();
     let states = this.initialStates;
     const len = value.length;
     let i = 0;
     while (i < len) {
-      states = this.getNextStates(states, value.charAt(i));
+      states = this.getNextStates(states, value.charAt(i), interpretation);
       if (states.length === 0) {
         break;
       }
@@ -250,21 +302,20 @@ export class SyntaxInterpreter {
       return 0;
     });
 
-    if (states.length === 0) {
-      return null;
-    } else {
-      return states[0].pattern;
+    if (states.length > 0) {
+      interpretation.pattern = states[0].pattern;
     }
+    return interpretation;
   }
 
-  public getNextStates(states: State[], ch: string): State[] {
+  public getNextStates(states: State[], ch: string, interpretation: Interpretation): State[] {
     const nextStates: State[] = [];
     let state: State = null;
     const len = states.length;
     let i = 0;
     while (i < len) {
       state = states[i];
-      nextStates.push(...state.findMatches(ch));
+      nextStates.push(...state.findMatches(ch, interpretation));
       ++i;
     }
 
@@ -324,4 +375,25 @@ export class SyntaxInterpreter {
 
     return result;
   }
+}
+
+export interface IAttributePattern {
+
+}
+
+export const IAttributePattern = DI.createInterface<IAttributePattern>().noDefault();
+
+type AttributePatternDecorator = <T extends Constructable>(target: T & Partial<IRegistry>) => T & IRegistry;
+
+export function attributePattern(pattern: string): AttributePatternDecorator;
+export function attributePattern(patterns: string[]): AttributePatternDecorator;
+export function attributePattern(patternOrPatterns: string | string[]): AttributePatternDecorator;
+export function attributePattern(patternOrPatterns: string | string[]): AttributePatternDecorator {
+  return function decorator(target: Constructable & Partial<IRegistry>): Constructable & IRegistry {
+    target.register = function register(container: IContainer): IResolver {
+      return Registration.singleton(IAttributePattern, target).register(container, IAttributePattern);
+    };
+
+    return <typeof target & IRegistry>target;
+  } as AttributePatternDecorator;
 }

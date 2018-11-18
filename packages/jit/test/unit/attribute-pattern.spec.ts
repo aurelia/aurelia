@@ -54,7 +54,7 @@ describe.only('@bindingSyntax', () => {
           sut.add(patterns);
 
           const result = sut.interpret(value);
-          expect(result).to.equal(match);
+          expect(result.pattern).to.equal(match);
         });
       }
     });

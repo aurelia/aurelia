@@ -68,6 +68,10 @@
       return c > 3 && r && Object.defineProperty(target, key, r), r;
   }
 
+  function register(container) {
+      const resourceKey = BindingCommandResource.keyFrom(this.description.name);
+      container.register(kernel.Registration.singleton(resourceKey, this));
+  }
   function bindingCommand(nameOrDefinition) {
       return target => BindingCommandResource.define(nameOrDefinition, target);
   }
@@ -78,13 +82,11 @@
       return Type.kind === this;
   }
   function define(nameOrDefinition, ctor) {
-      const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
       const Type = ctor;
+      const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
       Type.kind = BindingCommandResource;
       Type.description = description;
-      Type.register = function (container) {
-          container.register(kernel.Registration.singleton(Type.kind.keyFrom(description.name), Type));
-      };
+      Type.register = register;
       const proto = Type.prototype;
       proto.handles = proto.handles || defaultHandles;
       return Type;

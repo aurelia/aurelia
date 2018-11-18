@@ -6,8 +6,8 @@ export declare type SignalableBinding = Binding & {
     signal: string | string[];
 };
 export declare class SignalBindingBehavior {
-    private signaler;
     static register: IRegistry['register'];
+    private signaler;
     constructor(signaler: ISignaler);
     bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding, ...args: string[]): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding): void;

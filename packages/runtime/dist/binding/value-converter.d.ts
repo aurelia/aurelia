@@ -1,4 +1,4 @@
-import { Constructable, Decoratable, Decorated } from '@aurelia/kernel';
+import { Class } from '@aurelia/kernel';
 import { IResourceDefinition, IResourceKind, IResourceType } from '../resource';
 export interface IValueConverter {
     toView(input: unknown, ...args: unknown[]): unknown;
@@ -8,9 +8,11 @@ export interface IValueConverterDefinition extends IResourceDefinition {
 }
 export interface IValueConverterType extends IResourceType<IValueConverterDefinition, IValueConverter> {
 }
-declare type ValueConverterDecorator = <T extends Constructable>(target: Decoratable<IValueConverter, T>) => Decorated<IValueConverter, T> & IValueConverterType;
+export interface IValueConverterResource extends IResourceKind<IValueConverterDefinition, IValueConverter, Class<IValueConverter>> {
+}
+declare type ValueConverterDecorator = <TProto, TClass>(target: Class<TProto, TClass> & Partial<IValueConverterType>) => Class<TProto, TClass> & IValueConverterType;
 export declare function valueConverter(name: string): ValueConverterDecorator;
 export declare function valueConverter(definition: IValueConverterDefinition): ValueConverterDecorator;
-export declare const ValueConverterResource: IResourceKind<IValueConverterDefinition, IValueConverterType>;
+export declare const ValueConverterResource: IValueConverterResource;
 export {};
 //# sourceMappingURL=value-converter.d.ts.map

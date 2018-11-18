@@ -1,6 +1,5 @@
-import { Decoratable, Decorated } from '@aurelia/kernel';
+import { Class, IIndexable } from '@aurelia/kernel';
 import { IBindingTargetObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
-import { StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IObserverLocator } from './observer-locator';
 export interface IPartialConnectableBinding extends IBinding, IPropertySubscriber {
@@ -11,16 +10,16 @@ export interface IConnectableBinding extends IPartialConnectableBinding {
     $nextPatch?: IConnectableBinding;
     observerSlots: number;
     version: number;
-    observeProperty(obj: StrictAny, propertyName: StrictAny): void;
+    observeProperty(obj: IIndexable, propertyName: string): void;
     addObserver(observer: IBindingTargetObserver): void;
     unobserve(all?: boolean): void;
     connect(flags: LifecycleFlags): void;
     patch(flags: LifecycleFlags): void;
 }
-declare type DecoratableConnectable = Decoratable<IConnectableBinding, IPartialConnectableBinding>;
-declare type DecoratedConnectable = Decorated<IConnectableBinding, IPartialConnectableBinding>;
-declare function connectableDecorator(target: DecoratableConnectable): DecoratedConnectable;
+declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
+declare type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
+declare function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export declare function connectable(): typeof connectableDecorator;
-export declare function connectable(target: DecoratableConnectable): DecoratedConnectable;
+export declare function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export {};
 //# sourceMappingURL=connectable.d.ts.map

@@ -632,8 +632,7 @@
         done: {
             done: true,
             canCancel() { return false; },
-            // tslint:disable-next-line:no-empty
-            cancel() { },
+            cancel() { return; },
             wait() { return Promise.resolve(); }
         }
     };
@@ -819,6 +818,10 @@
         }
     }
 
+    function register(container) {
+        const resourceKey = BindingBehaviorResource.keyFrom(this.description.name);
+        container.register(kernel.Registration.singleton(resourceKey, this));
+    }
     function bindingBehavior(nameOrDefinition) {
         return target => BindingBehaviorResource.define(nameOrDefinition, target);
     }
@@ -844,9 +847,6 @@
         isType,
         define
     };
-    function register(container) {
-        container.register(kernel.Registration.singleton(BindingBehaviorResource.keyFrom(this.description.name), this));
-    }
 
     const ELEMENT_NODE = 1;
     const ATTRIBUTE_NODE = 2;
@@ -1094,7 +1094,6 @@
             this.start = this.end = null;
         }
         findTargets() {
-            // tslint:disable-next-line:no-any
             return this.targets;
         }
         insertBefore(refNode) {
@@ -1577,11 +1576,11 @@
         // Using very HTML-specific code here since this isn't likely to get
         // called unless operating against a real HTML element.
         constructor(lifecycle, obj, propertyKey, attributeName) {
+            this.attributeName = attributeName;
             this.lifecycle = lifecycle;
             this.obj = obj;
-            this.propertyKey = propertyKey;
-            this.attributeName = attributeName;
             this.oldValue = this.currentValue = this.getValue();
+            this.propertyKey = propertyKey;
         }
         getValue() {
             return this.obj.getAttributeNS(xlinkAttributeNS, this.attributeName);
@@ -1598,8 +1597,8 @@
         constructor(lifecycle, obj, propertyKey) {
             this.lifecycle = lifecycle;
             this.obj = obj;
-            this.propertyKey = propertyKey;
             this.oldValue = this.currentValue = this.getValue();
+            this.propertyKey = propertyKey;
         }
         getValue() {
             return DOM.getAttribute(this.obj, this.propertyKey);
@@ -1625,7 +1624,6 @@
         getValue() {
             return this.obj.style.cssText;
         }
-        // tslint:disable-next-line:function-name
         _setProperty(style, value) {
             let priority = '';
             if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
@@ -1992,7 +1990,6 @@
             if (keyOrObj !== undefined) {
                 if (value !== undefined) {
                     // if value is defined then it's just a property and a value to initialize with
-                    // tslint:disable-next-line:no-any
                     this[keyOrObj] = value;
                 }
                 else {
@@ -2070,9 +2067,9 @@
     }
     class OverrideContext {
         constructor(bindingContext, parentOverrideContext) {
+            this.$synthetic = true;
             this.bindingContext = bindingContext;
             this.parentOverrideContext = parentOverrideContext;
-            this.$synthetic = true;
         }
         static create(bc, poc) {
             return new OverrideContext(bc, poc === undefined ? null : poc);
@@ -2119,6 +2116,10 @@
         }
     }
 
+    function register$1(container) {
+        const resourceKey = this.kind.keyFrom(this.description.name);
+        container.register(kernel.Registration.singleton(resourceKey, this));
+    }
     function valueConverter(nameOrDefinition) {
         return target => ValueConverterResource.define(nameOrDefinition, target);
     }
@@ -2144,9 +2145,6 @@
         isType: isType$1,
         define: define$1
     };
-    function register$1(container) {
-        container.register(kernel.Registration.singleton(ValueConverterResource.keyFrom(this.description.name), this));
-    }
 
     function connects(expr) {
         return (expr.$kind & 32 /* Connects */) === 32 /* Connects */;
@@ -2498,13 +2496,11 @@
             const key = this.key.evaluate(flags, scope, locator);
             // note: getKeyed and setKeyed are removed because they are identical to the default spec behavior
             // and the runtime does this this faster
-            // tslint:disable-next-line:no-any
             return instance[key];
         }
         assign(flags, scope, locator, value) {
             const instance = this.object.evaluate(flags, scope, locator);
             const key = this.key.evaluate(flags, scope, locator);
-            // tslint:disable-next-line:no-any
             return instance[key] = value;
         }
         connect(flags, scope, binding) {
@@ -2590,7 +2586,7 @@
             this.args = args;
         }
         evaluate(flags, scope, locator) {
-            const func = this.func.evaluate(flags, scope, locator); // not sure why this cast is needed..
+            const func = this.func.evaluate(flags, scope, locator);
             if (typeof func === 'function') {
                 return func.apply(null, evalList(flags, scope, locator, this.args));
             }
@@ -2675,23 +2671,18 @@
         // this makes bugs in user code easier to track down for end users
         // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
         ['+'](f, s, l) {
-            // tslint:disable-next-line:no-any
             return this.left.evaluate(f, s, l) + this.right.evaluate(f, s, l);
         }
         ['-'](f, s, l) {
-            // tslint:disable-next-line:no-any
             return this.left.evaluate(f, s, l) - this.right.evaluate(f, s, l);
         }
         ['*'](f, s, l) {
-            // tslint:disable-next-line:no-any
             return this.left.evaluate(f, s, l) * this.right.evaluate(f, s, l);
         }
         ['/'](f, s, l) {
-            // tslint:disable-next-line:no-any
             return this.left.evaluate(f, s, l) / this.right.evaluate(f, s, l);
         }
         ['%'](f, s, l) {
-            // tslint:disable-next-line:no-any
             return this.left.evaluate(f, s, l) % this.right.evaluate(f, s, l);
         }
         ['<'](f, s, l) {
@@ -2718,7 +2709,6 @@
             this.operation = operation;
             this.expression = expression;
             // see Binary (we're doing the same thing here)
-            // tslint:disable-next-line:no-any
             this.evaluate = this[operation];
         }
         evaluate(flags, scope, locator) {
@@ -2891,7 +2881,7 @@
             for (let i = 0, ii = len; i < ii; ++i) {
                 results[i] = expressions[i].evaluate(flags, scope, locator);
             }
-            const func = this.func.evaluate(flags, scope, locator); // not sure why this cast is needed..
+            const func = this.func.evaluate(flags, scope, locator);
             if (typeof func !== 'function') {
                 throw kernel.Reporter.error(207 /* NotAFunction */, this);
             }
@@ -2914,13 +2904,13 @@
             this.$kind = 65556 /* ArrayBindingPattern */;
             this.elements = elements;
         }
-        // tslint:disable-next-line:no-any
         evaluate(flags, scope, locator) {
             // TODO
+            return undefined;
         }
-        // tslint:disable-next-line:no-any
         assign(flags, scope, locator, obj) {
             // TODO
+            return undefined;
         }
         connect(flags, scope, binding) {
             return;
@@ -2936,13 +2926,13 @@
             this.keys = keys;
             this.values = values;
         }
-        // tslint:disable-next-line:no-any
         evaluate(flags, scope, locator) {
             // TODO
+            return undefined;
         }
-        // tslint:disable-next-line:no-any
         assign(flags, scope, locator, obj) {
             // TODO
+            return undefined;
         }
         connect(flags, scope, binding) {
             return;
@@ -2982,7 +2972,6 @@
         count(result) {
             return CountForOfStatement[toStringTag.call(result)](result);
         }
-        // tslint:disable-next-line:no-any
         iterate(result, func) {
             IterateForOfStatement[toStringTag.call(result)](result, func);
         }
@@ -3247,19 +3236,19 @@
     const toViewOrOneTime = toView$1 | oneTime$1;
     exports.Binding = class Binding {
         constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
-            this.sourceExpression = sourceExpression;
-            this.target = target;
-            this.targetProperty = targetProperty;
-            this.mode = mode;
-            this.observerLocator = observerLocator;
-            this.locator = locator;
-            this.$nextConnect = null;
-            this.$nextPatch = null;
             this.$nextBind = null;
             this.$prevBind = null;
             this.$state = 0 /* none */;
-            this.$scope = null;
             this.$lifecycle = locator.get(ILifecycle);
+            this.$nextConnect = null;
+            this.$nextPatch = null;
+            this.$scope = null;
+            this.locator = locator;
+            this.mode = mode;
+            this.observerLocator = observerLocator;
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.targetProperty = targetProperty;
         }
         updateTarget(value, flags) {
             this.targetObserver.setValue(value, flags | exports.LifecycleFlags.updateTargetInstance);
@@ -3381,10 +3370,10 @@
 
     const unset = {};
     /*@internal*/
-    function debounceCallSource(event) {
+    function debounceCallSource(newValue, oldValue, flags) {
         const state = this.debounceState;
         clearTimeout(state.timeoutId);
-        state.timeoutId = setTimeout(() => this.debouncedMethod(event), state.delay);
+        state.timeoutId = setTimeout(() => this.debouncedMethod(newValue, oldValue, flags), state.delay);
     }
     /*@internal*/
     function debounceCall(newValue, oldValue, flags) {
@@ -3462,7 +3451,6 @@
      */
     exports.SanitizeValueConverter = class SanitizeValueConverter {
         constructor(sanitizer) {
-            this.sanitizer = sanitizer;
             this.sanitizer = sanitizer;
         }
         /**
@@ -3544,10 +3532,10 @@
     }
     class ListenerTracker {
         constructor(eventName, listener, capture) {
-            this.eventName = eventName;
-            this.listener = listener;
             this.capture = capture;
             this.count = 0;
+            this.eventName = eventName;
+            this.listener = listener;
         }
         increment() {
             this.count++;
@@ -4325,12 +4313,12 @@
     // Used when the getter is dependent solely on changes that happen within the setter.
     exports.CustomSetterObserver = class CustomSetterObserver {
         constructor(obj, propertyKey, descriptor, lifecycle) {
+            this.$nextFlush = null;
             this.obj = obj;
+            this.observing = false;
             this.propertyKey = propertyKey;
             this.descriptor = descriptor;
             this.lifecycle = lifecycle;
-            this.$nextFlush = null;
-            this.observing = false;
         }
         getValue() {
             return this.obj[this.propertyKey];
@@ -4360,10 +4348,10 @@
             Reflect.defineProperty(this.obj, this.propertyKey, {
                 set: function (newValue) {
                     setter.call(that.obj, newValue);
-                    const oldValue = this.currentValue;
+                    const oldValue = that.currentValue;
                     if (oldValue !== newValue) {
                         that.oldValue = oldValue;
-                        this.lifecycle.queueFlush(that);
+                        that.lifecycle.enqueueFlush(that);
                         that.currentValue = newValue;
                     }
                 }
@@ -4379,19 +4367,16 @@
     /*@internal*/
     exports.GetterObserver = class GetterObserver {
         constructor(overrides, obj, propertyKey, descriptor, observerLocator, lifecycle) {
-            this.overrides = overrides;
             this.obj = obj;
             this.propertyKey = propertyKey;
-            this.descriptor = descriptor;
-            this.observerLocator = observerLocator;
-            this.lifecycle = lifecycle;
             this.controller = new GetterController(overrides, obj, propertyKey, descriptor, this, observerLocator, lifecycle);
         }
         getValue() {
             return this.controller.value;
         }
-        // tslint:disable-next-line:no-empty
-        setValue(newValue) { }
+        setValue(newValue) {
+            return;
+        }
         flush(flags) {
             const oldValue = this.controller.value;
             const newValue = this.controller.getValueAndCollectDependencies();
@@ -4415,13 +4400,13 @@
     /*@internal*/
     class GetterController {
         constructor(overrides, instance, propertyName, descriptor, owner, observerLocator, lifecycle) {
-            this.overrides = overrides;
-            this.instance = instance;
-            this.propertyName = propertyName;
-            this.owner = owner;
-            this.lifecycle = lifecycle;
             this.isCollecting = false;
             this.dependencies = [];
+            this.instance = instance;
+            this.lifecycle = lifecycle;
+            this.overrides = overrides;
+            this.owner = owner;
+            this.propertyName = propertyName;
             this.subscriberCount = 0;
             const proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
             const getter = descriptor.get;
@@ -4520,8 +4505,8 @@
     /*@internal*/
     class DirtyChecker {
         constructor() {
-            this.tracked = [];
             this.checkDelay = 120;
+            this.tracked = [];
         }
         createProperty(obj, propertyName) {
             return new exports.DirtyCheckProperty(this, obj, propertyName);
@@ -4557,9 +4542,9 @@
     /*@internal*/
     exports.DirtyCheckProperty = class DirtyCheckProperty {
         constructor(dirtyChecker, obj, propertyKey) {
-            this.dirtyChecker = dirtyChecker;
             this.obj = obj;
             this.propertyKey = propertyKey;
+            this.dirtyChecker = dirtyChecker;
         }
         isDirty() {
             return this.oldValue !== this.obj[this.propertyKey];
@@ -4620,12 +4605,12 @@
     const handleEventFlags = exports.LifecycleFlags.fromDOMEvent | exports.LifecycleFlags.updateSourceExpression;
     exports.ValueAttributeObserver = class ValueAttributeObserver {
         constructor(lifecycle, obj, propertyKey, handler) {
-            // note: input.files can be assigned and this was fixed in Firefox 57:
-            // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
+            this.handler = handler;
             this.lifecycle = lifecycle;
             this.obj = obj;
             this.propertyKey = propertyKey;
-            this.handler = handler;
+            // note: input.files can be assigned and this was fixed in Firefox 57:
+            // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
             // input.value (for type='file') however, can only be assigned an empty string
             if (propertyKey === 'value') {
                 const nodeType = obj['type'];
@@ -4687,9 +4672,9 @@
     const defaultHandleBatchedChangeFlags = exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.updateTargetInstance;
     exports.CheckedObserver = class CheckedObserver {
         constructor(lifecycle, obj, handler, observerLocator) {
+            this.handler = handler;
             this.lifecycle = lifecycle;
             this.obj = obj;
-            this.handler = handler;
             this.observerLocator = observerLocator;
         }
         getValue() {
@@ -5251,11 +5236,11 @@
     /*@internal*/
     class ObserverLocator {
         constructor(lifecycle, eventManager, dirtyChecker, svgAnalyzer) {
-            this.lifecycle = lifecycle;
-            this.eventManager = eventManager;
-            this.dirtyChecker = dirtyChecker;
-            this.svgAnalyzer = svgAnalyzer;
             this.adapters = [];
+            this.dirtyChecker = dirtyChecker;
+            this.eventManager = eventManager;
+            this.lifecycle = lifecycle;
+            this.svgAnalyzer = svgAnalyzer;
         }
         getObserver(obj, propertyName) {
             if (obj.$synthetic === true) {
@@ -5462,11 +5447,11 @@
 
     class Call {
         constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
-            this.sourceExpression = sourceExpression;
-            this.locator = locator;
             this.$nextBind = null;
             this.$prevBind = null;
             this.$state = 0 /* none */;
+            this.locator = locator;
+            this.sourceExpression = sourceExpression;
             this.targetObserver = observerLocator.getObserver(target, targetProperty);
         }
         callSource(args) {
@@ -5526,8 +5511,8 @@
     class ExpressionParser {
         constructor() {
             this.expressionLookup = Object.create(null);
-            this.interpolationLookup = Object.create(null);
             this.forOfLookup = Object.create(null);
+            this.interpolationLookup = Object.create(null);
         }
         parse(expression, bindingType) {
             switch (bindingType) {
@@ -5608,20 +5593,19 @@
         }
     }
 
-    // tslint:disable:no-any
     const { toView: toView$2, oneTime: oneTime$2 } = exports.BindingMode;
     class MultiInterpolationBinding {
         constructor(observerLocator, interpolation, target, targetProperty, mode, locator) {
-            this.observerLocator = observerLocator;
-            this.interpolation = interpolation;
-            this.target = target;
-            this.targetProperty = targetProperty;
-            this.mode = mode;
-            this.locator = locator;
             this.$nextBind = null;
             this.$prevBind = null;
             this.$state = 0 /* none */;
             this.$scope = null;
+            this.interpolation = interpolation;
+            this.locator = locator;
+            this.mode = mode;
+            this.observerLocator = observerLocator;
+            this.target = target;
+            this.targetProperty = targetProperty;
             // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
             // value converters and binding behaviors.
             // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
@@ -5660,15 +5644,15 @@
     }
     exports.InterpolationBinding = class InterpolationBinding {
         constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
-            this.sourceExpression = sourceExpression;
+            this.$state = 0 /* none */;
             this.interpolation = interpolation;
+            this.isFirst = isFirst;
+            this.mode = mode;
+            this.locator = locator;
+            this.observerLocator = observerLocator;
+            this.sourceExpression = sourceExpression;
             this.target = target;
             this.targetProperty = targetProperty;
-            this.mode = mode;
-            this.observerLocator = observerLocator;
-            this.locator = locator;
-            this.isFirst = isFirst;
-            this.$state = 0 /* none */;
             this.targetObserver = observerLocator.getAccessor(target, targetProperty);
         }
         updateTarget(value, flags) {
@@ -5730,17 +5714,17 @@
 
     exports.LetBinding = class LetBinding {
         constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
-            this.sourceExpression = sourceExpression;
-            this.targetProperty = targetProperty;
-            this.observerLocator = observerLocator;
-            this.locator = locator;
-            this.toViewModel = toViewModel;
             this.$nextBind = null;
             this.$prevBind = null;
             this.$state = 0 /* none */;
-            this.$scope = null;
-            this.target = null;
             this.$lifecycle = locator.get(ILifecycle);
+            this.$scope = null;
+            this.locator = locator;
+            this.observerLocator = observerLocator;
+            this.sourceExpression = sourceExpression;
+            this.target = null;
+            this.targetProperty = targetProperty;
+            this.toViewModel = toViewModel;
         }
         handleChange(newValue, previousValue, flags) {
             if (!(this.$state & 2 /* isBound */)) {
@@ -5801,16 +5785,16 @@
 
     class Listener {
         constructor(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
-            this.targetEvent = targetEvent;
-            this.delegationStrategy = delegationStrategy;
-            this.sourceExpression = sourceExpression;
-            this.target = target;
-            this.preventDefault = preventDefault;
-            this.eventManager = eventManager;
-            this.locator = locator;
             this.$nextBind = null;
             this.$prevBind = null;
             this.$state = 0 /* none */;
+            this.delegationStrategy = delegationStrategy;
+            this.locator = locator;
+            this.preventDefault = preventDefault;
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.targetEvent = targetEvent;
+            this.eventManager = eventManager;
         }
         callSource(event) {
             const overrideContext = this.$scope.overrideContext;
@@ -5860,19 +5844,22 @@
             // remove isBound and isUnbinding flags
             this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
         }
-        // tslint:disable:no-empty no-any
-        observeProperty(obj, propertyName) { }
-        handleChange(newValue, previousValue, flags) { }
+        observeProperty(obj, propertyName) {
+            return;
+        }
+        handleChange(newValue, previousValue, flags) {
+            return;
+        }
     }
 
     class Ref {
         constructor(sourceExpression, target, locator) {
-            this.sourceExpression = sourceExpression;
-            this.target = target;
-            this.locator = locator;
             this.$nextBind = null;
             this.$prevBind = null;
             this.$state = 0 /* none */;
+            this.locator = locator;
+            this.sourceExpression = sourceExpression;
+            this.target = target;
         }
         $bind(flags, scope) {
             if (this.$state & 2 /* isBound */) {
@@ -5910,12 +5897,14 @@
             // remove isBound and isUnbinding flags
             this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
         }
-        // tslint:disable:no-empty no-any
-        observeProperty(obj, propertyName) { }
-        handleChange(newValue, previousValue, flags) { }
+        observeProperty(obj, propertyName) {
+            return;
+        }
+        handleChange(newValue, previousValue, flags) {
+            return;
+        }
     }
 
-    // tslint:disable:no-reserved-keywords
     /*@internal*/
     const customElementName = 'custom-element';
     /*@internal*/
@@ -5935,8 +5924,8 @@
     const instructionTypeValues = 'abcdefghijkl';
     const ITargetedInstruction = kernel.DI.createInterface();
     function isTargetedInstruction(value) {
-        const type = value.type;
-        return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
+        const Type = value.type;
+        return typeof Type === 'string' && instructionTypeValues.indexOf(Type) !== -1;
     }
     /*@internal*/
     const buildRequired = Object.freeze({
@@ -6572,6 +6561,32 @@
         }
     }
 
+    class RuntimeCompilationResources {
+        constructor(context) {
+            this.context = context;
+        }
+        find(kind, name) {
+            const key = kind.keyFrom(name);
+            const resolver = this.context.getResolver(key, false);
+            if (resolver !== null && resolver.getFactory) {
+                const factory = resolver.getFactory(this.context);
+                if (factory !== null) {
+                    const description = factory.Type.description;
+                    return description === undefined ? null : description;
+                }
+            }
+            return null;
+        }
+        create(kind, name) {
+            const key = kind.keyFrom(name);
+            if (this.context.has(key, false)) {
+                const instance = this.context.get(key);
+                return instance === undefined ? null : instance;
+            }
+            return null;
+        }
+    }
+
     /*@internal*/
     class View {
         constructor($lifecycle, cache) {
@@ -6945,7 +6960,7 @@
             Reflect.defineProperty(instance, '$children', {
                 enumerable: false,
                 get: function () {
-                    return this.$observers.$children.getValue();
+                    return this['$observers'].$children.getValue();
                 }
             });
         }
@@ -6968,8 +6983,8 @@
     function createGetterSetter(instance, name) {
         Reflect.defineProperty(instance, name, {
             enumerable: true,
-            get: function () { return this.$observers[name].getValue(); },
-            set: function (value) { this.$observers[name].setValue(value, exports.LifecycleFlags.updateTargetInstance); }
+            get: function () { return this['$observers'][name].getValue(); },
+            set: function (value) { this['$observers'][name].setValue(value, exports.LifecycleFlags.updateTargetInstance); }
         });
     }
     /*@internal*/
@@ -7023,32 +7038,6 @@
             }
         }
         return components;
-    }
-    /*@internal*/
-    class RuntimeCompilationResources {
-        constructor(context) {
-            this.context = context;
-        }
-        find(kind, name) {
-            const key = kind.keyFrom(name);
-            const resolver = this.context.getResolver(key, false);
-            if (resolver !== null && resolver.getFactory) {
-                const factory = resolver.getFactory(this.context);
-                if (factory !== null) {
-                    const description = factory.type.description;
-                    return description === undefined ? null : description;
-                }
-            }
-            return null;
-        }
-        create(kind, name) {
-            const key = kind.keyFrom(name);
-            if (this.context.has(key, false)) {
-                const context = this.context.get(key);
-                return context === undefined ? null : context;
-            }
-            return null;
-        }
     }
     // This is the main implementation of ITemplate.
     // It is used to create instances of IView based on a compiled TemplateDefinition.
@@ -7228,6 +7217,11 @@
         kernel.inject(kernel.all(IInstructionRenderer))
     ], exports.Renderer);
 
+    /*@internal*/
+    function registerElement(container) {
+        const resourceKey = this.kind.keyFrom(this.description.name);
+        container.register(kernel.Registration.transient(resourceKey, this));
+    }
     function customElement(nameOrDefinition) {
         return target => CustomElementResource.define(nameOrDefinition, target);
     }
@@ -7327,11 +7321,6 @@
         behaviorFor: customElementBehavior,
         define: define$2
     };
-    /*@internal*/
-    function registerElement(container) {
-        const resourceKey = CustomElementResource.keyFrom(this.description.name);
-        container.register(kernel.Registration.transient(resourceKey, this));
-    }
     // tslint:enable:align
     // TODO
     // ## DefaultSlotProjector
@@ -7456,6 +7445,17 @@
         kernel.inject(IRenderable, ITargetedInstruction, IRenderingEngine, exports.CompositionCoordinator)
     ], exports.Compose);
 
+    /*@internal*/
+    function registerAttribute(container) {
+        const description = this.description;
+        const resourceKey = this.kind.keyFrom(description.name);
+        const aliases = description.aliases;
+        container.register(kernel.Registration.transient(resourceKey, this));
+        for (let i = 0, ii = aliases.length; i < ii; ++i) {
+            const aliasKey = this.kind.keyFrom(aliases[i]);
+            container.register(kernel.Registration.alias(resourceKey, aliasKey));
+        }
+    }
     function customAttribute(nameOrDefinition) {
         return target => CustomAttributeResource.define(nameOrDefinition, target);
     }
@@ -7527,17 +7527,6 @@
         isType: isType$3,
         define: define$3
     };
-    /*@internal*/
-    function registerAttribute(container) {
-        const description = this.description;
-        const resourceKey = CustomAttributeResource.keyFrom(description.name);
-        const aliases = description.aliases;
-        container.register(kernel.Registration.transient(resourceKey, this));
-        for (let i = 0, ii = aliases.length; i < ii; ++i) {
-            const aliasKey = CustomAttributeResource.keyFrom(aliases[i]);
-            container.register(kernel.Registration.alias(resourceKey, aliasKey));
-        }
-    }
     /*@internal*/
     function createCustomAttributeDescription(def, Type) {
         const aliases = def.aliases;
@@ -7883,8 +7872,16 @@
             return this;
         }
         app(config) {
-            const component = config.component;
             const host = config.host;
+            let component;
+            const componentOrType = config.component;
+            if (CustomElementResource.isType(componentOrType)) {
+                this.container.register(componentOrType);
+                component = this.container.get(CustomElementResource.keyFrom(componentOrType.description.name));
+            }
+            else {
+                component = componentOrType;
+            }
             const startTask = () => {
                 host.$au = this;
                 if (!this.components.includes(component)) {
@@ -8509,16 +8506,16 @@
     exports.bindable = bindable;
     exports.createElement = createElement;
     exports.RenderPlan = RenderPlan;
+    exports.registerAttribute = registerAttribute;
     exports.customAttribute = customAttribute;
     exports.templateController = templateController;
     exports.CustomAttributeResource = CustomAttributeResource;
-    exports.registerAttribute = registerAttribute;
     exports.createCustomAttributeDescription = createCustomAttributeDescription;
+    exports.registerElement = registerElement;
     exports.customElement = customElement;
     exports.useShadowDOM = useShadowDOM;
     exports.containerless = containerless;
     exports.CustomElementResource = CustomElementResource;
-    exports.registerElement = registerElement;
     exports.$attachAttribute = $attachAttribute;
     exports.$attachElement = $attachElement;
     exports.$attachView = $attachView;
@@ -8548,7 +8545,6 @@
     exports.HostProjector = HostProjector;
     exports.RuntimeBehavior = RuntimeBehavior;
     exports.findElements = findElements;
-    exports.RuntimeCompilationResources = RuntimeCompilationResources;
     exports.CompiledTemplate = CompiledTemplate;
     exports.noViewTemplate = noViewTemplate;
     exports.createRenderContext = createRenderContext;
@@ -8618,6 +8614,7 @@
     exports.AggregateLifecycleTask = AggregateLifecycleTask;
     exports.PromiseSwap = PromiseSwap;
     exports.PromiseTask = PromiseTask;
+    exports.RuntimeCompilationResources = RuntimeCompilationResources;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

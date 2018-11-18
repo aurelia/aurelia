@@ -1,9 +1,9 @@
-import { Decoratable, Decorated, IContainer, Immutable, ImmutableArray, IRegistry } from '@aurelia/kernel';
+import { Class, IContainer, Immutable, ImmutableArray, IRegistry } from '@aurelia/kernel';
 import { IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { ILifecycle, IRenderable, IRenderContext, IViewFactory } from '../lifecycle';
 import { IAccessor, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
-import { IResourceDescriptions, IResourceKind } from '../resource';
+import { IResourceDescriptions } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 export interface ITemplateCompiler {
@@ -21,9 +21,6 @@ export interface ICustomElementHost extends IRenderLocation {
     $customElement?: ICustomElement;
 }
 export declare type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
-export interface ICustomElementResource extends IResourceKind<ITemplateDefinition, ICustomElementType> {
-    behaviorFor(node: INode): ICustomElement | null;
-}
 export interface IElementProjector {
     readonly host: ICustomElementHost;
     readonly children: ArrayLike<ICustomElementHost>;
@@ -100,9 +97,9 @@ export interface IInstructionRenderer<TType extends string = string> extends Par
     render(context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
 }
 export declare const IInstructionRenderer: import("@aurelia/kernel/dist/di").InterfaceSymbol<IInstructionRenderer<string>>;
-declare type DecoratableInstructionRenderer<TType extends string> = Decoratable<IInstructionTypeClassifier<TType>, Pick<IInstructionRenderer, 'render'>> & Partial<IRegistry>;
-declare type DecoratedInstructionRenderer<TType extends string> = Decorated<IInstructionTypeClassifier<TType>, Pick<IInstructionRenderer, 'render'>> & IRegistry;
-declare type InstructionRendererDecorator<TType extends string> = (target: DecoratableInstructionRenderer<TType>) => DecoratedInstructionRenderer<TType>;
+declare type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
+declare type DecoratedInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
+declare type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
 export declare function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType>;
 export {};
 //# sourceMappingURL=lifecycle-render.d.ts.map

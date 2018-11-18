@@ -1,19 +1,20 @@
-import { Constructable, Decoratable, Decorated, Immutable, Omit } from '@aurelia/kernel';
+import { Class, Constructable } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../definitions';
-import { IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable, IState } from '../lifecycle';
+import { IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { IRenderingEngine } from './lifecycle-render';
-declare type OptionalHooks = ILifecycleHooks & Omit<IRenderable, Exclude<keyof IRenderable, '$mount' | '$unmount'>>;
-declare type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$scope'>> & IState;
 declare type CustomAttributeStaticProperties = Pick<AttributeDefinition, 'bindables'>;
 export declare type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
-export interface ICustomAttribute extends Partial<IChangeTracker>, IBindScope, ILifecycleUnbindAfterDetach, IAttach, OptionalHooks, RequiredLifecycleProperties {
+export interface ICustomAttributeType extends IResourceType<IAttributeDefinition, ICustomAttribute>, CustomAttributeStaticProperties {
+}
+declare type PartialCustomAttributeType<T> = T & Partial<IResourceType<IAttributeDefinition, unknown, Constructable>>;
+export interface ICustomAttribute extends Partial<IChangeTracker>, ILifecycleHooks, IBindScope, ILifecycleUnbindAfterDetach, IAttach, IRenderable {
     $hydrate(renderingEngine: IRenderingEngine): void;
 }
-export interface ICustomAttributeType extends IResourceType<IAttributeDefinition, ICustomAttribute>, Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> {
+export interface ICustomAttributeResource extends IResourceKind<IAttributeDefinition, ICustomAttribute, Class<ICustomAttribute> & CustomAttributeStaticProperties> {
 }
-declare type CustomAttributeDecorator = <T extends Constructable>(target: Decoratable<ICustomAttribute, T>) => Decorated<ICustomAttribute, T> & ICustomAttributeType;
+declare type CustomAttributeDecorator = <T>(target: PartialCustomAttributeType<T>) => T & ICustomAttributeType;
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
  */
@@ -26,6 +27,6 @@ export declare function customAttribute(definition: IAttributeDefinition): Custo
  */
 export declare function templateController(name: string): CustomAttributeDecorator;
 export declare function templateController(definition: IAttributeDefinition): CustomAttributeDecorator;
-export declare const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICustomAttributeType>;
+export declare const CustomAttributeResource: ICustomAttributeResource;
 export {};
 //# sourceMappingURL=custom-attribute.d.ts.map

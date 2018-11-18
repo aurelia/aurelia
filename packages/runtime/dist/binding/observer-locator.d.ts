@@ -17,11 +17,11 @@ export interface IObserverLocator {
 }
 export declare const IObserverLocator: import("@aurelia/kernel/dist/di").InterfaceSymbol<IObserverLocator>;
 export declare class ObserverLocator implements IObserverLocator {
-    private lifecycle;
-    private eventManager;
-    private dirtyChecker;
-    private svgAnalyzer;
     private adapters;
+    private dirtyChecker;
+    private eventManager;
+    private lifecycle;
+    private svgAnalyzer;
     constructor(lifecycle: ILifecycle, eventManager: IEventManager, dirtyChecker: IDirtyChecker, svgAnalyzer: ISVGAnalyzer);
     getObserver(obj: IObservable | IBindingContext | IOverrideContext, propertyName: string): AccessorOrObserver;
     addAdapter(adapter: IObjectObservationAdapter): void;

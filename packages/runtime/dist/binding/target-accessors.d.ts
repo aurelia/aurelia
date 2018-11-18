@@ -5,13 +5,13 @@ import { IBindingTargetAccessor } from '../observation';
 export interface XLinkAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, string, string> {
 }
 export declare class XLinkAttributeAccessor implements XLinkAttributeAccessor {
-    lifecycle: ILifecycle;
-    obj: IHTMLElement;
-    propertyKey: string;
     attributeName: string;
     currentValue: string;
-    oldValue: string;
     defaultValue: string;
+    lifecycle: ILifecycle;
+    obj: IHTMLElement;
+    oldValue: string;
+    propertyKey: string;
     constructor(lifecycle: ILifecycle, obj: IHTMLElement, propertyKey: string, attributeName: string);
     getValue(): string;
     setValueCore(newValue: string): void;
@@ -19,12 +19,12 @@ export declare class XLinkAttributeAccessor implements XLinkAttributeAccessor {
 export interface DataAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {
 }
 export declare class DataAttributeAccessor implements DataAttributeAccessor {
+    currentValue: string;
+    defaultValue: string;
     lifecycle: ILifecycle;
     obj: INode;
-    propertyKey: string;
-    currentValue: string;
     oldValue: string;
-    defaultValue: string;
+    propertyKey: string;
     constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string);
     getValue(): string;
     setValueCore(newValue: string): void;
@@ -32,11 +32,11 @@ export declare class DataAttributeAccessor implements DataAttributeAccessor {
 export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, 'style', string | IIndexable> {
 }
 export declare class StyleAttributeAccessor implements StyleAttributeAccessor {
+    currentValue: string | IIndexable;
+    defaultValue: string | IIndexable;
     lifecycle: ILifecycle;
     obj: IHTMLElement;
-    currentValue: string | IIndexable;
     oldValue: string | IIndexable;
-    defaultValue: string | IIndexable;
     propertyKey: 'style';
     styles: IIndexable;
     version: number;
@@ -48,14 +48,14 @@ export declare class StyleAttributeAccessor implements StyleAttributeAccessor {
 export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {
 }
 export declare class ClassAttributeAccessor implements ClassAttributeAccessor {
-    lifecycle: ILifecycle;
-    obj: INode;
     currentValue: string;
-    oldValue: string;
     defaultValue: string;
     doNotCache: true;
-    version: number;
+    lifecycle: ILifecycle;
     nameIndex: IIndexable;
+    obj: INode;
+    oldValue: string;
+    version: number;
     constructor(lifecycle: ILifecycle, obj: INode);
     getValue(): string;
     setValueCore(newValue: string): void;

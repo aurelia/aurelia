@@ -20,10 +20,10 @@ export declare class Scope implements IScope {
     static fromParent(ps: IScope, bc: IBindingContext | IBindScope): Scope;
 }
 export declare class OverrideContext implements IOverrideContext {
-    readonly bindingContext: IBindingContext | IBindScope;
-    readonly parentOverrideContext: IOverrideContext | null;
     [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
     readonly $synthetic: true;
+    readonly bindingContext: IBindingContext | IBindScope;
+    readonly parentOverrideContext: IOverrideContext | null;
     private constructor();
     static create(bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext;
     getObservers(): ObserversLookup<IOverrideContext>;

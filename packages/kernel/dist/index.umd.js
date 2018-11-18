@@ -26,8 +26,7 @@
       })(),
       emptyArray: Object.freeze([]),
       emptyObject: Object.freeze({}),
-      /* tslint:disable-next-line:no-empty */
-      noop() { },
+      noop() { return; },
       now() {
           return performance.now();
       },
@@ -84,8 +83,7 @@
   };
 
   const Reporter = {
-      /* tslint:disable-next-line:no-empty */
-      write(code, ...params) { },
+      write(code, ...params) { return; },
       error(code, ...params) { return new Error(`Code ${code}`); }
   };
 
@@ -112,14 +110,14 @@
       getDesignParamTypes(target) {
           return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
       },
-      getDependencies(type) {
+      getDependencies(Type) {
           let dependencies;
-          if (type.inject === undefined) {
-              dependencies = DI.getDesignParamTypes(type);
+          if (Type.inject === undefined) {
+              dependencies = DI.getDesignParamTypes(Type);
           }
           else {
               dependencies = [];
-              let ctor = type;
+              let ctor = Type;
               while (typeof ctor === 'function') {
                   if (ctor.hasOwnProperty('inject')) {
                       dependencies.push(...ctor.inject);
@@ -334,22 +332,22 @@
   }
   /*@internal*/
   class Factory {
-      constructor(type, invoker, dependencies) {
-          this.type = type;
+      constructor(Type, invoker, dependencies) {
+          this.Type = Type;
           this.invoker = invoker;
           this.dependencies = dependencies;
           this.transformers = null;
       }
-      static create(type) {
-          const dependencies = DI.getDependencies(type);
+      static create(Type) {
+          const dependencies = DI.getDependencies(Type);
           const invoker = classInvokers[dependencies.length] || fallbackInvoker;
-          return new Factory(type, invoker, dependencies);
+          return new Factory(Type, invoker, dependencies);
       }
       construct(container, dynamicDependencies) {
           const transformers = this.transformers;
           let instance = dynamicDependencies !== undefined
-              ? this.invoker.invokeWithDynamicDependencies(container, this.type, this.dependencies, dynamicDependencies)
-              : this.invoker.invoke(container, this.type, this.dependencies);
+              ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
+              : this.invoker.invoke(container, this.Type, this.dependencies);
           if (transformers === null) {
               return instance;
           }
@@ -461,6 +459,7 @@
                   ? this.parent.has(key, true)
                   : false;
       }
+      // tslint:disable-next-line:no-reserved-keywords
       get(key) {
           validateKey(key);
           if (key.resolve) {
@@ -497,11 +496,11 @@
           }
           return PLATFORM.emptyArray;
       }
-      getFactory(type) {
-          let factory = this.factories.get(type);
+      getFactory(Type) {
+          let factory = this.factories.get(Type);
           if (factory === undefined) {
-              factory = Factory.create(type);
-              this.factories.set(type, factory);
+              factory = Factory.create(Type);
+              this.factories.set(Type, factory);
           }
           return factory;
       }

@@ -1,4 +1,4 @@
-import { Constructable, Decoratable, Decorated, IRegistry } from '@aurelia/kernel';
+import { Class, IIndexable, IRegistry } from '@aurelia/kernel';
 import { IExpressionParser, IResourceDefinition, IResourceKind, IResourceType, TargetedInstruction } from '@aurelia/runtime';
 import { IAttributeSymbol } from './semantic-model';
 export interface IBindingCommand {
@@ -7,13 +7,14 @@ export interface IBindingCommand {
 }
 export interface IBindingCommandDefinition extends IResourceDefinition {
 }
-export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand> {
-    inject: Function[];
+export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand, IIndexable>> {
 }
-declare type BindingCommandDecorator = <T extends Constructable>(target: Decoratable<IBindingCommand, T>) => Decorated<IBindingCommand, T> & IBindingCommandType;
+export interface IBindingCommandResource extends IResourceKind<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> {
+}
+declare type BindingCommandDecorator = <TProto, TClass>(target: Class<TProto, TClass> & Partial<IBindingCommandType>) => Class<TProto, TClass> & IBindingCommandType;
 export declare function bindingCommand(name: string): BindingCommandDecorator;
 export declare function bindingCommand(definition: IBindingCommandDefinition): BindingCommandDecorator;
-export declare const BindingCommandResource: IResourceKind<IBindingCommandDefinition, IBindingCommandType>;
+export declare const BindingCommandResource: IBindingCommandResource;
 export interface OneTimeBindingCommand extends IBindingCommand {
 }
 export declare class OneTimeBindingCommand implements IBindingCommand {

@@ -1,7 +1,7 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { AccessorOrObserver, IScope, LifecycleFlags } from '../observation';
-import { ForOfStatement, IsBindingBehavior, StrictAny } from './ast';
+import { ForOfStatement, IsBindingBehavior } from './ast';
 import { BindingMode } from './binding-mode';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
@@ -13,24 +13,24 @@ export declare type IBindingTarget = any;
 export interface Binding extends IConnectableBinding {
 }
 export declare class Binding implements IPartialConnectableBinding {
-    sourceExpression: IsBindingBehavior | ForOfStatement;
-    target: IBindingTarget;
-    targetProperty: string;
-    mode: BindingMode;
-    observerLocator: IObserverLocator;
-    locator: IServiceLocator;
-    $nextConnect: IConnectableBinding;
-    $nextPatch: IConnectableBinding;
     $nextBind: IBindScope;
     $prevBind: IBindScope;
     $state: State;
-    $scope: IScope;
     $lifecycle: ILifecycle;
+    $nextConnect: IConnectableBinding;
+    $nextPatch: IConnectableBinding;
+    $scope: IScope;
+    locator: IServiceLocator;
+    mode: BindingMode;
+    observerLocator: IObserverLocator;
+    sourceExpression: IsBindingBehavior | ForOfStatement;
+    target: IBindingTarget;
+    targetProperty: string;
     targetObserver: AccessorOrObserver;
     constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
-    updateTarget(value: StrictAny, flags: LifecycleFlags): void;
-    updateSource(value: StrictAny, flags: LifecycleFlags): void;
-    handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void;
+    updateTarget(value: unknown, flags: LifecycleFlags): void;
+    updateSource(value: unknown, flags: LifecycleFlags): void;
+    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
     connect(flags: LifecycleFlags): void;

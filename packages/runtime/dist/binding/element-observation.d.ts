@@ -8,15 +8,15 @@ import { SetterObserver } from './property-observation';
 export interface ValueAttributeObserver extends IBindingTargetObserver<INode, string, Primitive | IIndexable> {
 }
 export declare class ValueAttributeObserver implements ValueAttributeObserver {
+    currentFlags: LifecycleFlags;
+    currentValue: Primitive | IIndexable;
+    defaultValue: Primitive | IIndexable;
+    oldValue: Primitive | IIndexable;
+    flush: () => void;
+    handler: IEventSubscriber;
     lifecycle: ILifecycle;
     obj: INode;
     propertyKey: string;
-    handler: IEventSubscriber;
-    currentValue: Primitive | IIndexable;
-    currentFlags: LifecycleFlags;
-    oldValue: Primitive | IIndexable;
-    defaultValue: Primitive | IIndexable;
-    flush: () => void;
     constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber);
     getValue(): Primitive | IIndexable;
     setValueCore(newValue: Primitive | IIndexable, flags: LifecycleFlags): void;
@@ -36,15 +36,15 @@ interface IInternalInputElement extends IInputElement {
 export interface CheckedObserver extends IBindingTargetObserver<IInternalInputElement, string, Primitive | IIndexable>, IBatchedCollectionSubscriber, IPropertySubscriber {
 }
 export declare class CheckedObserver implements CheckedObserver {
-    lifecycle: ILifecycle;
-    obj: IInternalInputElement;
-    handler: IEventSubscriber;
-    observerLocator: IObserverLocator;
-    currentValue: Primitive | IIndexable;
     currentFlags: LifecycleFlags;
-    oldValue: Primitive | IIndexable;
+    currentValue: Primitive | IIndexable;
     defaultValue: Primitive | IIndexable;
     flush: () => void;
+    handler: IEventSubscriber;
+    lifecycle: ILifecycle;
+    obj: IInternalInputElement;
+    observerLocator: IObserverLocator;
+    oldValue: Primitive | IIndexable;
     private arrayObserver;
     private valueObserver;
     constructor(lifecycle: ILifecycle, obj: IInternalInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator);

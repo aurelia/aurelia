@@ -11,8 +11,8 @@ export declare type UpdateTriggerableBinding = Binding & {
     targetObserver: UpdateTriggerableObserver;
 };
 export declare class UpdateTriggerBindingBehavior {
-    private observerLocator;
     static register: IRegistry['register'];
+    private observerLocator;
     constructor(observerLocator: IObserverLocator);
     bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void;

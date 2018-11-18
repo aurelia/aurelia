@@ -12,15 +12,15 @@ export declare function computed(config: ComputedOverrides): PropertyDecorator;
 export interface CustomSetterObserver extends IBindingTargetObserver {
 }
 export declare class CustomSetterObserver implements CustomSetterObserver {
+    $nextFlush: this;
+    currentValue: IIndexable | Primitive;
+    dispose: () => void;
+    observing: boolean;
     obj: IObservable;
+    oldValue: IIndexable | Primitive;
     propertyKey: string;
     private descriptor;
     private lifecycle;
-    $nextFlush: this;
-    dispose: () => void;
-    observing: boolean;
-    currentValue: IIndexable | Primitive;
-    oldValue: IIndexable | Primitive;
     constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, lifecycle: ILifecycle);
     getValue(): IIndexable | Primitive;
     setValue(newValue: IIndexable | Primitive): void;

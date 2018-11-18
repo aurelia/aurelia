@@ -5,10 +5,10 @@ export interface IEventWithStandardPropagation extends Event {
     standardStopPropagation?: Event['stopPropagation'];
 }
 export declare class ListenerTracker {
-    private eventName;
-    private listener;
     private capture;
     private count;
+    private eventName;
+    private listener;
     constructor(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean);
     increment(): void;
     decrement(): void;

@@ -16,14 +16,14 @@ export interface IRegistration<T = any> {
     register(container: IContainer, key?: Key<T>): IResolver<T>;
 }
 export interface IFactory<T = any> {
-    readonly type: Function;
+    readonly Type: Function;
     registerTransformer(transformer: (instance: T) => T): boolean;
     construct(container: IContainer, dynamicDependencies?: any[]): T;
 }
 export interface IServiceLocator {
     has(key: any, searchAncestors: boolean): boolean;
-    get<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? InstanceType<T1> : T1 : K;
-    getAll<K>(key: Constructable<unknown> | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> : K extends Constructable ? ReadonlyArray<InstanceType<K>> : K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> : ReadonlyArray<K>;
+    get<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? InstanceType<T1> : T1 : K;
+    getAll<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> : K extends Constructable ? ReadonlyArray<InstanceType<K>> : K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> : ReadonlyArray<K>;
 }
 export interface IRegistry {
     register(container: IContainer): void;
@@ -41,13 +41,13 @@ export interface IContainer extends IServiceLocator {
     registerTransformer<T extends Constructable>(key: T, transformer: (instance: InstanceType<T>) => T): boolean;
     getResolver<T>(key: Key<T>, autoRegister?: boolean): IResolver<T> | null;
     getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>> | null;
-    getFactory<T extends Constructable>(type: T): IFactory<InstanceType<T>>;
+    getFactory<T extends Constructable>(Type: T): IFactory<InstanceType<T>>;
     createChild(): IContainer;
 }
 export interface IResolverBuilder<T> {
     instance(value: T & IIndexable): IResolver;
-    singleton(value: Constructable<T>): IResolver;
-    transient(value: Constructable<T>): IResolver;
+    singleton(value: Constructable): IResolver;
+    transient(value: Constructable): IResolver;
     callback(value: ResolveCallback<T>): IResolver;
     aliasTo(destinationKey: Key<T>): IResolver;
 }
@@ -57,7 +57,7 @@ export declare type RegisterSelf<T extends Constructable> = {
 export declare const DI: {
     createContainer(): IContainer;
     getDesignParamTypes(target: Function): Function[];
-    getDependencies(type: Function | Injectable<{}>): Function[];
+    getDependencies(Type: Function | Injectable<{}>): Function[];
     createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T>;
     inject(...dependencies: Function[]): (target: any, key?: string, descriptor?: number | PropertyDescriptor) => void;
     /**

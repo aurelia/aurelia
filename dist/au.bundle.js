@@ -23,8 +23,7 @@ var au = (function (exports) {
       })(),
       emptyArray: Object.freeze([]),
       emptyObject: Object.freeze({}),
-      /* tslint:disable-next-line:no-empty */
-      noop() { },
+      noop() { return; },
       now() {
           return performance.now();
       },
@@ -81,8 +80,7 @@ var au = (function (exports) {
   };
 
   const Reporter = {
-      /* tslint:disable-next-line:no-empty */
-      write(code, ...params) { },
+      write(code, ...params) { return; },
       error(code, ...params) { return new Error(`Code ${code}`); }
   };
 
@@ -109,14 +107,14 @@ var au = (function (exports) {
       getDesignParamTypes(target) {
           return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
       },
-      getDependencies(type) {
+      getDependencies(Type) {
           let dependencies;
-          if (type.inject === undefined) {
-              dependencies = DI.getDesignParamTypes(type);
+          if (Type.inject === undefined) {
+              dependencies = DI.getDesignParamTypes(Type);
           }
           else {
               dependencies = [];
-              let ctor = type;
+              let ctor = Type;
               while (typeof ctor === 'function') {
                   if (ctor.hasOwnProperty('inject')) {
                       dependencies.push(...ctor.inject);
@@ -331,22 +329,22 @@ var au = (function (exports) {
   }
   /*@internal*/
   class Factory {
-      constructor(type, invoker, dependencies) {
-          this.type = type;
+      constructor(Type, invoker, dependencies) {
+          this.Type = Type;
           this.invoker = invoker;
           this.dependencies = dependencies;
           this.transformers = null;
       }
-      static create(type) {
-          const dependencies = DI.getDependencies(type);
+      static create(Type) {
+          const dependencies = DI.getDependencies(Type);
           const invoker = classInvokers[dependencies.length] || fallbackInvoker;
-          return new Factory(type, invoker, dependencies);
+          return new Factory(Type, invoker, dependencies);
       }
       construct(container, dynamicDependencies) {
           const transformers = this.transformers;
           let instance = dynamicDependencies !== undefined
-              ? this.invoker.invokeWithDynamicDependencies(container, this.type, this.dependencies, dynamicDependencies)
-              : this.invoker.invoke(container, this.type, this.dependencies);
+              ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
+              : this.invoker.invoke(container, this.Type, this.dependencies);
           if (transformers === null) {
               return instance;
           }
@@ -458,6 +456,7 @@ var au = (function (exports) {
                   ? this.parent.has(key, true)
                   : false;
       }
+      // tslint:disable-next-line:no-reserved-keywords
       get(key) {
           validateKey(key);
           if (key.resolve) {
@@ -494,11 +493,11 @@ var au = (function (exports) {
           }
           return PLATFORM.emptyArray;
       }
-      getFactory(type) {
-          let factory = this.factories.get(type);
+      getFactory(Type) {
+          let factory = this.factories.get(Type);
           if (factory === undefined) {
-              factory = Factory.create(type);
-              this.factories.set(type, factory);
+              factory = Factory.create(Type);
+              this.factories.set(Type, factory);
           }
           return factory;
       }
@@ -1298,8 +1297,7 @@ var au = (function (exports) {
       done: {
           done: true,
           canCancel() { return false; },
-          // tslint:disable-next-line:no-empty
-          cancel() { },
+          cancel() { return; },
           wait() { return Promise.resolve(); }
       }
   };
@@ -1485,6 +1483,10 @@ var au = (function (exports) {
       }
   }
 
+  function register(container) {
+      const resourceKey = BindingBehaviorResource.keyFrom(this.description.name);
+      container.register(Registration.singleton(resourceKey, this));
+  }
   function bindingBehavior(nameOrDefinition) {
       return target => BindingBehaviorResource.define(nameOrDefinition, target);
   }
@@ -1510,9 +1512,6 @@ var au = (function (exports) {
       isType,
       define
   };
-  function register(container) {
-      container.register(Registration.singleton(BindingBehaviorResource.keyFrom(this.description.name), this));
-  }
 
   const ELEMENT_NODE = 1;
   const ATTRIBUTE_NODE = 2;
@@ -1760,7 +1759,6 @@ var au = (function (exports) {
           this.start = this.end = null;
       }
       findTargets() {
-          // tslint:disable-next-line:no-any
           return this.targets;
       }
       insertBefore(refNode) {
@@ -2243,11 +2241,11 @@ var au = (function (exports) {
       // Using very HTML-specific code here since this isn't likely to get
       // called unless operating against a real HTML element.
       constructor(lifecycle, obj, propertyKey, attributeName) {
+          this.attributeName = attributeName;
           this.lifecycle = lifecycle;
           this.obj = obj;
-          this.propertyKey = propertyKey;
-          this.attributeName = attributeName;
           this.oldValue = this.currentValue = this.getValue();
+          this.propertyKey = propertyKey;
       }
       getValue() {
           return this.obj.getAttributeNS(xlinkAttributeNS, this.attributeName);
@@ -2264,8 +2262,8 @@ var au = (function (exports) {
       constructor(lifecycle, obj, propertyKey) {
           this.lifecycle = lifecycle;
           this.obj = obj;
-          this.propertyKey = propertyKey;
           this.oldValue = this.currentValue = this.getValue();
+          this.propertyKey = propertyKey;
       }
       getValue() {
           return DOM.getAttribute(this.obj, this.propertyKey);
@@ -2291,7 +2289,6 @@ var au = (function (exports) {
       getValue() {
           return this.obj.style.cssText;
       }
-      // tslint:disable-next-line:function-name
       _setProperty(style, value) {
           let priority = '';
           if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
@@ -2659,7 +2656,6 @@ var au = (function (exports) {
           if (keyOrObj !== undefined) {
               if (value !== undefined) {
                   // if value is defined then it's just a property and a value to initialize with
-                  // tslint:disable-next-line:no-any
                   this[keyOrObj] = value;
               }
               else {
@@ -2737,9 +2733,9 @@ var au = (function (exports) {
   }
   class OverrideContext {
       constructor(bindingContext, parentOverrideContext) {
+          this.$synthetic = true;
           this.bindingContext = bindingContext;
           this.parentOverrideContext = parentOverrideContext;
-          this.$synthetic = true;
       }
       static create(bc, poc) {
           return new OverrideContext(bc, poc === undefined ? null : poc);
@@ -2786,6 +2782,10 @@ var au = (function (exports) {
       }
   }
 
+  function register$1(container) {
+      const resourceKey = this.kind.keyFrom(this.description.name);
+      container.register(Registration.singleton(resourceKey, this));
+  }
   function valueConverter(nameOrDefinition) {
       return target => ValueConverterResource.define(nameOrDefinition, target);
   }
@@ -2811,9 +2811,6 @@ var au = (function (exports) {
       isType: isType$1,
       define: define$1
   };
-  function register$1(container) {
-      container.register(Registration.singleton(ValueConverterResource.keyFrom(this.description.name), this));
-  }
 
   function connects(expr) {
       return (expr.$kind & 32 /* Connects */) === 32 /* Connects */;
@@ -3165,13 +3162,11 @@ var au = (function (exports) {
           const key = this.key.evaluate(flags, scope, locator);
           // note: getKeyed and setKeyed are removed because they are identical to the default spec behavior
           // and the runtime does this this faster
-          // tslint:disable-next-line:no-any
           return instance[key];
       }
       assign(flags, scope, locator, value) {
           const instance = this.object.evaluate(flags, scope, locator);
           const key = this.key.evaluate(flags, scope, locator);
-          // tslint:disable-next-line:no-any
           return instance[key] = value;
       }
       connect(flags, scope, binding) {
@@ -3257,7 +3252,7 @@ var au = (function (exports) {
           this.args = args;
       }
       evaluate(flags, scope, locator) {
-          const func = this.func.evaluate(flags, scope, locator); // not sure why this cast is needed..
+          const func = this.func.evaluate(flags, scope, locator);
           if (typeof func === 'function') {
               return func.apply(null, evalList(flags, scope, locator, this.args));
           }
@@ -3342,23 +3337,18 @@ var au = (function (exports) {
       // this makes bugs in user code easier to track down for end users
       // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
       ['+'](f, s, l) {
-          // tslint:disable-next-line:no-any
           return this.left.evaluate(f, s, l) + this.right.evaluate(f, s, l);
       }
       ['-'](f, s, l) {
-          // tslint:disable-next-line:no-any
           return this.left.evaluate(f, s, l) - this.right.evaluate(f, s, l);
       }
       ['*'](f, s, l) {
-          // tslint:disable-next-line:no-any
           return this.left.evaluate(f, s, l) * this.right.evaluate(f, s, l);
       }
       ['/'](f, s, l) {
-          // tslint:disable-next-line:no-any
           return this.left.evaluate(f, s, l) / this.right.evaluate(f, s, l);
       }
       ['%'](f, s, l) {
-          // tslint:disable-next-line:no-any
           return this.left.evaluate(f, s, l) % this.right.evaluate(f, s, l);
       }
       ['<'](f, s, l) {
@@ -3385,7 +3375,6 @@ var au = (function (exports) {
           this.operation = operation;
           this.expression = expression;
           // see Binary (we're doing the same thing here)
-          // tslint:disable-next-line:no-any
           this.evaluate = this[operation];
       }
       evaluate(flags, scope, locator) {
@@ -3558,7 +3547,7 @@ var au = (function (exports) {
           for (let i = 0, ii = len; i < ii; ++i) {
               results[i] = expressions[i].evaluate(flags, scope, locator);
           }
-          const func = this.func.evaluate(flags, scope, locator); // not sure why this cast is needed..
+          const func = this.func.evaluate(flags, scope, locator);
           if (typeof func !== 'function') {
               throw Reporter.error(207 /* NotAFunction */, this);
           }
@@ -3581,13 +3570,13 @@ var au = (function (exports) {
           this.$kind = 65556 /* ArrayBindingPattern */;
           this.elements = elements;
       }
-      // tslint:disable-next-line:no-any
       evaluate(flags, scope, locator) {
           // TODO
+          return undefined;
       }
-      // tslint:disable-next-line:no-any
       assign(flags, scope, locator, obj) {
           // TODO
+          return undefined;
       }
       connect(flags, scope, binding) {
           return;
@@ -3603,13 +3592,13 @@ var au = (function (exports) {
           this.keys = keys;
           this.values = values;
       }
-      // tslint:disable-next-line:no-any
       evaluate(flags, scope, locator) {
           // TODO
+          return undefined;
       }
-      // tslint:disable-next-line:no-any
       assign(flags, scope, locator, obj) {
           // TODO
+          return undefined;
       }
       connect(flags, scope, binding) {
           return;
@@ -3649,7 +3638,6 @@ var au = (function (exports) {
       count(result) {
           return CountForOfStatement[toStringTag.call(result)](result);
       }
-      // tslint:disable-next-line:no-any
       iterate(result, func) {
           IterateForOfStatement[toStringTag.call(result)](result, func);
       }
@@ -3914,19 +3902,19 @@ var au = (function (exports) {
   const toViewOrOneTime = toView$1 | oneTime$1;
   let Binding = class Binding {
       constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
-          this.sourceExpression = sourceExpression;
-          this.target = target;
-          this.targetProperty = targetProperty;
-          this.mode = mode;
-          this.observerLocator = observerLocator;
-          this.locator = locator;
-          this.$nextConnect = null;
-          this.$nextPatch = null;
           this.$nextBind = null;
           this.$prevBind = null;
           this.$state = 0 /* none */;
-          this.$scope = null;
           this.$lifecycle = locator.get(ILifecycle);
+          this.$nextConnect = null;
+          this.$nextPatch = null;
+          this.$scope = null;
+          this.locator = locator;
+          this.mode = mode;
+          this.observerLocator = observerLocator;
+          this.sourceExpression = sourceExpression;
+          this.target = target;
+          this.targetProperty = targetProperty;
       }
       updateTarget(value, flags) {
           this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
@@ -4048,10 +4036,10 @@ var au = (function (exports) {
 
   const unset = {};
   /*@internal*/
-  function debounceCallSource(event) {
+  function debounceCallSource(newValue, oldValue, flags) {
       const state = this.debounceState;
       clearTimeout(state.timeoutId);
-      state.timeoutId = setTimeout(() => this.debouncedMethod(event), state.delay);
+      state.timeoutId = setTimeout(() => this.debouncedMethod(newValue, oldValue, flags), state.delay);
   }
   /*@internal*/
   function debounceCall(newValue, oldValue, flags) {
@@ -4129,7 +4117,6 @@ var au = (function (exports) {
    */
   let SanitizeValueConverter = class SanitizeValueConverter {
       constructor(sanitizer) {
-          this.sanitizer = sanitizer;
           this.sanitizer = sanitizer;
       }
       /**
@@ -4211,10 +4198,10 @@ var au = (function (exports) {
   }
   class ListenerTracker {
       constructor(eventName, listener, capture) {
-          this.eventName = eventName;
-          this.listener = listener;
           this.capture = capture;
           this.count = 0;
+          this.eventName = eventName;
+          this.listener = listener;
       }
       increment() {
           this.count++;
@@ -4993,12 +4980,12 @@ var au = (function (exports) {
   // Used when the getter is dependent solely on changes that happen within the setter.
   let CustomSetterObserver = class CustomSetterObserver {
       constructor(obj, propertyKey, descriptor, lifecycle) {
+          this.$nextFlush = null;
           this.obj = obj;
+          this.observing = false;
           this.propertyKey = propertyKey;
           this.descriptor = descriptor;
           this.lifecycle = lifecycle;
-          this.$nextFlush = null;
-          this.observing = false;
       }
       getValue() {
           return this.obj[this.propertyKey];
@@ -5028,10 +5015,10 @@ var au = (function (exports) {
           Reflect.defineProperty(this.obj, this.propertyKey, {
               set: function (newValue) {
                   setter.call(that.obj, newValue);
-                  const oldValue = this.currentValue;
+                  const oldValue = that.currentValue;
                   if (oldValue !== newValue) {
                       that.oldValue = oldValue;
-                      this.lifecycle.queueFlush(that);
+                      that.lifecycle.enqueueFlush(that);
                       that.currentValue = newValue;
                   }
               }
@@ -5047,19 +5034,16 @@ var au = (function (exports) {
   /*@internal*/
   let GetterObserver = class GetterObserver {
       constructor(overrides, obj, propertyKey, descriptor, observerLocator, lifecycle) {
-          this.overrides = overrides;
           this.obj = obj;
           this.propertyKey = propertyKey;
-          this.descriptor = descriptor;
-          this.observerLocator = observerLocator;
-          this.lifecycle = lifecycle;
           this.controller = new GetterController(overrides, obj, propertyKey, descriptor, this, observerLocator, lifecycle);
       }
       getValue() {
           return this.controller.value;
       }
-      // tslint:disable-next-line:no-empty
-      setValue(newValue) { }
+      setValue(newValue) {
+          return;
+      }
       flush(flags) {
           const oldValue = this.controller.value;
           const newValue = this.controller.getValueAndCollectDependencies();
@@ -5083,13 +5067,13 @@ var au = (function (exports) {
   /*@internal*/
   class GetterController {
       constructor(overrides, instance, propertyName, descriptor, owner, observerLocator, lifecycle) {
-          this.overrides = overrides;
-          this.instance = instance;
-          this.propertyName = propertyName;
-          this.owner = owner;
-          this.lifecycle = lifecycle;
           this.isCollecting = false;
           this.dependencies = [];
+          this.instance = instance;
+          this.lifecycle = lifecycle;
+          this.overrides = overrides;
+          this.owner = owner;
+          this.propertyName = propertyName;
           this.subscriberCount = 0;
           const proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
           const getter = descriptor.get;
@@ -5188,8 +5172,8 @@ var au = (function (exports) {
   /*@internal*/
   class DirtyChecker {
       constructor() {
-          this.tracked = [];
           this.checkDelay = 120;
+          this.tracked = [];
       }
       createProperty(obj, propertyName) {
           return new DirtyCheckProperty(this, obj, propertyName);
@@ -5225,9 +5209,9 @@ var au = (function (exports) {
   /*@internal*/
   let DirtyCheckProperty = class DirtyCheckProperty {
       constructor(dirtyChecker, obj, propertyKey) {
-          this.dirtyChecker = dirtyChecker;
           this.obj = obj;
           this.propertyKey = propertyKey;
+          this.dirtyChecker = dirtyChecker;
       }
       isDirty() {
           return this.oldValue !== this.obj[this.propertyKey];
@@ -5288,12 +5272,12 @@ var au = (function (exports) {
   const handleEventFlags = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
   let ValueAttributeObserver = class ValueAttributeObserver {
       constructor(lifecycle, obj, propertyKey, handler) {
-          // note: input.files can be assigned and this was fixed in Firefox 57:
-          // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
+          this.handler = handler;
           this.lifecycle = lifecycle;
           this.obj = obj;
           this.propertyKey = propertyKey;
-          this.handler = handler;
+          // note: input.files can be assigned and this was fixed in Firefox 57:
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
           // input.value (for type='file') however, can only be assigned an empty string
           if (propertyKey === 'value') {
               const nodeType = obj['type'];
@@ -5355,9 +5339,9 @@ var au = (function (exports) {
   const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance;
   let CheckedObserver = class CheckedObserver {
       constructor(lifecycle, obj, handler, observerLocator) {
+          this.handler = handler;
           this.lifecycle = lifecycle;
           this.obj = obj;
-          this.handler = handler;
           this.observerLocator = observerLocator;
       }
       getValue() {
@@ -5919,11 +5903,11 @@ var au = (function (exports) {
   /*@internal*/
   class ObserverLocator {
       constructor(lifecycle, eventManager, dirtyChecker, svgAnalyzer) {
-          this.lifecycle = lifecycle;
-          this.eventManager = eventManager;
-          this.dirtyChecker = dirtyChecker;
-          this.svgAnalyzer = svgAnalyzer;
           this.adapters = [];
+          this.dirtyChecker = dirtyChecker;
+          this.eventManager = eventManager;
+          this.lifecycle = lifecycle;
+          this.svgAnalyzer = svgAnalyzer;
       }
       getObserver(obj, propertyName) {
           if (obj.$synthetic === true) {
@@ -6130,11 +6114,11 @@ var au = (function (exports) {
 
   class Call {
       constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
-          this.sourceExpression = sourceExpression;
-          this.locator = locator;
           this.$nextBind = null;
           this.$prevBind = null;
           this.$state = 0 /* none */;
+          this.locator = locator;
+          this.sourceExpression = sourceExpression;
           this.targetObserver = observerLocator.getObserver(target, targetProperty);
       }
       callSource(args) {
@@ -6194,8 +6178,8 @@ var au = (function (exports) {
   class ExpressionParser {
       constructor() {
           this.expressionLookup = Object.create(null);
-          this.interpolationLookup = Object.create(null);
           this.forOfLookup = Object.create(null);
+          this.interpolationLookup = Object.create(null);
       }
       parse(expression, bindingType) {
           switch (bindingType) {
@@ -6276,20 +6260,19 @@ var au = (function (exports) {
       }
   }
 
-  // tslint:disable:no-any
   const { toView: toView$2, oneTime: oneTime$2 } = BindingMode;
   class MultiInterpolationBinding {
       constructor(observerLocator, interpolation, target, targetProperty, mode, locator) {
-          this.observerLocator = observerLocator;
-          this.interpolation = interpolation;
-          this.target = target;
-          this.targetProperty = targetProperty;
-          this.mode = mode;
-          this.locator = locator;
           this.$nextBind = null;
           this.$prevBind = null;
           this.$state = 0 /* none */;
           this.$scope = null;
+          this.interpolation = interpolation;
+          this.locator = locator;
+          this.mode = mode;
+          this.observerLocator = observerLocator;
+          this.target = target;
+          this.targetProperty = targetProperty;
           // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
           // value converters and binding behaviors.
           // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
@@ -6328,15 +6311,15 @@ var au = (function (exports) {
   }
   let InterpolationBinding = class InterpolationBinding {
       constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
-          this.sourceExpression = sourceExpression;
+          this.$state = 0 /* none */;
           this.interpolation = interpolation;
+          this.isFirst = isFirst;
+          this.mode = mode;
+          this.locator = locator;
+          this.observerLocator = observerLocator;
+          this.sourceExpression = sourceExpression;
           this.target = target;
           this.targetProperty = targetProperty;
-          this.mode = mode;
-          this.observerLocator = observerLocator;
-          this.locator = locator;
-          this.isFirst = isFirst;
-          this.$state = 0 /* none */;
           this.targetObserver = observerLocator.getAccessor(target, targetProperty);
       }
       updateTarget(value, flags) {
@@ -6398,17 +6381,17 @@ var au = (function (exports) {
 
   let LetBinding = class LetBinding {
       constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
-          this.sourceExpression = sourceExpression;
-          this.targetProperty = targetProperty;
-          this.observerLocator = observerLocator;
-          this.locator = locator;
-          this.toViewModel = toViewModel;
           this.$nextBind = null;
           this.$prevBind = null;
           this.$state = 0 /* none */;
-          this.$scope = null;
-          this.target = null;
           this.$lifecycle = locator.get(ILifecycle);
+          this.$scope = null;
+          this.locator = locator;
+          this.observerLocator = observerLocator;
+          this.sourceExpression = sourceExpression;
+          this.target = null;
+          this.targetProperty = targetProperty;
+          this.toViewModel = toViewModel;
       }
       handleChange(newValue, previousValue, flags) {
           if (!(this.$state & 2 /* isBound */)) {
@@ -6469,16 +6452,16 @@ var au = (function (exports) {
 
   class Listener {
       constructor(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
-          this.targetEvent = targetEvent;
-          this.delegationStrategy = delegationStrategy;
-          this.sourceExpression = sourceExpression;
-          this.target = target;
-          this.preventDefault = preventDefault;
-          this.eventManager = eventManager;
-          this.locator = locator;
           this.$nextBind = null;
           this.$prevBind = null;
           this.$state = 0 /* none */;
+          this.delegationStrategy = delegationStrategy;
+          this.locator = locator;
+          this.preventDefault = preventDefault;
+          this.sourceExpression = sourceExpression;
+          this.target = target;
+          this.targetEvent = targetEvent;
+          this.eventManager = eventManager;
       }
       callSource(event) {
           const overrideContext = this.$scope.overrideContext;
@@ -6528,19 +6511,22 @@ var au = (function (exports) {
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
       }
-      // tslint:disable:no-empty no-any
-      observeProperty(obj, propertyName) { }
-      handleChange(newValue, previousValue, flags) { }
+      observeProperty(obj, propertyName) {
+          return;
+      }
+      handleChange(newValue, previousValue, flags) {
+          return;
+      }
   }
 
   class Ref {
       constructor(sourceExpression, target, locator) {
-          this.sourceExpression = sourceExpression;
-          this.target = target;
-          this.locator = locator;
           this.$nextBind = null;
           this.$prevBind = null;
           this.$state = 0 /* none */;
+          this.locator = locator;
+          this.sourceExpression = sourceExpression;
+          this.target = target;
       }
       $bind(flags, scope) {
           if (this.$state & 2 /* isBound */) {
@@ -6578,12 +6564,14 @@ var au = (function (exports) {
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
       }
-      // tslint:disable:no-empty no-any
-      observeProperty(obj, propertyName) { }
-      handleChange(newValue, previousValue, flags) { }
+      observeProperty(obj, propertyName) {
+          return;
+      }
+      handleChange(newValue, previousValue, flags) {
+          return;
+      }
   }
 
-  // tslint:disable:no-reserved-keywords
   /*@internal*/
   const customElementName = 'custom-element';
   /*@internal*/
@@ -6603,8 +6591,8 @@ var au = (function (exports) {
   const instructionTypeValues = 'abcdefghijkl';
   const ITargetedInstruction = DI.createInterface();
   function isTargetedInstruction(value) {
-      const type = value.type;
-      return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
+      const Type = value.type;
+      return typeof Type === 'string' && instructionTypeValues.indexOf(Type) !== -1;
   }
   /*@internal*/
   const buildRequired = Object.freeze({
@@ -7240,6 +7228,32 @@ var au = (function (exports) {
       }
   }
 
+  class RuntimeCompilationResources {
+      constructor(context) {
+          this.context = context;
+      }
+      find(kind, name) {
+          const key = kind.keyFrom(name);
+          const resolver = this.context.getResolver(key, false);
+          if (resolver !== null && resolver.getFactory) {
+              const factory = resolver.getFactory(this.context);
+              if (factory !== null) {
+                  const description = factory.Type.description;
+                  return description === undefined ? null : description;
+              }
+          }
+          return null;
+      }
+      create(kind, name) {
+          const key = kind.keyFrom(name);
+          if (this.context.has(key, false)) {
+              const instance = this.context.get(key);
+              return instance === undefined ? null : instance;
+          }
+          return null;
+      }
+  }
+
   /*@internal*/
   class View {
       constructor($lifecycle, cache) {
@@ -7614,7 +7628,7 @@ var au = (function (exports) {
           Reflect.defineProperty(instance, '$children', {
               enumerable: false,
               get: function () {
-                  return this.$observers.$children.getValue();
+                  return this['$observers'].$children.getValue();
               }
           });
       }
@@ -7637,8 +7651,8 @@ var au = (function (exports) {
   function createGetterSetter(instance, name) {
       Reflect.defineProperty(instance, name, {
           enumerable: true,
-          get: function () { return this.$observers[name].getValue(); },
-          set: function (value) { this.$observers[name].setValue(value, LifecycleFlags.updateTargetInstance); }
+          get: function () { return this['$observers'][name].getValue(); },
+          set: function (value) { this['$observers'][name].setValue(value, LifecycleFlags.updateTargetInstance); }
       });
   }
   /*@internal*/
@@ -7692,32 +7706,6 @@ var au = (function (exports) {
           }
       }
       return components;
-  }
-  /*@internal*/
-  class RuntimeCompilationResources {
-      constructor(context) {
-          this.context = context;
-      }
-      find(kind, name) {
-          const key = kind.keyFrom(name);
-          const resolver = this.context.getResolver(key, false);
-          if (resolver !== null && resolver.getFactory) {
-              const factory = resolver.getFactory(this.context);
-              if (factory !== null) {
-                  const description = factory.type.description;
-                  return description === undefined ? null : description;
-              }
-          }
-          return null;
-      }
-      create(kind, name) {
-          const key = kind.keyFrom(name);
-          if (this.context.has(key, false)) {
-              const context = this.context.get(key);
-              return context === undefined ? null : context;
-          }
-          return null;
-      }
   }
   // This is the main implementation of ITemplate.
   // It is used to create instances of IView based on a compiled TemplateDefinition.
@@ -7897,6 +7885,11 @@ var au = (function (exports) {
       inject(all(IInstructionRenderer))
   ], Renderer);
 
+  /*@internal*/
+  function registerElement(container) {
+      const resourceKey = this.kind.keyFrom(this.description.name);
+      container.register(Registration.transient(resourceKey, this));
+  }
   function customElement(nameOrDefinition) {
       return target => CustomElementResource.define(nameOrDefinition, target);
   }
@@ -7996,11 +7989,6 @@ var au = (function (exports) {
       behaviorFor: customElementBehavior,
       define: define$2
   };
-  /*@internal*/
-  function registerElement(container) {
-      const resourceKey = CustomElementResource.keyFrom(this.description.name);
-      container.register(Registration.transient(resourceKey, this));
-  }
   // tslint:enable:align
   // TODO
   // ## DefaultSlotProjector
@@ -8125,6 +8113,17 @@ var au = (function (exports) {
       inject(IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator)
   ], Compose);
 
+  /*@internal*/
+  function registerAttribute(container) {
+      const description = this.description;
+      const resourceKey = this.kind.keyFrom(description.name);
+      const aliases = description.aliases;
+      container.register(Registration.transient(resourceKey, this));
+      for (let i = 0, ii = aliases.length; i < ii; ++i) {
+          const aliasKey = this.kind.keyFrom(aliases[i]);
+          container.register(Registration.alias(resourceKey, aliasKey));
+      }
+  }
   function customAttribute(nameOrDefinition) {
       return target => CustomAttributeResource.define(nameOrDefinition, target);
   }
@@ -8196,17 +8195,6 @@ var au = (function (exports) {
       isType: isType$3,
       define: define$3
   };
-  /*@internal*/
-  function registerAttribute(container) {
-      const description = this.description;
-      const resourceKey = CustomAttributeResource.keyFrom(description.name);
-      const aliases = description.aliases;
-      container.register(Registration.transient(resourceKey, this));
-      for (let i = 0, ii = aliases.length; i < ii; ++i) {
-          const aliasKey = CustomAttributeResource.keyFrom(aliases[i]);
-          container.register(Registration.alias(resourceKey, aliasKey));
-      }
-  }
   /*@internal*/
   function createCustomAttributeDescription(def, Type) {
       const aliases = def.aliases;
@@ -8552,8 +8540,16 @@ var au = (function (exports) {
           return this;
       }
       app(config) {
-          const component = config.component;
           const host = config.host;
+          let component;
+          const componentOrType = config.component;
+          if (CustomElementResource.isType(componentOrType)) {
+              this.container.register(componentOrType);
+              component = this.container.get(CustomElementResource.keyFrom(componentOrType.description.name));
+          }
+          else {
+              component = componentOrType;
+          }
           const startTask = () => {
               host.$au = this;
               if (!this.components.includes(component)) {
@@ -9219,16 +9215,16 @@ var au = (function (exports) {
     bindable: bindable,
     createElement: createElement,
     RenderPlan: RenderPlan,
+    registerAttribute: registerAttribute,
     customAttribute: customAttribute,
     templateController: templateController,
     CustomAttributeResource: CustomAttributeResource,
-    registerAttribute: registerAttribute,
     createCustomAttributeDescription: createCustomAttributeDescription,
+    registerElement: registerElement,
     customElement: customElement,
     useShadowDOM: useShadowDOM,
     containerless: containerless,
     CustomElementResource: CustomElementResource,
-    registerElement: registerElement,
     $attachAttribute: $attachAttribute,
     $attachElement: $attachElement,
     $attachView: $attachView,
@@ -9261,7 +9257,6 @@ var au = (function (exports) {
     RuntimeBehavior: RuntimeBehavior,
     get ChildrenObserver () { return ChildrenObserver; },
     findElements: findElements,
-    RuntimeCompilationResources: RuntimeCompilationResources,
     CompiledTemplate: CompiledTemplate,
     noViewTemplate: noViewTemplate,
     createRenderContext: createRenderContext,
@@ -9348,7 +9343,8 @@ var au = (function (exports) {
     PromiseSwap: PromiseSwap,
     PromiseTask: PromiseTask,
     get LifecycleFlags () { return LifecycleFlags; },
-    get MutationKind () { return MutationKind; }
+    get MutationKind () { return MutationKind; },
+    RuntimeCompilationResources: RuntimeCompilationResources
   });
 
   class AttrSyntax {
@@ -9415,6 +9411,10 @@ var au = (function (exports) {
       return c > 3 && r && Object.defineProperty(target, key, r), r;
   }
 
+  function register$2(container) {
+      const resourceKey = BindingCommandResource.keyFrom(this.description.name);
+      container.register(Registration.singleton(resourceKey, this));
+  }
   function bindingCommand(nameOrDefinition) {
       return target => BindingCommandResource.define(nameOrDefinition, target);
   }
@@ -9425,13 +9425,11 @@ var au = (function (exports) {
       return Type.kind === this;
   }
   function define$4(nameOrDefinition, ctor) {
-      const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
       const Type = ctor;
+      const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
       Type.kind = BindingCommandResource;
       Type.description = description;
-      Type.register = function (container) {
-          container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
-      };
+      Type.register = register$2;
       const proto = Type.prototype;
       proto.handles = proto.handles || defaultHandles;
       return Type;

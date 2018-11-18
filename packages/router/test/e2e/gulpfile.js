@@ -26,7 +26,7 @@ function bundle() {
 }
 
 gulp.task('default', [],  () => {
-  browserSync.init({ watch: true, server: '.', port: 9050 });
+  browserSync.init({ watch: true, server: '.', port: 9030 });
   b.on('update', bundle);
   b.on('change', browserSync.reload);
   return bundle(watchify(b))

@@ -6,9 +6,9 @@ import { DI } from '@aurelia/kernel';
 describe('SyntaxInterpreter', () => {
   for (const [patterns, tests] of <[string[], [string, string, string[]][]][]>[
     [
-      ['target.command'],
+      ['PART.PART'],
       [
-        ['value.bind',  'target.command', ['value', 'bind']],
+        ['value.bind',  'PART.PART', ['value', 'bind']],
         ['.bind',       null,             []],
         ['bind',        null,             ['bind']],
         ['value.',      null,             ['value']],
@@ -17,9 +17,9 @@ describe('SyntaxInterpreter', () => {
       ]
     ],
     [
-      ['target.command', 'asdf.command', 'target.asdf'],
+      ['PART.PART', 'asdf.PART', 'PART.asdf'],
       [
-        ['value.bind', 'target.command',  ['value', 'bind']],
+        ['value.bind', 'PART.PART',  ['value', 'bind']],
         ['.bind',       null,             []],
         ['bind',        null,             ['bind']],
         ['value.',      null,             ['value']],
@@ -28,10 +28,10 @@ describe('SyntaxInterpreter', () => {
       ]
     ],
     [
-      ['target.command', ':target'],
+      ['PART.PART', ':PART'],
       [
-        ['value.bind',  'target.command', ['value', 'bind']],
-        [':value',      ':target',        ['value']],
+        ['value.bind',  'PART.PART', ['value', 'bind']],
+        [':value',      ':PART',        ['value']],
         ['.bind',       null,             []],
         ['bind',        null,             ['bind']],
         ['value.',      null,             ['value']],
@@ -66,22 +66,22 @@ describe('SyntaxInterpreter', () => {
 describe('@attributePattern', () => {
   for (const [patterns, tests] of <[string[], [string, string, string[]][]][]>[
     [
-      ['target.command'],
+      ['PART.PART'],
       [
-        ['value.bind',  'target.command', ['value', 'bind']]
+        ['value.bind',  'PART.PART', ['value', 'bind']]
       ]
     ],
     [
-      ['target.command', 'asdf.command', 'target.asdf'],
+      ['PART.PART', 'asdf.PART', 'PART.asdf'],
       [
-        ['value.bind', 'target.command',  ['value', 'bind']]
+        ['value.bind', 'PART.PART',  ['value', 'bind']]
       ]
     ],
     [
-      ['target.command', ':target'],
+      ['PART.PART', ':PART'],
       [
-        ['value.bind',  'target.command', ['value', 'bind']],
-        [':value',      ':target',        ['value']]
+        ['value.bind',  'PART.PART', ['value', 'bind']],
+        [':value',      ':PART',        ['value']]
       ]
     ]
   ]) {
@@ -91,7 +91,7 @@ describe('@attributePattern', () => {
           let receivedRawName: string;
           let receivedRawValue: string;
           let receivedParts: string[];
-          @attributePattern(patterns)
+          @attributePattern(...patterns)
           class ThePattern {}
           for (const pattern of patterns) {
             ThePattern.prototype[pattern] = (rawName, rawValue, parts) => {
@@ -104,14 +104,10 @@ describe('@attributePattern', () => {
           container.register(<any>ThePattern);
           const interpreter = container.get(ISyntaxInterpreter);
           const attrPattern = container.get(IAttributePattern);
-          interpreter.add(attrPattern.$patternOrPatterns);
+          interpreter.add(attrPattern.$patterns);
 
           const result = interpreter.interpret(value);
-          if (Array.isArray(attrPattern.$patternOrPatterns)) {
-            expect(attrPattern.$patternOrPatterns.indexOf(result.pattern)).to.be.gte(0);
-          } else {
-            expect(attrPattern.$patternOrPatterns).to.equal(result.pattern);
-          }
+          expect(attrPattern.$patterns.indexOf(result.pattern)).to.be.gte(0);
 
           attrPattern[result.pattern](value, 'foo', result.parts);
           expect(receivedRawName).to.equal(value);

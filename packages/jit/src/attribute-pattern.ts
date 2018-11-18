@@ -42,7 +42,7 @@ export class CharSpec {
   }
 }
 
-const identifierChars = '-abcdefghijklmnopqrstuvwxyz';
+const identifierChars = '-_$+abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const asciiCharSpecs = Array(127);
 for (let i = 0; i < 127; ++i) {
   const ch = String.fromCharCode(i);
@@ -51,7 +51,7 @@ for (let i = 0; i < 127; ++i) {
 const identifierCharSpec = new CharSpec(identifierChars, true, false);
 
 export class Interpretation {
-  public pattern: string;
+  public pattern: string | null;
   public parts: string[];
   private current: string;
 
@@ -175,24 +175,11 @@ export class StaticSegment implements ISegment {
 }
 
 /*@internal*/
-export class CommandSegment implements ISegment {
+export class PartSegment implements ISegment {
   public text: string;
 
   constructor() {
-    this.text = 'command';
-  }
-
-  public eachChar(callback: (spec: CharSpec) => void): void {
-    callback(identifierCharSpec);
-  }
-}
-
-/*@internal*/
-export class TargetSegment implements ISegment {
-  public text: string;
-
-  constructor() {
-    this.text = 'target';
+    this.text = 'PART';
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
@@ -218,14 +205,12 @@ export class SymbolSegment implements ISegment {
 /*@internal*/
 export class SegmentTypes {
   public identifiers: number;
-  public commands: number;
-  public targets: number;
+  public parts: number;
   public symbols: number;
 
   constructor() {
     this.identifiers = 0;
-    this.commands = 0;
-    this.targets = 0;
+    this.parts = 0;
     this.symbols = 0;
   }
 }
@@ -294,11 +279,8 @@ export class SyntaxInterpreter {
       if (aTypes.identifiers !== bTypes.identifiers) {
         return bTypes.identifiers - aTypes.identifiers;
       }
-      if (aTypes.commands !== bTypes.commands) {
-        return bTypes.commands - aTypes.commands;
-      }
-      if (aTypes.targets !== bTypes.targets) {
-        return bTypes.targets - aTypes.targets;
+      if (aTypes.parts !== bTypes.parts) {
+        return bTypes.parts - aTypes.parts;
       }
       if (aTypes.symbols !== bTypes.symbols) {
         return bTypes.symbols - aTypes.symbols;
@@ -336,31 +318,16 @@ export class SyntaxInterpreter {
     const len = input.length;
     let i = 0;
     let start = 0;
-    let c = 0;
+    let c = '';
 
     while (i < len) {
-      c = input.charCodeAt(i);
-      // ((c >= 'a' && c <= 'z') || c === '-')
-      if ((c >=  97 && c <= 122) || c ===  45) {
+      c = input.charAt(i);
+      if (identifierChars.indexOf(c) !== -1) {
         if (i === start) {
-          //  c === 't'
-          if (c === 116) {
-            if (input.slice(i, i + 6) === 'target') {
-              start = i = (i + 6);
-              result.push(new TargetSegment());
-              ++types.targets;
-            } else {
-              ++i;
-            }
-          //         c === 'c'
-          } else if (c ===  99) {
-            if (input.slice(i, i + 7) === 'command') {
-              start = i = (i + 7);
-              result.push(new CommandSegment());
-              ++types.commands;
-            } else {
-              ++i;
-            }
+          if (c === 'P' && input.slice(i, i + 4) === 'PART') {
+            start = i = (i + 4);
+            result.push(new PartSegment());
+            ++types.parts;
           } else {
             ++i;
           }
@@ -399,7 +366,7 @@ function validatePrototype(handler: IAttributePatternHandler, patternOrPatterns:
 }
 
 export interface IAttributePattern {
-  $patternOrPatterns: string | string[];
+  $patterns: string[];
 }
 
 export interface IAttributePatternHandler {
@@ -413,71 +380,52 @@ type DecoratedAttributePattern<TProto, TClass> =  Class<TProto & IAttributePatte
 
 type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>) => DecoratedAttributePattern<TProto, TClass>;
 
-export function attributePattern(pattern: string): AttributePatternDecorator;
-export function attributePattern(patterns: string[]): AttributePatternDecorator;
-export function attributePattern(patternOrPatterns: string | string[]): AttributePatternDecorator;
-export function attributePattern(patternOrPatterns: string | string[]): AttributePatternDecorator {
+export function attributePattern(...patterns: string[]): AttributePatternDecorator {
   return function decorator<TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass> {
     const proto = target.prototype;
-    validatePrototype(proto as unknown as IAttributePatternHandler, patternOrPatterns);
+    validatePrototype(proto as unknown as IAttributePatternHandler, patterns);
+    proto.$patterns = patterns;
 
-    // wrap the constructor to set the properties to the instance
-    const decoratedTarget = function(...args: unknown[]): TProto {
-      const instance = new target(...args);
-      instance.$patternOrPatterns = patternOrPatterns;
-      // assign any methods from the decorated target's prototype to the instance
-      // to account for dynamically added methods
-      const decoratedProto = decoratedTarget.prototype;
-      Object.keys(decoratedProto).forEach(key => {
-        instance[key] = decoratedProto[key];
-      });
-      return instance;
-    } as unknown as DecoratedAttributePattern<TProto, TClass>;
-
-    // make sure we register the decorated constructor with DI
-    decoratedTarget.register = function register(container: IContainer): IResolver {
-      return Registration.singleton(IAttributePattern, decoratedTarget).register(container, IAttributePattern);
+    target.register = function register(container: IContainer): IResolver {
+      return Registration.singleton(IAttributePattern, target).register(container, IAttributePattern);
     };
-    // copy over any static properties such as inject (set by preceding decorators)
-    // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
-    // the length (number of ctor arguments) is copied for the same reason
-    const ownProperties = Object.getOwnPropertyDescriptors(target);
-    Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
-      Reflect.defineProperty(decoratedTarget, prop, ownProperties[prop]);
-    });
-    return decoratedTarget;
+    return target as DecoratedAttributePattern<TProto, TClass>;
   } as AttributePatternDecorator;
 }
 
 export interface DotSeparatedAttributePattern extends IAttributePattern {}
 
-@attributePattern('target.command')
+@attributePattern('PART.PART', 'PART.PART.PART')
 export class DotSeparatedAttributePattern implements DotSeparatedAttributePattern {
   public static register: IRegistry['register'];
 
-  public ['target.command'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public ['PART.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
+  }
+
+  public ['PART.PART.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
   }
 }
 
 export interface ColonPrefixedBindAttributePattern extends IAttributePattern {}
 
-@attributePattern(':target')
+@attributePattern(':PART')
 export class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttributePattern  {
   public static register: IRegistry['register'];
 
-  public [':target'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public [':PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
   }
 }
 
 export interface AtPrefixedTriggerAttributePattern extends IAttributePattern {}
 
-@attributePattern('@target')
+@attributePattern('@PART')
 export class AtPrefixedTriggerAttributePattern implements AtPrefixedTriggerAttributePattern  {
   public static register: IRegistry['register'];
 
-  public ['@target'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public ['@PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
   }
 }

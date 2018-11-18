@@ -638,7 +638,7 @@ export class Container implements IContainer {
 
       if (resolver === undefined) {
         if (current.parent === null) {
-          resolver = this.jitRegister(key, current)
+          resolver = this.jitRegister(key, current);
           return resolver.resolve(current, this);
         }
 

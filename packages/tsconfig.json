@@ -3,6 +3,7 @@
   "references": [
     { "path": "kernel" },
     { "path": "runtime" },
+    { "path": "runtime-pixi" },
     { "path": "validation" },
     { "path": "router" },
     { "path": "jit" },

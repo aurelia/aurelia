@@ -33,7 +33,9 @@
     "generate-tests:template-compiler.static": "ts-node -P scripts/tsconfig.json scripts/generate-tests/template-compiler.static.ts",
     "generate-tests:template-compiler.mutations": "ts-node -P scripts/tsconfig.json scripts/generate-tests/template-compiler.mutations.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "pixi.js": "^4.8.2"
+  },
   "devDependencies": {
     "@types/acorn": "^4.0.3",
     "@types/chai": "^4.1.7",

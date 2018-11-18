@@ -27,7 +27,13 @@
       <pre>${output}</pre>
     </div>
 
-    <viewport name="left"></viewport>
-    <viewport name="right"></viewport>
+    <div>
+      <p>Block enter:</p>
+      <label><input type="checkbox" checked.two-way="blockEnterLeft"> Left</label>
+      <label><input type="checkbox" checked.two-way="blockEnterRight"> Right</label>
+    </div>
+
+    <viewport name="left" block-enter.two-way="blockEnterLeft"></viewport>
+    <viewport name="right" block-enter.two-way="blockEnterRight"></viewport>
   </div>
 </template>

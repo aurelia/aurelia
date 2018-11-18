@@ -11,5 +11,6 @@ container.register(BasicConfiguration, <any>ViewportCustomElement, <any>App, <an
 const component = container.get(CustomElementResource.keyFrom('app'));
 
 const au = new Aurelia(container);
+window['au'] = au;
 au.app({ host: document.querySelector('app'), component });
 au.start();

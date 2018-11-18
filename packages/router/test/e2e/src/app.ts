@@ -15,6 +15,9 @@ export class App {
   private left: any;
   private right: any;
 
+  public blockEnterLeft: boolean = false;
+  public blockEnterRight: boolean = false;
+
   constructor(private router: Router) {
     this.configureRouter();
   }

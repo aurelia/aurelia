@@ -2,7 +2,7 @@ import { CustomElementResource, ICustomElementResource, ITemplateDefinition, IRe
 import { Constructable, Reporter, Writable, Registration, IContainer } from '@aurelia/kernel';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindAttribute, $bindElement, $bindView, $unbindAttribute, $unbindElement, $unbindView } from './lifecycle-bind';
-import { $hydrateElement } from './hydrate-element';
+import { $hydrateElement } from './hydrate-element-override';
 
 type PartialCustomElementType<T> = T & Partial<IResourceType<ITemplateDefinition, unknown, Constructable>>;
 

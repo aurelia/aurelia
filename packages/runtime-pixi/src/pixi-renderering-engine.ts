@@ -1,4 +1,4 @@
-import { inject, Immutable, all, IContainer, IIndexable, Reporter, Writable, Registration, IDisposable, IResolver, Class, DI, IRegistry } from '@aurelia/kernel';
+import { inject, Immutable, all, IContainer, IIndexable, Reporter, Registration, IDisposable, IResolver, Class, DI, IRegistry } from '@aurelia/kernel';
 import {
   ILifecycle,
   ITemplateCompiler, ITemplateDefinition,
@@ -13,19 +13,15 @@ import {
   BindableDefinitions,
   buildTemplateDefinition,
   RuntimeCompilationResources,
-  INodeSequenceFactory,
   IRenderContext,
-  NodeSequenceFactory,
-  createRenderContext,
   IRenderable,
   INode,
   TemplatePartDefinitions,
   ViewCompileFlags,
   IRenderer,
-  ITargetedInstruction,
-  NodeSequence
-} from '@aurelia/runtime';
+  ITargetedInstruction} from '@aurelia/runtime';
 import { ViewFactory } from './view';
+import { PixiCompiledTemplate, noViewTemplate } from './pixi-template-types';
 
 const defaultCompilerName = 'pixiCompiler';
 
@@ -115,23 +111,12 @@ export class PixiRenderingEngine implements IRenderingEngine {
         definition = compiler.compile(<ITemplateDefinition>definition, new RuntimeCompilationResources(<ExposedContext>parentContext), ViewCompileFlags.surrogate);
       }
 
-      return new CompiledTemplate(this, parentContext, definition);
+      return new PixiCompiledTemplate(this, parentContext, definition);
     }
 
     return noViewTemplate;
   }
 }
-
-// This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
-/*@internal*/
-export const noViewTemplate: ITemplate = {
-  renderContext: null,
-  render(renderable: IRenderable): void {
-    (<Writable<IRenderable>>renderable).$nodes = NodeSequence.empty;
-    (<Writable<IRenderable>>renderable).$context = null;
-  }
-};
-
 
 /** @internal */
 export class RuntimeBehavior {
@@ -202,30 +187,6 @@ function createGetterSetter(instance: ICustomAttribute | ICustomElement, name: s
     set: function(value: unknown): void { this['$observers'][name].setValue(value, LifecycleFlags.updateTargetInstance); }
   });
 }
-
-// This is the main implementation of ITemplate.
-// It is used to create instances of IView based on a compiled TemplateDefinition.
-// TemplateDefinitions are hand-coded today, but will ultimately be the output of the
-// TemplateCompiler either through a JIT or AOT process.
-// Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
-// and create instances of it on demand.
-/*@internal*/
-export class CompiledTemplate implements ITemplate {
-  public readonly factory: INodeSequenceFactory;
-  public readonly renderContext: IRenderContext;
-
-  constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
-    this.factory = NodeSequenceFactory.createFor(templateDefinition.template);
-    this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
-  }
-
-  public render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (<Writable<IRenderable>>renderable).$nodes = this.factory.createNodeSequence();
-    (<Writable<IRenderable>>renderable).$context = this.renderContext;
-    this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, parts);
-  }
-}
-
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;

@@ -454,15 +454,18 @@ export interface IAttributePatternHandler {
 
 export const IAttributePattern = DI.createInterface<IAttributePattern>().noDefault();
 
-type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<IAttributePattern>, TClass> & Partial<IRegistry>;
-type DecoratedAttributePattern<TProto, TClass> =  Class<TProto & IAttributePattern, TClass> & IRegistry;
+type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<IAttributePattern | IAttributePatternHandler>, TClass> & Partial<IRegistry>;
+type DecoratedAttributePattern<TProto, TClass> =  Class<TProto & IAttributePattern | IAttributePatternHandler, TClass> & IRegistry;
 
 type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>) => DecoratedAttributePattern<TProto, TClass>;
 
 export function attributePattern(...patternDefs: AttributePatternDefinition[]): AttributePatternDecorator {
   return function decorator<TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass> {
     const proto = target.prototype;
-    validatePrototype(proto as unknown as IAttributePatternHandler, patternDefs);
+    // Note: the prototype is really meant to be an intersection type between IAttrubutePattern and IAttributePatternHandler, but
+    // a type with an index signature cannot be intersected with anything else that has normal property names.
+    // So we're forced to use a union type and cast it here.
+    validatePrototype(proto as IAttributePatternHandler, patternDefs);
     proto.$patternDefs = patternDefs;
 
     target.register = function register(container: IContainer): IResolver {

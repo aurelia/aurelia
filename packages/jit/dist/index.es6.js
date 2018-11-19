@@ -1,5 +1,5 @@
-import { DI, Registration, Reporter, inject, PLATFORM } from '@aurelia/kernel';
-import { CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateTemplateController, IExpressionParser, IteratorBindingInstruction, OneTimeBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction, AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, DOM, BindingMode, CustomAttributeResource, CustomElementResource, HydrateAttributeInstruction, HydrateElementInstruction, InterpolationInstruction, LetBindingInstruction, LetElementInstruction, RefBindingInstruction, SetAttributeInstruction, TextBindingInstruction, ViewCompileFlags, AttrBindingBehavior, Compose, DebounceBindingBehavior, Else, FromViewBindingBehavior, HtmlRenderer, If, ITemplateCompiler, OneTimeBindingBehavior, Repeat, Replaceable, SanitizeValueConverter, SelfBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior, UpdateTriggerBindingBehavior, With } from '@aurelia/runtime';
+import { PLATFORM, DI, Registration, Reporter, all, inject } from '@aurelia/kernel';
+import { DOM, CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateTemplateController, IExpressionParser, IteratorBindingInstruction, OneTimeBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction, AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, BindingMode, CustomAttributeResource, CustomElementResource, HydrateAttributeInstruction, HydrateElementInstruction, InterpolationInstruction, LetBindingInstruction, LetElementInstruction, RefBindingInstruction, SetAttributeInstruction, TextBindingInstruction, ViewCompileFlags, AttrBindingBehavior, Compose, DebounceBindingBehavior, Else, FromViewBindingBehavior, HtmlRenderer, If, ITemplateCompiler, OneTimeBindingBehavior, Repeat, Replaceable, SanitizeValueConverter, SelfBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior, UpdateTriggerBindingBehavior, With } from '@aurelia/runtime';
 
 class AttrSyntax {
     constructor(rawName, rawValue, target, command) {
@@ -9,37 +9,19 @@ class AttrSyntax {
         this.command = command;
     }
 }
-const IAttributeParser = DI.createInterface()
-    .withDefault(x => x.singleton(AttributeParser));
-/*@internal*/
-class AttributeParser {
-    constructor() {
-        this.cache = {};
+const marker = DOM.createElement('au-marker');
+marker.classList.add('au');
+const createMarker = marker.cloneNode.bind(marker, false);
+class ElementSyntax {
+    constructor(node, name, $content, $children, $attributes) {
+        this.node = node;
+        this.name = name;
+        this.$content = $content;
+        this.$children = $children;
+        this.$attributes = $attributes;
     }
-    parse(name, value) {
-        let target;
-        let command;
-        const existing = this.cache[name];
-        if (existing === undefined) {
-            let lastIndex = 0;
-            target = name;
-            for (let i = 0, ii = name.length; i < ii; ++i) {
-                if (name.charCodeAt(i) === 46 /* Dot */) {
-                    // set the targetName to only the part that comes before the first dot
-                    if (name === target) {
-                        target = name.slice(0, i);
-                    }
-                    lastIndex = i;
-                }
-            }
-            command = lastIndex > 0 ? name.slice(lastIndex + 1) : null;
-            this.cache[name] = [target, command];
-        }
-        else {
-            target = existing[0];
-            command = existing[1];
-        }
-        return new AttrSyntax(name, value, target, command && command.length ? command : null);
+    static createMarker() {
+        return new ElementSyntax(createMarker(), 'au-marker', null, PLATFORM.emptyArray, PLATFORM.emptyArray);
     }
 }
 
@@ -64,6 +46,441 @@ function __decorate(decorators, target, key, desc) {
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
+
+/*@internal*/
+class CharSpec {
+    constructor(chars, repeat, isSymbol, isInverted) {
+        this.chars = chars;
+        this.repeat = repeat;
+        this.isSymbol = isSymbol;
+        this.isInverted = isInverted;
+        if (isInverted) {
+            switch (chars.length) {
+                case 0:
+                    this.has = this.hasOfNoneInverse;
+                    break;
+                case 1:
+                    this.has = this.hasOfSingleInverse;
+                    break;
+                default:
+                    this.has = this.hasOfMultipleInverse;
+            }
+        }
+        else {
+            switch (chars.length) {
+                case 0:
+                    this.has = this.hasOfNone;
+                    break;
+                case 1:
+                    this.has = this.hasOfSingle;
+                    break;
+                default:
+                    this.has = this.hasOfMultiple;
+            }
+        }
+    }
+    equals(other) {
+        return this.chars === other.chars
+            && this.repeat === other.repeat
+            && this.isSymbol === other.isSymbol
+            && this.isInverted === other.isInverted;
+    }
+    hasOfMultiple(char) {
+        return this.chars.indexOf(char) !== -1;
+    }
+    hasOfSingle(char) {
+        return this.chars === char;
+    }
+    hasOfNone(char) {
+        return false;
+    }
+    hasOfMultipleInverse(char) {
+        return this.chars.indexOf(char) === -1;
+    }
+    hasOfSingleInverse(char) {
+        return this.chars !== char;
+    }
+    hasOfNoneInverse(char) {
+        return true;
+    }
+}
+class Interpretation {
+    get pattern() {
+        const value = this._pattern;
+        if (value === '') {
+            return null;
+        }
+        else {
+            return value;
+        }
+    }
+    set pattern(value) {
+        if (value === null) {
+            this._pattern = '';
+            this.parts = PLATFORM.emptyArray;
+        }
+        else {
+            this._pattern = value;
+            this.parts = this.partsRecord[value];
+        }
+    }
+    constructor() {
+        this._pattern = '';
+        this.parts = PLATFORM.emptyArray;
+        this.currentRecord = {};
+        this.partsRecord = {};
+    }
+    append(pattern, ch) {
+        const { currentRecord } = this;
+        if (currentRecord[pattern] === undefined) {
+            currentRecord[pattern] = ch;
+        }
+        else {
+            currentRecord[pattern] += ch;
+        }
+    }
+    next(pattern) {
+        const { currentRecord } = this;
+        if (currentRecord[pattern] !== undefined) {
+            const { partsRecord } = this;
+            if (partsRecord[pattern] === undefined) {
+                partsRecord[pattern] = [currentRecord[pattern]];
+            }
+            else {
+                partsRecord[pattern].push(currentRecord[pattern]);
+            }
+            currentRecord[pattern] = undefined;
+        }
+    }
+}
+/*@internal*/
+class State {
+    get pattern() {
+        return this.isEndpoint ? this.patterns[0] : null;
+    }
+    constructor(charSpec, ...patterns) {
+        this.charSpec = charSpec;
+        this.nextStates = [];
+        this.types = null;
+        this.patterns = patterns;
+        this.isEndpoint = false;
+    }
+    findChild(charSpec) {
+        const nextStates = this.nextStates;
+        const len = nextStates.length;
+        let child = null;
+        for (let i = 0; i < len; ++i) {
+            child = nextStates[i];
+            if (charSpec.equals(child.charSpec)) {
+                return child;
+            }
+        }
+        return null;
+    }
+    append(charSpec, pattern) {
+        const { patterns } = this;
+        if (patterns.indexOf(pattern) === -1) {
+            patterns.push(pattern);
+        }
+        let state = this.findChild(charSpec);
+        if (state === null) {
+            state = new State(charSpec, pattern);
+            this.nextStates.push(state);
+            if (charSpec.repeat) {
+                state.nextStates.push(state);
+            }
+        }
+        return state;
+    }
+    findMatches(ch, interpretation) {
+        // TODO: reuse preallocated arrays
+        const results = [];
+        const nextStates = this.nextStates;
+        const len = nextStates.length;
+        let childLen = 0;
+        let child = null;
+        let i = 0;
+        let j = 0;
+        for (; i < len; ++i) {
+            child = nextStates[i];
+            if (child.charSpec.has(ch)) {
+                results.push(child);
+                childLen = child.patterns.length;
+                if (child.charSpec.isSymbol) {
+                    for (; j < childLen; ++j) {
+                        interpretation.next(child.patterns[j]);
+                    }
+                }
+                else {
+                    for (; j < childLen; ++j) {
+                        interpretation.append(child.patterns[j], ch);
+                    }
+                }
+            }
+        }
+        return results;
+    }
+}
+/*@internal*/
+class StaticSegment {
+    constructor(text) {
+        this.text = text;
+        const len = this.len = text.length;
+        const specs = this.specs = [];
+        for (let i = 0; i < len; ++i) {
+            specs.push(new CharSpec(text[i], false, false, false));
+        }
+    }
+    eachChar(callback) {
+        const { len, specs } = this;
+        for (let i = 0; i < len; ++i) {
+            callback(specs[i]);
+        }
+    }
+}
+/*@internal*/
+class DynamicSegment {
+    constructor(symbols) {
+        this.text = 'PART';
+        this.spec = new CharSpec(symbols, true, false, true);
+    }
+    eachChar(callback) {
+        callback(this.spec);
+    }
+}
+/*@internal*/
+class SymbolSegment {
+    constructor(text) {
+        this.text = text;
+        this.spec = new CharSpec(text, false, true, false);
+    }
+    eachChar(callback) {
+        callback(this.spec);
+    }
+}
+/*@internal*/
+class SegmentTypes {
+    constructor() {
+        this.statics = 0;
+        this.dynamics = 0;
+        this.symbols = 0;
+    }
+}
+const ISyntaxInterpreter = DI.createInterface().withDefault(x => x.singleton(SyntaxInterpreter));
+/*@internal*/
+class SyntaxInterpreter {
+    constructor() {
+        this.rootState = new State(null);
+        this.initialStates = [this.rootState];
+    }
+    add(defOrDefs) {
+        let i = 0;
+        if (Array.isArray(defOrDefs)) {
+            const ii = defOrDefs.length;
+            for (; i < ii; ++i) {
+                this.add(defOrDefs[i]);
+            }
+            return;
+        }
+        let currentState = this.rootState;
+        const def = defOrDefs;
+        const pattern = def.pattern;
+        const types = new SegmentTypes();
+        const segments = this.parse(def, types);
+        const len = segments.length;
+        const callback = (ch) => {
+            currentState = currentState.append(ch, pattern);
+        };
+        for (i = 0; i < len; ++i) {
+            segments[i].eachChar(callback);
+        }
+        currentState.types = types;
+        currentState.isEndpoint = true;
+    }
+    interpret(name) {
+        const interpretation = new Interpretation();
+        let states = this.initialStates;
+        const len = name.length;
+        for (let i = 0; i < len; ++i) {
+            states = this.getNextStates(states, name.charAt(i), interpretation);
+            if (states.length === 0) {
+                break;
+            }
+        }
+        states.sort((a, b) => {
+            if (a.isEndpoint) {
+                if (!b.isEndpoint) {
+                    return -1;
+                }
+            }
+            else if (b.isEndpoint) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+            const aTypes = a.types;
+            const bTypes = b.types;
+            if (aTypes.statics !== bTypes.statics) {
+                return bTypes.statics - aTypes.statics;
+            }
+            if (aTypes.dynamics !== bTypes.dynamics) {
+                return bTypes.dynamics - aTypes.dynamics;
+            }
+            if (aTypes.symbols !== bTypes.symbols) {
+                return bTypes.symbols - aTypes.symbols;
+            }
+            return 0;
+        });
+        if (states.length > 0) {
+            const state = states[0];
+            if (!state.charSpec.isSymbol) {
+                interpretation.next(state.pattern);
+            }
+            interpretation.pattern = state.pattern;
+        }
+        return interpretation;
+    }
+    getNextStates(states, ch, interpretation) {
+        // TODO: reuse preallocated arrays
+        const nextStates = [];
+        let state = null;
+        const len = states.length;
+        for (let i = 0; i < len; ++i) {
+            state = states[i];
+            nextStates.push(...state.findMatches(ch, interpretation));
+        }
+        return nextStates;
+    }
+    parse(def, types) {
+        const result = [];
+        const pattern = def.pattern;
+        const len = pattern.length;
+        let i = 0;
+        let start = 0;
+        let c = '';
+        while (i < len) {
+            c = pattern.charAt(i);
+            if (def.symbols.indexOf(c) === -1) {
+                if (i === start) {
+                    if (c === 'P' && pattern.slice(i, i + 4) === 'PART') {
+                        start = i = (i + 4);
+                        result.push(new DynamicSegment(def.symbols));
+                        ++types.dynamics;
+                    }
+                    else {
+                        ++i;
+                    }
+                }
+                else {
+                    ++i;
+                }
+            }
+            else if (i !== start) {
+                result.push(new StaticSegment(pattern.slice(start, i)));
+                ++types.statics;
+                start = i;
+            }
+            else {
+                result.push(new SymbolSegment(pattern.slice(start, i + 1)));
+                ++types.symbols;
+                start = ++i;
+            }
+        }
+        if (start !== i) {
+            result.push(new StaticSegment(pattern.slice(start, i)));
+            ++types.statics;
+        }
+        return result;
+    }
+}
+function validatePrototype(handler, patternDefs) {
+    for (const def of patternDefs) {
+        // note: we're intentionally not throwing here
+        if (!(def.pattern in handler)) {
+            Reporter.write(401, def); // TODO: organize error codes
+        }
+        else if (typeof handler[def.pattern] !== 'function') {
+            Reporter.write(402, def); // TODO: organize error codes
+        }
+    }
+}
+const IAttributePattern = DI.createInterface().noDefault();
+function attributePattern(...patternDefs) {
+    return function decorator(target) {
+        const proto = target.prototype;
+        // Note: the prototype is really meant to be an intersection type between IAttrubutePattern and IAttributePatternHandler, but
+        // a type with an index signature cannot be intersected with anything else that has normal property names.
+        // So we're forced to use a union type and cast it here.
+        validatePrototype(proto, patternDefs);
+        proto.$patternDefs = patternDefs;
+        target.register = function register(container) {
+            return Registration.singleton(IAttributePattern, target).register(container, IAttributePattern);
+        };
+        return target;
+    };
+}
+let DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
+    ['PART.PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
+    }
+    ['PART.PART.PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
+    }
+};
+DotSeparatedAttributePattern = __decorate([
+    attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })
+], DotSeparatedAttributePattern);
+let ColonPrefixedBindAttributePattern = class ColonPrefixedBindAttributePattern {
+    [':PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
+    }
+};
+ColonPrefixedBindAttributePattern = __decorate([
+    attributePattern({ pattern: ':PART', symbols: ':' })
+], ColonPrefixedBindAttributePattern);
+let AtPrefixedTriggerAttributePattern = class AtPrefixedTriggerAttributePattern {
+    ['@PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+    }
+};
+AtPrefixedTriggerAttributePattern = __decorate([
+    attributePattern({ pattern: '@PART', symbols: '@' })
+], AtPrefixedTriggerAttributePattern);
+
+const IAttributeParser = DI.createInterface()
+    .withDefault(x => x.singleton(AttributeParser));
+/*@internal*/
+let AttributeParser = class AttributeParser {
+    constructor(interpreter, attrPatterns) {
+        this.interpreter = interpreter;
+        this.cache = {};
+        const patterns = this.patterns = {};
+        attrPatterns.forEach(attrPattern => {
+            const defs = attrPattern.$patternDefs;
+            interpreter.add(defs);
+            defs.forEach(def => {
+                patterns[def.pattern] = attrPattern;
+            });
+        });
+    }
+    parse(name, value) {
+        let interpretation = this.cache[name];
+        if (interpretation === undefined) {
+            interpretation = this.cache[name] = this.interpreter.interpret(name);
+        }
+        const pattern = interpretation.pattern;
+        if (pattern === null) {
+            return new AttrSyntax(name, value, name, null);
+        }
+        else {
+            return this.patterns[pattern][pattern](name, value, interpretation.parts);
+        }
+    }
+};
+AttributeParser = __decorate([
+    inject(ISyntaxInterpreter, all(IAttributePattern))
+], AttributeParser);
 
 function register(container) {
     const resourceKey = BindingCommandResource.keyFrom(this.description.name);
@@ -1197,21 +1614,6 @@ CharScanners[123 /* OpenBrace */] = returnToken(131079 /* OpenBrace */);
 CharScanners[125 /* CloseBrace */] = returnToken(1835017 /* CloseBrace */);
 
 const domParser = DOM.createElement('div');
-const marker = DOM.createElement('au-marker');
-marker.classList.add('au');
-const createMarker = marker.cloneNode.bind(marker, false);
-class ElementSyntax {
-    constructor(node, name, $content, $children, $attributes) {
-        this.node = node;
-        this.name = name;
-        this.$content = $content;
-        this.$children = $children;
-        this.$attributes = $attributes;
-    }
-    static createMarker() {
-        return new ElementSyntax(createMarker(), 'au-marker', null, PLATFORM.emptyArray, PLATFORM.emptyArray);
-    }
-}
 const IElementParser = DI.createInterface()
     .withDefault(x => x.singleton(ElementParser));
 /*@internal*/
@@ -2007,7 +2409,8 @@ const defaultBindingLanguage = [
     DelegateBindingCommand,
     CaptureBindingCommand,
     CallBindingCommand,
-    ForBindingCommand
+    ForBindingCommand,
+    DotSeparatedAttributePattern
 ];
 const BasicConfiguration = {
     register(container) {
@@ -2015,5 +2418,5 @@ const BasicConfiguration = {
     }
 };
 
-export { AttrSyntax, IAttributeParser, AttributeParser, bindingCommand, BindingCommandResource, OneTimeBindingCommand, ToViewBindingCommand, FromViewBindingCommand, TwoWayBindingCommand, DefaultBindingCommand, TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, CallBindingCommand, ForBindingCommand, unescapeCode, BasicConfiguration, ElementSyntax, IElementParser, ElementParser, ParserRegistration, ParserState, parseCore, parse, SemanticModel, MultiAttributeBindingSymbol, AttributeSymbol, ElementSymbol, TemplateCompiler };
+export { AttrSyntax, ElementSyntax, IAttributeParser, AttributeParser, CharSpec, Interpretation, State, StaticSegment, DynamicSegment, SymbolSegment, SegmentTypes, ISyntaxInterpreter, SyntaxInterpreter, IAttributePattern, attributePattern, DotSeparatedAttributePattern, ColonPrefixedBindAttributePattern, AtPrefixedTriggerAttributePattern, bindingCommand, BindingCommandResource, OneTimeBindingCommand, ToViewBindingCommand, FromViewBindingCommand, TwoWayBindingCommand, DefaultBindingCommand, TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, CallBindingCommand, ForBindingCommand, unescapeCode, BasicConfiguration, IElementParser, ElementParser, ParserRegistration, ParserState, parseCore, parse, SemanticModel, MultiAttributeBindingSymbol, AttributeSymbol, ElementSymbol, TemplateCompiler };
 //# sourceMappingURL=index.es6.js.map

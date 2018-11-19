@@ -1,8 +1,9 @@
 import { Immutable, IServiceLocator } from '@aurelia/kernel';
 import { BindingMode, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
-import { AttrSyntax, IAttributeParser } from './attribute-parser';
+import { AttrSyntax, ElementSyntax } from './ast';
+import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
-import { ElementSyntax, IElementParser } from './element-parser';
+import { IElementParser } from './element-parser';
 export declare class SemanticModel {
     readonly isSemanticModel: true;
     readonly root: ElementSymbol;

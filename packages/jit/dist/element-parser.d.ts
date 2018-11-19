@@ -1,5 +1,5 @@
 import { INode } from '@aurelia/runtime';
-import { AttrSyntax } from './attribute-parser';
+import { ElementSyntax } from './ast';
 export declare const enum NodeType {
     Element = 1,
     Attr = 2,
@@ -13,15 +13,6 @@ export declare const enum NodeType {
     DocumentType = 10,
     DocumentFragment = 11,
     Notation = 12
-}
-export declare class ElementSyntax {
-    readonly node: Node;
-    readonly name: string;
-    readonly $content: ElementSyntax | null;
-    readonly $children: ReadonlyArray<ElementSyntax>;
-    readonly $attributes: ReadonlyArray<AttrSyntax>;
-    constructor(node: Node, name: string, $content: ElementSyntax | null, $children: ReadonlyArray<ElementSyntax>, $attributes: ReadonlyArray<AttrSyntax>);
-    static createMarker(): ElementSyntax;
 }
 export interface IElementParser {
     parse(markupOrNode: string | INode): ElementSyntax;

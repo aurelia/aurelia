@@ -129,6 +129,9 @@
       },
       createInterface(friendlyName) {
           const Key = function (target, property, index) {
+              if (target === undefined) {
+                  throw Reporter.error(16, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+              }
               Key.friendlyName = friendlyName || 'Interface';
               (target.inject || (target.inject = []))[index] = Key;
               return target;
@@ -168,7 +171,8 @@
           return function (target, key, descriptor) {
               if (typeof descriptor === 'number') { // It's a parameter decorator.
                   if (!target.hasOwnProperty('inject')) {
-                      target.inject = DI.getDesignParamTypes(target).slice();
+                      const types = DI.getDesignParamTypes(target);
+                      target.inject = types.slice();
                   }
                   if (dependencies.length === 1) {
                       target.inject[descriptor] = dependencies[0];
@@ -184,7 +188,8 @@
               }
               else { // It's a class decorator.
                   if (dependencies.length === 0) {
-                      target.inject = DI.getDesignParamTypes(target).slice();
+                      const types = DI.getDesignParamTypes(target);
+                      target.inject = types.slice();
                   }
                   else {
                       target.inject = dependencies;
@@ -215,7 +220,8 @@
       // tslint:enable:jsdoc-format
       transient(target) {
           target.register = function register(container) {
-              return Registration.transient(target, target).register(container, target);
+              const registration = Registration.transient(target, target);
+              return registration.register(container, target);
           };
           return target;
       },
@@ -241,7 +247,8 @@
       // tslint:enable:jsdoc-format
       singleton(target) {
           target.register = function register(container) {
-              return Registration.singleton(target, target).register(container, target);
+              const registration = Registration.singleton(target, target);
+              return registration.register(container, target);
           };
           return target;
       }
@@ -305,11 +312,17 @@
               case 0 /* instance */:
                   return this.state;
               case 1 /* singleton */:
-                  this.strategy = 0 /* instance */;
-                  return this.state = handler.getFactory(this.state).construct(handler);
+                  {
+                      this.strategy = 0 /* instance */;
+                      const factory = handler.getFactory(this.state);
+                      return this.state = factory.construct(handler);
+                  }
               case 2 /* transient */:
-                  // Always create transients from the requesting container
-                  return handler.getFactory(this.state).construct(requestor);
+                  {
+                      // Always create transients from the requesting container
+                      const factory = handler.getFactory(this.state);
+                      return factory.construct(requestor);
+                  }
               case 3 /* callback */:
                   return this.state(handler, requestor, this);
               case 4 /* array */:
@@ -467,10 +480,11 @@
           }
           let current = this;
           while (current !== null) {
-              const resolver = current.resolvers.get(key);
+              let resolver = current.resolvers.get(key);
               if (resolver === undefined) {
                   if (current.parent === null) {
-                      return this.jitRegister(key, current).resolve(current, this);
+                      resolver = this.jitRegister(key, current);
+                      return resolver.resolve(current, this);
                   }
                   current = current.parent;
               }

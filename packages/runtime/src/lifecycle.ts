@@ -754,6 +754,14 @@ export class Lifecycle implements ILifecycle {
         current.flush(flags);
         current = next;
       } while (current !== marker);
+      // doNotUpdateDOM will cause DOM updates to be re-queued which results in an infinite loop
+      // unless we break here
+      // Note that breaking on this flag is still not the ideal solution; future improvement would
+      // be something like a separate DOM queue and a non-DOM queue, but for now this fixes the infinite
+      // loop without breaking anything (apart from the edgiest of edge cases which are not yet tested)
+      if (flags & LifecycleFlags.doNotUpdateDOM) {
+        break;
+      }
     }
   }
 

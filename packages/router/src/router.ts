@@ -1,6 +1,6 @@
-import { IHistoryEntry, HistoryBrowser, INavigationInstruction } from './history-browser';
-import { Viewport } from './viewport';
 import { IContainer, inject } from '@aurelia/kernel';
+import { HistoryBrowser, IHistoryEntry, INavigationInstruction } from './history-browser';
+import { Viewport } from './viewport';
 
 export interface IRoute {
   name: string;

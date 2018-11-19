@@ -229,8 +229,8 @@ export class HistoryBrowser {
     }
     this.pathChanged();
   }
-  private callback(currentEntry: Object, navigationFlags: INavigationFlags) {
-    const instruction: INavigationInstruction = Object.assign({}, currentEntry, navigationFlags);
+  private callback(currentEntry: Object, navigationFlags: INavigationFlags): void {
+    const instruction: any = Object.assign({}, currentEntry, navigationFlags);
     console.log('callback', currentEntry, navigationFlags);
     if (this.options.callback) {
       this.options.callback(instruction);

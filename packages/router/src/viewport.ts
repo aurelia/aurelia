@@ -1,5 +1,5 @@
-import { CustomElementResource, ICustomElement, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
+import { CustomElementResource, ICustomElement, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 
 export class Viewport {

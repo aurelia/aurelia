@@ -24,19 +24,26 @@ import {
   BindingIdentifier,
   IExpression,
   PrimitiveLiteral
-} from '../../../runtime/src';
+} from '../../../runtime/src/index';
 import {
   TemplateCompiler,
   BasicConfiguration,
   parseCore,
   AttributeParser,
-  ElementParser
-} from '../../src';
+  ElementParser,
+  SyntaxInterpreter,
+  DotSeparatedAttributePattern,
+  IAttributeParser
+} from '../../src/index';
 import { expect } from 'chai';
 import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from './util';
 
-const attrParser = new AttributeParser();
-const elParser = new ElementParser(attrParser);
+const c = DI.createContainer();
+c.register(<any>DotSeparatedAttributePattern);
+
+const attrParser = c.get(IAttributeParser);
+const elParser = new ElementParser(<any>attrParser);
+
 
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);
@@ -52,7 +59,7 @@ describe('TemplateCompiler', () => {
 
   beforeEach(() => {
     container = DI.createContainer();
-    container.register(BasicConfiguration);
+    container.register(<any>BasicConfiguration);
     expressionParser = container.get(IExpressionParser);
     sut = new TemplateCompiler(expressionParser as any, elParser, attrParser);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ Type: { description: {} } }) });

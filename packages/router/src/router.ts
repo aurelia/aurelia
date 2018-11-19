@@ -129,17 +129,32 @@ export class Router {
   }
 
   public findViewport(name: string): Viewport {
-    return this.viewports[name];
+    return this.viewports[name] || this.addViewport(name, null, null);
   }
 
   public renderViewports(viewports: Viewport[]): void {
-    for (const viewport of viewports) {
+    for (const viewport of viewports.filter((value) => value.nextContent)) {
       viewport.loadContent();
     }
   }
 
+  public renderViewport(viewport: Viewport): Promise<any> {
+    return viewport.canEnter().then(() => viewport.loadContent());
+  }
+
   public addViewport(name: string, element: Element, controller: any): Viewport {
-    return this.viewports[name] = new Viewport(this.container, name, element, controller);
+    const viewport = this.viewports[name];
+    if (!viewport) {
+      return this.viewports[name] = new Viewport(this.container, name, element, controller);
+    }
+    if (element) {
+      setTimeout(() => {
+        viewport.element = element;
+        viewport.controller = controller;
+        this.renderViewport(viewport);
+      }, 0);
+    }
+    return viewport;
   }
 
   public addRoute(route: IRoute): void {

@@ -21,7 +21,7 @@
     <a href="#/test/redirect">Redirect</a>
     <a href="http://www.google.com">Google</a>
 
-    <div style="padding: 10px;">
+    <div style="padding: 10px; display: none;">
       <pre>${title}</pre>
     </div>
 
@@ -31,12 +31,19 @@
       <div><label><input type="checkbox" checked.two-way="appState.blockEnterDef"> Def</label></div>
     </div>
 
-    <viewport name="left"></viewport>
-    <viewport name="right"></viewport>
+    <viewport name="left" class="split"></viewport>
+    <viewport name="right" class="split"></viewport>
+
+    <div style="padding: 10px;">
+      <a href="#/email">Open email</a>
+      <a href="#/special" style="white-space: nowrap; width: auto;">Trigger (but not show) special tab in email</a>
+    </div>
+    <div style="padding: 10px;">
+      <viewport name="application"></viewport>
+    </div>
 
     <div style="padding: 10px;">
       <pre>${output}</pre>
     </div>
-
   </div>
 </template>

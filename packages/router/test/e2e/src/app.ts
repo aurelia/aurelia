@@ -1,3 +1,4 @@
+import { DetailComponent } from './components/detail-component';
 import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
 import * as template from './app.html';
@@ -5,6 +6,8 @@ import { Router } from '../../../src/index';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';
 import { AppState } from './app-state';
+import { MasterComponent } from './components/master-component';
+import { Content3Component } from './components/content3-component';
 
 @inject(Router, AppState)
 @customElement({ name: 'app', template })
@@ -33,6 +36,11 @@ export class App {
     this.router.addRoute({ name: 'xyz', path: '/test/xyz', viewports: { 'right': { component: DefComponent } } });
     this.router.addRoute({ name: 'redirect', path: '/test/redirect', redirect: '/test/abc' });
     this.router.addRoute({ name: 'detour', path: '/test/detour', redirect: '/test/abc' });
+
+
+    this.router.addRoute({ name: 'email', path: '/email', viewports: { 'application': { component: MasterComponent }, 'master': { component: DetailComponent } } });
+    this.router.addRoute({ name: 'special', path: '/special', viewports: { 'detail': { component: Content3Component } } });
+
     this.updateTitle();
     console.log('ROUTER', this.router);
   }

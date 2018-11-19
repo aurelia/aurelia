@@ -44,6 +44,10 @@ export class Viewport {
   }
 
   public canEnter(): Promise<boolean> {
+    if (!this.nextContent) {
+      return Promise.resolve(false);
+    }
+
     this.loadComponent(this.nextContent);
     if (!this.nextComponent) {
       return Promise.resolve(false);
@@ -61,6 +65,10 @@ export class Viewport {
   public loadContent(): Promise<boolean> {
     console.log('Viewport loadContent', this.name);
 
+    if (!this.element) {
+      return Promise.resolve(false);
+    }
+
     const host: INode = this.element;
     const renderingEngine = this.container.get(IRenderingEngine);
 
@@ -70,14 +78,18 @@ export class Viewport {
       this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
     }
 
-    (<any>this.nextComponent).enter(this.nextInstruction, this.instruction);
-    this.nextComponent.$hydrate(renderingEngine, host);
-    this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-    this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);
+    if (this.nextComponent) {
+      (<any>this.nextComponent).enter(this.nextInstruction, this.instruction);
+      this.nextComponent.$hydrate(renderingEngine, host);
+      this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+      this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);
 
-    this.content = this.nextContent;
-    this.instruction = this.nextInstruction;
-    this.component = this.nextComponent;
+      this.content = this.nextContent;
+      this.instruction = this.nextInstruction;
+      this.component = this.nextComponent;
+
+      this.nextContent = this.nextInstruction = this.nextComponent = null;
+    }
 
     return Promise.resolve(true);
   }

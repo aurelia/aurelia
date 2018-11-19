@@ -1239,7 +1239,7 @@ export class CompositionCoordinator {
       this.swapTask.wait().then(() => {
         this.onSwapComplete();
         this.processNext();
-      });
+      }).catch(error => { throw error; });
     }
   }
 
@@ -1289,7 +1289,7 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
     if (!task.done) {
       this.done = false;
       this.tasks.push(task);
-      task.wait().then(() => { this.tryComplete(); });
+      task.wait().then(() => { this.tryComplete(); }).catch(error => { throw error; });
     }
   }
 

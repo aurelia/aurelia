@@ -58,7 +58,7 @@ export class If {
       const view = this.updateView(flags);
       this.coordinator.compose(view, flags);
     } else {
-      this.$lifecycle.enqueueFlush(this);
+      this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
     }
   }
 

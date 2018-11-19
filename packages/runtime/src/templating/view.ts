@@ -24,9 +24,7 @@ export class View implements IView {
   public $prevAttach: IAttach = null;
 
   public $nextMount: IMountable = null;
-  public $mountFlags: LifecycleFlags = 0;
   public $nextUnmount: IMountable = null;
-  public $unmountFlags: LifecycleFlags = 0;
 
   public $nextUnbindAfterDetach: ILifecycleUnbind = null;
 
@@ -46,12 +44,6 @@ export class View implements IView {
       throw Reporter.error(60); // TODO: organize error codes
     }
     this.location = location;
-    const lastChild = this.$nodes.lastChild;
-    if (lastChild && lastChild.nextSibling === location) {
-      this.$state &= ~State.needsMount;
-    } else {
-      this.$state |= State.needsMount;
-    }
   }
 
   public lockScope(scope: IScope): void {

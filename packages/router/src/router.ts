@@ -1,4 +1,4 @@
-import { IHistoryEntry, HistoryBrowser } from './history-browser';
+import { IHistoryEntry, HistoryBrowser, INavigationInstruction } from './history-browser';
 import { Viewport } from './viewport';
 import { IContainer, inject } from '@aurelia/kernel';
 
@@ -36,24 +36,24 @@ export class Router {
 
     this.isActive = true;
     this.options = Object.assign({}, {
-      callback: (entry, flags) => {
-        this.historyCallback(entry, flags);
+      callback: (navigationInstruction) => {
+        this.historyCallback(navigationInstruction);
       }
     }, options);
 
     this.historyBrowser.activate(this.options);
   }
 
-  public historyCallback(entry: IHistoryEntry, flags: any): Promise<void> {
+  public historyCallback(instruction: INavigationInstruction): Promise<void> {
     if (this.options.reportCallback) {
-      this.options.reportCallback(entry, flags);
+      this.options.reportCallback(instruction);
     }
 
-    if (flags.isCancel) {
+    if (instruction.isCancel) {
       return;
     }
 
-    const route: IRoute = this.findRoute(entry);
+    const route: IRoute = this.findRoute(instruction);
     if (!route) {
       return;
     }
@@ -65,7 +65,7 @@ export class Router {
     for (const vp in route.viewports) {
       const routeViewport: IRouteViewport = route.viewports[vp];
       const viewport = this.findViewport(vp);
-      if (viewport.setNextContent(routeViewport.component)) {
+      if (viewport.setNextContent(routeViewport.component, instruction)) {
         viewports.push(viewport);
       }
     }

@@ -1,9 +1,13 @@
-import { Aurelia, ICustomElement, CustomElementResource, IRenderingEngine, LifecycleFlags, INode } from '@aurelia/runtime';
-import { DI, IContainer } from '../../kernel/dist';
+import { CustomElementResource, ICustomElement, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { INavigationInstruction } from './history-browser';
 
 export class Viewport {
-  public content: string;
-  public nextContent: any;
+  public content: ICustomElement;
+  public nextContent: ICustomElement;
+
+  public instruction: INavigationInstruction;
+  public nextInstruction: INavigationInstruction;
 
   public component: ICustomElement;
   public nextComponent: ICustomElement;
@@ -11,12 +15,17 @@ export class Viewport {
   constructor(private container: IContainer, public name: string, public element: Element, public controller: any) {
   }
 
-  public setNextContent(content: ICustomElement | string): boolean {
-    if (this.content === content) {
-      return false;
+  public setNextContent(content: ICustomElement | string, instruction: INavigationInstruction): boolean {
+    this.nextContent = <ICustomElement>content; // If it's a string, we need to find the module
+    this.nextInstruction = instruction;
+
+    if (this.content !== content || instruction.isRefresh) {
+      return true;
     }
-    this.nextContent = content;
-    return true;
+
+    // Add comparisons against path and data here
+
+    return false;
   }
 
   public canLeave(): Promise<boolean> {
@@ -25,9 +34,9 @@ export class Viewport {
     }
 
     const component: any = this.component;
-    console.log('viewport canLeave', component.canLeave());
+    console.log('viewport canLeave', component.canLeave(this.instruction, this.nextInstruction));
 
-    const result = component.canLeave();
+    const result = component.canLeave(this.instruction, this.nextInstruction);
     if (typeof result === 'boolean') {
       return Promise.resolve(result);
     }
@@ -41,8 +50,8 @@ export class Viewport {
     }
 
     const component: any = this.nextComponent;
-    console.log('viewport canEnter', component.canEnter());
-    const result = component.canEnter();
+    console.log('viewport canEnter', component.canEnter(this.nextInstruction, this.instruction));
+    const result = component.canEnter(this.nextInstruction, this.instruction);
     if (typeof result === 'boolean') {
       return Promise.resolve(result);
     }
@@ -56,23 +65,24 @@ export class Viewport {
     const renderingEngine = this.container.get(IRenderingEngine);
 
     if (this.component) {
-      (<any>this.component).leave();
+      (<any>this.component).leave(this.instruction, this.nextInstruction);
       this.component.$detach(LifecycleFlags.fromStopTask);
       this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
     }
 
-    (<any>this.nextComponent).enter();
+    (<any>this.nextComponent).enter(this.nextInstruction, this.instruction);
     this.nextComponent.$hydrate(renderingEngine, host);
     this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
     this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);
 
     this.content = this.nextContent;
+    this.instruction = this.nextInstruction;
     this.component = this.nextComponent;
 
     return Promise.resolve(true);
   }
 
-  private loadComponent(componentOrName: ICustomElement) {
+  private loadComponent(componentOrName: ICustomElement): void {
     this.nextComponent = <any>this.container.get(CustomElementResource.keyFrom((<any>componentOrName).description.name));
   }
 }

@@ -325,10 +325,11 @@ export class SyntaxInterpreter {
     const types = new SegmentTypes();
     const segments = this.parse(def, types);
     const len = segments.length;
+    const callback = (ch: ICharSpec): void => {
+      currentState = currentState.append(ch, pattern);
+    };
     for (i = 0; i < len; ++i) {
-      segments[i].eachChar(ch => {
-        currentState = currentState.append(ch, pattern);
-      });
+      segments[i].eachChar(callback);
     }
     currentState.types = types;
     currentState.isEndpoint = true;

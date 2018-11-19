@@ -49,6 +49,10 @@ export class Router {
       this.options.reportCallback(entry, flags);
     }
 
+    if (flags.isCancel) {
+      return;
+    }
+
     const route: IRoute = this.findRoute(entry);
     if (!route) {
       return;
@@ -69,14 +73,14 @@ export class Router {
     let cancel: boolean = false;
     return Promise.all(viewports.map((value) => value.canLeave()))
       .then((promises: boolean[]) => {
-        if (!flags.isCancel && promises.findIndex((value) => value === false) >= 0) {
+        if (cancel || promises.findIndex((value) => value === false) >= 0) {
           cancel = true;
           return Promise.resolve([]);
         } else {
           return Promise.all(viewports.map((value) => value.canEnter()));
         }
       }).then((promises: boolean[]) => {
-        if (!flags.isCancel && promises.findIndex((value) => value === false) >= 0) {
+        if (cancel || promises.findIndex((value) => value === false) >= 0) {
           cancel = true;
           return Promise.resolve([]);
         } else {

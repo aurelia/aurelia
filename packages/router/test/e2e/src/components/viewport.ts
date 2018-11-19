@@ -9,9 +9,6 @@ import { Viewport } from './../../../../src/viewport';
 @customElement({ name: 'viewport', template })
 export class ViewportCustomElement {
   @bindable name: string;
-  @bindable blockEnter: boolean;
-
-  public blockLeave: boolean = false;
 
   public viewport: Viewport;
 

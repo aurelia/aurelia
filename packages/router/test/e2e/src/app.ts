@@ -4,8 +4,9 @@ import * as template from './app.html';
 import { Router } from '../../../src/index';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';
+import { AppState } from './app-state';
 
-@inject(Router)
+@inject(Router, AppState)
 @customElement({ name: 'app', template })
 export class App {
   message = 'So... we meet again, Mr. World!';
@@ -15,10 +16,7 @@ export class App {
   private left: any;
   private right: any;
 
-  public blockEnterLeft: boolean = false;
-  public blockEnterRight: boolean = false;
-
-  constructor(private router: Router) {
+  constructor(private router: Router, private appState: AppState) {
     this.configureRouter();
   }
 

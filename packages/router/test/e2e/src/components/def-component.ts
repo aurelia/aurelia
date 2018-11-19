@@ -19,20 +19,20 @@ export class DefComponent {
   attached(...rest) {
     console.log(this.name, 'attached', rest);
   }
-  canEnter(...rest) {
-    console.log(this.name, 'canEnter', ++this.counter, rest);
-    return !this.appState.blockEnterDef;
+  canEnter(instruction, previousInstruction) {
+    console.log(this.name, 'canEnter', ++this.counter, instruction, previousInstruction);
+    return !this.appState.blockEnterAbc;
   }
-  enter(...rest) {
-    console.log(this.name, 'enter', ++this.counter, rest);
+  enter(instruction, previousInstruction) {
+    console.log(this.name, 'enter', ++this.counter, instruction, previousInstruction);
     return true;
   }
-  canLeave(...rest) {
-    console.log(this.name, 'canLeave', ++this.counter, rest);
+  canLeave(previousInstruction, instruction) {
+    console.log(this.name, 'canLeave', ++this.counter, previousInstruction, instruction);
     return !this.blockLeave;
   }
-  leave(...rest) {
-    console.log(this.name, 'leave', ++this.counter, rest);
+  leave(previousInstruction, instruction) {
+    console.log(this.name, 'leave', ++this.counter, previousInstruction, instruction);
     return true;
   }
 }

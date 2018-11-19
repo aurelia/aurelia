@@ -623,7 +623,6 @@ export class Container implements IContainer {
       : false;
   }
 
-  // tslint:disable-next-line:no-reserved-keywords
   public get(key: any): any {
     validateKey(key);
 

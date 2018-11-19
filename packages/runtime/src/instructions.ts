@@ -4,8 +4,6 @@ import { DelegationStrategy } from './binding/event-manager';
 import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType } from './definitions';
 import { INode } from './dom';
 
-// tslint:disable:no-reserved-keywords | TODO: get rid of this suppression and fix the error
-
 export class TextBindingInstruction implements ITextBindingInstruction {
   public type: TargetedInstructionType.textBinding = TargetedInstructionType.textBinding;
   constructor(public from: string | Interpolation) {}

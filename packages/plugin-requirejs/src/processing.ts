@@ -110,7 +110,6 @@ interface Require {
   nodeRequire(name: string): unknown;
 }
 
-// tslint:disable-next-line:no-reserved-keywords
 declare const require: Require;
 
 export function loadFromFile(url: string, callback: (content: string) => void, errback: (error: Error) => void): void {

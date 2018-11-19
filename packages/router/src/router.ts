@@ -114,4 +114,24 @@ export class Router {
   public addRoute(route: IRoute): void {
     this.routes.push(route);
   }
+
+  public goto(path: string, title?: string, data?: Object): void {
+    this.historyBrowser.goto(path, title, data);
+  }
+
+  public replace(path: string, title?: string, data?: Object): void {
+    this.historyBrowser.goto(path, title, data);
+  }
+
+  public refresh(): void {
+    this.historyBrowser.refresh();
+  }
+
+  public back(): void {
+    this.historyBrowser.back();
+  }
+
+  public forward(): void {
+    this.historyBrowser.forward();
+  }
 }

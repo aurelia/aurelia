@@ -137,6 +137,9 @@ export const DI = {
 
   createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
     const Key: any = function(target: Injectable, property: string, index: number): any {
+      if (target === undefined) {
+        throw Reporter.error(16, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+      }
       Key.friendlyName = friendlyName || 'Interface';
       (target.inject || (target.inject = []))[index] = Key;
       return target;
@@ -182,7 +185,8 @@ export const DI = {
     return function(target: any, key?: string, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!target.hasOwnProperty('inject')) {
-          target.inject = DI.getDesignParamTypes(target).slice();
+          const types = DI.getDesignParamTypes(target)
+          target.inject = types.slice();
         }
 
         if (dependencies.length === 1) {
@@ -196,7 +200,8 @@ export const DI = {
         fn.inject = dependencies;
       } else { // It's a class decorator.
         if (dependencies.length === 0) {
-          target.inject = DI.getDesignParamTypes(target).slice();
+          const types = DI.getDesignParamTypes(target)
+          target.inject = types.slice();
         } else {
           target.inject = dependencies;
         }
@@ -227,7 +232,8 @@ Foo.register(container);
   // tslint:enable:jsdoc-format
   transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
-      return Registration.transient(target, target).register(container, target);
+      const registration = Registration.transient(target, target);
+      return registration.register(container, target);
     };
     return <T & RegisterSelf<T>>target;
   },
@@ -254,7 +260,8 @@ Foo.register(container);
   // tslint:enable:jsdoc-format
   singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
-      return Registration.singleton(target, target).register(container, target);
+      const registration = Registration.singleton(target, target);
+      return registration.register(container, target);
     };
     return <T & RegisterSelf<T>>target;
   }
@@ -402,11 +409,17 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.instance:
         return this.state;
       case ResolverStrategy.singleton:
+      {
         this.strategy = ResolverStrategy.instance;
-        return this.state = handler.getFactory(this.state).construct(handler);
+        const factory = handler.getFactory(this.state);
+        return this.state = factory.construct(handler);
+      }
       case ResolverStrategy.transient:
+      {
         // Always create transients from the requesting container
-        return handler.getFactory(this.state).construct(requestor);
+        const factory = handler.getFactory(this.state);
+        return factory.construct(requestor);
+      }
       case ResolverStrategy.callback:
         return (this.state as ResolveCallback)(handler, requestor, this);
       case ResolverStrategy.array:
@@ -621,11 +634,12 @@ export class Container implements IContainer {
     let current: Container = this;
 
     while (current !== null) {
-      const resolver = current.resolvers.get(key);
+      let resolver = current.resolvers.get(key);
 
       if (resolver === undefined) {
         if (current.parent === null) {
-          return this.jitRegister(key, current).resolve(current, this);
+          resolver = this.jitRegister(key, current);
+          return resolver.resolve(current, this);
         }
 
         current = current.parent;

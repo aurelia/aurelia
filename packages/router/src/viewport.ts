@@ -58,7 +58,7 @@ export class Viewport {
     if (this.component) {
       (<any>this.component).leave();
       this.component.$detach(LifecycleFlags.fromStopTask);
-      // this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+      this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
     }
 
     (<any>this.nextComponent).enter();

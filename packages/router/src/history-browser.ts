@@ -138,9 +138,6 @@ export class HistoryBrowser {
         let historyEntry: IHistoryEntry = this.getState('HistoryEntry');
         if (this.activeEntry && this.activeEntry.path === path) { // Only happens with new history entries (including replacing ones)
             navigationFlags.isNew = true;
-            // if (!historyEntry) { // Not needed, always new?
-            //     navigationFlags.isNew = true;
-            // }
             const index = (this.isReplacing ? this.currentEntry.index : this.history.length - this.historyOffset);
             this.currentEntry = this.activeEntry;
             this.currentEntry.index = index;

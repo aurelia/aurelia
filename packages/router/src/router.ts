@@ -82,12 +82,6 @@ export class Router {
         } else {
           return Promise.all(viewports.map((value) => value.loadContent()));
         }
-        // No need to check this for false/failures, right?
-        // }).then((promises: boolean[]) => {
-        //   if (promises.findIndex((value) => value === false) >= 0) {
-        //     cancel = true;
-        //   }
-        //   return Promise.resolve();
       }).then(() => {
         if (cancel) {
           this.historyBrowser.cancel();

@@ -107,8 +107,8 @@ export type TargetedInstruction =
   ILetElementInstruction;
 
 export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
-  const Type = value.type;
-  return typeof Type === 'string' && instructionTypeValues.indexOf(Type) !== -1;
+  const type = value.type;
+  return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
 }
 
 export interface ITextBindingInstruction extends ITargetedInstruction {

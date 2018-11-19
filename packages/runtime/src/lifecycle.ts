@@ -13,8 +13,7 @@ export const enum State {
   isMounted             = 0b000000010000,
   isDetaching           = 0b000000100000,
   isUnbinding           = 0b000001000000,
-  isCached              = 0b000010000000,
-  needsMount            = 0b000100000000
+  isCached              = 0b000010000000
 }
 
 export const enum Hooks {

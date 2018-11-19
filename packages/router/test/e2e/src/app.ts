@@ -22,25 +22,28 @@ export class App {
 
   configureRouter() {
     this.router.activate({
-      reportCallback: (entry, flags) => {
-        this.pathCallback(entry, flags);
+      reportCallback: (instruction) => {
+        this.pathCallback(instruction);
       }
     });
     this.router.addRoute({ name: 'abc', path: '/test/abc', title: 'Abc Title', viewports: { 'left': { component: AbcComponent }, 'right': { component: AbcComponent } } });
     this.router.addRoute({ name: 'def', path: '/test/def', title: 'Def Title', viewports: { 'left': { component: DefComponent }, 'right': { component: DefComponent } } });
     this.router.addRoute({ name: 'abc-left', path: '/test/abc-left', viewports: { 'left': { component: AbcComponent } } });
     this.router.addRoute({ name: 'abc-right', path: '/test/abc-right', viewports: { 'right': { component: AbcComponent } } });
+    this.router.addRoute({ name: 'xyz', path: '/test/xyz', viewports: { 'right': { component: DefComponent } } });
+    this.router.addRoute({ name: 'redirect', path: '/test/redirect', redirect: '/test/abc' });
+    this.router.addRoute({ name: 'detour', path: '/test/detour', redirect: '/test/abc' });
     this.updateTitle();
     console.log('ROUTER', this.router);
   }
 
-  pathCallback(entry, flags) {
-    console.log('app callback', entry, flags, this.title);
-    this.output += `Path: ${entry.path} [${entry.index}] "${entry.title}" (${this.stringifyFlags(flags)}) ${JSON.stringify(entry.data)}\n`;
+  pathCallback(instruction) {
+    console.log('app callback', instruction, this.title);
+    this.output += `Path: ${instruction.path} [${instruction.index}] "${instruction.title}" (${this.stringifyFlags(instruction)}) ${JSON.stringify(instruction.data)}\n`;
     // this.title = this.router.historyBrowser.titles.join(' > ');
-    if (!entry.title) {
+    if (!instruction.title) {
       setTimeout(() => {
-        this.router.historyBrowser.setEntryTitle(entry.path.split('/').pop() + ' (async)');
+        this.router.historyBrowser.setEntryTitle(instruction.path.split('/').pop() + ' (async)');
         // this.title = this.router.historyBrowser.titles.join(' > ');
       }, 500);
     }
@@ -49,7 +52,9 @@ export class App {
   stringifyFlags(flags) {
     let outs = [];
     for (let flag in flags) {
-      outs.push(flag.replace('is', ''));
+      if (flag.substring(0, 'is'.length) === 'is') {
+        outs.push(flag.replace('is', ''));
+      }
     }
     return outs.join(',');
   }

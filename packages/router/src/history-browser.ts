@@ -15,12 +15,13 @@ export interface INavigationFlags {
   isCancel?: boolean;
 }
 
-export interface INavigationInstruction extends IHistoryEntry, INavigationFlags {}
+export interface INavigationInstruction extends IHistoryEntry, INavigationFlags { }
 
 export class HistoryBrowser {
   public currentEntry: IHistoryEntry;
   public historyEntries: IHistoryEntry[];
   public historyOffset: number;
+  public replacedEntry: IHistoryEntry;
 
   public history: any;
 
@@ -32,6 +33,7 @@ export class HistoryBrowser {
   private isActive: boolean = false;
 
   private lastHistoryMovement: number;
+  private cancelRedirectHistoryMovement: number;
   private isCancelling: boolean = false;
   private isReplacing: boolean = false;
   private isRefreshing: boolean = false;
@@ -87,6 +89,11 @@ export class HistoryBrowser {
     };
     this.setPath(path, true);
   }
+  public redirect(path: string, title?: string, data?: Object): void {
+    // This makes sure we can cancel redirects from both pushes and replaces
+    this.cancelRedirectHistoryMovement = this.lastHistoryMovement + 1;
+    this.replace(path, title, data);
+  }
 
   public refresh(): void {
     if (!this.currentEntry) {
@@ -106,7 +113,12 @@ export class HistoryBrowser {
 
   public cancel(): void {
     this.isCancelling = true;
-    this.history.go(-this.lastHistoryMovement);
+    const movement = this.lastHistoryMovement || this.cancelRedirectHistoryMovement;
+    if (movement) {
+      this.history.go(-movement);
+    } else {
+      this.replace(this.replacedEntry.path, this.replacedEntry.title, this.replacedEntry.data);
+    }
   }
 
   public setState(key: string, value: any): void {
@@ -147,16 +159,18 @@ export class HistoryBrowser {
       if (this.isReplacing) {
         this.lastHistoryMovement = 0;
         this.historyEntries[this.currentEntry.index] = this.currentEntry;
-        if (this.isRefreshing) {
+        if (this.isCancelling) {
+          navigationFlags.isCancel = true;
+          this.isCancelling = false;
+          // Prevent another cancel by clearing lastHistoryMovement?
+        } else if (this.isRefreshing) {
           navigationFlags.isRefresh = true;
           this.isRefreshing = false;
-        }
-        else {
+        } else {
           navigationFlags.isReplace = true;
         }
         this.isReplacing = false;
-      }
-      else {
+      } else {
         this.lastHistoryMovement = 1;
         this.historyEntries = this.historyEntries.slice(0, this.currentEntry.index);
         this.historyEntries.push(this.currentEntry);
@@ -164,8 +178,7 @@ export class HistoryBrowser {
       this.setState('HistoryEntries', this.historyEntries);
       this.setState('HistoryOffset', this.historyOffset);
       this.setState('HistoryEntry', this.currentEntry);
-    }
-    else { // Refresh, history navigation, first navigation, manual navigation or cancel
+    } else { // Refresh, history navigation, first navigation, manual navigation or cancel
       this.historyEntries = this.historyEntries || this.getState('HistoryEntries') || [];
       this.historyOffset = this.historyOffset || this.getState('HistoryOffset') || 0;
       if (!historyEntry && !this.currentEntry) {
@@ -204,6 +217,10 @@ export class HistoryBrowser {
     }
     this.activeEntry = null;
 
+    if (this.cancelRedirectHistoryMovement) {
+      this.cancelRedirectHistoryMovement--;
+    }
+
     console.log('navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
     this.callback(this.currentEntry, navigationFlags);
   }
@@ -219,11 +236,11 @@ export class HistoryBrowser {
     }
 
     const { pathname, search } = this.location;
-    const hash = '#' + path;
+    const hash = `#${path}`;
     if (replace) {
+      this.replacedEntry = this.currentEntry;
       this.history.replaceState({}, null, `${pathname}${search}${hash}`);
-    }
-    else {
+    } else {
       // this.location.hash = hash;
       this.history.pushState({}, null, `${pathname}${search}${hash}`);
     }

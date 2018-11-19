@@ -17,10 +17,10 @@ chai.use(function(_chai, utils) {
     if (state & State.isBound) names.push('isBound');
     if (state & State.isAttaching) names.push('isAttaching');
     if (state & State.isAttached) names.push('isAttached');
+    if (state & State.isMounted) names.push('isMounted');
     if (state & State.isDetaching) names.push('isDetaching');
     if (state & State.isUnbinding) names.push('isUnbinding');
     if (state & State.isCached) names.push('isCached');
-    if (state & State.needsMount) names.push('needsMount');
     return names.join('|');
   }
 
@@ -30,10 +30,10 @@ chai.use(function(_chai, utils) {
     State.isBound,
     State.isAttaching,
     State.isAttached,
+    State.isMounted,
     State.isDetaching,
     State.isUnbinding,
     State.isCached,
-    State.needsMount,
   ]) {
     const flagName = getStateFlagName(stateFlag);
     Assertion.addChainableMethod(
@@ -46,10 +46,10 @@ chai.use(function(_chai, utils) {
         if (utils.flag(this, 'isBound')) currentFlag |= State.isBound;
         if (utils.flag(this, 'isAttaching')) currentFlag |= State.isAttaching;
         if (utils.flag(this, 'isAttached')) currentFlag |= State.isAttached;
+        if (utils.flag(this, 'isMounted')) currentFlag |= State.isMounted;
         if (utils.flag(this, 'isDetaching')) currentFlag |= State.isDetaching;
         if (utils.flag(this, 'isUnbinding')) currentFlag |= State.isUnbinding;
         if (utils.flag(this, 'isCached')) currentFlag |= State.isCached;
-        if (utils.flag(this, 'needsMount')) currentFlag |= State.needsMount;
 
         this.assert(
           (state & currentFlag) === currentFlag,

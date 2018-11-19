@@ -11,9 +11,9 @@ namespace Chai {
     isBound(msg?: string): Chai.Assertion & StateAssertion;
     isAttaching(msg?: string): Chai.Assertion & StateAssertion;
     isAttached(msg?: string): Chai.Assertion & StateAssertion;
+    isMounted(msg?: string): Chai.Assertion & StateAssertion;
     isDetaching(msg?: string): Chai.Assertion & StateAssertion;
     isUnbinding(msg?: string): Chai.Assertion & StateAssertion;
     isCached(msg?: string): Chai.Assertion & StateAssertion;
-    needsMount(msg?: string): Chai.Assertion & StateAssertion;
   }
 }

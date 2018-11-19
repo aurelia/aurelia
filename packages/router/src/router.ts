@@ -3,10 +3,11 @@ import { HistoryBrowser, IHistoryEntry, INavigationInstruction } from './history
 import { Viewport } from './viewport';
 
 export interface IRoute {
-  name: string;
+  name?: string;
   path: string;
+  redirect?: string;
   title?: string;
-  viewports: Object;
+  viewports?: Object;
   meta?: Object;
 }
 
@@ -20,10 +21,11 @@ export class Router {
   public routes: IRoute[] = [];
   public viewports: Object = {};
 
+  public historyBrowser: HistoryBrowser;
+
   private options: any;
   private isActive: boolean = false;
-
-  public historyBrowser: HistoryBrowser;
+  private isRedirecting: boolean = false;
 
   constructor(private container: IContainer) {
     this.historyBrowser = new HistoryBrowser();
@@ -53,10 +55,18 @@ export class Router {
       return;
     }
 
-    const route: IRoute = this.findRoute(instruction);
+    let route: IRoute = this.findRoute(instruction);
     if (!route) {
       return;
     }
+
+    if (route.redirect) {
+      route = this.resolveRedirect(route, instruction.data);
+      this.isRedirecting = true;
+      this.historyBrowser.redirect(route.path, route.title, instruction.data);
+      return;
+    }
+
     if (route.title) {
       this.historyBrowser.setEntryTitle(route.title);
     }
@@ -68,6 +78,13 @@ export class Router {
       if (viewport.setNextContent(routeViewport.component, instruction)) {
         viewports.push(viewport);
       }
+    }
+
+    // We've gone via a redirected route back to same viewport status so
+    // we need to remove the added history entry for the redirect
+    if (!viewports.length && this.isRedirecting) {
+      this.historyBrowser.cancel();
+      this.isRedirecting = false;
     }
 
     let cancel: boolean = false;
@@ -96,6 +113,20 @@ export class Router {
   public findRoute(entry: IHistoryEntry): IRoute {
     return this.routes.find((value) => value.path === entry.path);
   }
+  public resolveRedirect(route: IRoute, data?: Object): IRoute {
+    while (route.redirect) {
+      const redirectRoute: IRoute = this.findRoute({
+        path: route.redirect,
+        data: data,
+      });
+      if (redirectRoute) {
+        route = redirectRoute;
+      } else {
+        break;
+      }
+    }
+    return route;
+  }
 
   public findViewport(name: string): Viewport {
     return this.viewports[name];
@@ -120,7 +151,7 @@ export class Router {
   }
 
   public replace(path: string, title?: string, data?: Object): void {
-    this.historyBrowser.goto(path, title, data);
+    this.historyBrowser.replace(path, title, data);
   }
 
   public refresh(): void {

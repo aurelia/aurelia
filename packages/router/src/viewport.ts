@@ -50,7 +50,7 @@ export class Viewport {
   }
 
   public loadContent(): Promise<boolean> {
-    console.log('Viewport loadContent', this.name); //, this.nextContent);
+    console.log('Viewport loadContent', this.name);
 
     const host: INode = this.element;
     const renderingEngine = this.container.get(IRenderingEngine);
@@ -70,21 +70,9 @@ export class Viewport {
     this.component = this.nextComponent;
 
     return Promise.resolve(true);
-    // return this.controller.loadContent(this.nextContent);
   }
 
-  // public mountContent(): Promise<boolean> {
-  //   console.log('Mounting', this.name, this.nextContent);
-  //   if (this.component) {
-  //     (<any>this.component).leave();
-  //   }
-  //   this.content = this.nextContent;
-  //   this.component = this.nextComponent;
-  //   return this.controller.mount();
-  // }
-
   private loadComponent(componentOrName: ICustomElement) {
-    // const host: INode = this.element;
     this.nextComponent = <any>this.container.get(CustomElementResource.keyFrom((<any>componentOrName).description.name));
   }
 }

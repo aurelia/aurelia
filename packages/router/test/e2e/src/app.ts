@@ -59,25 +59,25 @@ export class App {
     setTimeout(() => this.updateTitle(), 150);
   }
   clickAbc() {
-    this.router.historyBrowser.goto('/test/abc', 'first', { id: 123 });
+    this.router.goto('/test/abc', 'first', { id: 123 });
   }
   clickAbcLeft() {
-    this.router.historyBrowser.goto('/test/abc-left', 'first-left', { id: '123L' });
+    this.router.goto('/test/abc-left', 'first-left', { id: '123L' });
   }
   clickAbcRight() {
-    this.router.historyBrowser.goto('/test/abc-right', 'first-right', { id: '123R' });
+    this.router.goto('/test/abc-right', 'first-right', { id: '123R' });
   }
   clickDef() {
-    this.router.historyBrowser.goto('/test/def', 'second', { id: 456 });
+    this.router.goto('/test/def', 'second', { id: 456 });
   }
   clickReplace() {
-    this.router.historyBrowser.replace('/test/xyz', 'last', { id: 999 });
+    this.router.replace('/test/xyz', 'last', { id: 999 });
   }
   clickBack() {
-    this.router.historyBrowser.back();
+    this.router.back();
   }
   clickForward() {
-    this.router.historyBrowser.forward();
+    this.router.forward();
   }
   clickBack2() {
     this.router.historyBrowser.history.go(-2);
@@ -89,6 +89,6 @@ export class App {
     this.router.historyBrowser.cancel();
   }
   clickRefresh() {
-    this.router.historyBrowser.refresh();
+    this.router.refresh();
   }
 }

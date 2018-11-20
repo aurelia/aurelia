@@ -1,3 +1,4 @@
+/// <reference path="./pixi-dom.d.ts" />
 import * as PIXI from 'pixi.js';
 
 const PixiDomMap: Record<string, () => PIXI.DisplayObject> = {};

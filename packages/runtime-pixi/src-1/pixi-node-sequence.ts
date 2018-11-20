@@ -1,6 +1,6 @@
 import { INodeSequence, INode, IText, IDocumentFragment, IRenderLocation, DOM } from '@aurelia/runtime';
 import { PLATFORM, Writable, Constructable } from '@aurelia/kernel';
-import { IPixiNodeSequence, IPixiNode } from './interfaces-override';
+import { IPixiNodeSequence, IPixiNode, IPixiElement } from './interfaces-override';
 
 function isRenderLocation(node: IPixiNode): node is IRenderLocation {
   return node.textContent === 'au-end';
@@ -103,7 +103,7 @@ export class TextNodeSequence implements IPixiNodeSequence {
   }
 
   public appendTo(parent: IPixiNode): void {
-    (<any>parent).appendChild(this.firstChild);
+    parent.appendChild(this.firstChild);
   }
 
   public remove(): void {
@@ -252,11 +252,12 @@ export interface IPixiNodeSequenceFactory {
   createNodeSequence(): IPixiNodeSequence;
 }
 
+export interface AuMarker extends IPixiNode {}
 
 /*@internal*/
 export class AuMarker implements IPixiNode {
-  public get parentNode(): IPixiNode {
-    return this.nextSibling.parentNode;
+  public get parentNode(): IPixiElement {
+    return this.nextPixiSibling.parent as IPixiElement;
   }
   public readonly nextSibling: IPixiNode;
   public readonly previousSibling: IPixiNode;

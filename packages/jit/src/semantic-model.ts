@@ -348,8 +348,9 @@ export class AttributeSymbol implements IAttributeSymbol {
       if (!this.isMultiAttrBinding) {
         for (const prop in bindables) {
           const b = bindables[prop];
+          const defaultBindingMode = definition.defaultBindingMode === undefined ? BindingMode.toView : definition.defaultBindingMode;
           this.to = b.property;
-          this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : (definition.defaultBindingMode || BindingMode.toView);
+          this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : defaultBindingMode;
           this.bindable = b as Immutable<Required<IBindableDescription>>;
           this.isBindable = this.isAttributeBindable = true;
           break;

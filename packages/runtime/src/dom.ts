@@ -51,7 +51,6 @@ export interface IHTMLElement extends IElement {
 }
 
 export interface IInputElement extends IElement {
-  // tslint:disable-next-line:no-reserved-keywords
   readonly type: string;
   value: string;
   checked: boolean;

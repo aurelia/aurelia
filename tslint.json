@@ -29,7 +29,7 @@
     "no-http-string": [true, "http://localhost:?.*"],
     "no-inner-html": false,
     "no-octal-literal": true,
-    "no-reserved-keywords": true,
+    "no-reserved-keywords": false, // See https://github.com/aurelia/aurelia/pull/297
     "no-string-based-set-immediate": true,
     "no-string-based-set-interval": true,
     "no-string-based-set-timeout": true,

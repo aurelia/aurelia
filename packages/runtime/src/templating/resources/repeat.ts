@@ -126,7 +126,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
       $lifecycle.beginBind();
       if (indexMap === null) {
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | IObservedArray<unknown> | IObservedSet<unknown> | IObservedMap<unknown, unknown> | IIndexable)) => {
+        forOf.iterate(items, (arr, i, item: (string | number | boolean | IObservedArray | IObservedSet | IObservedMap | IIndexable)) => {
           const view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
@@ -135,7 +135,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           }
         });
       } else {
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | IObservedArray<unknown> | IObservedSet<unknown> | IObservedMap<unknown, unknown> | IIndexable)) => {
+        forOf.iterate(items, (arr, i, item: (string | number | boolean | IObservedArray | IObservedSet | IObservedMap | IIndexable)) => {
           const view = views[i];
           if (indexMap[i] === i && !!view.$scope) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));

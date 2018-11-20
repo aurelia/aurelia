@@ -59,13 +59,13 @@ export class View implements IView {
     this.$bind = lockedBind;
   }
 
-  public release(flags: LifecycleFlags): any {
+  public release(flags: LifecycleFlags): boolean {
     this.isFree = true;
     if (this.$state & State.isAttached) {
       return this.cache.canReturnToCache(this);
     }
 
-    return this.$unmount(flags);
+    return !!this.$unmount(flags);
   }
 }
 

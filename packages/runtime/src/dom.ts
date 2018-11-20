@@ -281,7 +281,7 @@ export const NodeSequence = {
 /**
  * An specialized INodeSequence with optimizations for text (interpolation) bindings
  * The contract of this INodeSequence is:
- * - the previous element is an `au-marker` node
+ * - the previous element is an `au-m` node
  * - text is the actual text node
  */
 export class TextNodeSequence implements INodeSequence {
@@ -345,7 +345,7 @@ export class FragmentNodeSequence implements INodeSequence {
       // will do it anyway) and store them in the target list (since the comments
       // can't be queried)
       const target = targetNodeList[i];
-      if (target.nodeName === 'AU-MARKER') {
+      if (target.nodeName === 'AU-M') {
         // note the renderer will still call this method, but it will just return the
         // location if it sees it's already a location
         targets[i] = DOM.convertToRenderLocation(target);
@@ -467,7 +467,7 @@ export class NodeSequenceFactory {
         return;
       case 2:
         const target = childNodes[0];
-        if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
+        if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
           const text = childNodes[1];
           if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
             text.textContent = '';
@@ -506,7 +506,7 @@ export class AuMarker implements INode {
   public readonly firstChild: INode;
   public readonly lastChild: INode;
   public readonly childNodes: ArrayLike<INode>;
-  public readonly nodeName: 'AU-MARKER';
+  public readonly nodeName: 'AU-M';
   public readonly nodeType: typeof ELEMENT_NODE;
   public textContent: string = '';
 
@@ -520,6 +520,6 @@ export class AuMarker implements INode {
   proto.firstChild = null;
   proto.lastChild = null;
   proto.childNodes = PLATFORM.emptyArray;
-  proto.nodeName = 'AU-MARKER';
+  proto.nodeName = 'AU-M';
   proto.nodeType = ELEMENT_NODE;
 })(<Writable<AuMarker>>AuMarker.prototype);

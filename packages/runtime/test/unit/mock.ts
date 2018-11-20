@@ -225,7 +225,7 @@ export function createMockRenderContext(
 }
 
 
-const marker = document.createElement('au-marker');
+const marker = document.createElement('au-m');
 marker.classList.add('au');
 export const createMarker = marker.cloneNode.bind(marker, false);
 

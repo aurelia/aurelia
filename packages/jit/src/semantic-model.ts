@@ -585,7 +585,7 @@ export class ElementSymbol {
     this._$content = null;
     this._isCustomElement = this._isLet = this._isSlot = this._isTemplate = false;
     this._isMarker = true;
-    this._name = 'AU-MARKER';
+    this._name = 'AU-M';
     this._node = marker.node;
     this._syntax = marker;
   }

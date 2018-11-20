@@ -59,10 +59,9 @@ export class HistoryBrowser {
     //   console.log("location: " + document.location + ", state: " + JSON.stringify(event.state));
     // };
 
-    setTimeout(() => {
+    Promise.resolve().then(() => {
       this.setPath(this.getPath(), true);
-    }, 0);
-    // this.pathChanged();
+    });
   }
 
   public deactivate(): void {

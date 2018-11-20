@@ -257,7 +257,7 @@ export interface AuMarker extends IPixiNode {}
 /*@internal*/
 export class AuMarker implements IPixiNode {
   public get parentNode(): IPixiElement {
-    return this.nextPixiSibling.parent as IPixiElement;
+    return (this.nextPixiSibling as PIXI.DisplayObject).parent as IPixiElement;
   }
   public readonly nextSibling: IPixiNode;
   public readonly previousSibling: IPixiNode;

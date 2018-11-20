@@ -11,16 +11,16 @@ export const appConfig: ITemplateDefinition = {
     import1
   ],
   template: `
-    <au- class="au"></au-> <br/>
-    <au- class="au"></au-> <br/>
+    <au-m class="au"></au-m> <br/>
+    <au-m class="au"></au-m> <br/>
     <input type="text" class="au">
     <name-tag class="au">
-      <h2>Message: <au- class="au"></au-> </h2>
+      <h2>Message: <au-m class="au"></au-m> </h2>
     </name-tag>
     <input type="checkbox" class="au" />
-    <au- class="au"></au->
-    <au- class="au"></au->
-    <au- class="au"></au->
+    <au-m class="au"></au-m>
+    <au-m class="au"></au-m>
+    <au-m class="au"></au-m>
     <button class="au">Add Todo</button>
   `,
   instructions: [
@@ -78,7 +78,7 @@ export const appConfig: ITemplateDefinition = {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'if',
         def: {
-          template: `<div><au- class="au"></au-> </div>`,
+          template: `<div><au-m class="au"></au-m> </div>`,
           instructions: [
             [
               {
@@ -114,7 +114,7 @@ export const appConfig: ITemplateDefinition = {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'repeat',
         def: {
-          template: `<div><au- class="au"></au-> </div>`,
+          template: `<div><au-m class="au"></au-m> </div>`,
           instructions: [
             [
               {

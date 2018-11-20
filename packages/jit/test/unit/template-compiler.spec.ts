@@ -258,7 +258,7 @@ describe('TemplateCompiler', () => {
             `<template><el prop.bind="p"></el></template>`,
             [Prop]
           );
-          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au- class="au"></au-></template>')
+          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
           expect((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
         });
@@ -275,7 +275,7 @@ describe('TemplateCompiler', () => {
             `<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>`,
             [Prop]
           );
-          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au- class="au"></au-></template>')
+          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
             { toVerify: ['type', 'to', 'from'],
@@ -467,7 +467,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       res: target,
       def: {
         name: target,
-        template: createElement(`<template><au- class="au"></au-></template>`),
+        template: createElement(`<template><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]]
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
@@ -478,7 +478,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       instructions: []
     }
     const output = {
-      template: createElement(`<div><au- class="au"></au-></div>`),
+      template: createElement(`<div><au-m class="au"></au-m></div>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];
@@ -489,7 +489,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       compiledMarkup = `<${tagName}></${tagName}>`;
       instructions = []
     } else {
-      compiledMarkup = `<${tagName}><au- class="au"></au-></${tagName}>`;
+      compiledMarkup = `<${tagName}><au-m class="au"></au-m></${tagName}>`;
       instructions = [[childInstr]]
     }
     const instruction = {
@@ -509,7 +509,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       instructions: []
     }
     const output = {
-      template: createElement(finalize ? `<div><au- class="au"></au-></div>` : `<au- class="au"></au->`),
+      template: createElement(finalize ? `<div><au-m class="au"></au-m></div>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];

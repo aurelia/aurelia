@@ -22,8 +22,8 @@ export const appConfig: ITemplateDefinition = {
           cache: "*",
           template: `
             <tr>
-              <td class="dbname"><au- class="au"></au-> </td>
-              <td class="query-count"><au- class="au"></au-> </td>
+              <td class="dbname"><au-m class="au"></au-m> </td>
+              <td class="query-count"><au-m class="au"></au-m> </td>
               <td class="au"></td>
             </tr>
           `,
@@ -38,8 +38,8 @@ export const appConfig: ITemplateDefinition = {
                   cache: "*",
                   template: `
                   <td>
-                    <au- class="au"></au-> <div class="popover left">
-                      <div class="popover-content"><au- class="au"></au-> </div>
+                    <au-m class="au"></au-m> <div class="popover left">
+                      <div class="popover-content"><au-m class="au"></au-m> </div>
                       <div class="arrow"></div>
                     </div>
                   </td>

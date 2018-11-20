@@ -15,7 +15,7 @@ export class AttrSyntax {
   }
 }
 
-const marker = DOM.createElement('au-') as Element;
+const marker = DOM.createElement('au-m') as Element;
 marker.classList.add('au');
 const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
 
@@ -40,6 +40,6 @@ export class ElementSyntax {
   }
 
   public static createMarker(): ElementSyntax {
-    return new ElementSyntax(createMarker(), 'au-', null, PLATFORM.emptyArray, PLATFORM.emptyArray);
+    return new ElementSyntax(createMarker(), 'au-m', null, PLATFORM.emptyArray, PLATFORM.emptyArray);
   }
 }

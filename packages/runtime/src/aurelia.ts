@@ -56,13 +56,13 @@ export class Aurelia {
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach(LifecycleFlags.fromStartTask, host);
+      component.$attach(LifecycleFlags.fromStartTask | LifecycleFlags.fromAttach, host);
     };
 
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      component.$detach(LifecycleFlags.fromStopTask);
+      component.$detach(LifecycleFlags.fromStopTask | LifecycleFlags.fromDetach);
       component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
       host.$au = null;
     });

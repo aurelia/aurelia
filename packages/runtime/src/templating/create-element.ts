@@ -1,4 +1,4 @@
-import { Constructable, IIndexable } from '@aurelia/kernel';
+import { Constructable, IIndexable, IRegistry } from '@aurelia/kernel';
 import { buildTemplateDefinition, isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
 import { DOM, INode } from '../dom';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
@@ -21,7 +21,7 @@ export class RenderPlan {
   constructor(
     private readonly node: INode,
     private readonly instructions: TargetedInstruction[][],
-    private readonly dependencies: ReadonlyArray<any>
+    private readonly dependencies: ReadonlyArray<IRegistry>
   ) {}
 
   public get definition(): TemplateDefinition {
@@ -42,7 +42,7 @@ export class RenderPlan {
   }
 
   /*@internal*/
-  public mergeInto(parent: INode, instructions: TargetedInstruction[][], dependencies: any[]): void {
+  public mergeInto(parent: INode, instructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
     DOM.appendChild(parent, this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
@@ -51,8 +51,8 @@ export class RenderPlan {
 
 function createElementForTag(tagName: string, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   const instructions: TargetedInstruction[] = [];
-  const allInstructions = [];
-  const dependencies = [];
+  const allInstructions: TargetedInstruction[][] = [];
+  const dependencies: IRegistry[] = [];
   const element = DOM.createElement(tagName);
   let hasInstructions = false;
 
@@ -137,7 +137,7 @@ function createElementForType(Type: ICustomElementType, props?: IIndexable, chil
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: any[]): void {
+function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {
     const current = children[i];
 

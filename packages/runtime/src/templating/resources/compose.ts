@@ -45,9 +45,9 @@ export class Compose {
     };
 
     this.properties = instruction.instructions
-      .filter((x: any) => !composeProps.includes(x.to))
+      .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to))
       .reduce(
-        (acc, item: any) => {
+        (acc, item: ITargetedInstruction & {to?: string}) => {
           if (item.to) {
             acc[item.to] = item;
           }

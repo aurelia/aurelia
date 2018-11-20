@@ -1,4 +1,4 @@
-import { DI, Immutable, Omit, PLATFORM } from '@aurelia/kernel';
+import { DI, Immutable, IRegistry, Omit, PLATFORM } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
@@ -63,7 +63,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: string | INode;
   instructions?: TargetedInstruction[][];
-  dependencies?: any[];
+  dependencies?: IRegistry[];
   build?: IBuildInstruction;
   surrogates?: TargetedInstruction[];
   bindables?: Record<string, IBindableDescription>;
@@ -107,8 +107,8 @@ export type TargetedInstruction =
   ILetElementInstruction;
 
 export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
-  const Type = value.type;
-  return typeof Type === 'string' && instructionTypeValues.indexOf(Type) !== -1;
+  const type = value.type;
+  return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
 }
 
 export interface ITextBindingInstruction extends ITargetedInstruction {
@@ -300,7 +300,7 @@ export function buildTemplateDefinition(
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
   instructions?: ReadonlyArray<ReadonlyArray<TargetedInstruction>> | null,
-  dependencies?: ReadonlyArray<unknown> | null,
+  dependencies?: ReadonlyArray<IRegistry> | null,
   surrogates?: ReadonlyArray<TargetedInstruction> | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,

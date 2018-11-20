@@ -224,7 +224,6 @@ export class ObserverLocator implements IObserverLocator {
     }
 
     const descriptor = getPropertyDescriptor(obj, propertyName) as PropertyDescriptor & {
-      // tslint:disable-next-line:no-reserved-keywords
       get: PropertyDescriptor['get'] & { getObserver(obj: IObservable): IBindingTargetObserver };
     };
 

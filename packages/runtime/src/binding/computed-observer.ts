@@ -7,7 +7,6 @@ import { subscriberCollection } from './subscriber-collection';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
-  // tslint:disable-next-line:no-reserved-keywords
   static?: boolean;
 
   // Indicates that the getter of a getter/setter pair can change its value based on side-effects outside the setter.
@@ -31,7 +30,6 @@ export function createComputedObserver(
   observerLocator: IObserverLocator,
   dirtyChecker: IDirtyChecker,
   lifecycle: ILifecycle,
-  // tslint:disable-next-line:no-reserved-keywords
   instance: IObservable & { constructor: Function & ComputedLookup },
   propertyName: string,
   descriptor: PropertyDescriptor): IBindingTargetAccessor {
@@ -131,7 +129,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
 
         if (oldValue !== newValue) {
           that.oldValue = oldValue;
-          that.lifecycle.enqueueFlush(that);
+          that.lifecycle.enqueueFlush(that).catch(error => { throw error; });
 
           that.currentValue = newValue;
         }
@@ -276,7 +274,7 @@ export class GetterController {
   }
 
   public handleChange(): void {
-    this.lifecycle.enqueueFlush(this.owner);
+    this.lifecycle.enqueueFlush(this.owner).catch(error => { throw error; });
   }
 
   private unsubscribeAllDependencies(): void {

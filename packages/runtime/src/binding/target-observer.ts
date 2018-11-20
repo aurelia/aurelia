@@ -34,7 +34,7 @@ function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
   if (flags & LifecycleFlags.doNotUpdateDOM) {
     if (DOM.isNodeInstance(this.obj)) {
       // re-queue the change so it will still propagate on flush when it's attached again
-      this.lifecycle.enqueueFlush(this);
+      this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
       return;
     }
   }

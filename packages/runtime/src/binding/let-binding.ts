@@ -1,4 +1,4 @@
-import { IServiceLocator, Reporter } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator, Reporter } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { IExpression } from './ast';
@@ -46,7 +46,7 @@ export class LetBinding implements IPartialConnectableBinding {
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      const { target, targetProperty } = this;
+      const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
       previousValue = target[targetProperty];
       newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
       if (newValue !== previousValue) {
@@ -69,7 +69,7 @@ export class LetBinding implements IPartialConnectableBinding {
     this.$state |= State.isBinding;
 
     this.$scope = scope;
-    this.target = this.toViewModel ? scope.bindingContext : scope.overrideContext;
+    this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {

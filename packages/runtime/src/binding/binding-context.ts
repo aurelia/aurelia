@@ -52,7 +52,6 @@ export class BindingContext implements IBindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
-  // tslint:disable-next-line:no-reserved-keywords
   public static get(scope: IScope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBindScope {
     if (scope === undefined) {
       throw Reporter.error(RuntimeError.UndefinedScope);

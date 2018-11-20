@@ -129,7 +129,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
 
         if (oldValue !== newValue) {
           that.oldValue = oldValue;
-          that.lifecycle.enqueueFlush(that);
+          that.lifecycle.enqueueFlush(that).catch(error => { throw error; });
 
           that.currentValue = newValue;
         }
@@ -274,7 +274,7 @@ export class GetterController {
   }
 
   public handleChange(): void {
-    this.lifecycle.enqueueFlush(this.owner);
+    this.lifecycle.enqueueFlush(this.owner).catch(error => { throw error; });
   }
 
   private unsubscribeAllDependencies(): void {

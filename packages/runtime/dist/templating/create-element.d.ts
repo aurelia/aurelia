@@ -1,4 +1,4 @@
-import { Constructable, IIndexable } from '@aurelia/kernel';
+import { Constructable, IIndexable, IRegistry } from '@aurelia/kernel';
 import { TargetedInstruction, TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
@@ -11,7 +11,7 @@ export declare class RenderPlan {
     private readonly instructions;
     private readonly dependencies;
     private lazyDefinition;
-    constructor(node: INode, instructions: TargetedInstruction[][], dependencies: ReadonlyArray<any>);
+    constructor(node: INode, instructions: TargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>);
     readonly definition: TemplateDefinition;
     getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate;
     createView(engine: IRenderingEngine, parentContext?: IRenderContext): IView;

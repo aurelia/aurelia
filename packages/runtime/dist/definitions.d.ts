@@ -1,4 +1,4 @@
-import { Immutable, Omit } from '@aurelia/kernel';
+import { Immutable, IRegistry, Omit } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
@@ -37,7 +37,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
     cache?: '*' | number;
     template?: string | INode;
     instructions?: TargetedInstruction[][];
-    dependencies?: any[];
+    dependencies?: IRegistry[];
     build?: IBuildInstruction;
     surrogates?: TargetedInstruction[];
     bindables?: Record<string, IBindableDescription>;

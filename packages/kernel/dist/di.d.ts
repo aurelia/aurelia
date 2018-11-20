@@ -18,7 +18,7 @@ export interface IRegistration<T = any> {
 export interface IFactory<T = any> {
     readonly Type: Function;
     registerTransformer(transformer: (instance: T) => T): boolean;
-    construct(container: IContainer, dynamicDependencies?: any[]): T;
+    construct(container: IContainer, dynamicDependencies?: Function[]): T;
 }
 export interface IServiceLocator {
     has(key: any, searchAncestors: boolean): boolean;
@@ -59,7 +59,7 @@ export declare const DI: {
     getDesignParamTypes(target: Function): Function[];
     getDependencies(Type: Function | Injectable<{}>): Function[];
     createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T>;
-    inject(...dependencies: Function[]): (target: any, key?: string, descriptor?: number | PropertyDescriptor) => void;
+    inject(...dependencies: Function[]): (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
     /**
      * Registers the `target` class as a transient dependency; each time the dependency is resolved
      * a new instance will be created.
@@ -102,7 +102,7 @@ export declare const DI: {
 };
 export declare const IContainer: InterfaceSymbol<IContainer>;
 export declare const IServiceLocator: InterfaceSymbol<IServiceLocator>;
-export declare const inject: (...dependencies: Function[]) => (target: any, key?: string, descriptor?: number | PropertyDescriptor) => void;
+export declare const inject: (...dependencies: Function[]) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
 declare function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 /**
  * Registers the decorated class as a transient dependency; each time the dependency is resolved
@@ -153,9 +153,9 @@ class Foo { }
 ```
  */
 export declare function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
-export declare const all: (key: any) => (target: any, key?: string, descriptor?: number | PropertyDescriptor) => void;
-export declare const lazy: (key: any) => (target: any, key?: string, descriptor?: number | PropertyDescriptor) => void;
-export declare const optional: (key: any) => (target: any, key?: string, descriptor?: number | PropertyDescriptor) => void;
+export declare const all: (key: any) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
+export declare const lazy: (key: any) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
+export declare const optional: (key: any) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
 export declare const Registration: {
     instance(key: any, value: any): IRegistration<any>;
     singleton(key: any, value: Function): IRegistration<any>;

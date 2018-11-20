@@ -607,7 +607,7 @@ let CompositionCoordinator = class CompositionCoordinator {
             this.swapTask.wait().then(() => {
                 this.onSwapComplete();
                 this.processNext();
-            });
+            }).catch(error => { throw error; });
         }
     }
     processNext() {
@@ -650,7 +650,7 @@ class AggregateLifecycleTask {
         if (!task.done) {
             this.done = false;
             this.tasks.push(task);
-            task.wait().then(() => { this.tryComplete(); });
+            task.wait().then(() => { this.tryComplete(); }).catch(error => { throw error; });
         }
     }
     removeTask(task) {
@@ -1028,7 +1028,7 @@ const NodeSequence = {
 /**
  * An specialized INodeSequence with optimizations for text (interpolation) bindings
  * The contract of this INodeSequence is:
- * - the previous element is an `au-marker` node
+ * - the previous element is an `au-m` node
  * - text is the actual text node
  */
 class TextNodeSequence {
@@ -1071,7 +1071,7 @@ class FragmentNodeSequence {
             // will do it anyway) and store them in the target list (since the comments
             // can't be queried)
             const target = targetNodeList[i];
-            if (target.nodeName === 'AU-MARKER') {
+            if (target.nodeName === 'AU-M') {
                 // note the renderer will still call this method, but it will just return the
                 // location if it sees it's already a location
                 targets[i] = DOM.convertToRenderLocation(target);
@@ -1174,7 +1174,7 @@ class NodeSequenceFactory {
                 return;
             case 2:
                 const target = childNodes[0];
-                if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
+                if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
                     const text = childNodes[1];
                     if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
                         text.textContent = '';
@@ -1215,7 +1215,7 @@ class AuMarker {
     proto.firstChild = null;
     proto.lastChild = null;
     proto.childNodes = PLATFORM.emptyArray;
-    proto.nodeName = 'AU-MARKER';
+    proto.nodeName = 'AU-M';
     proto.nodeType = ELEMENT_NODE;
 })(AuMarker.prototype);
 
@@ -1353,7 +1353,7 @@ function callCollectionSubscribers(origin, args, flags) {
             }
         }
     }
-    this.lifecycle.enqueueFlush(this);
+    this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
 }
 function hasSubscribers() {
     return this._subscriberFlags !== 0 /* None */;
@@ -1533,7 +1533,7 @@ function flush(flags) {
     if (flags & LifecycleFlags.doNotUpdateDOM) {
         if (DOM.isNodeInstance(this.obj)) {
             // re-queue the change so it will still propagate on flush when it's attached again
-            this.lifecycle.enqueueFlush(this);
+            this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
             return;
         }
     }
@@ -2007,7 +2007,6 @@ class BindingContext {
     static create(keyOrObj, value) {
         return new BindingContext(keyOrObj, value);
     }
-    // tslint:disable-next-line:no-reserved-keywords
     static get(scope, name, ancestor) {
         if (scope === undefined) {
             throw Reporter.error(250 /* UndefinedScope */);
@@ -3375,7 +3374,7 @@ const unset = {};
 function debounceCallSource(newValue, oldValue, flags) {
     const state = this.debounceState;
     clearTimeout(state.timeoutId);
-    state.timeoutId = setTimeout(() => this.debouncedMethod(newValue, oldValue, flags), state.delay);
+    state.timeoutId = setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
 }
 /*@internal*/
 function debounceCall(newValue, oldValue, flags) {
@@ -4097,13 +4096,13 @@ function preSortCompare(x, y) {
     }
     return 0;
 }
-function insertionSort(arr, indexMap, fromIndex, toIndex, compareFn) {
+function insertionSort(arr, indexMap, from, to, compareFn) {
     let velement, ielement, vtmp, itmp, order;
     let i, j;
-    for (i = fromIndex + 1; i < toIndex; i++) {
+    for (i = from + 1; i < to; i++) {
         velement = arr[i];
         ielement = indexMap[i];
-        for (j = i - 1; j >= fromIndex; j--) {
+        for (j = i - 1; j >= from; j--) {
             vtmp = arr[j];
             itmp = indexMap[j];
             order = compareFn(vtmp, velement);
@@ -4119,7 +4118,7 @@ function insertionSort(arr, indexMap, fromIndex, toIndex, compareFn) {
         indexMap[j + 1] = ielement;
     }
 }
-function quickSort(arr, indexMap, fromIndex, toIndex, compareFn) {
+function quickSort(arr, indexMap, from, to, compareFn) {
     let thirdIndex = 0, i = 0;
     let v0, v1, v2;
     let i0, i1, i2;
@@ -4129,15 +4128,15 @@ function quickSort(arr, indexMap, fromIndex, toIndex, compareFn) {
     let velement, ielement, order, vtopElement;
     // tslint:disable-next-line:no-constant-condition
     while (true) {
-        if (toIndex - fromIndex <= 10) {
-            insertionSort(arr, indexMap, fromIndex, toIndex, compareFn);
+        if (to - from <= 10) {
+            insertionSort(arr, indexMap, from, to, compareFn);
             return;
         }
-        thirdIndex = fromIndex + ((toIndex - fromIndex) >> 1);
-        v0 = arr[fromIndex];
-        i0 = indexMap[fromIndex];
-        v1 = arr[toIndex - 1];
-        i1 = indexMap[toIndex - 1];
+        thirdIndex = from + ((to - from) >> 1);
+        v0 = arr[from];
+        i0 = indexMap[from];
+        v1 = arr[to - 1];
+        i1 = indexMap[to - 1];
         v2 = arr[thirdIndex];
         i2 = indexMap[thirdIndex];
         c01 = compareFn(v0, v1);
@@ -4171,14 +4170,14 @@ function quickSort(arr, indexMap, fromIndex, toIndex, compareFn) {
                 i2 = itmp;
             }
         }
-        arr[fromIndex] = v0;
-        indexMap[fromIndex] = i0;
-        arr[toIndex - 1] = v2;
-        indexMap[toIndex - 1] = i2;
+        arr[from] = v0;
+        indexMap[from] = i0;
+        arr[to - 1] = v2;
+        indexMap[to - 1] = i2;
         vpivot = v1;
         ipivot = i1;
-        lowEnd = fromIndex + 1;
-        highStart = toIndex - 1;
+        lowEnd = from + 1;
+        highStart = to - 1;
         arr[thirdIndex] = arr[lowEnd];
         indexMap[thirdIndex] = indexMap[lowEnd];
         arr[lowEnd] = vpivot;
@@ -4219,13 +4218,13 @@ function quickSort(arr, indexMap, fromIndex, toIndex, compareFn) {
                 }
             }
         }
-        if (toIndex - highStart < lowEnd - fromIndex) {
-            quickSort(arr, indexMap, highStart, toIndex, compareFn);
-            toIndex = lowEnd;
+        if (to - highStart < lowEnd - from) {
+            quickSort(arr, indexMap, highStart, to, compareFn);
+            to = lowEnd;
         }
         else {
-            quickSort(arr, indexMap, fromIndex, lowEnd, compareFn);
-            fromIndex = highStart;
+            quickSort(arr, indexMap, from, lowEnd, compareFn);
+            from = highStart;
         }
     }
 }
@@ -4289,9 +4288,7 @@ function computed(config) {
 const noProxy = !(typeof Proxy !== 'undefined');
 const computedOverrideDefaults = { static: false, volatile: false };
 /* @internal */
-function createComputedObserver(observerLocator, dirtyChecker, lifecycle, 
-// tslint:disable-next-line:no-reserved-keywords
-instance, propertyName, descriptor) {
+function createComputedObserver(observerLocator, dirtyChecker, lifecycle, instance, propertyName, descriptor) {
     if (descriptor.configurable === false) {
         return dirtyChecker.createProperty(instance, propertyName);
     }
@@ -4354,7 +4351,7 @@ let CustomSetterObserver = class CustomSetterObserver {
                 const oldValue = that.currentValue;
                 if (oldValue !== newValue) {
                     that.oldValue = oldValue;
-                    that.lifecycle.enqueueFlush(that);
+                    that.lifecycle.enqueueFlush(that).catch(error => { throw error; });
                     that.currentValue = newValue;
                 }
             }
@@ -4456,7 +4453,7 @@ class GetterController {
         }
     }
     handleChange() {
-        this.lifecycle.enqueueFlush(this.owner);
+        this.lifecycle.enqueueFlush(this.owner).catch(error => { throw error; });
     }
     unsubscribeAllDependencies() {
         this.dependencies.forEach(x => { x.unsubscribe(this); });
@@ -5754,7 +5751,7 @@ let LetBinding = class LetBinding {
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
         this.$scope = scope;
-        this.target = this.toViewModel ? scope.bindingContext : scope.overrideContext;
+        this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext);
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.bind) {
             sourceExpression.bind(flags, scope, this);
@@ -5927,8 +5924,8 @@ function customAttributeKey(name) {
 const instructionTypeValues = 'abcdefghijkl';
 const ITargetedInstruction = DI.createInterface();
 function isTargetedInstruction(value) {
-    const Type = value.type;
-    return typeof Type === 'string' && instructionTypeValues.indexOf(Type) !== -1;
+    const type = value.type;
+    return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
 }
 /*@internal*/
 const buildRequired = Object.freeze({
@@ -6634,7 +6631,7 @@ class View {
         if (this.$state & 8 /* isAttached */) {
             return this.cache.canReturnToCache(this);
         }
-        return this.$unmount(flags);
+        return !!this.$unmount(flags);
     }
 }
 /*@internal*/
@@ -7024,7 +7021,7 @@ let ChildrenObserver = class ChildrenObserver {
         if ('$childrenChanged' in this.customElement) {
             this.customElement.$childrenChanged();
         }
-        this.lifecycle.enqueueFlush(this);
+        this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
         this.hasChanges = true;
     }
 };
@@ -7583,7 +7580,7 @@ let If = class If {
             this.coordinator.compose(view, flags);
         }
         else {
-            this.$lifecycle.enqueueFlush(this);
+            this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
         }
     }
     flush(flags) {
@@ -7824,6 +7821,7 @@ Replaceable = __decorate([
 let With = class With {
     constructor(factory, location) {
         this.factory = factory;
+        // TODO: this type is incorrect (it can be any user-provided object), need to fix and double check Scope.
         this.value = null;
         this.currentView = null;
         this.currentView = this.factory.create();
@@ -8248,7 +8246,6 @@ const HtmlRenderer = {
     }
 };
 
-// tslint:disable:no-reserved-keywords | TODO: get rid of this suppression and fix the error
 class TextBindingInstruction {
     constructor(from) {
         this.from = from;

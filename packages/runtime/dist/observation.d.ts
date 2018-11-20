@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable } from '@aurelia/kernel';
+import { IDisposable, IIndexable, Primitive } from '@aurelia/kernel';
 export declare enum LifecycleFlags {
     none = 0,
     mustEvaluate = 524288,
@@ -39,19 +39,19 @@ export interface IChangeTracker {
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
-export interface IAccessor<TValue = any> {
+export interface IAccessor<TValue = unknown> {
     getValue(): TValue;
     setValue(newValue: TValue, flags: LifecycleFlags): void;
 }
 /**
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).
  */
-export interface IBindingTargetAccessor<TObj = any, TProp = keyof TObj, TValue = any> extends IDisposable, IAccessor<TValue>, IPropertyChangeTracker<TObj, TProp> {
+export interface IBindingTargetAccessor<TObj = any, TProp = keyof TObj, TValue = unknown> extends IDisposable, IAccessor<TValue>, IPropertyChangeTracker<TObj, TProp> {
 }
 /**
  * Describes a target observer for from-view or two-way bindings.
  */
-export interface IBindingTargetObserver<TObj = any, TProp = keyof TObj, TValue = any> extends IBindingTargetAccessor<TObj, TProp, TValue>, ISubscribable<MutationKind.instance>, ISubscriberCollection<MutationKind.instance> {
+export interface IBindingTargetObserver<TObj = any, TProp = keyof TObj, TValue = unknown> extends IBindingTargetAccessor<TObj, TProp, TValue>, ISubscribable<MutationKind.instance>, ISubscriberCollection<MutationKind.instance> {
     bind?(flags: LifecycleFlags): void;
     unbind?(flags: LifecycleFlags): void;
 }
@@ -62,7 +62,7 @@ export declare type AccessorOrObserver = IBindingTargetAccessor | IBindingTarget
  * The deletedItems property contains the items (in case of an array) or keys (in case of map or set) that have been deleted.
  */
 export declare type IndexMap = number[] & {
-    deletedItems?: any[];
+    deletedItems?: unknown[];
 };
 /**
  * Mostly just a marker enum to help with typings (specifically to reduce duplication)
@@ -74,7 +74,7 @@ export declare enum MutationKind {
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = any> {
+export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = IIndexable | Primitive> {
     obj: TObj;
     propertyKey?: TProp;
     currentValue?: TValue;
@@ -90,7 +90,7 @@ export interface ICollectionChangeTracker<T extends Collection> extends IChangeT
 /**
  * Represents a (subscriber) function that can be called by a PropertyChangeNotifier
  */
-export declare type IPropertyChangeHandler<TValue = any> = (newValue: TValue, previousValue: TValue, flags: LifecycleFlags) => void;
+export declare type IPropertyChangeHandler<TValue = unknown> = (newValue: TValue, previousValue: TValue, flags: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations on a property
  */
@@ -196,24 +196,24 @@ export declare type PropertyObserver = IPropertyObserver<any, PropertyKey>;
 /**
  * A collection (array, set or map)
  */
-export declare type Collection = any[] | Set<any> | Map<any, any>;
+export declare type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 interface IObservedCollection {
     $observer?: CollectionObserver;
 }
 /**
  * An array that is being observed for mutations
  */
-export interface IObservedArray<T = any> extends IObservedCollection, Array<T> {
+export interface IObservedArray<T = unknown> extends IObservedCollection, Array<T> {
 }
 /**
  * A set that is being observed for mutations
  */
-export interface IObservedSet<T = any> extends IObservedCollection, Set<T> {
+export interface IObservedSet<T = unknown> extends IObservedCollection, Set<T> {
 }
 /**
  * A map that is being observed for mutations
  */
-export interface IObservedMap<K = any, V = any> extends IObservedCollection, Map<K, V> {
+export interface IObservedMap<K = unknown, V = unknown> extends IObservedCollection, Map<K, V> {
 }
 /**
  * A collection that is being observed for mutations
@@ -226,9 +226,9 @@ export declare const enum CollectionKind {
     map = 6,
     set = 7
 }
-export declare type LengthPropertyName<T> = T extends any[] ? 'length' : T extends Set<any> ? 'size' : T extends Map<any, any> ? 'size' : never;
-export declare type CollectionTypeToKind<T> = T extends any[] ? CollectionKind.array | CollectionKind.indexed : T extends Set<any> ? CollectionKind.set | CollectionKind.keyed : T extends Map<any, any> ? CollectionKind.map | CollectionKind.keyed : never;
-export declare type CollectionKindToType<T> = T extends CollectionKind.array ? any[] : T extends CollectionKind.indexed ? any[] : T extends CollectionKind.map ? Map<any, any> : T extends CollectionKind.set ? Set<any> : T extends CollectionKind.keyed ? Set<any> | Map<any, any> : never;
+export declare type LengthPropertyName<T> = T extends unknown[] ? 'length' : T extends Set<unknown> ? 'size' : T extends Map<unknown, unknown> ? 'size' : never;
+export declare type CollectionTypeToKind<T> = T extends unknown[] ? CollectionKind.array | CollectionKind.indexed : T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed : T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed : never;
+export declare type CollectionKindToType<T> = T extends CollectionKind.array ? unknown[] : T extends CollectionKind.indexed ? unknown[] : T extends CollectionKind.map ? Map<unknown, unknown> : T extends CollectionKind.set ? Set<unknown> : T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> : never;
 export declare type ObservedCollectionKindToType<T> = T extends CollectionKind.array ? IObservedArray : T extends CollectionKind.indexed ? IObservedArray : T extends CollectionKind.map ? IObservedMap : T extends CollectionKind.set ? IObservedSet : T extends CollectionKind.keyed ? IObservedSet | IObservedMap : never;
 /**
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)

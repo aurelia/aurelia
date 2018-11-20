@@ -402,7 +402,7 @@ this.au.debug = (function (exports,AST,kernel) {
   const Reporter = Object.assign({}, kernel.Reporter, { write(code, ...params) {
           const info = getMessageInfoForCode(code);
           // tslint:disable:no-console
-          switch (info.messageType) {
+          switch (info.type) {
               case 3 /* debug */:
                   console.debug(info.message, ...params);
                   break;
@@ -428,161 +428,161 @@ this.au.debug = (function (exports,AST,kernel) {
   }
   function createInvalidCodeMessageInfo(code) {
       return {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: `Attempted to report with unknown code ${code}.`
       };
   }
   const codeLookup = {
       0: {
-          messageType: 1 /* warn */,
+          type: 1 /* warn */,
           message: 'Cannot add observers to object.'
       },
       1: {
-          messageType: 1 /* warn */,
+          type: 1 /* warn */,
           message: 'Cannot observe property of object.'
       },
       2: {
-          messageType: 2 /* info */,
+          type: 2 /* info */,
           message: 'Starting application in debug mode.'
       },
       3: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Runtime expression compilation is only available when including JIT support.'
       },
       4: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Invalid animation direction.'
       },
       5: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
       },
       6: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Invalid resolver strategy specified.'
       },
       7: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Constructor Parameter with index cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
       },
       8: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Self binding behavior only supports events.'
       },
       9: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">'
       },
       10: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.'
       },
       11: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Only property bindings and string interpolation bindings can be signaled. Trigger, delegate and call bindings cannot be signaled.'
       },
       12: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Signal name is required.'
       },
       14: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Property cannot be assigned.'
       },
       15: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Unexpected call context.'
       },
       16: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Only one child observer per content view is supported for the life of the content view.'
       },
       17: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'You can only define one default implementation for an interface.'
       },
       18: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'You cannot observe a setter only property.'
       },
       19: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Value for expression is non-repeatable.'
       },
       20: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'No template compiler found with the specified name. JIT support or a custom compiler is required.'
       },
       21: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'You cannot combine the containerless custom element option with Shadow DOM.'
       },
       22: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'A containerless custom element cannot be the root component of an application.'
       },
       30: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'There are more targets than there are target instructions.'
       },
       31: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'There are more target instructions than there are targets.'
       },
       100: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Invalid start of expression.'
       },
       101: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Unconsumed token.'
       },
       102: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Double dot and spread operators are not supported.'
       },
       103: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Invalid member expression.'
       },
       104: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Unexpected end of expression.'
       },
       105: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Expected identifier.'
       },
       106: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Invalid BindingIdentifier at left hand side of "of".'
       },
       107: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Invalid or unsupported property definition in object literal.'
       },
       108: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Unterminated quote in string literal.'
       },
       109: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Unterminated template string.'
       },
       110: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Missing expected token.'
       },
       111: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Unexpected character.'
       },
       150: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Left hand side of expression is not assignable.'
       },
       151: {
-          messageType: 0 /* error */,
+          type: 0 /* error */,
           message: 'Unexpected keyword "of"'
       }
   };

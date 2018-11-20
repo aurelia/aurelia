@@ -1,6 +1,7 @@
 import { IServiceLocator } from '@aurelia/kernel';
+import { INode } from '../dom';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
-import { AccessorOrObserver, IScope, LifecycleFlags } from '../observation';
+import { AccessorOrObserver, IObservable, IScope, LifecycleFlags } from '../observation';
 import { ForOfStatement, IsBindingBehavior } from './ast';
 import { BindingMode } from './binding-mode';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
@@ -9,7 +10,7 @@ export interface IBinding extends IBindScope {
     readonly locator: IServiceLocator;
     readonly $scope: IScope;
 }
-export declare type IBindingTarget = any;
+export declare type IBindingTarget = INode | IObservable;
 export interface Binding extends IConnectableBinding {
 }
 export declare class Binding implements IPartialConnectableBinding {

@@ -472,7 +472,6 @@
                   ? this.parent.has(key, true)
                   : false;
       }
-      // tslint:disable-next-line:no-reserved-keywords
       get(key) {
           validateKey(key);
           if (key.resolve) {

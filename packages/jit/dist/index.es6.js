@@ -9,7 +9,7 @@ class AttrSyntax {
         this.command = command;
     }
 }
-const marker = DOM.createElement('au-marker');
+const marker = DOM.createElement('au-m');
 marker.classList.add('au');
 const createMarker = marker.cloneNode.bind(marker, false);
 class ElementSyntax {
@@ -21,7 +21,7 @@ class ElementSyntax {
         this.$attributes = $attributes;
     }
     static createMarker() {
-        return new ElementSyntax(createMarker(), 'au-marker', null, PLATFORM.emptyArray, PLATFORM.emptyArray);
+        return new ElementSyntax(createMarker(), 'au-m', null, PLATFORM.emptyArray, PLATFORM.emptyArray);
     }
 }
 
@@ -1861,8 +1861,9 @@ class AttributeSymbol {
             if (!this.isMultiAttrBinding) {
                 for (const prop in bindables) {
                     const b = bindables[prop];
+                    const defaultBindingMode = definition.defaultBindingMode === undefined ? BindingMode.toView : definition.defaultBindingMode;
                     this.to = b.property;
-                    this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : (definition.defaultBindingMode || BindingMode.toView);
+                    this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : defaultBindingMode;
                     this.bindable = b;
                     this.isBindable = this.isAttributeBindable = true;
                     break;
@@ -2061,7 +2062,7 @@ class ElementSymbol {
         this._$content = null;
         this._isCustomElement = this._isLet = this._isSlot = this._isTemplate = false;
         this._isMarker = true;
-        this._name = 'AU-MARKER';
+        this._name = 'AU-M';
         this._node = marker.node;
         this._syntax = marker;
     }

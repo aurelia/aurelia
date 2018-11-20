@@ -1,14 +1,14 @@
 import { IRegistry } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
-import { IViewFactory } from '../../lifecycle';
-import { LifecycleFlags } from '../../observation';
+import { IBindScope, IViewFactory } from '../../lifecycle';
+import { IBindingContext, LifecycleFlags } from '../../observation';
 import { ICustomAttribute } from '../custom-attribute';
 export interface With extends ICustomAttribute {
 }
 export declare class With {
     private factory;
     static register: IRegistry['register'];
-    value: any;
+    value: IBindScope | IBindingContext;
     private currentView;
     constructor(factory: IViewFactory, location: IRenderLocation);
     valueChanged(this: With): void;

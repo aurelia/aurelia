@@ -1,4 +1,4 @@
-import { Class, IIndexable, IRegistry } from '@aurelia/kernel';
+import { Class, IRegistry } from '@aurelia/kernel';
 import { IExpressionParser, IResourceDefinition, IResourceKind, IResourceType, TargetedInstruction } from '@aurelia/runtime';
 import { IAttributeSymbol } from './semantic-model';
 export interface IBindingCommand {
@@ -7,7 +7,7 @@ export interface IBindingCommand {
 }
 export interface IBindingCommandDefinition extends IResourceDefinition {
 }
-export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand, IIndexable>> {
+export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> {
 }
 export interface IBindingCommandResource extends IResourceKind<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> {
 }

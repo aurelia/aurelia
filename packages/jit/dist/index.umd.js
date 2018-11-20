@@ -12,7 +12,7 @@
           this.command = command;
       }
   }
-  const marker = runtime.DOM.createElement('au-marker');
+  const marker = runtime.DOM.createElement('au-m');
   marker.classList.add('au');
   const createMarker = marker.cloneNode.bind(marker, false);
   class ElementSyntax {
@@ -24,7 +24,7 @@
           this.$attributes = $attributes;
       }
       static createMarker() {
-          return new ElementSyntax(createMarker(), 'au-marker', null, kernel.PLATFORM.emptyArray, kernel.PLATFORM.emptyArray);
+          return new ElementSyntax(createMarker(), 'au-m', null, kernel.PLATFORM.emptyArray, kernel.PLATFORM.emptyArray);
       }
   }
 
@@ -1864,8 +1864,9 @@
               if (!this.isMultiAttrBinding) {
                   for (const prop in bindables) {
                       const b = bindables[prop];
+                      const defaultBindingMode = definition.defaultBindingMode === undefined ? runtime.BindingMode.toView : definition.defaultBindingMode;
                       this.to = b.property;
-                      this.mode = (b.mode !== undefined && b.mode !== runtime.BindingMode.default) ? b.mode : (definition.defaultBindingMode || runtime.BindingMode.toView);
+                      this.mode = (b.mode !== undefined && b.mode !== runtime.BindingMode.default) ? b.mode : defaultBindingMode;
                       this.bindable = b;
                       this.isBindable = this.isAttributeBindable = true;
                       break;
@@ -2064,7 +2065,7 @@
           this._$content = null;
           this._isCustomElement = this._isLet = this._isSlot = this._isTemplate = false;
           this._isMarker = true;
-          this._name = 'AU-MARKER';
+          this._name = 'AU-M';
           this._node = marker.node;
           this._syntax = marker;
       }

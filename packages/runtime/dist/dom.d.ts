@@ -129,7 +129,7 @@ export declare const NodeSequence: {
 /**
  * An specialized INodeSequence with optimizations for text (interpolation) bindings
  * The contract of this INodeSequence is:
- * - the previous element is an `au-marker` node
+ * - the previous element is an `au-m` node
  * - text is the actual text node
  */
 export declare class TextNodeSequence implements INodeSequence {

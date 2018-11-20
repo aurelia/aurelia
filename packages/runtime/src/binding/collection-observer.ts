@@ -1,12 +1,15 @@
 import {
   Collection, CollectionKind, CollectionObserver, IBindingTargetObserver,
-  ICollectionObserver, IndexMap, IPropertySubscriber, LifecycleFlags, MutationKind
+  ICollectionObserver, IndexMap, IPatch, IPropertySubscriber, LifecycleFlags, MutationKind
 } from '../observation';
 import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';
 
 function flush(this: CollectionObserver): void {
   this.callBatchedSubscribers(this.indexMap);
+  if (!!this.lengthObserver) {
+    this.lengthObserver.patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+  }
   this.resetIndexMap();
 }
 
@@ -69,7 +72,7 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
 export interface CollectionLengthObserver extends IBindingTargetObserver<Collection, string> {}
 
 @targetObserver()
-export class CollectionLengthObserver implements CollectionLengthObserver {
+export class CollectionLengthObserver implements CollectionLengthObserver, IPatch {
   public currentValue: number;
   public currentFlags: LifecycleFlags;
 
@@ -89,6 +92,11 @@ export class CollectionLengthObserver implements CollectionLengthObserver {
 
   public setValueCore(newValue: number): void {
     this.obj[this.propertyKey] = newValue;
+  }
+
+  public patch(flags: LifecycleFlags): void {
+    this.callSubscribers(this.obj[this.propertyKey], this.currentValue, flags);
+    this.currentValue = this.obj[this.propertyKey];
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {

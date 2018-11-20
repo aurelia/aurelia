@@ -327,6 +327,12 @@ export type ObservedCollectionKindToType<T> =
   T extends CollectionKind.keyed ? IObservedSet | IObservedMap :
   never;
 
+// TODO: organize this (for now it's a quick fix for length observer, but we may actually want this
+// in every observer for alternative change tracking mechanisms)
+export interface IPatch {
+  patch(flags: LifecycleFlags): void;
+}
+
 /**
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
@@ -338,7 +344,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
-    lengthObserver: IBindingTargetObserver;
+    lengthObserver: IBindingTargetObserver & IPatch;
     getLengthObserver(): IBindingTargetObserver;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

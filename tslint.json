@@ -1,7 +1,8 @@
 {
   "extends": [
     "tslint:latest",
-    "tslint-microsoft-contrib"
+    "tslint-microsoft-contrib",
+    "tslint-sonarts"
   ],
   "linterOptions": {
     "exclude": [

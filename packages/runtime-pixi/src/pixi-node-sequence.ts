@@ -1,7 +1,8 @@
 import { INodeSequence, INode, IText, IDocumentFragment, IRenderLocation, DOM } from '@aurelia/runtime';
 import { PLATFORM, Writable, Constructable } from '@aurelia/kernel';
+import { IPixiNodeSequence, IPixiNode } from './interfaces-override';
 
-function isRenderLocation(node: INode): node is IRenderLocation {
+function isRenderLocation(node: IPixiNode): node is IRenderLocation {
   return node.textContent === 'au-end';
 }
 
@@ -11,17 +12,62 @@ export const TEXT_NODE = 3;
 export const COMMENT_NODE = 8;
 export const DOCUMENT_FRAGMENT_NODE = 11;
 
-// This is an implementation of INodeSequence that represents "no DOM" to render.
+/**
+ * PIXI equivalent of NodeSequenceFactory in default runtime implementation
+ */
+export class PixiNodeSequenceFactory {
+
+  private readonly deepClone: boolean;
+  private readonly node: ICloneableNode;
+  private readonly Type: Constructable;
+
+  constructor(fragment: IDocumentFragment) {
+    const childNodes = fragment.childNodes;
+    switch (childNodes.length) {
+      case 0:
+        this.createNodeSequence = () => NodeSequence.empty;
+        return;
+      case 2:
+        const target = childNodes[0];
+        if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
+          const text = childNodes[1];
+          if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
+            text.textContent = '';
+            this.deepClone = false;
+            this.node = <ICloneableNode>text;
+            this.Type = TextNodeSequence;
+            return;
+          }
+        }
+      // falls through if not returned
+      default:
+        this.deepClone = true;
+        this.node = <ICloneableNode>fragment;
+        this.Type = FragmentNodeSequence;
+    }
+  }
+
+  public static createFor(markupOrNode: string | IPixiNode): PixiNodeSequenceFactory {
+    const fragment = DOM.createDocumentFragment(markupOrNode);
+    return new PixiNodeSequenceFactory(fragment);
+  }
+
+  public createNodeSequence(): IPixiNodeSequence {
+    return new this.Type(this.node.cloneNode(this.deepClone));
+  }
+}
+
+// This is an implementation of IPixiNodeSequence that represents "no DOM" to render.
 // It's used in various places to avoid null and to encode
 // the explicit idea of "no view".
-const emptySequence: INodeSequence = {
+const emptySequence: IPixiNodeSequence = {
   firstChild: null,
   lastChild: null,
   childNodes: PLATFORM.emptyArray,
-  findTargets(): ReturnType<INodeSequence['findTargets']> { return PLATFORM.emptyArray; },
-  insertBefore(refNode: INode): ReturnType<INodeSequence['insertBefore']> { /*do nothing*/ },
-  appendTo(parent: INode): ReturnType<INodeSequence['appendTo']> { /*do nothing*/ },
-  remove(): ReturnType<INodeSequence['remove']> { /*do nothing*/ }
+  findTargets(): ReturnType<IPixiNodeSequence['findTargets']> { return PLATFORM.emptyArray; },
+  insertBefore(refNode: IPixiNode): ReturnType<IPixiNodeSequence['insertBefore']> { /*do nothing*/ },
+  appendTo(parent: IPixiNode): ReturnType<IPixiNodeSequence['appendTo']> { /*do nothing*/ },
+  remove(): ReturnType<IPixiNodeSequence['remove']> { /*do nothing*/ }
 };
 
 export const NodeSequence = {
@@ -29,17 +75,17 @@ export const NodeSequence = {
 };
 
 /**
- * An specialized INodeSequence with optimizations for text (interpolation) bindings
- * The contract of this INodeSequence is:
+ * An specialized IPixiNodeSequence with optimizations for text (interpolation) bindings
+ * The contract of this IPixiNodeSequence is:
  * - the previous element is an `au-marker` node
  * - text is the actual text node
  */
-export class TextNodeSequence implements INodeSequence {
+export class TextNodeSequence implements IPixiNodeSequence {
   public firstChild: IText;
   public lastChild: IText;
   public childNodes: IText[];
 
-  private targets: [INode];
+  private targets: [IPixiNode];
 
   constructor(text: IText) {
     this.firstChild = text;
@@ -48,15 +94,15 @@ export class TextNodeSequence implements INodeSequence {
     this.targets = [new AuMarker(text)];
   }
 
-  public findTargets(): ArrayLike<INode> {
+  public findTargets(): ArrayLike<IPixiNode> {
     return this.targets;
   }
 
-  public insertBefore(refNode: INode): void {
+  public insertBefore(refNode: IPixiNode): void {
     (<any>refNode).parentNode.insertBefore(this.firstChild, refNode);
   }
 
-  public appendTo(parent: INode): void {
+  public appendTo(parent: IPixiNode): void {
     (<any>parent).appendChild(this.firstChild);
   }
 
@@ -66,19 +112,19 @@ export class TextNodeSequence implements INodeSequence {
 }
 // tslint:enable:no-any
 
-// This is the most common form of INodeSequence.
+// This is the most common form of IPixiNodeSequence.
 // Every custom element or template controller whose node sequence is based on an HTML template
 // has an instance of this under the hood. Anyone who wants to create a node sequence from
 // a string of markup would also receive an instance of this.
 // CompiledTemplates create instances of FragmentNodeSequence.
 /*@internal*/
-export class FragmentNodeSequence implements INodeSequence {
-  public firstChild: INode;
-  public lastChild: INode;
-  public childNodes: INode[];
+export class FragmentNodeSequence implements IPixiNodeSequence {
+  public firstChild: IPixiNode;
+  public lastChild: IPixiNode;
+  public childNodes: IPixiNode[];
 
   private fragment: IDocumentFragment;
-  private targets: ArrayLike<INode>;
+  private targets: ArrayLike<IPixiNode>;
 
   private start: IRenderLocation;
   private end: IRenderLocation;
@@ -110,7 +156,7 @@ export class FragmentNodeSequence implements INodeSequence {
     ii = childNodeList.length;
     const childNodes = this.childNodes = Array(ii);
     while (i < ii) {
-      childNodes[i] = childNodeList[i] as Writable<INode>;
+      childNodes[i] = childNodeList[i] as Writable<IPixiNode>;
       ++i;
     }
 
@@ -120,7 +166,7 @@ export class FragmentNodeSequence implements INodeSequence {
     this.start = this.end = null;
   }
 
-  public findTargets(): ArrayLike<INode> {
+  public findTargets(): ArrayLike<IPixiNode> {
     // tslint:disable-next-line:no-any
     return this.targets;
   }
@@ -149,7 +195,7 @@ export class FragmentNodeSequence implements INodeSequence {
     }
   }
 
-  public appendTo(parent: INode): void {
+  public appendTo(parent: IPixiNode): void {
     // tslint:disable-next-line:no-any
     (<any>parent).appendChild(this.fragment);
     // this can never be a RenderLocation, and if for whatever reason we moved
@@ -164,7 +210,7 @@ export class FragmentNodeSequence implements INodeSequence {
       // repeater with a single item) then simply remove everything in-between (but not
       // the comments themselves as they belong to the parent)
       const end = this.end;
-      let next: INode;
+      let next: IPixiNode;
       let current = this.start.nextSibling;
       while (current !== end) {
         next = current.nextSibling;
@@ -180,7 +226,7 @@ export class FragmentNodeSequence implements INodeSequence {
 
       if (current.parentNode !== fragment) {
         const end = this.lastChild;
-        let next: INode;
+        let next: IPixiNode;
 
         while (current !== null) {
           next = current.nextSibling;
@@ -198,70 +244,31 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
-interface ICloneableNode extends INode {
+interface ICloneableNode extends IPixiNode {
   cloneNode(deep?: boolean): ICloneableNode;
 }
 
-export interface INodeSequenceFactory {
-  createNodeSequence(): INodeSequence;
+export interface IPixiNodeSequenceFactory {
+  createNodeSequence(): IPixiNodeSequence;
 }
 
-export class PixiNodeSequenceFactory {
-  private readonly deepClone: boolean;
-  private readonly node: ICloneableNode;
-  private readonly Type: Constructable;
-  constructor(fragment: IDocumentFragment) {
-    const childNodes = fragment.childNodes;
-    switch (childNodes.length) {
-      case 0:
-        this.createNodeSequence = () => NodeSequence.empty;
-        return;
-      case 2:
-        const target = childNodes[0];
-        if (target.nodeName === 'AU-MARKER' || target.nodeName === '#comment') {
-          const text = childNodes[1];
-          if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
-            text.textContent = '';
-            this.deepClone = false;
-            this.node = <ICloneableNode>text;
-            this.Type = TextNodeSequence;
-            return;
-          }
-        }
-      // falls through if not returned
-      default:
-        this.deepClone = true;
-        this.node = <ICloneableNode>fragment;
-        this.Type = FragmentNodeSequence;
-    }
-  }
-
-  public static createFor(markupOrNode: string | INode): PixiNodeSequenceFactory {
-    const fragment = DOM.createDocumentFragment(markupOrNode);
-    return new PixiNodeSequenceFactory(fragment);
-  }
-
-  public createNodeSequence(): INodeSequence {
-    return new this.Type(this.node.cloneNode(this.deepClone));
-  }
-}
 
 /*@internal*/
-export class AuMarker implements INode {
-  public get parentNode(): INode {
+export class AuMarker implements IPixiNode {
+  public get parentNode(): IPixiNode {
     return this.nextSibling.parentNode;
   }
-  public readonly nextSibling: INode;
-  public readonly previousSibling: INode;
-  public readonly content?: INode;
-  public readonly firstChild: INode;
-  public readonly lastChild: INode;
-  public readonly childNodes: ArrayLike<INode>;
+  public readonly nextSibling: IPixiNode;
+  public readonly previousSibling: IPixiNode;
+  public readonly content?: IPixiNode;
+  public readonly firstChild: IPixiNode;
+  public readonly lastChild: IPixiNode;
+  public readonly childNodes: ArrayLike<IPixiNode>;
   public readonly nodeName: 'AU-MARKER';
   public readonly nodeType: typeof ELEMENT_NODE;
   public textContent: string = '';
 
-  constructor(next: INode) {
+  constructor(next: IPixiNode) {
     this.nextSibling = next;
   }
   public remove(): void { /* do nothing */ }

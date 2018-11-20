@@ -1,8 +1,14 @@
-import { Scope, ICustomElement, IRenderingEngine, INode, IElementHydrationOptions, ICustomElementType, ICustomElementHost, TemplateDefinition, IElementProjector, INodeSequence, State, DOM, Hooks } from '@aurelia/runtime';
+import { Scope, ICustomElement, IRenderingEngine, INode, IElementHydrationOptions, ICustomElementType, ICustomElementHost, TemplateDefinition, IElementProjector, INodeSequence, State, DOM, Hooks, ITemplate } from '@aurelia/runtime';
 import { Writable, PLATFORM, Reporter } from '@aurelia/kernel';
+import { IPixiNode } from './interfaces-override';
 
 /*@internal*/
-export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+export function $hydrateElement(
+  this: Writable<ICustomElement>,
+  renderingEngine: IRenderingEngine,
+  host: IPixiNode,
+  options: IElementHydrationOptions = PLATFORM.emptyObject
+): void {
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
@@ -16,11 +22,11 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
     const result = this.render(host, options.parts);
 
     if (result && 'getElementTemplate' in result) {
-      const template = result.getElementTemplate(renderingEngine, Type);
+      const template: ITemplate = result.getElementTemplate(renderingEngine, Type);
       template.render(this, host, options.parts);
     }
   } else {
-    const template = renderingEngine.getElementTemplate(description, Type);
+    const template: ITemplate = renderingEngine.getElementTemplate(description, Type);
     template.render(this, host, options.parts);
   }
 

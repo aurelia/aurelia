@@ -148,11 +148,11 @@ export class Router {
       return this.viewports[name] = new Viewport(this.container, name, element, controller);
     }
     if (element) {
-      setTimeout(() => {
+      Promise.resolve().then(() => {
         viewport.element = element;
         viewport.controller = controller;
         this.renderViewport(viewport);
-      }, 0);
+      });
     }
     return viewport;
   }

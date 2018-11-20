@@ -79,13 +79,18 @@ import {
   ISinglePageApp,
   IRenderingEngine,
   ILifecycle,
-  ICustomElement
+  ICustomElement,
+  BindingType
 
 } from '../../../runtime/src/index';
 import { IIndexable, DI, Container, IContainer, Constructable, Class } from '../../../kernel/src/index';
-import { BasicConfiguration } from '../../../jit/src/index';
+import { BasicConfiguration, parseCore } from '../../../jit/src/index';
 import { eachCartesianJoin } from '../unit/util';
 import { expect } from 'chai';
+
+export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
+export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;
+export type DefinitionCb = (builder: DefinitionBuilder) => DefinitionBuilder;
 
 export class TemplateBuilder {
   private template: IElement;
@@ -132,109 +137,96 @@ export class InstructionBuilder {
     this.instructions = [];
   }
 
-  public static text(source: string): InstructionBuilder;
-  public static text(expression: IsBindingBehavior): InstructionBuilder;
-  public static text(parts: ReadonlyArray<string>): InstructionBuilder;
-  public static text(parts: ReadonlyArray<string>, expressions: ReadonlyArray<IsBindingBehavior>): InstructionBuilder;
-  public static text(partsOrExprOrSource: ReadonlyArray<string> | IsBindingBehavior | string, expressions?: ReadonlyArray<IsBindingBehavior>): InstructionBuilder;
-  public static text(partsOrExprOrSource: ReadonlyArray<string> | IsBindingBehavior | string, expressions?: ReadonlyArray<IsBindingBehavior>): InstructionBuilder {
-    return new InstructionBuilder().text(partsOrExprOrSource, expressions);
+  public static interpolation(source: string): InstructionBuilder;
+  public static interpolation(parts: ReadonlyArray<string>): InstructionBuilder;
+  public static interpolation(parts: ReadonlyArray<string>, sources: ReadonlyArray<string>): InstructionBuilder;
+  public static interpolation(partsOrSource: ReadonlyArray<string> | string, sources?: ReadonlyArray<string>): InstructionBuilder;
+  public static interpolation(partsOrSource: ReadonlyArray<string> | string, sources?: ReadonlyArray<string>): InstructionBuilder {
+    return new InstructionBuilder().interpolation(partsOrSource, sources);
   }
 
-  public text(source: string): InstructionBuilder;
-  public text(expression: IsBindingBehavior): InstructionBuilder;
-  public text(parts: ReadonlyArray<string>): InstructionBuilder;
-  public text(parts: ReadonlyArray<string>, expressions: ReadonlyArray<IsBindingBehavior>): InstructionBuilder;
-  public text(partsOrExprOrSource: ReadonlyArray<string> | IsBindingBehavior | string, expressions?: ReadonlyArray<IsBindingBehavior>): InstructionBuilder;
-  public text(partsOrExprOrSource: ReadonlyArray<string> | IsBindingBehavior | string, expressions?: ReadonlyArray<IsBindingBehavior>): InstructionBuilder {
-    let instruction: TextBindingInstruction;
-    if (Array.isArray(partsOrExprOrSource)) {
-      instruction = new TextBindingInstruction(
-        new Interpolation(partsOrExprOrSource, expressions)
-      );
-    } else {
-      if (typeof partsOrExprOrSource === 'string') {
-        instruction = new TextBindingInstruction(
-          new Interpolation(
-            ['', ''],
-            [new AccessScope(partsOrExprOrSource)]
-          )
-        );
-      } else {
-        instruction = new TextBindingInstruction(
-          new Interpolation(
-            ['', ''],
-            [partsOrExprOrSource as IsBindingBehavior]
-          )
-        );
+  public static iterator(source: string, target: string): InstructionBuilder {
+    return new InstructionBuilder().iterator(source, target);
+  }
+
+  public static toView(source: string, target?: string): InstructionBuilder {
+    return new InstructionBuilder().toView(source, target);
+  }
+
+  public interpolation(source: string): InstructionBuilder;
+  public interpolation(parts: ReadonlyArray<string>): InstructionBuilder;
+  public interpolation(parts: ReadonlyArray<string>, sources: ReadonlyArray<string>): InstructionBuilder;
+  public interpolation(partsOrSource: ReadonlyArray<string> | string, sources?: ReadonlyArray<string>): InstructionBuilder;
+  public interpolation(partsOrSource: ReadonlyArray<string> | string, sources?: ReadonlyArray<string>): InstructionBuilder {
+    let parts: string[];
+    let expressions: IsBindingBehavior[];
+    if (Array.isArray(partsOrSource)) {
+      parts = partsOrSource;
+      expressions = [];
+      if (Array.isArray(sources)) {
+        for (const source of sources) {
+          expressions.push(<any>parseCore(<string>source, <any>BindingType.None));
+        }
       }
+    } else {
+      parts = ['', ''];
+      expressions = [<any>parseCore(<string>partsOrSource, <any>BindingType.None)];
     }
+    const instruction = new TextBindingInstruction(
+      new Interpolation(parts, expressions)
+    );
     this.instructions.push(instruction);
     return this;
   }
 
-  public static iterator(itemName: string, iterable: IsBindingBehavior, targetName: string): InstructionBuilder;
-  public static iterator(itemName: string, collName: string, targetName?: string): InstructionBuilder;
-  public static iterator(itemName: string, collNameOrIterable: string | IsBindingBehavior, targetName?: string): InstructionBuilder;
-  public static iterator(itemName: string, collNameOrIterable: string | IsBindingBehavior, targetName?: string): InstructionBuilder {
-    return new InstructionBuilder().iterator(itemName, collNameOrIterable, targetName);
+
+  public iterator(source: string, target: string): InstructionBuilder {
+    const statement = <any>parseCore(source, <any>BindingType.ForCommand);
+    const instruction = new IteratorBindingInstruction(statement, target);
+    this.instructions.push(instruction);
+    return this;
   }
 
-  public iterator(itemName: string, iterable: IsBindingBehavior, targetName: string): InstructionBuilder;
-  public iterator(itemName: string, collName: string, targetName?: string): InstructionBuilder;
-  public iterator(itemName: string, collNameOrIterable: string | IsBindingBehavior, targetName?: string): InstructionBuilder;
-  public iterator(itemName: string, collNameOrIterable: string | IsBindingBehavior, targetName?: string): InstructionBuilder {
-    let to: string;
-    let iterable: IsBindingBehavior;
-    if (typeof collNameOrIterable === 'string') {
-      iterable = new AccessScope(collNameOrIterable);
-      to = targetName || collNameOrIterable;
-    } else {
-      iterable = collNameOrIterable;
-      to = targetName;
-    }
-    const instruction = new IteratorBindingInstruction(
-      new ForOfStatement(new BindingIdentifier(itemName), iterable), to
-    );
+  public toView(source: string, target?: string): InstructionBuilder {
+    const statement = <any>parseCore(source, <any>BindingType.ToViewCommand);
+    const instruction = new ToViewBindingInstruction(statement, target || 'value');
     this.instructions.push(instruction);
     return this;
   }
 
   public templateController(
     res: string,
-    configureDefinition: (definitionBuilder: DefinitionBuilder) => DefinitionBuilder,
-    configureChildInstructions: (instructionBuilder: InstructionBuilder) => InstructionBuilder = b => b
+    insCbOrBuilder: InstructionCb | InstructionBuilder,
+    defCbOrBuilder: DefinitionCb | DefinitionBuilder
   ): InstructionBuilder {
-
-    const definition = configureDefinition(new DefinitionBuilder()).build();
-    const childInstructions = configureChildInstructions(new InstructionBuilder()).build();
-    const instruction = new HydrateTemplateController(definition, res, childInstructions, name === 'else');
+    let childInstructions: TargetedInstruction[];
+    let definition: ITemplateDefinition;
+    if (insCbOrBuilder instanceof InstructionBuilder) {
+      childInstructions = insCbOrBuilder.build();
+    } else {
+      childInstructions = insCbOrBuilder(new InstructionBuilder()).build();
+    }
+    if (defCbOrBuilder instanceof DefinitionBuilder) {
+      definition = defCbOrBuilder.build();
+    } else {
+      definition = defCbOrBuilder(new DefinitionBuilder()).build();
+    }
+    const instruction = new HydrateTemplateController(definition, res, childInstructions, res === 'else');
     this.instructions.push(instruction);
-
     return this;
   }
 
-  public element(
-    res: string,
-    configureChildInstructions: (instructionBuilder: InstructionBuilder) => InstructionBuilder = b => b
-  ): InstructionBuilder {
-
-    const childInstructions = configureChildInstructions(new InstructionBuilder()).build();
+  public element(res: string, ins: InstructionCb): InstructionBuilder {
+    const childInstructions = ins(new InstructionBuilder()).build();
     const instruction = new HydrateElementInstruction(res, childInstructions);
     this.instructions.push(instruction);
-
     return this;
   }
 
-  public attribute(
-    res: string,
-    configureChildInstructions: (instructionBuilder: InstructionBuilder) => InstructionBuilder
-  ): InstructionBuilder {
-
-    const childInstructions = configureChildInstructions(new InstructionBuilder()).build();
+  public attribute(res: string, ins: InstructionCb): InstructionBuilder {
+    const childInstructions = ins(new InstructionBuilder()).build();
     const instruction = new HydrateAttributeInstruction(res, childInstructions);
     this.instructions.push(instruction);
-
     return this;
   }
 
@@ -265,60 +257,95 @@ export class DefinitionBuilder {
   public static app(): DefinitionBuilder {
     return new DefinitionBuilder('app');
   }
-  public static repeat(
-    configureDefinition: (definitionBuilder: DefinitionBuilder) => DefinitionBuilder,
-    configureChildInstructions: (instructionBuilder: InstructionBuilder) => InstructionBuilder
-  ): DefinitionBuilder {
-    return new DefinitionBuilder().repeat(configureDefinition, configureChildInstructions);
+  public static repeat(insCb: InstructionCb, defCb: DefinitionCb): DefinitionBuilder;
+  public static repeat(insBuilder: InstructionBuilder, defBuilder: DefinitionBuilder): DefinitionBuilder;
+  public static repeat(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder;
+  public static repeat(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder {
+    return new DefinitionBuilder().repeat(insCbOrBuilder, defCbOrBuilder);
   }
-  public static if(configureDefinition: (definitionBuilder: DefinitionBuilder) => DefinitionBuilder): DefinitionBuilder {
-    return new DefinitionBuilder().if(configureDefinition);
+  public static if(insCb: InstructionCb, defCb: DefinitionCb): DefinitionBuilder;
+  public static if(insBuilder: InstructionBuilder, defBuilder: DefinitionBuilder): DefinitionBuilder;
+  public static if(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder;
+  public static if(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder {
+    return new DefinitionBuilder().if(insCbOrBuilder, defCbOrBuilder);
   }
-  public static else(configureDefinition: (definitionBuilder: DefinitionBuilder) => DefinitionBuilder): DefinitionBuilder {
-    return new DefinitionBuilder().else(configureDefinition);
+  public static with(insCb: InstructionCb, defCb: DefinitionCb): DefinitionBuilder;
+  public static with(insBuilder: InstructionBuilder, defBuilder: DefinitionBuilder): DefinitionBuilder;
+  public static with(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder;
+  public static with(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder {
+    return new DefinitionBuilder().with(insCbOrBuilder, defCbOrBuilder);
   }
-  public static compose(configureChildInstructions: (instructionBuilder: InstructionBuilder) => InstructionBuilder): DefinitionBuilder {
-    return new DefinitionBuilder().compose(configureChildInstructions);
+  public static else(def: DefinitionCb): DefinitionBuilder {
+    return new DefinitionBuilder().else(def);
   }
-  public static replaceable(configureDefinition: (definitionBuilder: DefinitionBuilder) => DefinitionBuilder): DefinitionBuilder {
-    return new DefinitionBuilder().replaceable(configureDefinition);
+  public static compose(ins: InstructionCb): DefinitionBuilder {
+    return new DefinitionBuilder().compose(ins);
+  }
+  public static replaceable(insCb: InstructionCb, defCb: DefinitionCb): DefinitionBuilder;
+  public static replaceable(insBuilder: InstructionBuilder, defBuilder: DefinitionBuilder): DefinitionBuilder;
+  public static replaceable(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder;
+  public static replaceable(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder {
+    return new DefinitionBuilder().replaceable(insCbOrBuilder, defCbOrBuilder);
+  }
+  public static interpolation(source: string): DefinitionBuilder;
+  public static interpolation(parts: ReadonlyArray<string>): DefinitionBuilder;
+  public static interpolation(parts: ReadonlyArray<string>, sources: ReadonlyArray<string>): DefinitionBuilder;
+  public static interpolation(partsOrSource: ReadonlyArray<string> | string, sources?: ReadonlyArray<string>): DefinitionBuilder;
+  public static interpolation(partsOrSource: ReadonlyArray<string> | string, sources?: ReadonlyArray<string>): DefinitionBuilder {
+    return new DefinitionBuilder().interpolation(partsOrSource, sources);
   }
 
-  public repeat(
-    configureDefinition: (definitionBuilder: DefinitionBuilder) => DefinitionBuilder,
-    configureChildInstructions: (instructionBuilder: InstructionBuilder) => InstructionBuilder
-  ): DefinitionBuilder {
-    this.instructionBuilder.templateController('repeat', configureDefinition, configureChildInstructions);
+  public repeat(insCb: InstructionCb, defCb: DefinitionCb): DefinitionBuilder;
+  public repeat(insBuilder: InstructionBuilder, defBuilder: DefinitionBuilder): DefinitionBuilder;
+  public repeat(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder;
+  public repeat(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder {
+    this.instructionBuilder.templateController('repeat', insCbOrBuilder, defCbOrBuilder);
     this.templateBuilder.behavior();
     return this.next();
   }
-  public if(configureDefinition: (definitionBuilder: DefinitionBuilder) => DefinitionBuilder): DefinitionBuilder {
-    this.instructionBuilder.templateController('if', configureDefinition);
+  public if(insCb: InstructionCb, defCb: DefinitionCb): DefinitionBuilder;
+  public if(insBuilder: InstructionBuilder, defBuilder: DefinitionBuilder): DefinitionBuilder;
+  public if(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder;
+  public if(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder {
+    this.instructionBuilder.templateController('if', insCbOrBuilder, defCbOrBuilder);
     this.templateBuilder.behavior();
     return this.next();
   }
-  public else(configureDefinition: (definitionBuilder: DefinitionBuilder) => DefinitionBuilder): DefinitionBuilder {
-    this.instructionBuilder.templateController('else', configureDefinition);
+  public with(insCb: InstructionCb, defCb: DefinitionCb): DefinitionBuilder;
+  public with(insBuilder: InstructionBuilder, defBuilder: DefinitionBuilder): DefinitionBuilder;
+  public with(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder;
+  public with(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder {
+    this.instructionBuilder.templateController('with', insCbOrBuilder, defCbOrBuilder);
     this.templateBuilder.behavior();
     return this.next();
   }
-  public compose(configureChildInstructions: (instructionBuilder: InstructionBuilder) => InstructionBuilder): DefinitionBuilder {
-    this.instructionBuilder.element('au-compose', configureChildInstructions);
+  public else(defCb: DefinitionCb): DefinitionBuilder;
+  public else(defBuilder: DefinitionBuilder): DefinitionBuilder;
+  public else(defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder;
+  public else(defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder {
+    this.instructionBuilder.templateController('else', b => b, defCbOrBuilder);
     this.templateBuilder.behavior();
     return this.next();
   }
-  public replaceable(configureDefinition: (definitionBuilder: DefinitionBuilder) => DefinitionBuilder): DefinitionBuilder {
-    this.instructionBuilder.templateController('replaceable', configureDefinition);
+  public compose(ins: InstructionCb): DefinitionBuilder {
+    this.instructionBuilder.element('au-compose', ins);
+    this.templateBuilder.behavior();
+    return this.next();
+  }
+  public replaceable(insCb: InstructionCb, defCb: DefinitionCb): DefinitionBuilder;
+  public replaceable(insBuilder: InstructionBuilder, defBuilder: DefinitionBuilder): DefinitionBuilder;
+  public replaceable(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder;
+  public replaceable(insCbOrBuilder: InstructionCb | InstructionBuilder, defCbOrBuilder: DefinitionCb | DefinitionBuilder): DefinitionBuilder {
+    this.instructionBuilder.templateController('replaceable', insCbOrBuilder, defCbOrBuilder);
     this.templateBuilder.behavior();
     return this.next();
   }
   public interpolation(source: string): DefinitionBuilder;
-  public interpolation(expression: IsBindingBehavior): DefinitionBuilder;
   public interpolation(parts: ReadonlyArray<string>): DefinitionBuilder;
-  public interpolation(parts: ReadonlyArray<string>, expressions: ReadonlyArray<IsBindingBehavior>): DefinitionBuilder;
-  public interpolation(partsOrExprOrSource: ReadonlyArray<string> | IsBindingBehavior | string, expressions?: ReadonlyArray<IsBindingBehavior>): DefinitionBuilder;
-  public interpolation(partsOrExprOrSource: ReadonlyArray<string> | IsBindingBehavior | string, expressions?: ReadonlyArray<IsBindingBehavior>): DefinitionBuilder {
-    this.instructionBuilder.text(partsOrExprOrSource, expressions);
+  public interpolation(parts: ReadonlyArray<string>, sources: ReadonlyArray<string>): DefinitionBuilder;
+  public interpolation(partsOrSource: ReadonlyArray<string> | string, sources?: ReadonlyArray<string>): DefinitionBuilder;
+  public interpolation(partsOrSource: ReadonlyArray<string> | string, sources?: ReadonlyArray<string>): DefinitionBuilder {
+    this.instructionBuilder.interpolation(partsOrSource, sources);
     this.templateBuilder.interpolation();
     return this.next();
   }
@@ -330,7 +357,7 @@ export class DefinitionBuilder {
   }
 
   public build(): ITemplateDefinition {
-    const { name, templateBuilder, instructionBuilder, instructions } = this;
+    const { name, templateBuilder, instructions } = this;
     const definition = { name, template: templateBuilder.build(), instructions };
     this.name = null;
     this.templateBuilder = null;
@@ -350,8 +377,15 @@ export class TestBuilder<T extends Constructable> {
     this.Type = Type;
   }
 
-  public static app<T extends Object>(obj: T, configure: (builder: DefinitionBuilder) => DefinitionBuilder): T extends Constructable ? TestBuilder<T> : TestBuilder<Class<T>> {
-    const definition = configure(DefinitionBuilder.app()).build();
+  public static app<T extends Object>(obj: T, defBuilder: DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
+  public static app<T extends Object>(obj: T, defCb: DefinitionCb): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
+  public static app<T extends Object>(obj: T, defCbOrBuilder: DefinitionCb | DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>> {
+    let definition: ITemplateDefinition;
+    if (defCbOrBuilder instanceof DefinitionBuilder) {
+      definition = defCbOrBuilder.build();
+    } else {
+      definition = defCbOrBuilder(DefinitionBuilder.app()).build();
+    }
     const Type = obj['prototype'] ? obj : function() {
       Object.assign(this, obj);
     };
@@ -359,8 +393,8 @@ export class TestBuilder<T extends Constructable> {
     return new TestBuilder(App) as any;
   }
 
-  public element(obj: Object, configure: (builder: DefinitionBuilder) => DefinitionBuilder): TestBuilder<T> {
-    const definition = configure(DefinitionBuilder.element()).build();
+  public element(obj: Object, def: DefinitionCb): TestBuilder<T> {
+    const definition = def(DefinitionBuilder.element()).build();
     const Type = obj['prototype'] ? obj : function() {
       Object.assign(this, obj);
     };
@@ -369,7 +403,7 @@ export class TestBuilder<T extends Constructable> {
     return this;
   }
 
-  public build(): TestContext<T> {
+  public build(): TestContext<InstanceType<T>> {
     const { container, Type } = this;
     const host = DOM.createElement('div');
     const component = new Type();
@@ -377,14 +411,13 @@ export class TestBuilder<T extends Constructable> {
   }
 }
 
-export class TestContext<T extends Constructable> {
+export class TestContext<T extends Object> {
   public container: IContainer;
   public host: INode;
   public component: ICustomElement & T;
   public lifecycle: Lifecycle;
   public isHydrated: boolean;
-  public startCount: number;
-  public stopCount: number;
+  public assertCount: number;
 
   constructor(
     container: IContainer,
@@ -396,8 +429,7 @@ export class TestContext<T extends Constructable> {
     this.component = component;
     this.lifecycle = container.get<Lifecycle>(ILifecycle);
     this.isHydrated = false;
-    this.startCount = 0;
-    this.stopCount = 0;
+    this.assertCount = 0;
   }
 
   public hydrate(renderingEngine?: IRenderingEngine, host?: INode): void {
@@ -432,7 +464,6 @@ export class TestContext<T extends Constructable> {
     }
     this.bind();
     this.attach();
-    ++this.startCount;
   }
 
   public startAndAssertTextContentEquals(text: string): void {
@@ -443,7 +474,6 @@ export class TestContext<T extends Constructable> {
   public stop(): void {
     this.detach();
     this.unbind();
-    ++this.stopCount;
   }
 
   public stopAndAssertTextContentEmpty(): void {
@@ -451,19 +481,24 @@ export class TestContext<T extends Constructable> {
     this.assertTextContentEmpty();
   }
 
+  public flush(flags?: LifecycleFlags): void {
+    flags = arguments.length === 1 ? flags : LifecycleFlags.fromAsyncFlush;
+    this.lifecycle.processFlushQueue(flags);
+  }
+
   public assertTextContentEquals(text: string): void {
+    ++this.assertCount;
     const { textContent } = this.host;
     if (textContent !== text) {
-      const { startCount, stopCount } = this;
-      throw new Error(`Expected host.textContent to equal "${text}", but got: "${textContent}" (startCount: ${startCount}, stopCount: ${stopCount})`);
+      throw new Error(`Expected host.textContent to equal "${text}", but got: "${textContent}" (assert #${this.assertCount})`);
     }
   }
 
   public assertTextContentEmpty(): void {
+    ++this.assertCount;
     const { textContent } = this.host;
     if (textContent !== '') {
-      const { startCount, stopCount } = this;
-      throw new Error(`Expected host.textContent to be empty, but got: "${textContent}" (startCount: ${startCount}, stopCount: ${stopCount})`);
+      throw new Error(`Expected host.textContent to be empty, but got: "${textContent}" (assert #${this.assertCount})`);
     }
   }
 

@@ -26,7 +26,7 @@
     "no-eval": true,
     "no-exec-script": true,
     "no-function-constructor-with-string-args": true,
-    "no-http-string": [true, "http://localhost:?.*"],
+    "no-http-string": [true, "http://localhost:?.*", "http://www.w3.org/1999/xlink"],
     "no-inner-html": false,
     "no-octal-literal": true,
     "no-reserved-keywords": false, // See https://github.com/aurelia/aurelia/pull/297

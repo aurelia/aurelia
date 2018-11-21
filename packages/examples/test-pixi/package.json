@@ -1,0 +1,9 @@
+{
+  "name": "test-pixi",
+  "dependencies": {
+    "@aurelia/jit": "file:../../jit",
+    "@aurelia/kernel": "file:../../kernel",
+    "@aurelia/runtime-pixi": "file:../../runtime-pixi",
+    "pixi.js": "^4.8.2"
+  }
+}

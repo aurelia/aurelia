@@ -911,4 +911,40 @@ describe(spec, () => {
     expect(host.textContent).to.equal('foo');
 
   });
+
+  it('replaceable', async () => {
+
+    const App = CustomElementResource.define({
+      name: 'app',
+      template: `<template><foo><div replace-part="bar">43</div></foo></template>`,
+      build: {
+        required: true,
+        compiler: 'default'
+      }
+    }, class {});
+
+    const Foo = CustomElementResource.define({
+      name: 'foo',
+      template: `<template><div replaceable part="bar">42</div></template>`,
+      build: {
+        required: true,
+        compiler: 'default'
+      }
+    }, class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('43');
+
+  });
 });

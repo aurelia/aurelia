@@ -520,7 +520,8 @@ function createCustomElement(tagName: string, finalize: boolean, attributes: [st
   const instruction = {
     type: TT.hydrateElement,
     res: tagName,
-    instructions: childInstructions
+    instructions: childInstructions,
+    parts: PLATFORM.emptyObject
   };
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput&&childInput.template)||''}</${tagName}>`;

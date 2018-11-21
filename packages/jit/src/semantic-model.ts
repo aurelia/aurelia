@@ -390,16 +390,22 @@ export class AttributeSymbol implements IAttributeSymbol {
   }
 }
 
+type NodeWithAttributes = Node & {
+  hasAttribute(name: string): boolean;
+  getAttribute(name: string): string;
+  removeAttribute(name: string): void;
+};
+
 export class ElementSymbol {
   public readonly semanticModel: SemanticModel;
   public readonly isRoot: boolean;
   public readonly $root: ElementSymbol;
   public readonly $parent: ElementSymbol;
   public readonly definition: ITemplateDefinition | null;
+  public readonly parts: Record<string, ITemplateDefinition>;
 
   public readonly $attributes: ReadonlyArray<AttributeSymbol>;
   public readonly $children: ReadonlyArray<ElementSymbol>;
-  public readonly $liftedChildren: ReadonlyArray<ElementSymbol>;
   public get $content(): ElementSymbol {
     return this._$content;
   }
@@ -450,6 +456,9 @@ export class ElementSymbol {
   public get isLifted(): boolean {
     return this._isLifted;
   }
+  public get isReplacePart(): boolean {
+    return this._isReplacePart;
+  }
   private _$content: ElementSymbol;
   private _isMarker: boolean;
   private _isTemplate: boolean;
@@ -460,6 +469,7 @@ export class ElementSymbol {
   private _name: string;
   private _isCustomElement: boolean;
   private _isLifted: boolean;
+  private _isReplacePart: boolean;
 
   constructor(
     semanticModel: SemanticModel,
@@ -474,17 +484,42 @@ export class ElementSymbol {
     this.$root = isRoot ? this : $root;
     this.$parent = $parent;
     this.definition = definition;
+    this.parts = isRoot ? {} : PLATFORM.emptyObject;
 
     this._$content = null;
     this._isMarker = false;
     this._isTemplate = false;
     this._isSlot = false;
     this._isLet = false;
-    this._node = syntax.node;
+    const node = this._node = syntax.node;
     this._syntax = syntax;
     this._name = this.node.nodeName;
     this._isCustomElement = false;
     this._isLifted = false;
+    // TODO: improve DOM typings and clean up this mess etc
+    if (node.nodeType === NodeType.Element && (<NodeWithAttributes>node).hasAttribute('replace-part')) {
+      this._isReplacePart = true;
+      // "lift" the replace-part by giving it its own definition and making it the root,
+      // so the compiler can process it right away and doesn't need to be re-initialized
+      // with a new semantic model while rendering the owner element
+      const name = (<NodeWithAttributes>node).getAttribute('replace-part');
+      (<NodeWithAttributes>node).removeAttribute('replace-part');
+      let template: HTMLTemplateElement;
+      if (node.nodeName === 'TEMPLATE') {
+        template = <HTMLTemplateElement>node;
+      } else {
+        template = <HTMLTemplateElement>DOM.createElement('template');
+        template.content.appendChild(node);
+      }
+      this.definition = this.$root.parts[name] = {
+        name,
+        template
+      };
+      this.isRoot = true;
+      this.$root = this;
+    } else {
+      this._isReplacePart = false;
+    }
 
     switch (this.name) {
       case 'TEMPLATE':
@@ -553,6 +588,10 @@ export class ElementSymbol {
   public lift(instruction: HydrateTemplateController): ElementSymbol {
     const template = instruction.def.template = DOM.createElement('template') as HTMLTemplateElement;
     const node = this.node as HTMLTemplateElement;
+    if (node.hasAttribute('part')) {
+      instruction.def.name = node.getAttribute('part');
+      node.removeAttribute('part');
+    }
     if (this.isTemplate) {
       // copy remaining attributes over to the newly created template
       const attributes = node.attributes;

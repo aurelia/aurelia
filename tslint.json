@@ -257,6 +257,15 @@
     "prefer-switch": false, // more of a style preference
     "prefer-type-cast": false,   // pick either type-cast format and use it consistently
     "return-undefined": false, // this actually affect the readability of the code
-    "space-before-function-paren": false   // turn this on if this is really your coding standard
+    "space-before-function-paren": false ,  // turn this on if this is really your coding standard
+
+  /**
+    * Sonarts rules
+    */
+    "cognitive-complexity": [true, 30],
+    "max-union-size": [true, 5],
+    "no-extra-semicolon": false,
+    "no-identical-functions": false,
+    "no-duplicate-string": false
   }
 }

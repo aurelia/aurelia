@@ -116,11 +116,10 @@ export class TemplateCompiler implements ITemplateCompiler {
         // Doesn't make sense for these properties as they need to be unique
         const name = $attr.target;
         if (name !== 'id' && name !== 'part' && name !== 'replace-part') {
+          // tslint:disable-next-line:no-small-switch
           switch (name) {
             // TODO: handle simple surrogate style attribute
             case 'style':
-              attrInst = new SetAttributeInstruction($attr.rawValue, name);
-              break;
             default:
               attrInst = new SetAttributeInstruction($attr.rawValue, name);
           }
@@ -310,18 +309,15 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
       }
-      // plain attribute on a custom element
-      if ($attr.onCustomElement) {
-        // bindable attribute
-        if ($attr.isElementBindable) {
-          const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
-          if (expression === null) {
-            // no interpolation -> make it a setProperty on the component
-            return new SetPropertyInstruction($attr.rawValue, $attr.to);
-          }
-          // interpolation -> behave like toView (e.g. foo="${someProp}")
-          return new InterpolationInstruction(expression, $attr.to);
+      // plain bindable attribute on a custom element
+      if ($attr.onCustomElement && $attr.isElementBindable) {
+        const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
+        if (expression === null) {
+          // no interpolation -> make it a setProperty on the component
+          return new SetPropertyInstruction($attr.rawValue, $attr.to);
         }
+        // interpolation -> behave like toView (e.g. foo="${someProp}")
+        return new InterpolationInstruction(expression, $attr.to);
       }
       {
         // plain attribute on a normal element

@@ -94,6 +94,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
   public targetObserver: IBindingTargetAccessor;
 
+  // tslint:disable-next-line:parameters-max-number
   constructor(sourceExpression: IExpression, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
     this.$state = State.none;
 
@@ -113,13 +114,13 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
 
-    previousValue = this.targetObserver.getValue();
-    newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
+    const previousValue = this.targetObserver.getValue();
+    const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
     if (newValue !== previousValue) {
       this.updateTarget(newValue, flags);
     }

@@ -294,7 +294,7 @@ export class EventManager implements IEventManager {
   ): EventSubscription {
     let delegatedHandlers: Record<string, ListenerTracker> | undefined;
     let capturedHandlers: Record<string, ListenerTracker> | undefined;
-    let handlerEntry: ListenerTracker | ListenerTracker | undefined;
+    let handlerEntry: ListenerTracker | undefined;
 
     if (strategy === DelegationStrategy.bubbling) {
       delegatedHandlers = this.delegatedHandlers;

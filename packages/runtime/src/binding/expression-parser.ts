@@ -1,12 +1,14 @@
 import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
 import { AccessMember, AccessScope, CallMember, CallScope, ExpressionKind, ForOfStatement, Interpolation, IsBindingBehavior, PrimitiveLiteral } from './ast';
 
+type BindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
+
 export interface IExpressionParser {
-  cache(expressions: Record<string, Interpolation | ForOfStatement | IsBindingBehavior>): void;
+  cache(expressions: Record<string, BindingExpression>): void;
   parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
   parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
   parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
-  parse(expression: string, bindingType: BindingType): Interpolation | ForOfStatement | IsBindingBehavior;
+  parse(expression: string, bindingType: BindingType): BindingExpression;
 }
 
 export const IExpressionParser = DI.createInterface<IExpressionParser>()
@@ -27,7 +29,7 @@ export class ExpressionParser implements IExpressionParser {
   public parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
   public parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
   public parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
-  public parse(expression: string, bindingType: BindingType): Interpolation | ForOfStatement | IsBindingBehavior {
+  public parse(expression: string, bindingType: BindingType): BindingExpression {
     switch (bindingType) {
       case BindingType.Interpolation:
       {
@@ -61,7 +63,7 @@ export class ExpressionParser implements IExpressionParser {
     }
   }
 
-  public cache(expressions: Record<string, Interpolation | ForOfStatement | IsBindingBehavior>): void {
+  public cache(expressions: Record<string, BindingExpression>): void {
     const { forOfLookup, expressionLookup, interpolationLookup } = this;
     for (const expression in expressions) {
       const expr = expressions[expression];
@@ -81,11 +83,11 @@ export class ExpressionParser implements IExpressionParser {
   private parseCore(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
   private parseCore(expression: string, bindingType: BindingType.Interpolation): Interpolation;
   private parseCore(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
-  private parseCore(expression: string, bindingType: BindingType): Interpolation | ForOfStatement | IsBindingBehavior {
+  private parseCore(expression: string, bindingType: BindingType): BindingExpression {
     try {
       const parts = expression.split('.');
       const firstPart = parts[0];
-      let current: Interpolation | ForOfStatement | IsBindingBehavior;
+      let current: BindingExpression;
 
       if (firstPart.endsWith('()')) {
         current = new CallScope(firstPart.replace('()', ''), PLATFORM.emptyArray);

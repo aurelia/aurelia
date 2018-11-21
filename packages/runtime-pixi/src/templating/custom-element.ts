@@ -7,6 +7,7 @@ import { IResourceKind, IResourceType } from '../resource';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindElement, $unbindElement } from './lifecycle-bind';
 import { $hydrateElement, defaultShadowOptions, ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
+import { IPixiNode } from '../pixi-dom';
 
 type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
 
@@ -30,13 +31,13 @@ export interface ICustomElement extends
 
   readonly $projector: IElementProjector;
   readonly $host: ICustomElementHost;
-  $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+  $hydrate(renderingEngine: IRenderingEngine, host: PIXI.Container, options?: IElementHydrationOptions): void;
 }
 
 export interface ICustomElementResource extends
   IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
 
-  behaviorFor(node: INode): ICustomElement | null;
+  behaviorFor(node: IPixiNode): ICustomElement | null;
 }
 
 type CustomElementDecorator = <T>(target: PartialCustomElementType<T>) => T & ICustomElementType;

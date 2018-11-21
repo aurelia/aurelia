@@ -3,6 +3,7 @@ import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { IEncapsulationSource, INode, INodeSequence, IRenderLocation } from './dom';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
+import { IPixiNodeSequence, IPixiNode, IPixiRenderLocation } from './pixi-dom';
 
 export const enum State {
   none                  = 0b000000000000,
@@ -75,7 +76,7 @@ export interface IRenderable extends IBindables, IAttachables, IState {
    *
    * Typically this will be a sequence of `DOM` nodes contained in a `DocumentFragment`
    */
-  readonly $nodes: INodeSequence;
+  readonly $nodes: IPixiNodeSequence;
 
   /**
    * The binding scope that the `$bindables` of this instance will be bound to.
@@ -89,16 +90,16 @@ export const IRenderable = DI.createInterface<IRenderable>().noDefault();
 
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;
-  render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IRenderable, target: INode, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable;
+  render(renderable: IRenderable, targets: ArrayLike<IPixiNode>, templateDefinition: TemplateDefinition, host?: PIXI.Container, parts?: TemplatePartDefinitions): void;
+  beginComponentOperation(renderable: IRenderable, target: IPixiNode, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IPixiRenderLocation, locationIsContainer?: boolean): IDisposable;
 }
 
 export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
   readonly cache: IViewCache;
   readonly isFree: boolean;
-  readonly location: IRenderLocation;
+  readonly location: IPixiRenderLocation;
 
-  hold(location: IRenderLocation, flags: LifecycleFlags): void;
+  hold(location: IPixiRenderLocation, flags: LifecycleFlags): void;
   release(flags: LifecycleFlags): boolean;
 
   lockScope(scope: IScope): void;

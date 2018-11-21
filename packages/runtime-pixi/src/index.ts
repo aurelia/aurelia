@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+/// <reference path="./pixi-dom.d.ts" />
 export * from './binding/resources/attr-binding-behavior';
 export * from './binding/resources/binding-mode-behaviors';
 export * from './binding/resources/debounce-binding-behavior';

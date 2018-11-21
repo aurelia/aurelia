@@ -15,6 +15,7 @@ import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderCont
 import { ICustomAttribute } from './templating/custom-attribute';
 import { ICustomElement } from './templating/custom-element';
 import { IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
+import { IPixiNode, IPixiRenderLocation, PixiDOM } from './pixi-dom';
 
 export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
   if (typeof srcOrExpr === 'string') {
@@ -57,10 +58,10 @@ export class TextBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ITextBindingInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IPixiNode, instruction: ITextBindingInstruction): void {
     const next = target.nextSibling;
-    DOM.treatAsNonWhitespace(next);
-    DOM.remove(target);
+    PixiDOM.treatAsNonWhitespace(next);
+    PixiDOM.remove(target);
     let bindable: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
@@ -84,7 +85,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IInterpolationInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IPixiNode, instruction: IInterpolationInstruction): void {
     let bindable: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
@@ -146,7 +147,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
     this.eventManager = eventManager;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IListenerBindingInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IPixiNode, instruction: IListenerBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const bindable = new Listener(instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
     addBindable(renderable, bindable);
@@ -234,13 +235,13 @@ export class CustomElementRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void {
-    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
+  public render(context: IRenderContext, renderable: IRenderable, target: IPixiNode, instruction: IHydrateElementInstruction): void {
+    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target as IPixiRenderLocation, true);
     const component = context.get<ICustomElement>(customElementKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    component.$hydrate(this.renderingEngine, target, instruction);
+    component.$hydrate(this.renderingEngine, target as PIXI.Container, instruction);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
@@ -264,7 +265,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IPixiNode, instruction: IHydrateAttributeInstruction): void {
     const operation = context.beginComponentOperation(renderable, target, instruction);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -294,9 +295,9 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IPixiNode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
     const factory = this.renderingEngine.getViewFactory(instruction.def, context);
-    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
+    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, PixiDOM.convertToRenderLocation(target), false);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;

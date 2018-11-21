@@ -10,7 +10,7 @@ function isRenderLocation(node: INode): node is IRenderLocation {
   return node.textContent === 'au-end';
 }
 
-export interface INodeLike extends PIXI.DisplayObject {
+export interface INodeLike {
   readonly firstChild: INode | null;
   readonly lastChild: INode | null;
   readonly childNodes: ArrayLike<INode>;
@@ -116,7 +116,7 @@ export interface INodeObserver {
 export const DOM = {
   createDocumentFragment(markupOrNode?: string | IElement): IDocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {
-      // return <IDocumentFragment>document.createDocumentFragment();
+      return <IDocumentFragment>document.createDocumentFragment();
     }
     if ((<IElement>markupOrNode).nodeType > 0) {
       if ((<IElement>markupOrNode).content !== undefined) {
@@ -124,7 +124,7 @@ export const DOM = {
       }
       const fragment = document.createDocumentFragment();
       fragment.appendChild(<any>markupOrNode);
-      // return <IDocumentFragment>fragment;
+      return <IDocumentFragment>fragment;
     }
     return DOM.createTemplate(<string>markupOrNode).content;
   },
@@ -167,10 +167,7 @@ export const DOM = {
     return locationEnd;
   },
   createComment(text: string): IComment {
-    const o = new PIXI.DisplayObject();
-    o.textContent = text;
-    o.nodeName = '#comment';
-    return o as IComment;
+    return <IComment>document.createComment(text);
   },
   createElement(name: string): IElement {
     return document.createElement(name);
@@ -209,8 +206,20 @@ export const DOM = {
     }
     return true;
   },
+  isCommentNodeType(node: INode): node is IComment {
+    return node.nodeType === COMMENT_NODE;
+  },
+  isDocumentFragmentType(node: INode): node is IDocumentFragment {
+    return node.nodeType === DOCUMENT_FRAGMENT_NODE;
+  },
+  isElementNodeType(node: INode): node is IElement {
+    return node.nodeType === ELEMENT_NODE;
+  },
   isNodeInstance(potentialNode: any): potentialNode is INode {
     return potentialNode.nodeType > 0;
+  },
+  isTextNodeType(node: INode): node is IText {
+    return node.nodeType === TEXT_NODE;
   },
   migrateChildNodes(currentParent: INode, newParent: INode): void {
     while (currentParent.firstChild) {

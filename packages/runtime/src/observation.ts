@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable, Primitive } from '@aurelia/kernel';
+import { IDisposable, IIndexable } from '@aurelia/kernel';
 import { ILifecycle } from './lifecycle';
 
 export enum LifecycleFlags {
@@ -108,7 +108,7 @@ export enum MutationKind {
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = IIndexable | Primitive> {
+export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = unknown> {
   obj: TObj;
   propertyKey?: TProp;
   currentValue?: TValue;

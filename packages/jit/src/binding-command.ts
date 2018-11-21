@@ -1,4 +1,4 @@
-import { Class, Constructable, IContainer, IIndexable, IRegistry, Registration, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
 import {
   BindingType,
   CallBindingInstruction,

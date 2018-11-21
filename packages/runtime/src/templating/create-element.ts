@@ -1,5 +1,5 @@
-import { Constructable, IIndexable, IRegistry } from '@aurelia/kernel';
-import { buildTemplateDefinition, isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
+import { Constructable, IRegistry } from '@aurelia/kernel';
+import { buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
 import { DOM, INode } from '../dom';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
 import { ICustomElementType } from './custom-element';
@@ -7,7 +7,7 @@ import { IRenderingEngine, ITemplate } from './lifecycle-render';
 
 type ChildType = RenderPlan | string | INode;
 
-export function createElement(tagOrType: string | Constructable, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
+export function createElement(tagOrType: string | Constructable, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(tagOrType, props, children);
   } else {
@@ -49,7 +49,7 @@ export class RenderPlan {
   }
 }
 
-function createElementForTag(tagName: string, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForTag(tagName: string, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
   const instructions: TargetedInstruction[] = [];
   const allInstructions: TargetedInstruction[][] = [];
   const dependencies: IRegistry[] = [];
@@ -59,11 +59,11 @@ function createElementForTag(tagName: string, props?: IIndexable, children?: Arr
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value = props[to];
+        const value: unknown = props[to];
 
-        if (isTargetedInstruction(value)) {
+        if (isTargetedInstruction(value as ITargetedInstruction)) {
           hasInstructions = true;
-          instructions.push(value);
+          instructions.push(value as TargetedInstruction);
         } else {
           DOM.setAttribute(element, to, value);
         }
@@ -82,12 +82,12 @@ function createElementForTag(tagName: string, props?: IIndexable, children?: Arr
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function createElementForType(Type: ICustomElementType, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForType(Type: ICustomElementType, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
-  const dependencies = [];
-  const childInstructions = [];
+  const dependencies: IRegistry[] = [];
+  const childInstructions: TargetedInstruction[] = [];
   const bindables = Type.description.bindables;
   const element = DOM.createElement(tagName);
 
@@ -106,10 +106,10 @@ function createElementForType(Type: ICustomElementType, props?: IIndexable, chil
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value = props[to];
+        const value: unknown = props[to];
 
-        if (isTargetedInstruction(value)) {
-          childInstructions.push(value);
+        if (isTargetedInstruction(value as ITargetedInstruction)) {
+          childInstructions.push(value as TargetedInstruction);
         } else {
           const bindable = bindables[to];
 

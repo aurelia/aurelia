@@ -1,4 +1,4 @@
-import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
+import { IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IBindScope, State } from '../lifecycle';
 import { IAccessor, IScope, LifecycleFlags } from '../observation';
@@ -27,10 +27,10 @@ export class Call {
     this.targetObserver = observerLocator.getObserver(target, targetProperty);
   }
 
-  public callSource(args: IIndexable): Primitive | IIndexable {
+  public callSource(args: object): unknown {
     const overrideContext = this.$scope.overrideContext;
     Object.assign(overrideContext, args);
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator) as IIndexable;
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
 
     for (const prop in args) {
       delete overrideContext[prop];
@@ -83,7 +83,7 @@ export class Call {
     this.$state &= ~(State.isBound | State.isUnbinding);
   }
 
-  public observeProperty(obj: IIndexable, propertyName: string): void {
+  public observeProperty(obj: object, propertyName: string): void {
     return;
   }
 

@@ -1,4 +1,4 @@
-import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
+import { DI, inject, Reporter } from '@aurelia/kernel';
 import { DOM, IHTMLElement, IInputElement } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -27,9 +27,9 @@ export interface IObserverLocator {
   getObserver(obj: IObservable, propertyName: string): AccessorOrObserver;
   getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
   addAdapter(adapter: IObjectObservationAdapter): void;
-  getArrayObserver(observedArray: (IIndexable | Primitive)[]): ICollectionObserver<CollectionKind.array>;
-  getMapObserver(observedMap: Map<IIndexable | Primitive, IIndexable | Primitive>): ICollectionObserver<CollectionKind.map>;
-  getSetObserver(observedSet: Set<IIndexable | Primitive>): ICollectionObserver<CollectionKind.set>;
+  getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
+  getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
+  getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
 }
 
 export const IObserverLocator = DI.createInterface<IObserverLocator>()

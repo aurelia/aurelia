@@ -7,7 +7,7 @@ export interface IDisposable {
 }
 
 export type Constructable<T = {}> = {
-  // tslint:disable-next-line:no-any
+  // tslint:disable-next-line:no-any no-useless-intersection
   new(...args: unknown[]): T & any; // this is a "hack" to stop typescript from nagging about the type parameter T being unused (the parameter may be used for type inference)
 };
 

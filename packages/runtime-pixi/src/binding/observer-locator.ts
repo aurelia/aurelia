@@ -16,6 +16,8 @@ import { PrimitiveObserver, SetterObserver } from './property-observation';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ClassAttributeAccessor, DataAttributeAccessor, ElementPropertyAccessor, PropertyAccessor, StyleAttributeAccessor, XLinkAttributeAccessor } from './target-accessors';
+import { PixiDOM } from '../pixi-dom';
+import { PixiPositionObserver } from './pixi-observers';
 
 const toStringTag = Object.prototype.toString;
 
@@ -88,6 +90,9 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   public getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor {
+    if (PixiDOM.isNodeInstance(obj)) {
+      return new PropertyAccessor(obj, propertyName);
+    }
     if (DOM.isNodeInstance(obj)) {
       const tagName = obj['tagName'];
       // this check comes first for hot path optimization
@@ -159,7 +164,13 @@ export class ObserverLocator implements IObserverLocator {
 
   private createPropertyObserver(obj: IObservable, propertyName: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
-      return new PrimitiveObserver(obj, propertyName) as IBindingTargetAccessor;
+      return new PrimitiveObserver(obj as any, propertyName) as IBindingTargetAccessor;
+    }
+
+    if (PixiDOM.isNodeInstance(obj)) {
+      if (propertyName === 'x' || propertyName === 'y') {
+        return new PixiPositionObserver(obj, propertyName);
+      }
     }
 
     let isNode: boolean;

@@ -89,6 +89,10 @@ export const PixiDOM = new class {
     return newNode;
   }
 
+  isNodeInstance(node: any): node is IPixiNode {
+    return node instanceof PIXI.DisplayObject;
+  }
+
   map(tagName: string, ctor: (() => PIXI.DisplayObject)): void {
     if (tagName in PixiDomMap) {
       throw new Error(`Pixi element with the same name "${tagName}" already exists`);

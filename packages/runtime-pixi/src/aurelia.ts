@@ -60,7 +60,7 @@ export class Aurelia {
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach(LifecycleFlags.fromStartTask, host);
+      component.$attach(LifecycleFlags.fromStartTask, pixiApp.stage);
     };
 
     this.startTasks.push(startTask);

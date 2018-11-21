@@ -44,7 +44,11 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
   flags |= LifecycleFlags.fromAttach;
 
   const hooks = this.$hooks;
-  encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource === undefined ? this.$host : encapsulationSource);
+  encapsulationSource = this.$projector.provideEncapsulationSource(
+    encapsulationSource === undefined
+      ? this.$host
+      : encapsulationSource as PIXI.Container
+  );
 
   if (hooks & Hooks.hasAttaching) {
     this.attaching(flags, encapsulationSource);

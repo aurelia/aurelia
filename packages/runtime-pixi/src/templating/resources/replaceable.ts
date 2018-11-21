@@ -3,6 +3,7 @@ import { IRenderLocation } from '../../dom';
 import { IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IPixiRenderLocation } from '../../pixi-dom';
 
 export interface Replaceable extends ICustomAttribute {}
 @templateController('replaceable')
@@ -12,7 +13,7 @@ export class Replaceable {
 
   private currentView: IView;
 
-  constructor(private factory: IViewFactory, location: IRenderLocation) {
+  constructor(private factory: IViewFactory, location: IPixiRenderLocation) {
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

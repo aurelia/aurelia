@@ -44,9 +44,10 @@ export function write(pluginName: string, moduleName: string, writer: (content: 
     const text = buildMap[moduleName];
     const description = createTemplateDescription(text);
     const depsToLoad = processImports(description.imports, moduleName);
+    const depsToLoadMapped = depsToLoad.map(x => `"${x}"`).join(',');
     const templateImport = parseImport(moduleName);
 
-    writer(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() {
+    writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function() {
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
         template: '${escape(description.template)}',

@@ -21,7 +21,7 @@
     <a href="#/test/redirect">Redirect</a>
     <a href="http://www.google.com">Google</a>
 
-    <div style="padding: 10px;">
+    <div style="padding: 10px; display: none;">
       <pre>${title}</pre>
     </div>
 
@@ -35,8 +35,9 @@
     <viewport name="right" class="split"></viewport>
 
     <div style="padding: 10px;">
-      <goto views.bind="{ application: 'abc' }" title="Open email" parameters.bind="{ msg: 321}">Open email</goto>
-      <a href="#/special" style="white-space: nowrap; width: auto;">Trigger (but not show) special tab in email</a>
+      <a href="#/application:email">Email</a>
+      <a href="#/application:calendar">Calendar</a>
+      <a href="#/application:email/email:contacts">Contacts</a>
     </div>
     <div style="padding: 10px;">
       <viewport name="application"></viewport>

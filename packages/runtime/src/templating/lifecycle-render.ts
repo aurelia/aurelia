@@ -270,13 +270,10 @@ export class ShadowDOMProjector implements IElementProjector {
 
   public project(nodes: INodeSequence): void {
     nodes.appendTo(this.host);
-    this.project = PLATFORM.noop;
   }
 
   public take(nodes: INodeSequence): void {
-    // No special behavior is required because the host element removal
-    // will result in the projected nodes being removed, since they are in
-    // the ShadowDOM.
+    nodes.remove();
   }
 }
 
@@ -285,7 +282,7 @@ export class ContainerlessProjector implements IElementProjector {
   public host: ICustomElementHost;
   private childNodes: ArrayLike<INode>;
 
-  constructor(private $customElement: ICustomElement, host: ICustomElementHost) {
+  constructor($customElement: ICustomElement, host: ICustomElementHost) {
     if (host.childNodes.length) {
       this.childNodes = PLATFORM.toArray(host.childNodes);
     } else {
@@ -313,24 +310,18 @@ export class ContainerlessProjector implements IElementProjector {
   }
 
   public project(nodes: INodeSequence): void {
-    if (this.$customElement.$state & State.needsMount) {
-      this.$customElement.$state &= ~State.needsMount;
-      nodes.insertBefore(this.host);
-    }
+    nodes.insertBefore(this.host);
   }
 
   public take(nodes: INodeSequence): void {
-    this.$customElement.$state |= State.needsMount;
     nodes.remove();
   }
 }
 
 /*@internal*/
 export class HostProjector implements IElementProjector {
-  private readonly isAppHost: boolean;
   constructor($customElement: ICustomElement, public host: ICustomElementHost) {
     host.$customElement = $customElement;
-    this.isAppHost = host.hasOwnProperty('$au');
   }
 
   get children(): ArrayLike<INode> {
@@ -347,18 +338,10 @@ export class HostProjector implements IElementProjector {
 
   public project(nodes: INodeSequence): void {
     nodes.appendTo(this.host);
-    if (!this.isAppHost) {
-      this.project = PLATFORM.noop;
-    }
   }
 
   public take(nodes: INodeSequence): void {
-    // No special behavior is required because the host element removal
-    // will result in the projected nodes being removed, since they are children.
-    if (this.isAppHost) {
-      // The only exception to that is the app host, which is not part of a removable node sequence
-      nodes.remove();
-    }
+    nodes.remove();
   }
 }
 

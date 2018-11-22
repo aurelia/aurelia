@@ -55,7 +55,7 @@ export class Aurelia {
         component.$hydrate(re, host);
       }
 
-      component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+      component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
       component.$attach(LifecycleFlags.fromStartTask | LifecycleFlags.fromAttach, host);
     };
 

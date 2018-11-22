@@ -388,24 +388,17 @@ export interface ILifecycleBind {
   $bind(flags: LifecycleFlags, scope?: IScope): void;
 }
 
-export interface ILifecycleBindSelf {
-  $state?: State;
-  $bind(flags: LifecycleFlags): void;
-}
-
 export interface ILifecycleBindScope {
   $state?: State;
   $bind(flags: LifecycleFlags, scope: IScope): void;
 }
 
 export interface IBind extends ILifecycleBind, ILifecycleUnbind {
-  /*@internal*/$nextBind: IBindSelf | IBindScope;
-  /*@internal*/$prevBind: IBindSelf | IBindScope;
+  /*@internal*/$nextBind: IBindScope;
+  /*@internal*/$prevBind: IBindScope;
 }
 
 export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope { }
-
-export interface IBindSelf extends Omit<IBind, '$bind'>, ILifecycleBindSelf { }
 
 const marker = Object.freeze(Object.create(null));
 

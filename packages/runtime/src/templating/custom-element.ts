@@ -1,7 +1,7 @@
 import { Class, Constructable, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
-import { Hooks, IAttach, IBindSelf, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IState, State } from '../lifecycle';
+import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IState, State } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
@@ -22,7 +22,7 @@ export interface ICustomElement extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
   ILifecycleRender,
-  IBindSelf,
+  IBindScope,
   ILifecycleUnbindAfterDetach,
   IAttach,
   IMountable,

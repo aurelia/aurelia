@@ -203,6 +203,9 @@ export class Router {
   public findViews(entry: IHistoryEntry): Object {
     const views: Object = {};
     const sections = entry.path.split('/');
+    if (sections.length && sections[0] === '') {
+      sections.shift();
+    }
     let index = 0;
     while (sections.length) {
       const view = sections.shift();

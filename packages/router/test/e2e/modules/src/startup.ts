@@ -12,6 +12,14 @@ import { ContentComponent } from './components/content-component';
 import { Content2Component } from './components/content2-component';
 import { Content3Component } from './components/content3-component';
 
+import { Email } from './components/email';
+import { Calendar } from './components/calendar';
+import { About } from './components/about';
+import { Contacts } from './components/contacts';
+import { Inbox } from './components/inbox';
+import { Schedule } from './components/schedule';
+import { Dates } from './components/dates';
+
 const container = DI.createContainer();
 container.register(BasicConfiguration,
   <any>ViewportCustomElement,
@@ -24,6 +32,14 @@ container.register(BasicConfiguration,
   <any>ContentComponent,
   <any>Content2Component,
   <any>Content3Component,
+
+  <any>Email,
+  <any>Calendar,
+  <any>About,
+  <any>Contacts,
+  <any>Inbox,
+  <any>Schedule,
+  <any>Dates,
 );
 const component = container.get(CustomElementResource.keyFrom('app'));
 

@@ -42,6 +42,9 @@ export class Viewport {
     }
 
     const component: any = this.component;
+    if (!component.canLeave) {
+      return Promise.resolve(true);
+    }
     console.log('viewport canLeave', component.canLeave(this.instruction, this.nextInstruction));
 
     const result = component.canLeave(this.instruction, this.nextInstruction);
@@ -62,6 +65,10 @@ export class Viewport {
     }
 
     const component: any = this.nextComponent;
+    if (!component.canEnter) {
+      return Promise.resolve(true);
+    }
+
     console.log('viewport canEnter', component.canEnter(this.nextInstruction, this.instruction));
     const result = component.canEnter(this.nextInstruction, this.instruction);
     if (typeof result === 'boolean') {
@@ -81,13 +88,17 @@ export class Viewport {
     const renderingEngine = this.container.get(IRenderingEngine);
 
     if (this.component) {
-      (<any>this.component).leave(this.instruction, this.nextInstruction);
+      if ((<any>this.component).leave) {
+        (<any>this.component).leave(this.instruction, this.nextInstruction);
+      }
       this.component.$detach(LifecycleFlags.fromStopTask);
       this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
     }
 
     if (this.nextComponent) {
-      (<any>this.nextComponent).enter(this.nextInstruction, this.instruction);
+      if ((<any>this.nextComponent).enter) {
+        (<any>this.nextComponent).enter(this.nextInstruction, this.instruction);
+      }
       this.nextComponent.$hydrate(renderingEngine, host);
       this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
       this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);

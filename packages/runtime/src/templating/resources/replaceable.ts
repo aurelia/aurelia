@@ -21,7 +21,7 @@ export class Replaceable {
   }
 
   public binding(flags: LifecycleFlags): void {
-    this.currentView.$bind(flags, this.$scope);
+    this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
   }
 
   public attaching(flags: LifecycleFlags): void {

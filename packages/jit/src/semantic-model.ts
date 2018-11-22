@@ -1,5 +1,5 @@
 import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
-import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
+import { BindingMode, buildTemplateDefinition, CustomAttributeResource, CustomElementResource, DOM, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
 import { AttrSyntax, ElementSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { BindingCommandResource,  IBindingCommand } from './binding-command';
@@ -484,7 +484,7 @@ export class ElementSymbol {
     this.$root = isRoot ? this : $root;
     this.$parent = $parent;
     this.definition = definition;
-    this.parts = isRoot ? {} : PLATFORM.emptyObject;
+    this.parts = isRoot ? {} : $root.parts;
 
     this._$content = null;
     this._isMarker = false;
@@ -511,10 +511,7 @@ export class ElementSymbol {
         template = <HTMLTemplateElement>DOM.createElement('template');
         template.content.appendChild(node);
       }
-      this.definition = this.$root.parts[name] = {
-        name,
-        template
-      };
+      this.definition = this.$root.parts[name] = <ITemplateDefinition><unknown>buildTemplateDefinition(null, { name, template });
       this.isRoot = true;
       this.$root = this;
     } else {

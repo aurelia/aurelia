@@ -40,10 +40,13 @@ export function $bindAttribute(this: Writable<ICustomAttribute>, flags: Lifecycl
 }
 
 /*@internal*/
-export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
+export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFlags, parentScope: IScope | null): void {
   if (this.$state & State.isBound) {
     return;
   }
+  const scope = this.$scope;
+  (<Writable<IScope>>scope).parentScope = parentScope;
+
   const lifecycle = this.$lifecycle;
   lifecycle.beginBind();
   // add isBinding flag
@@ -60,7 +63,6 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
     this.binding(flags);
   }
 
-  const scope = this.$scope;
   let current = this.$bindableHead;
   while (current !== null) {
     current.$bind(flags, scope);
@@ -150,6 +152,8 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleF
       current.$unbind(flags);
       current = current.$prevBind;
     }
+
+    (<Writable<IScope>>this.$scope).parentScope = null;
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);

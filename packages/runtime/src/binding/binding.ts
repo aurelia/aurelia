@@ -41,6 +41,8 @@ export class Binding implements IPartialConnectableBinding {
 
   public targetObserver: AccessorOrObserver;
 
+  public persistentFlags: LifecycleFlags;
+
   constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
     this.$nextBind = null;
     this.$prevBind = null;
@@ -59,10 +61,12 @@ export class Binding implements IPartialConnectableBinding {
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
+    flags |= this.persistentFlags;
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
+    flags |= this.persistentFlags;
     this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
@@ -74,6 +78,7 @@ export class Binding implements IPartialConnectableBinding {
     const sourceExpression = this.sourceExpression;
     const $scope = this.$scope;
     const locator = this.locator;
+    flags |= this.persistentFlags;
 
     if (flags & LifecycleFlags.updateTargetInstance) {
       const targetObserver = this.targetObserver;
@@ -114,6 +119,10 @@ export class Binding implements IPartialConnectableBinding {
     }
     // add isBinding flag
     this.$state |= State.isBinding;
+
+    // Store flags which we can only receive during $bind and need to pass on
+    // to the AST during evaluate/connect/assign
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
 
@@ -159,6 +168,9 @@ export class Binding implements IPartialConnectableBinding {
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
+    // clear persistent flags
+    this.persistentFlags = LifecycleFlags.none;
+
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
       sourceExpression.unbind(flags, this.$scope, this);
@@ -180,12 +192,14 @@ export class Binding implements IPartialConnectableBinding {
 
   public connect(flags: LifecycleFlags): void {
     if (this.$state & State.isBound) {
+      flags |= this.persistentFlags;
       this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
     }
   }
 
   public patch(flags: LifecycleFlags): void {
     if (this.$state & State.isBound) {
+      flags |= this.persistentFlags;
       this.updateTarget(this.sourceExpression.evaluate(flags | LifecycleFlags.mustEvaluate, this.$scope, this.locator), flags);
     }
   }

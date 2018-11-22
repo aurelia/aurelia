@@ -467,18 +467,18 @@ export class AccessScope implements IExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | IBindScope | IOverrideContext {
     const name = this.name;
-    return BindingContext.get(scope, name, this.ancestor)[name];
+    return BindingContext.get(scope, name, this.ancestor, flags)[name];
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
     const name = this.name;
-    const context = BindingContext.get(scope, name, this.ancestor);
+    const context = BindingContext.get(scope, name, this.ancestor, flags);
     return context ? (context[name] = value) : undefined;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     const name = this.name;
-    const context = BindingContext.get(scope, name, this.ancestor);
+    const context = BindingContext.get(scope, name, this.ancestor, flags);
     binding.observeProperty(context, name);
   }
 
@@ -590,7 +590,7 @@ export class CallScope implements IExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): unknown {
     const args = evalList(flags, scope, locator, this.args);
-    const context = BindingContext.get(scope, this.name, this.ancestor);
+    const context = BindingContext.get(scope, this.name, this.ancestor, flags);
     const func = getFunction(flags, context, this.name);
     if (func) {
       return func.apply(context, args);

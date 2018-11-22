@@ -912,25 +912,56 @@ describe(spec, () => {
 
   });
 
-  it('replaceable', async () => {
+  for (const [title, appMarkup, ceMarkup, appProp, ceProp, appValue, ceValue, target, expected] of [
+    [
+      `single, static`,
+      `<div replace-part="bar">43</div>`,
+      `<div replaceable part="bar">42</div>`,
+      null,
+      null,
+      null,
+      null,
+      '',
+      `43`
+    ],
+    [
+      `multiple, static`,
+      `<div replace-part="bar">43</div>`.repeat(2),
+      `<div replaceable part="bar">42</div>`.repeat(2),
+      null,
+      null,
+      null,
+      null,
+      '',
+      `43`.repeat(2)
+    ]
+  ]) {
+    it(`replaceable - ${title}`, () => {
 
-    const App = CustomElementResource.define({
-      name: 'app',
-      template: `<template><foo><div replace-part="bar">43</div></foo></template>`,
-      build: {
-        required: true,
-        compiler: 'default'
-      }
-    }, class {});
+      const App = defineCustomElement('app', `<template><foo>${appMarkup}</foo></template>`, class {});
+      const Foo = defineCustomElement('foo', `<template>${ceMarkup}</template>`, class {});
 
-    const Foo = CustomElementResource.define({
-      name: 'foo',
-      template: `<template><div replaceable part="bar">42</div></template>`,
-      build: {
-        required: true,
-        compiler: 'default'
-      }
-    }, class {});
+      const container = DI.createContainer();
+      container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+      const au = new Aurelia(<any>container);
+
+      const host = DOM.createElement('div');
+      const component = new App();
+
+      au.app({ host, component });
+
+      au.start();
+
+      expect(host.textContent).to.equal(expected);
+
+    });
+  }
+
+  it(`replaceable - bind to target scope`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><div replace-part="bar">\${baz}</div></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><div replaceable part="bar"></div></template>`, <any>class { baz = 'abc' });
 
     const container = DI.createContainer();
     container.register(<IRegistry>BasicConfiguration, <any>Foo);
@@ -944,7 +975,28 @@ describe(spec, () => {
 
     au.start();
 
-    expect(host.textContent).to.equal('43');
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable - bind to parent scope`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><div replace-part="bar">\${baz}</div></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><div replaceable part="bar"></div></template>`, <any>class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('def');
 
   });
 });

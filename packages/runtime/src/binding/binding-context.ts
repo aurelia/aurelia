@@ -1,6 +1,6 @@
 import { IIndexable, Reporter, StrictPrimitive } from '@aurelia/kernel';
 import { IBindScope } from '../lifecycle';
-import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup, PropertyObserver } from '../observation';
+import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup, PropertyObserver, LifecycleFlags } from '../observation';
 import { SetterObserver } from './property-observation';
 
 const enum RuntimeError {
@@ -54,7 +54,7 @@ export class BindingContext implements IBindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
-  public static get(scope: IScope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBindScope {
+  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBindScope {
     if (scope === undefined) {
       throw Reporter.error(RuntimeError.UndefinedScope);
     }
@@ -86,7 +86,24 @@ export class BindingContext implements IBindingContext {
       return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
 
-    // the name wasn't found.  return the root binding context.
+    // the name wasn't found. see if parent scope traversal is allowed and if so, try that
+    if ((flags & LifecycleFlags.allowParentScopeTraversal) && scope.parentScope !== null) {
+      const result = this.get(scope.parentScope, name, ancestor, flags
+        // unset the flag; only allow one level of scope boundary traversal
+        & ~LifecycleFlags.allowParentScopeTraversal
+        // tell the scope to return null if the name could not be found
+        | LifecycleFlags.isTraversingParentScope);
+      if (result !== null) {
+        return result;
+      }
+    }
+
+    // still nothing found. return the root binding context (or null
+    // if this is a parent scope traversal, to ensure we fall back to the
+    // correct level)
+    if (flags & LifecycleFlags.isTraversingParentScope) {
+      return null;
+    }
     return scope.bindingContext || scope.overrideContext;
   }
 
@@ -102,10 +119,14 @@ export class BindingContext implements IBindingContext {
 export class Scope implements IScope {
   public readonly bindingContext: IBindingContext | IBindScope;
   public readonly overrideContext: IOverrideContext;
+  // parentScope is strictly internal API and mainly for replaceable template controller.
+  // NOT intended for regular scope traversal!
+  /*@internal*/public readonly parentScope: IScope | null;
 
   private constructor(bindingContext: IBindingContext | IBindScope, overrideContext: IOverrideContext) {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
+    this.parentScope = null;
   }
 
   public static create(bc: IBindingContext | IBindScope, oc: IOverrideContext | null): Scope {

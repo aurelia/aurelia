@@ -1,10 +1,11 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElement, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, INode, IRenderingEngine, LifecycleFlags, ICustomElementType } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
+import { Scope } from './scope';
 
 export class Viewport {
-  public content: ICustomElement;
-  public nextContent: ICustomElement;
+  public content: ICustomElementType;
+  public nextContent: ICustomElementType;
 
   public instruction: INavigationInstruction;
   public nextInstruction: INavigationInstruction;
@@ -12,11 +13,18 @@ export class Viewport {
   public component: ICustomElement;
   public nextComponent: ICustomElement;
 
-  constructor(private container: IContainer, public name: string, public element: Element, public controller: any) {
+  constructor(private container: IContainer, public name: string, public element: Element, public scope: Scope) {
   }
 
-  public setNextContent(content: ICustomElement | string, instruction: INavigationInstruction): boolean {
-    this.nextContent = <ICustomElement>content; // If it's a string, we need to find the module
+  public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
+    if (typeof content === 'string') {
+      const resolver = this.container.getResolver(CustomElementResource.keyFrom(content));
+      if (resolver !== null) {
+        content = <ICustomElementType>resolver.getFactory(this.container).Type;
+      }
+    }
+
+    this.nextContent = <ICustomElementType>content;
     this.nextInstruction = instruction;
 
     if (this.content !== content || instruction.isRefresh) {
@@ -94,7 +102,15 @@ export class Viewport {
     return Promise.resolve(true);
   }
 
-  private loadComponent(componentOrName: ICustomElement): void {
-    this.nextComponent = <any>this.container.get(CustomElementResource.keyFrom((<any>componentOrName).description.name));
+  public description() {
+    if (this.content) {
+      let component = (<any>this.content).description.name;
+      // component = component.split(':').pop();
+      return `${this.name}:${component}`;
+    }
+  }
+
+  private loadComponent(component: ICustomElementType): void {
+    this.nextComponent = <any>this.container.get(CustomElementResource.keyFrom(component.description.name));
   }
 }

@@ -132,7 +132,6 @@ function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITem
 
   proto.$scope = null;
   proto.$hooks = 0;
-  proto.$state = State.needsMount;
 
   proto.$bindableHead = null;
   proto.$bindableTail = null;

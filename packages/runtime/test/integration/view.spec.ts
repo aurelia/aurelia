@@ -274,12 +274,6 @@ describe(`View`, () => {
             sut.hold(location, LifecycleFlags.none);
 
             expect(sut.location).to.equal(location, 'sut.location');
-            if (sut.$nodes === NodeSequence.empty) {
-              // TODO uncomment this again if the currently commented logic in the view related to this is also uncommented
-              //expect(sut.requiresNodeAdd).to.be.false;
-            } else {
-              expect(sut).to.have.$state.needsMount();
-            }
             if (sut.$attachableHead) {
               expect(sut.$attachableHead['location']).to.equal(undefined, 'sut.$attachableHead.location');
             }
@@ -336,8 +330,8 @@ describe(`View`, () => {
       ],
       [
         () => [`   noop`, PLATFORM.noop],
-        ([$11, $12, $13, $14, $15, cache], $2, $3, $4, $5, $6, $7) => [`release`, (sut) => {
-          expect(sut.release(LifecycleFlags.none)).to.equal(cache, 'sut.release()');
+        ([$11, $12, $13, $14, $15, cache], $2, $3, $4, $5, $6, [$71, attachFn]) => [`release`, (sut) => {
+          expect(sut.release(LifecycleFlags.none)).to.equal(cache && attachFn !== PLATFORM.noop, 'sut.release()');
         }]
       ],
       [
@@ -376,7 +370,7 @@ describe(`View`, () => {
             expect(location.parentNode.childNodes.length).to.equal(1, 'location.parentNode.childNodes.length');
             expect(location.parentNode.textContent).to.equal('', 'location.parentNode.textContent');
           }
-          if (cache && release !== PLATFORM.noop) {
+          if (cache && release !== PLATFORM.noop && attach !== PLATFORM.noop) {
             expect(factory.cache[0]).to.equal(sut, 'factory.cache[0]');
           } else if (factory.cache !== null) {
             expect(factory.cache[0]).not.to.equal(sut, 'factory.cache[0]');

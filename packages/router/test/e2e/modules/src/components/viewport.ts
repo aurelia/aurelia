@@ -15,7 +15,10 @@ export class ViewportCustomElement {
 
   constructor(private router: Router, private element: Element) { }
 
-  bound() {
+  attached() {
     this.viewport = this.router.addViewport(this.name, this.element, this.scope ? true : false);
+  }
+  unbound() {
+    this.router.removeViewport(this.viewport);
   }
 }

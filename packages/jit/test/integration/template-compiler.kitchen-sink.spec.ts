@@ -999,4 +999,173 @@ describe(spec, () => {
     expect(host.textContent).to.equal('def');
 
   });
+
+  it(`replaceable/template - bind to target scope`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable/template - bind to parent scope`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('def');
+
+  });
+
+  it(`replaceable/template - uses last on name conflict`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${qux}</template><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('def');
+
+  });
+
+  it(`replaceable/template - same part multiple times`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abcabc');
+
+  });
+
+  // TODO: fix this scenario
+  xit(`replaceable/template - parent template controller`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template if.bind="true"><template replace-part="bar">\${baz}</template></template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable/template - sibling lefthand side template controller`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template if.bind="true" replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable/template - sibling righthand side template controller`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable/template - sibling if/else with conflicting part names`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo><foo><template replace-part="bar" if.bind="false">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc'; });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
 });

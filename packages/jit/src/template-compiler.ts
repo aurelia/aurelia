@@ -65,7 +65,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     const nextSibling = $el.nextSibling;
     switch (node.nodeType) {
       case NodeType.Element:
-        if ($el.isSlot) {
+        if ($el.isReplacePart) {
+          const part = $el.extractReplacePart();
+          this.compileNode(part);
+          return nextSibling;
+        } else if ($el.isSlot) {
           $el.$root.definition.hasSlots = true;
         } else if ($el.isLet) {
           this.compileLetElement($el);
@@ -171,59 +175,58 @@ export class TemplateCompiler implements ITemplateCompiler {
     let hydrateInstruction: HydrateElementInstruction;
     if ($el.$attributes.length === 0) {
       hydrateInstruction = new HydrateElementInstruction($el.definition.name, PLATFORM.emptyArray as TargetedInstruction[]);
-      $el.addInstructions([hydrateInstruction]);
+      $el.addHydrateElementInstruction(hydrateInstruction);
       if ($el.definition.containerless) {
         $el.replaceNodeWithMarker();
       } else {
         $el.makeTarget();
       }
-    } else {
-      const attributeInstructions: TargetedInstruction[] = [];
-      // if there is a custom element, then only the attributes that map to bindables become children of the hydrate instruction,
-      // otherwise they become sibling instructions; if there is no custom element, then sibling instructions are never appended to
-      const siblingInstructions: TargetedInstruction[] = [];
-      const attributes = $el.$attributes;
-      for (let i = 0, ii = attributes.length; i < ii; ++i) {
-        const $attr = attributes[i];
-        if ($attr.isProcessed) continue;
-        $attr.markAsProcessed();
-        if ($attr.isTemplateController) {
-          let instruction = this.compileAttribute($attr);
-          // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
-          if (instruction.type !== TargetedInstructionType.hydrateTemplateController) {
-            const name = $attr.res;
-            instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
-          }
-          // all attribute instructions preceding the template controller become children of the hydrate instruction
-          instruction.instructions.push(...attributeInstructions);
-          this.compileNode($el.lift(instruction));
-          return;
-        } else if ($attr.isCustomAttribute) {
-          if ($attr.isAttributeBindable) {
-            siblingInstructions.push(this.compileCustomAttribute($attr));
-          } else {
-            attributeInstructions.push(this.compileCustomAttribute($attr));
-          }
+      return;
+    }
+    const attributeInstructions: TargetedInstruction[] = [];
+    // if there is a custom element, then only the attributes that map to bindables become children of the hydrate instruction,
+    // otherwise they become sibling instructions; if there is no custom element, then sibling instructions are never appended to
+    const siblingInstructions: TargetedInstruction[] = [];
+    const attributes = $el.$attributes;
+    for (let i = 0, ii = attributes.length; i < ii; ++i) {
+      const $attr = attributes[i];
+      if ($attr.isProcessed) continue;
+      $attr.markAsProcessed();
+      if ($attr.isTemplateController) {
+        let instruction = this.compileAttribute($attr);
+        // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
+        if (instruction.type !== TargetedInstructionType.hydrateTemplateController) {
+          const name = $attr.res;
+          instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
+        }
+        // all attribute instructions preceding the template controller become children of the hydrate instruction
+        instruction.instructions.push(...attributeInstructions);
+        this.compileNode($el.lift(instruction));
+        return;
+      } else if ($attr.isCustomAttribute) {
+        if ($attr.isAttributeBindable) {
+          siblingInstructions.push(this.compileCustomAttribute($attr));
         } else {
-          const instruction = this.compileAttribute($attr);
-          if (instruction !== null) {
-            if (!$attr.isElementBindable) {
-              siblingInstructions.push(instruction);
-            } else {
-              attributeInstructions.push(instruction);
-            }
+          attributeInstructions.push(this.compileCustomAttribute($attr));
+        }
+      } else {
+        const instruction = this.compileAttribute($attr);
+        if (instruction !== null) {
+          if (!$attr.isElementBindable) {
+            siblingInstructions.push(instruction);
+          } else {
+            attributeInstructions.push(instruction);
           }
         }
       }
-      hydrateInstruction = new HydrateElementInstruction($el.definition.name, attributeInstructions);
-      $el.addInstructions([hydrateInstruction, ...siblingInstructions]);
-      if ($el.definition.containerless) {
-        $el.replaceNodeWithMarker();
-      } else {
-        $el.makeTarget();
-      }
     }
-    hydrateInstruction.parts = $el.$root.parts;
+    hydrateInstruction = new HydrateElementInstruction($el.definition.name, attributeInstructions);
+    $el.addHydrateElementInstruction(hydrateInstruction, ...siblingInstructions);
+    if ($el.definition.containerless) {
+      $el.replaceNodeWithMarker();
+    } else {
+      $el.makeTarget();
+    }
   }
 
   private compileCustomAttribute($attr: AttributeSymbol): HydrateAttributeInstruction {

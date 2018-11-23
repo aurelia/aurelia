@@ -5539,15 +5539,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$01 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5557,15 +5556,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$02 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5575,15 +5573,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5593,15 +5590,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$04 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5611,15 +5607,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$05 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5629,15 +5624,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$06 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5647,15 +5641,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$07 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5665,15 +5658,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$08 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5683,15 +5675,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$08$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5701,15 +5692,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$09 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5719,15 +5709,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$11 variant$09$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5735,215 +5724,16 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$04 text$03 if$01 repeat$12 variant$01 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$02 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$03 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$04 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$05 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\" if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$06 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$07 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$08 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$08$empty _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$09 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$03 if$01 repeat$12 variant$09$empty _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
     it("tag$04 text$03 if$01 repeat$13 variant$01 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5953,15 +5743,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$02 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5971,15 +5760,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5989,15 +5777,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$04 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6007,15 +5794,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$05 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6025,15 +5811,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$06 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6043,15 +5828,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$07 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6061,15 +5845,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$08 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6079,15 +5862,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$08$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6097,15 +5879,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$09 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6115,15 +5896,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$01 repeat$13 variant$09$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6133,15 +5913,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$11 variant$01 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6151,15 +5930,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$11 variant$02 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6169,15 +5947,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$11 variant$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6187,15 +5964,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$11 variant$10 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6205,15 +5981,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$11 variant$10$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6223,15 +5998,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$11 variant$11 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6241,15 +6015,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$11 variant$11$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6259,15 +6032,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$11 variant$12 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6275,161 +6047,16 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$04 text$03 if$02 repeat$12 variant$01 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$03 if$02 repeat$12 variant$02 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$03 if$02 repeat$12 variant$03 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$03 if$02 repeat$12 variant$10 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$03 if$02 repeat$12 variant$10$empty _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$03 if$02 repeat$12 variant$11 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$03 if$02 repeat$12 variant$11$empty _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$03 if$02 repeat$12 variant$12 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
     it("tag$04 text$03 if$02 repeat$13 variant$01 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6439,15 +6066,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$13 variant$02 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6457,15 +6083,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$13 variant$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6475,15 +6100,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$13 variant$10 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6493,15 +6117,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$13 variant$10$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6511,15 +6134,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$13 variant$11 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6529,15 +6151,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$13 variant$11$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6547,15 +6168,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$03 if$02 repeat$13 variant$12 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6565,15 +6185,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$01 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6583,15 +6202,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$02 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6601,15 +6219,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6619,15 +6236,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$04 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6637,15 +6253,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$05 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6655,15 +6270,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$06 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6673,15 +6287,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$07 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6691,15 +6304,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$08 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6709,15 +6321,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$08$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6727,15 +6338,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$09 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6745,15 +6355,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$11 variant$09$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6761,215 +6370,16 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$04 text$04 if$01 repeat$12 variant$01 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$02 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$03 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$04 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$05 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\" if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$06 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$07 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$08 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$08$empty _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$09 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$04 text$04 if$01 repeat$12 variant$09$empty _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
     it("tag$04 text$04 if$01 repeat$13 variant$01 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6979,15 +6389,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$02 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -6997,15 +6406,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7015,15 +6423,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$04 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7033,15 +6440,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$05 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7051,15 +6457,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$06 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7069,15 +6474,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$07 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7087,15 +6491,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$08 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7105,15 +6508,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$08$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7123,15 +6525,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$09 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7141,15 +6542,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$01 repeat$13 variant$09$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7159,15 +6559,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$11 variant$01 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7177,15 +6576,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$11 variant$02 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7195,15 +6593,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$11 variant$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7213,15 +6610,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$11 variant$10 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7231,15 +6627,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$11 variant$10$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7249,15 +6644,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$11 variant$11 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7267,15 +6661,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$11 variant$11$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7285,15 +6678,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$11 variant$12 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7301,161 +6693,16 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$04 text$04 if$02 repeat$12 variant$01 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$04 if$02 repeat$12 variant$02 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$04 if$02 repeat$12 variant$03 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$04 if$02 repeat$12 variant$10 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$04 if$02 repeat$12 variant$10$empty _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$04 if$02 repeat$12 variant$11 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$04 if$02 repeat$12 variant$11$empty _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$04 text$04 if$02 repeat$12 variant$12 _", function () {
-        const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
     it("tag$04 text$04 if$02 repeat$13 variant$01 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7465,15 +6712,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$13 variant$02 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7483,15 +6729,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$13 variant$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7501,15 +6746,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$13 variant$10 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7519,15 +6763,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$13 variant$10$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7537,15 +6780,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$13 variant$11 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7555,15 +6797,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$13 variant$11$empty _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7573,15 +6814,14 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$04 text$04 if$02 repeat$13 variant$12 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7593,7 +6833,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7611,7 +6851,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7629,7 +6869,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7647,7 +6887,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7665,7 +6905,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7683,7 +6923,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7701,7 +6941,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7719,7 +6959,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7737,7 +6977,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7755,7 +6995,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7773,7 +7013,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7791,7 +7031,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7809,7 +7049,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7827,7 +7067,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7845,7 +7085,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7863,7 +7103,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7881,7 +7121,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7899,7 +7139,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7917,7 +7157,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7935,7 +7175,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7953,7 +7193,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7971,7 +7211,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -7989,7 +7229,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8007,7 +7247,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8025,7 +7265,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8043,7 +7283,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8061,7 +7301,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8079,7 +7319,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8097,7 +7337,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8115,7 +7355,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8133,7 +7373,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8151,7 +7391,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8169,7 +7409,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8187,7 +7427,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8205,7 +7445,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8223,7 +7463,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8241,7 +7481,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8259,7 +7499,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8277,7 +7517,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8295,7 +7535,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8313,7 +7553,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8331,7 +7571,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8349,7 +7589,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8367,7 +7607,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8385,7 +7625,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8403,7 +7643,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8421,7 +7661,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8439,7 +7679,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8457,7 +7697,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8475,7 +7715,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8493,7 +7733,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8511,7 +7751,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8529,7 +7769,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8547,7 +7787,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8565,7 +7805,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8583,7 +7823,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8601,7 +7841,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8619,7 +7859,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8637,7 +7877,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8655,7 +7895,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8673,7 +7913,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8691,7 +7931,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8709,7 +7949,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8727,7 +7967,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8745,7 +7985,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8763,7 +8003,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8781,7 +8021,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8799,7 +8039,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8817,7 +8057,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8835,7 +8075,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8853,7 +8093,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8871,7 +8111,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8889,7 +8129,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8907,7 +8147,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8925,7 +8165,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8943,7 +8183,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8961,7 +8201,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8979,7 +8219,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -8997,7 +8237,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9015,7 +8255,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9033,7 +8273,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9051,7 +8291,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9069,7 +8309,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9087,7 +8327,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9105,7 +8345,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9123,7 +8363,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9141,7 +8381,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9159,7 +8399,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9177,7 +8417,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9195,7 +8435,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9213,7 +8453,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9231,7 +8471,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9249,7 +8489,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9267,7 +8507,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9285,7 +8525,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9303,7 +8543,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9321,7 +8561,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9339,7 +8579,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9357,7 +8597,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9375,7 +8615,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9393,7 +8633,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9411,7 +8651,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9429,7 +8669,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9447,7 +8687,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9465,7 +8705,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9483,7 +8723,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9501,7 +8741,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9519,7 +8759,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9537,7 +8777,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9555,7 +8795,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9573,7 +8813,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9591,7 +8831,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9609,7 +8849,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9627,7 +8867,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "open" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
@@ -9643,15 +8883,15 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$06 text$03 if$01 repeat$11 variant$01 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -9661,15 +8901,15 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$06 text$03 if$01 repeat$11 variant$02 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -9679,9 +8919,1377 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
     });
     it("tag$06 text$03 if$01 repeat$11 variant$03 _", function () {
         const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$03 if$01 repeat$11 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$03 if$01 repeat$11 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$03 if$01 repeat$11 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$03 if$01 repeat$11 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$03 if$01 repeat$11 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$03 if$01 repeat$11 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$03 if$01 repeat$11 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$03 if$01 repeat$11 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$02 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$03 if$02 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$03 if$02 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$03 if$02 repeat$11 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$03 if$02 repeat$11 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$03 if$02 repeat$11 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$03 if$02 repeat$11 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$03 if$02 repeat$11 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$03 if$02 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$02 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$02 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$02 repeat$13 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$02 repeat$13 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$02 repeat$13 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$02 repeat$13 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$03 if$02 repeat$13 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$11 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$02 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$04 if$02 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$04 if$02 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$04 if$02 repeat$11 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$04 if$02 repeat$11 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$04 if$02 repeat$11 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$04 if$02 repeat$11 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$04 if$02 repeat$11 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$06 text$04 if$02 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$02 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$02 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$02 repeat$13 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$02 repeat$13 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$02 repeat$13 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$02 repeat$13 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$06 text$04 if$02 repeat$13 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$03 if$01 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$03 if$01 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$03 if$01 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9695,11 +10303,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$03 if$01 repeat$11 variant$04 _", function () {
+    it("tag$07 text$03 if$01 repeat$11 variant$04 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9713,11 +10321,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$03 if$01 repeat$11 variant$05 _", function () {
+    it("tag$07 text$03 if$01 repeat$11 variant$05 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9731,11 +10339,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$03 if$01 repeat$11 variant$06 _", function () {
+    it("tag$07 text$03 if$01 repeat$11 variant$06 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9749,11 +10357,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$03 if$01 repeat$11 variant$07 _", function () {
+    it("tag$07 text$03 if$01 repeat$11 variant$07 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9767,11 +10375,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$03 if$01 repeat$11 variant$08 _", function () {
+    it("tag$07 text$03 if$01 repeat$11 variant$08 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9785,11 +10393,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$03 if$01 repeat$11 variant$08$empty _", function () {
+    it("tag$07 text$03 if$01 repeat$11 variant$08$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9803,11 +10411,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$03 if$01 repeat$11 variant$09 _", function () {
+    it("tag$07 text$03 if$01 repeat$11 variant$09 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9821,11 +10429,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$03 if$01 repeat$11 variant$09$empty _", function () {
+    it("tag$07 text$03 if$01 repeat$11 variant$09$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9839,11 +10447,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$01 _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9857,11 +10465,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$02 _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9875,11 +10483,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$03 _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9893,11 +10501,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$04 _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$04 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9911,11 +10519,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$05 _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$05 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9929,11 +10537,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$06 _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$06 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9947,11 +10555,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$07 _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$07 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9965,11 +10573,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$08 _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$08 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -9983,11 +10591,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$08$empty _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$08$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10001,11 +10609,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$09 _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$09 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10019,11 +10627,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$12 variant$09$empty _", function () {
+    it("tag$07 text$03 if$01 repeat$12 variant$09$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10037,11 +10645,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$01 _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10055,11 +10663,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$02 _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10073,11 +10681,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$03 _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10091,11 +10699,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$04 _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$04 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10109,11 +10717,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$05 _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$05 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10127,11 +10735,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$06 _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$06 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10145,11 +10753,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$07 _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$07 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10163,11 +10771,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$08 _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$08 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10181,11 +10789,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$08$empty _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$08$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10199,11 +10807,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$09 _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$09 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10217,11 +10825,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$09$empty _", function () {
+    it("tag$07 text$03 if$01 repeat$13 variant$09$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10235,11 +10843,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$02 repeat$11 variant$01 _", function () {
+    it("tag$07 text$03 if$02 repeat$11 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10253,11 +10861,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$03 if$02 repeat$11 variant$02 _", function () {
+    it("tag$07 text$03 if$02 repeat$11 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10271,11 +10879,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$03 if$02 repeat$11 variant$03 _", function () {
+    it("tag$07 text$03 if$02 repeat$11 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10289,11 +10897,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$03 if$02 repeat$11 variant$10 _", function () {
+    it("tag$07 text$03 if$02 repeat$11 variant$10 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10307,11 +10915,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$03 if$02 repeat$11 variant$10$empty _", function () {
+    it("tag$07 text$03 if$02 repeat$11 variant$10$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10325,11 +10933,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$03 if$02 repeat$11 variant$11 _", function () {
+    it("tag$07 text$03 if$02 repeat$11 variant$11 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10343,11 +10951,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$03 if$02 repeat$11 variant$11$empty _", function () {
+    it("tag$07 text$03 if$02 repeat$11 variant$11$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10361,11 +10969,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$03 if$02 repeat$11 variant$12 _", function () {
+    it("tag$07 text$03 if$02 repeat$11 variant$12 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10379,11 +10987,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$03 if$02 repeat$12 variant$01 _", function () {
+    it("tag$07 text$03 if$02 repeat$12 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10397,11 +11005,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$03 if$02 repeat$12 variant$02 _", function () {
+    it("tag$07 text$03 if$02 repeat$12 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10415,11 +11023,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$03 if$02 repeat$12 variant$03 _", function () {
+    it("tag$07 text$03 if$02 repeat$12 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10433,11 +11041,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$03 if$02 repeat$12 variant$10 _", function () {
+    it("tag$07 text$03 if$02 repeat$12 variant$10 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10451,11 +11059,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$03 if$02 repeat$12 variant$10$empty _", function () {
+    it("tag$07 text$03 if$02 repeat$12 variant$10$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10469,11 +11077,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$03 if$02 repeat$12 variant$11 _", function () {
+    it("tag$07 text$03 if$02 repeat$12 variant$11 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10487,11 +11095,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$03 if$02 repeat$12 variant$11$empty _", function () {
+    it("tag$07 text$03 if$02 repeat$12 variant$11$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10505,11 +11113,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$03 if$02 repeat$12 variant$12 _", function () {
+    it("tag$07 text$03 if$02 repeat$12 variant$12 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10523,11 +11131,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$03 if$02 repeat$13 variant$01 _", function () {
+    it("tag$07 text$03 if$02 repeat$13 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10541,11 +11149,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$02 repeat$13 variant$02 _", function () {
+    it("tag$07 text$03 if$02 repeat$13 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10559,11 +11167,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$02 repeat$13 variant$03 _", function () {
+    it("tag$07 text$03 if$02 repeat$13 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10577,11 +11185,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$02 repeat$13 variant$10 _", function () {
+    it("tag$07 text$03 if$02 repeat$13 variant$10 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10595,11 +11203,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$02 repeat$13 variant$10$empty _", function () {
+    it("tag$07 text$03 if$02 repeat$13 variant$10$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10613,11 +11221,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$02 repeat$13 variant$11 _", function () {
+    it("tag$07 text$03 if$02 repeat$13 variant$11 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10631,11 +11239,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$02 repeat$13 variant$11$empty _", function () {
+    it("tag$07 text$03 if$02 repeat$13 variant$11$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10649,11 +11257,11 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$03 if$02 repeat$13 variant$12 _", function () {
+    it("tag$07 text$03 if$02 repeat$13 variant$12 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
-            static shadowOptions = { mode: "closed" };
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -10667,7 +11275,2401 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$01 _", function () {
+    it("tag$07 text$04 if$01 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$11 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\" if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$12 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$01 repeat$13 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$02 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$07 text$04 if$02 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$07 text$04 if$02 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$07 text$04 if$02 repeat$11 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$07 text$04 if$02 repeat$11 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$07 text$04 if$02 repeat$11 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$07 text$04 if$02 repeat$11 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$07 text$04 if$02 repeat$11 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$07 text$04 if$02 repeat$12 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$07 text$04 if$02 repeat$12 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$07 text$04 if$02 repeat$12 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$07 text$04 if$02 repeat$12 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$07 text$04 if$02 repeat$12 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$07 text$04 if$02 repeat$12 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$07 text$04 if$02 repeat$12 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$07 text$04 if$02 repeat$12 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$07 text$04 if$02 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$02 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$02 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$02 repeat$13 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$02 repeat$13 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$02 repeat$13 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$02 repeat$13 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$07 text$04 if$02 repeat$13 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$11 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$01 repeat$13 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$02 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$03 if$02 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$03 if$02 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$03 if$02 repeat$11 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$03 if$02 repeat$11 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$03 if$02 repeat$11 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$03 if$02 repeat$11 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$03 if$02 repeat$11 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$03 if$02 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$02 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$02 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$02 repeat$13 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$02 repeat$13 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$02 repeat$13 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$02 repeat$13 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$03 if$02 repeat$13 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$11 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$01 repeat$13 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$02 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$04 if$02 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$04 if$02 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$04 if$02 repeat$11 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$04 if$02 repeat$11 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$04 if$02 repeat$11 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$04 if$02 repeat$11 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$04 if$02 repeat$11 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$08 text$04 if$02 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$02 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$02 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$02 repeat$13 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$02 repeat$13 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$02 repeat$13 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$02 repeat$13 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$08 text$04 if$02 repeat$13 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "open" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$03 if$01 repeat$11 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10685,7 +13687,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$02 _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10703,7 +13705,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$03 _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10721,7 +13723,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$04 _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$04 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10739,7 +13741,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$05 _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$05 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10757,7 +13759,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$06 _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$06 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10775,7 +13777,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$07 _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$07 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10793,7 +13795,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$08 _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$08 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10811,7 +13813,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$08$empty _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$08$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10829,7 +13831,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$09 _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$09 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10847,7 +13849,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$11 variant$09$empty _", function () {
+    it("tag$09 text$03 if$01 repeat$11 variant$09$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10865,7 +13867,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "a");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$01 _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10883,7 +13885,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$02 _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10901,7 +13903,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$03 _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10919,7 +13921,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$04 _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$04 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10937,7 +13939,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$05 _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$05 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10955,7 +13957,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$06 _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$06 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10973,7 +13975,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$07 _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$07 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -10991,7 +13993,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$08 _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$08 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11009,7 +14011,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$08$empty _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$08$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11027,7 +14029,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$09 _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$09 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11045,7 +14047,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$12 variant$09$empty _", function () {
+    it("tag$09 text$03 if$01 repeat$12 variant$09$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11063,7 +14065,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "aaa");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$01 _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11081,7 +14083,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$02 _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11099,7 +14101,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$03 _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11117,7 +14119,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$04 _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$04 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11135,7 +14137,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$05 _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$05 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11153,7 +14155,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$06 _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$06 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11171,7 +14173,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$07 _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$07 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11189,7 +14191,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$08 _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$08 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11207,7 +14209,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$08$empty _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$08$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11225,7 +14227,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$09 _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$09 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11243,7 +14245,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$09$empty _", function () {
+    it("tag$09 text$03 if$01 repeat$13 variant$09$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11261,7 +14263,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$02 repeat$11 variant$01 _", function () {
+    it("tag$09 text$03 if$02 repeat$11 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11279,7 +14281,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$04 if$02 repeat$11 variant$02 _", function () {
+    it("tag$09 text$03 if$02 repeat$11 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11297,7 +14299,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$04 if$02 repeat$11 variant$03 _", function () {
+    it("tag$09 text$03 if$02 repeat$11 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11315,7 +14317,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$04 if$02 repeat$11 variant$10 _", function () {
+    it("tag$09 text$03 if$02 repeat$11 variant$10 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11333,7 +14335,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$04 if$02 repeat$11 variant$10$empty _", function () {
+    it("tag$09 text$03 if$02 repeat$11 variant$10$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11351,7 +14353,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$04 if$02 repeat$11 variant$11 _", function () {
+    it("tag$09 text$03 if$02 repeat$11 variant$11 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11369,7 +14371,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$04 if$02 repeat$11 variant$11$empty _", function () {
+    it("tag$09 text$03 if$02 repeat$11 variant$11$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11387,7 +14389,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$04 if$02 repeat$11 variant$12 _", function () {
+    it("tag$09 text$03 if$02 repeat$11 variant$12 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11405,7 +14407,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$04 if$02 repeat$12 variant$01 _", function () {
+    it("tag$09 text$03 if$02 repeat$12 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11423,7 +14425,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$04 if$02 repeat$12 variant$02 _", function () {
+    it("tag$09 text$03 if$02 repeat$12 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11441,7 +14443,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$04 if$02 repeat$12 variant$03 _", function () {
+    it("tag$09 text$03 if$02 repeat$12 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11459,7 +14461,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$04 if$02 repeat$12 variant$10 _", function () {
+    it("tag$09 text$03 if$02 repeat$12 variant$10 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11477,7 +14479,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$04 if$02 repeat$12 variant$10$empty _", function () {
+    it("tag$09 text$03 if$02 repeat$12 variant$10$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11495,7 +14497,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$04 if$02 repeat$12 variant$11 _", function () {
+    it("tag$09 text$03 if$02 repeat$12 variant$11 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11513,7 +14515,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$04 if$02 repeat$12 variant$11$empty _", function () {
+    it("tag$09 text$03 if$02 repeat$12 variant$11$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11531,7 +14533,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$04 if$02 repeat$12 variant$12 _", function () {
+    it("tag$09 text$03 if$02 repeat$12 variant$12 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11549,7 +14551,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "bbb");
     });
-    it("tag$06 text$04 if$02 repeat$13 variant$01 _", function () {
+    it("tag$09 text$03 if$02 repeat$13 variant$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11567,7 +14569,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$02 repeat$13 variant$02 _", function () {
+    it("tag$09 text$03 if$02 repeat$13 variant$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11585,7 +14587,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$02 repeat$13 variant$03 _", function () {
+    it("tag$09 text$03 if$02 repeat$13 variant$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11603,7 +14605,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$02 repeat$13 variant$10 _", function () {
+    it("tag$09 text$03 if$02 repeat$13 variant$10 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11621,7 +14623,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$02 repeat$13 variant$10$empty _", function () {
+    it("tag$09 text$03 if$02 repeat$13 variant$10$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11639,7 +14641,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$02 repeat$13 variant$11 _", function () {
+    it("tag$09 text$03 if$02 repeat$13 variant$11 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11657,7 +14659,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$02 repeat$13 variant$11$empty _", function () {
+    it("tag$09 text$03 if$02 repeat$13 variant$11$empty _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11675,7 +14677,7 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         au.app({ host, component });
         verify(au, host, "abc");
     });
-    it("tag$06 text$04 if$02 repeat$13 variant$12 _", function () {
+    it("tag$09 text$03 if$02 repeat$13 variant$12 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
@@ -11686,6 +14688,2400 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         });
         au.register(MyFoo);
         const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$11 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\" if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$12 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$01 repeat$13 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$02 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$09 text$04 if$02 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$09 text$04 if$02 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$09 text$04 if$02 repeat$11 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$09 text$04 if$02 repeat$11 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$09 text$04 if$02 repeat$11 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$09 text$04 if$02 repeat$11 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$09 text$04 if$02 repeat$11 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$09 text$04 if$02 repeat$12 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$09 text$04 if$02 repeat$12 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$09 text$04 if$02 repeat$12 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$09 text$04 if$02 repeat$12 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$09 text$04 if$02 repeat$12 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$09 text$04 if$02 repeat$12 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$09 text$04 if$02 repeat$12 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$09 text$04 if$02 repeat$12 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$09 text$04 if$02 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$02 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$02 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$02 repeat$13 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$02 repeat$13 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$02 repeat$13 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$02 repeat$13 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$09 text$04 if$02 repeat$13 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$11 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$01 repeat$13 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$02 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$03 if$02 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$03 if$02 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$03 if$02 repeat$11 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$03 if$02 repeat$11 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$03 if$02 repeat$11 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$03 if$02 repeat$11 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$03 if$02 repeat$11 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$03 if$02 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$02 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$02 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$02 repeat$13 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$02 repeat$13 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$02 repeat$13 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$02 repeat$13 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$03 if$02 repeat$13 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\" if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$11 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "a");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$04 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$05 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$06 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$07 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$08 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$08$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$09 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$01 repeat$13 variant$09$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$02 repeat$11 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$04 if$02 repeat$11 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$04 if$02 repeat$11 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$04 if$02 repeat$11 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$04 if$02 repeat$11 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$04 if$02 repeat$11 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$04 if$02 repeat$11 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$04 if$02 repeat$11 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace-part=\"the-not-part\">${not}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "b");
+    });
+    it("tag$10 text$04 if$02 repeat$13 variant$01 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$02 repeat$13 variant$02 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$02 repeat$13 variant$03 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$02 repeat$13 variant$10 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$02 repeat$13 variant$10$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$02 repeat$13 variant$11 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$02 repeat$13 variant$11$empty _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "abc");
+    });
+    it("tag$10 text$04 if$02 repeat$13 variant$12 _", function () {
+        const { au, host } = setup();
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElementResource.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace-part=\"the-part\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace-part=\"the-item-part\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });

@@ -1,5 +1,5 @@
 import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
-import { BindingMode, buildTemplateDefinition, CustomAttributeResource, CustomElementResource, DOM, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
+import { BindingMode,  buildTemplateDefinition, CustomAttributeResource, CustomElementResource, DOM, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IElement, IExpressionParser, IHydrateElementInstruction, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
 import { AttrSyntax, ElementSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { BindingCommandResource,  IBindingCommand } from './binding-command';
@@ -402,10 +402,16 @@ export class ElementSymbol {
   public readonly $root: ElementSymbol;
   public readonly $parent: ElementSymbol;
   public readonly definition: ITemplateDefinition | null;
-  public readonly parts: Record<string, ITemplateDefinition>;
 
   public readonly $attributes: ReadonlyArray<AttributeSymbol>;
   public readonly $children: ReadonlyArray<ElementSymbol>;
+  public get parts(): Record<string, ITemplateDefinition> {
+    const owner = this.currentPartsOwner;
+    if (owner.parts === undefined) {
+      owner.parts = {};
+    }
+    return owner.parts;
+  }
   public get $content(): ElementSymbol {
     return this._$content;
   }
@@ -459,6 +465,9 @@ export class ElementSymbol {
   public get isReplacePart(): boolean {
     return this._isReplacePart;
   }
+  public get partName(): string {
+    return this._partName;
+  }
   private _$content: ElementSymbol;
   private _isMarker: boolean;
   private _isTemplate: boolean;
@@ -470,6 +479,16 @@ export class ElementSymbol {
   private _isCustomElement: boolean;
   private _isLifted: boolean;
   private _isReplacePart: boolean;
+  private _partName: string;
+
+  private _currentPartsOwner: IHydrateElementInstruction;
+  private get currentPartsOwner(): IHydrateElementInstruction {
+    if (this.isRoot) {
+      return this._currentPartsOwner;
+    } else {
+      return this.$root._currentPartsOwner;
+    }
+  }
 
   constructor(
     semanticModel: SemanticModel,
@@ -484,7 +503,6 @@ export class ElementSymbol {
     this.$root = isRoot ? this : $root;
     this.$parent = $parent;
     this.definition = definition;
-    this.parts = isRoot ? {} : $root.parts;
 
     this._$content = null;
     this._isMarker = false;
@@ -499,23 +517,15 @@ export class ElementSymbol {
     // TODO: improve DOM typings and clean up this mess etc
     if (node.nodeType === NodeType.Element && (<NodeWithAttributes>node).hasAttribute('replace-part')) {
       this._isReplacePart = true;
-      // "lift" the replace-part by giving it its own definition and making it the root,
-      // so the compiler can process it right away and doesn't need to be re-initialized
-      // with a new semantic model while rendering the owner element
-      const name = (<NodeWithAttributes>node).getAttribute('replace-part');
+      this._partName = (<NodeWithAttributes>node).getAttribute('replace-part');
       (<NodeWithAttributes>node).removeAttribute('replace-part');
-      let template: HTMLTemplateElement;
+      (<AttrSyntax[]>syntax.$attributes).splice(syntax.$attributes.findIndex(a => a.rawName === 'replace-part'), 1);
       if (node.nodeName === 'TEMPLATE') {
-        template = <HTMLTemplateElement>node;
-      } else {
-        template = <HTMLTemplateElement>DOM.createElement('template');
-        template.content.appendChild(node);
+        node['remove']();
       }
-      this.definition = this.$root.parts[name] = <ITemplateDefinition><unknown>buildTemplateDefinition(null, { name, template });
-      this.isRoot = true;
-      this.$root = this;
     } else {
       this._isReplacePart = false;
+      this._partName = null;
     }
 
     switch (this.name) {
@@ -554,6 +564,8 @@ export class ElementSymbol {
     } else {
       this.$children = PLATFORM.emptyArray as ElementSymbol[];
     }
+
+    this._currentPartsOwner = null;
   }
 
   public makeTarget(): void {
@@ -610,12 +622,31 @@ export class ElementSymbol {
     );
   }
 
+  public extractReplacePart(): ElementSymbol {
+    let part: ITemplateDefinition;
+    let template: IElement;
+    const node = this.node;
+    const name = this.partName;
+    if (node.nodeName !== 'TEMPLATE') {
+      template = DOM.createElement('template');
+      template.content['appendChild'](node);
+    }
+    part = this.parts[name] = <ITemplateDefinition><unknown>buildTemplateDefinition(null, { name, template });
+    const syntax = this.semanticModel.elParser.parse(template);
+    return this.semanticModel.getTemplateElementSymbol(syntax, this, part, null);
+  }
+
   public addInstructions(instructions: TargetedInstruction[]): void {
     const def = this.$root.definition;
     if (def.instructions === PLATFORM.emptyArray) {
       def.instructions = [];
     }
     def.instructions.push(instructions);
+  }
+
+  public addHydrateElementInstruction(instruction: IHydrateElementInstruction, ...siblingInstructions: TargetedInstruction[]): void {
+    this.$root._currentPartsOwner = instruction;
+    this.addInstructions([instruction, ...siblingInstructions]);
   }
 
   private setToMarker(marker: ElementSyntax): void {

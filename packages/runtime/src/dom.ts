@@ -1,4 +1,5 @@
 import { Constructable, DI, IContainer, IResolver, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
+import { IPixiNode } from './pixi-dom';
 
 export const ELEMENT_NODE = 1;
 export const ATTRIBUTE_NODE = 2;
@@ -28,7 +29,7 @@ export interface IRemovableNode extends INode {
   remove(): void;
 }
 export const IEncapsulationSource = DI.createInterface<IEncapsulationSource>().noDefault();
-export interface IEncapsulationSource extends INode {}
+export interface IEncapsulationSource extends IPixiNode {}
 
 export interface IAttr extends Partial<INode> {
   readonly name: string;

@@ -5,6 +5,7 @@ import { IView, IViewFactory, State } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IPixiRenderLocation } from '../../pixi-dom';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')
@@ -16,7 +17,7 @@ export class With {
 
   private currentView: IView = null;
 
-  constructor(private factory: IViewFactory, location: IRenderLocation) {
+  constructor(private factory: IViewFactory, location: IPixiRenderLocation) {
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

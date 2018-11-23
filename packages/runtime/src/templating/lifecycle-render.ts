@@ -10,6 +10,7 @@ import { IResourceDescriptions, RuntimeCompilationResources } from '../resource'
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { ViewFactory } from './view';
+import { PixiNodeSequenceFactory, IPixiNodeSequenceFactory, PixiNodeSequence, IPixiNode, IPixiRenderLocation, IPixiNodeSequence } from '../pixi-dom';
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -26,7 +27,7 @@ export enum ViewCompileFlags {
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
-export interface ICustomElementHost extends IRenderLocation {
+export interface ICustomElementHost extends PIXI.Container {
   $customElement?: ICustomElement;
 }
 
@@ -34,11 +35,11 @@ export type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
 
 export interface IElementProjector {
   readonly host: ICustomElementHost;
-  readonly children: ArrayLike<ICustomElementHost>;
+  readonly children: ArrayLike<IPixiNode>;
 
   provideEncapsulationSource(parentEncapsulationSource: ICustomElementHost): ICustomElementHost;
-  project(nodes: INodeSequence): void;
-  take(nodes: INodeSequence): void;
+  project(nodes: IPixiNodeSequence): void;
+  take(nodes: IPixiNodeSequence): void;
 
   subscribeToChildrenChange(callback: () => void): void;
 }
@@ -71,7 +72,7 @@ export interface ILifecycleRender {
    * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
-  render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
+  render?(host: PIXI.Container, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
 }
 
 /*@internal*/
@@ -86,7 +87,7 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEng
 }
 
 /*@internal*/
-export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: PIXI.Container, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
@@ -123,17 +124,17 @@ function determineProjector(
   host: ICustomElementHost,
   definition: TemplateDefinition
 ): IElementProjector {
-  if (definition.shadowOptions || definition.hasSlots) {
-    if (definition.containerless) {
-      throw Reporter.error(21);
-    }
+  // if (definition.shadowOptions || definition.hasSlots) {
+  //   if (definition.containerless) {
+  //     throw Reporter.error(21);
+  //   }
 
-    return new ShadowDOMProjector($customElement, host, definition);
-  }
+  //   return new ShadowDOMProjector($customElement, host, definition);
+  // }
 
-  if (definition.containerless) {
-    return new ContainerlessProjector($customElement, host);
-  }
+  // if (definition.containerless) {
+  //   return new ContainerlessProjector($customElement, host);
+  // }
 
   return new HostProjector($customElement, host);
 }
@@ -195,7 +196,7 @@ export class RenderingEngine implements IRenderingEngine {
       return null;
     }
 
-    let factory = this.factoryLookup.get(definition);
+    let factory: IViewFactory = this.factoryLookup.get(definition);
 
     if (!factory) {
       const validSource = buildTemplateDefinition(null, definition);
@@ -243,87 +244,87 @@ export class RenderingEngine implements IRenderingEngine {
 const childObserverOptions = { childList: true };
 
 /*@internal*/
-export class ShadowDOMProjector implements IElementProjector {
-  public shadowRoot: ICustomElementHost;
+// export class ShadowDOMProjector implements IElementProjector {
+//   public shadowRoot: ICustomElementHost;
 
-  constructor(
-    $customElement: ICustomElement,
-    public host: ICustomElementHost,
-    definition: TemplateDefinition
-  ) {
-    this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
-    host.$customElement = $customElement;
-    this.shadowRoot.$customElement = $customElement;
-  }
+//   constructor(
+//     $customElement: ICustomElement,
+//     public host: ICustomElementHost,
+//     definition: TemplateDefinition
+//   ) {
+//     this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
+//     host.$customElement = $customElement;
+//     this.shadowRoot.$customElement = $customElement;
+//   }
 
-  get children(): ArrayLike<INode> {
-    return this.host.childNodes;
-  }
+//   get children(): ArrayLike<INode> {
+//     return this.host.childNodes;
+//   }
 
-  public subscribeToChildrenChange(callback: () => void): void {
-    DOM.createNodeObserver(this.host, callback, childObserverOptions);
-  }
+//   public subscribeToChildrenChange(callback: () => void): void {
+//     DOM.createNodeObserver(this.host, callback, childObserverOptions);
+//   }
 
-  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
-    return this.shadowRoot;
-  }
+//   public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
+//     return this.shadowRoot;
+//   }
 
-  public project(nodes: INodeSequence): void {
-    nodes.appendTo(this.host);
-    this.project = PLATFORM.noop;
-  }
+//   public project(nodes: INodeSequence): void {
+//     nodes.appendTo(this.host);
+//     this.project = PLATFORM.noop;
+//   }
 
-  public take(nodes: INodeSequence): void {
-    // No special behavior is required because the host element removal
-    // will result in the projected nodes being removed, since they are in
-    // the ShadowDOM.
-  }
-}
+//   public take(nodes: INodeSequence): void {
+//     // No special behavior is required because the host element removal
+//     // will result in the projected nodes being removed, since they are in
+//     // the ShadowDOM.
+//   }
+// }
 
 /*@internal*/
-export class ContainerlessProjector implements IElementProjector {
-  public host: ICustomElementHost;
-  private childNodes: ArrayLike<INode>;
+// export class ContainerlessProjector implements IElementProjector {
+//   public host: ICustomElementHost;
+//   private childNodes: ArrayLike<INode>;
 
-  constructor(private $customElement: ICustomElement, host: ICustomElementHost) {
-    if (host.childNodes.length) {
-      this.childNodes = PLATFORM.toArray(host.childNodes);
-    } else {
-      this.childNodes = PLATFORM.emptyArray;
-    }
+//   constructor(private $customElement: ICustomElement, host: ICustomElementHost) {
+//     if (host.childNodes.length) {
+//       this.childNodes = PLATFORM.toArray(host.childNodes);
+//     } else {
+//       this.childNodes = PLATFORM.emptyArray;
+//     }
 
-    this.host = DOM.convertToRenderLocation(host);
-    this.host.$customElement = $customElement;
-  }
+//     this.host = DOM.convertToRenderLocation(host);
+//     this.host.$customElement = $customElement;
+//   }
 
-  get children(): ArrayLike<INode> {
-    return this.childNodes;
-  }
+//   get children(): ArrayLike<INode> {
+//     return this.childNodes;
+//   }
 
-  public subscribeToChildrenChange(callback: () => void): void {
-    // Do nothing since this scenario will never have children.
-  }
+//   public subscribeToChildrenChange(callback: () => void): void {
+//     // Do nothing since this scenario will never have children.
+//   }
 
-  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
-    if (!parentEncapsulationSource) {
-      throw Reporter.error(22);
-    }
+//   public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
+//     if (!parentEncapsulationSource) {
+//       throw Reporter.error(22);
+//     }
 
-    return parentEncapsulationSource;
-  }
+//     return parentEncapsulationSource;
+//   }
 
-  public project(nodes: INodeSequence): void {
-    if (this.$customElement.$state & State.needsMount) {
-      this.$customElement.$state &= ~State.needsMount;
-      nodes.insertBefore(this.host);
-    }
-  }
+//   public project(nodes: INodeSequence): void {
+//     if (this.$customElement.$state & State.needsMount) {
+//       this.$customElement.$state &= ~State.needsMount;
+//       nodes.insertBefore(this.host);
+//     }
+//   }
 
-  public take(nodes: INodeSequence): void {
-    this.$customElement.$state |= State.needsMount;
-    nodes.remove();
-  }
-}
+//   public take(nodes: INodeSequence): void {
+//     this.$customElement.$state |= State.needsMount;
+//     nodes.remove();
+//   }
+// }
 
 /*@internal*/
 export class HostProjector implements IElementProjector {
@@ -333,7 +334,7 @@ export class HostProjector implements IElementProjector {
     this.isAppHost = host.hasOwnProperty('$au');
   }
 
-  get children(): ArrayLike<INode> {
+  get children(): ArrayLike<IPixiNode> {
     return PLATFORM.emptyArray;
   }
 
@@ -341,18 +342,18 @@ export class HostProjector implements IElementProjector {
     // Do nothing since this scenario will never have children.
   }
 
-  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
-    return parentEncapsulationSource || this.host;
+  public provideEncapsulationSource(parentEncapsulationSource: IPixiNode): ICustomElementHost {
+    return (parentEncapsulationSource || this.host) as ICustomElementHost;
   }
 
-  public project(nodes: INodeSequence): void {
+  public project(nodes: IPixiNodeSequence): void {
     nodes.appendTo(this.host);
     if (!this.isAppHost) {
       this.project = PLATFORM.noop;
     }
   }
 
-  public take(nodes: INodeSequence): void {
+  public take(nodes: IPixiNodeSequence): void {
     // No special behavior is required because the host element removal
     // will result in the projected nodes being removed, since they are children.
     if (this.isAppHost) {
@@ -488,12 +489,12 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
 }
 
 /*@internal*/
-export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
+export function findElements(nodes: ArrayLike<IPixiNode>): ICustomElement[] {
   const components: ICustomElement[] = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];
-    const component = customElementBehavior(current);
+    const component = customElementBehavior(current as ICustomElementHost);
 
     if (component !== null) {
       components.push(component);
@@ -510,7 +511,7 @@ export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
 // context for the template.
 export interface ITemplate {
   readonly renderContext: IRenderContext;
-  render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(renderable: IRenderable, host?: PIXI.Container, parts?: TemplatePartDefinitions): void;
 }
 
 // This is the main implementation of ITemplate.
@@ -521,15 +522,15 @@ export interface ITemplate {
 // and create instances of it on demand.
 /*@internal*/
 export class CompiledTemplate implements ITemplate {
-  public readonly factory: INodeSequenceFactory;
+  public readonly factory: IPixiNodeSequenceFactory;
   public readonly renderContext: IRenderContext;
 
   constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
-    this.factory = NodeSequenceFactory.createFor(templateDefinition.template);
+    this.factory = PixiNodeSequenceFactory.createFor(templateDefinition.template as DocumentFragment);
     this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
   }
 
-  public render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void {
+  public render(renderable: IRenderable, host?: PIXI.Container, parts?: TemplatePartDefinitions): void {
     const nodes = (<Writable<IRenderable>>renderable).$nodes = this.factory.createNodeSequence();
     (<Writable<IRenderable>>renderable).$context = this.renderContext;
     this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, parts);
@@ -541,7 +542,7 @@ export class CompiledTemplate implements ITemplate {
 export const noViewTemplate: ITemplate = {
   renderContext: null,
   render(renderable: IRenderable): void {
-    (<Writable<IRenderable>>renderable).$nodes = NodeSequence.empty;
+    (<Writable<IRenderable>>renderable).$nodes = PixiNodeSequence.empty;
     (<Writable<IRenderable>>renderable).$context = null;
   }
 };
@@ -555,7 +556,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   const elementProvider = new InstanceProvider();
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
   const factoryProvider = new ViewFactoryProvider(renderingEngine);
-  const renderLocationProvider = new InstanceProvider<IRenderLocation>();
+  const renderLocationProvider = new InstanceProvider<IPixiRenderLocation>();
   const renderer = context.get(IRenderer);
 
   DOM.registerElementResolver(context, elementProvider);
@@ -563,17 +564,17 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   context.registerResolver(IViewFactory, factoryProvider);
   context.registerResolver(IRenderable, renderableProvider);
   context.registerResolver(ITargetedInstruction, instructionProvider);
-  context.registerResolver(IRenderLocation, renderLocationProvider);
+  context.registerResolver(IPixiRenderLocation, renderLocationProvider);
 
   if (dependencies) {
     context.register(...dependencies);
   }
 
-  context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<IPixiNode>, templateDefinition: TemplateDefinition, host?: PIXI.Container, parts?: TemplatePartDefinitions): void {
     renderer.render(this, renderable, targets, templateDefinition, host, parts);
   };
 
-  context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
+  context.beginComponentOperation = function(renderable: IRenderable, target: IPixiNode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IPixiRenderLocation): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
@@ -656,7 +657,7 @@ export class ViewFactoryProvider implements IResolver {
 
 export interface IRenderer {
   instructionRenderers: Record<string, IInstructionRenderer>;
-  render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<IPixiNode>, templateDefinition: TemplateDefinition, host?: PIXI.Container, parts?: TemplatePartDefinitions): void;
 }
 
 export const IRenderer = DI.createInterface<IRenderer>().withDefault(x => x.singleton(Renderer));
@@ -711,7 +712,7 @@ export class Renderer implements IRenderer {
     });
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<IPixiNode>, definition: TemplateDefinition, host?: PIXI.Container, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
     const instructionRenderers = this.instructionRenderers;
 

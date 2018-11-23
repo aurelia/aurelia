@@ -9,6 +9,7 @@ import { IRenderable, IView, IViewFactory, State } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IPixiRenderLocation } from '../../pixi-dom';
 
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}
 
@@ -31,7 +32,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public local: string;
 
   constructor(
-    public location: IRenderLocation,
+    public location: IPixiRenderLocation,
     public renderable: IRenderable,
     public factory: IViewFactory) { }
 

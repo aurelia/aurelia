@@ -105,7 +105,8 @@ export class Compose {
     const view = this.provideViewFor(subject);
 
     if (view) {
-      view.hold(this.$projector.host, flags);
+      // todo
+      view.hold(this.$projector.host as any, flags);
       view.lockScope(this.renderable.$scope);
       return view;
     }
@@ -144,7 +145,8 @@ export class Compose {
     return createElement(
       subject,
       this.properties,
-      this.$projector.children
+      // todo
+      this.$projector.children as any
     ).createView(
       this.renderingEngine,
       this.renderable.$context

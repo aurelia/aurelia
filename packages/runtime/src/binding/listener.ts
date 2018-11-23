@@ -6,6 +6,7 @@ import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
+import { IPixiNode } from '../pixi-dom';
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
@@ -22,12 +23,15 @@ export class Listener implements IBinding {
     public targetEvent: string,
     public delegationStrategy: DelegationStrategy,
     public sourceExpression: IsBindingBehavior,
-    public target: INode,
+    public target: IPixiNode,
     public preventDefault: boolean,
     private eventManager: IEventManager,
-    public locator: IServiceLocator) { }
+    public locator: IServiceLocator) {
+    
+    this.handleEvent = this.handleEvent.bind(this);
+  }
 
-  public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
+  public callSource(event: PIXI.interaction.InteractionEvent): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;
     overrideContext['$event'] = event;
 
@@ -36,13 +40,13 @@ export class Listener implements IBinding {
     delete overrideContext['$event'];
 
     if (result !== true && this.preventDefault) {
-      event.preventDefault();
+      // event.preventDefault();
     }
 
     return result;
   }
 
-  public handleEvent(event: Event): void {
+  public handleEvent(event: PIXI.interaction.InteractionEvent): void {
     this.callSource(event);
   }
 
@@ -64,12 +68,14 @@ export class Listener implements IBinding {
       sourceExpression.bind(flags, scope, this);
     }
 
-    this.handler = this.eventManager.addEventListener(
-      this.target,
-      this.targetEvent,
-      this,
-      this.delegationStrategy
-    );
+    this.target.interactive = true;
+    this.target.addListener(this.targetEvent as PIXI.interaction.InteractionEventTypes, this.handleEvent);
+    // this.handler = this.eventManager.addEventListener(
+    //   this.target,
+    //   this.targetEvent,
+    //   this,
+    //   this.delegationStrategy
+    // );
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;

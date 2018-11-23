@@ -7,6 +7,7 @@ import { IRenderingEngine } from './templating/lifecycle-render';
 export interface ISinglePageApp {
   host: INode;
   component: unknown;
+  pixi: PIXI.ApplicationOptions;
 }
 
 export class Aurelia {
@@ -16,6 +17,7 @@ export class Aurelia {
   private stopTasks: (() => void)[];
   private isStarted: boolean;
   private _root: ICustomElement | null;
+  private pixi: PIXI.Application;
 
   constructor(container: IContainer = DI.createContainer()) {
     this.container = container;
@@ -36,6 +38,7 @@ export class Aurelia {
   }
 
   public app(config: ISinglePageApp): this {
+    const pixiApp = this.pixi = this.createApplication(config.pixi);
     const host = config.host as INode & {$au?: Aurelia | null};
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
@@ -48,15 +51,16 @@ export class Aurelia {
 
     const startTask = () => {
       host.$au = this;
+      (host as any).appendChild(pixiApp.view);
       if (!this.components.includes(component)) {
         this._root = component;
         this.components.push(component);
         const re = this.container.get(IRenderingEngine);
-        component.$hydrate(re, host);
+        component.$hydrate(re, pixiApp.stage);
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach(LifecycleFlags.fromStartTask, host);
+      component.$attach(LifecycleFlags.fromStartTask, pixiApp.stage);
     };
 
     this.startTasks.push(startTask);
@@ -92,6 +96,17 @@ export class Aurelia {
       runStopTask();
     }
     return this;
+  }
+
+  private createApplication(options: PIXI.ApplicationOptions = {}) {
+    return new PIXI.Application({
+      width: 512,
+      height: 512,
+      antialias: true,
+      transparent: false,
+      resolution: 1,
+      ...options
+    });
   }
 }
 

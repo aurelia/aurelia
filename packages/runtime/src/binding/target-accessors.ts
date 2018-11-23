@@ -1,3 +1,4 @@
+import { IIndexable } from '@aurelia/kernel';
 import { DOM, IHTMLElement, INode } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor } from '../observation';
@@ -75,15 +76,15 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   }
 }
 
-export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, 'style', string | object> {}
+export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, 'style', string | Record<string, string>> {}
 
 @targetObserver()
 export class StyleAttributeAccessor implements StyleAttributeAccessor {
-  public currentValue: string | object;
-  public defaultValue: string | object;
+  public currentValue: string | Record<string, string>;
+  public defaultValue: string | Record<string, string>;
   public lifecycle: ILifecycle;
   public obj: IHTMLElement;
-  public oldValue: string | object;
+  public oldValue: string | Record<string, string>;
   public propertyKey: 'style';
   public styles: object;
   public version: number;
@@ -109,7 +110,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
     this.obj.style.setProperty(style, value, priority);
   }
 
-  public setValueCore(newValue: string | object): void {
+  public setValueCore(newValue: string | Record<string, string>): void {
     const styles = this.styles || {};
     let style;
     let version = this.version;
@@ -252,13 +253,13 @@ export class ElementPropertyAccessor implements ElementPropertyAccessor {
   }
 }
 
-export interface PropertyAccessor extends IBindingTargetAccessor<object, string> {}
+export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string> {}
 
 export class PropertyAccessor implements PropertyAccessor {
-  public obj: object;
+  public obj: IIndexable;
   public propertyKey: string;
 
-  constructor(obj: object, propertyKey: string) {
+  constructor(obj: IIndexable, propertyKey: string) {
     this.obj = obj;
     this.propertyKey = propertyKey;
   }

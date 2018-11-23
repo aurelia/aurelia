@@ -9,7 +9,7 @@ type ChildType = RenderPlan | string | INode;
 
 export function createElement(tagOrType: string | Constructable, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
   if (typeof tagOrType === 'string') {
-    return createElementForTag(tagOrType, props, children);
+    return createElementForTag(tagOrType, props as Record<string, string | ITargetedInstruction>, children);
   } else {
     return createElementForType(tagOrType as ICustomElementType, props, children);
   }
@@ -49,7 +49,7 @@ export class RenderPlan {
   }
 }
 
-function createElementForTag(tagName: string, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForTag(tagName: string, props?: Record<string, string | ITargetedInstruction>, children?: ArrayLike<ChildType>): RenderPlan {
   const instructions: TargetedInstruction[] = [];
   const allInstructions: TargetedInstruction[][] = [];
   const dependencies: IRegistry[] = [];
@@ -59,7 +59,7 @@ function createElementForTag(tagName: string, props?: object, children?: ArrayLi
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value: unknown = props[to];
+        const value = props[to];
 
         if (isTargetedInstruction(value as ITargetedInstruction)) {
           hasInstructions = true;

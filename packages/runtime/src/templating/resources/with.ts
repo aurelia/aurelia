@@ -13,11 +13,15 @@ export class With {
   public static register: IRegistry['register'];
 
   // TODO: this type is incorrect (it can be any user-provided object), need to fix and double check Scope.
-  @bindable public value: IBindScope | IBindingContext = null;
+  @bindable public value: IBindScope | IBindingContext;
 
   private currentView: IView = null;
+  private factory: IViewFactory;
 
-  constructor(private factory: IViewFactory, location: IRenderLocation) {
+  constructor(factory: IViewFactory, location: IRenderLocation) {
+    this.value = null;
+
+    this.factory = factory;
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

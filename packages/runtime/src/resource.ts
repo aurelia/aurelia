@@ -27,7 +27,11 @@ export interface IResourceDescriptions {
 }
 
 export class RuntimeCompilationResources implements IResourceDescriptions {
-  constructor(private context: IContainer) {}
+  private context: IContainer;
+
+  constructor(context: IContainer) {
+    this.context = context;
+  }
 
   public find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null {
     const key = kind.keyFrom(name);

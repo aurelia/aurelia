@@ -16,13 +16,17 @@ export function createElement(tagOrType: string | Constructable, props?: IIndexa
 }
 
 export class RenderPlan {
+  private readonly dependencies: ReadonlyArray<IRegistry>;
+  private readonly instructions: TargetedInstruction[][];
+  private readonly node: INode;
+
   private lazyDefinition: TemplateDefinition;
 
-  constructor(
-    private readonly node: INode,
-    private readonly instructions: TargetedInstruction[][],
-    private readonly dependencies: ReadonlyArray<IRegistry>
-  ) {}
+  constructor(node: INode, instructions: TargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>) {
+    this.dependencies = dependencies;
+    this.instructions = instructions;
+    this.node = node;
+  }
 
   public get definition(): TemplateDefinition {
     return this.lazyDefinition || (this.lazyDefinition =

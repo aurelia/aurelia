@@ -327,11 +327,10 @@ export class FragmentNodeSequence implements INodeSequence {
   public lastChild: INode;
   public childNodes: INode[];
 
-  private fragment: IDocumentFragment;
-  private targets: ArrayLike<INode>;
-
-  private start: IRenderLocation;
   private end: IRenderLocation;
+  private fragment: IDocumentFragment;
+  private start: IRenderLocation;
+  private targets: ArrayLike<INode>;
 
   constructor(fragment: IDocumentFragment) {
     this.fragment = fragment;
@@ -459,6 +458,7 @@ export class NodeSequenceFactory {
   private readonly deepClone: boolean;
   private readonly node: ICloneableNode;
   private readonly Type: Constructable;
+
   constructor(fragment: IDocumentFragment) {
     const childNodes = fragment.childNodes;
     switch (childNodes.length) {
@@ -508,13 +508,16 @@ export class AuMarker implements INode {
   public readonly childNodes: ArrayLike<INode>;
   public readonly nodeName: 'AU-M';
   public readonly nodeType: typeof ELEMENT_NODE;
-  public textContent: string = '';
+
+  public textContent: string;
 
   constructor(next: INode) {
     this.nextSibling = next;
+    this.textContent = '';
   }
   public remove(): void { /* do nothing */ }
 }
+
 (proto => {
   proto.previousSibling = null;
   proto.firstChild = null;

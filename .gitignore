@@ -11,3 +11,5 @@
 **/debug.log
 **/npm-debug.log
 **/lerna-debug.log
+
+packages/runtime-pixi

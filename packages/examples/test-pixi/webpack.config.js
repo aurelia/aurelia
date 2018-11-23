@@ -1,21 +1,28 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const path = require('path');
 
 module.exports = function(env, { mode }) {
   const production = mode === 'production';
   return {
     mode: production ? 'production' : 'development',
-    entry: './src/startup.ts',
-    devtool: production ? 'source-map' : 'eval-source-map',
+    entry: './src/index.ts',
+    // devtool: production ? 'source-map' : 'eval-source-map',
     resolve: {
-      extensions: ['.ts'],
-      modules: ['src', 'node_modules']
+      symlinks: true,
+      extensions: ['.ts', '.js'],
+      modules: ['src', 'node_modules'].map(p => path.resolve(__dirname, p)),
+      alias: {
+        // '@aurelia/kernel': path.resolve(__dirname, '../../kernel/src/index'),
+        // '@aurelia/runtime-pixi': path.resolve(__dirname, '../../runtime-pixi/src/index'),
+        // '@aurelia/jit': path.resolve(__dirname, '../../jit/src/index'),
+      }
     },
-    devServer: {
-      historyApiFallback: true,
-      open: true,
-      lazy: false
-    },
+    // devServer: {
+    //   historyApiFallback: true,
+    //   open: true,
+    //   lazy: false
+    // },
     module: {
       rules: [
         { test: /\.ts$/i, loader: 'ts-loader' },
@@ -31,7 +38,7 @@ module.exports = function(env, { mode }) {
         // In `disabled` mode you can use this plugin to just generate Webpack Stats JSON file by setting `generateStatsFile` to `true`.
         analyzerMode: production ? 'static' : 'server',
         // Host that will be used in `server` mode to start HTTP server.
-        analyzerHost: '127.0.0.1',
+        analyzerHost: 'localhost',
         // Port that will be used in `server` mode to start HTTP server.
         analyzerPort: 8888,
         // Path to bundle report file that will be generated in `static` mode.

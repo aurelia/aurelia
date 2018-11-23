@@ -230,7 +230,7 @@ export class PixiTextNodeSequence implements IPixiNodeSequence {
 // a string of markup would also receive an instance of this.
 // CompiledTemplates create instances of FragmentNodeSequence.
 /*@internal*/
-export class FragmentNodeSequence implements IPixiNodeSequence {
+export class PixiFragmentNodeSequence implements IPixiNodeSequence {
   public firstChild: IPixiNode;
   public lastChild: IPixiNode;
   public children: ReadonlyArray<IPixiNode>;
@@ -315,7 +315,8 @@ export class FragmentNodeSequence implements IPixiNodeSequence {
 
   public appendTo(parent: PIXI.Container): void {
     // tslint:disable-next-line:no-any
-    (<any>parent).appendChild(this.fragment);
+    // (<any>parent).appendChild(this.fragment);
+    parent.addChild(...this.children);
     // this can never be a RenderLocation, and if for whatever reason we moved
     // from a RenderLocation to a host, make sure "start" and "end" are null
     this.start = this.end = null;
@@ -392,7 +393,7 @@ export class PixiNodeSequenceFactory {
       default:
         this.deepClone = true;
         this.node = fragment;
-        this.Type = FragmentNodeSequence;
+        this.Type = PixiFragmentNodeSequence;
     }
   }
 
@@ -402,7 +403,7 @@ export class PixiNodeSequenceFactory {
   }
 
   public createNodeSequence(): IPixiNodeSequence {
-    return new this.Type(nodesToPixiElements(this.node));
+    return new this.Type(this.node);
   }
 }
 
@@ -435,6 +436,8 @@ function nodesToPixiElements(nodes: Node | Node[] | NodeListOf<Node>, parent: PI
     }
     if (pixiElement === null) {
       continue;
+    } else {
+      results.push(pixiElement);
     }
     if (parent !== null) {
       parent.addChild(pixiElement);

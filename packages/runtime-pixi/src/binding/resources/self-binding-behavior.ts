@@ -22,7 +22,7 @@ export type SelfableBinding = Listener & {
 
 @bindingBehavior('self')
 export class SelfBindingBehavior {
-  // public static register: IRegistry['register'];
+  public static register: IRegistry['register'];
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: SelfableBinding): void {
     // if (!binding.callSource || !binding.targetEvent) {

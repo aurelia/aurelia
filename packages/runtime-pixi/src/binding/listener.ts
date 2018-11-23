@@ -68,6 +68,7 @@ export class Listener implements IBinding {
       sourceExpression.bind(flags, scope, this);
     }
 
+    this.target.interactive = true;
     this.target.addListener(this.targetEvent as PIXI.interaction.InteractionEventTypes, this.handleEvent);
     // this.handler = this.eventManager.addEventListener(
     //   this.target,

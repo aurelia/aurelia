@@ -12,8 +12,7 @@ export declare const enum State {
     isMounted = 16,
     isDetaching = 32,
     isUnbinding = 64,
-    isCached = 128,
-    needsMount = 256
+    isCached = 128
 }
 export declare const enum Hooks {
     none = 1,

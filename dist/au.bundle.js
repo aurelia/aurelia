@@ -857,6 +857,14 @@ var au = (function (exports) {
                   current.flush(flags);
                   current = next;
               } while (current !== marker);
+              // doNotUpdateDOM will cause DOM updates to be re-queued which results in an infinite loop
+              // unless we break here
+              // Note that breaking on this flag is still not the ideal solution; future improvement would
+              // be something like a separate DOM queue and a non-DOM queue, but for now this fixes the infinite
+              // loop without breaking anything (apart from the edgiest of edge cases which are not yet tested)
+              if (flags & LifecycleFlags.doNotUpdateDOM) {
+                  break;
+              }
           }
       }
       beginBind() {
@@ -6933,9 +6941,7 @@ var au = (function (exports) {
           current.$attach(flags, encapsulationSource);
           current = current.$nextAttach;
       }
-      if (!(this.$state & 16 /* isMounted */)) {
-          lifecycle.enqueueMount(this);
-      }
+      lifecycle.enqueueMount(this);
       // add isAttached flag, remove isAttaching flag
       this.$state |= 8 /* isAttached */;
       this.$state &= ~4 /* isAttaching */;
@@ -6957,9 +6963,7 @@ var au = (function (exports) {
           current.$attach(flags, encapsulationSource);
           current = current.$nextAttach;
       }
-      if (!(this.$state & 16 /* isMounted */)) {
-          this.$lifecycle.enqueueMount(this);
-      }
+      this.$lifecycle.enqueueMount(this);
       // add isAttached flag, remove isAttaching flag
       this.$state |= 8 /* isAttached */;
       this.$state &= ~4 /* isAttaching */;
@@ -6992,14 +6996,12 @@ var au = (function (exports) {
           // add isDetaching flag
           this.$state |= 32 /* isDetaching */;
           flags |= LifecycleFlags.fromDetach;
-          if (this.$state & 16 /* isMounted */) {
-              // Only unmount if either:
-              // - No parent view/element is queued for unmount yet, or
-              // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-              if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
-                  lifecycle.enqueueUnmount(this);
-                  flags |= LifecycleFlags.parentUnmountQueued;
-              }
+          // Only unmount if either:
+          // - No parent view/element is queued for unmount yet, or
+          // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
+          if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
+              lifecycle.enqueueUnmount(this);
+              flags |= LifecycleFlags.parentUnmountQueued;
           }
           const hooks = this.$hooks;
           if (hooks & 64 /* hasDetaching */) {
@@ -7024,14 +7026,12 @@ var au = (function (exports) {
           // add isDetaching flag
           this.$state |= 32 /* isDetaching */;
           flags |= LifecycleFlags.fromDetach;
-          if (this.$state & 16 /* isMounted */) {
-              // Only unmount if either:
-              // - No parent view/element is queued for unmount yet, or
-              // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-              if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
-                  this.$lifecycle.enqueueUnmount(this);
-                  flags |= LifecycleFlags.parentUnmountQueued;
-              }
+          // Only unmount if either:
+          // - No parent view/element is queued for unmount yet, or
+          // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
+          if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
+              this.$lifecycle.enqueueUnmount(this);
+              flags |= LifecycleFlags.parentUnmountQueued;
           }
           let current = this.$attachableTail;
           while (current !== null) {
@@ -7072,31 +7072,38 @@ var au = (function (exports) {
   }
   /*@internal*/
   function $mountElement(flags) {
-      this.$state |= 16 /* isMounted */;
-      this.$projector.project(this.$nodes);
+      if (!(this.$state & 16 /* isMounted */)) {
+          this.$state |= 16 /* isMounted */;
+          this.$projector.project(this.$nodes);
+      }
   }
   /*@internal*/
   function $unmountElement(flags) {
-      this.$state &= ~16 /* isMounted */;
-      this.$projector.take(this.$nodes);
+      if (this.$state & 16 /* isMounted */) {
+          this.$state &= ~16 /* isMounted */;
+          this.$projector.take(this.$nodes);
+      }
   }
   /*@internal*/
   function $mountView(flags) {
-      this.$state |= 16 /* isMounted */;
-      this.$state &= ~256 /* needsMount */;
-      this.$nodes.insertBefore(this.location);
+      if (!(this.$state & 16 /* isMounted */)) {
+          this.$state |= 16 /* isMounted */;
+          this.$nodes.insertBefore(this.location);
+      }
   }
   /*@internal*/
   function $unmountView(flags) {
-      this.$state &= ~16 /* isMounted */;
-      this.$state |= 256 /* needsMount */;
-      this.$nodes.remove();
-      if (this.isFree) {
-          this.isFree = false;
-          if (this.cache.tryReturnToCache(this)) {
-              this.$state |= 128 /* isCached */;
-              return true;
+      if (this.$state & 16 /* isMounted */) {
+          this.$state &= ~16 /* isMounted */;
+          this.$nodes.remove();
+          if (this.isFree) {
+              this.isFree = false;
+              if (this.cache.tryReturnToCache(this)) {
+                  this.$state |= 128 /* isCached */;
+                  return true;
+              }
           }
+          return false;
       }
       return false;
   }
@@ -7278,9 +7285,7 @@ var au = (function (exports) {
           this.$nextAttach = null;
           this.$prevAttach = null;
           this.$nextMount = null;
-          this.$mountFlags = 0;
           this.$nextUnmount = null;
-          this.$unmountFlags = 0;
           this.$nextUnbindAfterDetach = null;
           this.$state = 0 /* none */;
           this.$scope = null;
@@ -7291,13 +7296,6 @@ var au = (function (exports) {
               throw Reporter.error(60); // TODO: organize error codes
           }
           this.location = location;
-          const lastChild = this.$nodes.lastChild;
-          if (lastChild && lastChild.nextSibling === location) {
-              this.$state &= ~256 /* needsMount */;
-          }
-          else {
-              this.$state |= 256 /* needsMount */;
-          }
       }
       lockScope(scope) {
           this.$scope = scope;
@@ -7540,18 +7538,14 @@ var au = (function (exports) {
       }
       project(nodes) {
           nodes.appendTo(this.host);
-          this.project = PLATFORM.noop;
       }
       take(nodes) {
-          // No special behavior is required because the host element removal
-          // will result in the projected nodes being removed, since they are in
-          // the ShadowDOM.
+          nodes.remove();
       }
   }
   /*@internal*/
   class ContainerlessProjector {
       constructor($customElement, host) {
-          this.$customElement = $customElement;
           if (host.childNodes.length) {
               this.childNodes = PLATFORM.toArray(host.childNodes);
           }
@@ -7574,13 +7568,9 @@ var au = (function (exports) {
           return parentEncapsulationSource;
       }
       project(nodes) {
-          if (this.$customElement.$state & 256 /* needsMount */) {
-              this.$customElement.$state &= ~256 /* needsMount */;
-              nodes.insertBefore(this.host);
-          }
+          nodes.insertBefore(this.host);
       }
       take(nodes) {
-          this.$customElement.$state |= 256 /* needsMount */;
           nodes.remove();
       }
   }
@@ -7589,7 +7579,6 @@ var au = (function (exports) {
       constructor($customElement, host) {
           this.host = host;
           host.$customElement = $customElement;
-          this.isAppHost = host.hasOwnProperty('$au');
       }
       get children() {
           return PLATFORM.emptyArray;
@@ -7602,17 +7591,9 @@ var au = (function (exports) {
       }
       project(nodes) {
           nodes.appendTo(this.host);
-          if (!this.isAppHost) {
-              this.project = PLATFORM.noop;
-          }
       }
       take(nodes) {
-          // No special behavior is required because the host element removal
-          // will result in the projected nodes being removed, since they are children.
-          if (this.isAppHost) {
-              // The only exception to that is the app host, which is not part of a removable node sequence
-              nodes.remove();
-          }
+          nodes.remove();
       }
   }
   /** @internal */
@@ -7947,7 +7928,6 @@ var au = (function (exports) {
       proto.$nextUnbindAfterDetach = null;
       proto.$scope = null;
       proto.$hooks = 0;
-      proto.$state = 256 /* needsMount */;
       proto.$bindableHead = null;
       proto.$bindableTail = null;
       proto.$attachableHead = null;

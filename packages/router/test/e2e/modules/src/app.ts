@@ -1,4 +1,3 @@
-import { DetailComponent } from './components/detail-component';
 import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
 import * as template from './app.html';
@@ -6,8 +5,6 @@ import { Router } from '../../../../src/index';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';
 import { AppState } from './app-state';
-import { MasterComponent } from './components/master-component';
-import { Content3Component } from './components/content3-component';
 
 @inject(Router, AppState)
 @customElement({ name: 'app', template })
@@ -40,8 +37,8 @@ export class App {
     this.router.addRoute({ name: 'redirect', path: '/test/redirect', redirect: '/test/abc' });
     this.router.addRoute({ name: 'detour', path: '/test/detour', redirect: '/test/abc' });
 
-    this.router.addRoute({ name: 'email', path: '/email', viewports: { 'application': MasterComponent, 'master': DetailComponent } });
-    this.router.addRoute({ name: 'special', path: '/special', viewports: { 'detail': Content3Component } });
+    // this.router.addRoute({ name: 'email', path: '/email', viewports: { 'application': MasterComponent, 'master': DetailComponent } });
+    // this.router.addRoute({ name: 'special', path: '/special', viewports: { 'detail': Content3Component } });
 
     this.updateTitle();
     console.log('ROUTER', this.router);
@@ -85,9 +82,9 @@ export class App {
   clickDef() {
     this.router.goto({ left: DefComponent, right: DefComponent }, 'second', { id: 456 });
   }
-  clickReplace() {
-    this.router.replace({ left: Content3Component, right: Content3Component }, 'last', { id: 999 });
-  }
+  // clickReplace() {
+  //   this.router.replace({ left: Content3Component, right: Content3Component }, 'last', { id: 999 });
+  // }
   clickBack() {
     this.router.back();
   }

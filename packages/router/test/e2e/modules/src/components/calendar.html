@@ -1,8 +1,10 @@
 <template>
   <div>CALENDAR</div>
-  <a href="#/calendar:dates">Dates</a>
+  <a click.trigger="clickDates($event)" href="#/calendar:dates">Dates</a>
   <a href="#/calendar:schedule">Schedule</a>
+  <a href="#/calendar:about">About application</a>
+  <a href="#/calendar:recursive">Recursive</a>
   <div><input></div>
 
-  <viewport name="calendar"></viewport>
+  <viewport name="calendar" scope="true"></viewport>
 </template>

@@ -1,4 +1,5 @@
-import { IRoute } from './../dist/router.d';
+import { IRoute } from './router';
+
 export interface IRouteData {
   path: string;
   data: Object;

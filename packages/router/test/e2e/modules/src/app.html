@@ -4,7 +4,7 @@
   <p>${message}</p>
 
   <div style="padding: 20px;">
-    <button click.trigger="clickAbc()">Abc</button>
+    <!-- <button click.trigger="clickAbc()">Abc</button>
     <button click.trigger="clickAbcLeft()">Abc left</button>
     <button click.trigger="clickAbcRight()">Abc right</button>
     <button click.trigger="clickDef()">Def</button>
@@ -32,12 +32,13 @@
     </div>
 
     <viewport name="left" class="split"></viewport>
-    <viewport name="right" class="split"></viewport>
+    <viewport name="right" class="split"></viewport> -->
 
     <div style="padding: 10px;">
       <a href="#/application:email">Email</a>
       <a href="#/application:calendar">Calendar</a>
       <a href="#/application:email/email:contacts">Contacts</a>
+      <a href="#/application:calendar.calendar:recursive.application:email">Recursive schedule</a>
     </div>
     <div style="padding: 10px;">
       <viewport name="application"></viewport>

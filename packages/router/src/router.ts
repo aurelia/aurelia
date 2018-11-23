@@ -1,8 +1,8 @@
 import { IContainer, inject } from '@aurelia/kernel';
+import { Aurelia, CustomElementResource, ICustomElement, ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryEntry, INavigationInstruction } from './history-browser';
-import { Viewport } from './viewport';
-import { ICustomElement, CustomElementResource, ICustomElementType } from '@aurelia/runtime';
 import { Scope } from './scope';
+import { Viewport } from './viewport';
 
 export interface IRoute {
   name?: string;
@@ -91,13 +91,7 @@ export class Router {
     const viewports: Viewport[] = [];
     for (let vp in views) {
       let component: ICustomElementType | string = views[vp];
-      if (vp.substring(0, 1) === '+') {
-        component = this.resolveComponent(component);
-        if ((<any>component).viewport) {
-          vp = (<any>component).viewport;
-        }
-      }
-      const viewport = this.findViewport(vp);
+      const viewport = this.findViewport(`${vp}:${component}`);
       if (viewport.setNextContent(component, instruction)) {
         viewports.push(viewport);
       }
@@ -130,7 +124,13 @@ export class Router {
         if (cancel) {
           this.historyBrowser.cancel();
         }
+        console.log('=========== ROUTER', this);
       });
+    // Don't delete this, you'll need (a version of) it later
+    // }).then(() => {
+    //   const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
+    //   this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
+    // });
   }
 
   public view(views: Object, title?: string, data?: Object): Promise<void> {
@@ -143,7 +143,7 @@ export class Router {
     const viewports: Viewport[] = [];
     for (const v in views) {
       const component: ICustomElementType = views[v];
-      const viewport = this.findViewport(v);
+      const viewport = this.findViewport(`${v}:${component}`);
       if (viewport.setNextContent(component, { path: '' })) {
         viewports.push(viewport);
       }
@@ -202,18 +202,30 @@ export class Router {
 
   public findViews(entry: IHistoryEntry): Object {
     const views: Object = {};
-    const sections = entry.path.split('/');
+    let sections: string[] = entry.path.split('/');
     if (sections.length && sections[0] === '') {
       sections.shift();
     }
+
+    // Expand with instances for all containing views
+    const expandedSections: string[] = [];
+    while (sections.length) {
+      const part = sections.shift();
+      const parts = part.split('.');
+      for (let i = 1; i <= parts.length; i++) {
+        expandedSections.push(parts.slice(0, i).join('.'));
+      }
+    }
+    sections = expandedSections;
+
     let index = 0;
     while (sections.length) {
       const view = sections.shift();
       // TODO: implement parameters
-      // const data = sections.shift();
+      // As a = part at the end of the view!
       const parts = view.split(':');
       const component = parts.pop();
-      const name = parts.pop() || `+${index++}`;
+      const name = (parts.length ? parts.join(':') : `+${index++}`);
       if (component) {
         views[name] = component;
       }
@@ -222,26 +234,28 @@ export class Router {
   }
 
   public findViewport(name: string): Viewport {
-    return this.viewports[name] || this.addViewport(name, null);
+    return this.rootScope.findViewport(name);
   }
 
-  public findScope(element: Element, newScope: boolean): Scope {
+  public findScope(element: Element): Scope {
     if (!this.rootScope) {
-      this.rootScope = new Scope(this.container, element, null);
+      const aureliaRootElement = this.container.get(Aurelia).root().$host;
+      this.rootScope = new Scope(this.container, <Element>aureliaRootElement, null);
       this.scopes.push(this.rootScope);
-      return this.rootScope;
     }
-    let scope: Scope = this.closestScope(element);
-    if (newScope) {
-      scope = new Scope(this.container, element, scope);
-      this.scopes.push(scope);
-      return scope;
-    }
-    return scope;
+    return this.closestScope(element);
   }
 
-  public addViewport(name: string, element: Element, scope?: boolean): Viewport {
-    return this.findScope(element, scope).addViewport(name, element);
+  public addViewport(name: string, element: Element, newScope?: boolean): Viewport {
+    const parentScope = this.findScope(element);
+    let scope = parentScope;
+    if (newScope) {
+      scope = new Scope(this.container, element, parentScope);
+      this.scopes.push(scope);
+    }
+    return parentScope.addViewport(name, element, scope);
+
+    // return this.findScope(element, scope).addViewport(name, element);
   }
   public removeViewport(viewport: Viewport): void {
     const scope = viewport.scope;
@@ -287,10 +301,10 @@ export class Router {
     let closest: number = Number.MAX_SAFE_INTEGER;
     let scope: Scope;
     for (const sc of this.scopes) {
-      let el = sc.element;
+      let el = element;
       let i = 0;
       while (el) {
-        if (el === element) {
+        if (el === sc.element) {
           break;
         }
         i++;
@@ -302,15 +316,5 @@ export class Router {
       }
     }
     return scope;
-  }
-
-  private resolveComponent(component: ICustomElementType | string): ICustomElementType {
-    if (typeof component === 'string') {
-      const resolver = this.container.getResolver(CustomElementResource.keyFrom(component));
-      if (resolver !== null) {
-        component = <ICustomElementType>resolver.getFactory(this.container).Type;
-      }
-    }
-    return <ICustomElementType>component;
   }
 }

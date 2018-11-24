@@ -89,88 +89,50 @@ export class Router {
     }
 
     const viewports: Viewport[] = [];
-    // for (let vp in views) {
-    //   let component: ICustomElementType | string = views[vp];
-    //   this.findViewport(`${vp}:${component}`).then((viewport) => {
-    //     if (viewport.setNextContent(component, instruction)) {
-    //       viewports.push(viewport);
-    //     }
-    //   });
-    // }
-
-    // for (let vp in views) {
-    //   let component: ICustomElementType | string = views[vp];
-    //   const viewport = this.findViewport(`${vp}:${component}`);
-    //   if (viewport.setNextContent(component, instruction)) {
-    //     viewports.push(viewport);
-    //   }
-    // }
-
-    //xxx Promise.all(Object.keys(views).map((vp) => {
-    //   const component: ICustomElementType | string = views[vp];
-
-    //   return this.findViewport(`${vp}:${component}`).then((viewport) => {
-    //     if (viewport.setNextContent(component, instruction)) {
-    //       viewports.push(viewport);
-    //     }
-    //     // return Promise.resolve();
-    //   });
-
-    //xxx })).then(() => {
-
-    return Object.keys(views).reduce((promise, vp) => {
-      return promise.then(() => {
-        const component: ICustomElementType | string = views[vp];
-
-        return this.findViewport(`${vp}:${component}`).then((viewport) => {
-          if (viewport.setNextContent(component, instruction)) {
-            viewports.push(viewport);
-          }
-          return Promise.resolve();
-        });
-        // const viewport = this.findViewport(`${vp}:${component}`);
-        // if (viewport.setNextContent(component, instruction)) {
-        //   viewports.push(viewport);
-        // }
-        // return Promise.resolve();
-      });
-    }, Promise.resolve()).then(() => {
-
-      // We've gone via a redirected route back to same viewport status so
-      // we need to remove the added history entry for the redirect
-      if (!viewports.length && this.isRedirecting) {
-        this.historyBrowser.cancel();
-        this.isRedirecting = false;
+    for (let vp in views) {
+      let component: ICustomElementType | string = views[vp];
+      const viewport = this.findViewport(`${vp}:${component}`);
+      if (viewport.setNextContent(component, instruction)) {
+        viewports.push(viewport);
       }
+    }
 
-      let cancel: boolean = false;
-      return Promise.all(viewports.map((value) => value.canLeave()))
-        .then((promises: boolean[]) => {
-          if (cancel || promises.findIndex((value) => value === false) >= 0) {
-            cancel = true;
-            return Promise.resolve([]);
-          } else {
-            return Promise.all(viewports.map((value) => value.canEnter()));
-          }
-        }).then((promises: boolean[]) => {
-          if (cancel || promises.findIndex((value) => value === false) >= 0) {
-            cancel = true;
-            return Promise.resolve([]);
-          } else {
-            return Promise.all(viewports.map((value) => value.loadContent()));
-          }
-        }).then(() => {
-          if (cancel) {
-            this.historyBrowser.cancel();
-          }
-          console.log('=========== ROUTER', this);
-        });
-      // Don't delete this, you'll need (a version of) it later
-      // }).then(() => {
-      //   const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
-      //   this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
-      // });
-    });
+    // We've gone via a redirected route back to same viewport status so
+    // we need to remove the added history entry for the redirect
+    if (!viewports.length && this.isRedirecting) {
+      this.historyBrowser.cancel();
+      this.isRedirecting = false;
+    }
+
+    let cancel: boolean = false;
+    return Promise.all(viewports.map((value) => value.canLeave()))
+      .then((promises: boolean[]) => {
+        if (cancel || promises.findIndex((value) => value === false) >= 0) {
+          cancel = true;
+          return Promise.resolve([]);
+        } else {
+          return Promise.all(viewports.map((value) => value.canEnter()));
+        }
+      }).then((promises: boolean[]) => {
+        if (cancel || promises.findIndex((value) => value === false) >= 0) {
+          cancel = true;
+          return Promise.resolve([]);
+        } else {
+          return Promise.all(viewports.map((value) =>
+            value.loadContent()));
+        }
+      }).then(() => {
+        if (cancel) {
+          this.historyBrowser.cancel();
+        }
+        console.log('=========== ROUTER', this);
+      });
+    // Don't delete this, you'll need (a version of) it later
+    // }).then(() => {
+    //   const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
+    //   this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
+    // });
+    //yy });
   }
 
   // public view(views: Object, title?: string, data?: Object): Promise<void> {
@@ -251,9 +213,9 @@ export class Router {
     const expandedSections: string[] = [];
     while (sections.length) {
       const part = sections.shift();
-      const parts = part.split('.');
+      const parts = part.split('+');
       for (let i = 1; i <= parts.length; i++) {
-        expandedSections.push(parts.slice(0, i).join('.'));
+        expandedSections.push(parts.slice(0, i).join('+'));
       }
     }
     sections = expandedSections;
@@ -265,7 +227,7 @@ export class Router {
       // As a = part at the end of the view!
       const parts = view.split(':');
       const component = parts.pop();
-      const name = (parts.length ? parts.join(':') : `+${index++}`);
+      const name = (parts.length ? parts.join(':') : `?${index++}`);
       if (component) {
         views[name] = component;
       }
@@ -273,7 +235,7 @@ export class Router {
     return views;
   }
 
-  public findViewport(name: string): Promise<Viewport> {
+  public findViewport(name: string): Viewport {
     return this.rootScope.findViewport(name);
   }
 
@@ -286,16 +248,19 @@ export class Router {
     return this.closestScope(element);
   }
 
+  // Called from the viewport custom element
   public addViewport(name: string, element: Element, newScope?: boolean): Viewport {
     const parentScope = this.findScope(element);
     return parentScope.addViewport(name, element, newScope);
   }
+  // Called from the viewport custom element
   public removeViewport(viewport: Viewport): void {
-    const scope = viewport.scope;
-    if (!scope.removeViewport(viewport)) {
-      this.scopes.splice(this.scopes.indexOf(scope), 1);
-      if (scope === this.rootScope) {
-        this.rootScope = null;
+    // TODO: There's something hinky with remove!
+    const scope = viewport.owningScope;
+    if (!scope.removeViewport(viewport) && scope !== this.rootScope) {
+      const index = this.scopes.indexOf(scope);
+      if (index >= 0) {
+        this.scopes.splice(index, 1);
       }
     }
   }

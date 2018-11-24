@@ -1,4 +1,4 @@
-import { IIndexable, Primitive } from '@aurelia/kernel';
+import { IIndexable } from '@aurelia/kernel';
 import { DOM, IHTMLElement, INode } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor } from '../observation';
@@ -75,17 +75,17 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   }
 }
 
-export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, 'style', string | IIndexable> {}
+export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, 'style', string | Record<string, string>> {}
 
 @targetObserver()
 export class StyleAttributeAccessor implements StyleAttributeAccessor {
-  public currentValue: string | IIndexable;
-  public defaultValue: string | IIndexable;
+  public currentValue: string | Record<string, string>;
+  public defaultValue: string | Record<string, string>;
   public lifecycle: ILifecycle;
   public obj: IHTMLElement;
-  public oldValue: string | IIndexable;
+  public oldValue: string | Record<string, string>;
   public propertyKey: 'style';
-  public styles: IIndexable;
+  public styles: object;
   public version: number;
 
   constructor(lifecycle: ILifecycle, obj: IHTMLElement) {
@@ -109,7 +109,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
     this.obj.style.setProperty(style, value, priority);
   }
 
-  public setValueCore(newValue: string | IIndexable): void {
+  public setValueCore(newValue: string | Record<string, string>): void {
     const styles = this.styles || {};
     let style;
     let version = this.version;
@@ -166,7 +166,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
   public defaultValue: string;
   public doNotCache: true;
   public lifecycle: ILifecycle;
-  public nameIndex: IIndexable;
+  public nameIndex: object;
   public obj: INode;
   public oldValue: string;
   public version: number;
@@ -229,30 +229,30 @@ ClassAttributeAccessor.prototype.doNotCache = true;
 ClassAttributeAccessor.prototype.version = 0;
 ClassAttributeAccessor.prototype.nameIndex = null;
 
-export interface ElementPropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
+export interface ElementPropertyAccessor extends IBindingTargetAccessor<object, string> {}
 
 @targetObserver('')
 export class ElementPropertyAccessor implements ElementPropertyAccessor {
   public lifecycle: ILifecycle;
-  public obj: IIndexable;
+  public obj: object;
   public propertyKey: string;
 
-  constructor(lifecycle: ILifecycle, obj: IIndexable, propertyKey: string) {
+  constructor(lifecycle: ILifecycle, obj: object, propertyKey: string) {
     this.lifecycle = lifecycle;
     this.obj = obj;
     this.propertyKey = propertyKey;
   }
 
-  public getValue(): Primitive | IIndexable {
+  public getValue(): unknown {
     return this.obj[this.propertyKey];
   }
 
-  public setValueCore(value: Primitive | IIndexable): void {
+  public setValueCore(value: unknown): void {
     this.obj[this.propertyKey] = value;
   }
 }
 
-export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
+export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string> {}
 
 export class PropertyAccessor implements PropertyAccessor {
   public obj: IIndexable;
@@ -263,11 +263,11 @@ export class PropertyAccessor implements PropertyAccessor {
     this.propertyKey = propertyKey;
   }
 
-  public getValue(): Primitive | IIndexable {
+  public getValue(): unknown {
     return this.obj[this.propertyKey];
   }
 
-  public setValue(value: Primitive | IIndexable): void {
+  public setValue(value: unknown): void {
     this.obj[this.propertyKey] = value;
   }
 }

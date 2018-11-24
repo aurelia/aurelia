@@ -1,4 +1,3 @@
-import { IIndexable, Primitive } from '@aurelia/kernel';
 import {
   IBatchedCollectionSubscriber, IBatchedSubscriberCollection, IndexMap, IPropertySubscriber,
   ISubscriberCollection, LifecycleFlags, MutationKind, MutationKindToBatchedSubscriber,
@@ -86,8 +85,8 @@ function removeSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>
 
 function callPropertySubscribers(
   this: ISubscriberCollection<MutationKind.instance>,
-  newValue: IIndexable | Primitive,
-  previousValue: IIndexable | Primitive,
+  newValue: unknown,
+  previousValue: unknown,
   flags: LifecycleFlags): void {
   /**
    * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this

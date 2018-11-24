@@ -1,4 +1,4 @@
-import { IIndexable, PLATFORM, Primitive, Reporter } from '@aurelia/kernel';
+import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, ISubscribable, LifecycleFlags, MutationKind } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
@@ -67,11 +67,11 @@ export interface CustomSetterObserver extends IBindingTargetObserver { }
 @subscriberCollection(MutationKind.instance)
 export class CustomSetterObserver implements CustomSetterObserver {
   public $nextFlush: this;
-  public currentValue: IIndexable | Primitive;
+  public currentValue: unknown;
   public dispose: () => void;
   public observing: boolean;
   public obj: IObservable;
-  public oldValue: IIndexable | Primitive;
+  public oldValue: unknown;
   public propertyKey: string;
 
   private descriptor: PropertyDescriptor;
@@ -88,11 +88,11 @@ export class CustomSetterObserver implements CustomSetterObserver {
     this.lifecycle = lifecycle;
   }
 
-  public getValue(): IIndexable | Primitive {
+  public getValue(): unknown {
     return this.obj[this.propertyKey];
   }
 
-  public setValue(newValue: IIndexable | Primitive): void {
+  public setValue(newValue: unknown): void {
     this.obj[this.propertyKey] = newValue;
   }
 
@@ -122,7 +122,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
     this.currentValue = this.obj[this.propertyKey];
 
     Reflect.defineProperty(this.obj, this.propertyKey, {
-      set: function(newValue: IIndexable | Primitive): void {
+      set: function(newValue: unknown): void {
         setter.call(that.obj, newValue);
 
         const oldValue = that.currentValue;
@@ -160,11 +160,11 @@ export class GetterObserver implements GetterObserver {
     this.controller = new GetterController(overrides, obj, propertyKey, descriptor, this, observerLocator, lifecycle);
   }
 
-  public getValue(): IIndexable | Primitive {
+  public getValue(): unknown {
     return this.controller.value;
   }
 
-  public setValue(newValue: IIndexable | Primitive): void {
+  public setValue(newValue: unknown): void {
     return;
   }
 
@@ -192,7 +192,7 @@ GetterObserver.prototype.dispose = PLATFORM.noop;
 
 /*@internal*/
 export class GetterController {
-  public value: IIndexable | Primitive;
+  public value: unknown;
   public isCollecting: boolean;
 
   private dependencies: ISubscribable<MutationKind.instance>[];
@@ -219,7 +219,7 @@ export class GetterController {
     const ctrl = this;
 
     Reflect.defineProperty(instance, propertyName, {
-      get: function(): IIndexable | Primitive {
+      get: function(): unknown {
         if (ctrl.subscriberCount < 1 || ctrl.isCollecting) {
           ctrl.value = getter.apply(proxy);
         }
@@ -247,7 +247,7 @@ export class GetterController {
     this.getValueAndCollectDependencies(true);
   }
 
-  public getValueAndCollectDependencies(requireCollect: boolean = false): IIndexable | Primitive {
+  public getValueAndCollectDependencies(requireCollect: boolean = false): unknown {
     const dynamicDependencies = !this.overrides.static || requireCollect;
 
     if (dynamicDependencies) {
@@ -285,7 +285,7 @@ export class GetterController {
 
 function createGetterTraps(observerLocator: IObserverLocator, controller: GetterController): ReturnType<typeof proxyOrValue> {
   return {
-    get: function(instance: IIndexable, key: string): IIndexable | Primitive {
+    get: function(instance: object, key: string): unknown {
       const value = instance[key];
 
       if (key === '$observers' || typeof value === 'function' || !controller.isCollecting) {
@@ -320,7 +320,7 @@ function createGetterTraps(observerLocator: IObserverLocator, controller: Getter
   };
 }
 
-function proxyOrValue(observerLocator: IObserverLocator, controller: GetterController, value: IIndexable): ProxyHandler<IIndexable> {
+function proxyOrValue(observerLocator: IObserverLocator, controller: GetterController, value: object): ProxyHandler<object> {
   if (!(value instanceof Object)) {
     return value;
   }

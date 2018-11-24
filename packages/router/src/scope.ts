@@ -15,8 +15,8 @@ export class Scope {
     }
   }
 
-  public findViewport(name: string): Promise<Viewport> {
-    const parts = name.split('.');
+  public findViewport(name: string): Viewport {
+    const parts = name.split('+');
     const names = parts.shift().split(':');
     const comp = names.pop();
     name = names.shift();
@@ -27,24 +27,14 @@ export class Scope {
     }
     const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, newScope);
     if (!parts.length) {
-      return Promise.resolve(viewport);
+      return viewport;
     } else {
-      if (viewport.scope) {
-        return viewport.scope.findViewport(parts.join('.'));
-      }
-      else {
-        return new Promise<Viewport>((resolve, reject) => {
-          viewport.pendingQueries.push({
-            name: parts.join('.'),
-            resolve: resolve,
-          });
-        });
-      }
+      return viewport.scope.findViewport(parts.join('+'));
     }
   }
 
   public resolveViewport(name: string, component: string): Viewport {
-    if (name.length && name.charAt(0) !== '+') {
+    if (name.length && name.charAt(0) !== '?') {
       return this.viewports[name];
     }
     // Need more ways to resolve viewport based on component name!
@@ -65,7 +55,7 @@ export class Scope {
         this.router.scopes.push(scope);
       }
 
-      viewport = this.viewports[name] = new Viewport(this.router.container, name, element, scope);
+      viewport = this.viewports[name] = new Viewport(this.router.container, name, element, this, scope);
       // First added viewport with element is always scope viewport (except for root scope)
       if (element && scope.parent && !scope.viewport) {
         scope.viewport = viewport;
@@ -75,16 +65,12 @@ export class Scope {
       if (!viewport.scope.element) {
         viewport.scope.element = element;
       }
-      viewport.element = element;
-      // Promise.resolve(viewport).then((viewport) => {
-      this.renderViewport(viewport);
-      Promise.resolve(viewport).then((viewport) => {
-        while (viewport.pendingQueries.length) {
-          const query = viewport.pendingQueries.shift();
-          query.resolve(this.findViewport(query.name));
+      if (!viewport.element) {
+        viewport.element = element;
+        if (!viewport.element.children) {
+          this.renderViewport(viewport);
         }
-      });
-      // });
+      }
     }
     return viewport;
   }

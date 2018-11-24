@@ -2,7 +2,7 @@ import { DOM, IElement, IInputElement, INode, INodeObserver } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import {
   CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver,
-  IndexMap, IObserversLookup,  IPropertySubscriber, LifecycleFlags
+  IndexMap, IPropertySubscriber, LifecycleFlags, ObserversLookup
 } from '../observation';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
@@ -110,11 +110,9 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
 
   private flushFileChanges(): void {
     const currentValue = this.currentValue;
-    if (this.oldValue !== currentValue) {
-      if (currentValue === '') {
-        this.setValueCore(currentValue, this.currentFlags);
-        this.oldValue = this.currentValue;
-      }
+    if (this.oldValue !== currentValue && currentValue === '') {
+      this.setValueCore(currentValue, this.currentFlags);
+      this.oldValue = this.currentValue;
     }
   }
 }
@@ -127,7 +125,7 @@ const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlag
 interface IInternalInputElement extends IInputElement {
   matcher?: typeof defaultMatcher;
   model?: unknown;
-  $observers?: IObserversLookup & {
+  $observers?: ObserversLookup & {
     model?: SetterObserver;
     value?: ValueAttributeObserver;
   };

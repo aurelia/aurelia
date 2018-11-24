@@ -6,7 +6,7 @@ import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
 import { INode, IRenderLocation } from '../../dom';
 import { IRenderable, IView, IViewFactory, State } from '../../lifecycle';
-import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IObservedMap, IObservedSet, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
+import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 
@@ -100,6 +100,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   }
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
+  // TODO: Reduce complexity (currently at 46)
   private processViews(indexMap: number[] | null, flags: LifecycleFlags): void {
     const { views, $lifecycle } = this;
     if (this.$state & State.isBound) {
@@ -133,7 +134,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
       $lifecycle.beginBind();
       if (indexMap === null) {
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | IObservedArray | IObservedSet | IObservedMap | IIndexable)) => {
+        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           const view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
@@ -142,7 +143,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           }
         });
       } else {
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | IObservedArray | IObservedSet | IObservedMap | IIndexable)) => {
+        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           const view = views[i];
           if (indexMap[i] === i && !!view.$scope) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
@@ -180,10 +181,8 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     const oldObserver = this.observer;
     if (this.$state & (State.isBound | State.isBinding)) {
       const newObserver = this.observer = getCollectionObserver(this.$lifecycle, this.items);
-      if (oldObserver !== newObserver) {
-        if (oldObserver) {
-          oldObserver.unsubscribeBatched(this);
-        }
+      if (oldObserver !== newObserver && oldObserver) {
+        oldObserver.unsubscribeBatched(this);
       }
       if (newObserver) {
         newObserver.subscribeBatched(this);

@@ -21,14 +21,16 @@ export class InternalObserversLookup {
   }
 }
 
+type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
+
 export class BindingContext implements IBindingContext {
-  [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
+  [key: string]: BindingContextValue;
 
   public readonly $synthetic: true;
 
   public $observers: ObserversLookup<IOverrideContext>;
 
-  private constructor(keyOrObj?: string | IIndexable, value?: ObservedCollection | StrictPrimitive | IIndexable) {
+  private constructor(keyOrObj?: string | IIndexable, value?: BindingContextValue) {
     this.$synthetic = true;
 
     if (keyOrObj !== undefined) {
@@ -47,8 +49,8 @@ export class BindingContext implements IBindingContext {
   }
 
   public static create(obj?: IIndexable): BindingContext;
-  public static create(key: string, value: ObservedCollection | StrictPrimitive | IIndexable): BindingContext;
-  public static create(keyOrObj?: string | IIndexable, value?: ObservedCollection | StrictPrimitive | IIndexable): BindingContext {
+  public static create(key: string, value: BindingContextValue): BindingContext;
+  public static create(keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext {
     return new BindingContext(keyOrObj, value);
   }
 

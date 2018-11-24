@@ -14,16 +14,28 @@ export class Scope {
     }
   }
 
+  //xx  public findViewport(name: string): Promise<Viewport> {
   public findViewport(name: string): Viewport {
     const parts = name.split('.');
     const names = parts.shift().split(':');
     const comp = names.pop();
     name = names.shift();
-    const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null);
+    const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, null);
     if (!parts.length) {
       return viewport;
+      //xx return Promise.resolve(viewport);
     } else {
-      return viewport.scope.findViewport(parts.join('.'));
+      //xx if (viewport.scope) {
+        return viewport.scope.findViewport(parts.join('.'));
+      //xx }
+      // else {
+      //   return new Promise<Viewport>((resolve, reject) => {
+      //     viewport.pendingQueries.push({
+      //       name: parts.join('.'),
+      //       resolve: resolve,
+      //     });
+      //   });
+      //xx }
     }
   }
 
@@ -52,9 +64,15 @@ export class Scope {
     if (element) {
       viewport.scope = scope;
       viewport.element = element;
-      Promise.resolve(viewport).then((viewport) => {
-        this.renderViewport(viewport);
-      });
+      // Promise.resolve(viewport).then((viewport) => {
+      this.renderViewport(viewport);
+      //xx Promise.resolve(viewport).then((viewport) => {
+      //   while (viewport.pendingQueries.length) {
+      //     const query = viewport.pendingQueries.shift();
+      //     query.resolve(this.findViewport(query.name));
+      //   }
+      //xx });
+      // });
     }
     return viewport;
   }

@@ -89,6 +89,15 @@ export class Router {
     }
 
     const viewports: Viewport[] = [];
+    // for (let vp in views) {
+    //   let component: ICustomElementType | string = views[vp];
+    //   this.findViewport(`${vp}:${component}`).then((viewport) => {
+    //     if (viewport.setNextContent(component, instruction)) {
+    //       viewports.push(viewport);
+    //     }
+    //   });
+    // }
+
     for (let vp in views) {
       let component: ICustomElementType | string = views[vp];
       const viewport = this.findViewport(`${vp}:${component}`);
@@ -96,6 +105,36 @@ export class Router {
         viewports.push(viewport);
       }
     }
+
+    //xxx Promise.all(Object.keys(views).map((vp) => {
+    //   const component: ICustomElementType | string = views[vp];
+
+    //   return this.findViewport(`${vp}:${component}`).then((viewport) => {
+    //     if (viewport.setNextContent(component, instruction)) {
+    //       viewports.push(viewport);
+    //     }
+    //     // return Promise.resolve();
+    //   });
+
+    //xxx })).then(() => {
+
+    // return Object.keys(views).reduce((promise, vp) => {
+    //   return promise.then(() => {
+    //     const component: ICustomElementType | string = views[vp];
+
+    //     return this.findViewport(`${vp}:${component}`).then((viewport) => {
+    //       if (viewport.setNextContent(component, instruction)) {
+    //         viewports.push(viewport);
+    //       }
+    //       return Promise.resolve();
+    //     });
+    //     // const viewport = this.findViewport(`${vp}:${component}`);
+    //     // if (viewport.setNextContent(component, instruction)) {
+    //     //   viewports.push(viewport);
+    //     // }
+    //     // return Promise.resolve();
+    //   });
+    // }, Promise.resolve()).then(() => {
 
     // We've gone via a redirected route back to same viewport status so
     // we need to remove the added history entry for the redirect
@@ -131,56 +170,57 @@ export class Router {
     //   const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
     //   this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
     // });
+    //xxx });
   }
 
-  public view(views: Object, title?: string, data?: Object): Promise<void> {
-    console.log('Router.view:', views, title, data);
+  // public view(views: Object, title?: string, data?: Object): Promise<void> {
+  //   console.log('Router.view:', views, title, data);
 
-    if (title) {
-      this.historyBrowser.setEntryTitle(title);
-    }
+  //   if (title) {
+  //     this.historyBrowser.setEntryTitle(title);
+  //   }
 
-    const viewports: Viewport[] = [];
-    for (const v in views) {
-      const component: ICustomElementType = views[v];
-      const viewport = this.findViewport(`${v}:${component}`);
-      if (viewport.setNextContent(component, { path: '' })) {
-        viewports.push(viewport);
-      }
-    }
+  //   const viewports: Viewport[] = [];
+  //   for (const v in views) {
+  //     const component: ICustomElementType = views[v];
+  //     const viewport = this.findViewport(`${v}:${component}`);
+  //     if (viewport.setNextContent(component, { path: '' })) {
+  //       viewports.push(viewport);
+  //     }
+  //   }
 
-    // We've gone via a redirected route back to same viewport status so
-    // we need to remove the added history entry for the redirect
-    if (!viewports.length && this.isRedirecting) {
-      this.historyBrowser.cancel();
-      this.isRedirecting = false;
-    }
+  //   // We've gone via a redirected route back to same viewport status so
+  //   // we need to remove the added history entry for the redirect
+  //   if (!viewports.length && this.isRedirecting) {
+  //     this.historyBrowser.cancel();
+  //     this.isRedirecting = false;
+  //   }
 
-    let cancel: boolean = false;
-    return Promise.all(viewports.map((value) => value.canLeave()))
-      .then((promises: boolean[]) => {
-        if (cancel || promises.findIndex((value) => value === false) >= 0) {
-          cancel = true;
-          return Promise.resolve([]);
-        } else {
-          return Promise.all(viewports.map((value) => value.canEnter()));
-        }
-      }).then((promises: boolean[]) => {
-        if (cancel || promises.findIndex((value) => value === false) >= 0) {
-          cancel = true;
-          return Promise.resolve([]);
-        } else {
-          return Promise.all(viewports.map((value) => value.loadContent()));
-        }
-      }).then(() => {
-        if (cancel) {
-          this.historyBrowser.cancel();
-        }
-      }).then(() => {
-        const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
-        this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
-      });
-  }
+  //   let cancel: boolean = false;
+  //   return Promise.all(viewports.map((value) => value.canLeave()))
+  //     .then((promises: boolean[]) => {
+  //       if (cancel || promises.findIndex((value) => value === false) >= 0) {
+  //         cancel = true;
+  //         return Promise.resolve([]);
+  //       } else {
+  //         return Promise.all(viewports.map((value) => value.canEnter()));
+  //       }
+  //     }).then((promises: boolean[]) => {
+  //       if (cancel || promises.findIndex((value) => value === false) >= 0) {
+  //         cancel = true;
+  //         return Promise.resolve([]);
+  //       } else {
+  //         return Promise.all(viewports.map((value) => value.loadContent()));
+  //       }
+  //     }).then(() => {
+  //       if (cancel) {
+  //         this.historyBrowser.cancel();
+  //       }
+  //     }).then(() => {
+  //       const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
+  //       this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
+  //     });
+  // }
 
   public findRoute(entry: IHistoryEntry): IRoute {
     return this.routes.find((value) => value.path === entry.path);
@@ -233,6 +273,7 @@ export class Router {
     return views;
   }
 
+  //xx public findViewport(name: string): Promise<Viewport> {
   public findViewport(name: string): Viewport {
     return this.rootScope.findViewport(name);
   }
@@ -274,9 +315,10 @@ export class Router {
   public goto(pathOrViewports: string | Object, title?: string, data?: Object): void {
     if (typeof pathOrViewports === 'string') {
       this.historyBrowser.goto(pathOrViewports, title, data);
-    } else {
-      this.view(pathOrViewports, title, data);
     }
+    // else {
+    //   this.view(pathOrViewports, title, data);
+    // }
   }
 
   public replace(pathOrViewports: string | Object, title?: string, data?: Object): void {

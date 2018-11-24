@@ -506,12 +506,12 @@ export declare const IAttachLifecycle: InterfaceSymbol<IAttachLifecycle>;
 export declare class CompositionCoordinator {
     readonly $lifecycle: ILifecycle;
     onSwapComplete: () => void;
-    private queue;
-    private swapTask;
     private currentView;
-    private scope;
-    private isBound;
     private isAttached;
+    private isBound;
+    private queue;
+    private scope;
+    private swapTask;
     constructor($lifecycle: ILifecycle);
     static register(container: IContainer): IResolver<CompositionCoordinator>;
     compose(value: IView | Promise<IView>, flags: LifecycleFlags): void;
@@ -540,9 +540,10 @@ export interface ILifecycleTask<T = unknown> {
 }
 export declare class AggregateLifecycleTask implements ILifecycleTask<void> {
     done: boolean;
+    private resolve;
     private tasks;
     private waiter;
-    private resolve;
+    constructor();
     addTask(task: ILifecycleTask): void;
     removeTask(task: ILifecycleTask): void;
     canCancel(): boolean;

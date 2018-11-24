@@ -1,3 +1,2 @@
-import { IIndexable, Primitive } from '@aurelia/kernel';
-export declare function targetObserver(defaultValue?: Primitive | IIndexable): ClassDecorator;
+export declare function targetObserver(defaultValue?: unknown): ClassDecorator;
 //# sourceMappingURL=target-observer.d.ts.map

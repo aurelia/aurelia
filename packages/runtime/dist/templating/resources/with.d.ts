@@ -6,10 +6,10 @@ import { ICustomAttribute } from '../custom-attribute';
 export interface With extends ICustomAttribute {
 }
 export declare class With {
-    private factory;
     static register: IRegistry['register'];
     value: IBindScope | IBindingContext;
     private currentView;
+    private factory;
     constructor(factory: IViewFactory, location: IRenderLocation);
     valueChanged(this: With): void;
     binding(flags: LifecycleFlags): void;

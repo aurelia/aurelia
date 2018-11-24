@@ -6,14 +6,14 @@ import { ICustomAttribute } from '../custom-attribute';
 export interface If extends ICustomAttribute {
 }
 export declare class If {
-    ifFactory: IViewFactory;
-    location: IRenderLocation;
-    coordinator: CompositionCoordinator;
     static register: IRegistry['register'];
     value: boolean;
     elseFactory: IViewFactory;
-    ifView: IView;
     elseView: IView;
+    ifFactory: IViewFactory;
+    ifView: IView;
+    location: IRenderLocation;
+    coordinator: CompositionCoordinator;
     constructor(ifFactory: IViewFactory, location: IRenderLocation, coordinator: CompositionCoordinator);
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;
@@ -26,8 +26,8 @@ export declare class If {
 export interface Else extends ICustomAttribute {
 }
 export declare class Else {
-    private factory;
     static register: IRegistry['register'];
+    private factory;
     constructor(factory: IViewFactory);
     link(ifBehavior: If): void;
 }

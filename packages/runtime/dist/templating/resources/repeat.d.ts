@@ -8,9 +8,6 @@ import { ICustomAttribute } from '../custom-attribute';
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {
 }
 export declare class Repeat<T extends ObservedCollection = IObservedArray> {
-    location: IRenderLocation;
-    renderable: IRenderable;
-    factory: IViewFactory;
     static register: IRegistry['register'];
     items: T;
     $scope: IScope;
@@ -18,11 +15,14 @@ export declare class Repeat<T extends ObservedCollection = IObservedArray> {
         items: SetterObserver;
     };
     encapsulationSource: INode;
-    views: IView[];
-    observer: CollectionObserver;
-    hasPendingInstanceMutation: boolean;
     forOf: ForOfStatement;
+    hasPendingInstanceMutation: boolean;
     local: string;
+    location: IRenderLocation;
+    observer: CollectionObserver;
+    renderable: IRenderable;
+    factory: IViewFactory;
+    views: IView[];
     constructor(location: IRenderLocation, renderable: IRenderable, factory: IViewFactory);
     binding(flags: LifecycleFlags): void;
     bound(flags: LifecycleFlags): void;

@@ -66,12 +66,12 @@ export interface IRenderingEngine {
 }
 export declare const IRenderingEngine: import("@aurelia/kernel/dist/di").InterfaceSymbol<IRenderingEngine>;
 export declare class RenderingEngine implements IRenderingEngine {
-    private container;
-    private lifecycle;
-    private templateLookup;
-    private factoryLookup;
     private behaviorLookup;
     private compilers;
+    private container;
+    private factoryLookup;
+    private lifecycle;
+    private templateLookup;
     constructor(container: IContainer, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]);
     getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
     getViewFactory(definition: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory;

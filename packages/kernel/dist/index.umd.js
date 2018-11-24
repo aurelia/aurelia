@@ -258,7 +258,7 @@
   function createResolver(getter) {
       return function (key) {
           const Key = function Key(target, property, descriptor) {
-              return DI.inject(Key)(target, property, descriptor);
+              DI.inject(Key)(target, property, descriptor);
           };
           Key.resolve = function (handler, requestor) {
               return getter(key, handler, requestor);

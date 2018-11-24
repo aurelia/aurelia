@@ -73,66 +73,63 @@ const IAttachLifecycle = ILifecycle;
 /*@internal*/
 class Lifecycle {
     constructor() {
-        /*@internal*/ this.bindDepth = 0;
-        /*@internal*/ this.attachDepth = 0;
-        /*@internal*/ this.detachDepth = 0;
-        /*@internal*/ this.unbindDepth = 0;
-        /*@internal*/ this.flushHead = this;
-        /*@internal*/ this.flushTail = this;
-        /*@internal*/ this.connectHead = this; // this cast is safe because we know exactly which properties we'll use
-        /*@internal*/ this.connectTail = this;
-        /*@internal*/ this.patchHead = this;
-        /*@internal*/ this.patchTail = this;
-        /*@internal*/ this.boundHead = this;
-        /*@internal*/ this.boundTail = this;
-        /*@internal*/ this.mountHead = this;
-        /*@internal*/ this.mountTail = this;
-        /*@internal*/ this.attachedHead = this;
-        /*@internal*/ this.attachedTail = this;
-        /*@internal*/ this.unmountHead = this;
-        /*@internal*/ this.unmountTail = this;
-        /*@internal*/ this.detachedHead = this; //LOL
-        /*@internal*/ this.detachedTail = this;
-        /*@internal*/ this.unbindAfterDetachHead = this;
-        /*@internal*/ this.unbindAfterDetachTail = this;
-        /*@internal*/ this.unboundHead = this;
-        /*@internal*/ this.unboundTail = this;
-        /*@internal*/ this.flushed = null;
-        /*@internal*/ this.promise = Promise.resolve();
-        /*@internal*/ this.flushCount = 0;
-        /*@internal*/ this.connectCount = 0;
-        /*@internal*/ this.patchCount = 0;
-        /*@internal*/ this.boundCount = 0;
-        /*@internal*/ this.mountCount = 0;
-        /*@internal*/ this.attachedCount = 0;
-        /*@internal*/ this.unmountCount = 0;
-        /*@internal*/ this.detachedCount = 0;
-        /*@internal*/ this.unbindAfterDetachCount = 0;
-        /*@internal*/ this.unboundCount = 0;
-        // These are dummy properties to make the lifecycle conform to the interfaces
-        // of the components it manages. This allows the lifecycle itself to be the first link
-        // in the chain and removes the need for an additional null check on each addition.
-        /*@internal*/ this.$nextFlush = marker;
-        /*@internal*/ this.flush = PLATFORM.noop;
-        /*@internal*/ this.$nextConnect = marker;
-        /*@internal*/ this.connect = PLATFORM.noop;
-        /*@internal*/ this.$nextPatch = marker;
-        /*@internal*/ this.patch = PLATFORM.noop;
-        /*@internal*/ this.$nextBound = marker;
-        /*@internal*/ this.bound = PLATFORM.noop;
-        /*@internal*/ this.$nextMount = marker;
-        /*@internal*/ this.$mount = PLATFORM.noop;
-        /*@internal*/ this.$nextAttached = marker;
-        /*@internal*/ this.attached = PLATFORM.noop;
-        /*@internal*/ this.$nextUnmount = marker;
-        /*@internal*/ this.$unmount = PLATFORM.noop;
-        /*@internal*/ this.$nextDetached = marker;
-        /*@internal*/ this.detached = PLATFORM.noop;
-        /*@internal*/ this.$nextUnbindAfterDetach = marker;
-        /*@internal*/ this.$unbind = PLATFORM.noop;
-        /*@internal*/ this.$nextUnbound = marker;
-        /*@internal*/ this.unbound = PLATFORM.noop;
-        /*@internal*/ this.task = null;
+        this.bindDepth = 0;
+        this.attachDepth = 0;
+        this.detachDepth = 0;
+        this.unbindDepth = 0;
+        this.flushHead = this;
+        this.flushTail = this;
+        this.connectHead = this; // this cast is safe because we know exactly which properties we'll use
+        this.connectTail = this;
+        this.patchHead = this;
+        this.patchTail = this;
+        this.boundHead = this;
+        this.boundTail = this;
+        this.mountHead = this;
+        this.mountTail = this;
+        this.attachedHead = this;
+        this.attachedTail = this;
+        this.unmountHead = this;
+        this.unmountTail = this;
+        this.detachedHead = this; //LOL
+        this.detachedTail = this;
+        this.unbindAfterDetachHead = this;
+        this.unbindAfterDetachTail = this;
+        this.unboundHead = this;
+        this.unboundTail = this;
+        this.flushed = null;
+        this.promise = Promise.resolve();
+        this.flushCount = 0;
+        this.connectCount = 0;
+        this.patchCount = 0;
+        this.boundCount = 0;
+        this.mountCount = 0;
+        this.attachedCount = 0;
+        this.unmountCount = 0;
+        this.detachedCount = 0;
+        this.unbindAfterDetachCount = 0;
+        this.unboundCount = 0;
+        this.$nextFlush = marker;
+        this.flush = PLATFORM.noop;
+        this.$nextConnect = marker;
+        this.connect = PLATFORM.noop;
+        this.$nextPatch = marker;
+        this.patch = PLATFORM.noop;
+        this.$nextBound = marker;
+        this.bound = PLATFORM.noop;
+        this.$nextMount = marker;
+        this.$mount = PLATFORM.noop;
+        this.$nextAttached = marker;
+        this.attached = PLATFORM.noop;
+        this.$nextUnmount = marker;
+        this.$unmount = PLATFORM.noop;
+        this.$nextDetached = marker;
+        this.detached = PLATFORM.noop;
+        this.$nextUnbindAfterDetach = marker;
+        this.$unbind = PLATFORM.noop;
+        this.$nextUnbound = marker;
+        this.unbound = PLATFORM.noop;
+        this.task = null;
     }
     registerTask(task) {
         if (this.task === null) {
@@ -503,11 +500,11 @@ let CompositionCoordinator = class CompositionCoordinator {
     constructor($lifecycle) {
         this.$lifecycle = $lifecycle;
         this.onSwapComplete = PLATFORM.noop;
+        this.currentView = null;
+        this.isAttached = false;
+        this.isBound = false;
         this.queue = null;
         this.swapTask = LifecycleTask.done;
-        this.currentView = null;
-        this.isBound = false;
-        this.isAttached = false;
     }
     static register(container) {
         return Registration.transient(this, this).register(container, this);
@@ -648,11 +645,10 @@ const LifecycleTask = {
 class AggregateLifecycleTask {
     constructor() {
         this.done = true;
-        /*@internal*/
         this.owner = null;
+        this.resolve = null;
         this.tasks = [];
         this.waiter = null;
-        this.resolve = null;
     }
     addTask(task) {
         if (!task.done) {
@@ -725,9 +721,9 @@ class AggregateLifecycleTask {
 class PromiseSwap {
     constructor(coordinator, promise) {
         this.coordinator = coordinator;
-        this.promise = promise;
         this.done = false;
         this.isCancelled = false;
+        this.promise = promise;
     }
     static is(object) {
         return 'start' in object;
@@ -1209,12 +1205,12 @@ class NodeSequenceFactory {
 }
 /*@internal*/
 class AuMarker {
-    constructor(next) {
-        this.textContent = '';
-        this.nextSibling = next;
-    }
     get parentNode() {
         return this.nextSibling.parentNode;
+    }
+    constructor(next) {
+        this.nextSibling = next;
+        this.textContent = '';
     }
     remove() { }
 }
@@ -1576,7 +1572,6 @@ function targetObserver(defaultValue = null) {
     };
 }
 
-// tslint:disable-next-line:no-http-string
 const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
 let XLinkAttributeAccessor = class XLinkAttributeAccessor {
     // xlink namespaced attributes require getAttributeNS/setAttributeNS
@@ -6107,9 +6102,9 @@ function createElement(tagOrType, props, children) {
 }
 class RenderPlan {
     constructor(node, instructions, dependencies) {
-        this.node = node;
-        this.instructions = instructions;
         this.dependencies = dependencies;
+        this.instructions = instructions;
+        this.node = node;
     }
     get definition() {
         return this.lazyDefinition || (this.lazyDefinition =
@@ -6597,8 +6592,6 @@ class RuntimeCompilationResources {
 /*@internal*/
 class View {
     constructor($lifecycle, cache) {
-        this.$lifecycle = $lifecycle;
-        this.cache = cache;
         this.$bindableHead = null;
         this.$bindableTail = null;
         this.$nextBind = null;
@@ -6613,6 +6606,8 @@ class View {
         this.$state = 0 /* none */;
         this.$scope = null;
         this.isFree = false;
+        this.$lifecycle = $lifecycle;
+        this.cache = cache;
     }
     hold(location, flags) {
         if (!location.parentNode) { // unmet invariant: location must be a child of some other node
@@ -6635,12 +6630,12 @@ class View {
 /*@internal*/
 class ViewFactory {
     constructor(name, template, lifecycle) {
-        this.name = name;
-        this.template = template;
-        this.lifecycle = lifecycle;
         this.isCaching = false;
         this.cacheSize = -1;
         this.cache = null;
+        this.lifecycle = lifecycle;
+        this.name = name;
+        this.template = template;
     }
     setCacheSize(size, doNotOverrideIfAlreadySet) {
         if (size) {
@@ -6774,11 +6769,11 @@ let RenderingEngine =
 /*@internal*/
 class RenderingEngine {
     constructor(container, lifecycle, templateCompilers) {
+        this.behaviorLookup = new Map();
         this.container = container;
+        this.factoryLookup = new Map();
         this.lifecycle = lifecycle;
         this.templateLookup = new Map();
-        this.factoryLookup = new Map();
-        this.behaviorLookup = new Map();
         this.compilers = templateCompilers.reduce((acc, item) => {
             acc[item.name] = item;
             return acc;
@@ -6846,8 +6841,8 @@ const childObserverOptions$1 = { childList: true };
 class ShadowDOMProjector {
     constructor($customElement, host, definition) {
         this.host = host;
-        this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
-        host.$customElement = $customElement;
+        this.shadowRoot = DOM.attachShadow(this.host, definition.shadowOptions || defaultShadowOptions);
+        this.host.$customElement = $customElement;
         this.shadowRoot.$customElement = $customElement;
     }
     get children() {
@@ -6901,7 +6896,7 @@ class ContainerlessProjector {
 class HostProjector {
     constructor($customElement, host) {
         this.host = host;
-        host.$customElement = $customElement;
+        this.host.$customElement = $customElement;
     }
     get children() {
         return PLATFORM.emptyArray;
@@ -6972,10 +6967,10 @@ function createGetterSetter(instance, name) {
 /*@internal*/
 let ChildrenObserver = class ChildrenObserver {
     constructor(lifecycle, customElement) {
-        this.lifecycle = lifecycle;
-        this.customElement = customElement;
         this.hasChanges = false;
         this.children = null;
+        this.customElement = customElement;
+        this.lifecycle = lifecycle;
         this.observing = false;
     }
     getValue() {
@@ -7031,8 +7026,8 @@ function findElements(nodes) {
 class CompiledTemplate {
     constructor(renderingEngine, parentRenderContext, templateDefinition) {
         this.templateDefinition = templateDefinition;
-        this.factory = NodeSequenceFactory.createFor(templateDefinition.template);
-        this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
+        this.factory = NodeSequenceFactory.createFor(this.templateDefinition.template);
+        this.renderContext = createRenderContext(renderingEngine, parentRenderContext, this.templateDefinition.dependencies);
     }
     render(renderable, host, parts) {
         const nodes = renderable.$nodes = this.factory.createNodeSequence();
@@ -7333,13 +7328,13 @@ const composeSource = {
 const composeProps = ['subject', 'composing'];
 let Compose = class Compose {
     constructor(renderable, instruction, renderingEngine, coordinator) {
-        this.renderable = renderable;
-        this.renderingEngine = renderingEngine;
-        this.coordinator = coordinator;
         this.subject = null;
         this.composing = false;
-        this.properties = null;
+        this.coordinator = coordinator;
         this.lastSubject = null;
+        this.properties = null;
+        this.renderable = renderable;
+        this.renderingEngine = renderingEngine;
         this.coordinator.onSwapComplete = () => {
             this.composing = false;
         };
@@ -7523,13 +7518,13 @@ function createCustomAttributeDescription(def, Type) {
 
 let If = class If {
     constructor(ifFactory, location, coordinator) {
-        this.ifFactory = ifFactory;
-        this.location = location;
-        this.coordinator = coordinator;
         this.value = false;
+        this.coordinator = coordinator;
         this.elseFactory = null;
-        this.ifView = null;
         this.elseView = null;
+        this.ifFactory = ifFactory;
+        this.ifView = null;
+        this.location = location;
     }
     binding(flags) {
         const view = this.updateView(flags);
@@ -7612,13 +7607,13 @@ Else = __decorate([
 
 let Repeat = class Repeat {
     constructor(location, renderable, factory) {
-        this.location = location;
-        this.renderable = renderable;
-        this.factory = factory;
         this.encapsulationSource = null;
-        this.views = [];
-        this.observer = null;
+        this.factory = factory;
         this.hasPendingInstanceMutation = false;
+        this.location = location;
+        this.observer = null;
+        this.renderable = renderable;
+        this.views = [];
     }
     binding(flags) {
         this.checkCollectionObserver();
@@ -7800,10 +7795,9 @@ Replaceable = __decorate([
 
 let With = class With {
     constructor(factory, location) {
-        this.factory = factory;
-        // TODO: this type is incorrect (it can be any user-provided object), need to fix and double check Scope.
-        this.value = null;
         this.currentView = null;
+        this.value = null;
+        this.factory = factory;
         this.currentView = this.factory.create();
         this.currentView.hold(location, LifecycleFlags.fromCreate);
     }
@@ -8228,158 +8222,159 @@ const HtmlRenderer = {
 
 class TextBindingInstruction {
     constructor(from) {
-        this.from = from;
         this.type = "a" /* textBinding */;
+        this.from = from;
     }
 }
 class InterpolationInstruction {
     constructor(from, to) {
+        this.type = "b" /* interpolation */;
         this.from = from;
         this.to = to;
-        this.type = "b" /* interpolation */;
     }
 }
 class OneTimeBindingInstruction {
     constructor(from, to) {
-        this.from = from;
-        this.to = to;
         this.type = "c" /* propertyBinding */;
-        this.oneTime = true;
+        this.from = from;
         this.mode = BindingMode.oneTime;
+        this.oneTime = true;
+        this.to = to;
     }
 }
 class ToViewBindingInstruction {
     constructor(from, to) {
-        this.from = from;
-        this.to = to;
         this.type = "c" /* propertyBinding */;
-        this.oneTime = false;
+        this.from = from;
         this.mode = BindingMode.toView;
+        this.oneTime = false;
+        this.to = to;
     }
 }
 class FromViewBindingInstruction {
     constructor(from, to) {
-        this.from = from;
-        this.to = to;
         this.type = "c" /* propertyBinding */;
-        this.oneTime = false;
+        this.from = from;
         this.mode = BindingMode.fromView;
+        this.oneTime = false;
+        this.to = to;
     }
 }
 class TwoWayBindingInstruction {
     constructor(from, to) {
-        this.from = from;
-        this.to = to;
         this.type = "c" /* propertyBinding */;
-        this.oneTime = false;
+        this.type = "c" /* propertyBinding */;
+        this.from = from;
         this.mode = BindingMode.twoWay;
+        this.oneTime = false;
+        this.to = to;
     }
 }
 class IteratorBindingInstruction {
     constructor(from, to) {
+        this.type = "d" /* iteratorBinding */;
         this.from = from;
         this.to = to;
-        this.type = "d" /* iteratorBinding */;
     }
 }
 class TriggerBindingInstruction {
     constructor(from, to) {
-        this.from = from;
-        this.to = to;
         this.type = "e" /* listenerBinding */;
-        this.strategy = DelegationStrategy.none;
+        this.from = from;
         this.preventDefault = true;
+        this.strategy = DelegationStrategy.none;
+        this.to = to;
     }
 }
 class DelegateBindingInstruction {
     constructor(from, to) {
-        this.from = from;
-        this.to = to;
         this.type = "e" /* listenerBinding */;
-        this.strategy = DelegationStrategy.bubbling;
+        this.from = from;
         this.preventDefault = false;
+        this.strategy = DelegationStrategy.bubbling;
+        this.to = to;
     }
 }
 class CaptureBindingInstruction {
     constructor(from, to) {
-        this.from = from;
-        this.to = to;
         this.type = "e" /* listenerBinding */;
-        this.strategy = DelegationStrategy.capturing;
+        this.from = from;
         this.preventDefault = false;
+        this.strategy = DelegationStrategy.capturing;
+        this.to = to;
     }
 }
 class CallBindingInstruction {
     constructor(from, to) {
+        this.type = "f" /* callBinding */;
         this.from = from;
         this.to = to;
-        this.type = "f" /* callBinding */;
     }
 }
 class RefBindingInstruction {
     constructor(from) {
-        this.from = from;
         this.type = "g" /* refBinding */;
+        this.from = from;
     }
 }
 class StylePropertyBindingInstruction {
     constructor(from, to) {
+        this.type = "h" /* stylePropertyBinding */;
         this.from = from;
         this.to = to;
-        this.type = "h" /* stylePropertyBinding */;
     }
 }
 class SetPropertyInstruction {
     constructor(value, to) {
-        this.value = value;
-        this.to = to;
         this.type = "i" /* setProperty */;
+        this.to = to;
+        this.value = value;
     }
 }
 class SetAttributeInstruction {
     constructor(value, to) {
-        this.value = value;
-        this.to = to;
         this.type = "j" /* setAttribute */;
+        this.to = to;
+        this.value = value;
     }
 }
 class HydrateElementInstruction {
     constructor(res, instructions, parts, contentOverride) {
-        this.res = res;
+        this.type = "k" /* hydrateElement */;
+        this.contentOverride = contentOverride;
         this.instructions = instructions;
         this.parts = parts;
-        this.contentOverride = contentOverride;
-        this.type = "k" /* hydrateElement */;
+        this.res = res;
     }
 }
 class HydrateAttributeInstruction {
     constructor(res, instructions) {
-        this.res = res;
-        this.instructions = instructions;
         this.type = "l" /* hydrateAttribute */;
+        this.instructions = instructions;
+        this.res = res;
     }
 }
 class HydrateTemplateController {
     constructor(def, res, instructions, link) {
+        this.type = "m" /* hydrateTemplateController */;
         this.def = def;
-        this.res = res;
         this.instructions = instructions;
         this.link = link;
-        this.type = "m" /* hydrateTemplateController */;
+        this.res = res;
     }
 }
 class LetElementInstruction {
     constructor(instructions, toViewModel) {
+        this.type = "n" /* letElement */;
         this.instructions = instructions;
         this.toViewModel = toViewModel;
-        this.type = "n" /* letElement */;
     }
 }
 class LetBindingInstruction {
     constructor(from, to) {
+        this.type = "o" /* letBinding */;
         this.from = from;
         this.to = to;
-        this.type = "o" /* letBinding */;
     }
 }
 

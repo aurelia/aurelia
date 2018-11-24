@@ -1,15 +1,15 @@
-import { Constructable, IIndexable, IRegistry } from '@aurelia/kernel';
+import { Constructable, IRegistry } from '@aurelia/kernel';
 import { TargetedInstruction, TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
 import { ICustomElementType } from './custom-element';
 import { IRenderingEngine, ITemplate } from './lifecycle-render';
 declare type ChildType = RenderPlan | string | INode;
-export declare function createElement(tagOrType: string | Constructable, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan;
+export declare function createElement(tagOrType: string | Constructable, props?: object, children?: ArrayLike<ChildType>): RenderPlan;
 export declare class RenderPlan {
-    private readonly node;
-    private readonly instructions;
     private readonly dependencies;
+    private readonly instructions;
+    private readonly node;
     private lazyDefinition;
     constructor(node: INode, instructions: TargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>);
     readonly definition: TemplateDefinition;

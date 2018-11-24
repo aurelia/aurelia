@@ -1,4 +1,4 @@
-import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
+import { IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IBindScope, State } from '../lifecycle';
 import { IAccessor, IScope, LifecycleFlags } from '../observation';
@@ -16,10 +16,10 @@ export declare class Call {
     sourceExpression: IsBindingBehavior;
     targetObserver: IAccessor;
     constructor(sourceExpression: IsBindingBehavior, target: INode, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator);
-    callSource(args: IIndexable): Primitive | IIndexable;
+    callSource(args: object): unknown;
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
-    observeProperty(obj: IIndexable, propertyName: string): void;
+    observeProperty(obj: object, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=call.d.ts.map

@@ -9,14 +9,14 @@ declare type Subject = IViewFactory | IView | RenderPlan | Constructable | Templ
 export interface Compose extends ICustomElement {
 }
 export declare class Compose {
-    private renderable;
-    private renderingEngine;
-    private coordinator;
     static register: IRegistry['register'];
     subject: Subject | Promise<Subject>;
     composing: boolean;
-    private properties;
+    private coordinator;
     private lastSubject;
+    private properties;
+    private renderable;
+    private renderingEngine;
     constructor(renderable: IRenderable, instruction: Immutable<IHydrateElementInstruction>, renderingEngine: IRenderingEngine, coordinator: CompositionCoordinator);
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;

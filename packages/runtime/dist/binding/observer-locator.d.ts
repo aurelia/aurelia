@@ -1,4 +1,3 @@
-import { IIndexable, Primitive } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet, IOverrideContext } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
@@ -11,9 +10,9 @@ export interface IObserverLocator {
     getObserver(obj: IObservable, propertyName: string): AccessorOrObserver;
     getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
     addAdapter(adapter: IObjectObservationAdapter): void;
-    getArrayObserver(observedArray: (IIndexable | Primitive)[]): ICollectionObserver<CollectionKind.array>;
-    getMapObserver(observedMap: Map<IIndexable | Primitive, IIndexable | Primitive>): ICollectionObserver<CollectionKind.map>;
-    getSetObserver(observedSet: Set<IIndexable | Primitive>): ICollectionObserver<CollectionKind.set>;
+    getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
+    getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
+    getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
 }
 export declare const IObserverLocator: import("@aurelia/kernel/dist/di").InterfaceSymbol<IObserverLocator>;
 export declare class ObserverLocator implements IObserverLocator {

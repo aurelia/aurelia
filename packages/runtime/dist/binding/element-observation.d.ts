@@ -1,25 +1,24 @@
-import { IIndexable, Primitive } from '@aurelia/kernel';
 import { IElement, IInputElement, INode } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import { IBatchedCollectionSubscriber, IBindingTargetObserver, IndexMap, IObserversLookup, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
 import { SetterObserver } from './property-observation';
-export interface ValueAttributeObserver extends IBindingTargetObserver<INode, string, Primitive | IIndexable> {
+export interface ValueAttributeObserver extends IBindingTargetObserver<INode, string> {
 }
 export declare class ValueAttributeObserver implements ValueAttributeObserver {
     currentFlags: LifecycleFlags;
-    currentValue: Primitive | IIndexable;
-    defaultValue: Primitive | IIndexable;
-    oldValue: Primitive | IIndexable;
+    currentValue: unknown;
+    defaultValue: unknown;
+    oldValue: unknown;
     flush: () => void;
     handler: IEventSubscriber;
     lifecycle: ILifecycle;
     obj: INode;
     propertyKey: string;
     constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber);
-    getValue(): Primitive | IIndexable;
-    setValueCore(newValue: Primitive | IIndexable, flags: LifecycleFlags): void;
+    getValue(): unknown;
+    setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleEvent(): void;
     subscribe(subscriber: IPropertySubscriber): void;
     unsubscribe(subscriber: IPropertySubscriber): void;
@@ -27,31 +26,31 @@ export declare class ValueAttributeObserver implements ValueAttributeObserver {
 }
 interface IInternalInputElement extends IInputElement {
     matcher?: typeof defaultMatcher;
-    model?: Primitive | IIndexable;
+    model?: unknown;
     $observers?: IObserversLookup & {
         model?: SetterObserver;
         value?: ValueAttributeObserver;
     };
 }
-export interface CheckedObserver extends IBindingTargetObserver<IInternalInputElement, string, Primitive | IIndexable>, IBatchedCollectionSubscriber, IPropertySubscriber {
+export interface CheckedObserver extends IBindingTargetObserver<IInternalInputElement, string>, IBatchedCollectionSubscriber, IPropertySubscriber {
 }
 export declare class CheckedObserver implements CheckedObserver {
     currentFlags: LifecycleFlags;
-    currentValue: Primitive | IIndexable;
-    defaultValue: Primitive | IIndexable;
+    currentValue: unknown;
+    defaultValue: unknown;
     flush: () => void;
     handler: IEventSubscriber;
     lifecycle: ILifecycle;
     obj: IInternalInputElement;
     observerLocator: IObserverLocator;
-    oldValue: Primitive | IIndexable;
+    oldValue: unknown;
     private arrayObserver;
     private valueObserver;
     constructor(lifecycle: ILifecycle, obj: IInternalInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
-    getValue(): Primitive | IIndexable;
-    setValueCore(newValue: Primitive | IIndexable, flags: LifecycleFlags): void;
+    getValue(): unknown;
+    setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleBatchedChange(): void;
-    handleChange(newValue: Primitive | IIndexable, previousValue: Primitive | IIndexable, flags: LifecycleFlags): void;
+    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     synchronizeElement(): void;
     notify(flags: LifecycleFlags): void;
     handleEvent(): void;
@@ -59,8 +58,7 @@ export declare class CheckedObserver implements CheckedObserver {
     unsubscribe(subscriber: IPropertySubscriber): void;
     unbind(): void;
 }
-declare type UntypedArray = (Primitive | IIndexable)[];
-declare function defaultMatcher(a: Primitive | IIndexable, b: Primitive | IIndexable): boolean;
+declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface ISelectElement extends IElement {
     multiple: boolean;
     value: string;
@@ -68,29 +66,29 @@ export interface ISelectElement extends IElement {
     matcher?: typeof defaultMatcher;
 }
 export interface IOptionElement extends IElement {
-    model?: Primitive | IIndexable;
+    model?: unknown;
     selected: boolean;
     value: string;
 }
-export interface SelectValueObserver extends IBindingTargetObserver<ISelectElement, string, Primitive | IIndexable | UntypedArray>, IBatchedCollectionSubscriber, IPropertySubscriber {
+export interface SelectValueObserver extends IBindingTargetObserver<ISelectElement, string>, IBatchedCollectionSubscriber, IPropertySubscriber {
 }
 export declare class SelectValueObserver implements SelectValueObserver {
     lifecycle: ILifecycle;
     obj: ISelectElement;
     handler: IEventSubscriber;
     observerLocator: IObserverLocator;
-    currentValue: Primitive | IIndexable | UntypedArray;
+    currentValue: unknown;
     currentFlags: LifecycleFlags;
-    oldValue: Primitive | IIndexable | UntypedArray;
-    defaultValue: Primitive | UntypedArray;
+    oldValue: unknown;
+    defaultValue: unknown;
     flush: () => void;
     private arrayObserver;
     private nodeObserver;
     constructor(lifecycle: ILifecycle, obj: ISelectElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
-    getValue(): Primitive | IIndexable | UntypedArray;
-    setValueCore(newValue: Primitive | UntypedArray, flags: LifecycleFlags): void;
+    getValue(): unknown;
+    setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleBatchedChange(indexMap: number[]): void;
-    handleChange(newValue: Primitive | UntypedArray, previousValue: Primitive | UntypedArray, flags: LifecycleFlags): void;
+    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     notify(flags: LifecycleFlags): void;
     handleEvent(): void;
     synchronizeOptions(indexMap?: IndexMap): void;

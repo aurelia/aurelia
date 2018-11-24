@@ -6,9 +6,9 @@ import { ICustomAttribute } from '../custom-attribute';
 export interface Replaceable extends ICustomAttribute {
 }
 export declare class Replaceable {
-    private factory;
     static register: IRegistry['register'];
     private currentView;
+    private factory;
     constructor(factory: IViewFactory, location: IRenderLocation);
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;

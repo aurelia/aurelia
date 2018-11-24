@@ -4,7 +4,6 @@ import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor } from '../observation';
 import { targetObserver } from './target-observer';
 
-// tslint:disable-next-line:no-http-string
 const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
 
 export interface XLinkAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, string, string> {}

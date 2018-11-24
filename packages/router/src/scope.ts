@@ -1,6 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
 import { Viewport } from './viewport';
+import { Router } from './router';
 
 export class Scope {
   public viewport: Viewport;
@@ -8,34 +9,37 @@ export class Scope {
   public children: Scope[] = [];
   public viewports: Object = {};
 
-  constructor(private container: IContainer, public element: Element, public parent: Scope) {
+  constructor(private router: Router, public element: Element, public parent: Scope) {
     if (this.parent) {
       this.parent.addChild(this);
     }
   }
 
-  //xx  public findViewport(name: string): Promise<Viewport> {
-  public findViewport(name: string): Viewport {
+  public findViewport(name: string): Promise<Viewport> {
     const parts = name.split('.');
     const names = parts.shift().split(':');
     const comp = names.pop();
     name = names.shift();
-    const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, null);
+    let newScope = false;
+    if (name.endsWith('!')) {
+      newScope = true;
+      name = name.substr(0, name.length - 1);
+    }
+    const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, newScope);
     if (!parts.length) {
-      return viewport;
-      //xx return Promise.resolve(viewport);
+      return Promise.resolve(viewport);
     } else {
-      //xx if (viewport.scope) {
+      if (viewport.scope) {
         return viewport.scope.findViewport(parts.join('.'));
-      //xx }
-      // else {
-      //   return new Promise<Viewport>((resolve, reject) => {
-      //     viewport.pendingQueries.push({
-      //       name: parts.join('.'),
-      //       resolve: resolve,
-      //     });
-      //   });
-      //xx }
+      }
+      else {
+        return new Promise<Viewport>((resolve, reject) => {
+          viewport.pendingQueries.push({
+            name: parts.join('.'),
+            resolve: resolve,
+          });
+        });
+      }
     }
   }
 
@@ -47,31 +51,39 @@ export class Scope {
     const comp = this.resolveComponent(component);
     if ((<any>comp).viewport) {
       name = (<any>comp).viewport;
-      return this.viewports[name] || this.addViewport(name, null, this);
+      return this.viewports[name];
     }
     return null;
   }
 
-  public addViewport(name: string, element: Element, scope: Scope): Viewport {
+  public addViewport(name: string, element: Element, newScope: boolean): Viewport {
+    let scope: Scope = this;
     let viewport = this.viewports[name];
     if (!viewport) {
-      viewport = this.viewports[name] = new Viewport(this.container, name, element, scope);
+      if (newScope) {
+        scope = new Scope(this.router, element, this);
+        this.router.scopes.push(scope);
+      }
+
+      viewport = this.viewports[name] = new Viewport(this.router.container, name, element, scope);
       // First added viewport with element is always scope viewport (except for root scope)
       if (element && scope.parent && !scope.viewport) {
         scope.viewport = viewport;
       }
     }
     if (element) {
-      viewport.scope = scope;
+      if (!viewport.scope.element) {
+        viewport.scope.element = element;
+      }
       viewport.element = element;
       // Promise.resolve(viewport).then((viewport) => {
       this.renderViewport(viewport);
-      //xx Promise.resolve(viewport).then((viewport) => {
-      //   while (viewport.pendingQueries.length) {
-      //     const query = viewport.pendingQueries.shift();
-      //     query.resolve(this.findViewport(query.name));
-      //   }
-      //xx });
+      Promise.resolve(viewport).then((viewport) => {
+        while (viewport.pendingQueries.length) {
+          const query = viewport.pendingQueries.shift();
+          query.resolve(this.findViewport(query.name));
+        }
+      });
       // });
     }
     return viewport;
@@ -96,9 +108,9 @@ export class Scope {
 
   private resolveComponent(component: ICustomElementType | string): ICustomElementType {
     if (typeof component === 'string') {
-      const resolver = this.container.getResolver(CustomElementResource.keyFrom(component));
+      const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(component));
       if (resolver !== null) {
-        component = <ICustomElementType>resolver.getFactory(this.container).Type;
+        component = <ICustomElementType>resolver.getFactory(this.router.container).Type;
       }
     }
     return <ICustomElementType>component;

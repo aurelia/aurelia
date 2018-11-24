@@ -58,8 +58,7 @@ checks:
     enabled: false # default true
 plugins:
   tslint:
-    enabled: true
-    config: tslint.json
+    enabled: false
 exclude_patterns:
 # Exclude code that is not actually built and published
 # The reasoning being that dev code like tests or build scripts can be changed without having to account for backwards compatibility and thus is much easier to refactor / tidy up at a later point in time

@@ -1,4 +1,3 @@
-import { IIndexable, Primitive } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
@@ -142,7 +141,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.sort
 // https://github.com/v8/v8/blob/master/src/js/array.js
-function observeSort(this: IObservedArray, compareFn?: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): IObservedArray {
+function observeSort(this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
   const o = this.$observer;
   if (o === undefined) {
     return nativeSort.call(this, compareFn);
@@ -168,16 +167,16 @@ function observeSort(this: IObservedArray, compareFn?: (a: IIndexable | Primitiv
 }
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
-function sortCompare(x: IIndexable | Primitive, y: IIndexable | Primitive): number {
+function sortCompare(x: unknown, y: unknown): number {
   if (x === y) {
     return 0;
   }
-  x = x === null ? 'null' : x.toString();
-  y = y === null ? 'null' : y.toString();
-  return x < y ? -1 : 1;
+  x = x === null ? 'null' : (x as {}).toString();
+  y = y === null ? 'null' : (y as {}).toString();
+  return (x as {}) < (y as {}) ? -1 : 1;
 }
 
-function preSortCompare(x: IIndexable | Primitive, y: IIndexable | Primitive): number {
+function preSortCompare(x: unknown, y: unknown): number {
   if (x === undefined) {
     if (y === undefined) {
       return 0;
@@ -191,7 +190,7 @@ function preSortCompare(x: IIndexable | Primitive, y: IIndexable | Primitive): n
   return 0;
 }
 
-function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
+function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: unknown, b: unknown) => number): void {
   let velement, ielement, vtmp, itmp, order;
   let i, j;
   for (i = from + 1; i < to; i++) {
@@ -209,7 +208,7 @@ function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to
   }
 }
 
-function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
+function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: unknown, b: unknown) => number): void {
   let thirdIndex = 0, i = 0;
   let v0, v1, v2;
   let i0, i1, i2;

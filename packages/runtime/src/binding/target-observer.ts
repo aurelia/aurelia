@@ -1,4 +1,3 @@
-import { IIndexable, Primitive } from '@aurelia/kernel';
 import { DOM } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor, LifecycleFlags, MutationKind } from '../observation';
@@ -7,14 +6,14 @@ import { subscriberCollection } from './subscriber-collection';
 type BindingTargetAccessor = IBindingTargetAccessor & {
   lifecycle: ILifecycle;
   currentFlags: LifecycleFlags;
-  oldValue?: IIndexable | Primitive;
-  defaultValue: Primitive | IIndexable;
+  oldValue?: unknown;
+  defaultValue: unknown;
   $nextFlush?: BindingTargetAccessor;
   flush(flags: LifecycleFlags): void;
-  setValueCore(value: Primitive | IIndexable, flags: LifecycleFlags): void;
+  setValueCore(value: unknown, flags: LifecycleFlags): void;
 };
 
-function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable, flags: LifecycleFlags): Promise<void> {
+function setValue(this: BindingTargetAccessor, newValue: unknown, flags: LifecycleFlags): Promise<void> {
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
@@ -56,7 +55,7 @@ function dispose(this: BindingTargetAccessor): void {
   this.propertyKey = '';
 }
 
-export function targetObserver(defaultValue: Primitive | IIndexable = null): ClassDecorator {
+export function targetObserver(defaultValue: unknown = null): ClassDecorator {
   return function(target: Function): void {
     subscriberCollection(MutationKind.instance)(target);
     const proto = <BindingTargetAccessor>target.prototype;

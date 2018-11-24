@@ -1,4 +1,4 @@
-import { DI, IIndexable, Primitive } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { propertyObserver } from './property-observer';
 
@@ -66,7 +66,7 @@ export interface DirtyCheckProperty extends IBindingTargetObserver { }
 @propertyObserver()
 export class DirtyCheckProperty implements DirtyCheckProperty {
   public obj: IObservable;
-  public oldValue: IIndexable | Primitive;
+  public oldValue: unknown;
   public propertyKey: string;
 
   private dirtyChecker: DirtyChecker;
@@ -82,11 +82,11 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     return this.oldValue !== this.obj[this.propertyKey];
   }
 
-  public getValue(): IIndexable | Primitive {
+  public getValue(): unknown {
     return this.obj[this.propertyKey];
   }
 
-  public setValue(newValue: IIndexable | Primitive): void {
+  public setValue(newValue: unknown): void {
     this.obj[this.propertyKey] = newValue;
   }
 

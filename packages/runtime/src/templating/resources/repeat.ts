@@ -22,18 +22,25 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public $scope: IScope;
   public $observers: { items: SetterObserver };
 
-  public encapsulationSource: INode = null;
-  public views: IView[] = [];
-  public observer: CollectionObserver = null;
-  public hasPendingInstanceMutation: boolean = false;
-
+  public encapsulationSource: INode;
   public forOf: ForOfStatement;
+  public hasPendingInstanceMutation: boolean;
   public local: string;
+  public location: IRenderLocation;
+  public observer: CollectionObserver;
+  public renderable: IRenderable;
+  public factory: IViewFactory;
+  public views: IView[];
 
-  constructor(
-    public location: IRenderLocation,
-    public renderable: IRenderable,
-    public factory: IViewFactory) { }
+  constructor(location: IRenderLocation, renderable: IRenderable, factory: IViewFactory) {
+    this.encapsulationSource = null;
+    this.factory = factory;
+    this.hasPendingInstanceMutation = false;
+    this.location = location;
+    this.observer = null;
+    this.renderable = renderable;
+    this.views = [];
+  }
 
   public binding(flags: LifecycleFlags): void {
     this.checkCollectionObserver();

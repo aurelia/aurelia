@@ -185,7 +185,7 @@ export const DI = {
     return function(target: Injectable, key?: string, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!target.hasOwnProperty('inject')) {
-          const types = DI.getDesignParamTypes(target)
+          const types = DI.getDesignParamTypes(target);
           target.inject = types.slice();
         }
 
@@ -200,7 +200,7 @@ export const DI = {
         fn.inject = dependencies;
       } else { // It's a class decorator.
         if (dependencies.length === 0) {
-          const types = DI.getDesignParamTypes(target)
+          const types = DI.getDesignParamTypes(target);
           target.inject = types.slice();
         } else {
           target.inject = dependencies;
@@ -275,7 +275,7 @@ function createResolver(
 ): (key: any) => ReturnType<typeof DI.inject> {
   return function(key: any): ReturnType<typeof DI.inject> {
     const Key = function Key(target: Injectable, property?: string, descriptor?: PropertyDescriptor | number): void {
-      return DI.inject(Key)(target, property, descriptor);
+      DI.inject(Key)(target, property, descriptor);
     };
 
     (Key as any).resolve = function(handler: IContainer, requestor: IContainer): any {

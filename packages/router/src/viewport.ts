@@ -13,6 +13,8 @@ export class Viewport {
   public component: ICustomElement;
   public nextComponent: ICustomElement;
 
+  public pendingQueries: Object[] = [];
+
   constructor(private container: IContainer, public name: string, public element: Element, public scope: Scope) {
   }
 
@@ -101,6 +103,8 @@ export class Viewport {
       }
       this.nextComponent.$hydrate(renderingEngine, host);
       this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+      const targetHost = this.nextComponent.$projector.host;
+      console.log('===== $BOUND', targetHost === this.element, targetHost, this.element);
       this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);
 
       this.content = this.nextContent;

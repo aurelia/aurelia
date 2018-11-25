@@ -4,15 +4,16 @@ import { Binding } from '../../binding/binding';
 import { BindingContext, Scope } from '../../binding/binding-context';
 import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
-import { INode, IRenderLocation } from '../../dom';
+// import { INode, IRenderLocation } from '../../dom';
 import { IRenderable, IView, IViewFactory, State } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { INsNode, INsRenderLocation } from '../../ns-dom';
 
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}
 
-@inject(IRenderLocation, IRenderable, IViewFactory)
+@inject(INsRenderLocation, IRenderable, IViewFactory)
 @templateController('repeat')
 export class Repeat<T extends ObservedCollection = IObservedArray> {
   public static register: IRegistry['register'];
@@ -22,7 +23,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public $scope: IScope;
   public $observers: { items: SetterObserver };
 
-  public encapsulationSource: INode = null;
+  public encapsulationSource: INsNode = null;
   public views: IView[] = [];
   public observer: CollectionObserver = null;
   public hasPendingInstanceMutation: boolean = false;
@@ -31,7 +32,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public local: string;
 
   constructor(
-    public location: IRenderLocation,
+    public location: INsRenderLocation,
     public renderable: IRenderable,
     public factory: IViewFactory) { }
 

@@ -4,6 +4,7 @@ import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { INsRenderLocation } from '../../ns-dom';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')
@@ -20,7 +21,7 @@ export class If {
 
   constructor(
     public ifFactory: IViewFactory,
-    public location: IRenderLocation,
+    public location: INsRenderLocation,
     public coordinator: CompositionCoordinator) { }
 
   public binding(flags: LifecycleFlags): void {

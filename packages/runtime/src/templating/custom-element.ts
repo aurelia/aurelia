@@ -1,6 +1,7 @@
 import { Class, Constructable, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
+import { INsNode } from '../ns-dom';
 import { Hooks, IAttach, IBindSelf, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IState, State } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
@@ -30,13 +31,13 @@ export interface ICustomElement extends
 
   readonly $projector: IElementProjector;
   readonly $host: ICustomElementHost;
-  $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+  $hydrate(renderingEngine: IRenderingEngine, host: INsNode, options?: IElementHydrationOptions): void;
 }
 
 export interface ICustomElementResource extends
   IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
 
-  behaviorFor(node: INode): ICustomElement | null;
+  behaviorFor(node: INsNode): ICustomElement | null;
 }
 
 type CustomElementDecorator = <T>(target: PartialCustomElementType<T>) => T & ICustomElementType;

@@ -6,6 +6,8 @@ import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
+import { INsNode } from '../ns-dom';
+import { EventData } from 'tns-core-modules/ui/page/page';
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
@@ -22,12 +24,14 @@ export class Listener implements IBinding {
     public targetEvent: string,
     public delegationStrategy: DelegationStrategy,
     public sourceExpression: IsBindingBehavior,
-    public target: INode,
+    public target: INsNode,
     public preventDefault: boolean,
     private eventManager: IEventManager,
-    public locator: IServiceLocator) { }
+    public locator: IServiceLocator) {
+      this.handleEvent = this.handleEvent.bind(this);
+    }
 
-  public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
+  public callSource(event: EventData): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;
     overrideContext['$event'] = event;
 
@@ -35,14 +39,14 @@ export class Listener implements IBinding {
 
     delete overrideContext['$event'];
 
-    if (result !== true && this.preventDefault) {
-      event.preventDefault();
-    }
+    // if (result !== true && this.preventDefault) {
+    //   event.preventDefault();
+    // }
 
     return result;
   }
 
-  public handleEvent(event: Event): void {
+  public handleEvent(event: EventData): void {
     this.callSource(event);
   }
 
@@ -64,12 +68,14 @@ export class Listener implements IBinding {
       sourceExpression.bind(flags, scope, this);
     }
 
-    this.handler = this.eventManager.addEventListener(
-      this.target,
-      this.targetEvent,
-      this,
-      this.delegationStrategy
-    );
+    this.target.on(this.targetEvent, this.handleEvent);
+
+    // this.handler = this.eventManager.addEventListener(
+    //   this.target,
+    //   this.targetEvent,
+    //   this,
+    //   this.delegationStrategy
+    // );
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;

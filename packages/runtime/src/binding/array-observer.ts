@@ -11,6 +11,17 @@ export const nativeSplice = proto.splice;
 export const nativeReverse = proto.reverse;
 export const nativeSort = proto.sort;
 
+(global as any).__values = function (o) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+  if (m) return m.call(o);
+  return {
+      next: function () {
+          if (o && i >= o.length) o = void 0;
+          return { value: o && o[i++], done: !o };
+      }
+  };
+};
+
 // https://tc39.github.io/ecma262/#sec-array.prototype.push
 function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
   const o = this.$observer;

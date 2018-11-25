@@ -48,8 +48,8 @@ export class UpdateTriggerBindingBehavior {
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void {
     // restore the state of the binding.
-    binding.targetObserver.handler.dispose();
-    binding.targetObserver.handler = binding.targetObserver.originalHandler;
-    binding.targetObserver.originalHandler = null;
+    // binding.targetObserver.handler.dispose();
+    // binding.targetObserver.handler = binding.targetObserver.originalHandler;
+    // binding.targetObserver.originalHandler = null;
   }
 }

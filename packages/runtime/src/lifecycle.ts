@@ -3,6 +3,11 @@ import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { IEncapsulationSource, INode, INodeSequence, IRenderLocation } from './dom';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
+import { INsNodeSequence, INsNode, INsRenderLocation } from './ns-dom';
+import 'reflect-metadata';
+(global as any).__metadata = function (metadataKey, metadataValue) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+};
 
 export const enum State {
   none                  = 0b000000000000,
@@ -75,7 +80,7 @@ export interface IRenderable extends IBindables, IAttachables, IState {
    *
    * Typically this will be a sequence of `DOM` nodes contained in a `DocumentFragment`
    */
-  readonly $nodes: INodeSequence;
+  readonly $nodes: INsNodeSequence;
 
   /**
    * The binding scope that the `$bindables` of this instance will be bound to.
@@ -89,16 +94,16 @@ export const IRenderable = DI.createInterface<IRenderable>().noDefault();
 
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;
-  render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IRenderable, target: INode, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable;
+  render(renderable: IRenderable, targets: ArrayLike<INsNode>, templateDefinition: TemplateDefinition, host?: INsNode, parts?: TemplatePartDefinitions): void;
+  beginComponentOperation(renderable: IRenderable, target: INsNode, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: INsRenderLocation, locationIsContainer?: boolean): IDisposable;
 }
 
 export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
   readonly cache: IViewCache;
   readonly isFree: boolean;
-  readonly location: IRenderLocation;
+  readonly location: INsRenderLocation;
 
-  hold(location: IRenderLocation, flags: LifecycleFlags): void;
+  hold(location: INsRenderLocation, flags: LifecycleFlags): void;
   release(flags: LifecycleFlags): boolean;
 
   lockScope(scope: IScope): void;

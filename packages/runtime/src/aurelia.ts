@@ -1,11 +1,41 @@
+import 'reflect-metadata';
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
 import { INode } from './dom';
+import './ns-dom-map';
+import { NsDOM, INsNode } from './ns-dom';
 import { LifecycleFlags } from './observation';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './templating/custom-element';
 import { IRenderingEngine } from './templating/lifecycle-render';
+import { Page } from 'tns-core-modules/ui/page/page';
+import { init } from '../../basichtml';
+import { Frame } from 'tns-core-modules/ui/frame/frame';
+import * as NsApplication from 'tns-core-modules/application';
+
+// import { Aurelia } from './@aurelia/runtime';
+
+// new Aurelia()
+//   .register()
+//   .app({
+//     host: new Page() as any,
+//     component: class {}
+//   })
+//   .start();
+
+// application.run({ moduleName: "app-root" });
+
+init({
+  window: global as any
+});
+
+export interface INsConfig {
+  /**
+   * Root frame of NS application
+   */
+  root?: Frame;
+}
 
 export interface ISinglePageApp {
-  host: INode;
+  // host: Frame;
   component: unknown;
 }
 
@@ -16,6 +46,7 @@ export class Aurelia {
   private stopTasks: (() => void)[];
   private isStarted: boolean;
   private _root: ICustomElement | null;
+  private page: Page;
 
   constructor(container: IContainer = DI.createContainer()) {
     this.container = container;
@@ -36,7 +67,8 @@ export class Aurelia {
   }
 
   public app(config: ISinglePageApp): this {
-    const host = config.host as INode & {$au?: Aurelia | null};
+    const root = this.initNativeScript(config) as Page & { $au?: Aurelia | null };
+    // const host = config.host as INode & {$au?: Aurelia | null};
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
     if (CustomElementResource.isType(<ICustomElementType>componentOrType)) {
@@ -47,16 +79,28 @@ export class Aurelia {
     }
 
     const startTask = () => {
-      host.$au = this;
+      root.$au = this;
       if (!this.components.includes(component)) {
         this._root = component;
         this.components.push(component);
         const re = this.container.get(IRenderingEngine);
-        component.$hydrate(re, host);
+        component.$hydrate(re, root);
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach(LifecycleFlags.fromStartTask, host);
+      component.$attach(LifecycleFlags.fromStartTask, root);
+
+      NsApplication.run({
+        create: () => {
+          return root;
+          // let firstChild: INsNode;
+          // root.eachChildView((view) => (firstChild = view as INsNode, false));
+          // if (!firstChild) {
+          //   throw new Error('Failed to init application. No page found');
+          // }
+          // return firstChild;
+        }
+      });
     };
 
     this.startTasks.push(startTask);
@@ -64,7 +108,7 @@ export class Aurelia {
     this.stopTasks.push(() => {
       component.$detach(LifecycleFlags.fromStopTask);
       component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
-      host.$au = null;
+      root.$au = null;
     });
 
     if (this.isStarted) {
@@ -92,6 +136,12 @@ export class Aurelia {
       runStopTask();
     }
     return this;
+  }
+
+  private initNativeScript(config: ISinglePageApp) {
+    // config.host = config.host || NsDOM.createElement('Frame');
+    // return config.host;
+    return NsDOM.createElement('Page');
   }
 }
 

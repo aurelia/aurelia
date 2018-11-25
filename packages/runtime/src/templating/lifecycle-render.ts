@@ -3,13 +3,14 @@ import { Scope } from '../binding/binding-context';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
 import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
-import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
+// import { DOM, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
 import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory, State } from '../lifecycle';
 import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { IResourceDescriptions, RuntimeCompilationResources } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { ViewFactory } from './view';
+import { INsNode, INsNodeSequence, INsRenderLocation, NsNodeSequence, NsDOM, NsNodeSequenceFactory, INsNodeSequenceFactory } from '../ns-dom';
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -26,7 +27,7 @@ export enum ViewCompileFlags {
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
-export interface ICustomElementHost extends IRenderLocation {
+export interface ICustomElementHost extends INsNode {
   $customElement?: ICustomElement;
 }
 
@@ -37,8 +38,8 @@ export interface IElementProjector {
   readonly children: ArrayLike<ICustomElementHost>;
 
   provideEncapsulationSource(parentEncapsulationSource: ICustomElementHost): ICustomElementHost;
-  project(nodes: INodeSequence): void;
-  take(nodes: INodeSequence): void;
+  project(nodes: INsNodeSequence): void;
+  take(nodes: INsNodeSequence): void;
 
   subscribeToChildrenChange(callback: () => void): void;
 }
@@ -71,7 +72,7 @@ export interface ILifecycleRender {
    * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
-  render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
+  render?(host: INsNode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
 }
 
 /*@internal*/
@@ -86,7 +87,7 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEng
 }
 
 /*@internal*/
-export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: INsNode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
@@ -123,17 +124,17 @@ function determineProjector(
   host: ICustomElementHost,
   definition: TemplateDefinition
 ): IElementProjector {
-  if (definition.shadowOptions || definition.hasSlots) {
-    if (definition.containerless) {
-      throw Reporter.error(21);
-    }
+  // if (definition.shadowOptions || definition.hasSlots) {
+  //   if (definition.containerless) {
+  //     throw Reporter.error(21);
+  //   }
 
-    return new ShadowDOMProjector($customElement, host, definition);
-  }
+  //   return new ShadowDOMProjector($customElement, host, definition);
+  // }
 
-  if (definition.containerless) {
-    return new ContainerlessProjector($customElement, host);
-  }
+  // if (definition.containerless) {
+  //   return new ContainerlessProjector($customElement, host);
+  // }
 
   return new HostProjector($customElement, host);
 }
@@ -243,89 +244,6 @@ export class RenderingEngine implements IRenderingEngine {
 const childObserverOptions = { childList: true };
 
 /*@internal*/
-export class ShadowDOMProjector implements IElementProjector {
-  public shadowRoot: ICustomElementHost;
-
-  constructor(
-    $customElement: ICustomElement,
-    public host: ICustomElementHost,
-    definition: TemplateDefinition
-  ) {
-    this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
-    host.$customElement = $customElement;
-    this.shadowRoot.$customElement = $customElement;
-  }
-
-  get children(): ArrayLike<INode> {
-    return this.host.childNodes;
-  }
-
-  public subscribeToChildrenChange(callback: () => void): void {
-    DOM.createNodeObserver(this.host, callback, childObserverOptions);
-  }
-
-  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
-    return this.shadowRoot;
-  }
-
-  public project(nodes: INodeSequence): void {
-    nodes.appendTo(this.host);
-    this.project = PLATFORM.noop;
-  }
-
-  public take(nodes: INodeSequence): void {
-    // No special behavior is required because the host element removal
-    // will result in the projected nodes being removed, since they are in
-    // the ShadowDOM.
-  }
-}
-
-/*@internal*/
-export class ContainerlessProjector implements IElementProjector {
-  public host: ICustomElementHost;
-  private childNodes: ArrayLike<INode>;
-
-  constructor(private $customElement: ICustomElement, host: ICustomElementHost) {
-    if (host.childNodes.length) {
-      this.childNodes = PLATFORM.toArray(host.childNodes);
-    } else {
-      this.childNodes = PLATFORM.emptyArray;
-    }
-
-    this.host = DOM.convertToRenderLocation(host);
-    this.host.$customElement = $customElement;
-  }
-
-  get children(): ArrayLike<INode> {
-    return this.childNodes;
-  }
-
-  public subscribeToChildrenChange(callback: () => void): void {
-    // Do nothing since this scenario will never have children.
-  }
-
-  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
-    if (!parentEncapsulationSource) {
-      throw Reporter.error(22);
-    }
-
-    return parentEncapsulationSource;
-  }
-
-  public project(nodes: INodeSequence): void {
-    if (this.$customElement.$state & State.needsMount) {
-      this.$customElement.$state &= ~State.needsMount;
-      nodes.insertBefore(this.host);
-    }
-  }
-
-  public take(nodes: INodeSequence): void {
-    this.$customElement.$state |= State.needsMount;
-    nodes.remove();
-  }
-}
-
-/*@internal*/
 export class HostProjector implements IElementProjector {
   private readonly isAppHost: boolean;
   constructor($customElement: ICustomElement, public host: ICustomElementHost) {
@@ -333,7 +251,7 @@ export class HostProjector implements IElementProjector {
     this.isAppHost = host.hasOwnProperty('$au');
   }
 
-  get children(): ArrayLike<INode> {
+  get children(): ArrayLike<INsNode> {
     return PLATFORM.emptyArray;
   }
 
@@ -341,18 +259,18 @@ export class HostProjector implements IElementProjector {
     // Do nothing since this scenario will never have children.
   }
 
-  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
+  public provideEncapsulationSource(parentEncapsulationSource: INsNode): INsNode {
     return parentEncapsulationSource || this.host;
   }
 
-  public project(nodes: INodeSequence): void {
+  public project(nodes: INsNodeSequence): void {
     nodes.appendTo(this.host);
     if (!this.isAppHost) {
       this.project = PLATFORM.noop;
     }
   }
 
-  public take(nodes: INodeSequence): void {
+  public take(nodes: INsNodeSequence): void {
     // No special behavior is required because the host element removal
     // will result in the projected nodes being removed, since they are children.
     if (this.isAppHost) {
@@ -488,7 +406,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
 }
 
 /*@internal*/
-export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
+export function findElements(nodes: ArrayLike<INsNode>): ICustomElement[] {
   const components: ICustomElement[] = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
@@ -504,13 +422,13 @@ export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
 }
 
 // The basic template abstraction that allows consumers to create
-// instances of an INodeSequence on-demand. Templates are contextual in that they are, in the very least,
+// instances of an INsNodeSequence on-demand. Templates are contextual in that they are, in the very least,
 // part of a particular application, with application-level resources, but they also may have their
 // own scoped resources or be part of another view (via a template controller) which provides a
 // context for the template.
 export interface ITemplate {
   readonly renderContext: IRenderContext;
-  render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(renderable: IRenderable, host?: INsNode, parts?: TemplatePartDefinitions): void;
 }
 
 // This is the main implementation of ITemplate.
@@ -521,15 +439,15 @@ export interface ITemplate {
 // and create instances of it on demand.
 /*@internal*/
 export class CompiledTemplate implements ITemplate {
-  public readonly factory: INodeSequenceFactory;
+  public readonly factory: INsNodeSequenceFactory;
   public readonly renderContext: IRenderContext;
 
   constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
-    this.factory = NodeSequenceFactory.createFor(templateDefinition.template);
+    this.factory = NsNodeSequenceFactory.createFor(templateDefinition.template);
     this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
   }
 
-  public render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void {
+  public render(renderable: IRenderable, host?: INsNode, parts?: TemplatePartDefinitions): void {
     const nodes = (<Writable<IRenderable>>renderable).$nodes = this.factory.createNodeSequence();
     (<Writable<IRenderable>>renderable).$context = this.renderContext;
     this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, parts);
@@ -541,7 +459,7 @@ export class CompiledTemplate implements ITemplate {
 export const noViewTemplate: ITemplate = {
   renderContext: null,
   render(renderable: IRenderable): void {
-    (<Writable<IRenderable>>renderable).$nodes = NodeSequence.empty;
+    (<Writable<IRenderable>>renderable).$nodes = NsNodeSequence.empty;
     (<Writable<IRenderable>>renderable).$context = null;
   }
 };
@@ -555,25 +473,25 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   const elementProvider = new InstanceProvider();
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
   const factoryProvider = new ViewFactoryProvider(renderingEngine);
-  const renderLocationProvider = new InstanceProvider<IRenderLocation>();
+  const renderLocationProvider = new InstanceProvider<INsRenderLocation>();
   const renderer = context.get(IRenderer);
 
-  DOM.registerElementResolver(context, elementProvider);
+  NsDOM.registerElementResolver(context, elementProvider);
 
   context.registerResolver(IViewFactory, factoryProvider);
   context.registerResolver(IRenderable, renderableProvider);
   context.registerResolver(ITargetedInstruction, instructionProvider);
-  context.registerResolver(IRenderLocation, renderLocationProvider);
+  context.registerResolver(INsRenderLocation, renderLocationProvider);
 
   if (dependencies) {
     context.register(...dependencies);
   }
 
-  context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<INsNode>, templateDefinition: TemplateDefinition, host?: INsNode, parts?: TemplatePartDefinitions): void {
     renderer.render(this, renderable, targets, templateDefinition, host, parts);
   };
 
-  context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
+  context.beginComponentOperation = function(renderable: IRenderable, target: INsNode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: INsRenderLocation): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
@@ -656,7 +574,7 @@ export class ViewFactoryProvider implements IResolver {
 
 export interface IRenderer {
   instructionRenderers: Record<string, IInstructionRenderer>;
-  render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INsNode>, templateDefinition: TemplateDefinition, host?: INsNode, parts?: TemplatePartDefinitions): void;
 }
 
 export const IRenderer = DI.createInterface<IRenderer>().withDefault(x => x.singleton(Renderer));
@@ -691,7 +609,7 @@ export function instructionRenderer<TType extends string>(instructionType: TType
     // copy over any static properties such as inject (set by preceding decorators)
     // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
     // the length (number of ctor arguments) is copied for the same reason
-    const ownProperties = Object.getOwnPropertyDescriptors(target);
+    const ownProperties = (Object as any).getOwnPropertyDescriptors(target);
     Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
       Reflect.defineProperty(decoratedTarget, prop, ownProperties[prop]);
     });
@@ -711,7 +629,7 @@ export class Renderer implements IRenderer {
     });
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INsNode>, definition: TemplateDefinition, host?: INsNode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
     const instructionRenderers = this.instructionRenderers;
 

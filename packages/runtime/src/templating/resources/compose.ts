@@ -12,6 +12,7 @@ import { bindable } from '../bindable';
 import { createElement, RenderPlan } from '../create-element';
 import { customElement, ICustomElement } from '../custom-element';
 import { IRenderingEngine } from '../lifecycle-render';
+import { INsRenderLocation } from '../../ns-dom';
 
 const composeSource: ITemplateDefinition = {
   name: 'au-compose',
@@ -105,7 +106,7 @@ export class Compose {
     const view = this.provideViewFor(subject);
 
     if (view) {
-      view.hold(this.$projector.host, flags);
+      view.hold(this.$projector.host as INsRenderLocation, flags);
       view.lockScope(this.renderable.$scope);
       return view;
     }

@@ -4,8 +4,9 @@ import { DOM, INode } from '../dom';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
 import { ICustomElementType } from './custom-element';
 import { IRenderingEngine, ITemplate } from './lifecycle-render';
+import { NsDOM, INsNode } from '../ns-dom';
 
-type ChildType = RenderPlan | string | INode;
+type ChildType = RenderPlan | string | INsNode;
 
 export function createElement(tagOrType: string | Constructable, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   if (typeof tagOrType === 'string') {
@@ -146,7 +147,7 @@ function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructi
     } else if (DOM.isNodeInstance(current)) {
       DOM.appendChild(parent, current);
     } else {
-      current.mergeInto(parent, allInstructions, dependencies);
+      // current.mergeInto(parent, allInstructions, dependencies);
     }
   }
 }

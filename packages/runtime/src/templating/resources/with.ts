@@ -1,6 +1,6 @@
 import { inject, IRegistry } from '@aurelia/kernel';
 import { Scope } from '../../binding/binding-context';
-import { IRenderLocation } from '../../dom';
+import { INsRenderLocation } from '../../ns-dom';
 import { IView, IViewFactory, State } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
@@ -8,7 +8,7 @@ import { ICustomAttribute, templateController } from '../custom-attribute';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')
-@inject(IViewFactory, IRenderLocation)
+@inject(IViewFactory, INsRenderLocation)
 export class With {
   public static register: IRegistry['register'];
 
@@ -16,7 +16,7 @@ export class With {
 
   private currentView: IView = null;
 
-  constructor(private factory: IViewFactory, location: IRenderLocation) {
+  constructor(private factory: IViewFactory, location: INsRenderLocation) {
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

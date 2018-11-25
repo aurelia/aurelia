@@ -5,6 +5,7 @@ import { IScope, LifecycleFlags } from '../observation';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
 import { $bindView, $unbindView } from './lifecycle-bind';
 import { ITemplate } from './lifecycle-render';
+import { INsNodeSequence, INsRenderLocation } from '../ns-dom';
 
 /*@internal*/
 export interface View extends IView {}
@@ -32,16 +33,16 @@ export class View implements IView {
 
   public $state: State = State.none;
   public $scope: IScope = null;
-  public $nodes: INodeSequence;
+  public $nodes: INsNodeSequence;
   public $context: IRenderContext;
-  public location: IRenderLocation;
+  public location: INsRenderLocation;
   public isFree: boolean = false;
 
   constructor(
     public readonly $lifecycle: ILifecycle,
     public cache: IViewCache) {}
 
-  public hold(location: IRenderLocation, flags: LifecycleFlags): void {
+  public hold(location: INsRenderLocation, flags: LifecycleFlags): void {
     if (!location.parentNode) { // unmet invariant: location must be a child of some other node
       throw Reporter.error(60); // TODO: organize error codes
     }

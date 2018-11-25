@@ -1,18 +1,18 @@
 import { inject, IRegistry } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
+import { INsRenderLocation } from '../../ns-dom';
 import { IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 
 export interface Replaceable extends ICustomAttribute {}
 @templateController('replaceable')
-@inject(IViewFactory, IRenderLocation)
+@inject(IViewFactory, INsRenderLocation)
 export class Replaceable {
   public static register: IRegistry['register'];
 
   private currentView: IView;
 
-  constructor(private factory: IViewFactory, location: IRenderLocation) {
+  constructor(private factory: IViewFactory, location: INsRenderLocation) {
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

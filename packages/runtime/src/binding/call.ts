@@ -1,5 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { INode } from '../dom';
+import { INode } from '../dom.interfaces';
 import { IBindScope, State } from '../lifecycle';
 import { IAccessor, IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior } from './ast';

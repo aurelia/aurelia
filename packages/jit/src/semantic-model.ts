@@ -1,10 +1,10 @@
 import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
-import { BindingMode,  buildTemplateDefinition, CustomAttributeResource, CustomElementResource, DOM, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IElement, IExpressionParser, IHydrateElementInstruction, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
+import { BindingMode,  buildTemplateDefinition, CustomAttributeResource, CustomElementResource, DOM, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IElement, IExpressionParser, IHydrateElementInstruction, IResourceDescriptions, ITemplateDefinition, TargetedInstruction, NodeType, INode, IHTMLTemplateElement } from '@aurelia/runtime';
 import { AttrSyntax, ElementSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { BindingCommandResource,  IBindingCommand } from './binding-command';
 import { Char } from './common';
-import { IElementParser, NodeType } from './element-parser';
+import { IElementParser } from './element-parser';
 
 export class SemanticModel {
   public readonly isSemanticModel: true;
@@ -114,7 +114,7 @@ export class SemanticModel {
   }
 
   public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol): ElementSymbol {
-    const node = syntax.node as Element;
+    const node = syntax.node as IElement;
     let definition: ITemplateDefinition;
     if (node.nodeType === NodeType.Element) {
       const resourceKey = (node.getAttribute('as-element') || node.nodeName).toLowerCase();
@@ -385,16 +385,10 @@ export class AttributeSymbol implements IAttributeSymbol {
   public markAsProcessed(): void {
     this._isProcessed = true;
     if (this.isTemplateController) {
-      (this.$element.node as Element).removeAttribute(this.rawName);
+      (this.$element.node as IElement).removeAttribute(this.rawName);
     }
   }
 }
-
-type NodeWithAttributes = Node & {
-  hasAttribute(name: string): boolean;
-  getAttribute(name: string): string;
-  removeAttribute(name: string): void;
-};
 
 export class ElementSymbol {
   public readonly semanticModel: SemanticModel;
@@ -427,7 +421,7 @@ export class ElementSymbol {
   public get isLet(): boolean {
     return this._isLet;
   }
-  public get node(): Node {
+  public get node(): INode {
     return this._node;
   }
   public get syntax(): ElementSyntax {
@@ -473,7 +467,7 @@ export class ElementSymbol {
   private _isTemplate: boolean;
   private _isSlot: boolean;
   private _isLet: boolean;
-  private _node: Node;
+  private _node: INode;
   private _syntax: ElementSyntax;
   private _name: string;
   private _isCustomElement: boolean;
@@ -515,11 +509,11 @@ export class ElementSymbol {
     this._isCustomElement = false;
     this._isLifted = false;
     // TODO: improve DOM typings and clean up this mess etc
-    if (node.nodeType === NodeType.Element && (<NodeWithAttributes>node).hasAttribute('replace-part')) {
+    if (node.nodeType === NodeType.Element && (node as IElement).hasAttribute('replace-part')) {
       this._isReplacePart = true;
-      this._partName = (<NodeWithAttributes>node).getAttribute('replace-part');
-      (<NodeWithAttributes>node).removeAttribute('replace-part');
-      (<AttrSyntax[]>syntax.$attributes).splice(syntax.$attributes.findIndex(a => a.rawName === 'replace-part'), 1);
+      this._partName = (node as IElement).getAttribute('replace-part');
+      (node as IElement).removeAttribute('replace-part');
+      (syntax.$attributes as AttrSyntax[]).splice(syntax.$attributes.findIndex(a => a.rawName === 'replace-part'), 1);
       if (node.nodeName === 'TEMPLATE') {
         node['remove']();
       }
@@ -569,7 +563,7 @@ export class ElementSymbol {
   }
 
   public makeTarget(): void {
-    (this.node as Element).classList.add('au');
+    (this.node as IElement).classList.add('au');
   }
 
   public replaceTextNodeWithMarker(): void {
@@ -589,14 +583,14 @@ export class ElementSymbol {
     if (node.parentNode) {
       node.parentNode.replaceChild(marker.node, node);
     } else if (this.isTemplate) {
-      (node as HTMLTemplateElement).content.appendChild(marker.node);
+      (node as IHTMLTemplateElement).content.appendChild(marker.node);
     }
     this.setToMarker(marker);
   }
 
   public lift(instruction: HydrateTemplateController): ElementSymbol {
-    const template = instruction.def.template = DOM.createElement('template') as HTMLTemplateElement;
-    const node = this.node as HTMLTemplateElement;
+    const template = instruction.def.template = DOM.createTemplate();
+    const node = this.node as IHTMLTemplateElement;
     if (node.hasAttribute('part')) {
       instruction.def.name = node.getAttribute('part');
       node.removeAttribute('part');
@@ -624,14 +618,14 @@ export class ElementSymbol {
 
   public extractReplacePart(): ElementSymbol {
     let part: ITemplateDefinition;
-    let template: IElement;
+    let template: IHTMLTemplateElement;
     const node = this.node;
     const name = this.partName;
     if (node.nodeName !== 'TEMPLATE') {
-      template = DOM.createElement('template');
+      template = DOM.createTemplate();
       template.content['appendChild'](node);
     }
-    part = this.parts[name] = <ITemplateDefinition><unknown>buildTemplateDefinition(null, { name, template });
+    part = this.parts[name] = buildTemplateDefinition(null, { name, template }) as unknown as ITemplateDefinition;
     const syntax = this.semanticModel.elParser.parse(template);
     return this.semanticModel.getTemplateElementSymbol(syntax, this, part, null);
   }

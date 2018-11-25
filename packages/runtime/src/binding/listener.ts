@@ -1,5 +1,5 @@
 import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { INode } from '../dom';
+import { INode, IEvent } from '../dom.interfaces';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
@@ -39,7 +39,7 @@ export class Listener implements IBinding {
     this.eventManager = eventManager;
   }
 
-  public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
+  public callSource(event: IEvent): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;
     overrideContext['$event'] = event;
 
@@ -54,7 +54,7 @@ export class Listener implements IBinding {
     return result;
   }
 
-  public handleEvent(event: Event): void {
+  public handleEvent(event: IEvent): void {
     this.callSource(event);
   }
 

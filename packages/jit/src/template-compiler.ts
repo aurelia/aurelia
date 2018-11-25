@@ -24,10 +24,13 @@ import {
   TextBindingInstruction,
   ToViewBindingInstruction,
   TwoWayBindingInstruction,
-  ViewCompileFlags
+  ViewCompileFlags,
+  IText,
+  NodeType,
+  IElement
 } from '@aurelia/runtime';
 import { IAttributeParser } from './attribute-parser';
-import { IElementParser, NodeType } from './element-parser';
+import { IElementParser } from './element-parser';
 import { AttributeSymbol, ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 
 @inject(IExpressionParser, IElementParser, IAttributeParser)
@@ -86,7 +89,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
         return nextSibling;
       case NodeType.Text:
-        const expression = this.exprParser.parse(($el.node as Text).wholeText, BindingType.Interpolation);
+        const expression = this.exprParser.parse(($el.node as IText).wholeText, BindingType.Interpolation);
         if (expression === null) {
           while (($el = $el.nextSibling) && $el.node.nodeType === NodeType.Text);
           return $el;
@@ -254,7 +257,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         letInstructions.push(new LetBindingInstruction(expr, to));
       } else if ($attr.rawName === 'to-view-model') {
         toViewModel = true;
-        ($el.node as Element).removeAttribute('to-view-model');
+        ($el.node as IElement).removeAttribute('to-view-model');
       } else {
         const expr = this.exprParser.parse($attr.rawValue, BindingType.Interpolation);
         if (expr === null) {

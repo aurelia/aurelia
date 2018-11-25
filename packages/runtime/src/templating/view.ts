@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { INodeSequence, IRenderLocation } from '../dom';
+import { INodeSequence, IRenderLocation } from '../dom.interfaces';
 import { IAttach, IBindScope, ILifecycle, ILifecycleUnbind, IMountable, IRenderContext, IView, IViewCache, IViewFactory, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';

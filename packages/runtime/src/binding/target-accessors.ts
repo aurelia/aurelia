@@ -1,5 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
-import { DOM, IHTMLElement, INode } from '../dom';
+import { DOM } from '../dom';
+import { IHTMLElement, INode, IElement } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor } from '../observation';
 import { targetObserver } from './target-observer';
@@ -51,11 +52,11 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   public currentValue: string;
   public defaultValue: string;
   public lifecycle: ILifecycle;
-  public obj: INode;
+  public obj: IElement;
   public oldValue: string;
   public propertyKey: string;
 
-  constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string) {
+  constructor(lifecycle: ILifecycle, obj: IElement, propertyKey: string) {
     this.lifecycle = lifecycle;
     this.obj = obj;
     this.oldValue = this.currentValue = this.getValue();
@@ -167,11 +168,11 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
   public doNotCache: true;
   public lifecycle: ILifecycle;
   public nameIndex: object;
-  public obj: INode;
+  public obj: IElement;
   public oldValue: string;
   public version: number;
 
-  constructor(lifecycle: ILifecycle, obj: INode) {
+  constructor(lifecycle: ILifecycle, obj: IElement) {
     this.lifecycle = lifecycle;
     this.obj = obj;
   }

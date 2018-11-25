@@ -1,9 +1,9 @@
 import { DI, inject, PLATFORM } from '@aurelia/kernel';
-import { DOM, IAttr, INode } from '@aurelia/runtime';
+import { DOM, IAttr, IHTMLTemplateElement, INode } from '@aurelia/runtime';
 import { AttrSyntax, ElementSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 
-const domParser = DOM.createElement('div') as HTMLDivElement;
+const domParser = DOM.createElement('div');
 
 export const enum NodeType {
   Element = 1,
@@ -41,7 +41,7 @@ export class ElementParser implements IElementParser {
     if (typeof markupOrNode === 'string') {
       domParser.innerHTML = markupOrNode;
       node = domParser.firstElementChild;
-      domParser.removeChild(node as Node);
+      domParser.removeChild(node);
     } else {
       node = markupOrNode;
     }
@@ -49,7 +49,7 @@ export class ElementParser implements IElementParser {
     let children: ElementSyntax[];
     let content: ElementSyntax;
     if (node.nodeName === 'TEMPLATE') {
-      content = this.parse((node as HTMLTemplateElement).content);
+      content = this.parse((node as IHTMLTemplateElement).content);
       children = PLATFORM.emptyArray as ElementSyntax[];
     } else {
       content = null;
@@ -78,6 +78,6 @@ export class ElementParser implements IElementParser {
       attributes = PLATFORM.emptyArray as AttrSyntax[];
     }
 
-    return new ElementSyntax(node as Node, node.nodeName, content, children, attributes);
+    return new ElementSyntax(node, node.nodeName, content, children, attributes);
   }
 }

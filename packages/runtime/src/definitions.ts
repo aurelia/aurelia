@@ -2,8 +2,8 @@ import { DI, Immutable, IRegistry, Omit, PLATFORM } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
-import { INode } from './dom';
-import { IResourceDefinition, ResourceDescription } from './resource';
+import { INode, IShadowRootInit } from './dom.interfaces';
+import { IResourceDefinition, ResourceDescription, ResourcePartDescription } from './resource';
 import { CustomElementConstructor, ICustomElement } from './templating/custom-element';
 import { ICustomElementHost } from './templating/lifecycle-render';
 
@@ -68,12 +68,13 @@ export interface ITemplateDefinition extends IResourceDefinition {
   surrogates?: TargetedInstruction[];
   bindables?: Record<string, IBindableDescription>;
   containerless?: boolean;
-  shadowOptions?: ShadowRootInit;
+  shadowOptions?: IShadowRootInit;
   hasSlots?: boolean;
 }
 
-export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
-export type TemplatePartDefinitions = Record<string, Immutable<ITemplateDefinition>>;
+export type TemplateDefinition = ResourceDescription<Omit<ITemplateDefinition, 'template'>> & Required<Pick<ITemplateDefinition, 'template'>>;
+
+export type TemplatePartDefinitions = Record<string, ResourcePartDescription<Omit<ITemplateDefinition, 'template'>> & Required<Pick<ITemplateDefinition, 'template'>>>;
 export type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
 
 export interface IAttributeDefinition extends IResourceDefinition {

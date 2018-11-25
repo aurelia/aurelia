@@ -1,5 +1,5 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { DOM } from '@aurelia/runtime';
+import { DOM, IElement, IHTMLElement, INode } from '@aurelia/runtime';
 
 export class AttrSyntax {
   public readonly rawName: string;
@@ -15,19 +15,19 @@ export class AttrSyntax {
   }
 }
 
-const marker = DOM.createElement('au-m') as Element;
+const marker = DOM.createElement('au-m') as IElement;
 marker.classList.add('au');
-const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
+const createMarker: () => IHTMLElement = marker.cloneNode.bind(marker, false);
 
 export class ElementSyntax {
-  public readonly node: Node;
+  public readonly node: INode;
   public readonly name: string;
   public readonly $content: ElementSyntax | null;
   public readonly $children: ReadonlyArray<ElementSyntax>;
   public readonly $attributes: ReadonlyArray<AttrSyntax>;
 
   constructor(
-    node: Node,
+    node: INode,
     name: string,
     $content: ElementSyntax | null,
     $children: ReadonlyArray<ElementSyntax>,

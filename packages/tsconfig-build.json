@@ -8,7 +8,7 @@
     "declarationMap": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "lib": ["esnext", "dom"],
+    "lib": ["esnext"],
     "module": "umd",
     "moduleResolution": "node",
     "sourceMap": true,

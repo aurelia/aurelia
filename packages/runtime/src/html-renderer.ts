@@ -1,5 +1,5 @@
-import { IContainer, inject, IRegistry } from '@aurelia/kernel';
-import { Binding, IBindingTarget } from './binding/binding';
+import { IContainer, IIndexable, inject, IRegistry } from '@aurelia/kernel';
+import { Binding } from './binding/binding';
 import { BindingMode } from './binding/binding-mode';
 import { Call } from './binding/call';
 import { IEventManager } from './binding/event-manager';
@@ -10,11 +10,12 @@ import { Listener } from './binding/listener';
 import { IObserverLocator } from './binding/observer-locator';
 import { Ref } from './binding/ref';
 import { customAttributeKey, customElementKey, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TargetedInstructionType, TemplatePartDefinitions } from './definitions';
-import { DOM, INode, IRemovableNode } from './dom';
+import { DOM } from './dom';
+import { IElement, IHTMLElement, INode, IRenderLocation } from './dom.interfaces';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';
 import { ICustomAttribute } from './templating/custom-attribute';
 import { ICustomElement } from './templating/custom-element';
-import { IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
+import { IElementHydrationOptions, IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
 
 export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
   if (typeof srcOrExpr === 'string') {
@@ -59,7 +60,6 @@ export class TextBindingRenderer implements IInstructionRenderer {
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ITextBindingInstruction): void {
     const next = target.nextSibling;
-    DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
     let bindable: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
@@ -201,9 +201,9 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IStylePropertyBindingInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IHTMLElement, instruction: IStylePropertyBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
-    const bindable = new Binding(expr, (target as INode & {style: IBindingTarget}).style, instruction.to, BindingMode.toView, this.observerLocator, context);
+    const bindable = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBindable(renderable, bindable);
   }
 }
@@ -211,7 +211,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.setProperty)
 /*@internal*/
 export class SetPropertyRenderer implements IInstructionRenderer {
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ISetPropertyInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IIndexable, instruction: ISetPropertyInstruction): void {
     target[instruction.to] = instruction.value;
   }
 }
@@ -219,7 +219,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.setAttribute)
 /*@internal*/
 export class SetAttributeRenderer implements IInstructionRenderer {
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ISetAttributeInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: ISetAttributeInstruction): void {
     DOM.setAttribute(target, instruction.to, instruction.value);
   }
 }
@@ -234,13 +234,13 @@ export class CustomElementRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IRenderLocation, instruction: IHydrateElementInstruction): void {
     const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
     const component = context.get<ICustomElement>(customElementKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    component.$hydrate(this.renderingEngine, target, instruction);
+    component.$hydrate(this.renderingEngine, target, instruction as IElementHydrationOptions);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
@@ -264,7 +264,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: IHydrateAttributeInstruction): void {
     const operation = context.beginComponentOperation(renderable, target, instruction);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -294,7 +294,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
     const factory = this.renderingEngine.getViewFactory(instruction.def, context);
     const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
@@ -331,7 +331,7 @@ export class LetElementRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: IRemovableNode, instruction: ILetElementInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: ILetElementInstruction): void {
     target.remove();
     const childInstructions = instruction.instructions;
     const toViewModel = instruction.toViewModel;

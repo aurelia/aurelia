@@ -1,5 +1,5 @@
 import { Writable } from '@aurelia/kernel';
-import { IEncapsulationSource } from '../dom';
+import { INode } from '../dom.interfaces';
 import { Hooks, IView, State } from '../lifecycle';
 import { LifecycleFlags } from '../observation';
 import { ICustomAttribute } from './custom-attribute';
@@ -7,7 +7,7 @@ import { ICustomElement } from './custom-element';
 
 /*@internal*/
 // tslint:disable-next-line:no-ignored-initial-value
-export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
+export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, encapsulationSource?: INode): void {
   if (this.$state & State.isAttached) {
     return;
   }
@@ -35,7 +35,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
 
 /*@internal*/
 // tslint:disable-next-line:no-ignored-initial-value
-export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
+export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags, encapsulationSource?: INode): void {
   if (this.$state & State.isAttached) {
     return;
   }
@@ -71,7 +71,7 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
 }
 
 /*@internal*/
-export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
+export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encapsulationSource?: INode): void {
   if (this.$state & State.isAttached) {
     return;
   }

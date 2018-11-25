@@ -1,6 +1,7 @@
 import { Constructable, IRegistry } from '@aurelia/kernel';
 import { buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
-import { DOM, INode } from '../dom';
+import { DOM } from '../dom';
+import { INode } from '../dom.interfaces';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
 import { ICustomElementType } from './custom-element';
 import { IRenderingEngine, ITemplate } from './lifecycle-render';

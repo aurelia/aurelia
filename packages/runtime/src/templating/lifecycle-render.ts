@@ -3,7 +3,8 @@ import { Scope } from '../binding/binding-context';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
 import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
-import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
+import { DOM, INodeSequenceFactory, NodeSequence, NodeSequenceFactory } from '../dom';
+import { IElement, INode, INodeSequence, IRenderLocation } from '../dom.interfaces';
 import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory, State } from '../lifecycle';
 import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { IResourceDescriptions, RuntimeCompilationResources } from '../resource';
@@ -24,13 +25,11 @@ export enum ViewCompileFlags {
   shadowDOM   = 0b0_100,
 }
 
-export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
+export type IElementHydrationOptions = { parts?: Record<string, TemplateDefinition> };
 
 export interface ICustomElementHost extends IRenderLocation {
   $customElement?: ICustomElement;
 }
-
-export type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
 
 export interface IElementProjector {
   readonly host: ICustomElementHost;
@@ -71,7 +70,7 @@ export interface ILifecycleRender {
    * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
-  render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
+  render?(host: INode, parts: Record<string, TemplateDefinition>): IElementTemplateProvider | void;
 }
 
 /*@internal*/
@@ -258,7 +257,7 @@ export class ShadowDOMProjector implements IElementProjector {
   constructor($customElement: ICustomElement, host: ICustomElementHost, definition: TemplateDefinition) {
     this.host = host;
 
-    this.shadowRoot = DOM.attachShadow(this.host, definition.shadowOptions || defaultShadowOptions);
+    this.shadowRoot = DOM.attachShadow(<IElement>this.host, definition.shadowOptions || defaultShadowOptions);
     this.host.$customElement = $customElement;
     this.shadowRoot.$customElement = $customElement;
   }
@@ -511,7 +510,7 @@ export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
 // context for the template.
 export interface ITemplate {
   readonly renderContext: IRenderContext;
-  render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(renderable: IRenderable, host?: INode, parts?: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): void;
 }
 
 // This is the main implementation of ITemplate.

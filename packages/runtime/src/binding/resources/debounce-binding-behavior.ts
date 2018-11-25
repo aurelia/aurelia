@@ -1,11 +1,12 @@
-import { IRegistry } from '@aurelia/kernel';
+import { IRegistry, IWindow } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding, IBinding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingMode } from '../binding-mode';
 
-// defaults to nodejs setTimeout type otherwise
-declare var setTimeout: typeof window['setTimeout'];
+// defaults to nodejs setTimeout/clearTimeout type otherwise
+declare var setTimeout: IWindow['setTimeout'];
+declare var clearTimeout: IWindow['clearTimeout'];
 
 export type DebounceableBinding = IBinding & {
   debouncedMethod: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) & { originalName: string };

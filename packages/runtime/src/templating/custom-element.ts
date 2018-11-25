@@ -1,6 +1,6 @@
 import { Class, Constructable, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
-import { INode } from '../dom';
+import { INode } from '../dom.interfaces';
 import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IState, State } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
@@ -14,7 +14,9 @@ export type CustomElementConstructor = Constructable & CustomElementStaticProper
 
 export interface ICustomElementType extends
   IResourceType<ITemplateDefinition, ICustomElement>,
-  CustomElementStaticProperties { }
+  CustomElementStaticProperties {
+  description: TemplateDefinition;
+}
 
 type PartialCustomElementType<T> = T & Partial<IResourceType<ITemplateDefinition, unknown, Constructable>>;
 
@@ -35,7 +37,6 @@ export interface ICustomElement extends
 
 export interface ICustomElementResource extends
   IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
-
   behaviorFor(node: INode): ICustomElement | null;
 }
 
@@ -53,7 +54,7 @@ export function registerElement(this: ICustomElementType, container: IContainer)
 export function customElement(name: string): CustomElementDecorator;
 export function customElement(definition: ITemplateDefinition): CustomElementDecorator;
 export function customElement(nameOrDefinition: string | ITemplateDefinition): CustomElementDecorator {
-  return target => CustomElementResource.define(nameOrDefinition, target);
+  return <CustomElementDecorator>(target => CustomElementResource.define(nameOrDefinition, target));
 }
 
 type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;

@@ -1,7 +1,7 @@
 import { DI, IContainer, IDisposable, Immutable, inject, InterfaceSymbol, IResolver, IServiceLocator, Omit, PLATFORM, Registration } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
-import { IEncapsulationSource, INode, INodeSequence, IRenderLocation } from './dom';
+import { INode, INodeSequence, IRenderLocation } from './dom.interfaces';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
 
 export const enum State {
@@ -244,7 +244,7 @@ export interface ILifecycleAttaching extends IHooks, IState {
    * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
    * the nodes are added to the DOM.
    */
-  attaching?(flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void;
+  attaching?(flags: LifecycleFlags, encapsulationSource?: INode): void;
 }
 
 export interface ILifecycleAttached extends IHooks, IState {
@@ -339,7 +339,7 @@ export interface ILifecycleCache {
 export interface ICachable extends ILifecycleCache { }
 
 export interface ILifecycleAttach {
-  $attach(flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void;
+  $attach(flags: LifecycleFlags, encapsulationSource?: INode): void;
 }
 
 export interface ILifecycleDetach {

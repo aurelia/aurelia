@@ -1,39 +1,21 @@
 import { DI, IDisposable } from '@aurelia/kernel';
-import { DOM, INode } from '../dom';
-
-export interface IEventWithStandardPropagation extends Event {
-  propagationStopped?: boolean;
-  standardStopPropagation?: Event['stopPropagation'];
-}
-
-/*@internal*/
-export type CompatibleEvent = {
-  target?: EventTarget;
-
-  // legacy
-  path?: EventTarget[];
-
-  // old composedPath
-  deepPath?(): EventTarget[];
-
-  // current spec
-  composedPath?(): EventTarget[];
-};
+import { DOM } from '../dom';
+import { INode, IManagedEvent, IEventTarget, IEventListenerOrEventListenerObject } from '../dom.interfaces';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 /*@internal*/
-export function findOriginalEventTarget(event: Event & CompatibleEvent): EventTarget {
+export function findOriginalEventTarget(event: IManagedEvent): IEventTarget {
   return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
 }
 
-function stopPropagation(this: IEventWithStandardPropagation): void {
+function stopPropagation(this: IManagedEvent): void {
   this.standardStopPropagation();
   this.propagationStopped = true;
 }
 
-function handleCapturedEvent(event: IEventWithStandardPropagation): void {
+function handleCapturedEvent(event: IManagedEvent): void {
   event.propagationStopped = false;
-  let target: IEventTargetWithLookups = findOriginalEventTarget(event) as EventTarget & IEventTargetWithLookups;
+  let target: IEventTargetWithLookups = findOriginalEventTarget(event) as IEventTarget & IEventTargetWithLookups;
   const orderedCallbacks = [];
   /**
    * During capturing phase, event 'bubbles' down from parent. Needs to reorder callback from root down to target
@@ -62,9 +44,9 @@ function handleCapturedEvent(event: IEventWithStandardPropagation): void {
   }
 }
 
-function handleDelegatedEvent(event: IEventWithStandardPropagation): void {
+function handleDelegatedEvent(event: IManagedEvent): void {
   event.propagationStopped = false;
-  let target: IEventTargetWithLookups = findOriginalEventTarget(event) as EventTarget & IEventTargetWithLookups;
+  let target: IEventTargetWithLookups = findOriginalEventTarget(event) as IEventTarget & IEventTargetWithLookups;
   while (target && !event.propagationStopped) {
     if (target.delegatedCallbacks) {
       const callback = target.delegatedCallbacks[event.type];
@@ -88,9 +70,9 @@ export class ListenerTracker {
   private capture: boolean;
   private count: number;
   private eventName: string;
-  private listener: EventListenerOrEventListenerObject;
+  private listener: IEventListenerOrEventListenerObject;
 
-  constructor(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean) {
+  constructor(eventName: string, listener: IEventListenerOrEventListenerObject, capture: boolean) {
     this.capture = capture;
     this.count = 0;
     this.eventName = eventName;
@@ -118,9 +100,9 @@ export class ListenerTracker {
 export class DelegateOrCaptureSubscription {
   constructor(
     public entry: ListenerTracker,
-    public lookup: Record<string, EventListenerOrEventListenerObject>,
+    public lookup: Record<string, IEventListenerOrEventListenerObject>,
     public targetEvent: string,
-    callback: EventListenerOrEventListenerObject
+    callback: IEventListenerOrEventListenerObject
   ) {
     lookup[targetEvent] = callback;
   }
@@ -138,7 +120,7 @@ export class TriggerSubscription {
   constructor(
     public target: INode,
     public targetEvent: string,
-    public callback: EventListenerOrEventListenerObject
+    public callback: IEventListenerOrEventListenerObject
   ) {
     DOM.addEventListener(targetEvent, callback, target);
   }
@@ -149,8 +131,8 @@ export class TriggerSubscription {
 }
 
 export interface  IEventTargetWithLookups extends INode {
-  delegatedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
-  capturedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
+  delegatedCallbacks?: Record<string, IEventListenerOrEventListenerObject>;
+  capturedCallbacks?: Record<string, IEventListenerOrEventListenerObject>;
 }
 
 export enum DelegationStrategy {
@@ -165,12 +147,12 @@ export interface IElementConfiguration {
 }
 
 export interface IEventSubscriber extends IDisposable {
-  subscribe(node: INode, callbackOrListener: EventListenerOrEventListenerObject): void;
+  subscribe(node: INode, callbackOrListener: IEventListenerOrEventListenerObject): void;
 }
 
 export class EventSubscriber implements IEventSubscriber {
   private target: INode;
-  private handler: EventListenerOrEventListenerObject;
+  private handler: IEventListenerOrEventListenerObject;
 
   constructor(private readonly events: string[]) {
     this.events = events;
@@ -178,7 +160,7 @@ export class EventSubscriber implements IEventSubscriber {
     this.handler = null;
   }
 
-  public subscribe(node: INode, callbackOrListener: EventListenerOrEventListenerObject): void {
+  public subscribe(node: INode, callbackOrListener: IEventListenerOrEventListenerObject): void {
     this.target = node;
     this.handler = callbackOrListener;
 
@@ -209,7 +191,7 @@ export type EventSubscription = DelegateOrCaptureSubscription | TriggerSubscript
 export interface IEventManager {
   registerElementConfiguration(config: IElementConfiguration): void;
   getElementHandler(target: INode, propertyName: string): IEventSubscriber | null;
-  addEventListener(target: INode, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
+  addEventListener(target: INode, targetEvent: string, callbackOrListener: IEventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
 
 export const IEventManager = DI.createInterface<IEventManager>()
@@ -289,7 +271,7 @@ export class EventManager implements IEventManager {
   public addEventListener(
     target: IEventTargetWithLookups,
     targetEvent: string,
-    callbackOrListener: EventListenerOrEventListenerObject,
+    callbackOrListener: IEventListenerOrEventListenerObject,
     strategy: DelegationStrategy
   ): EventSubscription {
     let delegatedHandlers: Record<string, ListenerTracker> | undefined;

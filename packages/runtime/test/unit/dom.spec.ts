@@ -580,29 +580,29 @@ describe('DOM', () => {
     });
   });
 
-  describe('isAllWhitespace', () => {
-    const whitespaceArr = ['', ' ', '\n', '\t', '\r'];
-    for (const whitespace of whitespaceArr) {
-      it('should return true if the textNode contains all whitespace', () => {
-        const node = document.createTextNode(whitespace);
-        const actual = DOM.isAllWhitespace(node);
-        expect(actual).to.be.true;
-      });
+  // describe('isAllWhitespace', () => {
+  //   const whitespaceArr = ['', ' ', '\n', '\t', '\r'];
+  //   for (const whitespace of whitespaceArr) {
+  //     it('should return true if the textNode contains all whitespace', () => {
+  //       const node = document.createTextNode(whitespace);
+  //       const actual = DOM.isAllWhitespace(node);
+  //       expect(actual).to.be.true;
+  //     });
 
-      it('should return false if the textNode contains all whitespace but is set to treatAsNonWhitespace', () => {
-        const node = document.createTextNode(whitespace);
-        DOM.treatAsNonWhitespace(node);
-        const actual = DOM.isAllWhitespace(node);
-        expect(actual).to.be.false;
-      });
+  //     it('should return false if the textNode contains all whitespace but is set to treatAsNonWhitespace', () => {
+  //       const node = document.createTextNode(whitespace);
+  //       DOM.treatAsNonWhitespace(node);
+  //       const actual = DOM.isAllWhitespace(node);
+  //       expect(actual).to.be.false;
+  //     });
 
-      it('should return false if the textNode contains any non-whitespace', () => {
-        const node = document.createTextNode(whitespace + 'foo');
-        const actual = DOM.isAllWhitespace(node);
-        expect(actual).to.be.false;
-      });
-    }
-  });
+  //     it('should return false if the textNode contains any non-whitespace', () => {
+  //       const node = document.createTextNode(whitespace + 'foo');
+  //       const actual = DOM.isAllWhitespace(node);
+  //       expect(actual).to.be.false;
+  //     });
+  //   }
+  // });
 
   describe('convertToRenderLocation', () => {
     function createTestNodes() {

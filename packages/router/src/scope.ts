@@ -1,7 +1,10 @@
-import { IContainer } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
-import { Viewport } from './viewport';
 import { Router } from './router';
+import { Viewport } from './viewport';
+
+export interface IViewportCustomElementType extends ICustomElementType {
+  viewport?: string;
+}
 
 export class Scope {
   public viewport: Viewport;
@@ -40,8 +43,8 @@ export class Scope {
     }
     // Need more ways to resolve viewport based on component name!
     const comp = this.resolveComponent(component);
-    if ((<any>comp).viewport) {
-      name = (<any>comp).viewport;
+    if (comp.viewport) {
+      name = comp.viewport;
       return this.viewports[name];
     }
     return null;
@@ -83,7 +86,7 @@ export class Scope {
     return Object.keys(this.viewports).length;
   }
 
-  public removeScope() {
+  public removeScope(): void {
     for (const child of this.children) {
       child.removeScope();
     }
@@ -92,7 +95,7 @@ export class Scope {
     }
   }
 
-  public renderViewport(viewport: Viewport): Promise<any> {
+  public renderViewport(viewport: Viewport): Promise<boolean> {
     return viewport.canEnter().then(() => viewport.loadContent());
   }
 
@@ -108,15 +111,15 @@ export class Scope {
   public viewportStates(): string[] {
     const states: string[] = [];
     for (const viewport in this.viewports) {
-      states.push((<Viewport>this.viewports[viewport]).description())
+      states.push((<Viewport>this.viewports[viewport]).description());
     }
     for (const scope of this.children) {
-      states.push(...(<Scope>scope).viewportStates());
+      states.push(...scope.viewportStates());
     }
     return states.filter((value) => value && value.length);
   }
 
-  private resolveComponent(component: ICustomElementType | string): ICustomElementType {
+  private resolveComponent(component: ICustomElementType | string): IViewportCustomElementType {
     if (typeof component === 'string') {
       const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(component));
       if (resolver !== null) {

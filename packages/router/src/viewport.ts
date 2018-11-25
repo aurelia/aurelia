@@ -1,7 +1,14 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElement, INode, IRenderingEngine, LifecycleFlags, ICustomElementType } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { Scope } from './scope';
+
+export interface IRouteableCustomElement extends ICustomElement {
+  canEnter?: Function;
+  enter?: Function;
+  canLeave?: Function;
+  leave?: Function;
+}
 
 export class Viewport {
   public content: ICustomElementType;
@@ -10,8 +17,8 @@ export class Viewport {
   public instruction: INavigationInstruction;
   public nextInstruction: INavigationInstruction;
 
-  public component: ICustomElement;
-  public nextComponent: ICustomElement;
+  public component: IRouteableCustomElement;
+  public nextComponent: IRouteableCustomElement;
 
   constructor(private container: IContainer, public name: string, public element: Element, public owningScope: Scope, public scope: Scope) {
   }
@@ -41,10 +48,11 @@ export class Viewport {
       return Promise.resolve(true);
     }
 
-    const component: any = this.component;
+    const component: IRouteableCustomElement = this.component;
     if (!component.canLeave) {
       return Promise.resolve(true);
     }
+    // tslint:disable-next-line:no-console
     console.log('viewport canLeave', component.canLeave(this.instruction, this.nextInstruction));
 
     const result = component.canLeave(this.instruction, this.nextInstruction);
@@ -64,11 +72,12 @@ export class Viewport {
       return Promise.resolve(false);
     }
 
-    const component: any = this.nextComponent;
+    const component: IRouteableCustomElement = this.nextComponent;
     if (!component.canEnter) {
       return Promise.resolve(true);
     }
 
+    // tslint:disable-next-line:no-console
     console.log('viewport canEnter', component.canEnter(this.nextInstruction, this.instruction));
     const result = component.canEnter(this.nextInstruction, this.instruction);
     if (typeof result === 'boolean') {
@@ -78,6 +87,7 @@ export class Viewport {
   }
 
   public loadContent(): Promise<boolean> {
+    // tslint:disable-next-line:no-console
     console.log('Viewport loadContent', this.name);
 
     if (!this.element) {
@@ -88,16 +98,16 @@ export class Viewport {
     const renderingEngine = this.container.get(IRenderingEngine);
 
     if (this.component) {
-      if ((<any>this.component).leave) {
-        (<any>this.component).leave(this.instruction, this.nextInstruction);
+      if (this.component.leave) {
+        this.component.leave(this.instruction, this.nextInstruction);
       }
       this.component.$detach(LifecycleFlags.fromStopTask);
       this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
     }
 
     if (this.nextComponent) {
-      if ((<any>this.nextComponent).enter) {
-        (<any>this.nextComponent).enter(this.nextInstruction, this.instruction);
+      if (this.nextComponent.enter) {
+        this.nextComponent.enter(this.nextInstruction, this.instruction);
       }
       this.nextComponent.$hydrate(renderingEngine, host);
       this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
@@ -113,10 +123,9 @@ export class Viewport {
     return Promise.resolve(true);
   }
 
-  public description() {
+  public description(): string {
     if (this.content) {
-      let component = (<any>this.content).description.name;
-      // component = component.split(':').pop();
+      const component = this.content.description.name;
       const newScope: string = this.scope ? '!' : '';
       return `${this.name}${newScope}:${component}`;
     }

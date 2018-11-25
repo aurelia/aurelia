@@ -5,6 +5,10 @@ export interface IHistoryEntry {
   data?: Object;
 }
 
+export interface IHistoryOptions {
+  callback?: Function;
+}
+
 export interface INavigationFlags {
   isFirst?: boolean;
   isNew?: boolean;
@@ -23,13 +27,13 @@ export class HistoryBrowser {
   public historyOffset: number;
   public replacedEntry: IHistoryEntry;
 
-  public history: any;
+  public history: History;
 
   private activeEntry: IHistoryEntry = null;
 
-  private location: any;
+  private location: Location;
 
-  private options: any;
+  private options: IHistoryOptions;
   private isActive: boolean = false;
 
   private lastHistoryMovement: number;
@@ -45,21 +49,17 @@ export class HistoryBrowser {
     this.history = window.history;
   }
 
-  public activate(options?: Object): void {
+  public activate(options?: IHistoryOptions): Promise<void> {
     if (this.isActive) {
       throw new Error('History has already been activated.');
     }
 
     this.isActive = true;
-    this.options = Object.assign({}, options);
+    this.options = { ...options };
 
     window.addEventListener('popstate', this.pathChanged);
-    // window.onpopstate = this.pathChanged;
-    // window.onpopstate = function (event) {
-    //   console.log("location: " + document.location + ", state: " + JSON.stringify(event.state));
-    // };
 
-    Promise.resolve().then(() => {
+    return Promise.resolve().then(() => {
       this.setPath(this.getPath(), true);
     });
   }
@@ -76,7 +76,6 @@ export class HistoryBrowser {
       data: data,
     };
     this.setPath(path);
-    // this.pathChanged();
   }
 
   public replace(path: string, title?: string, data?: Object): void {
@@ -120,27 +119,27 @@ export class HistoryBrowser {
     }
   }
 
-  public setState(key: string, value: any): void {
-    const state = Object.assign({}, this.history.state);
+  public setState(key: string, value: Object): void {
+    const state = { ...this.history.state };
     const { pathname, search, hash } = this.location;
     state[key] = JSON.parse(JSON.stringify(value));
     this.history.replaceState(state, null, `${pathname}${search}${hash}`);
   }
 
-  public getState(key: string): any {
-    const state = Object.assign({}, this.history.state);
+  public getState(key: string): Object {
+    const state = { ...this.history.state };
     return state[key];
   }
 
-  public setEntryTitle(title: string) {
+  public setEntryTitle(title: string): void {
     this.currentEntry.title = title;
     this.historyEntries[this.currentEntry.index] = this.currentEntry;
     this.setState('HistoryEntries', this.historyEntries);
     this.setState('HistoryEntry', this.currentEntry);
   }
 
-  public replacePath(path: string) {
-    const state = Object.assign({}, this.history.state);
+  public replacePath(path: string): void {
+    const state = { ...this.history.state };
     const { pathname, search } = this.location;
     this.history.replaceState(state, null, `${pathname}${search}#/${path}`);
   }
@@ -151,11 +150,12 @@ export class HistoryBrowser {
 
   private pathChanged = (): void => {
     const path: string = this.getPath();
+    // tslint:disable-next-line:no-console
     console.log('path changed to', path, this.activeEntry, this.currentEntry);
 
     const navigationFlags: INavigationFlags = {};
 
-    let historyEntry: IHistoryEntry = this.getState('HistoryEntry');
+    let historyEntry: IHistoryEntry = <IHistoryEntry>this.getState('HistoryEntry');
     if (this.activeEntry && this.activeEntry.path === path) { // Only happens with new history entries (including replacing ones)
       navigationFlags.isNew = true;
       const index = (this.isReplacing ? this.currentEntry.index : this.history.length - this.historyOffset);
@@ -184,8 +184,8 @@ export class HistoryBrowser {
       this.setState('HistoryOffset', this.historyOffset);
       this.setState('HistoryEntry', this.currentEntry);
     } else { // Refresh, history navigation, first navigation, manual navigation or cancel
-      this.historyEntries = this.historyEntries || this.getState('HistoryEntries') || [];
-      this.historyOffset = this.historyOffset || this.getState('HistoryOffset') || 0;
+      this.historyEntries = <IHistoryEntry[]>(this.historyEntries || this.getState('HistoryEntries') || []);
+      this.historyOffset = <number>(this.historyOffset || this.getState('HistoryOffset') || 0);
       if (!historyEntry && !this.currentEntry) {
         navigationFlags.isNew = true;
         navigationFlags.isFirst = true;
@@ -226,13 +226,13 @@ export class HistoryBrowser {
       this.cancelRedirectHistoryMovement--;
     }
 
+    // tslint:disable-next-line:no-console
     console.log('navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
     this.callback(this.currentEntry, navigationFlags);
   }
 
   private getPath(): string {
     return this.location.hash.substr(1);
-    // return this.__path;
   }
   private setPath(path: string, replace: boolean = false): void {
     // More checks, such as parameters, needed
@@ -246,13 +246,15 @@ export class HistoryBrowser {
       this.replacedEntry = this.currentEntry;
       this.history.replaceState({}, null, `${pathname}${search}${hash}`);
     } else {
+      // tslint:disable-next-line:no-commented-code
       // this.location.hash = hash;
       this.history.pushState({}, null, `${pathname}${search}${hash}`);
     }
     this.pathChanged();
   }
-  private callback(currentEntry: Object, navigationFlags: INavigationFlags): void {
-    const instruction: any = Object.assign({}, currentEntry, navigationFlags);
+  private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags): void {
+    const instruction: INavigationInstruction = { ...currentEntry, ...navigationFlags };
+    // tslint:disable-next-line:no-console
     console.log('callback', currentEntry, navigationFlags);
     if (this.options.callback) {
       this.options.callback(instruction);

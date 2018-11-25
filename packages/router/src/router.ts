@@ -1,8 +1,12 @@
 import { IContainer, inject } from '@aurelia/kernel';
-import { Aurelia, CustomElementResource, ICustomElement, ICustomElementType } from '@aurelia/runtime';
-import { HistoryBrowser, IHistoryEntry, INavigationInstruction } from './history-browser';
+import { Aurelia, ICustomElementType } from '@aurelia/runtime';
+import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { Scope } from './scope';
 import { Viewport } from './viewport';
+
+export interface IRouterOptions extends IHistoryOptions {
+  reportCallback?: Function;
+}
 
 export interface IRoute {
   name?: string;
@@ -28,7 +32,7 @@ export class Router {
 
   public historyBrowser: HistoryBrowser;
 
-  private options: any;
+  private options: IRouterOptions;
   private isActive: boolean = false;
   private isRedirecting: boolean = false;
 
@@ -36,17 +40,19 @@ export class Router {
     this.historyBrowser = new HistoryBrowser();
   }
 
-  public activate(options?: Object): void {
+  public activate(options?: IRouterOptions): void {
     if (this.isActive) {
       throw new Error('Router has already been activated.');
     }
 
     this.isActive = true;
-    this.options = Object.assign({}, {
-      callback: (navigationInstruction) => {
-        this.historyCallback(navigationInstruction);
-      }
-    }, options);
+    this.options = {
+      ...{
+        callback: (navigationInstruction) => {
+          this.historyCallback(navigationInstruction);
+        }
+      }, ...options
+    };
 
     this.historyBrowser.activate(this.options);
   }
@@ -61,7 +67,7 @@ export class Router {
     }
 
     let title;
-    let views: any;
+    let views: Object;
     let route: IRoute = this.findRoute(instruction);
     if (route) {
       if (route.redirect) {
@@ -89,8 +95,8 @@ export class Router {
     }
 
     const viewports: Viewport[] = [];
-    for (let vp in views) {
-      let component: ICustomElementType | string = views[vp];
+    for (const vp in views) {
+      const component: ICustomElementType | string = views[vp];
       const viewport = this.findViewport(`${vp}:${component}`);
       if (viewport.setNextContent(component, instruction)) {
         viewports.push(viewport);
@@ -125,21 +131,24 @@ export class Router {
         if (cancel) {
           this.historyBrowser.cancel();
         }
+        // tslint:disable-next-line:no-console
         console.log('=========== ROUTER', this);
       }).then(() => {
         // TODO: Eliminate duplications
-        const viewports = this.rootScope.viewportStates();
-        this.historyBrowser.replacePath(viewports.join('/'));
+        const viewportStates = this.rootScope.viewportStates();
+        this.historyBrowser.replacePath(viewportStates.join('/'));
       });
   }
 
   // public view(views: Object, title?: string, data?: Object): Promise<void> {
   //   console.log('Router.view:', views, title, data);
 
+  // tslint:disable-next-line:no-commented-code
   //   if (title) {
   //     this.historyBrowser.setEntryTitle(title);
   //   }
 
+  // tslint:disable-next-line:no-commented-code
   //   const viewports: Viewport[] = [];
   //   for (const v in views) {
   //     const component: ICustomElementType = views[v];
@@ -149,6 +158,7 @@ export class Router {
   //     }
   //   }
 
+  // tslint:disable-next-line:no-commented-code
   //   // We've gone via a redirected route back to same viewport status so
   //   // we need to remove the added history entry for the redirect
   //   if (!viewports.length && this.isRedirecting) {
@@ -156,6 +166,7 @@ export class Router {
   //     this.isRedirecting = false;
   //   }
 
+  // tslint:disable-next-line:no-commented-code
   //   let cancel: boolean = false;
   //   return Promise.all(viewports.map((value) => value.canLeave()))
   //     .then((promises: boolean[]) => {

@@ -54,6 +54,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       target.accept(visitor);
     });
 
-    return <TemplateDefinition>target.definition;;
+    return <TemplateDefinition>target.definition;
   }
 }

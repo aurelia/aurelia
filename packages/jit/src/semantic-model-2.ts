@@ -1,5 +1,5 @@
-import { all, DI, inject, PLATFORM, Reporter, Immutable } from '@aurelia/kernel';
-import { AttributeDefinition, BindingType, CustomAttributeResource, CustomElementResource, DOM, IAttr, IChildNode, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IResourceDescriptions, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, TemplateDefinition, IDocumentFragment, IElement, BindingMode, IBindableDescription, IBind, IHydrateElementInstruction, IHydrateTemplateController, IHydrateAttributeInstruction, TextBindingInstruction, HydrateTemplateController, IPropertyBindingInstruction, OneTimeBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, ToViewBindingInstruction, IsBindingBehavior, HydrateAttributeInstruction, TargetedInstruction, HydrateElementInstruction } from '@aurelia/runtime';
+import { all, DI, Immutable, inject, PLATFORM, Reporter } from '@aurelia/kernel';
+import { AttributeDefinition, BindingMode, BindingType, CustomAttributeResource, CustomElementResource, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IDocumentFragment, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IPropertyBindingInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, TargetedInstruction, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributePattern, IAttributePatternHandler, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
@@ -237,8 +237,8 @@ export class SemanticModel {
   public createNodeSymbol(node: PotentialSymbolNode): NodeSymbol;
   public createNodeSymbol(node: PotentialSymbolNode): NodeSymbol {
     if (node.nodeType === NodeType.Text) {
-      const expr = this.exprParser.parse((<IText>node).wholeText, BindingType.Interpolation);
-      return expr === null ? null : new TextInterpolationSymbol(<IText>node, expr);
+      const expr = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
+      return expr === null ? null : new TextInterpolationSymbol(node, expr);
     }
     if (node.nodeType === NodeType.Element) {
       switch (node.nodeName) {

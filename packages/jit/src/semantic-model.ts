@@ -1,5 +1,5 @@
 import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
-import { BindingMode,  buildTemplateDefinition, CustomAttributeResource, CustomElementResource, DOM, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IElement, IExpressionParser, IHydrateElementInstruction, IResourceDescriptions, ITemplateDefinition, TargetedInstruction, NodeType, INode, IHTMLTemplateElement } from '@aurelia/runtime';
+import { BindingMode,  buildTemplateDefinition, CustomAttributeResource, CustomElementResource, DOM, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IElement, IExpressionParser, IHTMLTemplateElement, IHydrateElementInstruction, INode, IResourceDescriptions, ITemplateDefinition, NodeType, TargetedInstruction } from '@aurelia/runtime';
 import { AttrSyntax, ElementSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { BindingCommandResource,  IBindingCommand } from './binding-command';

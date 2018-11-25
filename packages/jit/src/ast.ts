@@ -1,5 +1,5 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { DOM, IElement, IHTMLElement, INode } from '@aurelia/runtime';
+import { DOM, IHTMLElement, INode } from '@aurelia/runtime';
 
 export class AttrSyntax {
   public readonly rawName: string;
@@ -15,7 +15,7 @@ export class AttrSyntax {
   }
 }
 
-const marker = DOM.createElement('au-m') as IElement;
+const marker = DOM.createElement('au-m');
 marker.classList.add('au');
 const createMarker: () => IHTMLElement = marker.cloneNode.bind(marker, false);
 

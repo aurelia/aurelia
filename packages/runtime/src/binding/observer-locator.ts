@@ -1,6 +1,6 @@
 import { DI, inject, Reporter } from '@aurelia/kernel';
 import { DOM } from '../dom';
-import { IHTMLElement, IElement } from '../dom.interfaces';
+import { IElement, IHTMLElement } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext,
@@ -10,7 +10,7 @@ import {
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
-import { CheckedObserver, ISelectElement, IInputElement, SelectValueObserver, ValueAttributeObserver } from './element-observation';
+import { CheckedObserver, IInputElement, ISelectElement, SelectValueObserver, ValueAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
 import { getMapObserver } from './map-observer';
 import { PrimitiveObserver, SetterObserver } from './property-observation';

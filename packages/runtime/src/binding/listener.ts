@@ -1,5 +1,5 @@
 import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { INode, IEvent } from '../dom.interfaces';
+import { IEvent, INode } from '../dom.interfaces';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior } from './ast';

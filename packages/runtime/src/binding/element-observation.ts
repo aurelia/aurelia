@@ -1,4 +1,5 @@
 import { DOM } from '../dom';
+import { IHTMLInputElement, IHTMLOptionElement, IHTMLSelectElement, IMutationObserver, INode } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import {
   CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver,
@@ -8,7 +9,6 @@ import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
 import { SetterObserver } from './property-observation';
 import { targetObserver } from './target-observer';
-import { INode, IHTMLInputElement, IMutationObserver, IHTMLSelectElement, IHTMLOptionElement } from '../dom.interfaces';
 
 const inputValueDefaults = {
   ['button']: '',

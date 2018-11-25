@@ -1,6 +1,6 @@
 import { DI, IDisposable } from '@aurelia/kernel';
 import { DOM } from '../dom';
-import { INode, IManagedEvent, IEventTarget, IEventListenerOrEventListenerObject } from '../dom.interfaces';
+import { IEventListenerOrEventListenerObject, IEventTarget, IManagedEvent, INode } from '../dom.interfaces';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 /*@internal*/

@@ -6,14 +6,17 @@ import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
+  IElement,
   IExpressionParser,
   ILetBindingInstruction,
   InterpolationInstruction,
   IResourceDescriptions,
   ITemplateCompiler,
   ITemplateDefinition,
+  IText,
   LetBindingInstruction,
   LetElementInstruction,
+  NodeType,
   OneTimeBindingInstruction,
   RefBindingInstruction,
   SetAttributeInstruction,
@@ -24,10 +27,7 @@ import {
   TextBindingInstruction,
   ToViewBindingInstruction,
   TwoWayBindingInstruction,
-  ViewCompileFlags,
-  IText,
-  NodeType,
-  IElement
+  ViewCompileFlags
 } from '@aurelia/runtime';
 import { IAttributeParser } from './attribute-parser';
 import { IElementParser } from './element-parser';

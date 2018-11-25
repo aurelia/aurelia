@@ -1,4 +1,4 @@
-import { IWindowOrWorkerGlobalScope, IWindow } from './interfaces';
+import { IWindow, IWindowOrWorkerGlobalScope } from './interfaces';
 
 const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};

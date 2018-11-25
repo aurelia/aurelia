@@ -126,13 +126,11 @@ export class Router {
           this.historyBrowser.cancel();
         }
         console.log('=========== ROUTER', this);
+      }).then(() => {
+        // TODO: Eliminate duplications
+        const viewports = this.rootScope.viewportStates();
+        this.historyBrowser.replacePath(viewports.join('/'));
       });
-    // Don't delete this, you'll need (a version of) it later
-    // }).then(() => {
-    //   const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
-    //   this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
-    // });
-    //yy });
   }
 
   // public view(views: Object, title?: string, data?: Object): Promise<void> {
@@ -257,7 +255,14 @@ export class Router {
   public removeViewport(viewport: Viewport): void {
     // TODO: There's something hinky with remove!
     const scope = viewport.owningScope;
-    if (!scope.removeViewport(viewport) && scope !== this.rootScope) {
+    if (!scope.removeViewport(viewport)) {
+      this.removeScope(scope);
+    }
+  }
+
+  public removeScope(scope: Scope): void {
+    if (scope !== this.rootScope) {
+      scope.removeScope();
       const index = this.scopes.indexOf(scope);
       if (index >= 0) {
         this.scopes.splice(index, 1);

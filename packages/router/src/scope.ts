@@ -29,7 +29,8 @@ export class Scope {
     if (!parts.length) {
       return viewport;
     } else {
-      return viewport.scope.findViewport(parts.join('+'));
+      const scope = viewport.scope || viewport.owningScope;
+      return scope.findViewport(parts.join('+'));
     }
   }
 
@@ -47,9 +48,9 @@ export class Scope {
   }
 
   public addViewport(name: string, element: Element, newScope: boolean): Viewport {
-    let scope: Scope = this;
     let viewport = this.viewports[name];
     if (!viewport) {
+      let scope: Scope;
       if (newScope) {
         scope = new Scope(this.router, element, this);
         this.router.scopes.push(scope);
@@ -57,12 +58,12 @@ export class Scope {
 
       viewport = this.viewports[name] = new Viewport(this.router.container, name, element, this, scope);
       // First added viewport with element is always scope viewport (except for root scope)
-      if (element && scope.parent && !scope.viewport) {
+      if (element && scope && scope.parent && !scope.viewport) {
         scope.viewport = viewport;
       }
     }
     if (element) {
-      if (!viewport.scope.element) {
+      if (viewport.scope && !viewport.scope.element) {
         viewport.scope.element = element;
       }
       if (!viewport.element) {
@@ -75,8 +76,20 @@ export class Scope {
     return viewport;
   }
   public removeViewport(viewport: Viewport): number {
+    if (viewport.scope) {
+      this.router.removeScope(viewport.scope);
+    }
     delete this.viewports[viewport.name];
     return Object.keys(this.viewports).length;
+  }
+
+  public removeScope() {
+    for (const child of this.children) {
+      child.removeScope();
+    }
+    for (const viewport in this.viewports) {
+      this.router.removeViewport(this.viewports[viewport]);
+    }
   }
 
   public renderViewport(viewport: Viewport): Promise<any> {
@@ -90,6 +103,17 @@ export class Scope {
   }
   public removeChild(child: Scope): void {
     this.children.splice(this.children.indexOf(child), 1);
+  }
+
+  public viewportStates(): string[] {
+    const states: string[] = [];
+    for (const viewport in this.viewports) {
+      states.push((<Viewport>this.viewports[viewport]).description())
+    }
+    for (const scope of this.children) {
+      states.push(...(<Scope>scope).viewportStates());
+    }
+    return states.filter((value) => value && value.length);
   }
 
   private resolveComponent(component: ICustomElementType | string): ICustomElementType {

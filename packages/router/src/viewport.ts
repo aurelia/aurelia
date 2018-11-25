@@ -117,7 +117,8 @@ export class Viewport {
     if (this.content) {
       let component = (<any>this.content).description.name;
       // component = component.split(':').pop();
-      return `${this.name}:${component}`;
+      const newScope: string = this.scope ? '!' : '';
+      return `${this.name}${newScope}:${component}`;
     }
   }
 

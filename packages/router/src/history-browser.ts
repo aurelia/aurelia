@@ -139,6 +139,12 @@ export class HistoryBrowser {
     this.setState('HistoryEntry', this.currentEntry);
   }
 
+  public replacePath(path: string) {
+    const state = Object.assign({}, this.history.state);
+    const { pathname, search } = this.location;
+    this.history.replaceState(state, null, `${pathname}${search}#/${path}`);
+  }
+
   get titles(): string[] {
     return (this.historyEntries ? this.historyEntries.slice(0, this.currentEntry.index + 1).map((value) => value.title) : []);
   }

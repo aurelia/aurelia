@@ -452,7 +452,7 @@ export class Container implements IContainer {
       : false;
   }
 
-  public get(key: any): any {
+  public get<T>(key: any): T {
     validateKey(key);
 
     if (key.resolve) {

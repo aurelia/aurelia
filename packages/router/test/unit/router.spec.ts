@@ -3,7 +3,7 @@ import { expect } from 'chai';
 
 describe('Router', () => {
   it('can be created', () => {
-    const sut = new Router();
+    const sut = new Router(null);
   });
 });
 

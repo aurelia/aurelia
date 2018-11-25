@@ -132,6 +132,6 @@ export class Viewport {
   }
 
   private loadComponent(component: ICustomElementType): void {
-    this.nextComponent = <any>this.container.get(CustomElementResource.keyFrom(component.description.name));
+    this.nextComponent = this.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
   }
 }

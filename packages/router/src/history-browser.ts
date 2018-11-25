@@ -185,6 +185,7 @@ export class HistoryBrowser {
       this.setState('HistoryEntry', this.currentEntry);
     } else { // Refresh, history navigation, first navigation, manual navigation or cancel
       this.historyEntries = <IHistoryEntry[]>(this.historyEntries || this.getState('HistoryEntries') || []);
+      // tslint:disable-next-line:strict-boolean-expressions
       this.historyOffset = <number>(this.historyOffset || this.getState('HistoryOffset') || 0);
       if (!historyEntry && !this.currentEntry) {
         navigationFlags.isNew = true;

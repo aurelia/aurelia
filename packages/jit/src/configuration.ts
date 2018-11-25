@@ -36,7 +36,7 @@ import {
 import { ParserRegistration } from './expression-parser';
 import { TemplateCompiler } from './template-compiler';
 
-const globalResources: IRegistry[] = [
+export const GlobalResources: IRegistry[] = [
   Compose,
   If,
   Else,
@@ -56,7 +56,7 @@ const globalResources: IRegistry[] = [
   UpdateTriggerBindingBehavior
 ];
 
-const defaultBindingLanguage: IRegistry[] = [
+export const DefaultBindingLanguage: IRegistry[] = [
   DefaultBindingCommand,
   OneTimeBindingCommand,
   ToViewBindingCommand,
@@ -76,8 +76,8 @@ export const BasicConfiguration = {
       ParserRegistration,
       HtmlRenderer,
       Registration.singleton(ITemplateCompiler, TemplateCompiler),
-      ...globalResources,
-      ...defaultBindingLanguage
+      ...GlobalResources,
+      ...DefaultBindingLanguage
     );
   }
 };

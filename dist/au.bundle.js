@@ -1341,11 +1341,9 @@ var au = (function (exports) {
                   this.tasks.splice(idx, 1);
               }
           }
-          if (this.tasks.length === 0) {
-              if (this.owner !== null) {
-                  this.owner.finishTask(this);
-                  this.owner = null;
-              }
+          if (this.tasks.length === 0 && this.owner !== null) {
+              this.owner.finishTask(this);
+              this.owner = null;
           }
       }
       canCancel() {
@@ -2211,12 +2209,10 @@ var au = (function (exports) {
       return Promise.resolve();
   }
   function flush(flags) {
-      if (flags & LifecycleFlags.doNotUpdateDOM) {
-          if (DOM.isNodeInstance(this.obj)) {
-              // re-queue the change so it will still propagate on flush when it's attached again
-              this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
-              return;
-          }
+      if ((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj)) {
+          // re-queue the change so it will still propagate on flush when it's attached again
+          this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
+          return;
       }
       const currentValue = this.currentValue;
       // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
@@ -3937,7 +3933,7 @@ var au = (function (exports) {
       updateSource(value, flags) {
           this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
       }
-      handleChange(newValue, previousValue, flags) {
+      handleChange(newValue, _previousValue, flags) {
           if (!(this.$state & 2 /* isBound */)) {
               return;
           }
@@ -3947,7 +3943,7 @@ var au = (function (exports) {
           if (flags & LifecycleFlags.updateTargetInstance) {
               const targetObserver = this.targetObserver;
               const mode = this.mode;
-              previousValue = targetObserver.getValue();
+              const previousValue = targetObserver.getValue();
               // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
               if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
                   newValue = sourceExpression.evaluate(flags, $scope, locator);
@@ -4712,6 +4708,7 @@ var au = (function (exports) {
       const len = this.length;
       const middle = (len / 2) | 0;
       let lower = 0;
+      // tslint:disable:no-statements-same-line
       while (lower !== middle) {
           const upper = len - lower - 1;
           const lowerValue = this[lower];
@@ -4724,6 +4721,7 @@ var au = (function (exports) {
           o.indexMap[upper] = lowerIndex;
           lower++;
       }
+      // tslint:enable:no-statements-same-line
       o.callSubscribers('reverse', arguments, LifecycleFlags.isCollectionMutation);
       return this;
   }
@@ -4798,6 +4796,7 @@ var au = (function (exports) {
           indexMap[j + 1] = ielement;
       }
   }
+  // tslint:disable-next-line:cognitive-complexity
   function quickSort(arr, indexMap, from, to, compareFn) {
       let thirdIndex = 0, i = 0;
       let v0, v1, v2;
@@ -4812,6 +4811,7 @@ var au = (function (exports) {
               insertionSort(arr, indexMap, from, to, compareFn);
               return;
           }
+          // tslint:disable:no-statements-same-line
           thirdIndex = from + ((to - from) >> 1);
           v0 = arr[from];
           i0 = indexMap[from];
@@ -4898,6 +4898,7 @@ var au = (function (exports) {
                   }
               }
           }
+          // tslint:enable:no-statements-same-line
           if (to - highStart < lowEnd - from) {
               quickSort(arr, indexMap, highStart, to, compareFn);
               to = lowEnd;
@@ -4965,7 +4966,7 @@ var au = (function (exports) {
       };
   }
   // tslint:disable-next-line:no-typeof-undefined
-  const noProxy = !(typeof Proxy !== 'undefined');
+  const noProxy = typeof Proxy === 'undefined';
   const computedOverrideDefaults = { static: false, volatile: false };
   /* @internal */
   function createComputedObserver(observerLocator, dirtyChecker, lifecycle, instance, propertyName, descriptor) {
@@ -5336,11 +5337,9 @@ var au = (function (exports) {
       }
       flushFileChanges() {
           const currentValue = this.currentValue;
-          if (this.oldValue !== currentValue) {
-              if (currentValue === '') {
-                  this.setValueCore(currentValue, this.currentFlags);
-                  this.oldValue = this.currentValue;
-              }
+          if (this.oldValue !== currentValue && currentValue === '') {
+              this.setValueCore(currentValue, this.currentFlags);
+              this.oldValue = this.currentValue;
           }
       }
   };
@@ -6002,6 +6001,7 @@ var au = (function (exports) {
           }
           return null;
       }
+      // TODO: Reduce complexity (currently at 37)
       createPropertyObserver(obj, propertyName) {
           if (!(obj instanceof Object)) {
               return new PrimitiveObserver(obj, propertyName);
@@ -6055,22 +6055,20 @@ var au = (function (exports) {
                   return this.dirtyChecker.createProperty(obj, propertyName);
           }
           const descriptor = getPropertyDescriptor(obj, propertyName);
-          if (descriptor) {
-              if (descriptor.get || descriptor.set) {
-                  if (descriptor.get && descriptor.get.getObserver) {
-                      return descriptor.get.getObserver(obj);
-                  }
-                  // attempt to use an adapter before resorting to dirty checking.
-                  const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
-                  if (adapterObserver) {
-                      return adapterObserver;
-                  }
-                  if (isNode) {
-                      // TODO: use MutationObserver
-                      return this.dirtyChecker.createProperty(obj, propertyName);
-                  }
-                  return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
+          if (descriptor && (descriptor.get || descriptor.set)) {
+              if (descriptor.get && descriptor.get.getObserver) {
+                  return descriptor.get.getObserver(obj);
               }
+              // attempt to use an adapter before resorting to dirty checking.
+              const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
+              if (adapterObserver) {
+                  return adapterObserver;
+              }
+              if (isNode) {
+                  // TODO: use MutationObserver
+                  return this.dirtyChecker.createProperty(obj, propertyName);
+              }
+              return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
           }
           return new SetterObserver(obj, propertyName);
       }
@@ -6323,6 +6321,7 @@ var au = (function (exports) {
       }
   }
   let InterpolationBinding = class InterpolationBinding {
+      // tslint:disable-next-line:parameters-max-number
       constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
           this.$state = 0 /* none */;
           this.interpolation = interpolation;
@@ -6338,12 +6337,12 @@ var au = (function (exports) {
       updateTarget(value, flags) {
           this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
       }
-      handleChange(newValue, previousValue, flags) {
+      handleChange(_newValue, _previousValue, flags) {
           if (!(this.$state & 2 /* isBound */)) {
               return;
           }
-          previousValue = this.targetObserver.getValue();
-          newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
+          const previousValue = this.targetObserver.getValue();
+          const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
           if (newValue !== previousValue) {
               this.updateTarget(newValue, flags);
           }
@@ -6406,14 +6405,14 @@ var au = (function (exports) {
           this.targetProperty = targetProperty;
           this.toViewModel = toViewModel;
       }
-      handleChange(newValue, previousValue, flags) {
+      handleChange(_newValue, _previousValue, flags) {
           if (!(this.$state & 2 /* isBound */)) {
               return;
           }
           if (flags & LifecycleFlags.updateTargetInstance) {
               const { target, targetProperty } = this;
-              previousValue = target[targetProperty];
-              newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+              const previousValue = target[targetProperty];
+              const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
               if (newValue !== previousValue) {
                   target[targetProperty] = newValue;
               }
@@ -6648,6 +6647,7 @@ var au = (function (exports) {
       'dependencies',
       'surrogates'
   ];
+  // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
   function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots) {
       const def = new DefaultTemplateDefinition();
       // all cases fall through intentionally
@@ -6712,10 +6712,8 @@ var au = (function (exports) {
               }
       }
       // special handling for invocations that quack like a @customElement decorator
-      if (argLen === 2 && ctor !== null) {
-          if (typeof nameOrDef === 'string' || !('build' in nameOrDef)) {
-              def.build = buildRequired;
-          }
+      if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef))) {
+          def.build = buildRequired;
       }
       return def;
   }
@@ -6895,6 +6893,7 @@ var au = (function (exports) {
   }
 
   /*@internal*/
+  // tslint:disable-next-line:no-ignored-initial-value
   function $attachAttribute(flags, encapsulationSource) {
       if (this.$state & 8 /* isAttached */) {
           return;
@@ -6917,6 +6916,7 @@ var au = (function (exports) {
       lifecycle.endAttach(flags);
   }
   /*@internal*/
+  // tslint:disable-next-line:no-ignored-initial-value
   function $attachElement(flags, encapsulationSource) {
       if (this.$state & 8 /* isAttached */) {
           return;
@@ -6964,6 +6964,7 @@ var au = (function (exports) {
       this.$state &= ~4 /* isAttaching */;
   }
   /*@internal*/
+  // tslint:disable-next-line:no-ignored-initial-value
   function $detachAttribute(flags) {
       if (this.$state & 8 /* isAttached */) {
           const lifecycle = this.$lifecycle;
@@ -6984,6 +6985,7 @@ var au = (function (exports) {
       }
   }
   /*@internal*/
+  // tslint:disable-next-line:no-ignored-initial-value
   function $detachElement(flags) {
       if (this.$state & 8 /* isAttached */) {
           const lifecycle = this.$lifecycle;
@@ -8341,6 +8343,7 @@ var au = (function (exports) {
           this.processViews(indexMap, LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
       }
       // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
+      // TODO: Reduce complexity (currently at 46)
       processViews(indexMap, flags) {
           const { views, $lifecycle } = this;
           if (this.$state & 2 /* isBound */) {
@@ -8424,10 +8427,8 @@ var au = (function (exports) {
           const oldObserver = this.observer;
           if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
               const newObserver = this.observer = getCollectionObserver(this.$lifecycle, this.items);
-              if (oldObserver !== newObserver) {
-                  if (oldObserver) {
-                      oldObserver.unsubscribeBatched(this);
-                  }
+              if (oldObserver !== newObserver && oldObserver) {
+                  oldObserver.unsubscribeBatched(this);
               }
               if (newObserver) {
                   newObserver.subscribeBatched(this);
@@ -10043,6 +10044,14 @@ var au = (function (exports) {
       return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === undefined ? 53 /* BindCommand */ : bindingType);
   }
   /*@internal*/
+  // JUSTIFICATION: This is performance-critical code which follows a subset of the well-known ES spec.
+  // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
+  // single source of information for being able to figure it out.
+  // It generally does not need to change unless the spec changes or spec violations are found, or optimization
+  // opportunities are found (which would likely not fix these warnings in any case).
+  // It's therefore not considered to have any tangible impact on the maintainability of the code base.
+  // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
+  // tslint:disable-next-line:no-big-function cognitive-complexity
   function parse(state, access, minPrecedence, bindingType) {
       if (state.index === 0) {
           if (bindingType & 2048 /* Interpolation */) {
@@ -10118,7 +10127,6 @@ var au = (function (exports) {
                           else if (state.currentToken === 1572864 /* EOF */) {
                               throw Reporter.error(105 /* ExpectedIdentifier */, { state });
                           }
-                          continue;
                       }
                       else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
                           const ancestor = access & 511 /* Ancestor */;
@@ -10613,6 +10621,7 @@ var au = (function (exports) {
    */
   function parseTemplate(state, access, bindingType, result, tagged) {
       const cooked = [state.tokenValue];
+      // TODO: properly implement raw parts / decide whether we want this
       //const raw = [state.tokenRaw];
       consume(state, 540714 /* TemplateContinuation */);
       const expressions = [parse(state, access, 62 /* Assign */, bindingType)];
@@ -11131,6 +11140,7 @@ var au = (function (exports) {
       get isProcessed() {
           return this._isProcessed;
       }
+      // TODO: Reduce complexity (currently at 60)
       constructor(semanticModel, $element, syntax, definition, command) {
           this.semanticModel = semanticModel;
           this.definition = definition;
@@ -11480,11 +11490,10 @@ var au = (function (exports) {
                   // Doesn't make sense for these properties as they need to be unique
                   const name = $attr.target;
                   if (name !== 'id' && name !== 'part' && name !== 'replace-part') {
+                      // tslint:disable-next-line:no-small-switch
                       switch (name) {
                           // TODO: handle simple surrogate style attribute
                           case 'style':
-                              attrInst = new SetAttributeInstruction($attr.rawValue, name);
-                              break;
                           default:
                               attrInst = new SetAttributeInstruction($attr.rawValue, name);
                       }
@@ -11683,18 +11692,15 @@ var au = (function (exports) {
                   }
               }
           }
-          // plain attribute on a custom element
-          if ($attr.onCustomElement) {
-              // bindable attribute
-              if ($attr.isElementBindable) {
-                  const expression = parser.parse($attr.rawValue, 2048 /* Interpolation */);
-                  if (expression === null) {
-                      // no interpolation -> make it a setProperty on the component
-                      return new SetPropertyInstruction($attr.rawValue, $attr.to);
-                  }
-                  // interpolation -> behave like toView (e.g. foo="${someProp}")
-                  return new InterpolationInstruction(expression, $attr.to);
+          // plain bindable attribute on a custom element
+          if ($attr.onCustomElement && $attr.isElementBindable) {
+              const expression = parser.parse($attr.rawValue, 2048 /* Interpolation */);
+              if (expression === null) {
+                  // no interpolation -> make it a setProperty on the component
+                  return new SetPropertyInstruction($attr.rawValue, $attr.to);
               }
+              // interpolation -> behave like toView (e.g. foo="${someProp}")
+              return new InterpolationInstruction(expression, $attr.to);
           }
           {
               // plain attribute on a normal element

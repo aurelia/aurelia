@@ -20,7 +20,7 @@ export declare class LetBinding implements IPartialConnectableBinding {
     targetProperty: string;
     private toViewModel;
     constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel?: boolean);
-    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
 }

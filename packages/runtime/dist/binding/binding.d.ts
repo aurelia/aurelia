@@ -31,7 +31,7 @@ export declare class Binding implements IPartialConnectableBinding {
     constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
-    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
     connect(flags: LifecycleFlags): void;

@@ -38,7 +38,7 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     targetObserver: IBindingTargetAccessor;
     constructor(sourceExpression: IExpression, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
-    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
 }

@@ -715,6 +715,14 @@
       return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === undefined ? 53 /* BindCommand */ : bindingType);
   }
   /*@internal*/
+  // JUSTIFICATION: This is performance-critical code which follows a subset of the well-known ES spec.
+  // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
+  // single source of information for being able to figure it out.
+  // It generally does not need to change unless the spec changes or spec violations are found, or optimization
+  // opportunities are found (which would likely not fix these warnings in any case).
+  // It's therefore not considered to have any tangible impact on the maintainability of the code base.
+  // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
+  // tslint:disable-next-line:no-big-function cognitive-complexity
   function parse(state, access, minPrecedence, bindingType) {
       if (state.index === 0) {
           if (bindingType & 2048 /* Interpolation */) {
@@ -790,7 +798,6 @@
                           else if (state.currentToken === 1572864 /* EOF */) {
                               throw kernel.Reporter.error(105 /* ExpectedIdentifier */, { state });
                           }
-                          continue;
                       }
                       else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
                           const ancestor = access & 511 /* Ancestor */;
@@ -1285,6 +1292,7 @@
    */
   function parseTemplate(state, access, bindingType, result, tagged) {
       const cooked = [state.tokenValue];
+      // TODO: properly implement raw parts / decide whether we want this
       //const raw = [state.tokenRaw];
       consume(state, 540714 /* TemplateContinuation */);
       const expressions = [parse(state, access, 62 /* Assign */, bindingType)];
@@ -1803,6 +1811,7 @@
       get isProcessed() {
           return this._isProcessed;
       }
+      // TODO: Reduce complexity (currently at 60)
       constructor(semanticModel, $element, syntax, definition, command) {
           this.semanticModel = semanticModel;
           this.definition = definition;
@@ -2152,11 +2161,10 @@
                   // Doesn't make sense for these properties as they need to be unique
                   const name = $attr.target;
                   if (name !== 'id' && name !== 'part' && name !== 'replace-part') {
+                      // tslint:disable-next-line:no-small-switch
                       switch (name) {
                           // TODO: handle simple surrogate style attribute
                           case 'style':
-                              attrInst = new runtime.SetAttributeInstruction($attr.rawValue, name);
-                              break;
                           default:
                               attrInst = new runtime.SetAttributeInstruction($attr.rawValue, name);
                       }
@@ -2355,18 +2363,15 @@
                   }
               }
           }
-          // plain attribute on a custom element
-          if ($attr.onCustomElement) {
-              // bindable attribute
-              if ($attr.isElementBindable) {
-                  const expression = parser.parse($attr.rawValue, 2048 /* Interpolation */);
-                  if (expression === null) {
-                      // no interpolation -> make it a setProperty on the component
-                      return new runtime.SetPropertyInstruction($attr.rawValue, $attr.to);
-                  }
-                  // interpolation -> behave like toView (e.g. foo="${someProp}")
-                  return new runtime.InterpolationInstruction(expression, $attr.to);
+          // plain bindable attribute on a custom element
+          if ($attr.onCustomElement && $attr.isElementBindable) {
+              const expression = parser.parse($attr.rawValue, 2048 /* Interpolation */);
+              if (expression === null) {
+                  // no interpolation -> make it a setProperty on the component
+                  return new runtime.SetPropertyInstruction($attr.rawValue, $attr.to);
               }
+              // interpolation -> behave like toView (e.g. foo="${someProp}")
+              return new runtime.InterpolationInstruction(expression, $attr.to);
           }
           {
               // plain attribute on a normal element

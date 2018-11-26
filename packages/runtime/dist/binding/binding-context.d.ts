@@ -1,13 +1,14 @@
 import { IIndexable, StrictPrimitive } from '@aurelia/kernel';
 import { IBindScope } from '../lifecycle';
 import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup } from '../observation';
+declare type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 export declare class BindingContext implements IBindingContext {
-    [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
+    [key: string]: BindingContextValue;
     readonly $synthetic: true;
     $observers: ObserversLookup<IOverrideContext>;
     private constructor();
     static create(obj?: IIndexable): BindingContext;
-    static create(key: string, value: ObservedCollection | StrictPrimitive | IIndexable): BindingContext;
+    static create(key: string, value: BindingContextValue): BindingContext;
     static get(scope: IScope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBindScope;
     getObservers(): ObserversLookup<IOverrideContext>;
 }
@@ -28,4 +29,5 @@ export declare class OverrideContext implements IOverrideContext {
     static create(bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext;
     getObservers(): ObserversLookup<IOverrideContext>;
 }
+export {};
 //# sourceMappingURL=binding-context.d.ts.map

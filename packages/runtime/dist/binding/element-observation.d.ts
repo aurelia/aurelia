@@ -1,6 +1,6 @@
 import { IElement, IInputElement, INode } from '../dom';
 import { ILifecycle } from '../lifecycle';
-import { IBatchedCollectionSubscriber, IBindingTargetObserver, IndexMap, IObserversLookup, IPropertySubscriber, LifecycleFlags } from '../observation';
+import { IBatchedCollectionSubscriber, IBindingTargetObserver, IndexMap, IPropertySubscriber, LifecycleFlags, ObserversLookup } from '../observation';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
 import { SetterObserver } from './property-observation';
@@ -27,7 +27,7 @@ export declare class ValueAttributeObserver implements ValueAttributeObserver {
 interface IInternalInputElement extends IInputElement {
     matcher?: typeof defaultMatcher;
     model?: unknown;
-    $observers?: IObserversLookup & {
+    $observers?: ObserversLookup & {
         model?: SetterObserver;
         value?: ValueAttributeObserver;
     };

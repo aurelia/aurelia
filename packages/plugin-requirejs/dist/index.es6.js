@@ -113,6 +113,7 @@ function trimDots(ary) {
             // as an ID it is less than ideal. In larger point
             // releases, may be better to just kick out an error.
             if (i === 0 || (i === 1 && ary[2] === '..') || ary[i - 1] === '..') {
+                // tslint:disable-next-line:no-redundant-jump
                 continue;
             }
             else if (i > 0) {
@@ -160,8 +161,9 @@ function write(pluginName, moduleName, writer, _config) {
         const text = buildMap[moduleName];
         const description = createTemplateDescription(text);
         const depsToLoad = processImports(description.imports, moduleName);
+        const depsToLoadMapped = depsToLoad.map(x => `"${x}"`).join(',');
         depsToLoad.unshift('@aurelia/runtime');
-        writer(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() {
+        writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function() {
       var Component = arguments[0].Component;
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
@@ -220,8 +222,9 @@ function write$1(pluginName, moduleName, writer, _config) {
         const text = buildMap$1[moduleName];
         const description = createTemplateDescription(text);
         const depsToLoad = processImports(description.imports, moduleName);
+        const depsToLoadMapped = depsToLoad.map(x => `"${x}"`).join(',');
         const templateImport = parseImport(moduleName);
-        writer(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() {
+        writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function() {
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
         template: '${escape(description.template)}',

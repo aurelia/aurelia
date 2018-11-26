@@ -18,30 +18,36 @@ import {
   ReplacePartAttributeSymbol,
   TemplateControllerAttributeSymbol,
   TextInterpolationSymbol,
-  IAttributeParser,
   ITemplateFactory,
-  AttributeParser,
   TemplateFactory,
   CompilationTarget,
   ResourceLocator,
   IResourceLocator,
-  SymbolPreprocessor,
-  NodePreprocessor,
   ISymbol
 } from '../../src/semantic-model-2';
+import {
+  stringifyTemplateDefinition,
+  stringifySymbol
+} from '../../src/debugging';
 import {
   DefaultBindingLanguage,
   GlobalResources,
   ParserRegistration,
   IElementParser,
-  BasicConfiguration
+  BasicConfiguration,
+  IAttributeParser
 } from '../../../jit/src/index';
 import {
   DI,
   IRegistry,
   IContainer,
-  PLATFORM
+  PLATFORM,
+  Tracer,
+  ITraceInfo
 } from '../../../kernel/src/index';
+import {
+  Tracer as DebugTracer
+} from '../../../debug/src/index';
 import {
   IExpressionParser,
   RuntimeCompilationResources,
@@ -51,10 +57,22 @@ import {
   CustomElementResource,
   Aurelia,
   DOM,
-  IHTMLElement
+  IHTMLElement,
+  INode,
+  NodeType,
+  IElement,
+  IText,
+  TargetedInstruction,
+  TargetedInstructionType,
+  ITemplateDefinition,
+  IHTMLTemplateElement
 } from '../../../runtime/src/index';
 import { expect } from 'chai';
-import { TemplateCompiler } from '../../src/template-compiler-2';
+import {
+  TemplateCompiler,
+  SymbolPreprocessor,
+  NodePreprocessor,
+} from '../../src/template-compiler-2';
 
 function setup() {
   const container = DI.createContainer();
@@ -76,6 +94,31 @@ function setup() {
   return { model, symbolPreprocessor, nodePreprocessor, container, attrParser, elParser, exprParser, factory, locator, resources };
 }
 
+const RuntimeTracer = { ...Tracer };
+function enableTracing() {
+  Object.assign(Tracer, DebugTracer);
+  Tracer.enabled = true;
+}
+function disableTracing() {
+  Tracer.flushAll(null);
+  Object.assign(Tracer, RuntimeTracer);
+  Tracer.enabled = false;
+}
+
+const SymbolTraceWriter = {
+  write(info: ITraceInfo): void {
+    let output: string;
+    const symbol = info.params[0] as NodeSymbol | AttributeSymbol;
+    if ('attr' in symbol) {
+      output = `attr: ${symbol.attr.name}=${symbol.attr.value}`;
+    } else if ('text' in symbol) {
+      output = `text: "${symbol.text.textContent}"`;
+    } else {
+      output = `element: ${symbol.element.outerHTML}`;
+    }
+    console.debug(`${' '.repeat(info.depth)}${info.name} ${output}`);
+  }
+};
 
 describe('SemanticModel', () => {
   xit('works 1', () => {
@@ -112,7 +155,9 @@ describe('SemanticModel', () => {
     const output = compiler.compile(def, <any>resources);
   });
 
-  it('works 4', () => {
+  it.only('works 4', () => {
+    enableTracing();
+    Tracer.enableLiveLogging(SymbolTraceWriter);
     const container = DI.createContainer();
     container.register(<any>BasicConfiguration);
     const def = { name: 'app', template: "<template><div repeat.for=\"i of 2\">${msg}</div></template>" };
@@ -129,38 +174,9 @@ describe('SemanticModel', () => {
     } catch(e) {
 
     } finally {
-
-      console.log((<IHTMLElement>App.description.template).outerHTML)
     }
 
+    disableTracing();
     expect(host.textContent).to.equal('a');
   });
 });
-
-export function stringifySymbol(symbol: any): string {
-  return JSON.stringify(
-    { name: symbol.definition.name, headAttr: symbol.headAttr, headNode: symbol.headNode },
-    (key: string, value: any): any => {
-      if (!value) {
-        return undefined;
-      }
-      switch (key) {
-        case 'headAttr':
-          return `${value.attr.name}=${value.attr.value} (${value.expr === null ? null : {}})`;
-        case 'nextAttr':
-          return undefined;
-        case 'tailAttr':
-          return `${value.attr.name}=${value.attr.value} (${value.expr === null ? null : {}})`;
-        case 'headNode':
-          return { el: value.element ? value.element.nodeName : value.text.nodeName, headAttr: value.headAttr, headNode: value.headNode, nextNode: value.nextNode };
-        case 'nextNode':
-          return { el: value.element ? value.element.nodeName : value.text.nodeName, headAttr: value.headAttr, headNode: value.headNode, nextNode: value.nextNode };
-        case 'tailNode':
-          return undefined;
-        default:
-          return value;
-      }
-    },
-    2
-  );
-}

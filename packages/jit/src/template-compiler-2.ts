@@ -40,6 +40,7 @@ import {
   CustomElementSymbol,
   ElementBindingSymbol,
   ElementSymbol,
+  IAttributeSymbolNode,
   IElementSymbolList,
   INodeSymbolNode,
   ISymbolVisitor,
@@ -393,6 +394,13 @@ export class NodePreprocessor implements ISymbolVisitor {
     targetSurrogate.tailAttr = currentNode.tailAttr;
     currentNode.tailAttr = symbol.prevAttr;
 
+    // transfer ownership of template controller and following attributes to the new surrogate
+    let current = <IAttributeSymbolNode>symbol;
+    do {
+      current.owner = targetSurrogate;
+      current = current.nextAttr;
+    } while (current !== null);
+
     targetSurrogate.headNode = currentNode.headNode;
     targetSurrogate.tailNode = currentNode.tailNode;
     currentNode.headNode = targetSurrogate;
@@ -425,7 +433,7 @@ export class NodePreprocessor implements ISymbolVisitor {
   private visitElementSymbolNode(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol): void {
     this.currentNode = symbol;
     let attr = symbol.headAttr;
-    while (attr !== null) {
+    while (attr !== null && attr.owner === symbol) {
       attr.accept(this);
       attr = attr.nextAttr;
     }
@@ -463,11 +471,8 @@ export class InstructionBuilder implements ISymbolVisitor {
   public visitPlainElementSymbol(symbol: PlainElementSymbol): void {
     if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitPlainElementSymbol', slice.call(arguments)); }
     let attr = symbol.headAttr;
-    while (attr !== null) {
+    while (attr !== null && attr.owner === symbol) {
       attr.accept(this);
-      if (attr === symbol.tailAttr) {
-        break;
-      }
       attr = attr.nextAttr;
     }
 
@@ -482,11 +487,8 @@ export class InstructionBuilder implements ISymbolVisitor {
   public visitSurrogateElementSymbol(symbol: SurrogateElementSymbol): void {
     if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitSurrogateElementSymbol', slice.call(arguments)); }
     let attr = symbol.headAttr;
-    while (attr !== null) {
+    while (attr !== null && attr.owner === symbol) {
       attr.accept(this);
-      if (attr === symbol.tailAttr) {
-        break;
-      }
       attr = attr.nextAttr;
     }
 
@@ -518,11 +520,8 @@ export class InstructionBuilder implements ISymbolVisitor {
     // set state to surrogate instructions
     this.state = InstructionState.surrogate;
     let attr = symbol.headAttr;
-    while (attr !== null) {
+    while (attr !== null && attr.owner === symbol) {
       attr.accept(this);
-      if (attr === symbol.tailAttr) {
-        break;
-      }
       attr = attr.nextAttr;
     }
     // reset to standard state
@@ -543,11 +542,8 @@ export class InstructionBuilder implements ISymbolVisitor {
     this.current = <ITemplateDefinition>symbol.definition;
 
     let attr = symbol.headAttr;
-    while (attr !== null) {
+    while (attr !== null && attr.owner === symbol) {
       attr.accept(this);
-      if (attr === symbol.tailAttr) {
-        break;
-      }
       attr = attr.nextAttr;
     }
 

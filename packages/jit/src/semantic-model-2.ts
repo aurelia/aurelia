@@ -212,9 +212,9 @@ export class SemanticModel {
     const { name, value } = attr;
     switch (name) {
       case 'part':
-        return new PartAttributeSymbol(attr);
+        return new PartAttributeSymbol(attr, el);
       case 'replace-part':
-        return new ReplacePartAttributeSymbol(attr);
+        return new ReplacePartAttributeSymbol(attr, el);
     }
     const { locator, attrParser, exprParser } = this;
     let expr: IsExpressionOrStatement = null;
@@ -228,32 +228,32 @@ export class SemanticModel {
       if (el.kind === SymbolKind.customElement) {
         const elBindable = findBindable(target, el.definition.bindables);
         if (elBindable !== null) {
-          return new ElementBindingSymbol(attr, cmd, attrSyntax, expr, elBindable, el.definition);
+          return new ElementBindingSymbol(attr, el, cmd, attrSyntax, expr, elBindable, el.definition);
         }
       }
       if (command === null) {
         expr = exprParser.parse(value, BindingType.Interpolation);
-        return expr === null ? null : new AttributeInterpolationSymbol(attr, expr);
+        return expr === null ? null : new AttributeInterpolationSymbol(attr, el, expr);
       }
       cmd = locator.getBindingCommand(command);
       if (cmd === null) {
         expr = exprParser.parse(value, BindingType.Interpolation);
-        return expr === null ? null : new AttributeInterpolationSymbol(attr, expr);
+        return expr === null ? null : new AttributeInterpolationSymbol(attr, el, expr);
       }
-      return new BoundAttributeSymbol(attr, cmd, attrSyntax, expr);
+      return new BoundAttributeSymbol(attr, el, cmd, attrSyntax, expr);
     }
     // it's a custom attribute
 
     const attrBindable = findBindable(target, attrDef.bindables);
     const Ctor = attrDef.isTemplateController ? TemplateControllerAttributeSymbol : CustomAttributeSymbol;
     if (attr.value.length === 0) {
-      return new Ctor(attr, attrDef, null, attrSyntax, null, attrBindable);
+      return new Ctor(attr, el, attrDef, null, attrSyntax, null, attrBindable);
     }
     if (command === null) {
-      return new Ctor(attr, attrDef, null, attrSyntax, expr, attrBindable);
+      return new Ctor(attr, el, attrDef, null, attrSyntax, expr, attrBindable);
     }
     cmd = locator.getBindingCommand(command);
-    return new Ctor(attr, attrDef, cmd, attrSyntax, expr, attrBindable);
+    return new Ctor(attr, el, attrDef, cmd, attrSyntax, expr, attrBindable);
   }
 }
 
@@ -266,6 +266,7 @@ export interface IAttributeSymbolNode extends ISymbol {
   prevAttr: IAttributeSymbolNode | null;
   nextAttr: IAttributeSymbolNode | null;
   attr: IAttr;
+  owner: IElementSymbolNode;
 }
 
 export interface IAttributeSymbolList extends ISymbol {
@@ -552,6 +553,11 @@ export class CustomElementSymbol implements IElementSymbolList {
   }
 }
 
+export type LiftableElementSymbol =
+  SurrogateElementSymbol |
+  CustomElementSymbol |
+  PlainElementSymbol;
+
 export type ElementSymbol =
   CompilationTarget |
   CustomElementSymbol |
@@ -598,10 +604,10 @@ export class TextInterpolationSymbol implements INodeSymbolNode {
     const marker = this.marker = createMarker();
     const parent = text.parentNode;
     parent.insertBefore(marker, text);
-    text.textContent = ' ';
     while (text.nextSibling !== null && text.nextSibling.nodeType === NodeType.Text) {
       parent.removeChild(text.nextSibling);
     }
+    text.textContent = '';
   }
 }
 
@@ -612,13 +618,18 @@ export type NodeSymbol =
 export class ReplacePartAttributeSymbol implements IAttributeSymbolNode {
   public kind: SymbolKind.replacePartAttribute;
   public attr: IAttr;
+  public owner: IElementSymbolNode;
 
   public prevAttr: IAttributeSymbolNode;
   public nextAttr: IAttributeSymbolNode;
 
-  constructor(attr: IAttr) {
+  constructor(
+    attr: IAttr,
+    owner: IElementSymbolNode
+  ) {
     this.kind = SymbolKind.replacePartAttribute;
     this.attr = attr;
+    this.owner = owner;
     this.prevAttr = null;
     this.nextAttr = null;
   }
@@ -631,13 +642,18 @@ export class ReplacePartAttributeSymbol implements IAttributeSymbolNode {
 export class PartAttributeSymbol implements IAttributeSymbolNode {
   public kind: SymbolKind.partAttribute;
   public attr: IAttr;
+  public owner: IElementSymbolNode;
 
   public prevAttr: IAttributeSymbolNode;
   public nextAttr: IAttributeSymbolNode;
 
-  constructor(attr: IAttr) {
+  constructor(
+    attr: IAttr,
+    owner: IElementSymbolNode
+  ) {
     this.kind = SymbolKind.partAttribute;
     this.attr = attr;
+    this.owner = owner;
     this.prevAttr = null;
     this.nextAttr = null;
   }
@@ -650,15 +666,21 @@ export class PartAttributeSymbol implements IAttributeSymbolNode {
 export class AttributeInterpolationSymbol implements IAttributeSymbolNode {
   public kind: SymbolKind.attributeInterpolation;
   public attr: IAttr;
+  public owner: IElementSymbolNode;
 
   public prevAttr: IAttributeSymbolNode;
   public nextAttr: IAttributeSymbolNode;
 
   public expr: Interpolation;
 
-  constructor(attr: IAttr, expr: Interpolation) {
+  constructor(
+    attr: IAttr,
+    owner: IElementSymbolNode,
+    expr: Interpolation
+  ) {
     this.kind = SymbolKind.attributeInterpolation;
     this.attr = attr;
+    this.owner = owner;
     this.prevAttr = null;
     this.nextAttr = null;
     this.expr = expr;
@@ -672,6 +694,7 @@ export class AttributeInterpolationSymbol implements IAttributeSymbolNode {
 export class CustomAttributeSymbol implements IAttributeSymbolNode {
   public kind: SymbolKind.customAttribute;
   public attr: IAttr;
+  public owner: IElementSymbolNode;
 
   public prevAttr: IAttributeSymbolNode;
   public nextAttr: IAttributeSymbolNode;
@@ -686,6 +709,7 @@ export class CustomAttributeSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
+    owner: IElementSymbolNode,
     definition: AttributeDefinition,
     command: IBindingCommand | null,
     syntax: AttrSyntax,
@@ -694,6 +718,7 @@ export class CustomAttributeSymbol implements IAttributeSymbolNode {
   ) {
     this.kind = SymbolKind.customAttribute;
     this.attr = attr;
+    this.owner = owner;
     this.prevAttr = null;
     this.nextAttr = null;
     this.definition = definition;
@@ -711,6 +736,7 @@ export class CustomAttributeSymbol implements IAttributeSymbolNode {
 export class TemplateControllerAttributeSymbol implements IAttributeSymbolNode {
   public kind: SymbolKind.templateControllerAttribute;
   public attr: IAttr;
+  public owner: LiftableElementSymbol;
 
   public prevAttr: IAttributeSymbolNode;
   public nextAttr: IAttributeSymbolNode;
@@ -727,6 +753,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
+    owner: IElementSymbolNode,
     definition: AttributeDefinition,
     command: IBindingCommand | null,
     syntax: AttrSyntax,
@@ -735,6 +762,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbolNode {
   ) {
     this.kind = SymbolKind.templateControllerAttribute;
     this.attr = attr;
+    this.owner = <LiftableElementSymbol>owner;
     this.prevAttr = null;
     this.nextAttr = null;
     this.definition = definition;
@@ -753,6 +781,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbolNode {
 export class AttributeBindingSymbol implements IAttributeSymbolNode {
   public kind: SymbolKind.attributeBinding;
   public attr: IAttr;
+  public owner: IElementSymbolNode;
 
   public prevAttr: IAttributeSymbolNode;
   public nextAttr: IAttributeSymbolNode;
@@ -766,6 +795,7 @@ export class AttributeBindingSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
+    owner: IElementSymbolNode,
     command: IBindingCommand,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement,
@@ -774,6 +804,7 @@ export class AttributeBindingSymbol implements IAttributeSymbolNode {
   ) {
     this.kind = SymbolKind.attributeBinding;
     this.attr = attr;
+    this.owner = owner;
     this.prevAttr = null;
     this.nextAttr = null;
     this.command = command;
@@ -791,6 +822,7 @@ export class AttributeBindingSymbol implements IAttributeSymbolNode {
 export class ElementBindingSymbol implements IAttributeSymbolNode {
   public kind: SymbolKind.elementBinding;
   public attr: IAttr;
+  public owner: IElementSymbolNode;
 
   public prevAttr: IAttributeSymbolNode;
   public nextAttr: IAttributeSymbolNode;
@@ -804,6 +836,7 @@ export class ElementBindingSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
+    owner: IElementSymbolNode,
     command: IBindingCommand,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement,
@@ -812,6 +845,7 @@ export class ElementBindingSymbol implements IAttributeSymbolNode {
   ) {
     this.kind = SymbolKind.elementBinding;
     this.attr = attr;
+    this.owner = owner;
     this.prevAttr = null;
     this.nextAttr = null;
     this.command = command;
@@ -829,6 +863,7 @@ export class ElementBindingSymbol implements IAttributeSymbolNode {
 export class BoundAttributeSymbol implements IAttributeSymbolNode {
   public kind: SymbolKind.boundAttribute;
   public attr: IAttr;
+  public owner: IElementSymbolNode;
 
   public prevAttr: IAttributeSymbolNode;
   public nextAttr: IAttributeSymbolNode;
@@ -839,12 +874,14 @@ export class BoundAttributeSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
+    owner: IElementSymbolNode,
     command: IBindingCommand,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement
   ) {
     this.kind = SymbolKind.boundAttribute;
     this.attr = attr;
+    this.owner = owner;
     this.prevAttr = null;
     this.nextAttr = null;
     this.command = command;
@@ -876,18 +913,21 @@ export type PotentialBindingCommandAttributeSymbol =
 
 export class BindingCommandSymbol implements ISymbol {
   public kind: SymbolKind.bindingCommand;
+  public owner: CustomAttributeSymbol | TemplateControllerAttributeSymbol;
   public name: string;
   public target: string;
   public bindingType: BindingType;
   public expr: IsExpressionOrStatement;
 
   constructor(
+    owner: CustomAttributeSymbol | TemplateControllerAttributeSymbol,
     name: string,
     target: string,
     bindingType: BindingType,
     expr: IsExpressionOrStatement
   ) {
     this.kind = SymbolKind.bindingCommand;
+    this.owner = owner;
     this.name = name;
     this.target = target;
     this.bindingType = bindingType;

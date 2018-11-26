@@ -105,7 +105,8 @@ export type TargetedInstruction =
   IHydrateElementInstruction |
   IHydrateAttributeInstruction |
   IHydrateTemplateController |
-  ILetElementInstruction;
+  ILetElementInstruction |
+  ILetBindingInstruction;
 
 export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
   const type = value.type;

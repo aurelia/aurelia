@@ -144,6 +144,13 @@ export class HistoryBrowser {
     this.history.replaceState(state, null, `${pathname}${search}#/${path}`);
   }
 
+  public setHash(hash: string): void {
+    if (!hash.startsWith('#')) {
+      hash = `#${hash}`;
+    }
+    this.location.hash = hash;
+  }
+
   get titles(): string[] {
     return (this.historyEntries ? this.historyEntries.slice(0, this.currentEntry.index + 1).map((value) => value.title) : []);
   }

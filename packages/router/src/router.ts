@@ -1,6 +1,7 @@
 import { IContainer, inject } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
+import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { Scope } from './scope';
 import { Viewport } from './viewport';
 
@@ -31,6 +32,7 @@ export class Router {
   public scopes: Scope[] = [];
 
   public historyBrowser: HistoryBrowser;
+  public linkHandler: LinkHandler;
 
   private options: IRouterOptions;
   private isActive: boolean = false;
@@ -38,6 +40,7 @@ export class Router {
 
   constructor(public container: IContainer) {
     this.historyBrowser = new HistoryBrowser();
+    this.linkHandler = new LinkHandler();
   }
 
   public activate(options?: IRouterOptions): void {
@@ -55,23 +58,22 @@ export class Router {
     };
 
     this.historyBrowser.activate(this.options).catch(error => { throw error; });
+    this.linkHandler.activate({ callback: this.linkCallback });
+  }
 
-    document.addEventListener('click', (ev): void => { // This is TEMPORARY and should be moved out of here
-      const target: Element = <Element>ev.target;
-      let href: string = target.getAttribute('href');
-      if (href.startsWith('#')) {
-        href = href.substr(1);
+  public linkCallback = (info: AnchorEventInfo): void => {
+    let href = info.href;
+    if (href.startsWith('#')) {
+      href = href.substr(1);
+    }
+    if (!href.startsWith('/')) {
+      const scope = this.closestScope(info.anchor);
+      const context = scope.context();
+      if (context) {
+        href = `/${context}+${href}`;
       }
-      if (!href.startsWith('/')) {
-        const scope = this.closestScope(target);
-        const context = scope.context();
-        if (context) {
-          href = `/${context}+${href}`;
-        }
-      }
-      document.location.href = `#${href}`;
-      event.preventDefault();
-    });
+    }
+    this.historyBrowser.setHash(href);
   }
 
   public historyCallback(instruction: INavigationInstruction): Promise<void> {

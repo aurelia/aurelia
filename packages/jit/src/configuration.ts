@@ -34,7 +34,7 @@ import {
   TwoWayBindingCommand
 } from './binding-command';
 import { ParserRegistration } from './expression-parser';
-import { TemplateCompiler } from './template-compiler';
+import { TemplateCompiler } from './template-compiler-2';
 
 export const GlobalResources: IRegistry[] = [
   Compose,

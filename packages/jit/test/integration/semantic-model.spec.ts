@@ -32,7 +32,9 @@ import {
 import {
   DefaultBindingLanguage,
   GlobalResources,
-  ParserRegistration
+  ParserRegistration,
+  IElementParser,
+  BasicConfiguration
 } from '../../../jit/src/index';
 import {
   DI,
@@ -43,9 +45,16 @@ import {
 import {
   IExpressionParser,
   RuntimeCompilationResources,
-  IResourceDescriptions
+  IResourceDescriptions,
+  ILifecycle,
+  HtmlRenderer,
+  CustomElementResource,
+  Aurelia,
+  DOM,
+  IHTMLElement
 } from '../../../runtime/src/index';
 import { expect } from 'chai';
+import { TemplateCompiler } from '../../src/template-compiler-2';
 
 function setup() {
   const container = DI.createContainer();
@@ -56,6 +65,7 @@ function setup() {
   );
 
   const attrParser = container.get<IAttributeParser>(IAttributeParser);
+  const elParser = container.get<IElementParser>(IElementParser);
   const exprParser = container.get<IExpressionParser>(IExpressionParser);
   const factory = container.get<ITemplateFactory>(ITemplateFactory);
   const resources = new RuntimeCompilationResources(<any>container);
@@ -63,35 +73,67 @@ function setup() {
   const model = new SemanticModel(locator, attrParser, factory, <any>exprParser);
   const symbolPreprocessor = new SymbolPreprocessor(model);
   const nodePreprocessor = new NodePreprocessor(model);
-  return { model, symbolPreprocessor, nodePreprocessor };
+  return { model, symbolPreprocessor, nodePreprocessor, container, attrParser, elParser, exprParser, factory, locator, resources };
 }
 
 
 describe('SemanticModel', () => {
-  it('works 1', () => {
+  xit('works 1', () => {
     const { model, symbolPreprocessor, nodePreprocessor } = setup();
     const target = model.createCompilationTarget({ name: 'app', template: `<template><div></div></template>` });
 
     target.accept(symbolPreprocessor);
 
-    console.log(stringifySymbol(target));
+    //console.log(stringifySymbol(target));
 
     target.accept(nodePreprocessor);
 
-    console.log(stringifySymbol(target));
+    //console.log(stringifySymbol(target));
   });
 
-  it('works 2', () => {
+  xit('works 2', () => {
     const { model, symbolPreprocessor, nodePreprocessor } = setup();
     const target = model.createCompilationTarget({ name: 'app', template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\">${item}</template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\">${item}</template></template>" });
 
     target.accept(symbolPreprocessor);
 
-    console.log(stringifySymbol(target));
+    //console.log(stringifySymbol(target));
 
     target.accept(nodePreprocessor);
 
-    console.log(stringifySymbol(target));
+    //console.log(stringifySymbol(target));
+  });
+
+  xit('works 3', () => {
+    const { model, symbolPreprocessor, nodePreprocessor, exprParser, elParser, attrParser, resources } = setup();
+    const compiler = new TemplateCompiler(<any>exprParser, elParser, attrParser);
+    const def = { name: 'app', template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\">${item}</template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\">${item}</template></template>" };
+
+    const output = compiler.compile(def, <any>resources);
+  });
+
+  it('works 4', () => {
+    const container = DI.createContainer();
+    container.register(<any>BasicConfiguration);
+    const def = { name: 'app', template: "<template><div repeat.for=\"i of 2\">${msg}</div></template>" };
+    const App = CustomElementResource.define(def, class { msg = 'a'});
+    const component = new App();
+    const host = <any>DOM.createElement('div');
+
+    const au = new Aurelia(<any>container);
+
+    au.app({ component, host });
+    try {
+      au.start();
+
+    } catch(e) {
+
+    } finally {
+
+      console.log((<IHTMLElement>App.description.template).outerHTML)
+    }
+
+    expect(host.textContent).to.equal('a');
   });
 });
 

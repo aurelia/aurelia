@@ -1,5 +1,5 @@
 import { all, DI, Immutable, inject, PLATFORM, Reporter } from '@aurelia/kernel';
-import { AttributeDefinition, BindingMode, BindingType, CustomAttributeResource, CustomElementResource, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IDocumentFragment, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IPropertyBindingInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, TargetedInstruction, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from '@aurelia/runtime';
+import { AttributeDefinition, BindingMode, BindingType, CustomAttributeResource, CustomElementResource, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IDocumentFragment, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IPropertyBindingInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, TargetedInstruction, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, buildTemplateDefinition, TargetedInstructionType, IHydrateTemplateController } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributePattern, IAttributePatternHandler, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
@@ -227,7 +227,12 @@ export class SemanticModel {
   }
 
   public createCompilationTarget(definition: ITemplateDefinition): CompilationTarget {
-    return new CompilationTarget(this.factory.createTemplate(<string | IHTMLElement>definition.template), definition);
+    definition.template = this.factory.createTemplate(<string | IHTMLElement>definition.template);
+    const instructions = definition.instructions;
+    if (instructions === undefined || instructions === emptyArray) {
+      definition.instructions = [];
+    }
+    return new CompilationTarget(definition);
   }
 
   public createNodeSymbol(text: IText): TextInterpolationSymbol | null;
@@ -306,12 +311,6 @@ export class SemanticModel {
     }
     cmd = locator.getBindingCommand(command);
     return new Ctor(attr, attrDef, cmd, attrSyntax, expr, attrBindable);
-  }
-
-  public createMarker(): IElement {
-    const marker = DOM.createElement('au-m');
-    marker.className = 'au';
-    return marker;
   }
 }
 
@@ -568,7 +567,7 @@ export class NodePreprocessor implements ISymbolVisitor {
     this.visitElementSymbolList(symbol);
     // ensure that no template elements are present in the DOM when compilation is done
     if (symbol.element.parentNode !== null) {
-      symbol.element.remove();
+      symbol.element.parentNode.replaceChild(createMarker(), symbol.element);
     }
   }
   public visitSlotElementSymbol(symbol: SlotElementSymbol): void {
@@ -674,6 +673,9 @@ export class InstructionBuilder implements ISymbolVisitor {
     let attr = symbol.headAttr;
     while (attr !== null) {
       attr.accept(this);
+      if (attr === symbol.tailAttr) {
+        break;
+      }
       attr = attr.nextAttr;
     }
 
@@ -688,6 +690,9 @@ export class InstructionBuilder implements ISymbolVisitor {
     let attr = symbol.headAttr;
     while (attr !== null) {
       attr.accept(this);
+      if (attr === symbol.tailAttr) {
+        break;
+      }
       attr = attr.nextAttr;
     }
 
@@ -715,6 +720,9 @@ export class InstructionBuilder implements ISymbolVisitor {
     let attr = symbol.headAttr;
     while (attr !== null) {
       attr.accept(this);
+      if (attr === symbol.tailAttr) {
+        break;
+      }
       attr = attr.nextAttr;
     }
     // reset to standard state
@@ -735,6 +743,9 @@ export class InstructionBuilder implements ISymbolVisitor {
     let attr = symbol.headAttr;
     while (attr !== null) {
       attr.accept(this);
+      if (attr === symbol.tailAttr) {
+        break;
+      }
       attr = attr.nextAttr;
     }
 
@@ -773,7 +784,9 @@ export class InstructionBuilder implements ISymbolVisitor {
 
   public visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void {
     let attributeInstructions: TargetedInstruction[];
-    if (symbol.expr !== null) {
+    if (symbol.command.handles(symbol)) {
+      attributeInstructions = [symbol.command.compile(symbol)];
+    } else if (symbol.expr !== null) {
       attributeInstructions = [this.getBindingInstruction(symbol)];
     } else {
       attributeInstructions = emptyArray;
@@ -785,32 +798,49 @@ export class InstructionBuilder implements ISymbolVisitor {
 
   public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
     let attributeInstructions: TargetedInstruction[];
-    if (symbol.expr !== null) {
+    if (symbol.command.handles(symbol)) {
+      attributeInstructions = [symbol.command.compile(symbol)];
+    } else if (symbol.expr !== null) {
       attributeInstructions = [this.getBindingInstruction(symbol)];
     } else {
       attributeInstructions = emptyArray;
     }
-    const name = symbol.definition.name;
-    const res = symbol.syntax.target;
-    const def = { name, instructions: [] };
-    const instruction = new HydrateTemplateController(def, res, attributeInstructions, res === 'else'); // TODO: make something nicer for links
-    this.current.instructions.push([instruction]);
-    this.current = def;
+    if (attributeInstructions.length === 0 || attributeInstructions[0].type !== TargetedInstructionType.hydrateTemplateController) {
+      const name = symbol.definition.name;
+      const res = symbol.syntax.target;
+      const def = { name, instructions: [], template: symbol.targetSurrogate.element };
+      const instruction = new HydrateTemplateController(def, res, attributeInstructions, res === 'else'); // TODO: make something nicer for links
+      this.current.instructions.push([instruction]);
+      this.current = def;
+    } else {
+      this.current.instructions.push(attributeInstructions);
+      this.current = (<IHydrateTemplateController>attributeInstructions[0]).def;
+    }
   }
 
   public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
     // TODO: account for binding mode (this is just quick-n-dirty)
-    this.bindableInstructions.push(new ToViewBindingInstruction(<IsBindingBehavior>symbol.expr, symbol.attr.name));
+    if (symbol.command.handles(symbol)) {
+      this.bindableInstructions.push(symbol.command.compile(symbol));
+    } else {
+      this.bindableInstructions.push(new ToViewBindingInstruction(<IsBindingBehavior>symbol.expr, symbol.attr.name));
+    }
   }
 
   public visitElementBindingSymbol(symbol: ElementBindingSymbol): void {
     // TODO: account for binding mode (this is just quick-n-dirty)
-    this.bindableInstructions.push(new ToViewBindingInstruction(<IsBindingBehavior>symbol.expr, symbol.attr.name));
+    if (symbol.command.handles(symbol)) {
+      this.bindableInstructions.push(symbol.command.compile(symbol));
+    } else {
+      this.bindableInstructions.push(new ToViewBindingInstruction(<IsBindingBehavior>symbol.expr, symbol.attr.name));
+    }
   }
 
   public visitBoundAttributeSymbol(symbol: BoundAttributeSymbol): void {
     let attributeInstructions: TargetedInstruction[];
-    if (symbol.expr !== null) {
+    if (symbol.command.handles(symbol)) {
+      attributeInstructions = [symbol.command.compile(symbol)];
+    } else if (symbol.expr !== null) {
       attributeInstructions = [new ToViewBindingInstruction(<IsBindingBehavior><unknown>/*TODO: this needs a fix somewhere*/symbol.expr, symbol.attr.name)];
     } else {
       attributeInstructions = emptyArray;
@@ -1030,9 +1060,9 @@ export class CompilationTarget implements IElementSymbolList {
     return this.element.content.childNodes;
   }
 
-  constructor(element: IHTMLTemplateElement, definition: ITemplateDefinition) {
+  constructor(definition: ITemplateDefinition) {
     this.kind = SymbolKind.compilationTarget;
-    this.element = element;
+    this.element = <IHTMLTemplateElement>definition.template;
     this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
@@ -1404,6 +1434,13 @@ export type AttributeSymbol =
   PartAttributeSymbol |
   TemplateControllerAttributeSymbol |
   AttributeInterpolationSymbol |
+  CustomAttributeSymbol |
+  AttributeBindingSymbol |
+  ElementBindingSymbol |
+  BoundAttributeSymbol;
+
+export type PotentialBindingCommandAttributeSymbol =
+  TemplateControllerAttributeSymbol |
   CustomAttributeSymbol |
   AttributeBindingSymbol |
   ElementBindingSymbol |

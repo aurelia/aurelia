@@ -60,19 +60,19 @@ export class Scope {
       }
 
       viewport = this.viewports[name] = new Viewport(this.router.container, name, element, this, scope);
-      // First added viewport with element is always scope viewport (except for root scope)
-      if (element && scope && scope.parent && !scope.viewport) {
-        scope.viewport = viewport;
-      }
     }
     if (element) {
+      // First added viewport with element is always scope viewport (except for root scope)
+      if (viewport.scope && viewport.scope.parent && !viewport.scope.viewport) {
+        viewport.scope.viewport = viewport;
+      }
       if (viewport.scope && !viewport.scope.element) {
         viewport.scope.element = element;
       }
       if (!viewport.element) {
         viewport.element = element;
         if (!viewport.element.children) {
-          this.renderViewport(viewport);
+          this.renderViewport(viewport).catch(error => { throw error; });
         }
       }
     }
@@ -111,12 +111,30 @@ export class Scope {
   public viewportStates(): string[] {
     const states: string[] = [];
     for (const viewport in this.viewports) {
-      states.push((<Viewport>this.viewports[viewport]).description());
+      states.push((<Viewport>this.viewports[viewport]).scopedDescription());
     }
     for (const scope of this.children) {
       states.push(...scope.viewportStates());
     }
     return states.filter((value) => value && value.length);
+  }
+
+  public context(): string {
+    if (!this.element || !this.parent) {
+      return '';
+    }
+    const parents: string[] = [];
+    if (this.viewport) {
+      parents.unshift(this.viewport.description());
+    }
+    let viewport: Viewport = this.parent.closestViewport(this.element.parentElement);
+    while (viewport && viewport.owningScope === this.parent) {
+      parents.unshift(viewport.description());
+      viewport = this.closestViewport(viewport.element.parentElement);
+    }
+    parents.unshift(this.parent.context());
+
+    return parents.filter((value) => value && value.length).join('+');
   }
 
   private resolveComponent(component: ICustomElementType | string): IViewportCustomElementType {
@@ -127,5 +145,28 @@ export class Scope {
       }
     }
     return <ICustomElementType>component;
+  }
+
+  // This is not an optimal way of doing this
+  private closestViewport(element: Element): Viewport {
+    let closest: number = Number.MAX_SAFE_INTEGER;
+    let viewport: Viewport;
+    for (const vp in this.viewports) {
+      const viewportElement = this.viewports[vp].element;
+      let el = element;
+      let i = 0;
+      while (el) {
+        if (el === viewportElement) {
+          break;
+        }
+        i++;
+        el = el.parentElement;
+      }
+      if (i < closest) {
+        closest = i;
+        viewport = this.viewports[vp];
+      }
+    }
+    return viewport;
   }
 }

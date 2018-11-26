@@ -49,12 +49,29 @@ export class Router {
     this.options = {
       ...{
         callback: (navigationInstruction) => {
-          this.historyCallback(navigationInstruction);
+          this.historyCallback(navigationInstruction).catch(error => { throw error; });
         }
       }, ...options
     };
 
-    this.historyBrowser.activate(this.options);
+    this.historyBrowser.activate(this.options).catch(error => { throw error; });
+
+    document.addEventListener('click', (ev): void => { // This is TEMPORARY and should be moved out of here
+      const target: Element = <Element>ev.target;
+      let href: string = target.getAttribute('href');
+      if (href.startsWith('#')) {
+        href = href.substr(1);
+      }
+      if (!href.startsWith('/')) {
+        const scope = this.closestScope(target);
+        const context = scope.context();
+        if (context) {
+          href = `/${context}+${href}`;
+        }
+      }
+      document.location.href = `#${href}`;
+      event.preventDefault();
+    });
   }
 
   public historyCallback(instruction: INavigationInstruction): Promise<void> {
@@ -134,8 +151,11 @@ export class Router {
         // tslint:disable-next-line:no-console
         console.log('=========== ROUTER', this);
       }).then(() => {
-        // TODO: Eliminate duplications
-        const viewportStates = this.rootScope.viewportStates();
+        let viewportStates = this.rootScope.viewportStates();
+        viewportStates = this.removeStateDuplicates(viewportStates);
+
+        // TODO: Cut down on verbosity
+
         this.historyBrowser.replacePath(viewportStates.join('/'));
       });
   }
@@ -257,7 +277,7 @@ export class Router {
     return this.closestScope(element);
   }
 
-  // Called from the viewport custom element
+  // Called from the viewport custom element in attached()
   public addViewport(name: string, element: Element, newScope?: boolean): Viewport {
     const parentScope = this.findScope(element);
     return parentScope.addViewport(name, element, newScope);
@@ -331,5 +351,27 @@ export class Router {
       }
     }
     return scope;
+  }
+
+  private removeStateDuplicates(states: string[]): string[] {
+    let sorted: string[] = states.slice().sort((a, b) => b.split('+').length - a.split('+').length);
+    sorted = sorted.map((value) => `+${value}+`);
+
+    let unique: string[] = [];
+    if (sorted.length) {
+      unique.push(sorted.shift());
+      while (sorted.length) {
+        const state = sorted.shift();
+        if (unique.find((value) => {
+          return value.indexOf(state) === -1;
+        })) {
+          unique.push(state);
+        }
+      }
+    }
+    unique = unique.map((value) => value.substring(1, value.length - 1));
+    unique.sort((a, b) => a.split('+').length - b.split('+').length);
+
+    return unique;
   }
 }

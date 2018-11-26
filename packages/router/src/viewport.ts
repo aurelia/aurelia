@@ -131,6 +131,11 @@ export class Viewport {
     }
   }
 
+  public scopedDescription(): string {
+    const descriptions = [this.owningScope.context(), this.description()];
+    return descriptions.filter((value) => value && value.length).join('+');
+  }
+
   private loadComponent(component: ICustomElementType): void {
     this.nextComponent = this.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
   }

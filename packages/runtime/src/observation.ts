@@ -366,10 +366,9 @@ export interface IScope {
   readonly overrideContext: IOverrideContext;
 }
 
+// TODO: currently unused, still need to fix the observersLookup type
 export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
-Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> {
-
-}
+  Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> { }
 
 export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
   Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> =

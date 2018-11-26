@@ -1402,11 +1402,9 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
         this.tasks.splice(idx, 1);
       }
     }
-    if (this.tasks.length === 0) {
-      if (this.owner !== null) {
-        this.owner.finishTask(this);
-        this.owner = null;
-      }
+    if (this.tasks.length === 0 && this.owner !== null) {
+      this.owner.finishTask(this);
+      this.owner = null;
     }
   }
 

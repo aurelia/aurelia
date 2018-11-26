@@ -91,6 +91,14 @@ export function parseCore(input: string, bindingType?: BindingType): IExpression
 }
 
 /*@internal*/
+// JUSTIFICATION: This is performance-critical code which follows a subset of the well-known ES spec.
+// Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
+// single source of information for being able to figure it out.
+// It generally does not need to change unless the spec changes or spec violations are found, or optimization
+// opportunities are found (which would likely not fix these warnings in any case).
+// It's therefore not considered to have any tangible impact on the maintainability of the code base.
+// For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
+// tslint:disable-next-line:no-big-function cognitive-complexity
 export function parse<TPrec extends Precedence, TType extends BindingType>(state: ParserState, access: Access, minPrecedence: TPrec, bindingType: TType):
   TPrec extends Precedence.Unary ? IsUnary :
   TPrec extends Precedence.Binary ? IsBinary :
@@ -183,7 +191,6 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           } else if (state!.currentToken === Token.EOF) {
             throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
-          continue;
         } else if (state.currentToken & Token.AccessScopeTerminal) {
           const ancestor = access & Access.Ancestor;
           result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThis(ancestor);
@@ -673,6 +680,7 @@ function parseInterpolation(state: ParserState): Interpolation {
  */
 function parseTemplate(state: ParserState, access: Access, bindingType: BindingType, result: IsLeftHandSide, tagged: boolean): TaggedTemplate | Template {
   const cooked = [state.tokenValue as string];
+  // TODO: properly implement raw parts / decide whether we want this
   //const raw = [state.tokenRaw];
   consume(state, Token.TemplateContinuation);
   const expressions = [parse(state, access, Precedence.Assign, bindingType)];

@@ -40,15 +40,15 @@ export class LetBinding implements IPartialConnectableBinding {
     this.toViewModel = toViewModel;
   }
 
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
       const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
-      previousValue = target[targetProperty];
-      newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+      const previousValue: unknown = target[targetProperty];
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }

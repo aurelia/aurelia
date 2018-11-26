@@ -12,7 +12,7 @@ export interface IBinding extends IBindScope {
   readonly $scope: IScope;
 }
 
-export type IBindingTarget = INode | IObservable; // Node | CSSStyleDeclaration | IObservable;
+export type IBindingTarget = INode | IObservable; // Can be: Node | CSSStyleDeclaration | IObservable;
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -66,7 +66,7 @@ export class Binding implements IPartialConnectableBinding {
     this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
@@ -79,7 +79,7 @@ export class Binding implements IPartialConnectableBinding {
       const targetObserver = this.targetObserver;
       const mode = this.mode;
 
-      previousValue = targetObserver.getValue();
+      const previousValue = targetObserver.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = sourceExpression.evaluate(flags, $scope, locator);

@@ -279,6 +279,7 @@ export function buildTemplateDefinition(
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | Immutable<ITemplateDefinition>): TemplateDefinition;
+// tslint:disable-next-line:parameters-max-number
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   name: string | null,
@@ -292,6 +293,7 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null): TemplateDefinition;
+  // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | Immutable<ITemplateDefinition> | null,
@@ -359,10 +361,8 @@ export function buildTemplateDefinition(
   }
 
   // special handling for invocations that quack like a @customElement decorator
-  if (argLen === 2 && ctor !== null) {
-    if (typeof nameOrDef === 'string' || !('build' in nameOrDef)) {
-      def.build = buildRequired;
-    }
+  if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef))) {
+    def.build = buildRequired;
   }
 
   return def;

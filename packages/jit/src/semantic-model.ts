@@ -276,6 +276,7 @@ export class AttributeSymbol implements IAttributeSymbol {
     return this._isProcessed;
   }
 
+  // TODO: Reduce complexity (currently at 60)
   constructor(
     semanticModel: SemanticModel,
     $element: ElementSymbol,

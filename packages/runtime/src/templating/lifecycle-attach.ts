@@ -6,6 +6,7 @@ import { ICustomAttribute } from './custom-attribute';
 import { ICustomElement } from './custom-element';
 
 /*@internal*/
+// tslint:disable-next-line:no-ignored-initial-value
 export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
     return;
@@ -33,6 +34,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
 }
 
 /*@internal*/
+// tslint:disable-next-line:no-ignored-initial-value
 export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
     return;
@@ -91,6 +93,7 @@ export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encaps
 }
 
 /*@internal*/
+// tslint:disable-next-line:no-ignored-initial-value
 export function $detachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     const lifecycle = this.$lifecycle;
@@ -115,6 +118,7 @@ export function $detachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
 }
 
 /*@internal*/
+// tslint:disable-next-line:no-ignored-initial-value
 export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     const lifecycle = this.$lifecycle;

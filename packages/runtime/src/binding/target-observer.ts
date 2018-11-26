@@ -30,12 +30,10 @@ function setValue(this: BindingTargetAccessor, newValue: unknown, flags: Lifecyc
 }
 
 function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
-  if (flags & LifecycleFlags.doNotUpdateDOM) {
-    if (DOM.isNodeInstance(this.obj)) {
-      // re-queue the change so it will still propagate on flush when it's attached again
-      this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
-      return;
-    }
+  if ((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj)) {
+    // re-queue the change so it will still propagate on flush when it's attached again
+    this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
+    return;
   }
   const currentValue = this.currentValue;
   // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value

@@ -22,7 +22,7 @@ export function computed(config: ComputedOverrides): PropertyDecorator {
 }
 
 // tslint:disable-next-line:no-typeof-undefined
-const noProxy = !(typeof Proxy !== 'undefined');
+const noProxy = typeof Proxy === 'undefined';
 const computedOverrideDefaults: ComputedOverrides = { static: false, volatile: false };
 
 /* @internal */

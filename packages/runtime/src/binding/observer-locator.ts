@@ -162,6 +162,7 @@ export class ObserverLocator implements IObserverLocator {
     return null;
   }
 
+  // TODO: Reduce complexity (currently at 37)
   private createPropertyObserver(obj: IObservable, propertyName: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
       return new PrimitiveObserver(obj, propertyName) as IBindingTargetAccessor;
@@ -227,24 +228,22 @@ export class ObserverLocator implements IObserverLocator {
       get: PropertyDescriptor['get'] & { getObserver(obj: IObservable): IBindingTargetObserver };
     };
 
-    if (descriptor) {
-      if (descriptor.get || descriptor.set) {
-        if (descriptor.get && descriptor.get.getObserver) {
-          return descriptor.get.getObserver(obj);
-        }
-
-        // attempt to use an adapter before resorting to dirty checking.
-        const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
-        if (adapterObserver) {
-          return adapterObserver;
-        }
-        if (isNode) {
-          // TODO: use MutationObserver
-          return this.dirtyChecker.createProperty(obj, propertyName);
-        }
-
-        return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
+    if (descriptor && (descriptor.get || descriptor.set)) {
+      if (descriptor.get && descriptor.get.getObserver) {
+        return descriptor.get.getObserver(obj);
       }
+
+      // attempt to use an adapter before resorting to dirty checking.
+      const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
+      if (adapterObserver) {
+        return adapterObserver;
+      }
+      if (isNode) {
+        // TODO: use MutationObserver
+        return this.dirtyChecker.createProperty(obj, propertyName);
+      }
+
+      return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
     }
     return new SetterObserver(obj, propertyName);
   }

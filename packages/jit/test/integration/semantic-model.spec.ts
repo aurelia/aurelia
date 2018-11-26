@@ -121,7 +121,7 @@ const SymbolTraceWriter = {
 };
 
 describe('SemanticModel', () => {
-  xit('works 1', () => {
+  it('works 1', () => {
     const { model, symbolPreprocessor, nodePreprocessor } = setup();
     const target = model.createCompilationTarget({ name: 'app', template: `<template><div></div></template>` });
 
@@ -134,7 +134,7 @@ describe('SemanticModel', () => {
     //console.log(stringifySymbol(target));
   });
 
-  xit('works 2', () => {
+  it('works 2', () => {
     const { model, symbolPreprocessor, nodePreprocessor } = setup();
     const target = model.createCompilationTarget({ name: 'app', template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\">${item}</template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\">${item}</template></template>" });
 
@@ -155,7 +155,7 @@ describe('SemanticModel', () => {
     const output = compiler.compile(def, <any>resources);
   });
 
-  it.only('works 4', () => {
+  it('works 4', () => {
     enableTracing();
     Tracer.enableLiveLogging(SymbolTraceWriter);
     const container = DI.createContainer();

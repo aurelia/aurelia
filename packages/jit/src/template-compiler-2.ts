@@ -1,4 +1,4 @@
-import { inject, PLATFORM } from '@aurelia/kernel';
+import { inject, PLATFORM, Tracer } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
@@ -61,6 +61,8 @@ import {
 // tslint:disable-next-line:no-any
 const emptyArray = <any[]>PLATFORM.emptyArray;
 
+const slice = Array.prototype.slice;
+
 // TODO: make extensible / rework BindingCommand
 const BindingCommandLookup: Record<string, BindingType> = {
   'one-time': BindingType.OneTimeCommand,
@@ -88,7 +90,161 @@ export class SymbolPreprocessor implements ISymbolVisitor {
     this.model = model;
   }
 
-  public visitElementSymbolNode(symbol: ElementSymbol): void {
+  public visitPlainElementSymbol(symbol: PlainElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitPlainElementSymbol', slice.call(arguments)); }
+    this.visitElementSymbolNode(symbol);
+    this.visitElementSymbolList(symbol);
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitSurrogateElementSymbol(symbol: SurrogateElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitSurrogateElementSymbol', slice.call(arguments)); }
+    this.visitElementSymbolNode(symbol);
+    this.visitElementSymbolList(symbol);
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitSlotElementSymbol(symbol: SlotElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitSlotElementSymbol', slice.call(arguments)); }
+    this.visitElementSymbolNode(symbol);
+    this.visitElementSymbolList(symbol);
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitLetElementSymbol(symbol: LetElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitLetElementSymbol', slice.call(arguments)); }
+    this.visitElementSymbolNode(symbol);
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitCompilationTarget(symbol: CompilationTarget): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitCompilationTarget', slice.call(arguments)); }
+    this.visitElementSymbolNode(symbol);
+    this.visitElementSymbolList(symbol);
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitCustomElementSymbol(symbol: CustomElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitCustomElementSymbol', slice.call(arguments)); }
+    this.visitElementSymbolNode(symbol);
+    this.visitElementSymbolList(symbol);
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitTextInterpolationSymbol(symbol: TextInterpolationSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitTextInterpolationSymbol', slice.call(arguments)); }
+    // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitReplacePartAttributeSymbol(symbol: ReplacePartAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitReplacePartAttributeSymbol', slice.call(arguments)); }
+    // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitPartAttributeSymbol(symbol: PartAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitPartAttributeSymbol', slice.call(arguments)); }
+    // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitAttributeInterpolationSymbol(symbol: AttributeInterpolationSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitAttributeInterpolationSymbol', slice.call(arguments)); }
+    // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitCustomAttributeSymbol', slice.call(arguments)); }
+    if (symbol.expr !== null) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.attr.value.length === 0) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.command !== null) {
+      // TODO: reintroduce binding command resources properly
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
+    }
+    symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitTemplateControllerAttributeSymbol', slice.call(arguments)); }
+    // TODO
+    if (symbol.expr !== null) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.attr.value.length === 0) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.command !== null) {
+      // TODO: reintroduce binding command resources properly
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
+    } else {
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    }
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitAttributeBindingSymbol', slice.call(arguments)); }
+    // TODO
+    if (symbol.expr !== null) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.attr.value.length === 0) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.command !== null) {
+      // TODO: reintroduce binding command resources properly
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
+    } else {
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    }
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitElementBindingSymbol(symbol: ElementBindingSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitElementBindingSymbol', slice.call(arguments)); }
+    // TODO
+    if (symbol.expr !== null) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.attr.value.length === 0) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.command !== null) {
+      // TODO: reintroduce binding command resources properly
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
+    } else {
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    }
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitBoundAttributeSymbol(symbol: BoundAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitBoundAttributeSymbol', slice.call(arguments)); }
+    // TODO
+    if (symbol.expr !== null) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.attr.value.length === 0) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
+    }
+    if (symbol.command !== null) {
+      // TODO: reintroduce binding command resources properly
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
+    } else {
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    }
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+  public visitBindingCommandSymbol(symbol: BindingCommandSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitBindingCommandSymbol', slice.call(arguments)); }
+    // TODO
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  private visitElementSymbolNode(symbol: ElementSymbol): void {
     const model = this.model;
     const element = symbol.element;
     const attributes = element.attributes;
@@ -110,7 +266,7 @@ export class SymbolPreprocessor implements ISymbolVisitor {
       attrSymbol.accept(this);
     }
   }
-  public visitElementSymbolList(symbol: IElementSymbolList): void {
+  private visitElementSymbolList(symbol: IElementSymbolList): void {
     const model = this.model;
     const childNodes = symbol.childNodes;
     const len = childNodes.length;
@@ -131,118 +287,6 @@ export class SymbolPreprocessor implements ISymbolVisitor {
       elSymbol.accept(this);
     }
   }
-
-  public visitPlainElementSymbol(symbol: PlainElementSymbol): void {
-    this.visitElementSymbolNode(symbol);
-    this.visitElementSymbolList(symbol);
-  }
-  public visitSurrogateElementSymbol(symbol: SurrogateElementSymbol): void {
-    this.visitElementSymbolNode(symbol);
-    this.visitElementSymbolList(symbol);
-  }
-  public visitSlotElementSymbol(symbol: SlotElementSymbol): void {
-    this.visitElementSymbolNode(symbol);
-    this.visitElementSymbolList(symbol);
-  }
-  public visitLetElementSymbol(symbol: LetElementSymbol): void {
-    this.visitElementSymbolNode(symbol);
-  }
-  public visitCompilationTarget(symbol: CompilationTarget): void {
-    this.visitElementSymbolNode(symbol);
-    this.visitElementSymbolList(symbol);
-  }
-  public visitCustomElementSymbol(symbol: CustomElementSymbol): void {
-    this.visitElementSymbolNode(symbol);
-    this.visitElementSymbolList(symbol);
-  }
-  public visitTextInterpolationSymbol(symbol: TextInterpolationSymbol): void {
-    // do nothing
-  }
-  public visitReplacePartAttributeSymbol(symbol: ReplacePartAttributeSymbol): void {
-    // do nothing
-  }
-  public visitPartAttributeSymbol(symbol: PartAttributeSymbol): void {
-    // do nothing
-  }
-  public visitAttributeInterpolationSymbol(symbol: AttributeInterpolationSymbol): void {
-    // do nothing
-  }
-  public visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void {
-    if (symbol.expr !== null) {
-      return;
-    }
-    if (symbol.attr.value.length === 0) {
-      return;
-    }
-    if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
-    }
-    symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
-  }
-  public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
-    // TODO
-    if (symbol.expr !== null) {
-      return;
-    }
-    if (symbol.attr.value.length === 0) {
-      return;
-    }
-    if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
-    } else {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
-    }
-  }
-  public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
-    // TODO
-    if (symbol.expr !== null) {
-      return;
-    }
-    if (symbol.attr.value.length === 0) {
-      return;
-    }
-    if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
-    } else {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
-    }
-  }
-  public visitElementBindingSymbol(symbol: ElementBindingSymbol): void {
-    // TODO
-    if (symbol.expr !== null) {
-      return;
-    }
-    if (symbol.attr.value.length === 0) {
-      return;
-    }
-    if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
-    } else {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
-    }
-  }
-  public visitBoundAttributeSymbol(symbol: BoundAttributeSymbol): void {
-    // TODO
-    if (symbol.expr !== null) {
-      return;
-    }
-    if (symbol.attr.value.length === 0) {
-      return;
-    }
-    if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
-    } else {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
-    }
-  }
-  public visitBindingCommandSymbol(symbol: BindingCommandSymbol): void {
-    // TODO
-  }
 }
 
 export class NodePreprocessor implements ISymbolVisitor {
@@ -254,66 +298,73 @@ export class NodePreprocessor implements ISymbolVisitor {
     this.currentNode = null;
   }
 
-  public visitElementSymbolNode(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol): void {
-    this.currentNode = symbol;
-    let current = symbol.headAttr;
-    while (current !== null) {
-      current.accept(this);
-      current = current.nextAttr;
-    }
-  }
-  public visitElementSymbolList(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol | CompilationTarget): void {
-    this.currentNode = symbol;
-    let current = symbol.headNode;
-    while (current !== null) {
-      current.accept(this);
-      current = current.nextNode;
-    }
-  }
-
   public visitPlainElementSymbol(symbol: PlainElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitPlainElementSymbol', slice.call(arguments)); }
     this.visitElementSymbolNode(symbol);
     this.visitElementSymbolList(symbol);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitSurrogateElementSymbol(symbol: SurrogateElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitSurrogateElementSymbol', slice.call(arguments)); }
     this.visitElementSymbolNode(symbol);
     this.visitElementSymbolList(symbol);
     // ensure that no template elements are present in the DOM when compilation is done
     if (symbol.element.parentNode !== null) {
       symbol.element.parentNode.replaceChild(createMarker(), symbol.element);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitSlotElementSymbol(symbol: SlotElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitSlotElementSymbol', slice.call(arguments)); }
     // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitLetElementSymbol(symbol: LetElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitLetElementSymbol', slice.call(arguments)); }
     // TODO?
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitCompilationTarget(symbol: CompilationTarget): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitCompilationTarget', slice.call(arguments)); }
     this.visitElementSymbolList(symbol);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitCustomElementSymbol(symbol: CustomElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitCustomElementSymbol', slice.call(arguments)); }
     this.visitElementSymbolNode(symbol);
     this.visitElementSymbolList(symbol);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitTextInterpolationSymbol(symbol: TextInterpolationSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitTextInterpolationSymbol', slice.call(arguments)); }
     symbol.replaceWithMarker();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitReplacePartAttributeSymbol(symbol: ReplacePartAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitReplacePartAttributeSymbol', slice.call(arguments)); }
     // TODO?
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitPartAttributeSymbol(symbol: PartAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitPartAttributeSymbol', slice.call(arguments)); }
     // TODO?
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitAttributeInterpolationSymbol(symbol: AttributeInterpolationSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitAttributeInterpolationSymbol', slice.call(arguments)); }
     // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitCustomAttributeSymbol', slice.call(arguments)); }
     // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitTemplateControllerAttributeSymbol', slice.call(arguments)); }
     if (symbol.targetSurrogate !== null) {
       // this template controller is already assigned to a surrogate, no need to process it again
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     const currentNode = this.currentNode;
@@ -321,6 +372,7 @@ export class NodePreprocessor implements ISymbolVisitor {
       // the surrogate is still free, so assign it the template controller and return early
       currentNode.templateController = symbol;
       symbol.targetSurrogate = currentNode;
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // move the content to a new surrogate and assign it the template controller
@@ -347,18 +399,44 @@ export class NodePreprocessor implements ISymbolVisitor {
     currentNode.tailNode = targetSurrogate;
 
     targetSurrogate.accept(this);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitAttributeBindingSymbol', slice.call(arguments)); }
     // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitElementBindingSymbol(symbol: ElementBindingSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitElementBindingSymbol', slice.call(arguments)); }
     // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitBoundAttributeSymbol(symbol: BoundAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitBoundAttributeSymbol', slice.call(arguments)); }
     // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitBindingCommandSymbol(symbol: BindingCommandSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitBindingCommandSymbol', slice.call(arguments)); }
     // do nothing
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  private visitElementSymbolNode(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol): void {
+    this.currentNode = symbol;
+    let attr = symbol.headAttr;
+    while (attr !== null) {
+      attr.accept(this);
+      attr = attr.nextAttr;
+    }
+  }
+  private visitElementSymbolList(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol | CompilationTarget): void {
+    this.currentNode = symbol;
+    let node = symbol.headNode;
+    while (node !== null) {
+      node.accept(this);
+      node = node.nextNode;
+    }
   }
 }
 
@@ -383,6 +461,7 @@ export class InstructionBuilder implements ISymbolVisitor {
   }
 
   public visitPlainElementSymbol(symbol: PlainElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitPlainElementSymbol', slice.call(arguments)); }
     let attr = symbol.headAttr;
     while (attr !== null) {
       attr.accept(this);
@@ -397,9 +476,11 @@ export class InstructionBuilder implements ISymbolVisitor {
       node.accept(this);
       node = node.nextNode;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitSurrogateElementSymbol(symbol: SurrogateElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitSurrogateElementSymbol', slice.call(arguments)); }
     let attr = symbol.headAttr;
     while (attr !== null) {
       attr.accept(this);
@@ -414,17 +495,23 @@ export class InstructionBuilder implements ISymbolVisitor {
       node.accept(this);
       node = node.nextNode;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitSlotElementSymbol(symbol: SlotElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitSlotElementSymbol', slice.call(arguments)); }
     this.current.hasSlots = true;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitLetElementSymbol(symbol: LetElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitLetElementSymbol', slice.call(arguments)); }
     // TODO
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitCompilationTarget(symbol: CompilationTarget): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCompilationTarget', slice.call(arguments)); }
     const current = this.current;
     this.current = symbol.definition;
 
@@ -447,9 +534,11 @@ export class InstructionBuilder implements ISymbolVisitor {
       node = node.nextNode;
     }
     this.current = current;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitCustomElementSymbol(symbol: CustomElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCustomElementSymbol', slice.call(arguments)); }
     const current = this.current;
     this.current = <ITemplateDefinition>symbol.definition;
 
@@ -470,21 +559,29 @@ export class InstructionBuilder implements ISymbolVisitor {
     this.current = current;
     current.instructions.push([new HydrateElementInstruction(symbol.definition.name, this.bindableInstructions, {}/*TODO*/, null/*TODO*/)]);
     this.bindableInstructions = [];
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitTextInterpolationSymbol(symbol: TextInterpolationSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitTextInterpolationSymbol', slice.call(arguments)); }
     this.current.instructions.push([new TextBindingInstruction(symbol.expr)]);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitReplacePartAttributeSymbol(symbol: ReplacePartAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitReplacePartAttributeSymbol', slice.call(arguments)); }
     // TODO
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitPartAttributeSymbol(symbol: PartAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitPartAttributeSymbol', slice.call(arguments)); }
     // TODO
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitAttributeInterpolationSymbol(symbol: AttributeInterpolationSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitAttributeInterpolationSymbol', slice.call(arguments)); }
     let attributeInstructions: TargetedInstruction[];
     if (symbol.expr !== null) {
       attributeInstructions = [new ToViewBindingInstruction(<IsBindingBehavior><unknown>/*TODO: this needs a fix somewhere*/symbol.expr, symbol.attr.name)];
@@ -493,9 +590,11 @@ export class InstructionBuilder implements ISymbolVisitor {
     }
     const instruction = new HydrateAttributeInstruction(symbol.attr.name, attributeInstructions);
     this.standaloneInstructions.push(instruction);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCustomAttributeSymbol', slice.call(arguments)); }
     let attributeInstructions: TargetedInstruction[];
     if (symbol.command.handles(symbol)) {
       attributeInstructions = [symbol.command.compile(symbol)];
@@ -507,9 +606,11 @@ export class InstructionBuilder implements ISymbolVisitor {
     const res = symbol.syntax.target;
     const instruction = new HydrateAttributeInstruction(res, attributeInstructions);
     this.standaloneInstructions.push(instruction);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitTemplateControllerAttributeSymbol', slice.call(arguments)); }
     let attributeInstructions: TargetedInstruction[];
     if (symbol.command.handles(symbol)) {
       attributeInstructions = [symbol.command.compile(symbol)];
@@ -529,27 +630,33 @@ export class InstructionBuilder implements ISymbolVisitor {
       this.current.instructions.push(attributeInstructions);
       this.current = (<IHydrateTemplateController>attributeInstructions[0]).def;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitAttributeBindingSymbol', slice.call(arguments)); }
     // TODO: account for binding mode (this is just quick-n-dirty)
     if (symbol.command.handles(symbol)) {
       this.bindableInstructions.push(symbol.command.compile(symbol));
     } else {
       this.bindableInstructions.push(new ToViewBindingInstruction(<IsBindingBehavior>symbol.expr, symbol.attr.name));
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitElementBindingSymbol(symbol: ElementBindingSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitElementBindingSymbol', slice.call(arguments)); }
     // TODO: account for binding mode (this is just quick-n-dirty)
     if (symbol.command.handles(symbol)) {
       this.bindableInstructions.push(symbol.command.compile(symbol));
     } else {
       this.bindableInstructions.push(new ToViewBindingInstruction(<IsBindingBehavior>symbol.expr, symbol.attr.name));
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitBoundAttributeSymbol(symbol: BoundAttributeSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitBoundAttributeSymbol', slice.call(arguments)); }
     let attributeInstructions: TargetedInstruction[];
     if (symbol.command.handles(symbol)) {
       attributeInstructions = [symbol.command.compile(symbol)];
@@ -560,10 +667,13 @@ export class InstructionBuilder implements ISymbolVisitor {
     }
     const instruction = new HydrateAttributeInstruction(symbol.attr.name, attributeInstructions);
     this.standaloneInstructions.push(instruction);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public visitBindingCommandSymbol(symbol: BindingCommandSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitBindingCommandSymbol', slice.call(arguments)); }
     // TODO
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private getBindingInstruction(symbol: CustomAttributeSymbol | TemplateControllerAttributeSymbol): IPropertyBindingInstruction {

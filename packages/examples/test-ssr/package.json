@@ -1,0 +1,30 @@
+{
+  "name": "jit-webpack-ts",
+  "version": "0.1.1",
+  "scripts": {
+    "start": "ts-node -P=tsconfig.json src/index.ts"
+  },
+  "dependencies": {
+    "@aurelia/debug": "file:../../debug",
+    "@aurelia/jit": "file:../../jit",
+    "@aurelia/kernel": "file:../../kernel",
+    "@aurelia/runtime": "file:../../runtime",
+    "jsdom": "^13.0.0",
+    "reflect-metadata": "^0.1.12"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^12.2.0",
+    "@types/node": "^8.10.37",
+    "html-loader": "latest",
+    "html-webpack-plugin": "latest",
+    "http-server": "latest",
+    "rimraf": "latest",
+    "ts-loader": "latest",
+    "ts-node": "^7.0.1",
+    "typescript": "latest",
+    "webpack": "latest",
+    "webpack-bundle-analyzer": "^3.0.2",
+    "webpack-cli": "latest",
+    "webpack-dev-server": "latest"
+  }
+}

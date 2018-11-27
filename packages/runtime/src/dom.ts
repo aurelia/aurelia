@@ -111,9 +111,19 @@ export interface INodeSequence extends INodeLike {
 export interface INodeObserver {
   disconnect(): void;
 }
+let document  = typeof global['document'] !== 'undefined' ? global['document'] : null;
+let Element = typeof global['Element'] !== 'undefined' ? global['Element'] : null;
+let HTMLElement  = typeof global['HTMLElement'] !== 'undefined' ? global['HTMLElement'] : null;
+let SVGElement  = typeof global['SVGElement'] !== 'undefined' ? global['SVGElement'] : null;
 
 // tslint:disable:no-any
-export const DOM = {
+export const DOM = new class VinDiesel {
+  setHtmlReference(doc: Document, element: Element, htmlElement: HTMLElement, svg: SVGElement) {
+    document = doc;
+    Element = element;
+    HTMLElement = htmlElement;
+    SVGElement = svg;
+  }
   createDocumentFragment(markupOrNode?: string | IElement): IDocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {
       return <IDocumentFragment>document.createDocumentFragment();
@@ -127,7 +137,7 @@ export const DOM = {
       return <IDocumentFragment>fragment;
     }
     return DOM.createTemplate(<string>markupOrNode).content;
-  },
+  }
   createTemplate(markup?: string): IElement {
     if (markup === undefined) {
       return <IElement>document.createElement('template');
@@ -135,22 +145,22 @@ export const DOM = {
     const template = document.createElement('template');
     template.innerHTML = markup;
     return <IElement>template;
-  },
+  }
   addClass(node: INode, className: string): void {
     (<any>node).classList.add(className);
-  },
+  }
   addEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any): void {
     ((<any>publisher) || document).addEventListener(eventName, subscriber, options);
-  },
+  }
   appendChild(parent: INode, child: INode): void {
     (<any>parent).appendChild(child);
-  },
+  }
   attachShadow(host: IElement, options: ShadowRootInit): IDocumentFragment {
     return (<any>host).attachShadow(options);
-  },
+  }
   cloneNode<T extends INode = INode>(node: T, deep?: boolean): T {
     return (<any>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
-  },
+  }
   convertToRenderLocation(node: INode): IRenderLocation {
     if (isRenderLocation(node)) {
       return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
@@ -165,30 +175,30 @@ export const DOM = {
     locationEnd.$start = locationStart;
     locationStart.$nodes = null;
     return locationEnd;
-  },
+  }
   createComment(text: string): IComment {
     return <IComment>document.createComment(text);
-  },
+  }
   createElement(name: string): IElement {
     return document.createElement(name);
-  },
+  }
   createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit): MutationObserver {
     const observer = new MutationObserver(callback);
     observer.observe(<any>target, options);
     return observer;
-  },
+  }
   createTextNode(text: string): IText {
     return <IText>document.createTextNode(text);
-  },
+  }
   getAttribute(node: INode, name: string): any {
     return (<any>node).getAttribute(name);
-  },
+  }
   hasClass(node: INode, className: string): boolean {
     return (<any>node).classList.contains(className);
-  },
+  }
   insertBefore(nodeToInsert: INode, referenceNode: INode): void {
     (<any>referenceNode).parentNode.insertBefore(nodeToInsert, referenceNode);
-  },
+  }
   isAllWhitespace(node: INode): boolean {
     if ((<any>node).auInterpolationTarget === true) {
       return false;
@@ -205,57 +215,57 @@ export const DOM = {
       i++;
     }
     return true;
-  },
+  }
   isCommentNodeType(node: INode): node is IComment {
     return node.nodeType === COMMENT_NODE;
-  },
+  }
   isDocumentFragmentType(node: INode): node is IDocumentFragment {
     return node.nodeType === DOCUMENT_FRAGMENT_NODE;
-  },
+  }
   isElementNodeType(node: INode): node is IElement {
     return node.nodeType === ELEMENT_NODE;
-  },
+  }
   isNodeInstance(potentialNode: any): potentialNode is INode {
     return potentialNode.nodeType > 0;
-  },
+  }
   isTextNodeType(node: INode): node is IText {
     return node.nodeType === TEXT_NODE;
-  },
+  }
   migrateChildNodes(currentParent: INode, newParent: INode): void {
     while (currentParent.firstChild) {
       DOM.appendChild(newParent, currentParent.firstChild);
     }
-  },
+  }
   registerElementResolver(container: IContainer, resolver: IResolver): void {
     container.registerResolver(INode, resolver);
     container.registerResolver(Element, resolver);
     container.registerResolver(HTMLElement, resolver);
     container.registerResolver(SVGElement, resolver);
-  },
+  }
   remove(node: INodeLike): void {
     if ((<any>node).remove) {
       (<any>node).remove();
     } else {
       (<any>node).parentNode.removeChild(node);
     }
-  },
+  }
   removeAttribute(node: INode, name: string): void {
     (<any>node).removeAttribute(name);
-  },
+  }
   removeClass(node: INode, className: string): void {
     (<any>node).classList.remove(className);
-  },
+  }
   removeEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any): void {
     ((<any>publisher) || document).removeEventListener(eventName, subscriber, options);
-  },
+  }
   replaceNode(newChild: INode, oldChild: INode): void {
     if (oldChild.parentNode) {
       (<any>oldChild).parentNode.replaceChild(newChild, oldChild);
     }
-  },
+  }
   setAttribute(node: INode, name: string, value: any): void {
     (<any>node).setAttribute(name, value);
-  },
+  }
   treatAsNonWhitespace(node: INode): void {
     // see isAllWhitespace above
     (<any>node).auInterpolationTarget = true;

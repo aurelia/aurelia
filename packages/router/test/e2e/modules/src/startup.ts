@@ -15,6 +15,7 @@ import { Inbox } from './components/inbox';
 import { Schedule } from './components/schedule';
 import { Dates } from './components/dates';
 import { Recursive } from './components/recursive';
+import { Header } from './components/header';
 
 const container = DI.createContainer();
 container.register(BasicConfiguration,
@@ -32,6 +33,7 @@ container.register(BasicConfiguration,
   <any>Schedule,
   <any>Dates,
   <any>Recursive,
+  <any>Header,
 );
 const component = container.get(CustomElementResource.keyFrom('app'));
 

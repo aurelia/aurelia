@@ -20,14 +20,22 @@ export class Viewport {
   public component: IRouteableCustomElement;
   public nextComponent: IRouteableCustomElement;
 
+  private clear: boolean = false;
+
   constructor(private container: IContainer, public name: string, public element: Element, public owningScope: Scope, public scope: Scope) {
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
+    this.clear = false;
     if (typeof content === 'string') {
-      const resolver = this.container.getResolver(CustomElementResource.keyFrom(content));
-      if (resolver !== null) {
-        content = <ICustomElementType>resolver.getFactory(this.container).Type;
+      if (content === '-') {
+        this.clear = true;
+        content = null;
+      } else {
+        const resolver = this.container.getResolver(CustomElementResource.keyFrom(content));
+        if (resolver !== null) {
+          content = <ICustomElementType>resolver.getFactory(this.container).Type;
+        }
       }
     }
 
@@ -63,6 +71,10 @@ export class Viewport {
   }
 
   public canEnter(): Promise<boolean> {
+    if (this.clear) {
+      return Promise.resolve(true);
+    }
+
     if (!this.nextContent) {
       return Promise.resolve(false);
     }
@@ -116,9 +128,14 @@ export class Viewport {
       this.content = this.nextContent;
       this.instruction = this.nextInstruction;
       this.component = this.nextComponent;
-
-      this.nextContent = this.nextInstruction = this.nextComponent = null;
     }
+
+    if (this.clear) {
+      this.content = this.component = null;
+      this.instruction = this.nextInstruction;
+    }
+
+    this.nextContent = this.nextInstruction = this.nextComponent = null;
 
     return Promise.resolve(true);
   }

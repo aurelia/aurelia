@@ -20,7 +20,7 @@ import {
   TriggerBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
-import { PotentialBindingCommandAttributeSymbol, SymbolKind, TemplateControllerAttributeSymbol } from './semantic-model-2';
+import { PotentialBindingCommandAttributeSymbol, SymbolKind, TemplateControllerAttributeSymbol } from './semantic-model';
 
 export interface IBindingCommand {
   compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction;

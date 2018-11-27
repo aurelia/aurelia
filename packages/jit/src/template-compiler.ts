@@ -332,6 +332,9 @@ export class NodePreprocessor implements ISymbolVisitor {
   }
   public visitCustomElementSymbol(symbol: CustomElementSymbol): void {
     if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitCustomElementSymbol', slice.call(arguments)); }
+    if (!symbol.element.classList.contains('au')) {
+      symbol.element.classList.add('au');
+    }
     this.visitElementSymbolNode(symbol);
     this.visitElementSymbolList(symbol);
     if (Tracer.enabled) { Tracer.leave(); }
@@ -358,7 +361,9 @@ export class NodePreprocessor implements ISymbolVisitor {
   }
   public visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void {
     if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitCustomAttributeSymbol', slice.call(arguments)); }
-    // do nothing
+    if (!symbol.owner.element.classList.contains('au')) {
+      symbol.owner.element.classList.add('au');
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
@@ -476,9 +481,12 @@ export class InstructionBuilder implements ISymbolVisitor {
       attr = attr.nextAttr;
     }
 
+    const current = this.current;
     let node = symbol.headNode;
     while (node !== null) {
       node.accept(this);
+      // TODO: create a better / more intuitive mechanism for assigning instructions to the right definitions
+      this.current = current;
       node = node.nextNode;
     }
     if (Tracer.enabled) { Tracer.leave(); }
@@ -492,9 +500,12 @@ export class InstructionBuilder implements ISymbolVisitor {
       attr = attr.nextAttr;
     }
 
+    const current = this.current;
     let node = symbol.headNode;
     while (node !== null) {
       node.accept(this);
+      // TODO: create a better / more intuitive mechanism for assigning instructions to the right definitions
+      this.current = current;
       node = node.nextNode;
     }
     if (Tracer.enabled) { Tracer.leave(); }
@@ -514,7 +525,15 @@ export class InstructionBuilder implements ISymbolVisitor {
 
   public visitCompilationTarget(symbol: CompilationTarget): void {
     if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCompilationTarget', slice.call(arguments)); }
-    const current = this.current;
+    this.current = symbol.definition;
+
+    let node = symbol.headNode;
+    while (node !== null) {
+      node.accept(this);
+      // TODO: create a better / more intuitive mechanism for assigning instructions to the right definitions
+      this.current = symbol.definition;
+      node = node.nextNode;
+    }
     this.current = symbol.definition;
 
     // set state to surrogate instructions
@@ -526,35 +545,29 @@ export class InstructionBuilder implements ISymbolVisitor {
     }
     // reset to standard state
     this.state = InstructionState.standard;
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  public visitCustomElementSymbol(symbol: CustomElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCustomElementSymbol', slice.call(arguments)); }
+    const current = symbol.definition as ITemplateDefinition;
+    if (current.instructions === undefined || current.instructions === emptyArray) {
+      current.instructions = [];
+    }
 
     let node = symbol.headNode;
     while (node !== null) {
       node.accept(this);
       node = node.nextNode;
     }
-    this.current = current;
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitCustomElementSymbol(symbol: CustomElementSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCustomElementSymbol', slice.call(arguments)); }
-    const current = this.current;
-    this.current = symbol.definition as ITemplateDefinition;
+    this.current.instructions.push([new HydrateElementInstruction(symbol.definition.name, this.bindableInstructions, {}/*TODO*/)]);
+    this.bindableInstructions = [];
 
     let attr = symbol.headAttr;
     while (attr !== null && attr.owner === symbol) {
       attr.accept(this);
       attr = attr.nextAttr;
     }
-
-    let node = symbol.headNode;
-    while (node !== null) {
-      node.accept(this);
-      node = node.nextNode;
-    }
-    this.current = current;
-    current.instructions.push([new HydrateElementInstruction(symbol.definition.name, this.bindableInstructions, {}/*TODO*/, null/*TODO*/)]);
-    this.bindableInstructions = [];
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -592,7 +605,7 @@ export class InstructionBuilder implements ISymbolVisitor {
   public visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void {
     if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCustomAttributeSymbol', slice.call(arguments)); }
     let attributeInstructions: TargetedInstruction[];
-    if (symbol.command.handles(symbol)) {
+    if (symbol.command !== null && symbol.command.handles(symbol)) {
       attributeInstructions = [symbol.command.compile(symbol)];
     } else if (symbol.expr !== null) {
       attributeInstructions = [this.getBindingInstruction(symbol)];
@@ -608,7 +621,7 @@ export class InstructionBuilder implements ISymbolVisitor {
   public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
     if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitTemplateControllerAttributeSymbol', slice.call(arguments)); }
     let attributeInstructions: TargetedInstruction[];
-    if (symbol.command.handles(symbol)) {
+    if (symbol.command !== null && symbol.command.handles(symbol)) {
       attributeInstructions = [symbol.command.compile(symbol)];
     } else if (symbol.expr !== null) {
       attributeInstructions = [this.getBindingInstruction(symbol)];
@@ -632,7 +645,7 @@ export class InstructionBuilder implements ISymbolVisitor {
   public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
     if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitAttributeBindingSymbol', slice.call(arguments)); }
     // TODO: account for binding mode (this is just quick-n-dirty)
-    if (symbol.command.handles(symbol)) {
+    if (symbol.command !== null && symbol.command.handles(symbol)) {
       this.bindableInstructions.push(symbol.command.compile(symbol));
     } else {
       this.bindableInstructions.push(new ToViewBindingInstruction(symbol.expr as IsBindingBehavior, symbol.attr.name));
@@ -643,7 +656,7 @@ export class InstructionBuilder implements ISymbolVisitor {
   public visitElementBindingSymbol(symbol: ElementBindingSymbol): void {
     if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitElementBindingSymbol', slice.call(arguments)); }
     // TODO: account for binding mode (this is just quick-n-dirty)
-    if (symbol.command.handles(symbol)) {
+    if (symbol.command !== null && symbol.command.handles(symbol)) {
       this.bindableInstructions.push(symbol.command.compile(symbol));
     } else {
       this.bindableInstructions.push(new ToViewBindingInstruction(symbol.expr as IsBindingBehavior, symbol.attr.name));
@@ -654,7 +667,7 @@ export class InstructionBuilder implements ISymbolVisitor {
   public visitBoundAttributeSymbol(symbol: BoundAttributeSymbol): void {
     if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitBoundAttributeSymbol', slice.call(arguments)); }
     let attributeInstructions: TargetedInstruction[];
-    if (symbol.command.handles(symbol)) {
+    if (symbol.command !== null && symbol.command.handles(symbol)) {
       attributeInstructions = [symbol.command.compile(symbol)];
     } else if (symbol.expr !== null) {
       attributeInstructions = [new ToViewBindingInstruction(symbol.expr as unknown as IsBindingBehavior, symbol.attr.name)];

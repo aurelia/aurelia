@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry, PLATFORM, Constructable } from '../../../kernel/src';
+import { DI, IContainer, IRegistry, PLATFORM, Constructable, Tracer } from '../../../kernel/src';
 import {
   IExpressionParser,
   IResourceDescriptions,
@@ -36,7 +36,7 @@ import {
   IAttributeParser
 } from '../../src/index';
 import { expect } from 'chai';
-import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from './util';
+import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual, enableTracing, disableTracing, SymbolTraceWriter } from './util';
 
 const c = DI.createContainer();
 c.register(<any>DotSeparatedAttributePattern);
@@ -60,8 +60,8 @@ describe('TemplateCompiler', () => {
   beforeEach(() => {
     container = DI.createContainer();
     container.register(<any>BasicConfiguration);
-    expressionParser = container.get(IExpressionParser);
-    sut = new TemplateCompiler(expressionParser as any, elParser, attrParser);
+    expressionParser = container.get<IExpressionParser>(IExpressionParser);
+    sut = new TemplateCompiler(<any>expressionParser, elParser, <any>attrParser);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ Type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
@@ -259,7 +259,7 @@ describe('TemplateCompiler', () => {
             [Prop]
           );
           expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>')
-          const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
+          const [hydratePropAttrInstruction] = <[HydrateTemplateController]><unknown>instructions[0];
           expect((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
         });
 
@@ -276,7 +276,7 @@ describe('TemplateCompiler', () => {
             [Prop]
           );
           expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>')
-          const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
+          const [hydratePropAttrInstruction] = <[HydrateTemplateController]><unknown>instructions[0];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
             { toVerify: ['type', 'to', 'from'],
               type: TT.propertyBinding, to: 'value', from: new AccessScope('p') },
@@ -394,7 +394,7 @@ describe('TemplateCompiler', () => {
 
     function compileWith(markup: string | Element, extraResources: any[] = [], viewCompileFlags?: ViewCompileFlags) {
       extraResources.forEach(e => e.register(container));
-      return sut.compile(<any>{ template: markup, instructions: [], surrogates: [] }, resources, viewCompileFlags);
+      return sut.compile(<any>{ template: markup, instructions: [], surrogates: [] }, <any>resources);
     }
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
@@ -532,7 +532,7 @@ function createCustomElement(tagName: string, finalize: boolean, attributes: [st
   const outputMarkup = <HTMLElement>createElement(`<${tagName} ${attributeMarkup}>${(childOutput&&childOutput.template.outerHTML)||''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
-    template: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
+    template: finalize ? createElement(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
   }
   return [input, output];

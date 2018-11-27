@@ -1,8 +1,10 @@
-import { DI, Immutable, PLATFORM, Reporter } from '@aurelia/kernel';
+import { DI, Immutable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { AttributeDefinition, BindingType, CustomAttributeResource, CustomElementResource, DOM, IAttr, IBindableDescription, IChildNode, IDocumentFragment, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IResourceDescriptions, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, TemplateDefinition } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
+
+const slice = Array.prototype.slice;
 
 // tslint:disable-next-line:no-any
 const emptyArray = PLATFORM.emptyArray as any[];
@@ -57,29 +59,38 @@ export class ResourceLocator implements IResourceLocator {
   }
 
   public getAttributeDefinition(name: string): AttributeDefinition | null  {
+    if (Tracer.enabled) { Tracer.enter('ResourceLocator.getAttributeDefinition', slice.call(arguments)); }
     const existing = this.attrDefCache[name];
     if (existing !== undefined) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return existing;
     }
     const definition = this.resources.find(CustomAttributeResource, name);
+    if (Tracer.enabled) { Tracer.leave(); }
     return this.attrDefCache[name] = definition === undefined ? null : definition;
   }
 
   public getElementDefinition(name: string): TemplateDefinition | null {
+    if (Tracer.enabled) { Tracer.enter('ResourceLocator.getElementDefinition', slice.call(arguments)); }
     const existing = this.elDefCache[name];
     if (existing !== undefined) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return existing;
     }
-    const definition = this.resources.find(CustomElementResource, name) as TemplateDefinition;
+    const definition = this.resources.find(CustomElementResource, name.toLowerCase()) as TemplateDefinition;
+    if (Tracer.enabled) { Tracer.leave(); }
     return this.elDefCache[name] = definition === undefined ? null : definition;
   }
 
   public getBindingCommand(name: string): IBindingCommand | null  {
+    if (Tracer.enabled) { Tracer.enter('ResourceLocator.getBindingCommand', slice.call(arguments)); }
     const existing = this.commandCache[name];
     if (existing !== undefined) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return existing;
     }
     const instance = this.resources.create(BindingCommandResource, name);
+    if (Tracer.enabled) { Tracer.leave(); }
     return this.commandCache[name] = instance === undefined ? null : instance;
   }
 }

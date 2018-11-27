@@ -70,6 +70,9 @@ export function stringifyInstructions(instruction: TargetedInstruction, depth: n
   const indent = ' '.repeat(depth);
   let output = indent;
   switch (instruction.type) {
+    case TargetedInstructionType.textBinding:
+      output += 'textBinding\n';
+      break;
     case TargetedInstructionType.callBinding:
       output += 'callBinding\n';
       break;

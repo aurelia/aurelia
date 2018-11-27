@@ -2,6 +2,49 @@ import { Unparser, Serializer } from './../../../debug/src/binding/unparser';
 import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import { h } from '../../../../scripts/test-lib-dom';
 import { expect } from 'chai';
+import {
+  Tracer as DebugTracer
+} from '../../../debug/src/index';
+import {
+  Tracer, ITraceInfo
+} from '../../../kernel/src/index';
+import { NodeSymbol, AttributeSymbol, ISymbol } from '../../src/index';
+
+
+
+export const SymbolTraceWriter = {
+  write(info: ITraceInfo): void {
+    let output: string = '';
+
+    if (info.params.length > 0 && info.params[0]) {
+      const p = info.params[0];
+      if ((<ISymbol>p).kind) {
+        const symbol = info.params[0] as NodeSymbol | AttributeSymbol;
+        if ('attr' in symbol) {
+          output = `attr: ${symbol.attr.name}=${symbol.attr.value}`;
+        } else if ('text' in symbol) {
+          output = `text: "${symbol.text.textContent}"`;
+        } else {
+          output = `element: ${symbol.element.outerHTML}`;
+        }
+      } else if (typeof p !== 'object') {
+        output = p;
+      }
+    }
+    console.debug(`${' '.repeat(info.depth)}${info.name} ${output}`);
+  }
+};
+
+const RuntimeTracer = { ...Tracer };
+export function enableTracing() {
+  Object.assign(Tracer, DebugTracer);
+  Tracer.enabled = true;
+}
+export function disableTracing() {
+  Tracer.flushAll(null);
+  Object.assign(Tracer, RuntimeTracer);
+  Tracer.enabled = false;
+}
 
 export function verifyBindingInstructionsEqual(actual: any, expected: any, errors?: string[], path?: string): any {
   if (path === undefined) {

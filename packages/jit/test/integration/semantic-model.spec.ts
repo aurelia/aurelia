@@ -24,7 +24,7 @@ import {
   ResourceLocator,
   IResourceLocator,
   ISymbol
-} from '../../src/semantic-model-2';
+} from '../../src/semantic-model';
 import {
   stringifyTemplateDefinition,
   stringifySymbol
@@ -72,7 +72,8 @@ import {
   TemplateCompiler,
   SymbolPreprocessor,
   NodePreprocessor,
-} from '../../src/template-compiler-2';
+} from '../../src/template-compiler';
+import { enableTracing, disableTracing } from '../unit/util';
 
 function setup() {
   const container = DI.createContainer();
@@ -93,32 +94,6 @@ function setup() {
   const nodePreprocessor = new NodePreprocessor(model);
   return { model, symbolPreprocessor, nodePreprocessor, container, attrParser, elParser, exprParser, factory, locator, resources };
 }
-
-const RuntimeTracer = { ...Tracer };
-function enableTracing() {
-  Object.assign(Tracer, DebugTracer);
-  Tracer.enabled = true;
-}
-function disableTracing() {
-  Tracer.flushAll(null);
-  Object.assign(Tracer, RuntimeTracer);
-  Tracer.enabled = false;
-}
-
-const SymbolTraceWriter = {
-  write(info: ITraceInfo): void {
-    let output: string;
-    const symbol = info.params[0] as NodeSymbol | AttributeSymbol;
-    if ('attr' in symbol) {
-      output = `attr: ${symbol.attr.name}=${symbol.attr.value}`;
-    } else if ('text' in symbol) {
-      output = `text: "${symbol.text.textContent}"`;
-    } else {
-      output = `element: ${symbol.element.outerHTML}`;
-    }
-    console.debug(`${' '.repeat(info.depth)}${info.name} ${output}`);
-  }
-};
 
 describe('SemanticModel', () => {
   it('works 1', () => {
@@ -178,5 +153,32 @@ describe('SemanticModel', () => {
 
     disableTracing();
     expect(host.textContent).to.equal('a');
+  });
+
+  it('works 5', () => {
+    enableTracing();
+    Tracer.enableLiveLogging(SymbolTraceWriter);
+    const container = DI.createContainer();
+    container.register(<any>BasicConfiguration);
+    const def = { name: 'app', template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\">${item}</template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\">${item}</template></template>" };
+    const App = CustomElementResource.define(def, class { msg = 'a'});
+    const component = new App();
+    const host = <any>DOM.createElement('div');
+
+    const au = new Aurelia(<any>container);
+
+    au.app({ component, host });
+    try {
+      au.start();
+
+    } catch(e) {
+      console.log(e);
+    } finally {
+    }
+
+    console.log('\n'+stringifyTemplateDefinition(App.description, 0));
+    disableTracing();
+
+    expect(host.textContent).to.equal('abc');
   });
 });

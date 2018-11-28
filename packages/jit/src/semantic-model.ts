@@ -1,5 +1,5 @@
 import { DI, Immutable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { AttributeDefinition, BindingType, CustomAttributeResource, CustomElementResource, DOM, IAttr, IBindableDescription, IChildNode, IDocumentFragment, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IResourceDescriptions, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, TemplateDefinition } from '@aurelia/runtime';
+import { AttributeDefinition, BindingType, CustomAttributeResource, CustomElementResource, DOM, IAttr, IBindableDescription, IChildNode, IDocumentFragment, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IResourceDescriptions, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, TemplateDefinition, BindingMode, IsBindingBehavior, TargetedInstruction, ToViewBindingInstruction, OneTimeBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, TargetedInstructionType, HydrateTemplateController, HydrateAttributeInstruction, InterpolationInstruction, TextBindingInstruction, HydrateElementInstruction } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
@@ -208,7 +208,7 @@ export class SemanticModel {
         case 'LET':
           return new LetElementSymbol(node as IHTMLElement);
       }
-      const nodeName = node.hasAttribute('as-element') ? node.getAttribute('as-element') : node.nodeName;
+      const nodeName = node.getAttribute('as-element') || node.nodeName;
       const definition = this.locator.getElementDefinition(nodeName);
       return definition === null ? new PlainElementSymbol(node as IHTMLElement) : new CustomElementSymbol(node as IHTMLElement, definition);
     }
@@ -221,12 +221,6 @@ export class SemanticModel {
 
   public createAttributeSymbol(attr: IAttr, el: ElementSymbol): AttributeSymbol {
     const { name, value } = attr;
-    switch (name) {
-      case 'part':
-        return new PartAttributeSymbol(attr, el);
-      case 'replace-part':
-        return new ReplacePartAttributeSymbol(attr, el);
-    }
     const { locator, attrParser, exprParser } = this;
     let expr: IsExpressionOrStatement = null;
     let cmd: IBindingCommand = null;
@@ -271,36 +265,41 @@ export class SemanticModel {
 export interface ISymbol {
   kind: SymbolKind;
   accept(visitor: ISymbolVisitor): void;
+  toInstruction(definition: ITemplateDefinition): TargetedInstruction;
 }
 
-export interface IAttributeSymbolNode extends ISymbol {
-  prevAttr: IAttributeSymbolNode | null;
-  nextAttr: IAttributeSymbolNode | null;
+export interface IAttributeSymbol extends ISymbol {
+  prevAttr: IAttributeSymbol | null;
+  nextAttr: IAttributeSymbol | null;
   attr: IAttr;
-  owner: IElementSymbolNode;
+  syntax: AttrSyntax | null;
+  command: IBindingCommand | null;
+  expr: IsExpressionOrStatement | null;
+  owner: IElementSymbol;
 }
 
-export interface IAttributeSymbolList extends ISymbol {
-  headAttr: IAttributeSymbolNode | null;
-  tailAttr: IAttributeSymbolNode | null;
+export interface INodeSymbol extends ISymbol {
+  prevNode: INodeSymbol | null;
+  nextNode: INodeSymbol | null;
 }
 
-export interface INodeSymbolNode extends ISymbol {
-  prevNode: INodeSymbolNode | null;
-  nextNode: INodeSymbolNode | null;
+export interface IParentNodeSymbol extends INodeSymbol {
+  headNode: INodeSymbol | null;
+  tailNode: INodeSymbol | null;
 }
 
-export interface INodeSymbolList extends INodeSymbolNode {
-  headNode: INodeSymbolNode | null;
-  tailNode: INodeSymbolNode | null;
+export interface ITextSymbol extends INodeSymbol {
+  text: IText;
 }
 
-export interface IElementSymbolNode extends INodeSymbolNode, IAttributeSymbolList {
+export interface IElementSymbol extends INodeSymbol {
+  headAttr: IAttributeSymbol | null;
+  tailAttr: IAttributeSymbol | null;
   element: IHTMLElement;
   liftTo(fragment: IDocumentFragment): void;
 }
 
-export interface IElementSymbolList extends IElementSymbolNode, INodeSymbolList {
+export interface IParentElementSymbol extends IElementSymbol, IParentNodeSymbol {
   childNodes: ArrayLike<IChildNode>;
 }
 
@@ -312,8 +311,6 @@ export interface ISymbolVisitor {
   visitCompilationTarget(symbol: CompilationTarget): void;
   visitCustomElementSymbol(symbol: CustomElementSymbol): void;
   visitTextInterpolationSymbol(symbol: TextInterpolationSymbol): void;
-  visitReplacePartAttributeSymbol(symbol: ReplacePartAttributeSymbol): void;
-  visitPartAttributeSymbol(symbol: PartAttributeSymbol): void;
   visitAttributeInterpolationSymbol(symbol: AttributeInterpolationSymbol): void;
   visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void;
   visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void;
@@ -323,17 +320,22 @@ export interface ISymbolVisitor {
   visitBindingCommandSymbol(symbol: BindingCommandSymbol): void;
 }
 
-export class PlainElementSymbol implements IElementSymbolList {
+export class PlainElementSymbol implements IParentElementSymbol {
   public kind: SymbolKind.plainElement;
   public element: IHTMLElement;
+
+  public nodeName: string;
+  public partName: string | null;
+  public replacePartName: string | null;
+  public refName: string | null;
 
   public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbolNode;
-  public tailAttr: IAttributeSymbolNode;
+  public headAttr: IAttributeSymbol;
+  public tailAttr: IAttributeSymbol;
 
   public targetCount: number;
 
@@ -344,6 +346,10 @@ export class PlainElementSymbol implements IElementSymbolList {
   constructor(element: IHTMLElement) {
     this.kind = SymbolKind.plainElement;
     this.element = element;
+    this.nodeName = element.getAttribute('as-element') || element.nodeName;
+    this.partName = element.getAttribute('part');
+    this.replacePartName = element.getAttribute('replace-part');
+    this.refName = element.getAttribute('ref');
     this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
@@ -363,19 +369,28 @@ export class PlainElementSymbol implements IElementSymbolList {
     element.parentNode.replaceChild(marker, element);
     fragment.appendChild(element);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return null;
+  }
 }
 
-export class SurrogateElementSymbol implements IElementSymbolList {
+export class SurrogateElementSymbol implements IParentElementSymbol {
   public kind: SymbolKind.surrogateElement;
   public element: IHTMLTemplateElement;
+
+  public nodeName: string | null;
+  public partName: string | null;
+  public replacePartName: string | null;
+  public refName: string | null;
 
   public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbolNode;
-  public tailAttr: IAttributeSymbolNode;
+  public headAttr: IAttributeSymbol;
+  public tailAttr: IAttributeSymbol;
 
   public templateController: TemplateControllerAttributeSymbol;
   public targetCount: number;
@@ -407,9 +422,13 @@ export class SurrogateElementSymbol implements IElementSymbolList {
     const marker = createMarker();
     element.content.appendChild(marker);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return null;
+  }
 }
 
-export class SlotElementSymbol implements IElementSymbolList {
+export class SlotElementSymbol implements IParentElementSymbol {
   public kind: SymbolKind.slotElement;
   public element: IHTMLSlotElement;
 
@@ -418,8 +437,8 @@ export class SlotElementSymbol implements IElementSymbolList {
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbolNode;
-  public tailAttr: IAttributeSymbolNode;
+  public headAttr: IAttributeSymbol;
+  public tailAttr: IAttributeSymbol;
 
   public get childNodes(): ArrayLike<IChildNode> {
     return emptyArray;
@@ -444,17 +463,21 @@ export class SlotElementSymbol implements IElementSymbolList {
     // cannot lift slot element
     throw Reporter.error(0); // TODO: organize error codes
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return null;
+  }
 }
 
-export class LetElementSymbol implements IElementSymbolNode {
+export class LetElementSymbol implements IElementSymbol {
   public kind: SymbolKind.letElement;
   public element: IHTMLElement;
 
   public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbolNode;
-  public tailAttr: IAttributeSymbolNode;
+  public headAttr: IAttributeSymbol;
+  public tailAttr: IAttributeSymbol;
 
   public get childNodes(): ArrayLike<IChildNode> {
     return emptyArray;
@@ -479,9 +502,13 @@ export class LetElementSymbol implements IElementSymbolNode {
     element.parentNode.replaceChild(marker, element);
     fragment.appendChild(element);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return null;
+  }
 }
 
-export class CompilationTarget implements IElementSymbolList {
+export class CompilationTarget implements IParentElementSymbol {
   public kind: SymbolKind.compilationTarget;
   public element: IHTMLTemplateElement;
 
@@ -490,8 +517,8 @@ export class CompilationTarget implements IElementSymbolList {
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbolNode;
-  public tailAttr: IAttributeSymbolNode;
+  public headAttr: IAttributeSymbol;
+  public tailAttr: IAttributeSymbol;
 
   public definition: ITemplateDefinition;
   public targetCount: number;
@@ -521,19 +548,28 @@ export class CompilationTarget implements IElementSymbolList {
     // cannot lift surrogate that wraps a custom element template
     throw Reporter.error(0); // TODO: organize error codes
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return null;
+  }
 }
 
-export class CustomElementSymbol implements IElementSymbolList {
+export class CustomElementSymbol implements IParentElementSymbol {
   public kind: SymbolKind.customElement;
   public element: IHTMLElement;
+
+  public nodeName: string;
+  public partName: string | null;
+  public replacePartName: string | null;
+  public refName: string | null;
 
   public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbolNode;
-  public tailAttr: IAttributeSymbolNode;
+  public headAttr: IAttributeSymbol;
+  public tailAttr: IAttributeSymbol;
 
   public definition: TemplateDefinition;
   public targetCount: number;
@@ -545,6 +581,10 @@ export class CustomElementSymbol implements IElementSymbolList {
   constructor(element: IHTMLElement, definition: TemplateDefinition) {
     this.kind = SymbolKind.customElement;
     this.element = element;
+    this.nodeName = element.getAttribute('as-element') || element.nodeName;
+    this.partName = element.getAttribute('part');
+    this.replacePartName = element.getAttribute('replace-part');
+    this.refName = element.getAttribute('ref');
     this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
@@ -561,6 +601,22 @@ export class CustomElementSymbol implements IElementSymbolList {
 
   public liftTo(fragment: IDocumentFragment): void {
     fragment.appendChild(this.element);
+  }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return null;
+    // let instructions: TargetedInstruction[];
+    // let attr = this.headAttr;
+    // if (attr === null) {
+    //   instructions = emptyArray;
+    // } else {
+    //   instructions = [];
+    //   while (attr !== null && attr.owner === this) {
+    //     attr.toInstruction()
+    //     attr = attr.nextAttr;
+    //   }
+    // }
+    // return new HydrateElementInstruction(this.definition.name, this.bindableInstructions, {}/*TODO*/)
   }
 }
 
@@ -583,7 +639,7 @@ export type ParentElementSymbol =
   PlainElementSymbol |
   SurrogateElementSymbol;
 
-export class TextInterpolationSymbol implements INodeSymbolNode {
+export class TextInterpolationSymbol implements ITextSymbol {
   public kind: SymbolKind.textInterpolation;
   public text: IText;
 
@@ -620,73 +676,31 @@ export class TextInterpolationSymbol implements INodeSymbolNode {
     }
     text.textContent = '';
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return new TextBindingInstruction(this.expr);
+  }
 }
 
 export type NodeSymbol =
   ElementSymbol |
   TextInterpolationSymbol;
 
-export class ReplacePartAttributeSymbol implements IAttributeSymbolNode {
-  public kind: SymbolKind.replacePartAttribute;
-  public attr: IAttr;
-  public owner: IElementSymbolNode;
-
-  public prevAttr: IAttributeSymbolNode;
-  public nextAttr: IAttributeSymbolNode;
-
-  constructor(
-    attr: IAttr,
-    owner: IElementSymbolNode
-  ) {
-    this.kind = SymbolKind.replacePartAttribute;
-    this.attr = attr;
-    this.owner = owner;
-    this.prevAttr = null;
-    this.nextAttr = null;
-  }
-
-  public accept(visitor: ISymbolVisitor): void {
-    visitor.visitReplacePartAttributeSymbol(this);
-  }
-}
-
-export class PartAttributeSymbol implements IAttributeSymbolNode {
-  public kind: SymbolKind.partAttribute;
-  public attr: IAttr;
-  public owner: IElementSymbolNode;
-
-  public prevAttr: IAttributeSymbolNode;
-  public nextAttr: IAttributeSymbolNode;
-
-  constructor(
-    attr: IAttr,
-    owner: IElementSymbolNode
-  ) {
-    this.kind = SymbolKind.partAttribute;
-    this.attr = attr;
-    this.owner = owner;
-    this.prevAttr = null;
-    this.nextAttr = null;
-  }
-
-  public accept(visitor: ISymbolVisitor): void {
-    visitor.visitPartAttributeSymbol(this);
-  }
-}
-
-export class AttributeInterpolationSymbol implements IAttributeSymbolNode {
+export class AttributeInterpolationSymbol implements IAttributeSymbol {
   public kind: SymbolKind.attributeInterpolation;
   public attr: IAttr;
-  public owner: IElementSymbolNode;
+  public owner: IElementSymbol;
 
-  public prevAttr: IAttributeSymbolNode;
-  public nextAttr: IAttributeSymbolNode;
+  public prevAttr: IAttributeSymbol;
+  public nextAttr: IAttributeSymbol;
 
+  public command: IBindingCommand | null;
+  public syntax: AttrSyntax | null;
   public expr: Interpolation;
 
   constructor(
     attr: IAttr,
-    owner: IElementSymbolNode,
+    owner: IElementSymbol,
     expr: Interpolation
   ) {
     this.kind = SymbolKind.attributeInterpolation;
@@ -694,21 +708,28 @@ export class AttributeInterpolationSymbol implements IAttributeSymbolNode {
     this.owner = owner;
     this.prevAttr = null;
     this.nextAttr = null;
+    this.command = null;
+    this.syntax = null;
     this.expr = expr;
   }
 
   public accept(visitor: ISymbolVisitor): void {
     visitor.visitAttributeInterpolationSymbol(this);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    // id="${foo}"
+    return new InterpolationInstruction(this.expr, this.syntax.target);
+  }
 }
 
-export class CustomAttributeSymbol implements IAttributeSymbolNode {
+export class CustomAttributeSymbol implements IAttributeSymbol {
   public kind: SymbolKind.customAttribute;
   public attr: IAttr;
-  public owner: IElementSymbolNode;
+  public owner: IElementSymbol;
 
-  public prevAttr: IAttributeSymbolNode;
-  public nextAttr: IAttributeSymbolNode;
+  public prevAttr: IAttributeSymbol;
+  public nextAttr: IAttributeSymbol;
 
   public definition: AttributeDefinition;
 
@@ -720,7 +741,7 @@ export class CustomAttributeSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
-    owner: IElementSymbolNode,
+    owner: IElementSymbol,
     definition: AttributeDefinition,
     command: IBindingCommand | null,
     syntax: AttrSyntax,
@@ -742,15 +763,21 @@ export class CustomAttributeSymbol implements IAttributeSymbolNode {
   public accept(visitor: ISymbolVisitor): void {
     visitor.visitCustomAttributeSymbol(this);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    const bindingInstruction = createCustomAttributeBindingInstruction(this);
+    const instructions = bindingInstruction === null ? emptyArray : [bindingInstruction];
+    return new HydrateAttributeInstruction(this.syntax.target, instructions);
+  }
 }
 
-export class TemplateControllerAttributeSymbol implements IAttributeSymbolNode {
+export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
   public kind: SymbolKind.templateControllerAttribute;
   public attr: IAttr;
   public owner: LiftableElementSymbol;
 
-  public prevAttr: IAttributeSymbolNode;
-  public nextAttr: IAttributeSymbolNode;
+  public prevAttr: IAttributeSymbol;
+  public nextAttr: IAttributeSymbol;
 
   public definition: AttributeDefinition;
 
@@ -764,7 +791,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
-    owner: IElementSymbolNode,
+    owner: IElementSymbol,
     definition: AttributeDefinition,
     command: IBindingCommand | null,
     syntax: AttrSyntax,
@@ -787,15 +814,32 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbolNode {
   public accept(visitor: ISymbolVisitor): void {
     visitor.visitTemplateControllerAttributeSymbol(this);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    const instruction = createCustomAttributeBindingInstruction(this);
+    if (instruction !== null && instruction.type === TargetedInstructionType.hydrateTemplateController) {
+      // a complete hydrateTemplateController was returned from a binding command; return it as-is
+      return instruction;
+    }
+    const instructions = instruction === null ? emptyArray : [instruction];
+    const name = this.definition.name;
+    const def: ITemplateDefinition = {
+      name,
+      instructions: [],
+      template: this.targetSurrogate.element
+    };
+    this.targetSurrogate.toInstruction(def);
+    return new HydrateTemplateController(def, name, instructions, name === 'else');
+  }
 }
 
-export class AttributeBindingSymbol implements IAttributeSymbolNode {
+export class AttributeBindingSymbol implements IAttributeSymbol {
   public kind: SymbolKind.attributeBinding;
   public attr: IAttr;
-  public owner: IElementSymbolNode;
+  public owner: IElementSymbol;
 
-  public prevAttr: IAttributeSymbolNode;
-  public nextAttr: IAttributeSymbolNode;
+  public prevAttr: IAttributeSymbol;
+  public nextAttr: IAttributeSymbol;
 
   public command: IBindingCommand;
   public syntax: AttrSyntax;
@@ -806,7 +850,7 @@ export class AttributeBindingSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
-    owner: IElementSymbolNode,
+    owner: IElementSymbol,
     command: IBindingCommand,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement,
@@ -828,15 +872,19 @@ export class AttributeBindingSymbol implements IAttributeSymbolNode {
   public accept(visitor: ISymbolVisitor): void {
     visitor.visitAttributeBindingSymbol(this);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return this.command.compile(this);
+  }
 }
 
-export class ElementBindingSymbol implements IAttributeSymbolNode {
+export class ElementBindingSymbol implements IAttributeSymbol {
   public kind: SymbolKind.elementBinding;
   public attr: IAttr;
-  public owner: IElementSymbolNode;
+  public owner: CustomElementSymbol;
 
-  public prevAttr: IAttributeSymbolNode;
-  public nextAttr: IAttributeSymbolNode;
+  public prevAttr: IAttributeSymbol;
+  public nextAttr: IAttributeSymbol;
 
   public command: IBindingCommand;
   public syntax: AttrSyntax;
@@ -847,7 +895,7 @@ export class ElementBindingSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
-    owner: IElementSymbolNode,
+    owner: CustomElementSymbol,
     command: IBindingCommand,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement,
@@ -869,15 +917,19 @@ export class ElementBindingSymbol implements IAttributeSymbolNode {
   public accept(visitor: ISymbolVisitor): void {
     visitor.visitElementBindingSymbol(this);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return createCustomElementBindingInstruction(this);
+  }
 }
 
-export class BoundAttributeSymbol implements IAttributeSymbolNode {
+export class BoundAttributeSymbol implements IAttributeSymbol {
   public kind: SymbolKind.boundAttribute;
   public attr: IAttr;
-  public owner: IElementSymbolNode;
+  public owner: IElementSymbol;
 
-  public prevAttr: IAttributeSymbolNode;
-  public nextAttr: IAttributeSymbolNode;
+  public prevAttr: IAttributeSymbol;
+  public nextAttr: IAttributeSymbol;
 
   public command: IBindingCommand;
   public syntax: AttrSyntax;
@@ -885,7 +937,7 @@ export class BoundAttributeSymbol implements IAttributeSymbolNode {
 
   constructor(
     attr: IAttr,
-    owner: IElementSymbolNode,
+    owner: IElementSymbol,
     command: IBindingCommand,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement
@@ -903,20 +955,15 @@ export class BoundAttributeSymbol implements IAttributeSymbolNode {
   public accept(visitor: ISymbolVisitor): void {
     visitor.visitBoundAttributeSymbol(this);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return this.command.compile(this);
+  }
 }
 
 export type AttributeSymbol =
-  ReplacePartAttributeSymbol |
-  PartAttributeSymbol |
   TemplateControllerAttributeSymbol |
   AttributeInterpolationSymbol |
-  CustomAttributeSymbol |
-  AttributeBindingSymbol |
-  ElementBindingSymbol |
-  BoundAttributeSymbol;
-
-export type PotentialBindingCommandAttributeSymbol =
-  TemplateControllerAttributeSymbol |
   CustomAttributeSymbol |
   AttributeBindingSymbol |
   ElementBindingSymbol |
@@ -948,4 +995,134 @@ export class BindingCommandSymbol implements ISymbol {
   public accept(visitor: ISymbolVisitor): void {
     visitor.visitBindingCommandSymbol(this);
   }
+
+  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+    return null;
+  }
 }
+
+function compileAttribute(attr: AttributeSymbol): TargetedInstruction {
+  // TODO: add attributeBinding (multi semicolon-separated bindings)
+  switch (attr.kind) {
+    case SymbolKind.templateControllerAttribute:
+    {
+      const instruction = createCustomAttributeBindingInstruction(attr);
+      if (instruction !== null && instruction.type === TargetedInstructionType.hydrateTemplateController) {
+        // a complete hydrateTemplateController was returned from a binding command; return it as-is
+        return instruction;
+      }
+      const instructions = instruction === null ? emptyArray : [instruction];
+      const name = attr.definition.name;
+      return new HydrateTemplateController(
+        {
+          name,
+          instructions: [],
+          template: attr.targetSurrogate.element
+        },
+        name,
+        instructions,
+        name === 'else'
+      );
+    }
+    case SymbolKind.customAttribute:
+    {
+      const bindingInstruction = createCustomAttributeBindingInstruction(attr);
+      const instructions = bindingInstruction === null ? emptyArray : [bindingInstruction];
+      return new HydrateAttributeInstruction(attr.syntax.target, instructions);
+    }
+    case SymbolKind.attributeInterpolation:
+      // id="${foo}"
+      return new InterpolationInstruction(attr.expr, attr.syntax.target);
+    case SymbolKind.boundAttribute:
+      // id.bind="foo"
+      return attr.command.compile(attr);
+    case SymbolKind.elementBinding:
+      // some-prop.bind="foo" / some-prop="foo"
+      return createCustomElementBindingInstruction(attr);
+  }
+  // invalid symbol passed in
+  throw Reporter.error(0); // TODO: organize error codes
+}
+
+/**
+ * Create a `TargetedInstruction` based on an attribute that matches the name of a declared
+ * bindable property on the custom element.
+ */
+function createCustomElementBindingInstruction(symbol: ElementBindingSymbol): TargetedInstruction {
+  if (symbol.expr === null) {
+    // Invalid binding expression (e.g. something.bind="" or something.bind (without assignment))
+    throw Reporter.error(0); // TODO: organize error codes
+  }
+  if (symbol.command !== null && symbol.command.handles(symbol)) {
+    return symbol.command.compile(symbol);
+  }
+  // we can assume bindable to be defined or the attribute would not have been identified as a
+  // binding during preprocessing
+  const bindable = symbol.bindable;
+  // pre-set the default toView
+  let mode: BindingMode = BindingMode.toView;
+  if (bindable.mode !== BindingMode.default && bindable.mode !== undefined) {
+    // override the default with the mode specified in the @bindable decorator, if it's something other than the default
+    mode = bindable.mode;
+  }
+  let property: string = null;
+  if (bindable.property !== undefined) {
+    // prefer to use the property defined in the @bindable decorator (by default it's always the class prop name)
+    property = bindable.property;
+  } else {
+    // only as a last resort, if there is no property name, use the camelCased attribute name
+    property = PLATFORM.camelCase(bindable.attribute);
+  }
+  return new BindingInstruction[mode](<IsBindingBehavior>symbol.expr, property);
+}
+
+/**
+ * Create a `TargetedInstruction` based on a single (that is, not semicolon-separated) binding
+ * to a regular custom attribute or to a template controller.
+ *
+ * Will return `null` if the expression is null, in which case the return value should not be added
+ * to the instructions.
+ */
+function createCustomAttributeBindingInstruction(symbol: CustomAttributeSymbol | TemplateControllerAttributeSymbol): TargetedInstruction | null {
+  // a null expression means the attribute either has no value or is empty, so return no binding instruction
+  if (symbol.expr === null) {
+    return null;
+  }
+  // the binding command gets priority over conventions
+  if (symbol.command !== null && symbol.command.handles(symbol)) {
+    return symbol.command.compile(symbol);
+  }
+  const bindable = symbol.bindable;
+  const definition = symbol.definition;
+  // pre-set the default toView
+  let mode: BindingMode = BindingMode.toView;
+  if (bindable !== null && bindable.mode !== undefined && bindable.mode !== BindingMode.default) {
+    // override the default with the mode specified in the @bindable decorator, if it's something other than the default
+    mode = bindable.mode;
+  } else if (definition.defaultBindingMode !== undefined && definition.defaultBindingMode !== BindingMode.default) {
+    // as a last fallback, use the defaultBindingMode declared on the attribute level
+    mode = definition.defaultBindingMode;
+  }
+  let property: string = 'value';
+  // pre-set the default 'value' for custom attributes
+  if (bindable !== null && bindable.attribute !== undefined) {
+    if (bindable.property !== undefined) {
+      // prefer to use the property defined in the @bindable decorator (by default it's always the class prop name)
+      property = bindable.property;
+    } else if (bindable.attribute !== undefined) {
+      // only as a last resort, if there is no property name, use the camelCased attribute name
+      property = PLATFORM.camelCase(bindable.attribute);
+    }
+  }
+  return new BindingInstruction[mode](<IsBindingBehavior>symbol.expr, property);
+}
+
+const BindingInstruction = [
+  ToViewBindingInstruction, // should not happen
+  OneTimeBindingInstruction, // oneTime
+  ToViewBindingInstruction, // toView
+  ToViewBindingInstruction, // should not happen
+  FromViewBindingInstruction, // fromView
+  ToViewBindingInstruction, // should not happen
+  TwoWayBindingInstruction // twoWay
+];

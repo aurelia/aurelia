@@ -20,11 +20,11 @@ import {
   TriggerBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
-import { PotentialBindingCommandAttributeSymbol, SymbolKind, TemplateControllerAttributeSymbol } from './semantic-model';
+import { AttributeSymbol, SymbolKind, TemplateControllerAttributeSymbol } from './semantic-model';
 
 export interface IBindingCommand {
-  compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction;
-  handles?($symbol: PotentialBindingCommandAttributeSymbol): boolean;
+  compile($symbol: AttributeSymbol): TargetedInstruction;
+  handles?($symbol: AttributeSymbol): boolean;
 }
 
 export interface IBindingCommandDefinition extends IResourceDefinition { }
@@ -79,7 +79,7 @@ export const BindingCommandResource: IBindingCommandResource = {
   define
 };
 
-function defaultHandles(this: IBindingCommand, $symbol: PotentialBindingCommandAttributeSymbol): boolean {
+function defaultHandles(this: IBindingCommand, $symbol: AttributeSymbol): boolean {
   return $symbol.kind !== SymbolKind.templateControllerAttribute;
 }
 
@@ -89,7 +89,7 @@ export interface OneTimeBindingCommand extends IBindingCommand {}
 export class OneTimeBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
-  public compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new OneTimeBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
   }
 }
@@ -100,7 +100,7 @@ export interface ToViewBindingCommand extends IBindingCommand {}
 export class ToViewBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
-  public compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new ToViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
   }
 }
@@ -111,7 +111,7 @@ export interface FromViewBindingCommand extends IBindingCommand {}
 export class FromViewBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
-  public compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new FromViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
   }
 }
@@ -122,7 +122,7 @@ export interface TwoWayBindingCommand extends IBindingCommand {}
 export class TwoWayBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
-  public compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new TwoWayBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
   }
 }
@@ -148,7 +148,7 @@ export class DefaultBindingCommand implements IBindingCommand {
     this.$6 = TwoWayBindingCommand.prototype.compile;
   }
 
-  public compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     return this[compileMode[BindingMode.toView]]($symbol); //TODO: temp hard-coded, need to fix again
   }
 }
@@ -159,7 +159,7 @@ export interface TriggerBindingCommand extends IBindingCommand {}
 export class TriggerBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
-  public compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new TriggerBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
   }
 }
@@ -170,7 +170,7 @@ export interface DelegateBindingCommand extends IBindingCommand {}
 export class DelegateBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
-  public compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new DelegateBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
   }
 }
@@ -181,7 +181,7 @@ export interface CaptureBindingCommand extends IBindingCommand {}
 export class CaptureBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
-  public compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new CaptureBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
   }
 }
@@ -192,7 +192,7 @@ export interface CallBindingCommand extends IBindingCommand {}
 export class CallBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
-  public compile($symbol: PotentialBindingCommandAttributeSymbol): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new CallBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
   }
 }
@@ -214,7 +214,7 @@ export class ForBindingCommand implements IBindingCommand {
     return new HydrateTemplateController(def, 'repeat', instructions, false);
   }
 
-  public handles($symbol: PotentialBindingCommandAttributeSymbol): boolean {
+  public handles($symbol: AttributeSymbol): boolean {
     return $symbol.syntax.target === 'repeat';
   }
 }

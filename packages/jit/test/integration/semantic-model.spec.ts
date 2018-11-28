@@ -73,7 +73,7 @@ import {
   SymbolPreprocessor,
   NodePreprocessor,
 } from '../../src/template-compiler';
-import { enableTracing, disableTracing } from '../unit/util';
+import { enableTracing, disableTracing, SymbolTraceWriter } from '../unit/util';
 
 function setup() {
   const container = DI.createContainer();

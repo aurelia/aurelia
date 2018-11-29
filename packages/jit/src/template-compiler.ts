@@ -48,18 +48,20 @@ import {
   ISymbolVisitor,
   LetElementSymbol,
   NodeSymbol,
-  PartAttributeSymbol,
   PlainElementSymbol,
-  SpecialAttributeSymbol,
   ResourceLocator,
   SemanticModel,
   SlotElementSymbol,
   SurrogateElementSymbol,
   SymbolKind,
   TemplateControllerAttributeSymbol,
-  TemplateFactory,
-  TextInterpolationSymbol
+  TextInterpolationSymbol,
+  ParentElementSymbol
 } from './semantic-model';
+
+import {
+  TemplateFactory
+} from './template-factory';
 
 // tslint:disable-next-line:no-any
 const emptyArray = PLATFORM.emptyArray as any[];
@@ -130,16 +132,6 @@ export class SymbolPreprocessor implements ISymbolVisitor {
   }
   public visitTextInterpolationSymbol(symbol: TextInterpolationSymbol): void {
     if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitTextInterpolationSymbol', slice.call(arguments)); }
-    // do nothing
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-  public visitSpecialAttributeSymbol(symbol: SpecialAttributeSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitSpecialAttributeSymbol', slice.call(arguments)); }
-    // do nothing
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-  public visitPartAttributeSymbol(symbol: PartAttributeSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitPartAttributeSymbol', slice.call(arguments)); }
     // do nothing
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -247,7 +239,7 @@ export class SymbolPreprocessor implements ISymbolVisitor {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private visitElementSymbolNode(symbol: ElementSymbol): void {
+  private visitElementSymbolNode(symbol: ElementSymbol | CompilationTarget): void {
     const model = this.model;
     const element = symbol.element;
     const attributes = element.attributes;
@@ -263,7 +255,6 @@ export class SymbolPreprocessor implements ISymbolVisitor {
         symbol.headAttr = attrSymbol;
       } else {
         symbol.tailAttr.nextAttr = attrSymbol;
-        attrSymbol.prevAttr = symbol.tailAttr;
       }
       symbol.tailAttr = attrSymbol;
       attrSymbol.accept(this);
@@ -276,7 +267,7 @@ export class SymbolPreprocessor implements ISymbolVisitor {
     let i = 0;
     let elSymbol: NodeSymbol;
     for (; i < len; ++i) {
-      elSymbol = model.createNodeSymbol(childNodes[i] as IText | IHTMLElement | IHTMLSlotElement | IHTMLTemplateElement);
+      elSymbol = model.createNodeSymbol(childNodes[i] as IText | IHTMLElement | IHTMLSlotElement | IHTMLTemplateElement, symbol as ParentElementSymbol);
       if (elSymbol === null) {
         continue;
       }
@@ -284,7 +275,6 @@ export class SymbolPreprocessor implements ISymbolVisitor {
         symbol.headNode = elSymbol;
       } else {
         symbol.tailNode.nextNode = elSymbol;
-        (elSymbol as INodeSymbol).prevNode = symbol.tailNode;
       }
       symbol.tailNode = elSymbol;
       elSymbol.accept(this);
@@ -329,6 +319,7 @@ export class NodePreprocessor implements ISymbolVisitor {
   }
   public visitCompilationTarget(symbol: CompilationTarget): void {
     if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitCompilationTarget', slice.call(arguments)); }
+    this.visitElementSymbolNode(symbol);
     this.visitElementSymbolList(symbol);
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -344,16 +335,6 @@ export class NodePreprocessor implements ISymbolVisitor {
   public visitTextInterpolationSymbol(symbol: TextInterpolationSymbol): void {
     if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitTextInterpolationSymbol', slice.call(arguments)); }
     symbol.replaceWithMarker();
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-  public visitSpecialAttributeSymbol(symbol: SpecialAttributeSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitSpecialAttributeSymbol', slice.call(arguments)); }
-    // TODO?
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-  public visitPartAttributeSymbol(symbol: PartAttributeSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitPartAttributeSymbol', slice.call(arguments)); }
-    // TODO?
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitAttributeInterpolationSymbol(symbol: AttributeInterpolationSymbol): void {
@@ -387,7 +368,8 @@ export class NodePreprocessor implements ISymbolVisitor {
     const template = DOM.createTemplate();
     currentNode.liftTo(template.content);
 
-    const targetSurrogate = this.currentNode = this.model.createNodeSymbol(template);
+    const parentNode = currentNode.parentNode;
+    const targetSurrogate = this.currentNode = this.model.createNodeSymbol(template, parentNode);
     targetSurrogate.templateController = symbol;
     symbol.targetSurrogate = targetSurrogate;
 
@@ -398,8 +380,6 @@ export class NodePreprocessor implements ISymbolVisitor {
 
     // the current template controller becomes the "first" attribute of the new surrogate
     targetSurrogate.headAttr = symbol;
-    targetSurrogate.tailAttr = currentNode.tailAttr;
-    currentNode.tailAttr = symbol.prevAttr;
 
     // transfer ownership of template controller and following attributes to the new surrogate
     let current = symbol as IAttributeSymbol;
@@ -408,12 +388,26 @@ export class NodePreprocessor implements ISymbolVisitor {
       current = current.nextAttr;
     } while (current !== null);
 
-    targetSurrogate.headNode = currentNode.headNode;
-    targetSurrogate.tailNode = currentNode.tailNode;
-    currentNode.headNode = targetSurrogate;
-    currentNode.tailNode = targetSurrogate;
+    targetSurrogate.headNode = currentNode as Exclude<typeof currentNode, CompilationTarget>;
+    targetSurrogate.tailNode = currentNode as Exclude<typeof currentNode, CompilationTarget>;
+    targetSurrogate.nextNode = currentNode.nextNode;
+    currentNode.nextNode = null;
+    let el = parentNode.headNode;
+    while (el !== null) {
+      if (el.nextNode === currentNode) {
+        el.nextNode = targetSurrogate;
+        break;
+      }
+      el = el.nextNode;
+    }
+    if (parentNode.headNode === currentNode) {
+      parentNode.headNode = targetSurrogate;
+    }
+    if (parentNode.tailNode === currentNode) {
+      parentNode.tailNode = targetSurrogate;
+    }
 
-    targetSurrogate.accept(this);
+    currentNode.accept(this);
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
@@ -437,7 +431,7 @@ export class NodePreprocessor implements ISymbolVisitor {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private visitElementSymbolNode(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol): void {
+  private visitElementSymbolNode(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol | CompilationTarget): void {
     this.currentNode = symbol;
     let attr = symbol.headAttr;
     while (attr !== null && attr.owner === symbol) {
@@ -453,298 +447,6 @@ export class NodePreprocessor implements ISymbolVisitor {
       node = node.nextNode;
     }
   }
-}
-
-const enum InstructionState {
-  standard = 1,
-  surrogate = 2
-}
-
-// TODO
-export class InstructionBuilder implements ISymbolVisitor {
-  private model: SemanticModel;
-  private state: InstructionState;
-  private current: ITemplateDefinition;
-  private bindableInstructions: TargetedInstruction[];
-  private standaloneInstructions: TargetedInstruction[];
-
-  constructor(model: SemanticModel) {
-    this.model = model;
-    this.state = InstructionState.standard;
-    this.bindableInstructions = [];
-    this.standaloneInstructions = [];
-  }
-
-  public visitPlainElementSymbol(symbol: PlainElementSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitPlainElementSymbol', slice.call(arguments)); }
-    let attr = symbol.headAttr;
-    while (attr !== null && attr.owner === symbol) {
-      attr.accept(this);
-      attr = attr.nextAttr;
-    }
-
-    const current = this.current;
-    let node = symbol.headNode;
-    while (node !== null) {
-      node.accept(this);
-      // TODO: create a better / more intuitive mechanism for assigning instructions to the right definitions
-      this.current = current;
-      node = node.nextNode;
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitSurrogateElementSymbol(symbol: SurrogateElementSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitSurrogateElementSymbol', slice.call(arguments)); }
-    let attr = symbol.headAttr;
-    while (attr !== null && attr.owner === symbol) {
-      attr.accept(this);
-      attr = attr.nextAttr;
-    }
-
-    const current = this.current;
-    let node = symbol.headNode;
-    while (node !== null) {
-      node.accept(this);
-      // TODO: create a better / more intuitive mechanism for assigning instructions to the right definitions
-      this.current = current;
-      node = node.nextNode;
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitSlotElementSymbol(symbol: SlotElementSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitSlotElementSymbol', slice.call(arguments)); }
-    this.current.hasSlots = true;
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitLetElementSymbol(symbol: LetElementSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitLetElementSymbol', slice.call(arguments)); }
-    // TODO
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitCompilationTarget(symbol: CompilationTarget): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCompilationTarget', slice.call(arguments)); }
-    this.current = symbol.definition;
-
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitCustomElementSymbol(symbol: CustomElementSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCustomElementSymbol', slice.call(arguments)); }
-    const current = symbol.definition as ITemplateDefinition;
-    if (current.instructions === undefined || current.instructions === emptyArray) {
-      current.instructions = [];
-    }
-
-    let attr = symbol.headAttr;
-    while (attr !== null && attr.owner === symbol) {
-      attr.accept(this);
-      attr = attr.nextAttr;
-    }
-    this.bindableInstructions = [];
-    this.current.instructions.push([new HydrateElementInstruction(symbol.definition.name, this.bindableInstructions, {}/*TODO*/)]);
-
-    let node = symbol.headNode;
-    while (node !== null) {
-      node.accept(this);
-      node = node.nextNode;
-    }
-
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitTextInterpolationSymbol(symbol: TextInterpolationSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitTextInterpolationSymbol', slice.call(arguments)); }
-    this.current.instructions.push([new TextBindingInstruction(symbol.expr)]);
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitSpecialAttributeSymbol(symbol: SpecialAttributeSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitSpecialAttributeSymbol', slice.call(arguments)); }
-    // TODO
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitPartAttributeSymbol(symbol: PartAttributeSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitPartAttributeSymbol', slice.call(arguments)); }
-    // TODO
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitAttributeInterpolationSymbol(symbol: AttributeInterpolationSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitAttributeInterpolationSymbol', slice.call(arguments)); }
-    let attributeInstructions: TargetedInstruction[];
-    if (symbol.expr !== null) {
-      attributeInstructions = [new ToViewBindingInstruction(symbol.expr as unknown as IsBindingBehavior, symbol.attr.name)];
-    } else {
-      attributeInstructions = emptyArray;
-    }
-    const instruction = new HydrateAttributeInstruction(symbol.attr.name, attributeInstructions);
-    this.standaloneInstructions.push(instruction);
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitCustomAttributeSymbol', slice.call(arguments)); }
-    let attributeInstructions: TargetedInstruction[];
-    if (symbol.command !== null && symbol.command.handles(symbol)) {
-      attributeInstructions = [symbol.command.compile(symbol)];
-    } else if (symbol.expr !== null) {
-      attributeInstructions = [createCustomAttributeBindingInstruction(symbol)];
-    } else {
-      attributeInstructions = emptyArray;
-    }
-    const res = symbol.syntax.target;
-    const instruction = new HydrateAttributeInstruction(res, attributeInstructions);
-    this.standaloneInstructions.push(instruction);
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitTemplateControllerAttributeSymbol', slice.call(arguments)); }
-    let attributeInstructions: TargetedInstruction[];
-    if (symbol.command !== null && symbol.command.handles(symbol)) {
-      attributeInstructions = [symbol.command.compile(symbol)];
-    } else if (symbol.expr !== null) {
-      attributeInstructions = [createCustomAttributeBindingInstruction(symbol)];
-    } else {
-      attributeInstructions = emptyArray;
-    }
-    if (attributeInstructions.length === 0 || attributeInstructions[0].type !== TargetedInstructionType.hydrateTemplateController) {
-      const name = symbol.definition.name;
-      const res = symbol.syntax.target;
-      const def = { name, instructions: [], template: symbol.targetSurrogate.element };
-      const instruction = new HydrateTemplateController(def, res, attributeInstructions, res === 'else'); // TODO: make something nicer for links
-      this.current.instructions.push([instruction]);
-      this.current = def;
-    } else {
-      this.current.instructions.push(attributeInstructions);
-      this.current = (attributeInstructions[0] as IHydrateTemplateController).def;
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitAttributeBindingSymbol', slice.call(arguments)); }
-    // TODO: account for binding mode (this is just quick-n-dirty)
-    if (symbol.command !== null && symbol.command.handles(symbol)) {
-      this.bindableInstructions.push(symbol.command.compile(symbol));
-    } else {
-      this.bindableInstructions.push(new ToViewBindingInstruction(symbol.expr as IsBindingBehavior, symbol.attr.name));
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitElementBindingSymbol(symbol: ElementBindingSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitElementBindingSymbol', slice.call(arguments)); }
-    // TODO: account for binding mode (this is just quick-n-dirty)
-    if (symbol.command !== null && symbol.command.handles(symbol)) {
-      this.bindableInstructions.push(symbol.command.compile(symbol));
-    } else {
-      this.bindableInstructions.push(new ToViewBindingInstruction(symbol.expr as IsBindingBehavior, symbol.attr.name));
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitBoundAttributeSymbol(symbol: BoundAttributeSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitBoundAttributeSymbol', slice.call(arguments)); }
-    let attributeInstructions: TargetedInstruction[];
-    if (symbol.command !== null && symbol.command.handles(symbol)) {
-      attributeInstructions = [symbol.command.compile(symbol)];
-    } else if (symbol.expr !== null) {
-      attributeInstructions = [new ToViewBindingInstruction(symbol.expr as unknown as IsBindingBehavior, symbol.attr.name)];
-    } else {
-      attributeInstructions = emptyArray;
-    }
-    const instruction = new HydrateAttributeInstruction(symbol.attr.name, attributeInstructions);
-    this.standaloneInstructions.push(instruction);
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public visitBindingCommandSymbol(symbol: BindingCommandSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('InstructionBuilder.visitBindingCommandSymbol', slice.call(arguments)); }
-    // TODO
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-}
-
-function compileCustomElement(node: CompilationTarget | CustomElementSymbol | SurrogateElementSymbol): ElementSymbol {
-  const def = (node.kind === SymbolKind.surrogateElement ? node.templateController.definition : node.definition) as ITemplateDefinition;
-  let child = node.headNode;
-  switch (child.kind) {
-    case SymbolKind.plainElement:
-      break;
-    case SymbolKind.customElement:
-    {
-      let hydrateInstruction: HydrateElementInstruction;
-      if (child.headAttr === null) {
-        hydrateInstruction = new HydrateElementInstruction(child.definition.name, emptyArray as TargetedInstruction[]);
-        def.instructions.push([hydrateInstruction]);
-      } else {
-        const attributeInstructions: TargetedInstruction[] = [];
-        const siblingInstructions: TargetedInstruction[] = [];
-        let attr = child.headAttr as AttributeSymbol;
-        while (attr !== null && attr.owner === child) {
-          switch (attr.kind) {
-            case SymbolKind.templateControllerAttribute:
-            {
-              compileTemplateController(attr, attributeInstructions, def);
-              break;
-            }
-            case SymbolKind.customAttribute:
-              break;
-            case SymbolKind.elementBinding:
-              break;
-            case SymbolKind.attributeBinding:
-              break;
-            case SymbolKind.boundAttribute:
-              break;
-            case SymbolKind.attributeInterpolation:
-              siblingInstructions.push(new InterpolationInstruction(attr.expr as Interpolation, attr.attr.name));
-          }
-
-          attr = attr.nextAttr as AttributeSymbol;
-        }
-
-      }
-      break;
-    }
-    case SymbolKind.letElement:
-      break;
-    case SymbolKind.slotElement:
-      def.hasSlots = true;
-      break;
-    case SymbolKind.textInterpolation:
-      def.instructions.push([new TextBindingInstruction(child.expr)]);
-  }
-}
-
-function compileTemplateController(attr: TemplateControllerAttributeSymbol, attributeInstructions: TargetedInstruction[], def: ITemplateDefinition) {
-  if (attr.command !== null && attr.command.handles(attr)) {
-    attributeInstructions.push(attr.command.compile(attr));
-  } else if (attr.expr !== null) {
-    attributeInstructions.push(createCustomAttributeBindingInstruction(attr));
-  }
-  if (attributeInstructions.length === 0 || attributeInstructions[0].type !== TargetedInstructionType.hydrateTemplateController) {
-    const instruction = new HydrateTemplateController(
-      {
-        name: attr.definition.name,
-        instructions: [],
-        template: attr.targetSurrogate.element
-      },
-      attr.syntax.target,
-      attributeInstructions,
-      attr.syntax.target === 'else'
-    );
-    def.instructions.push([instruction]);
-  } else {
-    def.instructions.push(attributeInstructions);
-  }
-  compileCustomElement(attr.targetSurrogate);
 }
 
 @inject(IExpressionParser, IElementParser, IAttributeParser)
@@ -773,16 +475,10 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     const target = model.createCompilationTarget(definition);
 
-    const visitors: ISymbolVisitor[] = [
-      new SymbolPreprocessor(model),
-      new NodePreprocessor(model),
-      new InstructionBuilder(model)
-    ];
+    target.accept(new SymbolPreprocessor(model));
+    target.accept(new NodePreprocessor(model));
+    target.compile();
 
-    visitors.forEach(visitor => {
-      target.accept(visitor);
-    });
-
-    return target.definition as TemplateDefinition;
+    return definition as TemplateDefinition;
   }
 }

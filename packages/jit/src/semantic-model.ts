@@ -1,8 +1,9 @@
-import { DI, Immutable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { Immutable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { AttributeDefinition, BindingType, CustomAttributeResource, CustomElementResource, DOM, IAttr, IBindableDescription, IChildNode, IDocumentFragment, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IResourceDescriptions, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, TemplateDefinition, BindingMode, IsBindingBehavior, TargetedInstruction, ToViewBindingInstruction, OneTimeBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, TargetedInstructionType, HydrateTemplateController, HydrateAttributeInstruction, InterpolationInstruction, TextBindingInstruction, HydrateElementInstruction } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
+import { ITemplateFactory } from './template-factory';
 
 const slice = Array.prototype.slice;
 
@@ -95,51 +96,6 @@ export class ResourceLocator implements IResourceLocator {
   }
 }
 
-export interface ITemplateFactory {
-  createTemplate(markup: string): IHTMLTemplateElement;
-  createTemplate(node: IHTMLElement): IHTMLTemplateElement;
-  createTemplate(input: string | IHTMLElement): IHTMLTemplateElement;
-  createTemplate(input: string | IHTMLElement): IHTMLTemplateElement;
-}
-
-export const ITemplateFactory = DI.createInterface<ITemplateFactory>()
-  .withDefault(x => x.singleton(TemplateFactory));
-
-export class TemplateFactory {
-  private template: IHTMLTemplateElement;
-
-  constructor() {
-    this.template = DOM.createTemplate();
-  }
-
-  public createTemplate(markup: string): IHTMLTemplateElement;
-  public createTemplate(node: IHTMLElement): IHTMLTemplateElement;
-  public createTemplate(input: string | IHTMLElement): IHTMLTemplateElement;
-  public createTemplate(input: string | IHTMLElement): IHTMLTemplateElement {
-    if (typeof input === 'string') {
-      const template = this.template;
-      template.innerHTML = input;
-      const node = template.content.firstElementChild;
-      if (node.nodeName !== 'TEMPLATE') {
-        this.template = DOM.createTemplate();
-        return template;
-      }
-      template.content.removeChild(node);
-      return node as IHTMLTemplateElement;
-    }
-    if (input.nodeName !== 'TEMPLATE') {
-      const template = this.template;
-      this.template = DOM.createTemplate();
-      template.content.appendChild(input);
-      return template;
-    }
-    if (input.parentNode !== null) {
-      input.parentNode.removeChild(input);
-    }
-    return input as IHTMLTemplateElement;
-  }
-}
-
 function createMarker(): IElement {
   const marker = DOM.createElement('au-m');
   marker.className = 'au';
@@ -189,28 +145,28 @@ export class SemanticModel {
     return new CompilationTarget(definition);
   }
 
-  public createNodeSymbol(text: IText): TextInterpolationSymbol | null;
-  public createNodeSymbol(slotElement: IHTMLSlotElement): SlotElementSymbol;
-  public createNodeSymbol(templateElement: IHTMLTemplateElement): SurrogateElementSymbol;
-  public createNodeSymbol(element: IHTMLElement): LetElementSymbol | PlainElementSymbol | CustomElementSymbol;
-  public createNodeSymbol(node: IText | IHTMLElement | IHTMLSlotElement | IHTMLTemplateElement): NodeSymbol;
-  public createNodeSymbol(node: IText | IHTMLElement | IHTMLSlotElement | IHTMLTemplateElement): NodeSymbol {
+  public createNodeSymbol(text: IText, parentNode: ParentElementSymbol | CompilationTarget): TextInterpolationSymbol | null;
+  public createNodeSymbol(slotElement: IHTMLSlotElement, parentNode: ParentElementSymbol | CompilationTarget): SlotElementSymbol;
+  public createNodeSymbol(templateElement: IHTMLTemplateElement, parentNode: ParentElementSymbol | CompilationTarget): SurrogateElementSymbol;
+  public createNodeSymbol(element: IHTMLElement, parentNode: ParentElementSymbol | CompilationTarget): LetElementSymbol | PlainElementSymbol | CustomElementSymbol;
+  public createNodeSymbol(node: IText | IHTMLElement | IHTMLSlotElement | IHTMLTemplateElement, parentNode: ParentElementSymbol | CompilationTarget): NodeSymbol;
+  public createNodeSymbol(node: IText | IHTMLElement | IHTMLSlotElement | IHTMLTemplateElement, parentNode: ParentElementSymbol | CompilationTarget): NodeSymbol {
     if (node.nodeType === NodeType.Text) {
       const expr = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
-      return expr === null ? null : new TextInterpolationSymbol(node, expr);
+      return expr === null ? null : new TextInterpolationSymbol(node, parentNode, expr);
     }
     if (node.nodeType === NodeType.Element) {
       switch (node.nodeName) {
         case 'TEMPLATE':
-          return new SurrogateElementSymbol(node as IHTMLTemplateElement);
+          return new SurrogateElementSymbol(node as IHTMLTemplateElement, parentNode);
         case 'SLOT':
-          return new SlotElementSymbol(node as IHTMLSlotElement);
+          return new SlotElementSymbol(node as IHTMLSlotElement, parentNode);
         case 'LET':
-          return new LetElementSymbol(node as IHTMLElement);
+          return new LetElementSymbol(node as IHTMLElement, parentNode);
       }
       const nodeName = node.getAttribute('as-element') || node.nodeName;
       const definition = this.locator.getElementDefinition(nodeName);
-      return definition === null ? new PlainElementSymbol(node as IHTMLElement) : new CustomElementSymbol(node as IHTMLElement, definition);
+      return definition === null ? new PlainElementSymbol(node as IHTMLElement, parentNode) : new CustomElementSymbol(node as IHTMLElement, parentNode, definition);
     }
     return null;
   }
@@ -219,7 +175,7 @@ export class SemanticModel {
     return this.exprParser.parse(input, bindingType);
   }
 
-  public createAttributeSymbol(attr: IAttr, el: ElementSymbol): AttributeSymbol {
+  public createAttributeSymbol(attr: IAttr, el: ElementSymbol | CompilationTarget): AttributeSymbol {
     const { name, value } = attr;
     const { locator, attrParser, exprParser } = this;
     let expr: IsExpressionOrStatement = null;
@@ -265,12 +221,10 @@ export class SemanticModel {
 export interface ISymbol {
   kind: SymbolKind;
   accept(visitor: ISymbolVisitor): void;
-  toInstruction(definition: ITemplateDefinition): TargetedInstruction;
 }
 
 export interface IAttributeSymbol extends ISymbol {
-  prevAttr: IAttributeSymbol | null;
-  nextAttr: IAttributeSymbol | null;
+  nextAttr: AttributeSymbol | null;
   attr: IAttr;
   syntax: AttrSyntax | null;
   command: IBindingCommand | null;
@@ -279,13 +233,13 @@ export interface IAttributeSymbol extends ISymbol {
 }
 
 export interface INodeSymbol extends ISymbol {
-  prevNode: INodeSymbol | null;
-  nextNode: INodeSymbol | null;
+  parentNode: ParentElementSymbol | null;
+  nextNode: NodeSymbol | null;
 }
 
 export interface IParentNodeSymbol extends INodeSymbol {
-  headNode: INodeSymbol | null;
-  tailNode: INodeSymbol | null;
+  headNode: NodeSymbol | null;
+  tailNode: NodeSymbol | null;
 }
 
 export interface ITextSymbol extends INodeSymbol {
@@ -293,8 +247,8 @@ export interface ITextSymbol extends INodeSymbol {
 }
 
 export interface IElementSymbol extends INodeSymbol {
-  headAttr: IAttributeSymbol | null;
-  tailAttr: IAttributeSymbol | null;
+  headAttr: AttributeSymbol | null;
+  tailAttr: AttributeSymbol | null;
   element: IHTMLElement;
   liftTo(fragment: IDocumentFragment): void;
 }
@@ -302,6 +256,36 @@ export interface IElementSymbol extends INodeSymbol {
 export interface IParentElementSymbol extends IElementSymbol, IParentNodeSymbol {
   childNodes: ArrayLike<IChildNode>;
 }
+
+export type LiftableElementSymbol =
+  SurrogateElementSymbol |
+  CustomElementSymbol |
+  PlainElementSymbol;
+
+export type ElementSymbol =
+  CustomElementSymbol |
+  PlainElementSymbol |
+  SurrogateElementSymbol |
+  SlotElementSymbol |
+  LetElementSymbol;
+
+export type ParentElementSymbol =
+  CompilationTarget |
+  CustomElementSymbol |
+  PlainElementSymbol |
+  SurrogateElementSymbol;
+
+export type NodeSymbol =
+  ElementSymbol |
+  TextInterpolationSymbol;
+
+export type AttributeSymbol =
+  TemplateControllerAttributeSymbol |
+  AttributeInterpolationSymbol |
+  CustomAttributeSymbol |
+  AttributeBindingSymbol |
+  ElementBindingSymbol |
+  BoundAttributeSymbol;
 
 export interface ISymbolVisitor {
   visitPlainElementSymbol(symbol: PlainElementSymbol): void;
@@ -320,6 +304,74 @@ export interface ISymbolVisitor {
   visitBindingCommandSymbol(symbol: BindingCommandSymbol): void;
 }
 
+export const enum CompilerFlags {
+  none = 0,
+  surrogate = 1
+}
+
+export class CompilationTarget implements IParentElementSymbol {
+  public kind: SymbolKind.compilationTarget;
+  public element: IHTMLTemplateElement;
+
+  public parentNode: null;
+  public nextNode: NodeSymbol;
+  public headNode: NodeSymbol;
+  public tailNode: NodeSymbol;
+
+  public headAttr: AttributeSymbol;
+  public tailAttr: AttributeSymbol;
+
+  public definition: ITemplateDefinition;
+  public targetCount: number;
+
+  public get childNodes(): ArrayLike<IChildNode> {
+    return this.element.content.childNodes;
+  }
+
+  constructor(definition: ITemplateDefinition) {
+    this.kind = SymbolKind.compilationTarget;
+    this.element = definition.template as IHTMLTemplateElement;
+    this.parentNode = null;
+    this.nextNode = null;
+    this.headNode = null;
+    this.tailNode = null;
+    this.headAttr = null;
+    this.tailAttr = null;
+    this.definition = definition;
+    this.targetCount = 0;
+  }
+
+  public accept(visitor: ISymbolVisitor): void {
+    visitor.visitCompilationTarget(this);
+  }
+
+  public liftTo(fragment: IDocumentFragment): void {
+    // cannot lift surrogate that wraps a custom element template
+    throw Reporter.error(0); // TODO: organize error codes
+  }
+
+  public compile(flags: CompilerFlags = CompilerFlags.none): void {
+    const definition = this.definition;
+    let attr = this.headAttr;
+    while (attr !== null && attr.owner === this) {
+      attr.compile(definition, null, definition.surrogates, flags | CompilerFlags.surrogate);
+      attr = attr.nextAttr;
+    }
+
+    const rows: TargetedInstruction[][] = definition.instructions;
+    let row: TargetedInstruction[] = [];
+    let el = this.headNode;
+    while (el !== null) {
+      el.compile(definition, rows, row, flags);
+      if (row.length > 0) {
+        rows.push(row);
+        row = [];
+      }
+      el = el.nextNode;
+    }
+  }
+}
+
 export class PlainElementSymbol implements IParentElementSymbol {
   public kind: SymbolKind.plainElement;
   public element: IHTMLElement;
@@ -329,13 +381,13 @@ export class PlainElementSymbol implements IParentElementSymbol {
   public replacePartName: string | null;
   public refName: string | null;
 
-  public prevNode: NodeSymbol;
+  public parentNode: ParentElementSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbol;
-  public tailAttr: IAttributeSymbol;
+  public headAttr: AttributeSymbol;
+  public tailAttr: AttributeSymbol;
 
   public targetCount: number;
 
@@ -343,14 +395,14 @@ export class PlainElementSymbol implements IParentElementSymbol {
     return this.element.childNodes;
   }
 
-  constructor(element: IHTMLElement) {
+  constructor(element: IHTMLElement, parentNode: ParentElementSymbol) {
     this.kind = SymbolKind.plainElement;
     this.element = element;
+    this.parentNode = parentNode;
     this.nodeName = element.getAttribute('as-element') || element.nodeName;
     this.partName = element.getAttribute('part');
     this.replacePartName = element.getAttribute('replace-part');
     this.refName = element.getAttribute('ref');
-    this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
     this.tailNode = null;
@@ -370,8 +422,26 @@ export class PlainElementSymbol implements IParentElementSymbol {
     fragment.appendChild(element);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return null;
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    let attr = this.headAttr;
+    while (attr !== null && attr.owner === this) {
+      attr.compile(definition, rows, row, flags);
+      attr = attr.nextAttr;
+    }
+    if (row.length > 0) {
+      rows.push(row);
+      row = [];
+    }
+
+    let el = this.headNode;
+    while (el !== null) {
+      el.compile(definition, rows, row, flags);
+      if (row.length > 0) {
+        rows.push(row);
+        row = [];
+      }
+      el = el.nextNode;
+    }
   }
 }
 
@@ -384,13 +454,13 @@ export class SurrogateElementSymbol implements IParentElementSymbol {
   public replacePartName: string | null;
   public refName: string | null;
 
-  public prevNode: NodeSymbol;
+  public parentNode: ParentElementSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbol;
-  public tailAttr: IAttributeSymbol;
+  public headAttr: AttributeSymbol;
+  public tailAttr: AttributeSymbol;
 
   public templateController: TemplateControllerAttributeSymbol;
   public targetCount: number;
@@ -399,10 +469,10 @@ export class SurrogateElementSymbol implements IParentElementSymbol {
     return this.element.content.childNodes;
   }
 
-  constructor(element: IHTMLTemplateElement) {
+  constructor(element: IHTMLTemplateElement, parentNode: ParentElementSymbol) {
     this.kind = SymbolKind.surrogateElement;
     this.element = element;
-    this.prevNode = null;
+    this.parentNode = parentNode;
     this.nextNode = null;
     this.headNode = null;
     this.tailNode = null;
@@ -423,8 +493,12 @@ export class SurrogateElementSymbol implements IParentElementSymbol {
     element.content.appendChild(marker);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return null;
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    let attr = this.headAttr;
+    while (attr !== null && attr.owner === this) {
+      attr.compile(definition, rows, row, flags);
+      attr = attr.nextAttr;
+    }
   }
 }
 
@@ -432,22 +506,22 @@ export class SlotElementSymbol implements IParentElementSymbol {
   public kind: SymbolKind.slotElement;
   public element: IHTMLSlotElement;
 
-  public prevNode: NodeSymbol;
+  public parentNode: ParentElementSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbol;
-  public tailAttr: IAttributeSymbol;
+  public headAttr: AttributeSymbol;
+  public tailAttr: AttributeSymbol;
 
   public get childNodes(): ArrayLike<IChildNode> {
     return emptyArray;
   }
 
-  constructor(element: IHTMLSlotElement) {
+  constructor(element: IHTMLSlotElement, parentNode: ParentElementSymbol) {
     this.kind = SymbolKind.slotElement;
     this.element = element;
-    this.prevNode = null;
+    this.parentNode = parentNode;
     this.nextNode = null;
     this.headNode = null;
     this.tailNode = null;
@@ -464,8 +538,8 @@ export class SlotElementSymbol implements IParentElementSymbol {
     throw Reporter.error(0); // TODO: organize error codes
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return null;
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    definition.hasSlots = true;
   }
 }
 
@@ -473,20 +547,20 @@ export class LetElementSymbol implements IElementSymbol {
   public kind: SymbolKind.letElement;
   public element: IHTMLElement;
 
-  public prevNode: NodeSymbol;
+  public parentNode: ParentElementSymbol;
   public nextNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbol;
-  public tailAttr: IAttributeSymbol;
+  public headAttr: AttributeSymbol;
+  public tailAttr: AttributeSymbol;
 
   public get childNodes(): ArrayLike<IChildNode> {
     return emptyArray;
   }
 
-  constructor(element: IHTMLElement) {
+  constructor(element: IHTMLElement, parentNode: ParentElementSymbol) {
     this.kind = SymbolKind.letElement;
     this.element = element;
-    this.prevNode = null;
+    this.parentNode = parentNode;
     this.nextNode = null;
     this.headAttr = null;
     this.tailAttr = null;
@@ -503,54 +577,8 @@ export class LetElementSymbol implements IElementSymbol {
     fragment.appendChild(element);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return null;
-  }
-}
-
-export class CompilationTarget implements IParentElementSymbol {
-  public kind: SymbolKind.compilationTarget;
-  public element: IHTMLTemplateElement;
-
-  public prevNode: NodeSymbol;
-  public nextNode: NodeSymbol;
-  public headNode: NodeSymbol;
-  public tailNode: NodeSymbol;
-
-  public headAttr: IAttributeSymbol;
-  public tailAttr: IAttributeSymbol;
-
-  public definition: ITemplateDefinition;
-  public targetCount: number;
-
-  public get childNodes(): ArrayLike<IChildNode> {
-    return this.element.content.childNodes;
-  }
-
-  constructor(definition: ITemplateDefinition) {
-    this.kind = SymbolKind.compilationTarget;
-    this.element = definition.template as IHTMLTemplateElement;
-    this.prevNode = null;
-    this.nextNode = null;
-    this.headNode = null;
-    this.tailNode = null;
-    this.headAttr = null;
-    this.tailAttr = null;
-    this.definition = definition;
-    this.targetCount = 0;
-  }
-
-  public accept(visitor: ISymbolVisitor): void {
-    visitor.visitCompilationTarget(this);
-  }
-
-  public liftTo(fragment: IDocumentFragment): void {
-    // cannot lift surrogate that wraps a custom element template
-    throw Reporter.error(0); // TODO: organize error codes
-  }
-
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return null;
+  // tslint:disable-next-line:no-empty
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
   }
 }
 
@@ -563,13 +591,13 @@ export class CustomElementSymbol implements IParentElementSymbol {
   public replacePartName: string | null;
   public refName: string | null;
 
-  public prevNode: NodeSymbol;
+  public parentNode: ParentElementSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
 
-  public headAttr: IAttributeSymbol;
-  public tailAttr: IAttributeSymbol;
+  public headAttr: AttributeSymbol;
+  public tailAttr: AttributeSymbol;
 
   public definition: TemplateDefinition;
   public targetCount: number;
@@ -578,17 +606,16 @@ export class CustomElementSymbol implements IParentElementSymbol {
     return this.element.childNodes;
   }
 
-  constructor(element: IHTMLElement, definition: TemplateDefinition) {
+  constructor(element: IHTMLElement, parentNode: ParentElementSymbol, definition: TemplateDefinition) {
     this.kind = SymbolKind.customElement;
     this.element = element;
+    this.parentNode = parentNode;
     this.nodeName = element.getAttribute('as-element') || element.nodeName;
     this.partName = element.getAttribute('part');
     this.replacePartName = element.getAttribute('replace-part');
     this.refName = element.getAttribute('ref');
-    this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
-    this.tailNode = null;
     this.headAttr = null;
     this.tailAttr = null;
     this.definition = definition;
@@ -603,57 +630,49 @@ export class CustomElementSymbol implements IParentElementSymbol {
     fragment.appendChild(this.element);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return null;
-    // let instructions: TargetedInstruction[];
-    // let attr = this.headAttr;
-    // if (attr === null) {
-    //   instructions = emptyArray;
-    // } else {
-    //   instructions = [];
-    //   while (attr !== null && attr.owner === this) {
-    //     attr.toInstruction()
-    //     attr = attr.nextAttr;
-    //   }
-    // }
-    // return new HydrateElementInstruction(this.definition.name, this.bindableInstructions, {}/*TODO*/)
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+
+    const bindables: TargetedInstruction[] = [];
+    const siblings: TargetedInstruction[] = [];
+    let attr = this.headAttr;
+    while (attr !== null && attr.owner === this) {
+      if (attr.kind === SymbolKind.elementBinding) {
+        attr.compile(definition, rows, bindables, flags);
+      } else {
+        attr.compile(definition, rows, siblings, flags);
+      }
+      attr = attr.nextAttr;
+    }
+
+    row.push(new HydrateElementInstruction(this.definition.name, bindables, {}/*TODO*/), ...siblings);
+
+    let el = this.headNode;
+    while (el !== null) {
+      el.compile(this.definition as ITemplateDefinition, rows, row, flags);
+      if (row.length > 0) {
+        rows.push(row);
+        row = [];
+      }
+      el = el.nextNode;
+    }
   }
 }
-
-export type LiftableElementSymbol =
-  SurrogateElementSymbol |
-  CustomElementSymbol |
-  PlainElementSymbol;
-
-export type ElementSymbol =
-  CompilationTarget |
-  CustomElementSymbol |
-  PlainElementSymbol |
-  SurrogateElementSymbol |
-  SlotElementSymbol |
-  LetElementSymbol;
-
-export type ParentElementSymbol =
-  CompilationTarget |
-  CustomElementSymbol |
-  PlainElementSymbol |
-  SurrogateElementSymbol;
 
 export class TextInterpolationSymbol implements ITextSymbol {
   public kind: SymbolKind.textInterpolation;
   public text: IText;
 
-  public prevNode: NodeSymbol;
+  public parentNode: ParentElementSymbol;
   public nextNode: NodeSymbol;
 
   public expr: Interpolation;
 
   public marker: IElement;
 
-  constructor(text: IText, expr: Interpolation) {
+  constructor(text: IText, parentNode: ParentElementSymbol, expr: Interpolation) {
     this.kind = SymbolKind.textInterpolation;
+    this.parentNode = parentNode;
     this.text = text;
-    this.prevNode = null;
     this.nextNode = null;
     this.expr = expr;
     this.marker = null;
@@ -677,22 +696,17 @@ export class TextInterpolationSymbol implements ITextSymbol {
     text.textContent = '';
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return new TextBindingInstruction(this.expr);
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    rows.push([new TextBindingInstruction(this.expr)]);
   }
 }
-
-export type NodeSymbol =
-  ElementSymbol |
-  TextInterpolationSymbol;
 
 export class AttributeInterpolationSymbol implements IAttributeSymbol {
   public kind: SymbolKind.attributeInterpolation;
   public attr: IAttr;
   public owner: IElementSymbol;
 
-  public prevAttr: IAttributeSymbol;
-  public nextAttr: IAttributeSymbol;
+  public nextAttr: AttributeSymbol;
 
   public command: IBindingCommand | null;
   public syntax: AttrSyntax | null;
@@ -706,7 +720,6 @@ export class AttributeInterpolationSymbol implements IAttributeSymbol {
     this.kind = SymbolKind.attributeInterpolation;
     this.attr = attr;
     this.owner = owner;
-    this.prevAttr = null;
     this.nextAttr = null;
     this.command = null;
     this.syntax = null;
@@ -717,9 +730,8 @@ export class AttributeInterpolationSymbol implements IAttributeSymbol {
     visitor.visitAttributeInterpolationSymbol(this);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    // id="${foo}"
-    return new InterpolationInstruction(this.expr, this.syntax.target);
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    row.push(new InterpolationInstruction(this.expr, this.syntax.target));
   }
 }
 
@@ -728,8 +740,7 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
   public attr: IAttr;
   public owner: IElementSymbol;
 
-  public prevAttr: IAttributeSymbol;
-  public nextAttr: IAttributeSymbol;
+  public nextAttr: AttributeSymbol;
 
   public definition: AttributeDefinition;
 
@@ -751,7 +762,6 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
     this.kind = SymbolKind.customAttribute;
     this.attr = attr;
     this.owner = owner;
-    this.prevAttr = null;
     this.nextAttr = null;
     this.definition = definition;
     this.command = command;
@@ -764,10 +774,10 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
     visitor.visitCustomAttributeSymbol(this);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     const bindingInstruction = createCustomAttributeBindingInstruction(this);
-    const instructions = bindingInstruction === null ? emptyArray : [bindingInstruction];
-    return new HydrateAttributeInstruction(this.syntax.target, instructions);
+    const bindingInstructions = bindingInstruction === null ? emptyArray : [bindingInstruction];
+    row.push(new HydrateAttributeInstruction(this.syntax.target, bindingInstructions));
   }
 }
 
@@ -776,8 +786,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
   public attr: IAttr;
   public owner: LiftableElementSymbol;
 
-  public prevAttr: IAttributeSymbol;
-  public nextAttr: IAttributeSymbol;
+  public nextAttr: AttributeSymbol;
 
   public definition: AttributeDefinition;
 
@@ -801,7 +810,6 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
     this.kind = SymbolKind.templateControllerAttribute;
     this.attr = attr;
     this.owner = owner as LiftableElementSymbol;
-    this.prevAttr = null;
     this.nextAttr = null;
     this.definition = definition;
     this.command = command;
@@ -815,31 +823,47 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
     visitor.visitTemplateControllerAttributeSymbol(this);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    const instruction = createCustomAttributeBindingInstruction(this);
-    if (instruction !== null && instruction.type === TargetedInstructionType.hydrateTemplateController) {
-      // a complete hydrateTemplateController was returned from a binding command; return it as-is
-      return instruction;
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    let instruction = createCustomAttributeBindingInstruction(this);
+    if (instruction === null || instruction.type !== TargetedInstructionType.hydrateTemplateController) {
+      const name = this.definition.name;
+      const def: ITemplateDefinition = {
+        name,
+        instructions: [],
+        template: this.targetSurrogate.element
+      };
+      const instructions = instruction === null ? emptyArray : [instruction];
+      instruction = new HydrateTemplateController(def, name, instructions, name === 'else');
     }
-    const instructions = instruction === null ? emptyArray : [instruction];
-    const name = this.definition.name;
-    const def: ITemplateDefinition = {
-      name,
-      instructions: [],
-      template: this.targetSurrogate.element
-    };
-    this.targetSurrogate.toInstruction(def);
-    return new HydrateTemplateController(def, name, instructions, name === 'else');
+    row.push(instruction);
+    const htcRows = instruction.def.instructions;
+    let htcRow = [];
+    let el = this.targetSurrogate.headNode;
+    while (el !== null) {
+      el.compile(definition, htcRows, htcRow, flags);
+      if (htcRow.length > 0) {
+        htcRows.push(htcRow);
+        htcRow = [];
+      }
+      el = el.nextNode;
+    }
   }
 }
 
+/**
+ * A binding command that maps to a declared bindable property on the element.
+ *
+ * It is "owned" by the element on which the attribute is declared.
+ *
+ * Example: `<my-custom-element some-prop.bind="foo"></my-custom-element>`, where
+ * the custom element's class has a `@bindable someProp` property declared.
+ */
 export class AttributeBindingSymbol implements IAttributeSymbol {
   public kind: SymbolKind.attributeBinding;
   public attr: IAttr;
   public owner: IElementSymbol;
 
-  public prevAttr: IAttributeSymbol;
-  public nextAttr: IAttributeSymbol;
+  public nextAttr: AttributeSymbol;
 
   public command: IBindingCommand;
   public syntax: AttrSyntax;
@@ -860,7 +884,6 @@ export class AttributeBindingSymbol implements IAttributeSymbol {
     this.kind = SymbolKind.attributeBinding;
     this.attr = attr;
     this.owner = owner;
-    this.prevAttr = null;
     this.nextAttr = null;
     this.command = command;
     this.syntax = syntax;
@@ -873,18 +896,25 @@ export class AttributeBindingSymbol implements IAttributeSymbol {
     visitor.visitAttributeBindingSymbol(this);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return this.command.compile(this);
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    row.push(this.command.compile(this));
   }
 }
 
+/**
+ * A binding command that maps to a declared bindable property on the element.
+ *
+ * It is "owned" by the element on which the attribute is declared.
+ *
+ * Example: `<my-custom-element some-prop.bind="foo"></my-custom-element>`, where
+ * the custom element's class has a `@bindable someProp` property declared.
+ */
 export class ElementBindingSymbol implements IAttributeSymbol {
   public kind: SymbolKind.elementBinding;
   public attr: IAttr;
   public owner: CustomElementSymbol;
 
-  public prevAttr: IAttributeSymbol;
-  public nextAttr: IAttributeSymbol;
+  public nextAttr: AttributeSymbol;
 
   public command: IBindingCommand;
   public syntax: AttrSyntax;
@@ -905,7 +935,6 @@ export class ElementBindingSymbol implements IAttributeSymbol {
     this.kind = SymbolKind.elementBinding;
     this.attr = attr;
     this.owner = owner;
-    this.prevAttr = null;
     this.nextAttr = null;
     this.command = command;
     this.syntax = syntax;
@@ -918,18 +947,24 @@ export class ElementBindingSymbol implements IAttributeSymbol {
     visitor.visitElementBindingSymbol(this);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return createCustomElementBindingInstruction(this);
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    row.push(createCustomElementBindingInstruction(this));
   }
 }
 
+/**
+ * A plain attribute with a binding command and an expression.
+ *
+ * It is owned by the element on which the attribute is declared.
+ *
+ * Example: `<div id.bind="someId"></div>`
+ */
 export class BoundAttributeSymbol implements IAttributeSymbol {
   public kind: SymbolKind.boundAttribute;
   public attr: IAttr;
   public owner: IElementSymbol;
 
-  public prevAttr: IAttributeSymbol;
-  public nextAttr: IAttributeSymbol;
+  public nextAttr: AttributeSymbol;
 
   public command: IBindingCommand;
   public syntax: AttrSyntax;
@@ -945,7 +980,6 @@ export class BoundAttributeSymbol implements IAttributeSymbol {
     this.kind = SymbolKind.boundAttribute;
     this.attr = attr;
     this.owner = owner;
-    this.prevAttr = null;
     this.nextAttr = null;
     this.command = command;
     this.syntax = syntax;
@@ -956,19 +990,18 @@ export class BoundAttributeSymbol implements IAttributeSymbol {
     visitor.visitBoundAttributeSymbol(this);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
-    return this.command.compile(this);
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    row.push(this.command.compile(this));
   }
 }
 
-export type AttributeSymbol =
-  TemplateControllerAttributeSymbol |
-  AttributeInterpolationSymbol |
-  CustomAttributeSymbol |
-  AttributeBindingSymbol |
-  ElementBindingSymbol |
-  BoundAttributeSymbol;
-
+/**
+ * A binding command for which the expression was parsed from within another expression.
+ *
+ * It is "owned" by the custom attribute that is the target of the expression.
+ *
+ * Example: `<div foo="a.bind:b"></div>` (or multiple of these separated by semicolons)
+ */
 export class BindingCommandSymbol implements ISymbol {
   public kind: SymbolKind.bindingCommand;
   public owner: CustomAttributeSymbol | TemplateControllerAttributeSymbol;
@@ -996,52 +1029,9 @@ export class BindingCommandSymbol implements ISymbol {
     visitor.visitBindingCommandSymbol(this);
   }
 
-  public toInstruction(definition: ITemplateDefinition): TargetedInstruction {
+  public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     return null;
   }
-}
-
-function compileAttribute(attr: AttributeSymbol): TargetedInstruction {
-  // TODO: add attributeBinding (multi semicolon-separated bindings)
-  switch (attr.kind) {
-    case SymbolKind.templateControllerAttribute:
-    {
-      const instruction = createCustomAttributeBindingInstruction(attr);
-      if (instruction !== null && instruction.type === TargetedInstructionType.hydrateTemplateController) {
-        // a complete hydrateTemplateController was returned from a binding command; return it as-is
-        return instruction;
-      }
-      const instructions = instruction === null ? emptyArray : [instruction];
-      const name = attr.definition.name;
-      return new HydrateTemplateController(
-        {
-          name,
-          instructions: [],
-          template: attr.targetSurrogate.element
-        },
-        name,
-        instructions,
-        name === 'else'
-      );
-    }
-    case SymbolKind.customAttribute:
-    {
-      const bindingInstruction = createCustomAttributeBindingInstruction(attr);
-      const instructions = bindingInstruction === null ? emptyArray : [bindingInstruction];
-      return new HydrateAttributeInstruction(attr.syntax.target, instructions);
-    }
-    case SymbolKind.attributeInterpolation:
-      // id="${foo}"
-      return new InterpolationInstruction(attr.expr, attr.syntax.target);
-    case SymbolKind.boundAttribute:
-      // id.bind="foo"
-      return attr.command.compile(attr);
-    case SymbolKind.elementBinding:
-      // some-prop.bind="foo" / some-prop="foo"
-      return createCustomElementBindingInstruction(attr);
-  }
-  // invalid symbol passed in
-  throw Reporter.error(0); // TODO: organize error codes
 }
 
 /**
@@ -1073,7 +1063,7 @@ function createCustomElementBindingInstruction(symbol: ElementBindingSymbol): Ta
     // only as a last resort, if there is no property name, use the camelCased attribute name
     property = PLATFORM.camelCase(bindable.attribute);
   }
-  return new BindingInstruction[mode](<IsBindingBehavior>symbol.expr, property);
+  return new BindingInstruction[mode](symbol.expr as IsBindingBehavior, property);
 }
 
 /**
@@ -1114,7 +1104,7 @@ function createCustomAttributeBindingInstruction(symbol: CustomAttributeSymbol |
       property = PLATFORM.camelCase(bindable.attribute);
     }
   }
-  return new BindingInstruction[mode](<IsBindingBehavior>symbol.expr, property);
+  return new BindingInstruction[mode](symbol.expr as IsBindingBehavior, property);
 }
 
 const BindingInstruction = [

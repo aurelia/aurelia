@@ -13,18 +13,18 @@ import {
   LetElementSymbol,
   NodeSymbol,
   ParentElementSymbol,
-  PartAttributeSymbol,
   PlainElementSymbol,
-  ReplacePartAttributeSymbol,
   TemplateControllerAttributeSymbol,
   TextInterpolationSymbol,
-  ITemplateFactory,
-  TemplateFactory,
   CompilationTarget,
   ResourceLocator,
   IResourceLocator,
   ISymbol
 } from '../../src/semantic-model';
+import {
+  ITemplateFactory,
+  TemplateFactory
+} from '../../src/template-factory';
 import {
   stringifyTemplateDefinition,
   stringifySymbol
@@ -122,7 +122,7 @@ describe('SemanticModel', () => {
     //console.log(stringifySymbol(target));
   });
 
-  xit('works 3', () => {
+  it('works 3', () => {
     const { model, symbolPreprocessor, nodePreprocessor, exprParser, elParser, attrParser, resources } = setup();
     const compiler = new TemplateCompiler(<any>exprParser, elParser, attrParser);
     const def = { name: 'app', template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\">${item}</template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\">${item}</template></template>" };
@@ -136,7 +136,7 @@ describe('SemanticModel', () => {
     const container = DI.createContainer();
     container.register(<any>BasicConfiguration);
     const def = { name: 'app', template: "<template><div repeat.for=\"i of 2\">${msg}</div></template>" };
-    const App = CustomElementResource.define(def, class { msg = 'a'});
+    const App = CustomElementResource.define(def, class { msg = 'aa'});
     const component = new App();
     const host = <any>DOM.createElement('div');
 
@@ -151,6 +151,7 @@ describe('SemanticModel', () => {
     } finally {
     }
 
+    console.log('\n'+stringifyTemplateDefinition(App.description, 0));
     disableTracing();
     expect(host.textContent).to.equal('a');
   });
@@ -161,6 +162,60 @@ describe('SemanticModel', () => {
     const container = DI.createContainer();
     container.register(<any>BasicConfiguration);
     const def = { name: 'app', template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\">${item}</template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\">${item}</template></template>" };
+    const App = CustomElementResource.define(def, class { msg = 'a'});
+    const component = new App();
+    const host = <any>DOM.createElement('div');
+
+    const au = new Aurelia(<any>container);
+
+    au.app({ component, host });
+    try {
+      au.start();
+
+    } catch(e) {
+      console.log(e);
+    } finally {
+    }
+
+    console.log('\n'+stringifyTemplateDefinition(App.description, 0));
+    disableTracing();
+
+    expect(host.textContent).to.equal('abc');
+  });
+
+  it('works 6', () => {
+    enableTracing();
+    Tracer.enableLiveLogging(SymbolTraceWriter);
+    const container = DI.createContainer();
+    container.register(<any>BasicConfiguration);
+    const def = { name: 'app', template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\">${item}</template></template>" };
+    const App = CustomElementResource.define(def, class { msg = 'a'});
+    const component = new App();
+    const host = <any>DOM.createElement('div');
+
+    const au = new Aurelia(<any>container);
+
+    au.app({ component, host });
+    try {
+      au.start();
+
+    } catch(e) {
+      console.log(e);
+    } finally {
+    }
+
+    console.log('\n'+stringifyTemplateDefinition(App.description, 0));
+    disableTracing();
+
+    expect(host.textContent).to.equal('abc');
+  });
+
+  it('works 7', () => {
+    enableTracing();
+    Tracer.enableLiveLogging(SymbolTraceWriter);
+    const container = DI.createContainer();
+    container.register(<any>BasicConfiguration);
+    const def = { name: 'app', template: "<template><div repeat.for=\"item of ['a', 'b', 'c']\">${item}</div></template>" };
     const App = CustomElementResource.define(def, class { msg = 'a'});
     const component = new App();
     const host = <any>DOM.createElement('div');

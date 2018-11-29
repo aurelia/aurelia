@@ -17,6 +17,10 @@ import { Dates } from './components/dates';
 import { Recursive } from './components/recursive';
 import { Header } from './components/header';
 
+import { One } from './components/one';
+import { Two } from './components/two';
+import { Three } from './components/three';
+
 const container = DI.createContainer();
 container.register(BasicConfiguration,
   <any>ViewportCustomElement,
@@ -34,6 +38,10 @@ container.register(BasicConfiguration,
   <any>Dates,
   <any>Recursive,
   <any>Header,
+
+  <any>One,
+  <any>Two,
+  <any>Three,
 );
 const component = container.get(CustomElementResource.keyFrom('app'));
 

@@ -37,14 +37,14 @@ function resetIndexMapKeyed(this: ICollectionObserver<CollectionKind.keyed>): vo
 }
 
 function getLengthObserver(this: CollectionObserver): CollectionLengthObserver {
-  return this.lengthObserver === undefined ? (this.lengthObserver = new CollectionLengthObserver(<Collection&ICollectionObserver<CollectionKind>>this, this.lengthPropertyName)) : this.lengthObserver as CollectionLengthObserver;
+  return this.lengthObserver === undefined ? (this.lengthObserver = new CollectionLengthObserver(this as Collection&ICollectionObserver<CollectionKind>, this.lengthPropertyName)) : this.lengthObserver as CollectionLengthObserver;
 }
 
 export function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator {
   return function(target: Function): void {
     subscriberCollection(MutationKind.collection)(target);
     batchedSubscriberCollection()(target);
-    const proto = <CollectionObserver>target.prototype;
+    const proto = target.prototype as CollectionObserver;
 
     proto.$nextFlush = null;
 

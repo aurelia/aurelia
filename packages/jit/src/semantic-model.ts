@@ -80,7 +80,7 @@ export class SemanticModel {
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <IAttributeDefinition>this.resources.find(CustomAttributeResource, name);
+    const definition = this.resources.find(CustomAttributeResource, name) as IAttributeDefinition;
     return this.attrDefCache[name] = definition === undefined ? null : definition;
   }
 
@@ -89,7 +89,7 @@ export class SemanticModel {
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <ITemplateDefinition>this.resources.find(CustomElementResource, name);
+    const definition = this.resources.find(CustomElementResource, name) as ITemplateDefinition;
     return this.elDefCache[name] = definition === undefined ? null : definition;
   }
 
@@ -385,7 +385,7 @@ export class AttributeSymbol implements IAttributeSymbol {
   public markAsProcessed(): void {
     this._isProcessed = true;
     if (this.isTemplateController) {
-      (<Element>this.$element.node).removeAttribute(this.rawName);
+      (this.$element.node as Element).removeAttribute(this.rawName);
     }
   }
 }
@@ -525,7 +525,7 @@ export class ElementSymbol {
   }
 
   public makeTarget(): void {
-    (<Element>this.node).classList.add('au');
+    (this.node as Element).classList.add('au');
   }
 
   public replaceTextNodeWithMarker(): void {
@@ -545,7 +545,7 @@ export class ElementSymbol {
     if (node.parentNode) {
       node.parentNode.replaceChild(marker.node, node);
     } else if (this.isTemplate) {
-      (<HTMLTemplateElement>node).content.appendChild(marker.node);
+      (node as HTMLTemplateElement).content.appendChild(marker.node);
     }
     this.setToMarker(marker);
   }

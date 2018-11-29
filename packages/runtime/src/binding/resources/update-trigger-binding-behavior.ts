@@ -36,7 +36,7 @@ export class UpdateTriggerBindingBehavior {
     }
 
     // ensure the binding's target observer has been set.
-    const targetObserver = <UpdateTriggerableObserver>this.observerLocator.getObserver(binding.target, binding.targetProperty);
+    const targetObserver = this.observerLocator.getObserver(binding.target, binding.targetProperty) as UpdateTriggerableObserver;
     if (!targetObserver.handler) {
       throw Reporter.error(10);
     }

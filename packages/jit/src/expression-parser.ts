@@ -203,9 +203,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     // falls through
     case Token.Identifier: // identifier
       if (bindingType & BindingType.IsIterator) {
-        result = new BindingIdentifier(<string>state.tokenValue);
+        result = new BindingIdentifier(state.tokenValue as string);
       } else {
-        result = new AccessScope(<string>state.tokenValue, access & Access.Ancestor);
+        result = new AccessScope(state.tokenValue as string, access & Access.Ancestor);
         access = Access.Scope;
       }
       state.assignable = true;
@@ -232,7 +232,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       access = Access.Reset;
       break;
     case Token.TemplateTail:
-      result = new Template([<string>state.tokenValue]);
+      result = new Template([state.tokenValue as string]);
       state.assignable = false;
       nextToken(state);
       access = Access.Reset;
@@ -350,7 +350,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           break;
         case Token.TemplateTail:
           state.assignable = false;
-          const strings = [<string>state.tokenValue];
+          const strings = [state.tokenValue as string];
           result = new TaggedTemplate(strings, strings, result as IsLeftHandSide);
           nextToken(state);
           break;
@@ -911,7 +911,7 @@ function decompress(lookup: (CharScanner | number)[] | null, $set: Set<number> |
     let end = compressed[i + 1];
     end = end > 0 ? end : start + 1;
     if (lookup) {
-      lookup.fill(<CharScanner | number>value, start, end);
+      lookup.fill(value as CharScanner | number, start, end);
     }
     if ($set) {
       for (let ch = start; ch < end; ch++) {
@@ -940,9 +940,9 @@ decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
 // IdentifierPart lookup
 const IdParts = new Uint8Array(0xFFFF);
 // tslint:disable-next-line:no-any
-decompress(<any>IdParts, null, codes.IdStart, 1);
+decompress(IdParts as any, null, codes.IdStart, 1);
 // tslint:disable-next-line:no-any
-decompress(<any>IdParts, null, codes.Digit, 1);
+decompress(IdParts as any, null, codes.Digit, 1);
 
 type CharScanner = ((p: ParserState) => Token | null) & { notMapped?: boolean };
 

@@ -94,13 +94,13 @@ export type RegisterSelf<T extends Constructable> = {
 if (!('getOwnMetadata' in Reflect)) {
   // tslint:disable-next-line:no-any
   Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
-    return (<IIndexable>target)[metadataKey];
+    return (target as IIndexable)[metadataKey];
   };
 
   // tslint:disable-next-line:no-any
   Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
     return function(target: Function): void {
-      (<IIndexable>target)[metadataKey] = metadataValue;
+      (target as IIndexable)[metadataKey] = metadataValue;
     };
   };
 }
@@ -235,7 +235,7 @@ Foo.register(container);
       const registration = Registration.transient(target, target);
       return registration.register(container, target);
     };
-    return <T & RegisterSelf<T>>target;
+    return target as T & RegisterSelf<T>;
   },
 
   // tslint:disable:jsdoc-format
@@ -263,7 +263,7 @@ Foo.register(container);
       const registration = Registration.singleton(target, target);
       return registration.register(container, target);
     };
-    return <T & RegisterSelf<T>>target;
+    return target as T & RegisterSelf<T>;
   }
 };
 

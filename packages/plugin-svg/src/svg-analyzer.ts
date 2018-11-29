@@ -205,20 +205,20 @@ function createElement(html: string): Element {
   // Using very HTML-specific code here since you won't install this module
   // unless you are actually running in a browser, using HTML,
   // and dealing with browser inconsistencies.
-  const div = <HTMLElement>DOM.createElement('div');
+  const div = DOM.createElement('div') as HTMLElement;
   div.innerHTML = html;
   return div.firstElementChild;
 }
 
 if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
   // handle chrome casing inconsistencies.
-  (<{altglyph?: string[]}>svgElements).altglyph = svgElements.altGlyph;
+  (svgElements as {altglyph?: string[]}).altglyph = svgElements.altGlyph;
   delete svgElements.altGlyph;
-  (<{altglyphdef?: string[]}>svgElements).altglyphdef = svgElements.altGlyphDef;
+  (svgElements as {altglyphdef?: string[]}).altglyphdef = svgElements.altGlyphDef;
   delete svgElements.altGlyphDef;
-  (<{altglyphitem?: string[]}>svgElements).altglyphitem = svgElements.altGlyphItem;
+  (svgElements as {altglyphitem?: string[]}).altglyphitem = svgElements.altGlyphItem;
   delete svgElements.altGlyphItem;
-  (<{glyphref?: string[]}>svgElements).glyphref = svgElements.glyphRef;
+  (svgElements as {glyphref?: string[]}).glyphref = svgElements.glyphRef;
   delete svgElements.glyphRef;
 }
 

@@ -28,7 +28,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
   this.$state &= ~State.isAttaching;
 
   if (hooks & Hooks.hasAttached) {
-    lifecycle.enqueueAttached(<Required<typeof this>>this);
+    lifecycle.enqueueAttached(this as Required<typeof this>);
   }
   lifecycle.endAttach(flags);
 }
@@ -65,7 +65,7 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
   this.$state &= ~State.isAttaching;
 
   if (hooks & Hooks.hasAttached) {
-    lifecycle.enqueueAttached(<Required<typeof this>>this);
+    lifecycle.enqueueAttached(this as Required<typeof this>);
   }
   lifecycle.endAttach(flags);
 }
@@ -111,7 +111,7 @@ export function $detachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
     this.$state &= ~(State.isAttached | State.isDetaching);
 
     if (hooks & Hooks.hasDetached) {
-      lifecycle.enqueueDetached(<Required<typeof this>>this);
+      lifecycle.enqueueDetached(this as Required<typeof this>);
     }
     lifecycle.endDetach(flags);
   }
@@ -150,7 +150,7 @@ export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleF
     this.$state &= ~(State.isAttached | State.isDetaching);
 
     if (hooks & Hooks.hasDetached) {
-      lifecycle.enqueueDetached(<Required<typeof this>>this);
+      lifecycle.enqueueDetached(this as Required<typeof this>);
     }
     lifecycle.endDetach(flags);
   }

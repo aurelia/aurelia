@@ -117,7 +117,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
     if (newValue !== null) {
       if (newValue instanceof Object) {
         let value;
-        for (style in (<Object>newValue)) {
+        for (style in (newValue as Object)) {
           if (newValue.hasOwnProperty(style)) {
             value = newValue[style];
             style = style.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);
@@ -125,7 +125,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
             this._setProperty(style, value);
           }
         }
-      } else if ((<string>newValue).length) {
+      } else if ((newValue as string).length) {
         const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
         let pair;
         while ((pair = rx.exec(newValue)) !== null) {

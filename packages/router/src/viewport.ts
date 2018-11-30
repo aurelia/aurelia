@@ -1,6 +1,6 @@
-import { IContainer } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
+import { Router } from './router';
 import { Scope } from './scope';
 
 export interface IRouteableCustomElement extends ICustomElement {
@@ -22,19 +22,19 @@ export class Viewport {
 
   private clear: boolean = false;
 
-  constructor(private container: IContainer, public name: string, public element: Element, public owningScope: Scope, public scope: Scope) {
+  constructor(private router: Router, public name: string, public element: Element, public owningScope: Scope, public scope: Scope) {
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
     this.clear = false;
     if (typeof content === 'string') {
-      if (content === '-') {
+      if (content === this.router.separators.clear) {
         this.clear = true;
         content = null;
       } else {
-        const resolver = this.container.getResolver(CustomElementResource.keyFrom(content));
+        const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(content));
         if (resolver !== null) {
-          content = <ICustomElementType>resolver.getFactory(this.container).Type;
+          content = <ICustomElementType>resolver.getFactory(this.router.container).Type;
         }
       }
     }
@@ -107,7 +107,7 @@ export class Viewport {
     }
 
     const host: INode = this.element;
-    const renderingEngine = this.container.get(IRenderingEngine);
+    const renderingEngine = this.router.container.get(IRenderingEngine);
 
     if (this.component) {
       if (this.component.leave) {
@@ -143,17 +143,17 @@ export class Viewport {
   public description(): string {
     if (this.content) {
       const component = this.content.description.name;
-      const newScope: string = this.scope ? '!' : '';
-      return `${this.name}${newScope}:${component}`;
+      const newScope: string = this.scope ? this.router.separators.ownsScope : '';
+      return `${this.name}${newScope}${this.router.separators.viewport}${component}`;
     }
   }
 
   public scopedDescription(): string {
     const descriptions = [this.owningScope.context(), this.description()];
-    return descriptions.filter((value) => value && value.length).join('+');
+    return descriptions.filter((value) => value && value.length).join(this.router.separators.scope);
   }
 
   private loadComponent(component: ICustomElementType): void {
-    this.nextComponent = this.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
+    this.nextComponent = this.router.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
   }
 }

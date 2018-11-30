@@ -19,12 +19,12 @@ export class Scope {
   }
 
   public findViewport(name: string): Viewport {
-    const parts = name.split('+');
-    const names = parts.shift().split(':');
+    const parts = name.split(this.router.separators.scope);
+    const names = parts.shift().split(this.router.separators.viewport);
     const comp = names.pop();
     name = names.shift();
     let newScope = false;
-    if (name.endsWith('!')) {
+    if (name.endsWith(this.router.separators.ownsScope)) {
       newScope = true;
       name = name.substr(0, name.length - 1);
     }
@@ -33,7 +33,7 @@ export class Scope {
       return viewport;
     } else {
       const scope = viewport.scope || viewport.owningScope;
-      return scope.findViewport(parts.join('+'));
+      return scope.findViewport(parts.join(this.router.separators.scope));
     }
   }
 
@@ -59,7 +59,7 @@ export class Scope {
         this.router.scopes.push(scope);
       }
 
-      viewport = this.viewports[name] = new Viewport(this.router.container, name, element, this, scope);
+      viewport = this.viewports[name] = new Viewport(this.router, name, element, this, scope);
     }
     if (element) {
       // First added viewport with element is always scope viewport (except for root scope)
@@ -134,7 +134,7 @@ export class Scope {
     }
     parents.unshift(this.parent.context());
 
-    return parents.filter((value) => value && value.length).join('+');
+    return parents.filter((value) => value && value.length).join(this.router.separators.scope);
   }
 
   private resolveComponent(component: ICustomElementType | string): IViewportCustomElementType {

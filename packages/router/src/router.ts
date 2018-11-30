@@ -7,6 +7,7 @@ import { Viewport } from './viewport';
 
 export interface IRouterOptions extends IHistoryOptions {
   reportCallback?: Function;
+  separators?: IRouteSeparators;
 }
 
 export interface IRoute {
@@ -23,6 +24,17 @@ export interface IRouteViewport {
   component: ICustomElementType | string;
 }
 
+export interface IRouteSeparators {
+  viewport: string;
+  sibling: string;
+  scope: string;
+  ownsScope: string;
+  parameters: string;
+  add: string;
+  clear: string;
+  action: string;
+}
+
 @inject(IContainer)
 export class Router {
   public routes: IRoute[] = [];
@@ -30,6 +42,8 @@ export class Router {
 
   public rootScope: Scope;
   public scopes: Scope[] = [];
+
+  public separators: IRouteSeparators;
 
   public historyBrowser: HistoryBrowser;
   public linkHandler: LinkHandler;
@@ -57,6 +71,19 @@ export class Router {
       }, ...options
     };
 
+    this.separators = {
+      ... {
+        viewport: ':',
+        sibling: '/',
+        scope: '+',
+        ownsScope: '!',
+        parameters: '=',
+        add: '+',
+        clear: '-',
+        action: '.',
+      }, ...this.options.separators
+    };
+
     this.linkHandler.activate({ callback: this.linkCallback });
     return this.historyBrowser.activate(this.options).catch(error => { throw error; });
   }
@@ -70,7 +97,7 @@ export class Router {
       const scope = this.closestScope(info.anchor);
       const context = scope.context();
       if (context) {
-        href = `/${context}+${href}`;
+        href = `/${context}${this.separators.scope}${href}`;
       }
     }
     this.historyBrowser.setHash(href);
@@ -116,7 +143,7 @@ export class Router {
     const viewports: Viewport[] = [];
     for (const vp in views) {
       const component: ICustomElementType | string = views[vp];
-      const viewport = this.findViewport(`${vp}:${component}`);
+      const viewport = this.findViewport(`${vp}${this.separators.viewport}${component}`);
       if (viewport.setNextContent(component, instruction)) {
         viewports.push(viewport);
       }
@@ -156,7 +183,7 @@ export class Router {
 
         // TODO: Cut down on verbosity
 
-        this.historyBrowser.replacePath(viewportStates.join('/'));
+        this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling));
       });
   }
 
@@ -233,7 +260,7 @@ export class Router {
 
   public findViews(entry: IHistoryEntry): Object {
     const views: Object = {};
-    let sections: string[] = entry.path.split('/');
+    let sections: string[] = entry.path.split(this.separators.sibling);
     if (sections.length && sections[0] === '') {
       sections.shift();
     }
@@ -242,9 +269,9 @@ export class Router {
     const expandedSections: string[] = [];
     while (sections.length) {
       const part = sections.shift();
-      const parts = part.split('+');
+      const parts = part.split(this.separators.scope);
       for (let i = 1; i <= parts.length; i++) {
-        expandedSections.push(parts.slice(0, i).join('+'));
+        expandedSections.push(parts.slice(0, i).join(this.separators.scope));
       }
     }
     sections = expandedSections;
@@ -254,9 +281,9 @@ export class Router {
       const view = sections.shift();
       // TODO: implement parameters
       // As a = part at the end of the view!
-      const parts = view.split(':');
+      const parts = view.split(this.separators.viewport);
       const component = parts.pop();
-      const name = (parts.length ? parts.join(':') : `?${index++}`);
+      const name = (parts.length ? parts.join(this.separators.viewport) : `?${index++}`);
       if (component) {
         views[name] = component;
       }
@@ -354,8 +381,8 @@ export class Router {
   }
 
   private removeStateDuplicates(states: string[]): string[] {
-    let sorted: string[] = states.slice().sort((a, b) => b.split('+').length - a.split('+').length);
-    sorted = sorted.map((value) => `+${value}+`);
+    let sorted: string[] = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
+    sorted = sorted.map((value) => `${this.separators.scope}${value}${this.separators.scope}`);
 
     let unique: string[] = [];
     if (sorted.length) {
@@ -370,7 +397,7 @@ export class Router {
       }
     }
     unique = unique.map((value) => value.substring(1, value.length - 1));
-    unique.sort((a, b) => a.split('+').length - b.split('+').length);
+    unique.sort((a, b) => a.split(this.separators.scope).length - b.split(this.separators.scope).length);
 
     return unique;
   }

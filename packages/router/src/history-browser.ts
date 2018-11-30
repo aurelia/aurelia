@@ -142,6 +142,9 @@ export class HistoryBrowser {
     const state = { ...this.history.state };
     const { pathname, search } = this.location;
     this.history.replaceState(state, null, `${pathname}${search}#/${path}`);
+    this.currentEntry.path = path;
+    this.setState('HistoryEntry', this.currentEntry);
+    this.setState('HistoryEntries', this.historyEntries);
   }
 
   public setHash(hash: string): void {

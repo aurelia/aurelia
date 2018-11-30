@@ -62,6 +62,20 @@ describe('Router', () => {
     expect(host.textContent).to.contain('bar');
     await freshState(router);
   });
+
+  it('navigates to foo/bar in left/right containing baz/qux respectively', async () => {
+    const { host, router } = setup();
+    router.activate();
+    await Promise.resolve();
+    router.goto('/left:foo/right:bar/foo:baz/bar:qux');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('foo');
+    expect(host.textContent).to.contain('bar');
+    expect(host.textContent).to.contain('baz');
+    expect(host.textContent).to.contain('qux');
+    await freshState(router);
+  });
 });
 
 function setup() {
@@ -70,8 +84,10 @@ function setup() {
   const App = (<any>CustomElementResource).define({ name: 'app', template: '<template><viewport name="left"></viewport><viewport name="right"></viewport></template>' });
   const Foo = (<any>CustomElementResource).define({ name: 'foo', template: '<template>foo<viewport name="foo"></viewport></template>' });
   const Bar = (<any>CustomElementResource).define({ name: 'bar', template: '<template>bar<viewport name="bar"></viewport></template>' });
+  const Baz = (<any>CustomElementResource).define({ name: 'baz', template: '<template>baz<viewport name="baz"></viewport></template>' });
+  const Qux = (<any>CustomElementResource).define({ name: 'qux', template: '<template>qux<viewport name="qux"></viewport></template>' });
   container.register(<any>ViewportCustomElement);
-  container.register(Foo, Bar);
+  container.register(Foo, Bar, Baz, Qux);
   const au = new Aurelia(<any>container);
   const host = DOM.createElement('div');
   const component = new App();

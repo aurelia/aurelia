@@ -1,14 +1,14 @@
 import { inject } from '@aurelia/kernel';
 import { bindable } from "@aurelia/runtime";
 import { customElement } from '@aurelia/runtime';
-import * as template from './viewport.html';
+// import * as template from './viewport.html';
 import { Router } from '../../../../../src/router';
 import { Viewport } from '../../../../../src/viewport';
 
 @inject(Router, Element)
-@customElement({ name: 'viewport', template })
+@customElement({ name: 'viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' })
 export class ViewportCustomElement {
-  @bindable name: string;
+  @bindable name: string = 'default';
   @bindable scope: boolean;
 
   public viewport: Viewport;

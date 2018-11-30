@@ -43,7 +43,7 @@ export class Router {
     this.linkHandler = new LinkHandler();
   }
 
-  public activate(options?: IRouterOptions): void {
+  public activate(options?: IRouterOptions): Promise<void> {
     if (this.isActive) {
       throw new Error('Router has already been activated.');
     }
@@ -57,8 +57,8 @@ export class Router {
       }, ...options
     };
 
-    this.historyBrowser.activate(this.options).catch(error => { throw error; });
     this.linkHandler.activate({ callback: this.linkCallback });
+    return this.historyBrowser.activate(this.options).catch(error => { throw error; });
   }
 
   public linkCallback = (info: AnchorEventInfo): void => {

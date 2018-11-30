@@ -1,3 +1,4 @@
+import { IIndexable, Primitive } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
 import { nativePush, nativeSplice } from './array-observer';
@@ -12,7 +13,7 @@ export const nativeDelete = proto.delete;
 // fortunately, map/delete/clear are easy to reconstruct for the indexMap
 
 // https://tc39.github.io/ecma262/#sec-map.prototype.map
-function observeSet(this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof nativeSet> {
+function observeSet(this: IObservedMap, key: IIndexable | Primitive, value: IIndexable | Primitive): ReturnType<typeof nativeSet> {
   const o = this.$observer;
   if (o === undefined) {
     return nativeSet.call(this, key, value);
@@ -62,7 +63,7 @@ function observeClear(this: IObservedMap): ReturnType<typeof nativeClear>  {
 }
 
 // https://tc39.github.io/ecma262/#sec-map.prototype.delete
-function observeDelete(this: IObservedMap, value: unknown): ReturnType<typeof nativeDelete> {
+function observeDelete(this: IObservedMap, value: IIndexable | Primitive): ReturnType<typeof nativeDelete> {
   const o = this.$observer;
   if (o === undefined) {
     return nativeDelete.call(this, value);

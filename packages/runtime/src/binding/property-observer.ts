@@ -37,7 +37,7 @@ function dispose(this: PropertyObserver): void {
 export function propertyObserver(): ClassDecorator {
   return function(target: Function): void {
     subscriberCollection(MutationKind.instance)(target);
-    const proto = target.prototype as PropertyObserver;
+    const proto = <PropertyObserver>target.prototype;
 
     proto.observing = false;
     proto.obj = null;

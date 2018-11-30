@@ -1,4 +1,5 @@
-import { DI, Immutable, IRegistry, Omit, PLATFORM } from '@aurelia/kernel';
+// tslint:disable:no-reserved-keywords
+import { DI, Immutable, Omit, PLATFORM } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
@@ -63,7 +64,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: string | INode;
   instructions?: TargetedInstruction[][];
-  dependencies?: IRegistry[];
+  dependencies?: any[];
   build?: IBuildInstruction;
   surrogates?: TargetedInstruction[];
   bindables?: Record<string, IBindableDescription>;
@@ -245,9 +246,9 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.cache = 0;
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
-    this.instructions = PLATFORM.emptyArray as this['instructions'];
-    this.dependencies = PLATFORM.emptyArray as this['dependencies'];
-    this.surrogates = PLATFORM.emptyArray as this['surrogates'];
+    this.instructions = <this['instructions']>PLATFORM.emptyArray;
+    this.dependencies = <this['dependencies']>PLATFORM.emptyArray;
+    this.surrogates = <this['surrogates']>PLATFORM.emptyArray;
     this.containerless = false;
     this.shadowOptions = null;
     this.hasSlots = false;
@@ -279,7 +280,6 @@ export function buildTemplateDefinition(
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | Immutable<ITemplateDefinition>): TemplateDefinition;
-// tslint:disable-next-line:parameters-max-number
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   name: string | null,
@@ -293,7 +293,6 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null): TemplateDefinition;
-  // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | Immutable<ITemplateDefinition> | null,
@@ -302,7 +301,7 @@ export function buildTemplateDefinition(
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
   instructions?: ReadonlyArray<ReadonlyArray<TargetedInstruction>> | null,
-  dependencies?: ReadonlyArray<IRegistry> | null,
+  dependencies?: ReadonlyArray<unknown> | null,
   surrogates?: ReadonlyArray<TargetedInstruction> | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
@@ -318,7 +317,7 @@ export function buildTemplateDefinition(
     case 10: if (containerless !== null) def.containerless = containerless;
     case 9: if (surrogates !== null) def.surrogates = PLATFORM.toArray(surrogates);
     case 8: if (dependencies !== null) def.dependencies = PLATFORM.toArray(dependencies);
-    case 7: if (instructions !== null) def.instructions = PLATFORM.toArray(instructions) as TargetedInstruction[][];
+    case 7: if (instructions !== null) def.instructions = <TargetedInstruction[][]>PLATFORM.toArray(instructions);
     case 6: if (bindables !== null) def.bindables = { ...bindables };
     case 5: if (build !== null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build };
     case 4: if (cache !== null) def.cache = cache;
@@ -361,8 +360,10 @@ export function buildTemplateDefinition(
   }
 
   // special handling for invocations that quack like a @customElement decorator
-  if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef))) {
-    def.build = buildRequired;
+  if (argLen === 2 && ctor !== null) {
+    if (typeof nameOrDef === 'string' || !('build' in nameOrDef)) {
+      def.build = buildRequired;
+    }
   }
 
   return def;

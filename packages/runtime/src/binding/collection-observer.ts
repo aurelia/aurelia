@@ -37,14 +37,14 @@ function resetIndexMapKeyed(this: ICollectionObserver<CollectionKind.keyed>): vo
 }
 
 function getLengthObserver(this: CollectionObserver): CollectionLengthObserver {
-  return this.lengthObserver === undefined ? (this.lengthObserver = new CollectionLengthObserver(this as Collection&ICollectionObserver<CollectionKind>, this.lengthPropertyName)) : this.lengthObserver as CollectionLengthObserver;
+  return this.lengthObserver === undefined ? (this.lengthObserver = new CollectionLengthObserver(<Collection&ICollectionObserver<CollectionKind>>this, this.lengthPropertyName)) : this.lengthObserver as CollectionLengthObserver;
 }
 
 export function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator {
   return function(target: Function): void {
     subscriberCollection(MutationKind.collection)(target);
     batchedSubscriberCollection()(target);
-    const proto = target.prototype as CollectionObserver;
+    const proto = <CollectionObserver>target.prototype;
 
     proto.$nextFlush = null;
 
@@ -66,20 +66,14 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
   };
 }
 
-export interface CollectionLengthObserver extends IBindingTargetObserver<Collection, string> {}
+export interface CollectionLengthObserver extends IBindingTargetObserver<any, string> {}
 
 @targetObserver()
 export class CollectionLengthObserver implements CollectionLengthObserver {
   public currentValue: number;
   public currentFlags: LifecycleFlags;
 
-  public obj: Collection;
-  public propertyKey: 'length' | 'size';
-
-  constructor(obj: Collection, propertyKey: 'length' | 'size') {
-    this.obj = obj;
-    this.propertyKey = propertyKey;
-
+  constructor(public obj: Collection, public propertyKey: 'length' | 'size') {
     this.currentValue = obj[propertyKey];
   }
 

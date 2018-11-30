@@ -3,10 +3,19 @@ import { INode } from './dom';
 import { LifecycleFlags } from './observation';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './templating/custom-element';
 import { IRenderingEngine } from './templating/lifecycle-render';
+import { UiWindow, stopLoop as stopLibUiLoop, startLoop as startLibUiLoop } from 'libui-napi';
+import { ILibUiNode } from './libui-dom';
 
 export interface ISinglePageApp {
-  host: INode;
+  // host: INode;
   component: unknown;
+  width: number;
+  height: number;
+  title: string;
+  /**
+   * Whether the app has menu bar
+   */
+  menu: boolean;
 }
 
 export class Aurelia {
@@ -36,14 +45,15 @@ export class Aurelia {
   }
 
   public app(config: ISinglePageApp): this {
-    const host = config.host as INode & {$au?: Aurelia | null};
+    const host = this.createWindow(config) as UiWindow & { $au: Aurelia };
+    // const host = config.host as INode & {$au?: Aurelia | null};
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
-    if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
-      this.container.register(componentOrType as ICustomElementType);
-      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
+    if (CustomElementResource.isType(<ICustomElementType>componentOrType)) {
+      this.container.register(<ICustomElementType>componentOrType);
+      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((<ICustomElementType>componentOrType).description.name));
     } else {
-      component = componentOrType as ICustomElement;
+      component = <ICustomElement>componentOrType;
     }
 
     const startTask = () => {
@@ -52,11 +62,13 @@ export class Aurelia {
         this._root = component;
         this.components.push(component);
         const re = this.container.get(IRenderingEngine);
-        component.$hydrate(re, host);
+        component.$hydrate(re, host as any as ILibUiNode);
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach(LifecycleFlags.fromStartTask, host);
+      component.$attach(LifecycleFlags.fromStartTask, host as any as ILibUiNode);
+      startLibUiLoop();
+      host.show();
     };
 
     this.startTasks.push(startTask);
@@ -93,6 +105,14 @@ export class Aurelia {
     }
     return this;
   }
+
+  public createWindow(config: ISinglePageApp): UiWindow {
+    const win = new UiWindow(config.title, config.width, config.height, config.menu);
+    win.onClosing(() => {
+      stopLibUiLoop();
+    });
+    return win;
+  }
 }
 
-(PLATFORM.global as {Aurelia: unknown}).Aurelia = Aurelia;
+(<{Aurelia: unknown}>PLATFORM.global).Aurelia = Aurelia;

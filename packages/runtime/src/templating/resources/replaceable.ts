@@ -1,21 +1,19 @@
 import { inject, IRegistry } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
+// import { IRenderLocation } from '../../dom';
 import { IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { ILibUiRenderLocation } from '../../libui-dom';
 
 export interface Replaceable extends ICustomAttribute {}
 @templateController('replaceable')
-@inject(IViewFactory, IRenderLocation)
+@inject(IViewFactory, ILibUiRenderLocation)
 export class Replaceable {
   public static register: IRegistry['register'];
 
   private currentView: IView;
-  private factory: IViewFactory;
 
-  constructor(factory: IViewFactory, location: IRenderLocation) {
-    this.factory = factory;
-
+  constructor(private factory: IViewFactory, location: ILibUiRenderLocation) {
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

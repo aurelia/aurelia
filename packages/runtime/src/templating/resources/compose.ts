@@ -28,33 +28,26 @@ export interface Compose extends ICustomElement {}
 export class Compose {
   public static register: IRegistry['register'];
 
-  @bindable public subject: Subject | Promise<Subject>;
-  @bindable public composing: boolean;
+  @bindable public subject: Subject | Promise<Subject> = null;
+  @bindable public composing: boolean = false;
 
-  private coordinator: CompositionCoordinator;
-  private lastSubject: Subject | Promise<Subject>;
-  private properties: Record<string, TargetedInstruction>;
-  private renderable: IRenderable;
-  private renderingEngine: IRenderingEngine;
+  private properties: Record<string, TargetedInstruction> = null;
+  private lastSubject: Subject | Promise<Subject> = null;
 
-  constructor(renderable: IRenderable, instruction: Immutable<IHydrateElementInstruction>, renderingEngine: IRenderingEngine, coordinator: CompositionCoordinator) {
-    this.subject = null;
-    this.composing = false;
-
-    this.coordinator = coordinator;
-    this.lastSubject = null;
-    this.properties = null;
-    this.renderable = renderable;
-    this.renderingEngine = renderingEngine;
-
+  constructor(
+    private renderable: IRenderable,
+    instruction: Immutable<IHydrateElementInstruction>,
+    private renderingEngine: IRenderingEngine,
+    private coordinator: CompositionCoordinator
+  ) {
     this.coordinator.onSwapComplete = () => {
       this.composing = false;
     };
 
     this.properties = instruction.instructions
-      .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to))
+      .filter((x: any) => !composeProps.includes(x.to))
       .reduce(
-        (acc, item: ITargetedInstruction & {to?: string}) => {
+        (acc, item: any) => {
           if (item.to) {
             acc[item.to] = item;
           }
@@ -151,7 +144,7 @@ export class Compose {
     return createElement(
       subject,
       this.properties,
-      this.$projector.children
+      // this.$projector.children
     ).createView(
       this.renderingEngine,
       this.renderable.$context

@@ -27,9 +27,7 @@ export const ISanitizer = DI.createInterface<ISanitizer>()
 export class SanitizeValueConverter {
   public static register: IRegistry['register'];
 
-  private sanitizer: ISanitizer;
-
-  constructor(sanitizer: ISanitizer) {
+  constructor(private sanitizer: ISanitizer) {
     this.sanitizer = sanitizer;
   }
 

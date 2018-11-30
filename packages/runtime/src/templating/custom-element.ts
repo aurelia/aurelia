@@ -7,6 +7,7 @@ import { IResourceKind, IResourceType } from '../resource';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindElement, $unbindElement } from './lifecycle-bind';
 import { $hydrateElement, defaultShadowOptions, ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
+import { ILibUiNode } from '../libui-dom';
 
 type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
 
@@ -30,13 +31,13 @@ export interface ICustomElement extends
 
   readonly $projector: IElementProjector;
   readonly $host: ICustomElementHost;
-  $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+  $hydrate(renderingEngine: IRenderingEngine, host: ILibUiNode, options?: IElementHydrationOptions): void;
 }
 
 export interface ICustomElementResource extends
   IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
 
-  behaviorFor(node: INode): ICustomElement | null;
+  behaviorFor(node: ILibUiNode): ICustomElement | null;
 }
 
 type CustomElementDecorator = <T>(target: PartialCustomElementType<T>) => T & ICustomElementType;
@@ -73,7 +74,7 @@ export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & Has
 
   function useShadowDOMDecorator(target: T & HasShadowOptions): T & Required<HasShadowOptions> {
     target.shadowOptions = options;
-    return target as T & Required<HasShadowOptions>;
+    return <T & Required<HasShadowOptions>>target;
   }
 
   return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
@@ -83,7 +84,7 @@ type HasContainerless = Pick<ITemplateDefinition, 'containerless'>;
 
 function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless> {
   target.containerless = true;
-  return target as T & Required<HasContainerless>;
+  return <T & Required<HasContainerless>>target;
 }
 
 /**
@@ -109,7 +110,7 @@ function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITem
     throw Reporter.error(70);
   }
   const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
-  const description = buildTemplateDefinition(Type as unknown as ICustomElementType, nameOrDefinition);
+  const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrDefinition);
   const proto: Writable<ICustomElement> = Type.prototype;
 
   Type.kind = CustomElementResource;
@@ -132,6 +133,7 @@ function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITem
 
   proto.$scope = null;
   proto.$hooks = 0;
+  proto.$state = State.needsMount;
 
   proto.$bindableHead = null;
   proto.$bindableTail = null;
@@ -176,14 +178,14 @@ function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITem
     proto.$nextDetached = null;
   }
 
-  return Type as ICustomElementType & T;
+  return <ICustomElementType & T>Type;
 }
 
 export const CustomElementResource: ICustomElementResource = {
   name: customElementName,
   keyFrom: customElementKey,
   isType,
-  behaviorFor: customElementBehavior as ICustomElementResource['behaviorFor'],
+  behaviorFor: <ICustomElementResource['behaviorFor']>customElementBehavior,
   define
 };
 

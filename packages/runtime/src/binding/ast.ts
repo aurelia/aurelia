@@ -1,13 +1,24 @@
 import { IIndexable, IServiceLocator, PLATFORM, Reporter, StrictPrimitive } from '@aurelia/kernel';
-import { IBindScope } from '../lifecycle';
-import { Collection, IBindingContext, IOverrideContext, IScope, LifecycleFlags, ObservedCollection } from '../observation';
+import { Collection, IOverrideContext, IScope, LifecycleFlags, ObservedCollection } from '../observation';
 import { IBinding } from './binding';
 import { BindingBehaviorResource } from './binding-behavior';
 import { BindingContext } from './binding-context';
 import { IConnectableBinding } from './connectable';
 import { ISignaler } from './signaler';
-import { IValueConverter, ValueConverterResource } from './value-converter';
+import { ValueConverterResource } from './value-converter';
 
+/**
+ * StrictAny is a somewhat strongly typed alternative to 'any', in an effort to try to get rid of all 'any''s
+ * It's not even remotely foolproof however, and this can largely be attributed to the fact that TypeScript imposes
+ * far more constraints on what arithmic is allowed than vanilla JS does.
+ * We don't necessarily want to impose the same constraints on users (e.g. by performing auto conversions or throwing),
+ * because even though that behavior would technically be "better", it could also be experienced as unpredictable.
+ * We'd generally not want to ask more of users than to simply understand how vanilla JS works, and let them account for its quirks themselves.
+ * This gives end users less framework-specific things to learn.
+ * Consequently, it's impossible to achieve any kind of strict type checking in the AST and generally in the observers.
+ * We're trying to achieve some middle ground by applying some explicit type casts where TypeScript would otherwise not allow compilation.
+ */
+export type StrictAny = StrictPrimitive | IIndexable | Function;
 export type IsPrimary = AccessThis | AccessScope | ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
 export type IsLiteral = ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
 export type IsLeftHandSide = IsPrimary | CallFunction | CallMember | CallScope | AccessMember | AccessKeyed | TaggedTemplate;
@@ -28,7 +39,8 @@ export type HasBind = BindingBehavior;
 export type HasUnbind = ValueConverter | BindingBehavior;
 export type HasAncestor = AccessThis | AccessScope | CallScope;
 
-export interface IVisitor<T = unknown> {
+// tslint:disable-next-line:no-any
+export interface IVisitor<T = any> {
   visitAccessKeyed(expr: AccessKeyed): T;
   visitAccessMember(expr: AccessMember): T;
   visitAccessScope(expr: AccessScope): T;
@@ -57,10 +69,10 @@ export interface IVisitor<T = unknown> {
 
 export interface IExpression {
   readonly $kind: ExpressionKind;
-  evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): unknown;
+  evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): StrictAny;
   connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
   accept<T>(visitor: IVisitor<T>): T;
-  assign?(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, value: unknown): unknown;
+  assign?(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, value: StrictAny): StrictAny;
   bind?(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
   unbind?(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
 }
@@ -197,11 +209,11 @@ export class BindingBehavior implements IExpression {
     this.expressionHasUnbind = hasUnbind(expression);
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return this.expression.evaluate(flags, scope, locator);
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
     return this.expression.assign(flags, scope, locator, value);
   }
 
@@ -235,7 +247,7 @@ export class BindingBehavior implements IExpression {
       throw Reporter.error(RuntimeError.BehaviorAlreadyApplied, this);
     }
     binding[behaviorKey] = behavior;
-    behavior.bind.apply(behavior, ([flags, scope, binding] as unknown[]).concat(evalList(flags, scope, locator, this.args)));
+    behavior.bind.apply(behavior, (<StrictAny[]>[flags, scope, binding]).concat(evalList(flags, scope, locator, this.args)));
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -267,11 +279,11 @@ export class ValueConverter implements IExpression {
     this.converterKey = ValueConverterResource.keyFrom(this.name);
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     if (!locator) {
       throw Reporter.error(RuntimeError.NoLocator, this);
     }
-    const converter = locator.get<ValueConverter & IValueConverter>(this.converterKey);
+    const converter = locator.get<ValueConverter & { toView(...args: (StrictAny)[]): StrictAny }>(this.converterKey);
     if (!converter) {
       throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
@@ -288,11 +300,11 @@ export class ValueConverter implements IExpression {
     return this.expression.evaluate(flags, scope, locator);
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
     if (!locator) {
       throw Reporter.error(RuntimeError.NoLocator, this);
     }
-    const converter = locator.get<ValueConverter & IValueConverter>(this.converterKey);
+    const converter = locator.get<ValueConverter & { fromView(...args: (StrictAny)[]): StrictAny }>(this.converterKey);
     if (!converter) {
       throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
@@ -364,7 +376,7 @@ export class Assign implements IExpression {
     this.value = value;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator));
   }
 
@@ -372,7 +384,7 @@ export class Assign implements IExpression {
     return;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
     this.value.assign(flags, scope, locator, value);
     return this.target.assign(flags, scope, locator, value);
   }
@@ -391,13 +403,13 @@ export class Conditional implements IExpression {
 
   constructor(condition: IsBinary, yes: IsAssign, no: IsAssign) {
     this.$kind = ExpressionKind.Conditional;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.condition = condition;
     this.yes = yes;
     this.no = no;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return (!!this.condition.evaluate(flags, scope, locator))
       ? this.yes.evaluate(flags, scope, locator)
       : this.no.evaluate(flags, scope, locator);
@@ -429,12 +441,12 @@ export class AccessThis implements IExpression {
 
   constructor(ancestor: number = 0) {
     this.$kind = ExpressionKind.AccessThis;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.connect = PLATFORM.noop;
     this.ancestor = ancestor;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | undefined {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     if (scope === undefined) {
       throw Reporter.error(RuntimeError.UndefinedScope, this);
     }
@@ -465,12 +477,12 @@ export class AccessScope implements IExpression {
     this.ancestor = ancestor;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | IBindScope | IOverrideContext {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     const name = this.name;
     return BindingContext.get(scope, name, this.ancestor)[name];
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
     const name = this.name;
     const context = BindingContext.get(scope, name, this.ancestor);
     return context ? (context[name] = value) : undefined;
@@ -498,13 +510,13 @@ export class AccessMember implements IExpression {
     this.name = name;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
-    const instance = this.object.evaluate(flags, scope, locator) as IIndexable;
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
+    const instance = this.object.evaluate(flags, scope, locator);
     return instance === null || instance === undefined ? instance : instance[this.name];
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
-    let instance = this.object.evaluate(flags, scope, locator) as IIndexable;
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
+    let instance = this.object.evaluate(flags, scope, locator);
     if (instance === null || typeof instance !== 'object') {
       instance = {};
       this.object.assign(flags, scope, locator, instance);
@@ -514,7 +526,7 @@ export class AccessMember implements IExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
-    const obj = this.object.evaluate(flags, scope, null) as IIndexable;
+    const obj = this.object.evaluate(flags, scope, null);
     this.object.connect(flags, scope, binding);
     if (obj) {
       binding.observeProperty(obj, this.name);
@@ -537,21 +549,23 @@ export class AccessKeyed implements IExpression {
     this.key = key;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
-    const instance = this.object.evaluate(flags, scope, locator) as IIndexable;
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
+    const instance = this.object.evaluate(flags, scope, locator);
     if (instance === null || instance === undefined) {
       return undefined;
     }
-    const key = this.key.evaluate(flags, scope, locator) as string;
+    const key = this.key.evaluate(flags, scope, locator);
     // note: getKeyed and setKeyed are removed because they are identical to the default spec behavior
     // and the runtime does this this faster
-    return instance[key];
+    // tslint:disable-next-line:no-any
+    return instance[<any>key];
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
-    const instance = this.object.evaluate(flags, scope, locator) as IIndexable;
-    const key = this.key.evaluate(flags, scope, locator) as string;
-    return instance[key] = value;
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
+    const instance = this.object.evaluate(flags, scope, locator);
+    const key = this.key.evaluate(flags, scope, locator);
+    // tslint:disable-next-line:no-any
+    return instance[<any>key] = value;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -563,7 +577,7 @@ export class AccessKeyed implements IExpression {
       // observe the property represented by the key as long as it's not an array indexer
       // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
       if (!(Array.isArray(obj) && isNumeric(key))) {
-        binding.observeProperty(obj, key as string);
+        binding.observeProperty(obj, key);
       }
     }
   }
@@ -582,13 +596,13 @@ export class CallScope implements IExpression {
 
   constructor(name: string, args: ReadonlyArray<IsAssign>, ancestor: number = 0) {
     this.$kind = ExpressionKind.CallScope;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.name = name;
     this.args = args;
     this.ancestor = ancestor;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): unknown {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): StrictAny {
     const args = evalList(flags, scope, locator, this.args);
     const context = BindingContext.get(scope, this.name, this.ancestor);
     const func = getFunction(flags, context, this.name);
@@ -619,14 +633,14 @@ export class CallMember implements IExpression {
 
   constructor(object: IsLeftHandSide, name: string, args: ReadonlyArray<IsAssign>) {
     this.$kind = ExpressionKind.CallMember;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.object = object;
     this.name = name;
     this.args = args;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
-    const instance = this.object.evaluate(flags, scope, locator) as IIndexable;
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
+    const instance = this.object.evaluate(flags, scope, locator);
     const args = evalList(flags, scope, locator, this.args);
     const func = getFunction(flags, instance, this.name);
     if (func) {
@@ -636,7 +650,7 @@ export class CallMember implements IExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
-    const obj = this.object.evaluate(flags, scope, null) as IIndexable;
+    const obj = this.object.evaluate(flags, scope, null);
     this.object.connect(flags, scope, binding);
     if (getFunction(flags & ~LifecycleFlags.mustEvaluate, obj, this.name)) {
       const args = this.args;
@@ -659,13 +673,13 @@ export class CallFunction implements IExpression {
 
   constructor(func: IsLeftHandSide, args: ReadonlyArray<IsAssign>) {
     this.$kind = ExpressionKind.CallFunction;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.func = func;
     this.args = args;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
-    const func = this.func.evaluate(flags, scope, locator);
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
+    const func = this.func.evaluate(flags, scope, locator) as StrictAny; // not sure why this cast is needed..
     if (typeof func === 'function') {
       return func.apply(null, evalList(flags, scope, locator, this.args));
     }
@@ -702,7 +716,7 @@ export class Binary implements IExpression {
 
   constructor(operation: BinaryOperator, left: IsBinary, right: IsBinary) {
     this.$kind = ExpressionKind.Binary;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.operation = operation;
     this.left = left;
     this.right = right;
@@ -710,10 +724,10 @@ export class Binary implements IExpression {
     // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
     // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less
     // work to do; we can do this because the operation can't change after it's parsed
-    this.evaluate = this[operation] as IExpression['evaluate'];
+    this.evaluate = this[operation];
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     throw Reporter.error(RuntimeError.UnknownOperator, this);
   }
 
@@ -726,10 +740,10 @@ export class Binary implements IExpression {
     this.right.connect(flags, scope, binding);
   }
 
-  private ['&&'](f: LifecycleFlags, s: IScope, l: IServiceLocator): unknown {
+  private ['&&'](f: LifecycleFlags, s: IScope, l: IServiceLocator): StrictAny {
     return this.left.evaluate(f, s, l) && this.right.evaluate(f, s, l);
   }
-  private ['||'](f: LifecycleFlags, s: IScope, l: IServiceLocator): unknown {
+  private ['||'](f: LifecycleFlags, s: IScope, l: IServiceLocator): StrictAny {
     return this.left.evaluate(f, s, l) || this.right.evaluate(f, s, l);
   }
   private ['=='](f: LifecycleFlags, s: IScope, l: IServiceLocator): boolean {
@@ -756,7 +770,7 @@ export class Binary implements IExpression {
   private ['in'](f: LifecycleFlags, s: IScope, l: IServiceLocator): boolean {
     const right = this.right.evaluate(f, s, l);
     if (right !== null && typeof right === 'object') {
-      return this.left.evaluate(f, s, l) as string in right;
+      return this.left.evaluate(f, s, l) in right;
     }
     return false;
   }
@@ -764,32 +778,37 @@ export class Binary implements IExpression {
   // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
   // this makes bugs in user code easier to track down for end users
   // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-  private ['+'](f: LifecycleFlags, s: IScope, l: IServiceLocator): number {
-    return (this.left.evaluate(f, s, l) as number) + (this.right.evaluate(f, s, l) as number);
+  private ['+'](f: LifecycleFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) + (<any>this.right.evaluate(f, s, l));
   }
-  private ['-'](f: LifecycleFlags, s: IScope, l: IServiceLocator): number {
-    return (this.left.evaluate(f, s, l) as number) - (this.right.evaluate(f, s, l) as number);
+  private ['-'](f: LifecycleFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) - (<any>this.right.evaluate(f, s, l));
   }
-  private ['*'](f: LifecycleFlags, s: IScope, l: IServiceLocator): number {
-    return (this.left.evaluate(f, s, l) as number) * (this.right.evaluate(f, s, l) as number);
+  private ['*'](f: LifecycleFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) * (<any>this.right.evaluate(f, s, l));
   }
-  private ['/'](f: LifecycleFlags, s: IScope, l: IServiceLocator): number {
-    return (this.left.evaluate(f, s, l) as number) / (this.right.evaluate(f, s, l) as number);
+  private ['/'](f: LifecycleFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) / (<any>this.right.evaluate(f, s, l));
   }
-  private ['%'](f: LifecycleFlags, s: IScope, l: IServiceLocator): number {
-    return (this.left.evaluate(f, s, l) as number) % (this.right.evaluate(f, s, l) as number);
+  private ['%'](f: LifecycleFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) % (<any>this.right.evaluate(f, s, l));
   }
   private ['<'](f: LifecycleFlags, s: IScope, l: IServiceLocator): boolean {
-    return (this.left.evaluate(f, s, l) as number) < (this.right.evaluate(f, s, l) as number);
+    return this.left.evaluate(f, s, l) < this.right.evaluate(f, s, l);
   }
   private ['>'](f: LifecycleFlags, s: IScope, l: IServiceLocator): boolean {
-    return (this.left.evaluate(f, s, l) as number) > (this.right.evaluate(f, s, l) as number);
+    return this.left.evaluate(f, s, l) > this.right.evaluate(f, s, l);
   }
   private ['<='](f: LifecycleFlags, s: IScope, l: IServiceLocator): boolean {
-    return (this.left.evaluate(f, s, l) as number) <= (this.right.evaluate(f, s, l) as number);
+    return this.left.evaluate(f, s, l) <= this.right.evaluate(f, s, l);
   }
   private ['>='](f: LifecycleFlags, s: IScope, l: IServiceLocator): boolean {
-    return (this.left.evaluate(f, s, l) as number) >= (this.right.evaluate(f, s, l) as number);
+    return this.left.evaluate(f, s, l) >= this.right.evaluate(f, s, l);
   }
 
   // tslint:disable-next-line:member-ordering
@@ -808,15 +827,16 @@ export class Unary implements IExpression {
 
   constructor(operation: UnaryOperator, expression: IsLeftHandSide) {
     this.$kind = ExpressionKind.Unary;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.operation = operation;
     this.expression = expression;
 
     // see Binary (we're doing the same thing here)
-    this.evaluate = this[operation] as IExpression['evaluate'];
+    // tslint:disable-next-line:no-any
+    this.evaluate = this[operation];
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     throw Reporter.error(RuntimeError.UnknownOperator, this);
   }
 
@@ -834,10 +854,10 @@ export class Unary implements IExpression {
     return !this.expression.evaluate(f, s, l);
   }
   public ['-'](f: LifecycleFlags, s: IScope, l: IServiceLocator): number {
-    return -(this.expression.evaluate(f, s, l) as number);
+    return -this.expression.evaluate(f, s, l);
   }
   public ['+'](f: LifecycleFlags, s: IScope, l: IServiceLocator): number {
-    return +(this.expression.evaluate(f, s, l) as number);
+    return +this.expression.evaluate(f, s, l);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -857,7 +877,7 @@ export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> 
 
   constructor(value: TValue) {
     this.$kind = ExpressionKind.PrimitiveLiteral;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.connect = PLATFORM.noop;
     this.value = value;
   }
@@ -878,7 +898,7 @@ export class HtmlLiteral implements IExpression {
 
   constructor(parts: ReadonlyArray<HtmlLiteral>) {
     this.$kind = ExpressionKind.HtmlLiteral;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.parts = parts;
   }
 
@@ -914,11 +934,11 @@ export class ArrayLiteral implements IExpression {
 
   constructor(elements: ReadonlyArray<IsAssign>) {
     this.$kind = ExpressionKind.ArrayLiteral;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.elements = elements;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): ReadonlyArray<unknown> {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): ReadonlyArray<StrictAny> {
     const elements = this.elements;
     const length = elements.length;
     const result = Array(length);
@@ -949,13 +969,13 @@ export class ObjectLiteral implements IExpression {
 
   constructor(keys: ReadonlyArray<number | string>, values: ReadonlyArray<IsAssign>) {
     this.$kind = ExpressionKind.ObjectLiteral;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.keys = keys;
     this.values = values;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): Record<string, unknown> {
-    const instance: Record<string, unknown> = {};
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): Record<string, StrictAny> {
+    const instance: Record<string, StrictAny> = {};
     const keys = this.keys;
     const values = this.values;
     for (let i = 0, ii = keys.length; i < ii; ++i) {
@@ -986,7 +1006,7 @@ export class Template implements IExpression {
 
   constructor(cooked: ReadonlyArray<string>, expressions?: ReadonlyArray<IsAssign>) {
     this.$kind = ExpressionKind.Template;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.cooked = cooked;
     this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
   }
@@ -1024,7 +1044,7 @@ export class TaggedTemplate implements IExpression {
 
   constructor(cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> }, raw: ReadonlyArray<string>, func: IsLeftHandSide, expressions?: ReadonlyArray<IsAssign>) {
     this.$kind = ExpressionKind.TaggedTemplate;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.cooked = cooked;
     this.cooked.raw = raw;
     this.func = func;
@@ -1038,7 +1058,7 @@ export class TaggedTemplate implements IExpression {
     for (let i = 0, ii = len; i < ii; ++i) {
       results[i] = expressions[i].evaluate(flags, scope, locator);
     }
-    const func = this.func.evaluate(flags, scope, locator);
+    const func = this.func.evaluate(flags, scope, locator) as StrictAny; // not sure why this cast is needed..
     if (typeof func !== 'function') {
       throw Reporter.error(RuntimeError.NotAFunction, this);
     }
@@ -1068,14 +1088,14 @@ export class ArrayBindingPattern implements IExpression {
     this.elements = elements;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
+  // tslint:disable-next-line:no-any
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): any {
     // TODO
-    return undefined;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): unknown {
+  // tslint:disable-next-line:no-any
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): any {
     // TODO
-    return undefined;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -1099,14 +1119,14 @@ export class ObjectBindingPattern implements IExpression {
     this.values = values;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
+  // tslint:disable-next-line:no-any
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): any {
     // TODO
-    return undefined;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): unknown {
+  // tslint:disable-next-line:no-any
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): any {
     // TODO
-    return undefined;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -1127,7 +1147,7 @@ export class BindingIdentifier implements IExpression {
     this.name = name;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return this.name;
   }
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -1153,12 +1173,12 @@ export class ForOfStatement implements IExpression {
 
   constructor(declaration: BindingIdentifierOrPattern, iterable: IsBindingBehavior) {
     this.$kind = ExpressionKind.ForOfStatement;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.declaration = declaration;
     this.iterable = iterable;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return this.iterable.evaluate(flags, scope, locator);
   }
 
@@ -1166,7 +1186,8 @@ export class ForOfStatement implements IExpression {
     return CountForOfStatement[toStringTag.call(result)](result);
   }
 
-  public iterate(result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
+  // tslint:disable-next-line:no-any
+  public iterate(result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: any) => void): void {
     IterateForOfStatement[toStringTag.call(result)](result, func);
   }
 
@@ -1194,7 +1215,7 @@ export class Interpolation implements IExpression {
   public readonly firstExpression: IsBindingBehavior;
   constructor(parts: ReadonlyArray<string>, expressions?: ReadonlyArray<IsBindingBehavior>) {
     this.$kind = ExpressionKind.Interpolation;
-    this.assign = PLATFORM.noop as () => unknown;
+    this.assign = PLATFORM.noop as () => StrictAny;
     this.parts = parts;
     this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
     this.isMulti = expressions.length > 1;
@@ -1257,7 +1278,7 @@ ForOfStatement.prototype.$kind = ExpressionKind.ForOfStatement;
 Interpolation.prototype.$kind = ExpressionKind.Interpolation;
 
 /// Evaluate the [list] in context of the [scope].
-function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, list: ReadonlyArray<IExpression>): unknown[] {
+function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, list: ReadonlyArray<IExpression>): StrictAny[] {
   const len = list.length;
   const result = Array(len);
   for (let i = 0; i < len; ++i) {
@@ -1266,7 +1287,7 @@ function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator
   return result;
 }
 
-function getFunction(flags: LifecycleFlags, obj: IIndexable, name: string): Function | null {
+function getFunction(flags: LifecycleFlags, obj: StrictAny, name: string): Function | null {
   const func = obj === null || obj === undefined ? null : obj[name];
   if (typeof func === 'function') {
     return func;
@@ -1277,14 +1298,14 @@ function getFunction(flags: LifecycleFlags, obj: IIndexable, name: string): Func
   throw Reporter.error(RuntimeError.NotAFunction, obj, name, func);
 }
 
-function isNumeric(value: unknown): value is number {
+function isNumeric(value: StrictAny): value is number {
   const valueType = typeof value;
   if (valueType === 'number') return true;
   if (valueType !== 'string') return false;
-  const len = (value as string).length;
+  const len = (<string>value).length;
   if (len === 0) return false;
   for (let i = 0; i < len; ++i) {
-    const char = (value as string).charCodeAt(i);
+    const char = (<string>value).charCodeAt(i);
     if (char < 0x30 /*0*/ || char > 0x39/*9*/) {
       return false;
     }
@@ -1294,12 +1315,12 @@ function isNumeric(value: unknown): value is number {
 
 /*@internal*/
 export const IterateForOfStatement = {
-  ['[object Array]'](result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Array]'](result: StrictAny[], func: (arr: Collection, index: number, item: StrictAny) => void): void {
     for (let i = 0, ii = result.length; i < ii; ++i) {
       func(result, i, result[i]);
     }
   },
-  ['[object Map]'](result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Map]'](result: Map<StrictAny, StrictAny>, func: (arr: Collection, index: number, item: StrictAny) => void): void {
     const arr = Array(result.size);
     let i = -1;
     for (const entry of result.entries()) {
@@ -1307,7 +1328,7 @@ export const IterateForOfStatement = {
     }
     IterateForOfStatement['[object Array]'](arr, func);
   },
-  ['[object Set]'](result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Set]'](result: Set<StrictAny>, func: (arr: Collection, index: number, item: StrictAny) => void): void {
     const arr = Array(result.size);
     let i = -1;
     for (const key of result.keys()) {
@@ -1315,26 +1336,26 @@ export const IterateForOfStatement = {
     }
     IterateForOfStatement['[object Array]'](arr, func);
   },
-  ['[object Number]'](result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Number]'](result: number, func: (arr: Collection, index: number, item: StrictAny) => void): void {
     const arr = Array(result);
     for (let i = 0; i < result; ++i) {
       arr[i] = i;
     }
     IterateForOfStatement['[object Array]'](arr, func);
   },
-  ['[object Null]'](result: null, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Null]'](result: null, func: (arr: Collection, index: number, item: StrictAny) => void): void {
     return;
   },
-  ['[object Undefined]'](result: null, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Undefined]'](result: null, func: (arr: Collection, index: number, item: StrictAny) => void): void {
     return;
   }
 };
 
 /*@internal*/
 export const CountForOfStatement = {
-  ['[object Array]'](result: unknown[]): number { return result.length; },
-  ['[object Map]'](result: Map<unknown, unknown>): number { return result.size; },
-  ['[object Set]'](result: Set<unknown>): number { return result.size; },
+  ['[object Array]'](result: StrictAny[]): number { return result.length; },
+  ['[object Map]'](result: Map<StrictAny, StrictAny>): number { return result.size; },
+  ['[object Set]'](result: Set<StrictAny>): number { return result.size; },
   ['[object Number]'](result: number): number { return result; },
   ['[object Null]'](result: null): number { return 0; },
   ['[object Undefined]'](result: null): number { return 0; }

@@ -150,8 +150,6 @@ export class Router {
         if (cancel) {
           this.historyBrowser.cancel();
         }
-        // tslint:disable-next-line:no-console
-        console.log('=========== ROUTER', this);
       }).then(() => {
         let viewportStates = this.rootScope.viewportStates();
         viewportStates = this.removeStateDuplicates(viewportStates);

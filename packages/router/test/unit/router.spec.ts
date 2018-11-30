@@ -14,7 +14,7 @@ describe('Router', () => {
     const { host, router } = setup();
     expect(host.textContent).to.contain('left');
     expect(host.textContent).to.contain('right');
-  })
+  });
 
   it('navigates to foo in left', async () => {
     const { host, router } = setup();
@@ -24,7 +24,20 @@ describe('Router', () => {
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
-  })
+    await freshState(router);
+  });
+
+  it('clears viewport', async () => {
+    const { host, router } = setup();
+    router.activate();
+    await Promise.resolve();
+    router.goto('/left:foo');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('foo');
+    await freshState(router);
+    expect(host.textContent).to.not.contain('foo');
+  });
 
   it('navigates to bar in right', async () => {
     const { host, router } = setup();
@@ -33,11 +46,10 @@ describe('Router', () => {
     router.goto('/right:bar');
     await Promise.resolve();
     await Promise.resolve();
-    console.log('*******************************************');
     console.log(host.textContent);
-    console.log('§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§');
-    expect(host.textContent).to.contain('foo');
-  })
+    expect(host.textContent).to.contain('bar');
+    await freshState(router);
+  });
 
   it('navigates to foo/bar in left/right', async () => {
     const { host, router } = setup();
@@ -48,8 +60,8 @@ describe('Router', () => {
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
     expect(host.textContent).to.contain('bar');
-  })
-
+    await freshState(router);
+  });
 });
 
 function setup() {
@@ -68,4 +80,10 @@ function setup() {
   container.register(<any>Router);
   const router = container.get(Router);
   return { au, container, host, router }
+}
+
+let freshState = async (router) => {
+  router.goto('left:-/right:-');
+  await Promise.resolve();
+  await Promise.resolve();
 }

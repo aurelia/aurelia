@@ -32,7 +32,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.
   }
 
   private getStringLength(): number {
-    return (<string>this.obj).length;
+    return (this.obj as string).length;
   }
   private returnUndefined(): undefined {
     return undefined;

@@ -49,8 +49,8 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public bound(flags: LifecycleFlags): void {
     let current = this.renderable.$bindableHead;
     while (current !== null) {
-      if ((<Binding>current).target === this && (<Binding>current).targetProperty === 'items') {
-        this.forOf = (<Binding>current).sourceExpression as ForOfStatement;
+      if ((current as Binding).target === this && (current as Binding).targetProperty === 'items') {
+        this.forOf = (current as Binding).sourceExpression as ForOfStatement;
         break;
       }
       current = current.$nextBind;

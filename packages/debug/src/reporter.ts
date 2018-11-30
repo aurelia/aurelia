@@ -35,7 +35,7 @@ export const Reporter: typeof RuntimeReporter = {...RuntimeReporter,
   error(code: number, ...params: unknown[]): Error {
     const info = getMessageInfoForCode(code);
     const error = new Error(info.message);
-    (<Error & {data: unknown}>error).data = params;
+    (error as Error & {data: unknown}).data = params;
     return error;
   }};
 

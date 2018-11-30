@@ -81,7 +81,7 @@ function define<T>(this: ICustomAttributeResource, name: string, ctor: T): T & I
 function define<T>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType;
 function define<T>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
   const Type = ctor as T & Writable<ICustomAttributeType>;
-  const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, <T & ICustomAttributeType>Type);
+  const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type as T & ICustomAttributeType);
   const proto: Writable<ICustomAttribute> = Type.prototype;
 
   Type.kind = CustomAttributeResource;
@@ -135,7 +135,7 @@ function define<T>(this: ICustomAttributeResource, nameOrDefinition: string | IA
     proto.$nextDetached = null;
   }
 
-  return <ICustomAttributeType & T>Type;
+  return Type as ICustomAttributeType & T;
 }
 
 export const CustomAttributeResource: ICustomAttributeResource = {

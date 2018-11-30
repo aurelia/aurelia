@@ -3,7 +3,7 @@ import { DOM, IAttr, INode } from '@aurelia/runtime';
 import { AttrSyntax, ElementSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 
-const domParser = <HTMLDivElement>DOM.createElement('div');
+const domParser = DOM.createElement('div') as HTMLDivElement;
 
 export const enum NodeType {
   Element = 1,
@@ -49,7 +49,7 @@ export class ElementParser implements IElementParser {
     let children: ElementSyntax[];
     let content: ElementSyntax;
     if (node.nodeName === 'TEMPLATE') {
-      content = this.parse((<HTMLTemplateElement>node).content);
+      content = this.parse((node as HTMLTemplateElement).content);
       children = PLATFORM.emptyArray as ElementSyntax[];
     } else {
       content = null;

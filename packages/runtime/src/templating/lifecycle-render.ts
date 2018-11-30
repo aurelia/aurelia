@@ -189,7 +189,7 @@ export class RenderingEngine implements IRenderingEngine {
 
       //If the element has a view, support Recursive Components by adding self to own view template container.
       if (found.renderContext !== null && componentType) {
-        componentType.register(<ExposedContext>found.renderContext);
+        componentType.register(found.renderContext as ExposedContext);
       }
 
       this.templateLookup.set(definition, found);
@@ -228,7 +228,7 @@ export class RenderingEngine implements IRenderingEngine {
   }
 
   private templateFromSource(definition: TemplateDefinition, parentContext?: IRenderContext): ITemplate {
-    parentContext = parentContext || <ExposedContext>this.container;
+    parentContext = parentContext || this.container as ExposedContext;
 
     if (definition && definition.template) {
       if (definition.build.required) {
@@ -239,7 +239,7 @@ export class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(<ITemplateDefinition>definition, new RuntimeCompilationResources(<ExposedContext>parentContext), ViewCompileFlags.surrogate);
+        definition = compiler.compile(definition as ITemplateDefinition, new RuntimeCompilationResources(parentContext as ExposedContext), ViewCompileFlags.surrogate);
       }
 
       return new CompiledTemplate(this, parentContext, definition);
@@ -535,8 +535,8 @@ export class CompiledTemplate implements ITemplate {
   }
 
   public render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (<Writable<IRenderable>>renderable).$nodes = this.factory.createNodeSequence();
-    (<Writable<IRenderable>>renderable).$context = this.renderContext;
+    const nodes = (renderable as Writable<IRenderable>).$nodes = this.factory.createNodeSequence();
+    (renderable as Writable<IRenderable>).$context = this.renderContext;
     this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, parts);
   }
 }
@@ -546,8 +546,8 @@ export class CompiledTemplate implements ITemplate {
 export const noViewTemplate: ITemplate = {
   renderContext: null,
   render(renderable: IRenderable): void {
-    (<Writable<IRenderable>>renderable).$nodes = NodeSequence.empty;
-    (<Writable<IRenderable>>renderable).$context = null;
+    (renderable as Writable<IRenderable>).$nodes = NodeSequence.empty;
+    (renderable as Writable<IRenderable>).$context = null;
   }
 };
 
@@ -555,7 +555,7 @@ export const noViewTemplate: ITemplate = {
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
 export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext {
-  const context = <ExposedContext>parentRenderContext.createChild();
+  const context = parentRenderContext.createChild() as ExposedContext;
   const renderableProvider = new InstanceProvider();
   const elementProvider = new InstanceProvider();
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();

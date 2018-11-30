@@ -6,7 +6,7 @@ import {
 
 export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
   return function(target: Function): void {
-    const proto = <ISubscriberCollection<MutationKind.instance | MutationKind.collection>>target.prototype;
+    const proto = target.prototype as ISubscriberCollection<MutationKind.instance | MutationKind.collection>;
 
     proto._subscriberFlags = SubscriberFlags.None;
     proto._subscriber0 = null;
@@ -183,7 +183,7 @@ function hasSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, s
 
 export function batchedSubscriberCollection(): ClassDecorator {
   return function(target: Function): void {
-    const proto = <IBatchedSubscriberCollection<MutationKind.collection>>target.prototype;
+    const proto = target.prototype as IBatchedSubscriberCollection<MutationKind.collection>;
 
     proto._batchedSubscriberFlags = SubscriberFlags.None;
     proto._batchedSubscriber0 = null;

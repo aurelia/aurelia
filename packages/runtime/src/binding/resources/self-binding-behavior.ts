@@ -7,7 +7,7 @@ import { Listener } from '../listener';
 
 /*@internal*/
 export function handleSelfEvent(this: SelfableBinding, event: Event): ReturnType<Listener['callSource']> {
-  const target = <INode><unknown>findOriginalEventTarget(event);
+  const target = findOriginalEventTarget(event) as unknown as INode;
 
   if (this.target !== target) {
     return;

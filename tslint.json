@@ -244,7 +244,7 @@
     "file-header": false,  // enable this rule only if you are legally required to add a file header
     "import-blacklist": false,  // enable and configure this as you desire
     "interface-over-type-literal": false,  // there are plenty of reasons to prefer interfaces
-    "no-angle-bracket-type-assertion": false,  // pick either type-cast format and use it consistently
+    "no-angle-bracket-type-assertion": true,  // pick either type-cast format and use it consistently
     "no-inferred-empty-object-type": false,  // if the compiler is satisfied then this is probably not an issue
     "no-internal-module": false, // only enable this if you are not using internal modules
     "no-magic-numbers": false,  // by default it will find too many false positives

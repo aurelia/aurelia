@@ -714,11 +714,11 @@ export class Lifecycle implements ILifecycle {
     this.flushHead = this;
     this.flushTail = this;
 
-    this.connectHead = <IConnectableBinding><unknown>this; // this cast is safe because we know exactly which properties we'll use
-    this.connectTail = <IConnectableBinding><unknown>this;
+    this.connectHead = this as unknown as IConnectableBinding; // this cast is safe because we know exactly which properties we'll use
+    this.connectTail = this as unknown as IConnectableBinding;
 
-    this.patchHead = <IConnectableBinding><unknown>this;
-    this.patchTail = <IConnectableBinding><unknown>this;
+    this.patchHead = this as unknown as IConnectableBinding;
+    this.patchTail = this as unknown as IConnectableBinding;
 
     this.boundHead = this;
     this.boundTail = this;
@@ -879,7 +879,7 @@ export class Lifecycle implements ILifecycle {
     if (this.connectCount > 0) {
       this.connectCount = 0;
       let current = this.connectHead.$nextConnect;
-      this.connectHead = this.connectTail = <IConnectableBinding><unknown>this;
+      this.connectHead = this.connectTail = this as unknown as IConnectableBinding;
       let next: typeof current;
       do {
         current.connect(flags);
@@ -901,7 +901,7 @@ export class Lifecycle implements ILifecycle {
     while (this.patchCount > 0) {
       this.patchCount = 0;
       let current = this.patchHead.$nextPatch;
-      this.patchHead = this.patchTail = <IConnectableBinding><unknown>this;
+      this.patchHead = this.patchTail = this as unknown as IConnectableBinding;
       let next: typeof current;
       do {
         current.patch(flags);

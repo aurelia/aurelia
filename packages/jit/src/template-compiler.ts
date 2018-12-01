@@ -49,7 +49,6 @@ import {
   LetElementSymbol,
   NodeSymbol,
   PlainElementSymbol,
-  ResourceLocator,
   SemanticModel,
   SlotElementSymbol,
   SurrogateElementSymbol,
@@ -62,6 +61,7 @@ import {
 import {
   TemplateFactory
 } from './template-factory';
+import { MetadataModel } from './metadata-model';
 
 // tslint:disable-next-line:no-any
 const emptyArray = PLATFORM.emptyArray as any[];
@@ -357,13 +357,13 @@ export class NodePreprocessor implements ISymbolVisitor {
       return;
     }
     const currentNode = this.currentNode;
-    if (currentNode.kind === SymbolKind.surrogateElement && currentNode.templateController === null) {
-      // the surrogate is still free, so assign it the template controller and return early
-      currentNode.templateController = symbol;
-      symbol.targetSurrogate = currentNode;
-      if (Tracer.enabled) { Tracer.leave(); }
-      return;
-    }
+    // if (currentNode.kind === SymbolKind.surrogateElement && currentNode.templateController === null) {
+    //   // the surrogate is still free, so assign it the template controller and return early
+    //   currentNode.templateController = symbol;
+    //   symbol.targetSurrogate = currentNode;
+    //   if (Tracer.enabled) { Tracer.leave(); }
+    //   return;
+    // }
     // move the content to a new surrogate and assign it the template controller
     const template = DOM.createTemplate();
     currentNode.liftTo(template.content);
@@ -467,7 +467,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   public compile(definition: ITemplateDefinition, resources: IResourceDescriptions): TemplateDefinition {
     const model = new SemanticModel(
-      new ResourceLocator(resources),
+      new MetadataModel(resources),
       this.attrParser,
       new TemplateFactory(),
       this.exprParser

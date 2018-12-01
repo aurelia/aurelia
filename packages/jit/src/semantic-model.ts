@@ -1,9 +1,10 @@
-import { Immutable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { Immutable, PLATFORM, Reporter, Tracer, Class, Constructable, IContainer, IResolver } from '@aurelia/kernel';
 import { AttributeDefinition, BindingType, CustomAttributeResource, CustomElementResource, DOM, IAttr, IBindableDescription, IChildNode, IDocumentFragment, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IResourceDescriptions, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, TemplateDefinition, BindingMode, IsBindingBehavior, TargetedInstruction, ToViewBindingInstruction, OneTimeBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, TargetedInstructionType, HydrateTemplateController, HydrateAttributeInstruction, InterpolationInstruction, TextBindingInstruction, HydrateElementInstruction } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
 import { ITemplateFactory } from './template-factory';
+import { MetadataModel, ElementInfo, BindableInfo, AttributeInfo } from './metadata-model';
 
 const slice = Array.prototype.slice;
 
@@ -39,62 +40,6 @@ export const enum SymbolKind {
   bindingCommand              = 0b100000000_0_000000_00_000,
 }
 
-export interface IResourceLocator {
-  getAttributeDefinition(name: string): AttributeDefinition | null;
-  getElementDefinition(name: string): TemplateDefinition | null;
-  getBindingCommand(name: string): IBindingCommand | null;
-}
-
-export class ResourceLocator implements IResourceLocator {
-  private readonly resources: IResourceDescriptions;
-
-  private readonly attrDefCache: Record<string, AttributeDefinition>;
-  private readonly elDefCache: Record<string, TemplateDefinition>;
-  private readonly commandCache: Record<string, IBindingCommand>;
-
-  constructor(resources: IResourceDescriptions) {
-    this.resources = resources;
-    this.attrDefCache = {};
-    this.elDefCache = {};
-    this.commandCache = {};
-  }
-
-  public getAttributeDefinition(name: string): AttributeDefinition | null  {
-    if (Tracer.enabled) { Tracer.enter('ResourceLocator.getAttributeDefinition', slice.call(arguments)); }
-    const existing = this.attrDefCache[name];
-    if (existing !== undefined) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return existing;
-    }
-    const definition = this.resources.find(CustomAttributeResource, name);
-    if (Tracer.enabled) { Tracer.leave(); }
-    return this.attrDefCache[name] = definition === undefined ? null : definition;
-  }
-
-  public getElementDefinition(name: string): TemplateDefinition | null {
-    if (Tracer.enabled) { Tracer.enter('ResourceLocator.getElementDefinition', slice.call(arguments)); }
-    const existing = this.elDefCache[name];
-    if (existing !== undefined) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return existing;
-    }
-    const definition = this.resources.find(CustomElementResource, name.toLowerCase()) as TemplateDefinition;
-    if (Tracer.enabled) { Tracer.leave(); }
-    return this.elDefCache[name] = definition === undefined ? null : definition;
-  }
-
-  public getBindingCommand(name: string): IBindingCommand | null  {
-    if (Tracer.enabled) { Tracer.enter('ResourceLocator.getBindingCommand', slice.call(arguments)); }
-    const existing = this.commandCache[name];
-    if (existing !== undefined) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return existing;
-    }
-    const instance = this.resources.create(BindingCommandResource, name);
-    if (Tracer.enabled) { Tracer.leave(); }
-    return this.commandCache[name] = instance === undefined ? null : instance;
-  }
-}
 
 function createMarker(): IElement {
   const marker = DOM.createElement('au-m');
@@ -102,35 +47,23 @@ function createMarker(): IElement {
   return marker;
 }
 
-function findBindable(name: string, descriptions: Record<string, Immutable<IBindableDescription>>): IBindableDescription {
-  let prop: string;
-  let b: IBindableDescription;
-  for (prop in descriptions) {
-    b = descriptions[prop];
-    if (b.attribute === name) {
-      return b;
-    }
-  }
-  return null;
-}
-
 export class SemanticModel {
   public readonly root: CompilationTarget;
 
-  private readonly locator: ResourceLocator;
+  private readonly metadata: MetadataModel;
   private readonly attrParser: IAttributeParser;
   private readonly factory: ITemplateFactory;
   private readonly exprParser: IExpressionParser;
 
   constructor(
-    locator: ResourceLocator,
+    metadata: MetadataModel,
     attrParser: IAttributeParser,
     factory: ITemplateFactory,
     exprParser: IExpressionParser
   ) {
     this.root = null;
 
-    this.locator = locator;
+    this.metadata = metadata;
     this.attrParser = attrParser;
     this.factory = factory;
     this.exprParser = exprParser;
@@ -164,9 +97,9 @@ export class SemanticModel {
         case 'LET':
           return new LetElementSymbol(node as IHTMLElement, parentNode);
       }
-      const nodeName = node.getAttribute('as-element') || node.nodeName;
-      const definition = this.locator.getElementDefinition(nodeName);
-      return definition === null ? new PlainElementSymbol(node as IHTMLElement, parentNode) : new CustomElementSymbol(node as IHTMLElement, parentNode, definition);
+      const nodeName = (node.getAttribute('as-element') || node.nodeName).toLowerCase();
+      const info = this.metadata.elements[nodeName];
+      return info === undefined ? new PlainElementSymbol(node as IHTMLElement, parentNode) : new CustomElementSymbol(node as IHTMLElement, parentNode, info);
     }
     return null;
   }
@@ -177,44 +110,37 @@ export class SemanticModel {
 
   public createAttributeSymbol(attr: IAttr, el: ElementSymbol | CompilationTarget): AttributeSymbol {
     const { name, value } = attr;
-    const { locator, attrParser, exprParser } = this;
+    const { metadata, attrParser, exprParser } = this;
     let expr: IsExpressionOrStatement = null;
     let cmd: IBindingCommand = null;
     const attrSyntax = attrParser.parse(name, value);
     const command = attrSyntax.command;
+    if (command !== null) {
+      cmd = metadata.commands[command];
+    }
     const target = attrSyntax.target;
-    const attrDef = locator.getAttributeDefinition(target);
-    if (attrDef === null) {
+    const attrInfo = metadata.attributes[target];
+    if (attrInfo === undefined) {
       // attribute is not a known resource, see if it's a bound attribute or interpolation
       if (el.kind === SymbolKind.customElement) {
-        const elBindable = findBindable(target, el.definition.bindables);
-        if (elBindable !== null) {
-          return new ElementBindingSymbol(attr, el, cmd, attrSyntax, expr, elBindable, el.definition);
+        const elBindable = el.info.bindables[target];
+        if (elBindable !== undefined) {
+          expr = exprParser.parse(value, command === null ? BindingType.Interpolation : BindingType.None); // TODO: consolidate binding types
+          return new ElementBindingSymbol(attr, el, cmd, attrSyntax, expr, elBindable);
         }
       }
-      if (command === null) {
-        expr = exprParser.parse(value, BindingType.Interpolation);
-        return expr === null ? null : new AttributeInterpolationSymbol(attr, el, expr);
-      }
-      cmd = locator.getBindingCommand(command);
-      if (cmd === null) {
+      if (command === null || cmd === null) {
         expr = exprParser.parse(value, BindingType.Interpolation);
         return expr === null ? null : new AttributeInterpolationSymbol(attr, el, expr);
       }
       return new BoundAttributeSymbol(attr, el, cmd, attrSyntax, expr);
     }
     // it's a custom attribute
-
-    const attrBindable = findBindable(target, attrDef.bindables);
-    const Ctor = attrDef.isTemplateController ? TemplateControllerAttributeSymbol : CustomAttributeSymbol;
-    if (attr.value.length === 0) {
-      return new Ctor(attr, el, attrDef, null, attrSyntax, null, attrBindable);
+    if (attrInfo.isTemplateController) {
+      return new TemplateControllerAttributeSymbol(attr, el, attrInfo, cmd, attrSyntax, expr);
+    } else {
+      return new CustomAttributeSymbol(attr, el, attrInfo, cmd, attrSyntax, expr);
     }
-    if (command === null) {
-      return new Ctor(attr, el, attrDef, null, attrSyntax, expr, attrBindable);
-    }
-    cmd = locator.getBindingCommand(command);
-    return new Ctor(attr, el, attrDef, cmd, attrSyntax, expr, attrBindable);
   }
 }
 
@@ -599,18 +525,18 @@ export class CustomElementSymbol implements IParentElementSymbol {
   public headAttr: AttributeSymbol;
   public tailAttr: AttributeSymbol;
 
-  public definition: TemplateDefinition;
+  public info: ElementInfo;
   public targetCount: number;
 
   public get childNodes(): ArrayLike<IChildNode> {
     return this.element.childNodes;
   }
 
-  constructor(element: IHTMLElement, parentNode: ParentElementSymbol, definition: TemplateDefinition) {
+  constructor(element: IHTMLElement, parentNode: ParentElementSymbol, info: ElementInfo) {
     this.kind = SymbolKind.customElement;
     this.element = element;
     this.parentNode = parentNode;
-    this.nodeName = element.getAttribute('as-element') || element.nodeName;
+    this.nodeName = (element.getAttribute('as-element') || element.nodeName).toLowerCase();
     this.partName = element.getAttribute('part');
     this.replacePartName = element.getAttribute('replace-part');
     this.refName = element.getAttribute('ref');
@@ -618,7 +544,7 @@ export class CustomElementSymbol implements IParentElementSymbol {
     this.headNode = null;
     this.headAttr = null;
     this.tailAttr = null;
-    this.definition = definition;
+    this.info = info;
     this.targetCount = 0;
   }
 
@@ -644,11 +570,11 @@ export class CustomElementSymbol implements IParentElementSymbol {
       attr = attr.nextAttr;
     }
 
-    row.push(new HydrateElementInstruction(this.definition.name, bindables, {}/*TODO*/), ...siblings);
+    row.push(new HydrateElementInstruction(this.nodeName, bindables, {}/*TODO*/), ...siblings);
 
     let el = this.headNode;
     while (el !== null) {
-      el.compile(this.definition as ITemplateDefinition, rows, row, flags);
+      el.compile(definition, rows, row, flags);
       if (row.length > 0) {
         rows.push(row);
         row = [];
@@ -742,32 +668,28 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
 
   public nextAttr: AttributeSymbol;
 
-  public definition: AttributeDefinition;
+  public info: AttributeInfo;
 
   public command: IBindingCommand | null;
   public syntax: AttrSyntax;
   public expr: IsExpressionOrStatement | null;
 
-  public bindable: IBindableDescription;
-
   constructor(
     attr: IAttr,
     owner: IElementSymbol,
-    definition: AttributeDefinition,
+    info: AttributeInfo,
     command: IBindingCommand | null,
     syntax: AttrSyntax,
-    expr: IsExpressionOrStatement | null,
-    bindable: IBindableDescription
+    expr: IsExpressionOrStatement | null
   ) {
     this.kind = SymbolKind.customAttribute;
     this.attr = attr;
     this.owner = owner;
     this.nextAttr = null;
-    this.definition = definition;
+    this.info = info;
     this.command = command;
     this.syntax = syntax;
     this.expr = expr;
-    this.bindable = bindable;
   }
 
   public accept(visitor: ISymbolVisitor): void {
@@ -775,8 +697,7 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
-    const bindingInstruction = createCustomAttributeBindingInstruction(this);
-    const bindingInstructions = bindingInstruction === null ? emptyArray : [bindingInstruction];
+    const bindingInstructions = this.expr === null ? emptyArray : [this.command === null ? new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName) : this.command.compile(this)];
     row.push(new HydrateAttributeInstruction(this.syntax.target, bindingInstructions));
   }
 }
@@ -788,7 +709,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
 
   public nextAttr: AttributeSymbol;
 
-  public definition: AttributeDefinition;
+  public info: AttributeInfo;
 
   public command: IBindingCommand | null;
   public syntax: AttrSyntax;
@@ -796,27 +717,23 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
 
   public targetSurrogate: SurrogateElementSymbol;
 
-  public bindable: IBindableDescription;
-
   constructor(
     attr: IAttr,
     owner: IElementSymbol,
-    definition: AttributeDefinition,
+    info: AttributeInfo,
     command: IBindingCommand | null,
     syntax: AttrSyntax,
-    expr: IsExpressionOrStatement | null,
-    bindable: IBindableDescription
+    expr: IsExpressionOrStatement | null
   ) {
     this.kind = SymbolKind.templateControllerAttribute;
     this.attr = attr;
     this.owner = owner as LiftableElementSymbol;
     this.nextAttr = null;
-    this.definition = definition;
+    this.info = info;
     this.command = command;
     this.syntax = syntax;
     this.expr = expr;
     this.targetSurrogate = null;
-    this.bindable = bindable;
   }
 
   public accept(visitor: ISymbolVisitor): void {
@@ -824,9 +741,9 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
-    let instruction = createCustomAttributeBindingInstruction(this);
+    let instruction = this.expr === null ? null : this.command === null ? new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName) : this.command.compile(this);
     if (instruction === null || instruction.type !== TargetedInstructionType.hydrateTemplateController) {
-      const name = this.definition.name;
+      const name = this.syntax.target;
       const def: ITemplateDefinition = {
         name,
         instructions: [],
@@ -920,8 +837,7 @@ export class ElementBindingSymbol implements IAttributeSymbol {
   public syntax: AttrSyntax;
   public expr: IsExpressionOrStatement;
 
-  public bindable: IBindableDescription;
-  public elDef: TemplateDefinition;
+  public info: BindableInfo;
 
   constructor(
     attr: IAttr,
@@ -929,8 +845,7 @@ export class ElementBindingSymbol implements IAttributeSymbol {
     command: IBindingCommand,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement,
-    bindable: IBindableDescription,
-    elDef: TemplateDefinition
+    info: BindableInfo
   ) {
     this.kind = SymbolKind.elementBinding;
     this.attr = attr;
@@ -939,8 +854,7 @@ export class ElementBindingSymbol implements IAttributeSymbol {
     this.command = command;
     this.syntax = syntax;
     this.expr = expr;
-    this.bindable = bindable;
-    this.elDef = elDef;
+    this.info = info;
   }
 
   public accept(visitor: ISymbolVisitor): void {
@@ -948,7 +862,8 @@ export class ElementBindingSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
-    row.push(createCustomElementBindingInstruction(this));
+    const instruction = this.command === null ? new BindingInstruction[this.info.mode](this.expr as IsBindingBehavior, this.info.propName) : this.command.compile(this);
+    row.push(instruction);
   }
 }
 
@@ -1032,79 +947,6 @@ export class BindingCommandSymbol implements ISymbol {
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     return null;
   }
-}
-
-/**
- * Create a `TargetedInstruction` based on an attribute that matches the name of a declared
- * bindable property on the custom element.
- */
-function createCustomElementBindingInstruction(symbol: ElementBindingSymbol): TargetedInstruction {
-  if (symbol.expr === null) {
-    // Invalid binding expression (e.g. something.bind="" or something.bind (without assignment))
-    throw Reporter.error(0); // TODO: organize error codes
-  }
-  if (symbol.command !== null && symbol.command.handles(symbol)) {
-    return symbol.command.compile(symbol);
-  }
-  // we can assume bindable to be defined or the attribute would not have been identified as a
-  // binding during preprocessing
-  const bindable = symbol.bindable;
-  // pre-set the default toView
-  let mode: BindingMode = BindingMode.toView;
-  if (bindable.mode !== BindingMode.default && bindable.mode !== undefined) {
-    // override the default with the mode specified in the @bindable decorator, if it's something other than the default
-    mode = bindable.mode;
-  }
-  let property: string = null;
-  if (bindable.property !== undefined) {
-    // prefer to use the property defined in the @bindable decorator (by default it's always the class prop name)
-    property = bindable.property;
-  } else {
-    // only as a last resort, if there is no property name, use the camelCased attribute name
-    property = PLATFORM.camelCase(bindable.attribute);
-  }
-  return new BindingInstruction[mode](symbol.expr as IsBindingBehavior, property);
-}
-
-/**
- * Create a `TargetedInstruction` based on a single (that is, not semicolon-separated) binding
- * to a regular custom attribute or to a template controller.
- *
- * Will return `null` if the expression is null, in which case the return value should not be added
- * to the instructions.
- */
-function createCustomAttributeBindingInstruction(symbol: CustomAttributeSymbol | TemplateControllerAttributeSymbol): TargetedInstruction | null {
-  // a null expression means the attribute either has no value or is empty, so return no binding instruction
-  if (symbol.expr === null) {
-    return null;
-  }
-  // the binding command gets priority over conventions
-  if (symbol.command !== null && symbol.command.handles(symbol)) {
-    return symbol.command.compile(symbol);
-  }
-  const bindable = symbol.bindable;
-  const definition = symbol.definition;
-  // pre-set the default toView
-  let mode: BindingMode = BindingMode.toView;
-  if (bindable !== null && bindable.mode !== undefined && bindable.mode !== BindingMode.default) {
-    // override the default with the mode specified in the @bindable decorator, if it's something other than the default
-    mode = bindable.mode;
-  } else if (definition.defaultBindingMode !== undefined && definition.defaultBindingMode !== BindingMode.default) {
-    // as a last fallback, use the defaultBindingMode declared on the attribute level
-    mode = definition.defaultBindingMode;
-  }
-  let property: string = 'value';
-  // pre-set the default 'value' for custom attributes
-  if (bindable !== null && bindable.attribute !== undefined) {
-    if (bindable.property !== undefined) {
-      // prefer to use the property defined in the @bindable decorator (by default it's always the class prop name)
-      property = bindable.property;
-    } else if (bindable.attribute !== undefined) {
-      // only as a last resort, if there is no property name, use the camelCased attribute name
-      property = PLATFORM.camelCase(bindable.attribute);
-    }
-  }
-  return new BindingInstruction[mode](symbol.expr as IsBindingBehavior, property);
 }
 
 const BindingInstruction = [

@@ -1,8 +1,9 @@
+import { IIndexable, Primitive } from '../../kernel';
 import { DOM, IElement, IInputElement, INode, INodeObserver } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import {
   CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver,
-  IndexMap, IPropertySubscriber, LifecycleFlags, ObserversLookup
+  IndexMap, IObserversLookup,  IPropertySubscriber, LifecycleFlags
 } from '../observation';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
@@ -37,26 +38,23 @@ const inputValueDefaults = {
 const handleEventFlags = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
 
 export interface ValueAttributeObserver extends
-  IBindingTargetObserver<INode, string> { }
+  IBindingTargetObserver<INode, string, Primitive | IIndexable> { }
 
 @targetObserver('')
 export class ValueAttributeObserver implements ValueAttributeObserver {
+  public currentValue: Primitive | IIndexable;
   public currentFlags: LifecycleFlags;
-  public currentValue: unknown;
-  public defaultValue: unknown;
-  public oldValue: unknown;
+  public oldValue: Primitive | IIndexable;
+  public defaultValue: Primitive | IIndexable;
+
   public flush: () => void;
-  public handler: IEventSubscriber;
-  public lifecycle: ILifecycle;
-  public obj: INode;
-  public propertyKey: string;
 
-  constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber) {
-    this.handler = handler;
-    this.lifecycle = lifecycle;
-    this.obj = obj;
-    this.propertyKey = propertyKey;
-
+  constructor(
+    public lifecycle: ILifecycle,
+    public obj: INode,
+    public propertyKey: string,
+    public handler: IEventSubscriber
+  ) {
     // note: input.files can be assigned and this was fixed in Firefox 57:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
 
@@ -73,11 +71,11 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
     this.oldValue = this.currentValue = obj[propertyKey];
   }
 
-  public getValue(): unknown {
+  public getValue(): Primitive | IIndexable {
     return this.obj[this.propertyKey];
   }
 
-  public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
+  public setValueCore(newValue: Primitive | IIndexable, flags: LifecycleFlags): void {
     this.obj[this.propertyKey] = newValue;
     if (flags & LifecycleFlags.fromBind) {
       return;
@@ -110,9 +108,11 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
 
   private flushFileChanges(): void {
     const currentValue = this.currentValue;
-    if (this.oldValue !== currentValue && currentValue === '') {
-      this.setValueCore(currentValue, this.currentFlags);
-      this.oldValue = this.currentValue;
+    if (this.oldValue !== currentValue) {
+      if (currentValue === '') {
+        this.setValueCore(currentValue, this.currentFlags);
+        this.oldValue = this.currentValue;
+      }
     }
   }
 }
@@ -124,45 +124,42 @@ const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlag
 
 interface IInternalInputElement extends IInputElement {
   matcher?: typeof defaultMatcher;
-  model?: unknown;
-  $observers?: ObserversLookup & {
+  model?: Primitive | IIndexable;
+  $observers?: IObserversLookup & {
     model?: SetterObserver;
     value?: ValueAttributeObserver;
   };
 }
 
 export interface CheckedObserver extends
-  IBindingTargetObserver<IInternalInputElement, string>,
+  IBindingTargetObserver<IInternalInputElement, string, Primitive | IIndexable>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
 @targetObserver()
 export class CheckedObserver implements CheckedObserver {
+  public currentValue: Primitive | IIndexable;
   public currentFlags: LifecycleFlags;
-  public currentValue: unknown;
-  public defaultValue: unknown;
+  public oldValue: Primitive | IIndexable;
+  public defaultValue: Primitive | IIndexable;
+
   public flush: () => void;
-  public handler: IEventSubscriber;
-  public lifecycle: ILifecycle;
-  public obj: IInternalInputElement;
-  public observerLocator: IObserverLocator;
-  public oldValue: unknown;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver | SetterObserver;
 
-  constructor(lifecycle: ILifecycle, obj: IInternalInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
-    this.handler = handler;
-    this.lifecycle = lifecycle;
-    this.obj = obj;
-    this.observerLocator = observerLocator;
-  }
+  constructor(
+    public lifecycle: ILifecycle,
+    public obj: IInternalInputElement,
+    public handler: IEventSubscriber,
+    public observerLocator: IObserverLocator
+  ) { }
 
-  public getValue(): unknown {
+  public getValue(): Primitive | IIndexable {
     return this.currentValue;
   }
 
-  public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
+  public setValueCore(newValue: Primitive | IIndexable, flags: LifecycleFlags): void {
     if (!this.valueObserver) {
       this.valueObserver = this.obj['$observers'] && (this.obj['$observers'].model || this.obj['$observers'].value);
       if (this.valueObserver) {
@@ -187,7 +184,7 @@ export class CheckedObserver implements CheckedObserver {
   }
 
   // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: Primitive | IIndexable, previousValue: Primitive | IIndexable, flags: LifecycleFlags): void {
     this.synchronizeElement();
     this.notify(flags);
   }
@@ -197,7 +194,7 @@ export class CheckedObserver implements CheckedObserver {
     const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     const isRadio = element.type === 'radio';
-    const matcher = element['matcher'] || ((a: unknown, b: unknown) => a === b);
+    const matcher = element['matcher'] || ((a: Primitive | IIndexable, b: Primitive | IIndexable) => a === b);
 
     if (isRadio) {
       element.checked = !!matcher(value, elementValue);
@@ -284,7 +281,9 @@ const childObserverOptions = {
   characterData: true
 };
 
-function defaultMatcher(a: unknown, b: unknown): boolean {
+type UntypedArray = (Primitive | IIndexable)[];
+
+function defaultMatcher(a: Primitive | IIndexable, b: Primitive | IIndexable): boolean {
   return a === b;
 }
 
@@ -295,22 +294,22 @@ export interface ISelectElement extends IElement {
   matcher?: typeof defaultMatcher;
 }
 export interface IOptionElement extends IElement {
-  model?: unknown;
+  model?: Primitive | IIndexable;
   selected: boolean;
   value: string;
 }
 
 export interface SelectValueObserver extends
-  IBindingTargetObserver<ISelectElement, string>,
+  IBindingTargetObserver<ISelectElement, string, Primitive | IIndexable | UntypedArray>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
 @targetObserver()
 export class SelectValueObserver implements SelectValueObserver {
-  public currentValue: unknown;
+  public currentValue: Primitive | IIndexable | UntypedArray;
   public currentFlags: LifecycleFlags;
-  public oldValue: unknown;
-  public defaultValue: unknown;
+  public oldValue: Primitive | IIndexable | UntypedArray;
+  public defaultValue: Primitive | UntypedArray;
 
   public flush: () => void;
 
@@ -324,11 +323,11 @@ export class SelectValueObserver implements SelectValueObserver {
     public observerLocator: IObserverLocator
   ) { }
 
-  public getValue(): unknown {
+  public getValue(): Primitive | IIndexable | UntypedArray {
     return this.currentValue;
   }
 
-  public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
+  public setValueCore(newValue: Primitive | UntypedArray, flags: LifecycleFlags): void {
     const isArray = Array.isArray(newValue);
     if (!isArray && newValue !== null && newValue !== undefined && this.obj.multiple) {
       throw new Error('Only null or Array instances can be bound to a multi-select.');
@@ -338,7 +337,7 @@ export class SelectValueObserver implements SelectValueObserver {
       this.arrayObserver = null;
     }
     if (isArray) {
-      this.arrayObserver = this.observerLocator.getArrayObserver(newValue as unknown[]);
+      this.arrayObserver = this.observerLocator.getArrayObserver(<(Primitive | IIndexable)[]>newValue);
       this.arrayObserver.subscribeBatched(this);
     }
     this.synchronizeOptions();
@@ -353,7 +352,7 @@ export class SelectValueObserver implements SelectValueObserver {
   }
 
   // called when a different value was assigned
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: Primitive | UntypedArray, previousValue: Primitive | UntypedArray, flags: LifecycleFlags): void {
     this.setValue(newValue, flags);
   }
 
@@ -389,7 +388,7 @@ export class SelectValueObserver implements SelectValueObserver {
       const option = options[i];
       const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
       if (isArray) {
-        option.selected = (currentValue as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
+        option.selected = (<UntypedArray>currentValue).findIndex(item => !!matcher(optionValue, item)) !== -1;
         continue;
       }
       option.selected = !!matcher(optionValue, currentValue);
@@ -429,7 +428,7 @@ export class SelectValueObserver implements SelectValueObserver {
       let option: IOptionElement;
       const matcher = obj.matcher || defaultMatcher;
       // A.1.b.i
-      const values: unknown[] = [];
+      const values: UntypedArray = [];
       while (i < len) {
         option = options[i];
         if (option.selected) {
@@ -466,7 +465,7 @@ export class SelectValueObserver implements SelectValueObserver {
     }
     // B. single select
     // B.1
-    let value: unknown = null;
+    let value: Primitive | IIndexable | UntypedArray = null;
     while (i < len) {
       const option = options[i];
       if (option.selected) {

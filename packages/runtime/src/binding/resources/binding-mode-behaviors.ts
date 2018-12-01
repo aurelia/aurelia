@@ -1,4 +1,4 @@
-import { IRegistry } from '@aurelia/kernel';
+import { IRegistry } from '../../../kernel';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
@@ -9,11 +9,7 @@ const { oneTime, toView, fromView, twoWay } = BindingMode;
 export type WithMode = { mode: BindingMode; originalMode?: BindingMode };
 
 export abstract class BindingModeBehavior {
-  private mode: BindingMode;
-
-  constructor(mode: BindingMode) {
-    this.mode = mode;
-  }
+  constructor(private mode: BindingMode) {}
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void {
     binding.originalMode = binding.mode;

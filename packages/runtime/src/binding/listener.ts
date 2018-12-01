@@ -1,61 +1,54 @@
-import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { IDisposable, IServiceLocator } from '../../kernel';
 import { INode } from '../dom';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
-import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
+import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
+import { IBlessedNode } from '../blessed-dom';
+import { Widgets } from 'blessed';
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
-  public $state: State;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
+
+  public $state: State = State.none;
+
   public $scope: IScope;
 
-  public delegationStrategy: DelegationStrategy;
-  public locator: IServiceLocator;
-  public preventDefault: boolean;
-  public sourceExpression: IsBindingBehavior;
-  public target: INode;
-  public targetEvent: string;
-
-  private eventManager: IEventManager;
   private handler: IDisposable;
 
-  constructor(targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: INode, preventDefault: boolean, eventManager: IEventManager, locator: IServiceLocator) {
-    this.$nextBind = null;
-    this.$prevBind = null;
-    this.$state = State.none;
-
-    this.delegationStrategy = delegationStrategy;
-    this.locator = locator;
-    this.preventDefault = preventDefault;
-    this.sourceExpression = sourceExpression;
-    this.target = target;
-    this.targetEvent = targetEvent;
-
-    this.eventManager = eventManager;
+  constructor(
+    public targetEvent: string,
+    public delegationStrategy: DelegationStrategy,
+    public sourceExpression: IsBindingBehavior,
+    public target: Widgets.BlessedElement,
+    public preventDefault: boolean,
+    private eventManager: IEventManager,
+    public locator: IServiceLocator) {
+      
+    this.handleEvent = this.handleEvent.bind(this);
   }
 
-  public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
+  public callSource(...args: any[]): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;
-    overrideContext['$event'] = event;
+    overrideContext['$event'] = args;
 
     const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
 
     delete overrideContext['$event'];
 
-    if (result !== true && this.preventDefault) {
-      event.preventDefault();
-    }
+    // if (result !== true && this.preventDefault) {
+    //   event.preventDefault();
+    // }
 
     return result;
   }
 
-  public handleEvent(event: Event): void {
-    this.callSource(event);
+  public handleEvent(...args: any[]): void {
+    this.callSource(...args);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
@@ -76,12 +69,16 @@ export class Listener implements IBinding {
       sourceExpression.bind(flags, scope, this);
     }
 
-    this.handler = this.eventManager.addEventListener(
-      this.target,
-      this.targetEvent,
-      this,
-      this.delegationStrategy
-    );
+    // should it be normalized in uicontrol
+    // (this.target as any).onChanged(this.handleEvent);
+    this.target.addListener(this.targetEvent, this.handleEvent);
+
+    // this.handler = this.eventManager.addEventListener(
+    //   this.target,
+    //   this.targetEvent,
+    //   this,
+    //   this.delegationStrategy
+    // );
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -101,18 +98,15 @@ export class Listener implements IBinding {
     }
 
     this.$scope = null;
-    this.handler.dispose();
+    this.target.removeListener('keypress', this.handleEvent);
+    // this.handler.dispose();
     this.handler = null;
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
   }
-
-  public observeProperty(obj: IIndexable, propertyName: string): void {
-    return;
-  }
-
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    return;
-  }
+  // tslint:disable:no-empty no-any
+  public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }
+  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void { }
+  // tslint:enable:no-empty no-any
 }

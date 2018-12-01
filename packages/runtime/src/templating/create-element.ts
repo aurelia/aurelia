@@ -1,5 +1,5 @@
-import { Constructable, IRegistry } from '@aurelia/kernel';
-import { buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
+import { Constructable, IIndexable } from '../../kernel';
+import { buildTemplateDefinition, isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
 import { DOM, INode } from '../dom';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
 import { ICustomElementType } from './custom-element';
@@ -7,26 +7,22 @@ import { IRenderingEngine, ITemplate } from './lifecycle-render';
 
 type ChildType = RenderPlan | string | INode;
 
-export function createElement(tagOrType: string | Constructable, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
+export function createElement(tagOrType: string | Constructable, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   if (typeof tagOrType === 'string') {
-    return createElementForTag(tagOrType, props as Record<string, string | ITargetedInstruction>, children);
+    return createElementForTag(tagOrType, props, children);
   } else {
     return createElementForType(tagOrType as ICustomElementType, props, children);
   }
 }
 
 export class RenderPlan {
-  private readonly dependencies: ReadonlyArray<IRegistry>;
-  private readonly instructions: TargetedInstruction[][];
-  private readonly node: INode;
-
   private lazyDefinition: TemplateDefinition;
 
-  constructor(node: INode, instructions: TargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>) {
-    this.dependencies = dependencies;
-    this.instructions = instructions;
-    this.node = node;
-  }
+  constructor(
+    private readonly node: INode,
+    private readonly instructions: TargetedInstruction[][],
+    private readonly dependencies: ReadonlyArray<any>
+  ) {}
 
   public get definition(): TemplateDefinition {
     return this.lazyDefinition || (this.lazyDefinition =
@@ -46,17 +42,17 @@ export class RenderPlan {
   }
 
   /*@internal*/
-  public mergeInto(parent: INode, instructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
+  public mergeInto(parent: INode, instructions: TargetedInstruction[][], dependencies: any[]): void {
     DOM.appendChild(parent, this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
   }
 }
 
-function createElementForTag(tagName: string, props?: Record<string, string | ITargetedInstruction>, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForTag(tagName: string, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   const instructions: TargetedInstruction[] = [];
-  const allInstructions: TargetedInstruction[][] = [];
-  const dependencies: IRegistry[] = [];
+  const allInstructions = [];
+  const dependencies = [];
   const element = DOM.createElement(tagName);
   let hasInstructions = false;
 
@@ -65,9 +61,9 @@ function createElementForTag(tagName: string, props?: Record<string, string | IT
       .forEach(to => {
         const value = props[to];
 
-        if (isTargetedInstruction(value as ITargetedInstruction)) {
+        if (isTargetedInstruction(value)) {
           hasInstructions = true;
-          instructions.push(value as TargetedInstruction);
+          instructions.push(value);
         } else {
           DOM.setAttribute(element, to, value);
         }
@@ -86,12 +82,12 @@ function createElementForTag(tagName: string, props?: Record<string, string | IT
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function createElementForType(Type: ICustomElementType, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForType(Type: ICustomElementType, props?: IIndexable, children?: ArrayLike<ChildType>): RenderPlan {
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
-  const dependencies: IRegistry[] = [];
-  const childInstructions: TargetedInstruction[] = [];
+  const dependencies = [];
+  const childInstructions = [];
   const bindables = Type.description.bindables;
   const element = DOM.createElement(tagName);
 
@@ -110,10 +106,10 @@ function createElementForType(Type: ICustomElementType, props?: object, children
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value: unknown = props[to];
+        const value = props[to];
 
-        if (isTargetedInstruction(value as ITargetedInstruction)) {
-          childInstructions.push(value as TargetedInstruction);
+        if (isTargetedInstruction(value)) {
+          childInstructions.push(value);
         } else {
           const bindable = bindables[to];
 
@@ -141,7 +137,7 @@ function createElementForType(Type: ICustomElementType, props?: object, children
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
+function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: any[]): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {
     const current = children[i];
 

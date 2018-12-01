@@ -1,74 +1,58 @@
-import { Reporter } from '@aurelia/kernel';
+import { Reporter } from '../../kernel';
 import { INodeSequence, IRenderLocation } from '../dom';
 import { IAttach, IBindScope, ILifecycle, ILifecycleUnbind, IMountable, IRenderContext, IView, IViewCache, IViewFactory, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
 import { $bindView, $unbindView } from './lifecycle-bind';
 import { ITemplate } from './lifecycle-render';
+import { IBlessedNodeSequence, IBlessedRenderLocation } from '../blessed-dom';
 
 /*@internal*/
 export interface View extends IView {}
 
 /*@internal*/
 export class View implements IView {
-  public $bindableHead: IBindScope;
-  public $bindableTail: IBindScope;
+  public $bindableHead: IBindScope = null;
+  public $bindableTail: IBindScope = null;
 
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
-  public $attachableHead: IAttach;
-  public $attachableTail: IAttach;
+  public $attachableHead: IAttach = null;
+  public $attachableTail: IAttach = null;
 
-  public $nextAttach: IAttach;
-  public $prevAttach: IAttach;
+  public $nextAttach: IAttach = null;
+  public $prevAttach: IAttach = null;
 
-  public $nextMount: IMountable;
-  public $nextUnmount: IMountable;
+  public $nextMount: IMountable = null;
+  public $mountFlags: LifecycleFlags = 0;
+  public $nextUnmount: IMountable = null;
+  public $unmountFlags: LifecycleFlags = 0;
 
-  public $nextUnbindAfterDetach: ILifecycleUnbind;
+  public $nextUnbindAfterDetach: ILifecycleUnbind = null;
 
-  public $state: State;
-  public $scope: IScope;
-  public $nodes: INodeSequence;
+  public $state: State = State.none;
+  public $scope: IScope = null;
+  public $nodes: IBlessedNodeSequence;
   public $context: IRenderContext;
-  public cache: IViewCache;
-  public location: IRenderLocation;
-  public isFree: boolean;
+  public location: IBlessedRenderLocation;
+  public isFree: boolean = false;
 
-  public readonly $lifecycle: ILifecycle;
+  constructor(
+    public readonly $lifecycle: ILifecycle,
+    public cache: IViewCache) {}
 
-  constructor($lifecycle: ILifecycle, cache: IViewCache) {
-    this.$bindableHead = null;
-    this.$bindableTail = null;
-
-    this.$nextBind = null;
-    this.$prevBind = null;
-
-    this.$attachableHead = null;
-    this.$attachableTail = null;
-
-    this.$nextAttach = null;
-    this.$prevAttach = null;
-
-    this.$nextMount = null;
-    this.$nextUnmount = null;
-
-    this.$nextUnbindAfterDetach = null;
-
-    this.$state = State.none;
-    this.$scope = null;
-    this.isFree = false;
-
-    this.$lifecycle = $lifecycle;
-    this.cache = cache;
-  }
-
-  public hold(location: IRenderLocation, flags: LifecycleFlags): void {
-    if (!location.parentNode) { // unmet invariant: location must be a child of some other node
-      throw Reporter.error(60); // TODO: organize error codes
-    }
+  public hold(location: IBlessedRenderLocation, flags: LifecycleFlags): void {
+    // if (!location.parentNode) { // unmet invariant: location must be a child of some other node
+    //   throw Reporter.error(60); // TODO: organize error codes
+    // }
     this.location = location;
+    const lastChild = this.$nodes.lastChild;
+    if (lastChild && lastChild.nextSibling === location) {
+      this.$state &= ~State.needsMount;
+    } else {
+      this.$state |= State.needsMount;
+    }
   }
 
   public lockScope(scope: IScope): void {
@@ -76,37 +60,29 @@ export class View implements IView {
     this.$bind = lockedBind;
   }
 
-  public release(flags: LifecycleFlags): boolean {
+  public release(flags: LifecycleFlags): any {
     this.isFree = true;
     if (this.$state & State.isAttached) {
       return this.cache.canReturnToCache(this);
     }
 
-    return !!this.$unmount(flags);
+    return this.$unmount(flags);
   }
 }
 
 /*@internal*/
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
+  public isCaching: boolean = false;
 
-  public isCaching: boolean;
-  public name: string;
+  private cacheSize: number = -1;
+  private cache: View[] = null;
 
-  private cache: View[];
-  private cacheSize: number;
-  private lifecycle: ILifecycle;
-  private template: ITemplate;
-
-  constructor(name: string, template: ITemplate, lifecycle: ILifecycle) {
-    this.isCaching = false;
-
-    this.cacheSize = -1;
-    this.cache = null;
-    this.lifecycle = lifecycle;
-    this.name = name;
-    this.template = template;
-  }
+  constructor(
+    public name: string,
+    private template: ITemplate,
+    private lifecycle: ILifecycle
+  ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {

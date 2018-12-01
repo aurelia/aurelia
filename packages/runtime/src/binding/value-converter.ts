@@ -1,4 +1,4 @@
-import { Class, Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, Registration, Writable } from '../../kernel';
 import { IResourceDefinition, IResourceKind, IResourceType } from '../resource';
 
 export interface IValueConverter {

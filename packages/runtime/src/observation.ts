@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable } from '@aurelia/kernel';
+import { IDisposable, IIndexable } from '../kernel';
 import { ILifecycle } from './lifecycle';
 
 export enum LifecycleFlags {
@@ -55,7 +55,7 @@ export interface IChangeTracker {
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
-export interface IAccessor<TValue = unknown> {
+export interface IAccessor<TValue = any> {
   getValue(): TValue;
   setValue(newValue: TValue, flags: LifecycleFlags): void;
 }
@@ -66,7 +66,7 @@ export interface IAccessor<TValue = unknown> {
 export interface IBindingTargetAccessor<
   TObj = any,
   TProp = keyof TObj,
-  TValue = unknown>
+  TValue = any>
   extends IDisposable,
           IAccessor<TValue>,
           IPropertyChangeTracker<TObj, TProp> { }
@@ -77,7 +77,7 @@ export interface IBindingTargetAccessor<
 export interface IBindingTargetObserver<
   TObj = any,
   TProp = keyof TObj,
-  TValue = unknown>
+  TValue = any>
   extends IBindingTargetAccessor<TObj, TProp, TValue>,
           ISubscribable<MutationKind.instance>,
           ISubscriberCollection<MutationKind.instance> {
@@ -94,7 +94,7 @@ export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver
  * The deletedItems property contains the items (in case of an array) or keys (in case of map or set) that have been deleted.
  */
 export type IndexMap = number[] & {
-  deletedItems?: unknown[];
+  deletedItems?: any[];
 };
 
 /**
@@ -108,7 +108,7 @@ export enum MutationKind {
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = unknown> {
+export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = any> {
   obj: TObj;
   propertyKey?: TProp;
   currentValue?: TValue;
@@ -126,7 +126,7 @@ export interface ICollectionChangeTracker<T extends Collection> extends IChangeT
 /**
  * Represents a (subscriber) function that can be called by a PropertyChangeNotifier
  */
-export type IPropertyChangeHandler<TValue = unknown> = (newValue: TValue, previousValue: TValue, flags: LifecycleFlags) => void;
+export type IPropertyChangeHandler<TValue = any> = (newValue: TValue, previousValue: TValue, flags: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations on a property
  */
@@ -135,7 +135,7 @@ export interface IPropertyChangeNotifier extends IPropertyChangeHandler {}
 /**
  * Describes a (subscriber) type that has a function conforming to the IPropertyChangeHandler interface
  */
-export interface IPropertySubscriber<TValue = unknown> { handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void; }
+export interface IPropertySubscriber<TValue = any> { handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void; }
 
 /**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
@@ -269,7 +269,7 @@ export type PropertyObserver = IPropertyObserver<any, PropertyKey>;
 /**
  * A collection (array, set or map)
  */
-export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
+export type Collection = any[] | Set<any> | Map<any, any>;
 interface IObservedCollection {
   $observer?: CollectionObserver;
 }
@@ -277,15 +277,15 @@ interface IObservedCollection {
 /**
  * An array that is being observed for mutations
  */
-export interface IObservedArray<T = unknown> extends IObservedCollection, Array<T> { }
+export interface IObservedArray<T = any> extends IObservedCollection, Array<T> { }
 /**
  * A set that is being observed for mutations
  */
-export interface IObservedSet<T = unknown> extends IObservedCollection, Set<T> { }
+export interface IObservedSet<T = any> extends IObservedCollection, Set<T> { }
 /**
  * A map that is being observed for mutations
  */
-export interface IObservedMap<K = unknown, V = unknown> extends IObservedCollection, Map<K, V> { }
+export interface IObservedMap<K = any, V = any> extends IObservedCollection, Map<K, V> { }
 /**
  * A collection that is being observed for mutations
  */
@@ -300,23 +300,23 @@ export const enum CollectionKind {
 }
 
 export type LengthPropertyName<T> =
-  T extends unknown[] ? 'length' :
-  T extends Set<unknown> ? 'size' :
-  T extends Map<unknown, unknown> ? 'size' :
+  T extends any[] ? 'length' :
+  T extends Set<any> ? 'size' :
+  T extends Map<any, any> ? 'size' :
   never;
 
 export type CollectionTypeToKind<T> =
-  T extends unknown[] ? CollectionKind.array | CollectionKind.indexed :
-  T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed :
-  T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed :
+  T extends any[] ? CollectionKind.array | CollectionKind.indexed :
+  T extends Set<any> ? CollectionKind.set | CollectionKind.keyed :
+  T extends Map<any, any> ? CollectionKind.map | CollectionKind.keyed :
   never;
 
 export type CollectionKindToType<T> =
-  T extends CollectionKind.array ? unknown[] :
-  T extends CollectionKind.indexed ? unknown[] :
-  T extends CollectionKind.map ? Map<unknown, unknown> :
-  T extends CollectionKind.set ? Set<unknown> :
-  T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> :
+  T extends CollectionKind.array ? any[] :
+  T extends CollectionKind.indexed ? any[] :
+  T extends CollectionKind.map ? Map<any, any> :
+  T extends CollectionKind.set ? Set<any> :
+  T extends CollectionKind.keyed ? Set<any> | Map<any, any> :
   never;
 
 export type ObservedCollectionKindToType<T> =
@@ -366,9 +366,10 @@ export interface IScope {
   readonly overrideContext: IOverrideContext;
 }
 
-// TODO: currently unused, still need to fix the observersLookup type
 export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
-  Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> { }
+Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> {
+
+}
 
 export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
   Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> =

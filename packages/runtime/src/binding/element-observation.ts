@@ -338,7 +338,7 @@ export class SelectValueObserver implements SelectValueObserver {
       this.arrayObserver = null;
     }
     if (isArray) {
-      this.arrayObserver = this.observerLocator.getArrayObserver(<unknown[]>newValue);
+      this.arrayObserver = this.observerLocator.getArrayObserver(newValue as unknown[]);
       this.arrayObserver.subscribeBatched(this);
     }
     this.synchronizeOptions();
@@ -389,7 +389,7 @@ export class SelectValueObserver implements SelectValueObserver {
       const option = options[i];
       const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
       if (isArray) {
-        option.selected = (<unknown[]>currentValue).findIndex(item => !!matcher(optionValue, item)) !== -1;
+        option.selected = (currentValue as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
         continue;
       }
       option.selected = !!matcher(optionValue, currentValue);

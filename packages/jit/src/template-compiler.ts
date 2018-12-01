@@ -57,7 +57,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       this.compileSurrogate(root);
     }
 
-    return <TemplateDefinition>definition;
+    return definition as TemplateDefinition;
   }
 
   private compileNode($el: ElementSymbol): ElementSymbol {
@@ -82,7 +82,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
         return nextSibling;
       case NodeType.Text:
-        const expression = this.exprParser.parse((<Text>$el.node).wholeText, BindingType.Interpolation);
+        const expression = this.exprParser.parse(($el.node as Text).wholeText, BindingType.Interpolation);
         if (expression === null) {
           while (($el = $el.nextSibling) && $el.node.nodeType === NodeType.Text);
           return $el;
@@ -169,7 +169,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileCustomElement($el: ElementSymbol): void {
     if ($el.$attributes.length === 0) {
-      $el.addInstructions([new HydrateElementInstruction($el.definition.name, <TargetedInstruction[]>PLATFORM.emptyArray)]);
+      $el.addInstructions([new HydrateElementInstruction($el.definition.name, PLATFORM.emptyArray as TargetedInstruction[])]);
       if ($el.definition.containerless) {
         $el.replaceNodeWithMarker();
       } else {
@@ -247,7 +247,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         letInstructions.push(new LetBindingInstruction(expr, to));
       } else if ($attr.rawName === 'to-view-model') {
         toViewModel = true;
-        (<Element>$el.node).removeAttribute('to-view-model');
+        ($el.node as Element).removeAttribute('to-view-model');
       } else {
         const expr = this.exprParser.parse($attr.rawValue, BindingType.Interpolation);
         if (expr === null) {

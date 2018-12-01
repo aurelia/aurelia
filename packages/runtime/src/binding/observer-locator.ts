@@ -175,17 +175,17 @@ export class ObserverLocator implements IObserverLocator {
       }
 
       if (propertyName === 'style' || propertyName === 'css') {
-        return new StyleAttributeAccessor(this.lifecycle, <IHTMLElement>obj);
+        return new StyleAttributeAccessor(this.lifecycle, obj as IHTMLElement);
       }
 
       const tagName = obj['tagName'];
       const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && tagName === 'SELECT') {
-        return new SelectValueObserver(this.lifecycle, <ISelectElement>obj, handler, this);
+        return new SelectValueObserver(this.lifecycle, obj as ISelectElement, handler, this);
       }
 
       if (propertyName === 'checked' && tagName === 'INPUT') {
-        return new CheckedObserver(this.lifecycle, <IInputElement>obj, handler, this);
+        return new CheckedObserver(this.lifecycle, obj as IInputElement, handler, this);
       }
 
       if (handler) {
@@ -194,7 +194,7 @@ export class ObserverLocator implements IObserverLocator {
 
       const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
       if (xlinkResult) {
-        return new XLinkAttributeAccessor(this.lifecycle, <IHTMLElement>obj, propertyName, xlinkResult[1]);
+        return new XLinkAttributeAccessor(this.lifecycle, obj as IHTMLElement, propertyName, xlinkResult[1]);
       }
 
       if (propertyName === 'role'
@@ -209,17 +209,17 @@ export class ObserverLocator implements IObserverLocator {
     switch (tag) {
       case '[object Array]':
         if (propertyName === 'length') {
-          return this.getArrayObserver(<IObservedArray>obj).getLengthObserver();
+          return this.getArrayObserver(obj as IObservedArray).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Map]':
         if (propertyName === 'size') {
-          return this.getMapObserver(<IObservedMap>obj).getLengthObserver();
+          return this.getMapObserver(obj as IObservedMap).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Set]':
         if (propertyName === 'size') {
-          return this.getSetObserver(<IObservedSet>obj).getLengthObserver();
+          return this.getSetObserver(obj as IObservedSet).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
     }
@@ -252,11 +252,11 @@ export class ObserverLocator implements IObserverLocator {
 export function getCollectionObserver(lifecycle: ILifecycle, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
   switch (toStringTag.call(collection)) {
     case '[object Array]':
-      return getArrayObserver(lifecycle, <IObservedArray>collection);
+      return getArrayObserver(lifecycle, collection as IObservedArray);
     case '[object Map]':
-      return getMapObserver(lifecycle, <IObservedMap>collection);
+      return getMapObserver(lifecycle, collection as IObservedMap);
     case '[object Set]':
-      return getSetObserver(lifecycle, <IObservedSet>collection);
+      return getSetObserver(lifecycle, collection as IObservedSet);
   }
   return null;
 }

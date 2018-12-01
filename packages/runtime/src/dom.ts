@@ -115,50 +115,50 @@ export interface INodeObserver {
 export const DOM = {
   createDocumentFragment(markupOrNode?: string | IElement): IDocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {
-      return <IDocumentFragment>document.createDocumentFragment();
+      return document.createDocumentFragment() as IDocumentFragment;
     }
-    if ((<IElement>markupOrNode).nodeType > 0) {
-      if ((<IElement>markupOrNode).content !== undefined) {
-        return (<IElement>markupOrNode).content;
+    if ((markupOrNode as IElement).nodeType > 0) {
+      if ((markupOrNode as IElement).content !== undefined) {
+        return (markupOrNode as IElement).content;
       }
       const fragment = document.createDocumentFragment();
-      fragment.appendChild(<any>markupOrNode);
-      return <IDocumentFragment>fragment;
+      fragment.appendChild(markupOrNode as any);
+      return fragment as IDocumentFragment;
     }
-    return DOM.createTemplate(<string>markupOrNode).content;
+    return DOM.createTemplate(markupOrNode as string).content;
   },
   createTemplate(markup?: string): IElement {
     if (markup === undefined) {
-      return <IElement>document.createElement('template');
+      return document.createElement('template') as IElement;
     }
     const template = document.createElement('template');
     template.innerHTML = markup;
-    return <IElement>template;
+    return template as IElement;
   },
   addClass(node: INode, className: string): void {
-    (<any>node).classList.add(className);
+    (node as any).classList.add(className);
   },
   addEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any): void {
-    ((<any>publisher) || document).addEventListener(eventName, subscriber, options);
+    ((publisher as any) || document).addEventListener(eventName, subscriber, options);
   },
   appendChild(parent: INode, child: INode): void {
-    (<any>parent).appendChild(child);
+    (parent as any).appendChild(child);
   },
   attachShadow(host: IElement, options: ShadowRootInit): IDocumentFragment {
-    return (<any>host).attachShadow(options);
+    return (host as any).attachShadow(options);
   },
   cloneNode<T extends INode = INode>(node: T, deep?: boolean): T {
-    return (<any>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
+    return (node as any).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
   },
   convertToRenderLocation(node: INode): IRenderLocation {
     if (isRenderLocation(node)) {
       return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
     }
-    if ((<any>node).parentNode === null) {
+    if ((node as any).parentNode === null) {
       throw Reporter.error(52);
     }
-    const locationEnd = <IRenderLocation>document.createComment('au-end');
-    const locationStart = <IRenderLocation>document.createComment('au-start');
+    const locationEnd = document.createComment('au-end') as IRenderLocation;
+    const locationStart = document.createComment('au-start') as IRenderLocation;
     DOM.replaceNode(locationEnd, node);
     DOM.insertBefore(locationStart, locationEnd);
     locationEnd.$start = locationStart;
@@ -166,30 +166,30 @@ export const DOM = {
     return locationEnd;
   },
   createComment(text: string): IComment {
-    return <IComment>document.createComment(text);
+    return document.createComment(text) as IComment;
   },
   createElement(name: string): IElement {
     return document.createElement(name);
   },
   createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit): MutationObserver {
     const observer = new MutationObserver(callback);
-    observer.observe(<any>target, options);
+    observer.observe(target as any, options);
     return observer;
   },
   createTextNode(text: string): IText {
-    return <IText>document.createTextNode(text);
+    return document.createTextNode(text) as IText;
   },
   getAttribute(node: INode, name: string): any {
-    return (<any>node).getAttribute(name);
+    return (node as any).getAttribute(name);
   },
   hasClass(node: INode, className: string): boolean {
-    return (<any>node).classList.contains(className);
+    return (node as any).classList.contains(className);
   },
   insertBefore(nodeToInsert: INode, referenceNode: INode): void {
-    (<any>referenceNode).parentNode.insertBefore(nodeToInsert, referenceNode);
+    (referenceNode as any).parentNode.insertBefore(nodeToInsert, referenceNode);
   },
   isAllWhitespace(node: INode): boolean {
-    if ((<any>node).auInterpolationTarget === true) {
+    if ((node as any).auInterpolationTarget === true) {
       return false;
     }
     const text = node.textContent;
@@ -232,32 +232,32 @@ export const DOM = {
     container.registerResolver(SVGElement, resolver);
   },
   remove(node: INodeLike): void {
-    if ((<any>node).remove) {
-      (<any>node).remove();
+    if ((node as any).remove) {
+      (node as any).remove();
     } else {
-      (<any>node).parentNode.removeChild(node);
+      (node as any).parentNode.removeChild(node);
     }
   },
   removeAttribute(node: INode, name: string): void {
-    (<any>node).removeAttribute(name);
+    (node as any).removeAttribute(name);
   },
   removeClass(node: INode, className: string): void {
-    (<any>node).classList.remove(className);
+    (node as any).classList.remove(className);
   },
   removeEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any): void {
-    ((<any>publisher) || document).removeEventListener(eventName, subscriber, options);
+    ((publisher as any) || document).removeEventListener(eventName, subscriber, options);
   },
   replaceNode(newChild: INode, oldChild: INode): void {
     if (oldChild.parentNode) {
-      (<any>oldChild).parentNode.replaceChild(newChild, oldChild);
+      (oldChild as any).parentNode.replaceChild(newChild, oldChild);
     }
   },
   setAttribute(node: INode, name: string, value: any): void {
-    (<any>node).setAttribute(name, value);
+    (node as any).setAttribute(name, value);
   },
   treatAsNonWhitespace(node: INode): void {
     // see isAllWhitespace above
-    (<any>node).auInterpolationTarget = true;
+    (node as any).auInterpolationTarget = true;
   }
 };
 
@@ -303,15 +303,15 @@ export class TextNodeSequence implements INodeSequence {
   }
 
   public insertBefore(refNode: INode): void {
-    (<any>refNode).parentNode.insertBefore(this.firstChild, refNode);
+    (refNode as any).parentNode.insertBefore(this.firstChild, refNode);
   }
 
   public appendTo(parent: INode): void {
-    (<any>parent).appendChild(this.firstChild);
+    (parent as any).appendChild(this.firstChild);
   }
 
   public remove(): void {
-    (<any>this.firstChild).remove();
+    (this.firstChild as any).remove();
   }
 }
 // tslint:enable:no-any
@@ -335,7 +335,7 @@ export class FragmentNodeSequence implements INodeSequence {
   constructor(fragment: IDocumentFragment) {
     this.fragment = fragment;
     // tslint:disable-next-line:no-any
-    const targetNodeList = (<any>fragment).querySelectorAll('.au');
+    const targetNodeList = (fragment as any).querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
     const targets = this.targets = Array(ii);
@@ -375,7 +375,7 @@ export class FragmentNodeSequence implements INodeSequence {
 
   public insertBefore(refNode: IRenderLocation): void {
     // tslint:disable-next-line:no-any
-    (<any>refNode).parentNode.insertBefore(this.fragment, refNode);
+    (refNode as any).parentNode.insertBefore(this.fragment, refNode);
     // internally we could generally assume that this is an IRenderLocation,
     // but since this is also public API we still need to double check
     // (or horrible things might happen)
@@ -399,7 +399,7 @@ export class FragmentNodeSequence implements INodeSequence {
 
   public appendTo(parent: INode): void {
     // tslint:disable-next-line:no-any
-    (<any>parent).appendChild(this.fragment);
+    (parent as any).appendChild(this.fragment);
     // this can never be a RenderLocation, and if for whatever reason we moved
     // from a RenderLocation to a host, make sure "start" and "end" are null
     this.start = this.end = null;
@@ -417,7 +417,7 @@ export class FragmentNodeSequence implements INodeSequence {
       while (current !== end) {
         next = current.nextSibling;
         // tslint:disable-next-line:no-any
-        (<any>fragment).appendChild(current);
+        (fragment as any).appendChild(current);
         current = next;
       }
       this.start.$nodes = null;
@@ -433,7 +433,7 @@ export class FragmentNodeSequence implements INodeSequence {
         while (current !== null) {
           next = current.nextSibling;
           // tslint:disable-next-line:no-any
-          (<any>fragment).appendChild(current);
+          (fragment as any).appendChild(current);
 
           if (current === end) {
             break;
@@ -472,7 +472,7 @@ export class NodeSequenceFactory {
           if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
             text.textContent = '';
             this.deepClone = false;
-            this.node = <ICloneableNode>text;
+            this.node = text as ICloneableNode;
             this.Type = TextNodeSequence;
             return;
           }
@@ -480,7 +480,7 @@ export class NodeSequenceFactory {
       // falls through if not returned
       default:
         this.deepClone = true;
-        this.node = <ICloneableNode>fragment;
+        this.node = fragment as ICloneableNode;
         this.Type = FragmentNodeSequence;
     }
   }
@@ -525,4 +525,4 @@ export class AuMarker implements INode {
   proto.childNodes = PLATFORM.emptyArray;
   proto.nodeName = 'AU-M';
   proto.nodeType = ELEMENT_NODE;
-})(<Writable<AuMarker>>AuMarker.prototype);
+})(AuMarker.prototype as Writable<AuMarker>);

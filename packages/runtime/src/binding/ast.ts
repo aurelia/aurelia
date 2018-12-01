@@ -235,7 +235,7 @@ export class BindingBehavior implements IExpression {
       throw Reporter.error(RuntimeError.BehaviorAlreadyApplied, this);
     }
     binding[behaviorKey] = behavior;
-    behavior.bind.apply(behavior, (<unknown[]>[flags, scope, binding]).concat(evalList(flags, scope, locator, this.args)));
+    behavior.bind.apply(behavior, ([flags, scope, binding] as unknown[]).concat(evalList(flags, scope, locator, this.args)));
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -1281,10 +1281,10 @@ function isNumeric(value: unknown): value is number {
   const valueType = typeof value;
   if (valueType === 'number') return true;
   if (valueType !== 'string') return false;
-  const len = (<string>value).length;
+  const len = (value as string).length;
   if (len === 0) return false;
   for (let i = 0; i < len; ++i) {
-    const char = (<string>value).charCodeAt(i);
+    const char = (value as string).charCodeAt(i);
     if (char < 0x30 /*0*/ || char > 0x39/*9*/) {
       return false;
     }

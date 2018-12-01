@@ -56,7 +56,7 @@ function dispose(this: BindingTargetAccessor): void {
 export function targetObserver(defaultValue: unknown = null): ClassDecorator {
   return function(target: Function): void {
     subscriberCollection(MutationKind.instance)(target);
-    const proto = <BindingTargetAccessor>target.prototype;
+    const proto = target.prototype as BindingTargetAccessor;
 
     proto.$nextFlush = null;
 

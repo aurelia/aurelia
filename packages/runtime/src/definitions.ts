@@ -245,9 +245,9 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.cache = 0;
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
-    this.instructions = <this['instructions']>PLATFORM.emptyArray;
-    this.dependencies = <this['dependencies']>PLATFORM.emptyArray;
-    this.surrogates = <this['surrogates']>PLATFORM.emptyArray;
+    this.instructions = PLATFORM.emptyArray as this['instructions'];
+    this.dependencies = PLATFORM.emptyArray as this['dependencies'];
+    this.surrogates = PLATFORM.emptyArray as this['surrogates'];
     this.containerless = false;
     this.shadowOptions = null;
     this.hasSlots = false;
@@ -318,7 +318,7 @@ export function buildTemplateDefinition(
     case 10: if (containerless !== null) def.containerless = containerless;
     case 9: if (surrogates !== null) def.surrogates = PLATFORM.toArray(surrogates);
     case 8: if (dependencies !== null) def.dependencies = PLATFORM.toArray(dependencies);
-    case 7: if (instructions !== null) def.instructions = <TargetedInstruction[][]>PLATFORM.toArray(instructions);
+    case 7: if (instructions !== null) def.instructions = PLATFORM.toArray(instructions) as TargetedInstruction[][];
     case 6: if (bindables !== null) def.bindables = { ...bindables };
     case 5: if (build !== null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build };
     case 4: if (cache !== null) def.cache = cache;

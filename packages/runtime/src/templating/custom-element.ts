@@ -73,7 +73,7 @@ export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & Has
 
   function useShadowDOMDecorator(target: T & HasShadowOptions): T & Required<HasShadowOptions> {
     target.shadowOptions = options;
-    return <T & Required<HasShadowOptions>>target;
+    return target as T & Required<HasShadowOptions>;
   }
 
   return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
@@ -83,7 +83,7 @@ type HasContainerless = Pick<ITemplateDefinition, 'containerless'>;
 
 function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless> {
   target.containerless = true;
-  return <T & Required<HasContainerless>>target;
+  return target as T & Required<HasContainerless>;
 }
 
 /**
@@ -109,7 +109,7 @@ function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITem
     throw Reporter.error(70);
   }
   const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
-  const description = buildTemplateDefinition(<ICustomElementType><unknown>Type, nameOrDefinition);
+  const description = buildTemplateDefinition(Type as unknown as ICustomElementType, nameOrDefinition);
   const proto: Writable<ICustomElement> = Type.prototype;
 
   Type.kind = CustomElementResource;
@@ -176,14 +176,14 @@ function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITem
     proto.$nextDetached = null;
   }
 
-  return <ICustomElementType & T>Type;
+  return Type as ICustomElementType & T;
 }
 
 export const CustomElementResource: ICustomElementResource = {
   name: customElementName,
   keyFrom: customElementKey,
   isType,
-  behaviorFor: <ICustomElementResource['behaviorFor']>customElementBehavior,
+  behaviorFor: customElementBehavior as ICustomElementResource['behaviorFor'],
   define
 };
 

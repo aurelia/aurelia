@@ -88,6 +88,14 @@ export class Router {
     return this.historyBrowser.activate(this.options).catch(error => { throw error; });
   }
 
+  public deactivate(): void {
+    if (!this.isActive) {
+      throw new Error('Router has not been activated.');
+    }
+    this.linkHandler.deactivate();
+    return this.historyBrowser.deactivate();
+  }
+
   public linkCallback = (info: AnchorEventInfo): void => {
     let href = info.href;
     if (href.startsWith('#')) {
@@ -109,7 +117,7 @@ export class Router {
     }
 
     if (instruction.isCancel) {
-      return;
+      return Promise.resolve();
     }
 
     let title;
@@ -120,7 +128,7 @@ export class Router {
         route = this.resolveRedirect(route, instruction.data);
         this.isRedirecting = true;
         this.historyBrowser.redirect(route.path, route.title, instruction.data);
-        return;
+        return Promise.resolve();
       }
 
       if (route.title) {
@@ -133,7 +141,7 @@ export class Router {
     }
 
     if (!views && !Object.keys(views).length) {
-      return;
+      return Promise.resolve();
     }
 
     if (title) {

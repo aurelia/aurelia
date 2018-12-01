@@ -34,4 +34,21 @@ describe('LinkHandler', () => {
     expect(linkHandler.isActive).to.be.false;
     expect(callbackSpy.calledOnce).to.be.true;
   });
+
+  it('throws when activated while active', () => {
+    const callbackSpy = spy(linkHandler.document, 'addEventListener');
+    linkHandler.activate({ callback: callback});
+
+    expect(linkHandler.isActive).to.be.true;
+    expect(callbackSpy.calledOnce).to.be.true;
+
+    let err;
+    try {
+      linkHandler.activate({ callback: callback});
+    } catch(e) {
+      err = e;
+    }
+    expect(err.message).to.contain('LinkHandler has already been activated');
+  });
+
 });

@@ -35,7 +35,7 @@ export class LinkHandler {
   private options: ILinkHandlerOptions;
   private isActive: boolean = false;
 
-  private handler: EventListener;
+  // private handler: EventListener;
   private document: Document;
 
   constructor() {
@@ -118,14 +118,6 @@ export class LinkHandler {
     this.isActive = true;
     this.options = { ...options };
 
-    this.handler = (e) => {
-      const info = LinkHandler.getEventInfo(e);
-
-      if (info.shouldHandleEvent) {
-        e.preventDefault();
-        this.options.callback(info);
-      }
-    };
     this.document.addEventListener('click', this.handler, true);
   }
 
@@ -136,4 +128,13 @@ export class LinkHandler {
     this.document.removeEventListener('click', this.handler);
     this.isActive = false;
   }
+
+  private handler: EventListener = (e) => {
+    const info = LinkHandler.getEventInfo(e);
+
+    if (info.shouldHandleEvent) {
+      e.preventDefault();
+      this.options.callback(info);
+    }
+  };
 }

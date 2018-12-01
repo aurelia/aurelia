@@ -139,9 +139,14 @@ export class HistoryBrowser {
   }
 
   public replacePath(path: string): void {
+    const newHash = `#/${path}`;
+    const { pathname, search, hash } = this.location;
+    // tslint:disable-next-line:possible-timing-attack
+    // if (newHash === hash) {
+    //   return;
+    // }
     const state = { ...this.history.state };
-    const { pathname, search } = this.location;
-    this.history.replaceState(state, null, `${pathname}${search}#/${path}`);
+    this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
     this.currentEntry.path = path;
     this.setState('HistoryEntry', this.currentEntry);
     this.setState('HistoryEntries', this.historyEntries);

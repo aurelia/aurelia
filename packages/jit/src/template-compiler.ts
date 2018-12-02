@@ -1,36 +1,21 @@
-import { inject, PLATFORM, Tracer, Reporter } from '@aurelia/kernel';
+import { inject, PLATFORM, Tracer } from '@aurelia/kernel';
 import {
-  BindingMode,
   BindingType,
   DOM,
-  FromViewBindingInstruction,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
   IElement,
   IExpressionParser,
   IHTMLElement,
   IHTMLSlotElement,
   IHTMLTemplateElement,
-  IHydrateTemplateController,
-  IPropertyBindingInstruction,
   IResourceDescriptions,
-  IsBindingBehavior,
   ITemplateCompiler,
   ITemplateDefinition,
   IText,
-  OneTimeBindingInstruction,
-  TargetedInstruction,
-  TargetedInstructionType,
-  TemplateDefinition,
-  TextBindingInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction,
-  InterpolationInstruction,
-  Interpolation
+  TemplateDefinition
 } from '@aurelia/runtime';
 import { IAttributeParser } from './attribute-parser';
 import { IElementParser } from './element-parser';
+import { MetadataModel } from './metadata-model';
 import {
   AttributeBindingSymbol,
   AttributeInterpolationSymbol,
@@ -42,29 +27,22 @@ import {
   CustomElementSymbol,
   ElementBindingSymbol,
   ElementSymbol,
-  IAttributeSymbol,
   IParentElementSymbol,
-  INodeSymbol,
   ISymbolVisitor,
   LetElementSymbol,
   NodeSymbol,
+  ParentElementSymbol,
   PlainElementSymbol,
   SemanticModel,
   SlotElementSymbol,
   SurrogateElementSymbol,
   SymbolKind,
   TemplateControllerAttributeSymbol,
-  TextInterpolationSymbol,
-  ParentElementSymbol
+  TextInterpolationSymbol
 } from './semantic-model';
-
 import {
   TemplateFactory
 } from './template-factory';
-import { MetadataModel } from './metadata-model';
-
-// tslint:disable-next-line:no-any
-const emptyArray = PLATFORM.emptyArray as any[];
 
 const slice = Array.prototype.slice;
 
@@ -321,8 +299,6 @@ export class NodePreprocessor implements ISymbolVisitor {
      * - LE: the Lifted Element (the `.element` property of the LES / the element that the tc attribute is declared on)
      * - SES: the Symbol that represents the SE
      * - SE: the new Surrogate Element (the element that will wrap the LE)
-     * - PLES: the Symbol that represents the PLE (the `.parentNode` property of the LES)
-     * - PLE: the original parent element of the LE (the `.element` property of the PLES)
      *
      * # Full lift operation
      *
@@ -330,7 +306,7 @@ export class NodePreprocessor implements ISymbolVisitor {
      *
      * 1.1. Create a new template element (SE)
      *
-     * 1.2. Replace the LE with a marker element (<au-m class="au"></au-m>) in the PLE.
+     * 1.2. Replace the LE with a marker element (<au-m class="au"></au-m>)
      *
      * 1.3. Append the LE to the SE
      *
@@ -371,15 +347,9 @@ export class NodePreprocessor implements ISymbolVisitor {
     // # Partial lift operation
     const LES = TCS.owner; // Lifted Element Symbol
     const LE = LES.element; // Lifted Element
-    const PLES = LES.parentNode; // Parent of Lifted Element Symbol
-    const PLE = PLES.element; // Parent of Lifted Element
     if (LES.kind === SymbolKind.surrogateElement && LES.templateController === null) {
       // 1.2
-      if (PLES.kind & SymbolKind.isSurrogate) {
-        (PLE as IHTMLTemplateElement).content.replaceChild(createMarker(), LE);
-      } else {
-        PLE.replaceChild(createMarker(), LE);
-      }
+      LE.parentNode.replaceChild(createMarker(), LE);
 
       // 2.3 (no need to assign owner - the LES is already the owner of the TCS)
       LES.templateController = TCS;
@@ -402,11 +372,7 @@ export class NodePreprocessor implements ISymbolVisitor {
       (LE as IHTMLTemplateElement).content.appendChild(createMarker());
     } else {
       // 1.2
-      if (PLES.kind & SymbolKind.isSurrogate) {
-        (PLE as IHTMLTemplateElement).content.replaceChild(createMarker(), LE);
-      } else {
-        PLE.replaceChild(createMarker(), LE);
-      }
+      LE.parentNode.replaceChild(createMarker(), LE);
 
       // 1.3 option 2
       SE.content.appendChild(LE);

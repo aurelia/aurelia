@@ -8,7 +8,7 @@ import { LifecycleFlags } from '../../../runtime/src/index';
 const spec = 'template-compiler.repeater-custom-element';
 
 
-describe('', () => {
+describe(spec, () => {
   // repeater with custom element
   it('03.', () => {
     @customElement({ name: 'foo', template: '<template>a</template>', instructions: [], build: { required: true, compiler: 'default' } })

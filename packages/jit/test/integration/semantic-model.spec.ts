@@ -17,8 +17,6 @@ import {
   TemplateControllerAttributeSymbol,
   TextInterpolationSymbol,
   CompilationTarget,
-  ResourceLocator,
-  IResourceLocator,
   ISymbol
 } from '../../src/semantic-model';
 import {
@@ -43,7 +41,9 @@ import {
   IContainer,
   PLATFORM,
   Tracer,
-  ITraceInfo
+  ITraceInfo,
+  Container,
+  Resolver
 } from '../../../kernel/src/index';
 import {
   Tracer as DebugTracer
@@ -74,6 +74,7 @@ import {
   NodePreprocessor,
 } from '../../src/template-compiler';
 import { enableTracing, disableTracing, SymbolTraceWriter } from '../unit/util';
+import { MetadataModel } from '../../src/metadata-model';
 
 function setup() {
   const container = DI.createContainer();
@@ -88,11 +89,11 @@ function setup() {
   const exprParser = container.get<IExpressionParser>(IExpressionParser);
   const factory = container.get<ITemplateFactory>(ITemplateFactory);
   const resources = new RuntimeCompilationResources(<any>container);
-  const locator = new ResourceLocator(<any>resources);
-  const model = new SemanticModel(locator, attrParser, factory, <any>exprParser);
+  const metadata = new MetadataModel(<any>resources);
+  const model = new SemanticModel(metadata, attrParser, factory, <any>exprParser);
   const symbolPreprocessor = new SymbolPreprocessor(model);
   const nodePreprocessor = new NodePreprocessor(model);
-  return { model, symbolPreprocessor, nodePreprocessor, container, attrParser, elParser, exprParser, factory, locator, resources };
+  return { model, symbolPreprocessor, nodePreprocessor, container, attrParser, elParser, exprParser, factory, metadata, resources };
 }
 
 describe('SemanticModel', () => {
@@ -153,7 +154,7 @@ describe('SemanticModel', () => {
 
     console.log('\n'+stringifyTemplateDefinition(App.description, 0));
     disableTracing();
-    expect(host.textContent).to.equal('a');
+    expect(host.textContent).to.equal('aaaa');
   });
 
   it('works 5', () => {
@@ -236,4 +237,115 @@ describe('SemanticModel', () => {
 
     expect(host.textContent).to.equal('abc');
   });
+
+  it('works 8', () => {
+
+    enableTracing();
+    Tracer.enableLiveLogging(SymbolTraceWriter);
+    const container = DI.createContainer();
+    container.register(<any>BasicConfiguration);
+    const def = { name: 'app', template: "<template>${msg}</template>" };
+    const App = CustomElementResource.define(def, class { msg = 'a'});
+    const component = new App();
+    const host = <any>DOM.createElement('div');
+
+    const au = new Aurelia(<any>container);
+
+    au.app({ component, host });
+    try {
+      au.start();
+
+    } catch(e) {
+      console.log(e);
+    } finally {
+    }
+
+    console.log('\n'+stringifyTemplateDefinition(App.description, 0));
+    disableTracing();
+
+    expect(host.textContent).to.equal('a');
+  });
+
+  it('works 9', () => {
+
+    enableTracing();
+    Tracer.enableLiveLogging(SymbolTraceWriter);
+    const container = DI.createContainer();
+    container.register(<any>BasicConfiguration);
+    const def = { name: 'app', template: "<template><template if.bind=\"true\">${msg}</template></template>" };
+    const App = CustomElementResource.define(def, class { msg = 'a'});
+    const component = new App();
+    const host = <any>DOM.createElement('div');
+
+    const au = new Aurelia(<any>container);
+
+    au.app({ component, host });
+    try {
+      au.start();
+
+    } catch(e) {
+      console.log(e);
+    } finally {
+    }
+
+    console.log('\n'+stringifyTemplateDefinition(App.description, 0));
+    disableTracing();
+
+    expect(host.textContent).to.equal('a');
+  });
+
+  it('works 10', () => {
+    enableTracing();
+    Tracer.enableLiveLogging(SymbolTraceWriter);
+    const container = DI.createContainer();
+    container.register(<any>BasicConfiguration);
+    const def = { name: 'app', template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</template></template>" };
+    const App = CustomElementResource.define(def, class { msg = 'a'});
+    const component = new App();
+    const host = <any>DOM.createElement('div');
+
+    const au = new Aurelia(<any>container);
+
+    au.app({ component, host });
+    try {
+      au.start();
+
+    } catch(e) {
+      console.log(e);
+    } finally {
+    }
+
+    console.log('\n'+stringifyTemplateDefinition(App.description, 0));
+    disableTracing();
+
+    expect(host.textContent).to.equal('abc');
+  });
+
+  it('works 11', () => {
+    enableTracing();
+    Tracer.enableLiveLogging(SymbolTraceWriter);
+    const container = DI.createContainer();
+    container.register(<any>BasicConfiguration);
+    const def = { name: 'app', template: "<template><div if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</div></template>" };
+    const App = CustomElementResource.define(def, class { msg = 'a'});
+    const component = new App();
+    const host = <any>DOM.createElement('div');
+
+    const au = new Aurelia(<any>container);
+
+    au.app({ component, host });
+    try {
+      au.start();
+
+    } catch(e) {
+      console.log(e);
+    } finally {
+    }
+
+    console.log('\n'+stringifyTemplateDefinition(App.description, 0));
+    disableTracing();
+
+    expect(host.textContent).to.equal('abc');
+  });
 });
+

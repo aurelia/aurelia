@@ -6,32 +6,64 @@ import {
   Tracer as DebugTracer
 } from '../../../debug/src/index';
 import {
-  Tracer, ITraceInfo
+  Tracer, ITraceInfo, PLATFORM
 } from '../../../kernel/src/index';
+import {
+  stringifyLifecycleFlags, IHTMLElement
+} from '../../../runtime/src/index';
 import { NodeSymbol, AttributeSymbol, ISymbol } from '../../src/index';
 
 
 
 export const SymbolTraceWriter = {
   write(info: ITraceInfo): void {
-    let output: string = '';
-
-    if (info.params.length > 0 && info.params[0]) {
-      const p = info.params[0];
-      if ((<ISymbol>p).kind) {
-        const symbol = info.params[0] as NodeSymbol | AttributeSymbol;
-        if ('attr' in symbol) {
-          output = `attr: ${symbol.attr.name}=${symbol.attr.value}`;
-        } else if ('text' in symbol) {
-          output = `text: "${symbol.text.textContent}"`;
-        } else {
-          output = `element: ${symbol.element.outerHTML}`;
-        }
-      } else if (typeof p !== 'object') {
-        output = p;
+    let output: string = '(';
+    const params = info.params;
+    for (let i = 0, ii = params.length; i < ii; ++i) {
+      const p = info.params[i];
+      switch (typeof p) {
+        case 'string':
+        case 'boolean':
+          output += p.toString();
+          break;
+        case 'number':
+          output += p > 0 ? `flags=${stringifyLifecycleFlags(p)}` : '0';
+          break;
+        case 'object':
+          if (p === null) {
+            output += 'null';
+          } else {
+            if ((<ISymbol>p).kind) {
+              const symbol = p as NodeSymbol | AttributeSymbol;
+              if ('attr' in symbol) {
+                output += `attr: ${symbol.attr.name}=${symbol.attr.value}`;
+              } else if ('text' in symbol) {
+                output += `text: "${symbol.text.textContent}"`;
+              } else {
+                output += `element: ${symbol.element.outerHTML}`;
+              }
+            } else {
+              if ('outerHTML' in (p as IHTMLElement)) {
+                const el = p as IHTMLElement;
+                output += `${Object.getPrototypeOf(el).constructor.name}=${el.outerHTML}`
+              } else {
+                output += `[Object ${Object.getPrototypeOf(p).constructor.name || 'anonymous'}]`;
+              }
+            }
+          }
+          break;
+        case 'undefined':
+          output += 'undefined';
+          break;
+        default:
+          output += '?';
+      }
+      if (i + 1 < ii) {
+        output += ', ';
       }
     }
-    console.debug(`${' '.repeat(info.depth)}${info.name} ${output}`);
+    output += ')';
+    console.debug(`${'  '.repeat(info.depth)}${info.name} - ${output}`);
   }
 };
 

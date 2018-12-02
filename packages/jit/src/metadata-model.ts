@@ -120,6 +120,10 @@ function createAttributeInfo(resources: IResourceDescriptions, name: string): At
       info.bindable = info.bindables[prop];
     }
   }
+  // if no bindables are present, default to "value"
+  if (info.bindable === null) {
+    info.bindable = new BindableInfo('value', BindingMode.toView);
+  }
   return info;
 }
 

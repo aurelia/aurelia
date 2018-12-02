@@ -137,6 +137,10 @@ export class SemanticModel {
       return new BoundAttributeSymbol(attr, el, cmd, attrSyntax, expr);
     }
     // it's a custom attribute
+    if (command === null && value.length > 0) {
+      // for custom attribute, assume 'to-view' binding command if no binding command is declared
+      expr = exprParser.parse(value, BindingType.ToViewCommand);
+    }
     if (attrInfo.isTemplateController) {
       return new TemplateControllerAttributeSymbol(attr, el, attrInfo, cmd, attrSyntax, expr);
     } else {
@@ -161,6 +165,7 @@ export interface IAttributeSymbol extends ISymbol {
 
 export interface INodeSymbol extends ISymbol {
   parentNode: ParentElementSymbol | null;
+  prevNode: NodeSymbol | null;
   nextNode: NodeSymbol | null;
 }
 
@@ -242,6 +247,7 @@ export class CompilationTarget implements IParentElementSymbol {
   public element: IHTMLTemplateElement;
 
   public parentNode: null;
+  public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
@@ -260,6 +266,7 @@ export class CompilationTarget implements IParentElementSymbol {
     this.kind = SymbolKind.compilationTarget;
     this.element = definition.template as IHTMLTemplateElement;
     this.parentNode = null;
+    this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
     this.tailNode = null;
@@ -306,6 +313,7 @@ export class PlainElementSymbol implements IParentElementSymbol {
   public refName: string | null;
 
   public parentNode: ParentElementSymbol;
+  public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
@@ -327,6 +335,7 @@ export class PlainElementSymbol implements IParentElementSymbol {
     this.partName = element.getAttribute('part');
     this.replacePartName = element.getAttribute('replace-part');
     this.refName = element.getAttribute('ref');
+    this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
     this.tailNode = null;
@@ -372,6 +381,7 @@ export class SurrogateElementSymbol implements IParentElementSymbol {
   public refName: string | null;
 
   public parentNode: ParentElementSymbol;
+  public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
@@ -390,6 +400,7 @@ export class SurrogateElementSymbol implements IParentElementSymbol {
     this.kind = SymbolKind.surrogateElement;
     this.element = element;
     this.parentNode = parentNode;
+    this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
     this.tailNode = null;
@@ -419,6 +430,7 @@ export class SlotElementSymbol implements IParentElementSymbol {
   public element: IHTMLSlotElement;
 
   public parentNode: ParentElementSymbol;
+  public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
@@ -434,6 +446,7 @@ export class SlotElementSymbol implements IParentElementSymbol {
     this.kind = SymbolKind.slotElement;
     this.element = element;
     this.parentNode = parentNode;
+    this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
     this.tailNode = null;
@@ -457,6 +470,7 @@ export class LetElementSymbol implements IElementSymbol {
   public element: IHTMLElement;
 
   public parentNode: ParentElementSymbol;
+  public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
 
   public headAttr: AttributeSymbol;
@@ -470,6 +484,7 @@ export class LetElementSymbol implements IElementSymbol {
     this.kind = SymbolKind.letElement;
     this.element = element;
     this.parentNode = parentNode;
+    this.prevNode = null;
     this.nextNode = null;
     this.headAttr = null;
     this.tailAttr = null;
@@ -495,6 +510,7 @@ export class CustomElementSymbol implements IParentElementSymbol {
   public refName: string | null;
 
   public parentNode: ParentElementSymbol;
+  public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
   public headNode: NodeSymbol;
   public tailNode: NodeSymbol;
@@ -517,6 +533,7 @@ export class CustomElementSymbol implements IParentElementSymbol {
     this.partName = element.getAttribute('part');
     this.replacePartName = element.getAttribute('replace-part');
     this.refName = element.getAttribute('ref');
+    this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
     this.headAttr = null;
@@ -565,6 +582,7 @@ export class TextInterpolationSymbol implements ITextSymbol {
   public text: IText;
 
   public parentNode: ParentElementSymbol;
+  public prevNode: NodeSymbol;
   public nextNode: NodeSymbol;
 
   public expr: Interpolation;
@@ -575,6 +593,7 @@ export class TextInterpolationSymbol implements ITextSymbol {
     this.kind = SymbolKind.textInterpolation;
     this.parentNode = parentNode;
     this.text = text;
+    this.prevNode = null;
     this.nextNode = null;
     this.expr = expr;
     this.marker = null;

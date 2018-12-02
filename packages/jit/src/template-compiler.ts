@@ -275,6 +275,7 @@ export class SymbolPreprocessor implements ISymbolVisitor {
         symbol.headNode = elSymbol;
       } else {
         symbol.tailNode.nextNode = elSymbol;
+        elSymbol.prevNode = symbol.tailNode;
       }
       symbol.tailNode = elSymbol;
       elSymbol.accept(this);
@@ -437,15 +438,6 @@ export class NodePreprocessor implements ISymbolVisitor {
 
       // 1.2
       (LE as IHTMLTemplateElement).content.appendChild(createMarker());
-
-      // 2.1
-      SES = this.model.createNodeSymbol(SE, LES);
-
-      // 2.2
-      SES.headNode = LES.headNode;
-      SES.tailNode = LES.tailNode;
-      LES.headNode = SES;
-      LES.tailNode = SES;
     } else {
       // 1.2
       if (PLES.kind & SymbolKind.isSurrogate) {
@@ -456,32 +448,16 @@ export class NodePreprocessor implements ISymbolVisitor {
 
       // 1.3 option 2
       SE.content.appendChild(LE);
-
-      // 2.1
-      SES = this.model.createNodeSymbol(SE, PLES);
-
-      // 2.2
-      SES.headNode = LES;
-      SES.tailNode = LES;
-      let prevNode: NodeSymbol = null;
-      let currentNode = PLES.headNode;
-      let nextNode = currentNode.nextNode;
-      while (currentNode !== LES) {
-        prevNode = currentNode;
-        currentNode = nextNode;
-        nextNode = currentNode.nextNode;
-      }
-      if (PLES.headNode === currentNode) {
-        PLES.headNode = SES;
-      }
-      if (PLES.tailNode === currentNode) {
-        PLES.tailNode = SES;
-      }
-      SES.nextNode = nextNode;
-      if (prevNode !== null) {
-        prevNode.nextNode = SES;
-      }
     }
+
+    // 2.1
+    SES = this.model.createNodeSymbol(SE, LES);
+
+    // 2.2
+    SES.headNode = LES.headNode;
+    SES.tailNode = LES.tailNode;
+    LES.headNode = SES;
+    LES.tailNode = SES;
 
     // 2.3
     SES.templateController = TCS;

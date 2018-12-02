@@ -1,8 +1,10 @@
-import { DI, IContainer, IDisposable, Immutable, inject, InterfaceSymbol, IResolver, IServiceLocator, Omit, PLATFORM, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IDisposable, Immutable, inject, InterfaceSymbol, IResolver, IServiceLocator, Omit, PLATFORM, Registration, Tracer } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom.interfaces';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
+
+const slice = Array.prototype.slice;
 
 export const enum State {
   none                  = 0b000000000000,
@@ -790,6 +792,7 @@ export class Lifecycle implements ILifecycle {
   }
 
   public enqueueFlush(requestor: IChangeTracker): Promise<void> {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueFlush', slice.call(arguments)); }
     // Queue a flush() callback; the depth is just for debugging / testing purposes and has
     // no effect on execution. flush() will automatically be invoked when the promise resolves,
     // or it can be manually invoked synchronously.
@@ -802,10 +805,12 @@ export class Lifecycle implements ILifecycle {
       this.flushTail = requestor;
       ++this.flushCount;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
     return this.flushed;
   }
 
   public processFlushQueue(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.processFlushQueue', slice.call(arguments)); }
     flags |= LifecycleFlags.fromSyncFlush;
     // flush callbacks may lead to additional flush operations, so keep looping until
     // the flush head is back to `this` (though this will typically happen in the first iteration)
@@ -829,13 +834,17 @@ export class Lifecycle implements ILifecycle {
         break;
       }
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public beginBind(): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.beginBind', slice.call(arguments)); }
     ++this.bindDepth;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public enqueueBound(requestor: ILifecycleBound): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueBound', slice.call(arguments)); }
     // build a standard singly linked list for bound callbacks
     if (requestor.$nextBound === null) {
       requestor.$nextBound = marker;
@@ -843,9 +852,11 @@ export class Lifecycle implements ILifecycle {
       this.boundTail = requestor;
       ++this.boundCount;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public enqueueConnect(requestor: IConnectableBinding): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueConnect', slice.call(arguments)); }
     // enqueue connect and patch calls in separate lists so that they can be invoked
     // independently from eachother
     // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path
@@ -865,9 +876,11 @@ export class Lifecycle implements ILifecycle {
       this.patchTail = requestor;
       ++this.patchCount;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public processConnectQueue(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.processConnectQueue', slice.call(arguments)); }
     // connects cannot lead to additional connects, so we don't need to loop here
     if (this.connectCount > 0) {
       this.connectCount = 0;
@@ -881,9 +894,11 @@ export class Lifecycle implements ILifecycle {
         current = next;
       } while (current !== marker);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public processPatchQueue(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.processPatchQueue', slice.call(arguments)); }
     // flush before patching, but only if this is the initial bind;
     // no DOM is attached yet so we can safely let everything propagate
     if (flags & LifecycleFlags.fromStartTask) {
@@ -903,23 +918,29 @@ export class Lifecycle implements ILifecycle {
         current = next;
       } while (current !== marker);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public endBind(flags: LifecycleFlags): ILifecycleTask {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.endBind', slice.call(arguments)); }
     // close / shrink a bind batch
     if (--this.bindDepth === 0) {
       if (this.task !== null && !this.task.done) {
         this.task.owner = this;
+        if (Tracer.enabled) { Tracer.leave(); }
         return this.task;
       }
 
       this.processBindQueue(flags);
 
+      if (Tracer.enabled) { Tracer.leave(); }
       return LifecycleTask.done;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public processBindQueue(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.processBindQueue', slice.call(arguments)); }
     // flush before processing bound callbacks, but only if this is the initial bind;
     // no DOM is attached yet so we can safely let everything propagate
     if (flags & LifecycleFlags.fromStartTask) {
@@ -939,14 +960,18 @@ export class Lifecycle implements ILifecycle {
         current = next;
       } while (current !== marker);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public beginUnbind(): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.beginUnbind', slice.call(arguments)); }
     // open up / expand an unbind batch; the very first caller will close it again with endUnbind
     ++this.unbindDepth;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public enqueueUnbound(requestor: ILifecycleUnbound): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueUnbound', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
     // build a standard singly linked list for unbound callbacks
@@ -956,23 +981,29 @@ export class Lifecycle implements ILifecycle {
       this.unboundTail = requestor;
       ++this.unboundCount;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public endUnbind(flags: LifecycleFlags): ILifecycleTask {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.endUnbind', slice.call(arguments)); }
     // close / shrink an unbind batch
     if (--this.unbindDepth === 0) {
       if (this.task !== null && !this.task.done) {
         this.task.owner = this;
+        if (Tracer.enabled) { Tracer.leave(); }
         return this.task;
       }
 
       this.processUnbindQueue(flags);
 
+      if (Tracer.enabled) { Tracer.leave(); }
       return LifecycleTask.done;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public processUnbindQueue(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.processUnbindQueue', slice.call(arguments)); }
     // unbound callbacks may lead to additional unbind operations, so keep looping until
     // the unbound head is back to `this` (though this will typically happen in the first iteration)
     while (this.unboundCount > 0) {
@@ -987,14 +1018,18 @@ export class Lifecycle implements ILifecycle {
         current = next;
       } while (current !== marker);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public beginAttach(): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.beginAttach', slice.call(arguments)); }
     // open up / expand an attach batch; the very first caller will close it again with endAttach
     ++this.attachDepth;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public enqueueMount(requestor: ILifecycleMount): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueMount', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
     // build a standard singly linked list for mount callbacks
@@ -1004,9 +1039,11 @@ export class Lifecycle implements ILifecycle {
       this.mountTail = requestor;
       ++this.mountCount;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public enqueueAttached(requestor: ILifecycleAttached): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueAttached', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
     // build a standard singly linked list for attached callbacks
@@ -1016,23 +1053,29 @@ export class Lifecycle implements ILifecycle {
       this.attachedTail = requestor;
       ++this.attachedCount;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public endAttach(flags: LifecycleFlags): ILifecycleTask {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.endAttach', slice.call(arguments)); }
     // close / shrink an attach batch
     if (--this.attachDepth === 0) {
       if (this.task !== null && !this.task.done) {
         this.task.owner = this;
+        if (Tracer.enabled) { Tracer.leave(); }
         return this.task;
       }
 
       this.processAttachQueue(flags);
 
+      if (Tracer.enabled) { Tracer.leave(); }
       return LifecycleTask.done;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public processAttachQueue(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.processAttachQueue', slice.call(arguments)); }
     // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
     // and the DOM is updated
     this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
@@ -1073,14 +1116,18 @@ export class Lifecycle implements ILifecycle {
         currentAttached = nextAttached;
       } while (currentAttached !== marker);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public beginDetach(): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.beginDetach', slice.call(arguments)); }
     // open up / expand a detach batch; the very first caller will close it again with endDetach
     ++this.detachDepth;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public enqueueUnmount(requestor: ILifecycleUnmount): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueUnmount', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
     // build a standard singly linked list for unmount callbacks
@@ -1090,9 +1137,11 @@ export class Lifecycle implements ILifecycle {
       this.unmountTail = requestor;
       ++this.unmountCount;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public enqueueDetached(requestor: ILifecycleDetached): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueDetached', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
     // build a standard singly linked list for detached callbacks
@@ -1102,9 +1151,11 @@ export class Lifecycle implements ILifecycle {
       this.detachedTail = requestor;
       ++this.detachedCount;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public enqueueUnbindAfterDetach(requestor: ILifecycleUnbindAfterDetach): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueUnbindAfterDetach', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
     // build a standard singly linked list for unbindAfterDetach callbacks
@@ -1114,9 +1165,11 @@ export class Lifecycle implements ILifecycle {
       this.unbindAfterDetachTail = requestor;
       ++this.unbindAfterDetachCount;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public endDetach(flags: LifecycleFlags): ILifecycleTask {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.endDetach', slice.call(arguments)); }
     // close / shrink a detach batch
     if (--this.detachDepth === 0) {
       if (this.task !== null && !this.task.done) {
@@ -1126,11 +1179,14 @@ export class Lifecycle implements ILifecycle {
 
       this.processDetachQueue(flags);
 
+      if (Tracer.enabled) { Tracer.leave(); }
       return LifecycleTask.done;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public processDetachQueue(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle.processDetachQueue', slice.call(arguments)); }
     // flush before unmounting to ensure batched collection changes propagate to the repeaters,
     // which may lead to additional unmount operations
     this.processFlushQueue(flags | LifecycleFlags.fromFlush | LifecycleFlags.doNotUpdateDOM);
@@ -1178,6 +1234,7 @@ export class Lifecycle implements ILifecycle {
       } while (currentUnbind !== marker);
       this.endUnbind(flags);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 

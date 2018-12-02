@@ -1,4 +1,4 @@
-import { IServiceLocator, Reporter } from '@aurelia/kernel';
+import { IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
 import { INode } from '../dom.interfaces';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { AccessorOrObserver, IBindingTargetObserver, IObservable, IScope, LifecycleFlags } from '../observation';
@@ -6,6 +6,8 @@ import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior }
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
+
+const slice = Array.prototype.slice;
 
 export interface IBinding extends IBindScope {
   readonly locator: IServiceLocator;
@@ -71,7 +73,9 @@ export class Binding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Binding.handleChange', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -97,6 +101,7 @@ export class Binding implements IPartialConnectableBinding {
         sourceExpression.connect(flags, $scope, this);
         this.unobserve(false);
       }
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -104,6 +109,7 @@ export class Binding implements IPartialConnectableBinding {
       if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
         this.updateSource(newValue, flags);
       }
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -111,8 +117,10 @@ export class Binding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
+    if (Tracer.enabled) { Tracer.enter('Binding.$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
+        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
       this.$unbind(flags | LifecycleFlags.fromBind);
@@ -159,10 +167,13 @@ export class Binding implements IPartialConnectableBinding {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Binding.$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -188,19 +199,24 @@ export class Binding implements IPartialConnectableBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public connect(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Binding.connect', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       flags |= this.persistentFlags;
       this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public patch(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Binding.patch', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       flags |= this.persistentFlags;
       this.updateTarget(this.sourceExpression.evaluate(flags | LifecycleFlags.mustEvaluate, this.$scope, this.locator), flags);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }

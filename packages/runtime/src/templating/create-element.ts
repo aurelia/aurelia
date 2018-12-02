@@ -1,10 +1,12 @@
-import { Constructable, IRegistry } from '@aurelia/kernel';
+import { Constructable, IRegistry, Tracer } from '@aurelia/kernel';
 import { buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
 import { DOM } from '../dom';
 import { INode } from '../dom.interfaces';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
 import { ICustomElementType } from './custom-element';
 import { IRenderingEngine, ITemplate } from './lifecycle-render';
+
+const slice = Array.prototype.slice;
 
 type ChildType = RenderPlan | string | INode;
 
@@ -55,6 +57,7 @@ export class RenderPlan {
 }
 
 function createElementForTag(tagName: string, props?: Record<string, string | ITargetedInstruction>, children?: ArrayLike<ChildType>): RenderPlan {
+  if (Tracer.enabled) { Tracer.enter('createElementForTag', slice.call(arguments)); }
   const instructions: TargetedInstruction[] = [];
   const allInstructions: TargetedInstruction[][] = [];
   const dependencies: IRegistry[] = [];
@@ -84,10 +87,12 @@ function createElementForTag(tagName: string, props?: Record<string, string | IT
     addChildren(element, children, allInstructions, dependencies);
   }
 
+  if (Tracer.enabled) { Tracer.leave(); }
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
 function createElementForType(Type: ICustomElementType, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
+  if (Tracer.enabled) { Tracer.enter('createElementForType', slice.call(arguments)); }
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
@@ -139,6 +144,7 @@ function createElementForType(Type: ICustomElementType, props?: object, children
     addChildren(element, children, allInstructions, dependencies);
   }
 
+  if (Tracer.enabled) { Tracer.leave(); }
   return new RenderPlan(element, allInstructions, dependencies);
 }
 

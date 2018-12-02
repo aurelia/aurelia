@@ -1,15 +1,19 @@
-import { Writable } from '@aurelia/kernel';
+import { Tracer, Writable } from '@aurelia/kernel';
 import { Hooks, IView, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { ICustomAttribute } from './custom-attribute';
 import { ICustomElement } from './custom-element';
 
+const slice = Array.prototype.slice;
+
 /*@internal*/
 export function $bindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, scope: IScope): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$bindAttribute`, slice.call(arguments)); }
   flags |= LifecycleFlags.fromBind;
 
   if (this.$state & State.isBound) {
     if (this.$scope === scope) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -37,11 +41,14 @@ export function $bindAttribute(this: Writable<ICustomAttribute>, flags: Lifecycl
   this.$state &= ~State.isBinding;
 
   lifecycle.endBind(flags);
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /*@internal*/
 export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFlags, parentScope: IScope | null): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$bindElement`, slice.call(arguments)); }
   if (this.$state & State.isBound) {
+    if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
   const scope = this.$scope;
@@ -74,14 +81,17 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
   this.$state &= ~State.isBinding;
 
   lifecycle.endBind(flags);
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /*@internal*/
 export function $bindView(this: Writable<IView>, flags: LifecycleFlags, scope: IScope): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$bindView`, slice.call(arguments)); }
   flags |= LifecycleFlags.fromBind;
 
   if (this.$state & State.isBound) {
     if (this.$scope === scope) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -100,10 +110,12 @@ export function $bindView(this: Writable<IView>, flags: LifecycleFlags, scope: I
   // add isBound flag and remove isBinding flag
   this.$state |= State.isBound;
   this.$state &= ~State.isBinding;
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /*@internal*/
 export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$unbindAttribute`, slice.call(arguments)); }
   if (this.$state & State.isBound) {
     const lifecycle = this.$lifecycle;
     lifecycle.beginUnbind();
@@ -126,10 +138,12 @@ export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
 
     lifecycle.endUnbind(flags);
   }
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /*@internal*/
 export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$unbindElement`, slice.call(arguments)); }
   if (this.$state & State.isBound) {
     const lifecycle = this.$lifecycle;
     lifecycle.beginUnbind();
@@ -160,10 +174,12 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleF
 
     lifecycle.endUnbind(flags);
   }
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /*@internal*/
 export function $unbindView(this: Writable<IView>, flags: LifecycleFlags): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$unbindView`, slice.call(arguments)); }
   if (this.$state & State.isBound) {
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
@@ -180,4 +196,5 @@ export function $unbindView(this: Writable<IView>, flags: LifecycleFlags): void 
     this.$state &= ~(State.isBound | State.isUnbinding);
     this.$scope = null;
   }
+  if (Tracer.enabled) { Tracer.leave(); }
 }

@@ -1,3 +1,4 @@
+import { Tracer } from '@aurelia/kernel';
 import {
   Collection, CollectionKind, CollectionObserver, IBindingTargetObserver,
   ICollectionObserver, IndexMap, IPatch, IPropertySubscriber, LifecycleFlags, MutationKind
@@ -5,12 +6,16 @@ import {
 import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';
 
+const slice = Array.prototype.slice;
+
 function flush(this: CollectionObserver): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.flush`, slice.call(arguments)); }
   this.callBatchedSubscribers(this.indexMap);
   if (!!this.lengthObserver) {
     this.lengthObserver.patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
   }
   this.resetIndexMap();
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 function dispose(this: CollectionObserver): void {

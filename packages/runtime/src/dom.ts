@@ -1,5 +1,7 @@
-import { Constructable, IContainer, IResolver, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, IResolver, PLATFORM, Reporter, Tracer, Writable } from '@aurelia/kernel';
 import { IAddEventListenerOptions, IChildNode, IComment, IDocument, IDocumentFragment, IElement, IEventListenerOptions, IEventListenerOrEventListenerObject, IEventTarget, IHTMLElement, IHTMLTemplateElement, IMutationCallback, IMutationObserver, IMutationObserverInit, INode, INodeSequence, IParentNode, IRenderLocation, IShadowRootInit, ISVGElement, IText, NodeType } from './dom.interfaces';
+
+const slice = Array.prototype.slice;
 
 function isRenderLocation(node: INode): node is IRenderLocation {
   return node.textContent === 'au-end';
@@ -87,6 +89,9 @@ export const DOM = {
   },
   insertBefore(nodeToInsert: INode, referenceNode: INode): void {
     referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
+  },
+  isMarker(node: INode): node is IElement {
+    return node.nodeName === 'AU-M';
   },
   isCommentNodeType(node: INode): node is IComment {
     return node.nodeType === NodeType.Comment;
@@ -344,8 +349,7 @@ export class NodeSequenceFactory {
         const target = childNodes[0];
         if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
           const text = childNodes[1];
-          if (text.nodeType === NodeType.Text && text.textContent === ' ') {
-            text.textContent = '';
+          if (text.nodeType === NodeType.Text && text.textContent.length === 0) {
             this.deepClone = false;
             this.node = text;
             this.Type = TextNodeSequence;
@@ -361,7 +365,9 @@ export class NodeSequenceFactory {
   }
 
   public static createFor(markupOrNode: string | INode): NodeSequenceFactory {
+    if (Tracer.enabled) { Tracer.enter('NodeSequenceFactory.createFor', slice.call(arguments)); }
     const fragment = DOM.createDocumentFragment(markupOrNode);
+    if (Tracer.enabled) { Tracer.leave(); }
     return new NodeSequenceFactory(fragment);
   }
 

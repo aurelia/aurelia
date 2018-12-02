@@ -1,10 +1,12 @@
-import { Reporter } from '@aurelia/kernel';
+import { Reporter, Tracer } from '@aurelia/kernel';
 import { INodeSequence, IRenderLocation } from '../dom.interfaces';
 import { IAttach, IBindScope, ILifecycle, ILifecycleUnbind, IMountable, IRenderContext, IView, IViewCache, IViewFactory, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
 import { $bindView, $unbindView } from './lifecycle-bind';
 import { ITemplate } from './lifecycle-render';
+
+const slice = Array.prototype.slice;
 
 /*@internal*/
 export interface View extends IView {}
@@ -65,23 +67,30 @@ export class View implements IView {
   }
 
   public hold(location: IRenderLocation, flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('View.hold', slice.call(arguments)); }
     if (!location.parentNode) { // unmet invariant: location must be a child of some other node
       throw Reporter.error(60); // TODO: organize error codes
     }
     this.location = location;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public lockScope(scope: IScope): void {
+    if (Tracer.enabled) { Tracer.enter('View.lockScope', slice.call(arguments)); }
     this.$scope = scope;
     this.$bind = lockedBind;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public release(flags: LifecycleFlags): boolean {
+    if (Tracer.enabled) { Tracer.enter('View.release', slice.call(arguments)); }
     this.isFree = true;
     if (this.$state & State.isAttached) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return this.cache.canReturnToCache(this);
     }
 
+    if (Tracer.enabled) { Tracer.leave(); }
     return !!this.$unmount(flags);
   }
 }
@@ -165,6 +174,7 @@ export class ViewFactory implements IViewFactory {
 
 function lockedBind(this: View, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
+    if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
 
@@ -177,6 +187,7 @@ function lockedBind(this: View, flags: LifecycleFlags): void {
   }
 
   this.$state |= State.isBound;
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 ((proto: IView): void => {

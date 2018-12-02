@@ -310,7 +310,9 @@ export class NodePreprocessor implements ISymbolVisitor {
   }
   public visitLetElementSymbol(symbol: LetElementSymbol): void {
     if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitLetElementSymbol', slice.call(arguments)); }
-    // TODO?
+    if (!symbol.element.classList.contains('au')) {
+      symbol.element.classList.add('au');
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitCompilationTarget(symbol: CompilationTarget): void {
@@ -335,7 +337,9 @@ export class NodePreprocessor implements ISymbolVisitor {
   }
   public visitAttributeInterpolationSymbol(symbol: AttributeInterpolationSymbol): void {
     if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitAttributeInterpolationSymbol', slice.call(arguments)); }
-    // do nothing
+    if (!symbol.owner.element.classList.contains('au')) {
+      symbol.owner.element.classList.add('au');
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitCustomAttributeSymbol(symbol: CustomAttributeSymbol): void {
@@ -489,7 +493,9 @@ export class NodePreprocessor implements ISymbolVisitor {
   }
   public visitBoundAttributeSymbol(symbol: BoundAttributeSymbol): void {
     if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitBoundAttributeSymbol', slice.call(arguments)); }
-    // do nothing
+    if (!symbol.owner.element.classList.contains('au')) {
+      symbol.owner.element.classList.add('au');
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitBindingCommandSymbol(symbol: BindingCommandSymbol): void {

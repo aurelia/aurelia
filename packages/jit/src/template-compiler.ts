@@ -68,20 +68,6 @@ const emptyArray = PLATFORM.emptyArray as any[];
 
 const slice = Array.prototype.slice;
 
-// TODO: make extensible / rework BindingCommand
-const BindingCommandLookup: Record<string, BindingType> = {
-  'one-time': BindingType.OneTimeCommand,
-  'to-view': BindingType.ToViewCommand,
-  'from-view': BindingType.FromViewCommand,
-  'two-way': BindingType.TwoWayCommand,
-  'bind': BindingType.BindCommand,
-  'trigger': BindingType.TriggerCommand,
-  'delegate': BindingType.DelegateCommand,
-  'capture': BindingType.CaptureCommand,
-  'call': BindingType.CallCommand,
-  'for': BindingType.ForCommand,
-};
-
 function createMarker(): IElement {
   const marker = DOM.createElement('au-m');
   marker.className = 'au';
@@ -146,89 +132,61 @@ export class SymbolPreprocessor implements ISymbolVisitor {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.attr.value.length === 0) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return;
-    }
     if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
+      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
+    } else if (symbol.attr.value.length > 0) {
+      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
     }
-    symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
     if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitTemplateControllerAttributeSymbol', slice.call(arguments)); }
-    // TODO
     if (symbol.expr !== null) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.attr.value.length === 0) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return;
-    }
     if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
-    } else {
+      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
+    } else if (symbol.attr.value.length > 0) {
       symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
     if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitAttributeBindingSymbol', slice.call(arguments)); }
-    // TODO
     if (symbol.expr !== null) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.attr.value.length === 0) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return;
-    }
     if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
-    } else {
+      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
+    } else if (symbol.attr.value.length > 0) {
       symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitElementBindingSymbol(symbol: ElementBindingSymbol): void {
     if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitElementBindingSymbol', slice.call(arguments)); }
-    // TODO
     if (symbol.expr !== null) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.attr.value.length === 0) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return;
-    }
     if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
-    } else {
+      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
+    } else if (symbol.attr.value.length > 0) {
       symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitBoundAttributeSymbol(symbol: BoundAttributeSymbol): void {
     if (Tracer.enabled) { Tracer.enter('SymbolPreprocessor.visitBoundAttributeSymbol', slice.call(arguments)); }
-    // TODO
     if (symbol.expr !== null) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.attr.value.length === 0) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return;
-    }
     if (symbol.command !== null) {
-      // TODO: reintroduce binding command resources properly
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingCommandLookup[symbol.syntax.command]);
-    } else {
+      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
+    } else if (symbol.attr.value.length > 0) {
       symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
     }
     if (Tracer.enabled) { Tracer.leave(); }

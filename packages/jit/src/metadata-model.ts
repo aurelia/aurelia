@@ -47,7 +47,7 @@ export class MetadataModel {
             elements[name] = createElementInfo(resources, name);
             break;
           case attribute:
-            attributes[name] = createAttributeInfo(resources, name);
+            attributes[PLATFORM.kebabCase(name)] = createAttributeInfo(resources, name);
             break;
           case command:
             commands[name] = resources.create(BindingCommandResource, name);
@@ -58,7 +58,7 @@ export class MetadataModel {
 }
 
 function createElementInfo(resources: IResourceDescriptions, name: string): ElementInfo {
-  const info = new ElementInfo();
+  const info = new ElementInfo(name);
   const def = resources.find(CustomElementResource, name) as TemplateDefinition;
   const bindables = def.bindables;
   const defaultBindingMode = BindingMode.toView;
@@ -93,7 +93,7 @@ function createElementInfo(resources: IResourceDescriptions, name: string): Elem
 
 function createAttributeInfo(resources: IResourceDescriptions, name: string): AttributeInfo {
   const def = resources.find(CustomAttributeResource, name) as AttributeDefinition;
-  const info = new AttributeInfo(def.isTemplateController);
+  const info = new AttributeInfo(name, def.isTemplateController);
   const bindables = def.bindables;
   const defaultBindingMode = def.defaultBindingMode !== undefined && def.defaultBindingMode !== BindingMode.default
     ? def.defaultBindingMode
@@ -122,7 +122,7 @@ function createAttributeInfo(resources: IResourceDescriptions, name: string): At
   }
   // if no bindables are present, default to "value"
   if (info.bindable === null) {
-    info.bindable = new BindableInfo('value', BindingMode.toView);
+    info.bindable = new BindableInfo('value', defaultBindingMode);
   }
   return info;
 }
@@ -160,13 +160,16 @@ export class BindableInfo {
  * for consumption by the template compiler.
  */
 export class ElementInfo {
+  public name: string;
+
   /**
    * A lookup of the bindables of this element, indexed by the (pre-processed)
    * attribute names as they would be found in parsed markup.
    */
   public bindables: Record<string, BindableInfo>;
 
-  constructor() {
+  constructor(name: string) {
+    this.name = name;
     this.bindables = {};
   }
 }
@@ -176,6 +179,8 @@ export class ElementInfo {
  * for consumption by the template compiler.
  */
 export class AttributeInfo {
+  public name: string;
+
   /**
    * A lookup of the bindables of this attribute, indexed by the (pre-processed)
    * bindable names as they would be found in the attribute value.
@@ -194,7 +199,8 @@ export class AttributeInfo {
 
   public isTemplateController: boolean;
 
-  constructor(isTemplateController: boolean) {
+  constructor(name: string, isTemplateController: boolean) {
+    this.name = name;
     this.bindables = {};
     this.bindable = null;
     this.isTemplateController = isTemplateController;

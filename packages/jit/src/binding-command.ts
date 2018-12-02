@@ -1,6 +1,6 @@
 import { Class, Constructable, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
 import {
-  BindingMode,
+  BindingType,
   CallBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
@@ -23,6 +23,7 @@ import {
 import { AttributeSymbol, SymbolKind, TemplateControllerAttributeSymbol } from './semantic-model';
 
 export interface IBindingCommand {
+  bindingType: BindingType;
   compile($symbol: AttributeSymbol): TargetedInstruction;
   handles?($symbol: AttributeSymbol): boolean;
 }
@@ -88,6 +89,11 @@ export interface OneTimeBindingCommand extends IBindingCommand {}
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.OneTimeCommand;
+
+  constructor() {
+    this.bindingType = BindingType.OneTimeCommand;
+  }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
     switch ($symbol.kind) {
@@ -107,6 +113,11 @@ export interface ToViewBindingCommand extends IBindingCommand {}
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.ToViewCommand;
+
+  constructor() {
+    this.bindingType = BindingType.ToViewCommand;
+  }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
     switch ($symbol.kind) {
@@ -126,6 +137,11 @@ export interface FromViewBindingCommand extends IBindingCommand {}
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.FromViewCommand;
+
+  constructor() {
+    this.bindingType = BindingType.FromViewCommand;
+  }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
     switch ($symbol.kind) {
@@ -145,6 +161,11 @@ export interface TwoWayBindingCommand extends IBindingCommand {}
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.TwoWayCommand;
+
+  constructor() {
+    this.bindingType = BindingType.TwoWayCommand;
+  }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
     switch ($symbol.kind) {
@@ -175,12 +196,14 @@ export interface DefaultBindingCommand extends IBindingCommand {}
 @bindingCommand('bind')
 export class DefaultBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.BindCommand;
   public $1: typeof OneTimeBindingCommand.prototype.compile;
   public $2: typeof ToViewBindingCommand.prototype.compile;
   public $4: typeof FromViewBindingCommand.prototype.compile;
   public $6: typeof TwoWayBindingCommand.prototype.compile;
 
   constructor() {
+    this.bindingType = BindingType.BindCommand;
     this.$1 = OneTimeBindingCommand.prototype.compile;
     this.$2 = ToViewBindingCommand.prototype.compile;
     this.$4 = FromViewBindingCommand.prototype.compile;
@@ -207,6 +230,11 @@ export interface TriggerBindingCommand extends IBindingCommand {}
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.TriggerCommand;
+
+  constructor() {
+    this.bindingType = BindingType.TriggerCommand;
+  }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new TriggerBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
@@ -218,6 +246,11 @@ export interface DelegateBindingCommand extends IBindingCommand {}
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.DelegateCommand;
+
+  constructor() {
+    this.bindingType = BindingType.DelegateCommand;
+  }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new DelegateBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
@@ -229,6 +262,11 @@ export interface CaptureBindingCommand extends IBindingCommand {}
 @bindingCommand('capture')
 export class CaptureBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.CaptureCommand;
+
+  constructor() {
+    this.bindingType = BindingType.CaptureCommand;
+  }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new CaptureBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
@@ -240,6 +278,11 @@ export interface CallBindingCommand extends IBindingCommand {}
 @bindingCommand('call')
 export class CallBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.CallCommand;
+
+  constructor() {
+    this.bindingType = BindingType.CallCommand;
+  }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
     return new CallBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
@@ -249,6 +292,11 @@ export class CallBindingCommand implements IBindingCommand {
 @bindingCommand('for')
 export class ForBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
+  public bindingType: BindingType.ForCommand;
+
+  constructor() {
+    this.bindingType = BindingType.ForCommand;
+  }
 
   public compile($symbol: TemplateControllerAttributeSymbol): TargetedInstruction {
     const def: ITemplateDefinition = {

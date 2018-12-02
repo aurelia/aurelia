@@ -697,8 +697,15 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     if (Tracer.enabled) { Tracer.enter('CustomAttributeSymbol.compile', slice.call(arguments)); }
-    const bindingInstructions = this.expr === null ? emptyArray : [this.command === null ? new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName) : this.command.compile(this)];
-    row.push(new HydrateAttributeInstruction(this.syntax.target, bindingInstructions));
+    let bindingInstructions: TargetedInstruction[];
+    if (this.command !== null) {
+      bindingInstructions = [this.command.compile(this)];
+    } else if (this.expr !== null) {
+      bindingInstructions = [new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName)];
+    } else {
+      bindingInstructions = emptyArray;
+    }
+    row.push(new HydrateAttributeInstruction(this.info.name, bindingInstructions));
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -743,7 +750,14 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     if (Tracer.enabled) { Tracer.enter('TemplateControllerAttributeSymbol.compile', slice.call(arguments)); }
-    let instruction = this.expr === null ? null : this.command === null ? new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName) : this.command.compile(this);
+    let instruction: TargetedInstruction;
+    if (this.command !== null) {
+      instruction = this.command.compile(this);
+    } else if (this.expr !== null) {
+      instruction = new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName);
+    } else {
+      instruction = null;
+    }
     if (instruction === null || instruction.type !== TargetedInstructionType.hydrateTemplateController) {
       const name = this.syntax.target;
       const def: ITemplateDefinition = {
@@ -756,7 +770,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
     }
     row.push(instruction);
     const htcRows = instruction.def.instructions;
-    let htcRow = [];
+    const htcRow = [];
     let el = this.targetSurrogate.headNode;
     while (el !== null) {
       el.compile(definition, htcRows, htcRow, flags);

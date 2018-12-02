@@ -412,13 +412,13 @@ export class NodePreprocessor implements ISymbolVisitor {
     const PLE = PLES.element; // Parent of Lifted Element
     if (LES.kind === SymbolKind.surrogateElement && LES.templateController === null) {
       // 1.2
-      if (PLE.nodeName === 'TEMPLATE') {
+      if (PLES.kind & SymbolKind.isSurrogate) {
         (PLE as IHTMLTemplateElement).content.replaceChild(createMarker(), LE);
       } else {
         PLE.replaceChild(createMarker(), LE);
       }
 
-      // 2.4 (no need to assign owner - the LES is already the owner of the TCS)
+      // 2.3 (no need to assign owner - the LES is already the owner of the TCS)
       LES.templateController = TCS;
       TCS.targetSurrogate = LES;
 
@@ -429,27 +429,59 @@ export class NodePreprocessor implements ISymbolVisitor {
     // # Full lift operation
     // 1.1
     const SE = DOM.createTemplate();
+    let SES: SurrogateElementSymbol;
 
-    if (LE.nodeName === 'TEMPLATE') {
+    if (LES.kind === SymbolKind.surrogateElement) {
       // 1.3 option 1
       SE.content.appendChild((LE as IHTMLTemplateElement).content);
+
       // 1.2
       (LE as IHTMLTemplateElement).content.appendChild(createMarker());
+
+      // 2.1
+      SES = this.model.createNodeSymbol(SE, LES);
+
+      // 2.2
+      SES.headNode = LES.headNode;
+      SES.tailNode = LES.tailNode;
+      LES.headNode = SES;
+      LES.tailNode = SES;
     } else {
       // 1.2
-      PLE.replaceChild(createMarker(), LE);
+      if (PLES.kind & SymbolKind.isSurrogate) {
+        (PLE as IHTMLTemplateElement).content.replaceChild(createMarker(), LE);
+      } else {
+        PLE.replaceChild(createMarker(), LE);
+      }
+
       // 1.3 option 2
       SE.content.appendChild(LE);
+
+      // 2.1
+      SES = this.model.createNodeSymbol(SE, PLES);
+
+      // 2.2
+      SES.headNode = LES;
+      SES.tailNode = LES;
+      let prevNode: NodeSymbol = null;
+      let currentNode = PLES.headNode;
+      let nextNode = currentNode.nextNode;
+      while (currentNode !== LES) {
+        prevNode = currentNode;
+        currentNode = nextNode;
+        nextNode = currentNode.nextNode;
+      }
+      if (PLES.headNode === currentNode) {
+        PLES.headNode = SES;
+      }
+      if (PLES.tailNode === currentNode) {
+        PLES.tailNode = SES;
+      }
+      SES.nextNode = nextNode;
+      if (prevNode !== null) {
+        prevNode.nextNode = SES;
+      }
     }
-
-    // 2.1
-    const SES = this.model.createNodeSymbol(SE, LES);
-
-    // 2.2
-    SES.headNode = LES.headNode;
-    SES.tailNode = LES.tailNode;
-    LES.headNode = SES;
-    LES.tailNode = SES;
 
     // 2.3
     SES.templateController = TCS;
@@ -461,9 +493,9 @@ export class NodePreprocessor implements ISymbolVisitor {
     let current = TCS.nextAttr;
     while (current !== null) {
       current.owner = SES;
+      SES.tailAttr = current;
       current = current.nextAttr;
     }
-    SES.tailAttr = current;
 
     // 2.6
     SES.accept(this);

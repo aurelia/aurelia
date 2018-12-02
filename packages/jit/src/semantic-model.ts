@@ -1,5 +1,5 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
-import { AttributeDefinition, BindingType, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, InterpolationInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, SetPropertyInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from '@aurelia/runtime';
+import { AttributeDefinition, BindingType, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, InterpolationInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, SetPropertyInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, ExpressionKind } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -620,7 +620,7 @@ export class AttributeInterpolationSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
-    row.push(new InterpolationInstruction(this.expr, this.syntax.target));
+    row.push(new InterpolationInstruction(this.expr, this.attr.name));
   }
 }
 
@@ -827,6 +827,8 @@ export class ElementBindingSymbol implements IAttributeSymbol {
     if (this.command === null) {
       if (this.expr === null) {
         row.push(new SetPropertyInstruction(this.attr.value, this.info.propName));
+      } else if (this.expr.$kind === ExpressionKind.Interpolation) {
+        row.push(new InterpolationInstruction(this.expr, this.info.propName));
       } else {
         row.push(new BindingInstruction[this.info.mode](<IsBindingBehavior>this.expr, this.info.propName));
       }

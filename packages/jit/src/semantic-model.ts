@@ -1,4 +1,4 @@
-import { PLATFORM } from '@aurelia/kernel';
+import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { AttributeDefinition, BindingType, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, InterpolationInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, SetPropertyInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
@@ -115,6 +115,10 @@ export class SemanticModel {
     const command = attrSyntax.command;
     if (command !== null) {
       cmd = metadata.commands[command];
+      if (cmd === undefined) {
+        // unknown binding command
+        throw Reporter.error(0, command); // TODO: organize error codes
+      }
     }
     const target = attrSyntax.target;
     const attrInfo = metadata.attributes[target];
@@ -123,7 +127,6 @@ export class SemanticModel {
       if (el.kind === SymbolKind.customElement) {
         const elBindable = el.info.bindables[target];
         if (elBindable !== undefined) {
-          expr = exprParser.parse(value, command === null ? BindingType.Interpolation : BindingType.None); // TODO: consolidate binding types
           return new ElementBindingSymbol(attr, el, cmd, attrSyntax, expr, elBindable);
         }
       }

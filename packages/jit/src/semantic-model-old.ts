@@ -80,7 +80,7 @@ export class SemanticModel {
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <IAttributeDefinition>this.resources.find(CustomAttributeResource, name);
+    const definition = this.resources.find(CustomAttributeResource, name) as IAttributeDefinition;
     return this.attrDefCache[name] = definition === undefined ? null : definition;
   }
 
@@ -89,7 +89,7 @@ export class SemanticModel {
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <ITemplateDefinition>this.resources.find(CustomElementResource, name);
+    const definition = this.resources.find(CustomElementResource, name) as ITemplateDefinition;
     return this.elDefCache[name] = definition === undefined ? null : definition;
   }
 
@@ -114,7 +114,7 @@ export class SemanticModel {
   }
 
   public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol): ElementSymbol {
-    const node = <IElement>syntax.node;
+    const node = syntax.node as IElement;
     let definition: ITemplateDefinition;
     if (node.nodeType === NodeType.Element) {
       const resourceKey = (node.getAttribute('as-element') || node.nodeName).toLowerCase();
@@ -385,7 +385,7 @@ export class AttributeSymbol implements IAttributeSymbol {
   public markAsProcessed(): void {
     this._isProcessed = true;
     if (this.isTemplateController) {
-      (<IElement>this.$element.node).removeAttribute(this.rawName);
+      (this.$element.node as IElement).removeAttribute(this.rawName);
     }
   }
 }
@@ -509,11 +509,11 @@ export class ElementSymbol {
     this._isCustomElement = false;
     this._isLifted = false;
     // TODO: improve DOM typings and clean up this mess etc
-    if (node.nodeType === NodeType.Element && (<IElement>node).hasAttribute('replace-part')) {
+    if (node.nodeType === NodeType.Element && (node as IElement).hasAttribute('replace-part')) {
       this._isReplacePart = true;
-      this._partName = (<IElement>node).getAttribute('replace-part');
-      (<IElement>node).removeAttribute('replace-part');
-      (<AttrSyntax[]>syntax.$attributes).splice(syntax.$attributes.findIndex(a => a.rawName === 'replace-part'), 1);
+      this._partName = (node as IElement).getAttribute('replace-part');
+      (node as IElement).removeAttribute('replace-part');
+      (syntax.$attributes as AttrSyntax[]).splice(syntax.$attributes.findIndex(a => a.rawName === 'replace-part'), 1);
       if (node.nodeName === 'TEMPLATE') {
         node['remove']();
       }
@@ -563,7 +563,7 @@ export class ElementSymbol {
   }
 
   public makeTarget(): void {
-    (<IElement>this.node).classList.add('au');
+    (this.node as IElement).classList.add('au');
   }
 
   public replaceTextNodeWithMarker(): void {
@@ -583,7 +583,7 @@ export class ElementSymbol {
     if (node.parentNode) {
       node.parentNode.replaceChild(marker.node, node);
     } else if (this.isTemplate) {
-      (<IHTMLTemplateElement>node).content.appendChild(marker.node);
+      (node as IHTMLTemplateElement).content.appendChild(marker.node);
     }
     this.setToMarker(marker);
   }
@@ -625,7 +625,7 @@ export class ElementSymbol {
       template = DOM.createTemplate();
       template.content['appendChild'](node);
     }
-    part = this.parts[name] = <ITemplateDefinition><unknown>buildTemplateDefinition(null, { name, template });
+    part = this.parts[name] = buildTemplateDefinition(null, { name, template }) as unknown as ITemplateDefinition;
     const syntax = this.semanticModel.elParser.parse(template);
     return this.semanticModel.getTemplateElementSymbol(syntax, this, part, null);
   }

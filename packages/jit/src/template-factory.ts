@@ -31,7 +31,7 @@ export class TemplateFactory {
         return template;
       }
       template.content.removeChild(node);
-      return <IHTMLTemplateElement>node;
+      return node as IHTMLTemplateElement;
     }
     if (input.nodeName !== 'TEMPLATE') {
       const template = this.template;
@@ -42,6 +42,6 @@ export class TemplateFactory {
     if (input.parentNode !== null) {
       input.parentNode.removeChild(input);
     }
-    return <IHTMLTemplateElement>input;
+    return input as IHTMLTemplateElement;
   }
 }

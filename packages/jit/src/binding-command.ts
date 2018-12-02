@@ -99,11 +99,11 @@ export class OneTimeBindingCommand implements IBindingCommand {
     switch ($symbol.kind) {
       case SymbolKind.customAttribute:
       case SymbolKind.templateControllerAttribute:
-        return new OneTimeBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.bindable.propName);
+        return new OneTimeBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.bindable.propName);
       case SymbolKind.elementBinding:
-        return new OneTimeBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.propName);
+        return new OneTimeBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.propName);
       default:
-        return new OneTimeBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+        return new OneTimeBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
     }
   }
 }
@@ -123,11 +123,11 @@ export class ToViewBindingCommand implements IBindingCommand {
     switch ($symbol.kind) {
       case SymbolKind.customAttribute:
       case SymbolKind.templateControllerAttribute:
-        return new ToViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.bindable.propName);
+        return new ToViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.bindable.propName);
       case SymbolKind.elementBinding:
-        return new ToViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.propName);
+        return new ToViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.propName);
       default:
-        return new ToViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+        return new ToViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
     }
   }
 }
@@ -147,11 +147,11 @@ export class FromViewBindingCommand implements IBindingCommand {
     switch ($symbol.kind) {
       case SymbolKind.customAttribute:
       case SymbolKind.templateControllerAttribute:
-        return new FromViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.bindable.propName);
+        return new FromViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.bindable.propName);
       case SymbolKind.elementBinding:
-        return new FromViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.propName);
+        return new FromViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.propName);
       default:
-        return new FromViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+        return new FromViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
     }
   }
 }
@@ -171,11 +171,11 @@ export class TwoWayBindingCommand implements IBindingCommand {
     switch ($symbol.kind) {
       case SymbolKind.customAttribute:
       case SymbolKind.templateControllerAttribute:
-        return new TwoWayBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.bindable.propName);
+        return new TwoWayBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.bindable.propName);
       case SymbolKind.elementBinding:
-        return new TwoWayBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.propName);
+        return new TwoWayBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.propName);
       default:
-        return new TwoWayBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+        return new TwoWayBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
     }
   }
 }
@@ -237,7 +237,7 @@ export class TriggerBindingCommand implements IBindingCommand {
   }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new TriggerBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    return new TriggerBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
   }
 }
 
@@ -253,7 +253,7 @@ export class DelegateBindingCommand implements IBindingCommand {
   }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new DelegateBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    return new DelegateBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
   }
 }
 
@@ -269,7 +269,7 @@ export class CaptureBindingCommand implements IBindingCommand {
   }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new CaptureBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    return new CaptureBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
   }
 }
 
@@ -285,7 +285,7 @@ export class CallBindingCommand implements IBindingCommand {
   }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new CallBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    return new CallBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
   }
 }
 
@@ -305,7 +305,7 @@ export class ForBindingCommand implements IBindingCommand {
       instructions: []
     };
     const instructions = [
-      new IteratorBindingInstruction(<ForOfStatement>$symbol.expr, 'items'),
+      new IteratorBindingInstruction($symbol.expr as ForOfStatement, 'items'),
       new SetPropertyInstruction('item', 'local')
     ];
     return new HydrateTemplateController(def, 'repeat', instructions, false);

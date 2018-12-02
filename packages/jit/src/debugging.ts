@@ -1,34 +1,5 @@
 import { IHTMLElement, IHTMLTemplateElement, INode, ITemplateDefinition, NodeType, TargetedInstruction, TargetedInstructionType } from '@aurelia/runtime';
 
-// TODO: use more precise types (this is temp quick-n-dirty)
-export function stringifySymbol(symbol: any): string {
-  return JSON.stringify(
-    { name: symbol.definition.name, headAttr: symbol.headAttr, headNode: symbol.headNode },
-    (key: string, value: any): any => {
-      if (!value) {
-        return undefined;
-      }
-      switch (key) {
-        case 'headAttr':
-          return `${value.attr.name}=${value.attr.value} (${value.expr === null ? null : {}})`;
-        case 'nextAttr':
-          return undefined;
-        case 'tailAttr':
-          return `${value.attr.name}=${value.attr.value} (${value.expr === null ? null : {}})`;
-        case 'headNode':
-          return { el: value.element ? value.element.nodeName : value.text.nodeName, headAttr: value.headAttr, headNode: value.headNode, nextNode: value.nextNode };
-        case 'nextNode':
-          return { el: value.element ? value.element.nodeName : value.text.nodeName, headAttr: value.headAttr, headNode: value.headNode, nextNode: value.nextNode };
-        case 'tailNode':
-          return undefined;
-        default:
-          return value;
-      }
-    },
-    2
-  );
-}
-
 export function stringifyDOM(node: INode, depth: number): string {
   const indent = ' '.repeat(depth);
   let output = indent;
@@ -39,7 +10,7 @@ export function stringifyDOM(node: INode, depth: number): string {
   if (node.nodeType === NodeType.Element) {
     let i = 0;
     let attr;
-    const attributes = (<IHTMLElement>node).attributes;
+    const attributes = (node as IHTMLElement).attributes;
     const len = attributes.length;
     for (; i < len; ++i) {
       attr = attributes[i];
@@ -56,7 +27,7 @@ export function stringifyDOM(node: INode, depth: number): string {
     }
     if (node.nodeName === 'TEMPLATE') {
       i = 0;
-      childNodes = (<IHTMLTemplateElement>node).content.childNodes;
+      childNodes = (node as IHTMLTemplateElement).content.childNodes;
       len = childNodes.length;
       for (; i < len; ++i) {
         output += stringifyDOM(childNodes[i], depth + 1);
@@ -133,7 +104,7 @@ export function stringifyTemplateDefinition(def: ITemplateDefinition, depth: num
   let output = indent;
 
   output += `TemplateDefinition: ${def.name}\n`;
-  output += stringifyDOM(<INode>def.template, depth + 1);
+  output += stringifyDOM(def.template as INode, depth + 1);
   output += `${indent} Instructions:\n`;
   def.instructions.forEach(row => {
     output += `${indent}  Row:\n`;

@@ -24,8 +24,7 @@ import {
   TemplateFactory
 } from '../../src/template-factory';
 import {
-  stringifyTemplateDefinition,
-  stringifySymbol
+  stringifyTemplateDefinition
 } from '../../src/debugging';
 import {
   DefaultBindingLanguage,

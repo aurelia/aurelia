@@ -1,5 +1,37 @@
 import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { AttributeDefinition, BindingType, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, InterpolationInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, SetPropertyInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, ExpressionKind, RefBindingInstruction } from '@aurelia/runtime';
+import {
+  AttributeDefinition,
+  BindingType,
+  DOM,
+  ExpressionKind,
+  FromViewBindingInstruction,
+  HydrateAttributeInstruction,
+  HydrateElementInstruction,
+  HydrateTemplateController,
+  IAttr,
+  IBindableDescription,
+  IChildNode,
+  IElement,
+  IExpressionParser,
+  IHTMLElement,
+  IHTMLSlotElement,
+  IHTMLTemplateElement,
+  Interpolation,
+  InterpolationInstruction,
+  IsBindingBehavior,
+  IsExpressionOrStatement,
+  ITemplateDefinition,
+  IText,
+  NodeType,
+  OneTimeBindingInstruction,
+  RefBindingInstruction,
+  SetPropertyInstruction,
+  TargetedInstruction,
+  TargetedInstructionType,
+  TextBindingInstruction,
+  ToViewBindingInstruction,
+  TwoWayBindingInstruction
+} from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -694,12 +726,12 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
     if (Tracer.enabled) { Tracer.enter('CustomAttributeSymbol.compile', slice.call(arguments)); }
     let bindingInstructions: TargetedInstruction[];
     if (this.info.name === 'ref') {
-      row.push(new RefBindingInstruction(this.expr === null ? this.attr.value : <IsBindingBehavior>this.expr));
+      row.push(new RefBindingInstruction(this.expr === null ? this.attr.value : this.expr as IsBindingBehavior));
     } else {
       if (this.command !== null) {
         bindingInstructions = [this.command.compile(this)];
       } else if (this.expr !== null) {
-        bindingInstructions = [new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName)];
+        bindingInstructions = [new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName)];
       } else {
         bindingInstructions = emptyArray;
       }
@@ -753,7 +785,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
     if (this.command !== null) {
       instruction = this.command.compile(this);
     } else if (this.expr !== null) {
-      instruction = new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName);
+      instruction = new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName);
     } else {
       instruction = null;
     }
@@ -886,7 +918,7 @@ export class ElementBindingSymbol implements IAttributeSymbol {
       } else if (this.expr.$kind === ExpressionKind.Interpolation) {
         row.push(new InterpolationInstruction(this.expr, this.info.propName));
       } else {
-        row.push(new BindingInstruction[this.info.mode](<IsBindingBehavior>this.expr, this.info.propName));
+        row.push(new BindingInstruction[this.info.mode](this.expr as IsBindingBehavior, this.info.propName));
       }
     } else {
       row.push(this.command.compile(this));

@@ -284,11 +284,9 @@ export class SymbolPreprocessor implements ISymbolVisitor {
 
 export class NodePreprocessor implements ISymbolVisitor {
   private model: SemanticModel;
-  private currentNode: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol | CompilationTarget;
 
   constructor(model: SemanticModel) {
     this.model = model;
-    this.currentNode = null;
   }
 
   public visitPlainElementSymbol(symbol: PlainElementSymbol): void {
@@ -302,9 +300,6 @@ export class NodePreprocessor implements ISymbolVisitor {
     this.visitElementSymbolNode(symbol);
     this.visitElementSymbolList(symbol);
     // ensure that no template elements are present in the DOM when compilation is done
-    if (symbol.element.parentNode !== null) {
-      symbol.element.parentNode.replaceChild(createMarker(), symbol.element);
-    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitSlotElementSymbol(symbol: SlotElementSymbol): void {
@@ -349,65 +344,129 @@ export class NodePreprocessor implements ISymbolVisitor {
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
-  public visitTemplateControllerAttributeSymbol(symbol: TemplateControllerAttributeSymbol): void {
+  public visitTemplateControllerAttributeSymbol(TCS: TemplateControllerAttributeSymbol): void {
     if (Tracer.enabled) { Tracer.enter('NodePreprocessor.visitTemplateControllerAttributeSymbol', slice.call(arguments)); }
-    if (symbol.targetSurrogate !== null) {
+    if (TCS.targetSurrogate !== null) {
       // this template controller is already assigned to a surrogate, no need to process it again
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    const currentNode = this.currentNode;
-    // if (currentNode.kind === SymbolKind.surrogateElement && currentNode.templateController === null) {
-    //   // the surrogate is still free, so assign it the template controller and return early
-    //   currentNode.templateController = symbol;
-    //   symbol.targetSurrogate = currentNode;
-    //   if (Tracer.enabled) { Tracer.leave(); }
-    //   return;
-    // }
-    // move the content to a new surrogate and assign it the template controller
-    const template = DOM.createTemplate();
-    currentNode.liftTo(template.content);
+    /**
+     * Abbrevations:
+     * - TCS: the TemplateControllerAttributeSymbol (symbol holding the Attr node)
+     * - LES: the Symbol that represents the LE (the `.owner` property of the TCS)
+     * - LE: the Lifted Element (the `.element` property of the LES / the element that the tc attribute is declared on)
+     * - SES: the Symbol that represents the SE
+     * - SE: the new Surrogate Element (the element that will wrap the LE)
+     * - PLES: the Symbol that represents the PLE (the `.parentNode` property of the LES)
+     * - PLE: the original parent element of the LE (the `.element` property of the PLES)
+     *
+     * # Full lift operation
+     *
+     * 1. Lift the LE
+     *
+     * 1.1. Create a new template element (SE)
+     *
+     * 1.2. Replace the LE with a marker element (<au-m class="au"></au-m>) in the PLE.
+     *
+     * 1.3. Append the LE to the SE
+     *
+     * 1.3. Option 1:
+     *      If the TC is declared on a template element (LE), append its content (DocumentFragment) to the SE, or
+     *
+     * 1.3. Option 2:
+     *      If the TC is declared on a regular element (LE), append that element itself to the SE
+     *
+     * The SE is now a standalone template element with no parent. Its content (DocumentFragment) will
+     * be passed to a NodeSequenceFactory during rendering.
+     *
+     * 2. Lift the LES
+     *
+     * 2.1. Create a new SurrogateElementSymbol (SES) to hold the SE, and make the LES the parent of the SES
+     *
+     * 2.2. Rearrange the linkedList properties to reflect the new hierarchy change
+     *
+     * The LES is now positioned correctly in the symbol hierarchy and accurately represents the structure of the
+     * physical DOM.
+     *
+     * 2.3. Assign the TCS to the `templateController` property of the SES, and assign the SES to the `targetSurrogate`
+     *      property of the TCS (they now reference each other)
+     *
+     * 2.4. Transfer ownership of the TCS and any attributes that come after it, to the SES.
+     *
+     * 2.5. Continue processing on the SES, for the remaining attributes and any descendant nodes.
+     *
+     * # Partial lift operation
+     *
+     * If a template controller is placed on a template element, and it is the first template controller on that
+     * template element, then no lift operation will occur because the existing template element can be reused.
+     *
+     * In this case, only steps 1.3 and 3.1. (where the operation happens on the LES instead of the SES) will occur.
+     * The next template controller on the same element will automatically drop down to the full lift operation.
+     */
 
-    const parentNode = currentNode.parentNode;
-    const targetSurrogate = this.currentNode = this.model.createNodeSymbol(template, parentNode);
-    targetSurrogate.templateController = symbol;
-    symbol.targetSurrogate = targetSurrogate;
-
-    // bring the symbols back in sync with the DOM Node structure by shifting the lifted nodes
-    // to the new symbol and making the new symbol a child of the lifed nodes' parent,
-    // and shift the attribute symbols to reflect the lift operation (no need to actually
-    // change/remove/move the attributes on the DOM nodes)
-
-    // the current template controller becomes the "first" attribute of the new surrogate
-    targetSurrogate.headAttr = symbol;
-
-    // transfer ownership of template controller and following attributes to the new surrogate
-    let current = symbol as IAttributeSymbol;
-    do {
-      current.owner = targetSurrogate;
-      current = current.nextAttr;
-    } while (current !== null);
-
-    targetSurrogate.headNode = currentNode as Exclude<typeof currentNode, CompilationTarget>;
-    targetSurrogate.tailNode = currentNode as Exclude<typeof currentNode, CompilationTarget>;
-    targetSurrogate.nextNode = currentNode.nextNode;
-    currentNode.nextNode = null;
-    let el = parentNode.headNode;
-    while (el !== null) {
-      if (el.nextNode === currentNode) {
-        el.nextNode = targetSurrogate;
-        break;
+    // # Partial lift operation
+    const LES = TCS.owner; // Lifted Element Symbol
+    const LE = LES.element; // Lifted Element
+    const PLES = LES.parentNode; // Parent of Lifted Element Symbol
+    const PLE = PLES.element; // Parent of Lifted Element
+    if (LES.kind === SymbolKind.surrogateElement && LES.templateController === null) {
+      // 1.2
+      if (PLE.nodeName === 'TEMPLATE') {
+        (PLE as IHTMLTemplateElement).content.replaceChild(createMarker(), LE);
+      } else {
+        PLE.replaceChild(createMarker(), LE);
       }
-      el = el.nextNode;
-    }
-    if (parentNode.headNode === currentNode) {
-      parentNode.headNode = targetSurrogate;
-    }
-    if (parentNode.tailNode === currentNode) {
-      parentNode.tailNode = targetSurrogate;
+
+      // 2.4 (no need to assign owner - the LES is already the owner of the TCS)
+      LES.templateController = TCS;
+      TCS.targetSurrogate = LES;
+
+      if (Tracer.enabled) { Tracer.leave(); }
+      return;
     }
 
-    currentNode.accept(this);
+    // # Full lift operation
+    // 1.1
+    const SE = DOM.createTemplate();
+
+    if (LE.nodeName === 'TEMPLATE') {
+      // 1.3 option 1
+      SE.content.appendChild((LE as IHTMLTemplateElement).content);
+      // 1.2
+      (LE as IHTMLTemplateElement).content.appendChild(createMarker());
+    } else {
+      // 1.2
+      PLE.replaceChild(createMarker(), LE);
+      // 1.3 option 2
+      SE.content.appendChild(LE);
+    }
+
+    // 2.1
+    const SES = this.model.createNodeSymbol(SE, LES);
+
+    // 2.2
+    SES.headNode = LES.headNode;
+    SES.tailNode = LES.tailNode;
+    LES.headNode = SES;
+    LES.tailNode = SES;
+
+    // 2.3
+    SES.templateController = TCS;
+    TCS.targetSurrogate = SES;
+
+    // 2.4
+    SES.headAttr = TCS;
+    TCS.owner = SES;
+    let current = TCS.nextAttr;
+    while (current !== null) {
+      current.owner = SES;
+      current = current.nextAttr;
+    }
+    SES.tailAttr = current;
+
+    // 2.6
+    SES.accept(this);
     if (Tracer.enabled) { Tracer.leave(); }
   }
   public visitAttributeBindingSymbol(symbol: AttributeBindingSymbol): void {
@@ -432,7 +491,6 @@ export class NodePreprocessor implements ISymbolVisitor {
   }
 
   private visitElementSymbolNode(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol | CompilationTarget): void {
-    this.currentNode = symbol;
     let attr = symbol.headAttr;
     while (attr !== null && attr.owner === symbol) {
       attr.accept(this);
@@ -440,7 +498,6 @@ export class NodePreprocessor implements ISymbolVisitor {
     }
   }
   private visitElementSymbolList(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol | CompilationTarget): void {
-    this.currentNode = symbol;
     let node = symbol.headNode;
     while (node !== null) {
       node.accept(this);

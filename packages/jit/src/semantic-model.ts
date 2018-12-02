@@ -176,7 +176,6 @@ export interface IElementSymbol extends INodeSymbol {
   headAttr: AttributeSymbol | null;
   tailAttr: AttributeSymbol | null;
   element: IHTMLElement;
-  liftTo(fragment: IDocumentFragment): void;
 }
 
 export interface IParentElementSymbol extends IElementSymbol, IParentNodeSymbol {
@@ -271,11 +270,6 @@ export class CompilationTarget implements IParentElementSymbol {
     visitor.visitCompilationTarget(this);
   }
 
-  public liftTo(fragment: IDocumentFragment): void {
-    // cannot lift surrogate that wraps a custom element template
-    throw Reporter.error(0); // TODO: organize error codes
-  }
-
   public compile(flags: CompilerFlags = CompilerFlags.none): void {
     const definition = this.definition;
     let attr = this.headAttr;
@@ -339,13 +333,6 @@ export class PlainElementSymbol implements IParentElementSymbol {
 
   public accept(visitor: ISymbolVisitor): void {
     visitor.visitPlainElementSymbol(this);
-  }
-
-  public liftTo(fragment: IDocumentFragment): void {
-    const element = this.element;
-    const marker = createMarker();
-    element.parentNode.replaceChild(marker, element);
-    fragment.appendChild(element);
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
@@ -412,13 +399,6 @@ export class SurrogateElementSymbol implements IParentElementSymbol {
     visitor.visitSurrogateElementSymbol(this);
   }
 
-  public liftTo(fragment: IDocumentFragment): void {
-    const element = this.element;
-    fragment.appendChild(element.content);
-    const marker = createMarker();
-    element.content.appendChild(marker);
-  }
-
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     let attr = this.headAttr;
     while (attr !== null && attr.owner === this) {
@@ -459,11 +439,6 @@ export class SlotElementSymbol implements IParentElementSymbol {
     visitor.visitSlotElementSymbol(this);
   }
 
-  public liftTo(fragment: IDocumentFragment): void {
-    // cannot lift slot element
-    throw Reporter.error(0); // TODO: organize error codes
-  }
-
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     definition.hasSlots = true;
   }
@@ -496,14 +471,6 @@ export class LetElementSymbol implements IElementSymbol {
     visitor.visitLetElementSymbol(this);
   }
 
-  public liftTo(fragment: IDocumentFragment): void {
-    const element = this.element;
-    const marker = createMarker();
-    element.parentNode.replaceChild(marker, element);
-    fragment.appendChild(element);
-  }
-
-  // tslint:disable-next-line:no-empty
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
   }
 }
@@ -550,10 +517,6 @@ export class CustomElementSymbol implements IParentElementSymbol {
 
   public accept(visitor: ISymbolVisitor): void {
     visitor.visitCustomElementSymbol(this);
-  }
-
-  public liftTo(fragment: IDocumentFragment): void {
-    fragment.appendChild(this.element);
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {

@@ -282,8 +282,7 @@ export class CompilationTarget implements IParentElementSymbol {
     while (el !== null) {
       el.compile(definition, rows, row, flags);
       if (row.length > 0) {
-        rows.push(row);
-        row = [];
+        rows.push(row.splice(0));
       }
       el = el.nextNode;
     }
@@ -340,16 +339,14 @@ export class PlainElementSymbol implements IParentElementSymbol {
       attr = attr.nextAttr;
     }
     if (row.length > 0) {
-      rows.push(row);
-      row = [];
+      rows.push(row.splice(0));
     }
 
     let el = this.headNode;
     while (el !== null) {
       el.compile(definition, rows, row, flags);
       if (row.length > 0) {
-        rows.push(row);
-        row = [];
+        rows.push(row.splice(0));
       }
       el = el.nextNode;
     }
@@ -535,12 +532,14 @@ export class CustomElementSymbol implements IParentElementSymbol {
 
     let el = this.headNode;
     while (el !== null) {
-      el.compile(definition, rows, row, flags);
       if (row.length > 0) {
-        rows.push(row);
-        row = [];
+        rows.push(row.splice(0));
       }
+      el.compile(definition, rows, row, flags);
       el = el.nextNode;
+    }
+    if (row.length > 0) {
+      rows.push(row.splice(0));
     }
   }
 }
@@ -720,8 +719,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
     while (el !== null) {
       el.compile(definition, htcRows, htcRow, flags);
       if (htcRow.length > 0) {
-        htcRows.push(htcRow);
-        htcRow = [];
+        htcRows.push(htcRow.splice(0));
       }
       el = el.nextNode;
     }

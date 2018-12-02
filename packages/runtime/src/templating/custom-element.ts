@@ -54,7 +54,7 @@ export function registerElement(this: ICustomElementType, container: IContainer)
 export function customElement(name: string): CustomElementDecorator;
 export function customElement(definition: ITemplateDefinition): CustomElementDecorator;
 export function customElement(nameOrDefinition: string | ITemplateDefinition): CustomElementDecorator {
-  return <CustomElementDecorator>(target => CustomElementResource.define(nameOrDefinition, target));
+  return (target => CustomElementResource.define(nameOrDefinition, target)) as CustomElementDecorator;
 }
 
 type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;

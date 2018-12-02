@@ -1,4 +1,4 @@
-import { ITraceInfo, PLATFORM, Reporter as RuntimeReporter, Tracer as RuntimeTracer, ITraceWriter, Writable } from '@aurelia/kernel';
+import { ITraceInfo, ITraceWriter, PLATFORM, Reporter as RuntimeReporter, Tracer as RuntimeTracer } from '@aurelia/kernel';
 
 const enum MessageType {
   error,
@@ -104,7 +104,7 @@ export const Tracer: typeof RuntimeTracer = {
    */
   enabled: false,
   liveLoggingEnabled: false,
-  liveWriter: <ITraceWriter>null,
+  liveWriter: null as ITraceWriter,
   /**
    * Call this at the start of a method/function.
    * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.

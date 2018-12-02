@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { DOM } from '../dom';
-import { IHTMLElement, INode, IElement } from '../dom.interfaces';
+import { IElement, IHTMLElement, INode } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor } from '../observation';
 import { targetObserver } from './target-observer';

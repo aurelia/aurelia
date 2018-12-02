@@ -11,7 +11,7 @@ export class AttrBindingBehavior {
   public static register: IRegistry['register'];
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: Binding): void {
-    binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), <IElement>binding.target, binding.targetProperty);
+    binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), binding.target as IElement, binding.targetProperty);
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: Binding): void {

@@ -115,7 +115,7 @@ export class ObserverLocator implements IObserverLocator {
         || tagName === 'IMG' && propertyName === 'src'
         || tagName === 'A' && propertyName === 'href'
       ) {
-        return new DataAttributeAccessor(this.lifecycle, <IElement>obj, propertyName);
+        return new DataAttributeAccessor(this.lifecycle, obj as IElement, propertyName);
       }
       return new ElementPropertyAccessor(this.lifecycle, obj, propertyName);
     }
@@ -172,7 +172,7 @@ export class ObserverLocator implements IObserverLocator {
     let isNode: boolean;
     if (DOM.isNodeInstance(obj)) {
       if (propertyName === 'class') {
-        return new ClassAttributeAccessor(this.lifecycle, <IElement>obj);
+        return new ClassAttributeAccessor(this.lifecycle, obj as IElement);
       }
 
       if (propertyName === 'style' || propertyName === 'css') {
@@ -201,7 +201,7 @@ export class ObserverLocator implements IObserverLocator {
       if (propertyName === 'role'
         || /^\w+:|^data-|^aria-/.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
-        return new DataAttributeAccessor(this.lifecycle, <IElement>obj, propertyName);
+        return new DataAttributeAccessor(this.lifecycle, obj as IElement, propertyName);
       }
       isNode = true;
     }

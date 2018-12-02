@@ -221,7 +221,8 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
 
     this.hasBindingCommand = !!command;
     this.isMultiAttrBinding = true;
-    this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
+    // tslint:disable-next-line:no-any (code will be removed soon)
+    this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this as any);
     this.isTemplateController = false;
     this.isCustomAttribute = true;
     this.isAttributeBindable = false;
@@ -303,7 +304,8 @@ export class AttributeSymbol implements IAttributeSymbol {
 
     this.hasBindingCommand = !!command;
     this.isMultiAttrBinding = false;
-    this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
+    // tslint:disable-next-line:no-any (code will be removed soon)
+    this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this as any);
     this.isTemplateController = false;
     this.isCustomAttribute = !!definition;
     this.isAttributeBindable = false;

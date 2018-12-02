@@ -276,7 +276,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       // binding commands get priority over all; they may override default behaviors
       // it is the responsibility of the implementor to ensure they filter out stuff they shouldn't override
       if ($attr.isHandledByBindingCommand) {
-        return $attr.command.compile($attr);
+        // tslint:disable-next-line:no-any (code will be removed soon)
+        return $attr.command.compile($attr as any);
       }
       // simple path for ref binding
       const parser = this.exprParser;

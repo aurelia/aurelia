@@ -94,7 +94,7 @@ function createElementInfo(resources: IResourceDescriptions, name: string): Elem
 }
 
 function createAttributeInfo(resources: IResourceDescriptions, name: string): AttributeInfo {
-  const def = resources.find(CustomAttributeResource, name) as AttributeDefinition;
+  const def = resources.find(CustomAttributeResource, name);
   const info = new AttributeInfo(name, def.isTemplateController);
   const bindables = def.bindables;
   const defaultBindingMode = def.defaultBindingMode !== undefined && def.defaultBindingMode !== BindingMode.default

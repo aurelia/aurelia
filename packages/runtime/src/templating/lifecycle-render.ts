@@ -263,7 +263,7 @@ export class ShadowDOMProjector implements IElementProjector {
   constructor($customElement: ICustomElement, host: ICustomElementHost, definition: TemplateDefinition) {
     this.host = host;
 
-    this.shadowRoot = DOM.attachShadow(<IElement>this.host, definition.shadowOptions || defaultShadowOptions);
+    this.shadowRoot = DOM.attachShadow(this.host as IElement, definition.shadowOptions || defaultShadowOptions);
     this.host.$customElement = $customElement;
     this.shadowRoot.$customElement = $customElement;
   }

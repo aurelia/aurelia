@@ -52,7 +52,7 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
     return;
   }
   const scope = this.$scope;
-  (<Writable<IScope>>scope).parentScope = parentScope;
+  (scope as Writable<IScope>).parentScope = parentScope;
 
   const lifecycle = this.$lifecycle;
   lifecycle.beginBind();
@@ -167,7 +167,7 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleF
       current = current.$prevBind;
     }
 
-    (<Writable<IScope>>this.$scope).parentScope = null;
+    (this.$scope as Writable<IScope>).parentScope = null;
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);

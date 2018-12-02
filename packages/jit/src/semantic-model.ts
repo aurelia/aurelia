@@ -1,5 +1,5 @@
 import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { AttributeDefinition, BindingType, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, InterpolationInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, SetPropertyInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, ExpressionKind } from '@aurelia/runtime';
+import { AttributeDefinition, BindingType, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, InterpolationInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, SetPropertyInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, ExpressionKind, RefBindingInstruction } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -310,7 +310,6 @@ export class PlainElementSymbol implements IParentElementSymbol {
   public nodeName: string;
   public partName: string | null;
   public replacePartName: string | null;
-  public refName: string | null;
 
   public parentNode: ParentElementSymbol;
   public prevNode: NodeSymbol;
@@ -334,7 +333,6 @@ export class PlainElementSymbol implements IParentElementSymbol {
     this.nodeName = element.getAttribute('as-element') || element.nodeName;
     this.partName = element.getAttribute('part');
     this.replacePartName = element.getAttribute('replace-part');
-    this.refName = element.getAttribute('ref');
     this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
@@ -378,7 +376,6 @@ export class SurrogateElementSymbol implements IParentElementSymbol {
   public nodeName: string | null;
   public partName: string | null;
   public replacePartName: string | null;
-  public refName: string | null;
 
   public parentNode: ParentElementSymbol;
   public prevNode: NodeSymbol;
@@ -507,7 +504,6 @@ export class CustomElementSymbol implements IParentElementSymbol {
   public nodeName: string;
   public partName: string | null;
   public replacePartName: string | null;
-  public refName: string | null;
 
   public parentNode: ParentElementSymbol;
   public prevNode: NodeSymbol;
@@ -532,7 +528,6 @@ export class CustomElementSymbol implements IParentElementSymbol {
     this.nodeName = (element.getAttribute('as-element') || element.nodeName).toLowerCase();
     this.partName = element.getAttribute('part');
     this.replacePartName = element.getAttribute('replace-part');
-    this.refName = element.getAttribute('ref');
     this.prevNode = null;
     this.nextNode = null;
     this.headNode = null;
@@ -698,14 +693,18 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     if (Tracer.enabled) { Tracer.enter('CustomAttributeSymbol.compile', slice.call(arguments)); }
     let bindingInstructions: TargetedInstruction[];
-    if (this.command !== null) {
-      bindingInstructions = [this.command.compile(this)];
-    } else if (this.expr !== null) {
-      bindingInstructions = [new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName)];
+    if (this.info.name === 'ref') {
+      row.push(new RefBindingInstruction(this.expr === null ? this.attr.value : <IsBindingBehavior>this.expr));
     } else {
-      bindingInstructions = emptyArray;
+      if (this.command !== null) {
+        bindingInstructions = [this.command.compile(this)];
+      } else if (this.expr !== null) {
+        bindingInstructions = [new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName)];
+      } else {
+        bindingInstructions = emptyArray;
+      }
+      row.push(new HydrateAttributeInstruction(this.info.name, bindingInstructions));
     }
-    row.push(new HydrateAttributeInstruction(this.info.name, bindingInstructions));
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

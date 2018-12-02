@@ -494,6 +494,24 @@ export class DotSeparatedAttributePattern implements DotSeparatedAttributePatter
   }
 }
 
+export interface RefAttributePattern extends IAttributePattern {}
+
+@attributePattern(
+  { pattern: 'ref', symbols: '' },
+  { pattern: 'ref.PART', symbols: '.' }
+)
+export class RefAttributePattern implements RefAttributePattern {
+  public static register: IRegistry['register'];
+
+  public ['ref'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, 'ref', null);
+  }
+
+  public ['ref.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, 'ref', parts[1]);
+  }
+}
+
 export interface ColonPrefixedBindAttributePattern extends IAttributePattern {}
 
 @attributePattern({ pattern: ':PART', symbols: ':' })

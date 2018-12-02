@@ -54,6 +54,8 @@ export class MetadataModel {
         }
       }
     }
+    // manually add ref since it's not a real custom attribute
+    attributes['ref'] = new AttributeInfo('ref', false);
   }
 }
 

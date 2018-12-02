@@ -119,10 +119,14 @@ export class HistoryBrowser {
     }
   }
 
-  public setState(key: string, value: Object): void {
-    const state = { ...this.history.state };
+  public setState(key: string | Object, value?: Object): void {
     const { pathname, search, hash } = this.location;
-    state[key] = JSON.parse(JSON.stringify(value));
+    let state = { ...this.history.state };
+    if (typeof key === 'string') {
+      state[key as string] = JSON.parse(JSON.stringify(value));
+    } else {
+      state = { ...state, ...JSON.parse(JSON.stringify(key)) };
+    }
     this.history.replaceState(state, null, `${pathname}${search}${hash}`);
   }
 
@@ -134,8 +138,10 @@ export class HistoryBrowser {
   public setEntryTitle(title: string): void {
     this.currentEntry.title = title;
     this.historyEntries[this.currentEntry.index] = this.currentEntry;
-    this.setState('HistoryEntries', this.historyEntries);
-    this.setState('HistoryEntry', this.currentEntry);
+    this.setState({
+      'HistoryEntries': this.historyEntries,
+      'HistoryEntry': this.currentEntry,
+    });
   }
 
   public replacePath(path: string): void {
@@ -148,8 +154,10 @@ export class HistoryBrowser {
     const state = { ...this.history.state };
     this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
     this.currentEntry.path = path;
-    this.setState('HistoryEntry', this.currentEntry);
-    this.setState('HistoryEntries', this.historyEntries);
+    this.setState({
+      'HistoryEntry': this.currentEntry,
+      'HistoryEntries': this.historyEntries
+    });
   }
 
   public setHash(hash: string): void {
@@ -195,9 +203,11 @@ export class HistoryBrowser {
         this.historyEntries = this.historyEntries.slice(0, this.currentEntry.index);
         this.historyEntries.push(this.currentEntry);
       }
-      this.setState('HistoryEntries', this.historyEntries);
-      this.setState('HistoryOffset', this.historyOffset);
-      this.setState('HistoryEntry', this.currentEntry);
+      this.setState({
+        'HistoryEntries': this.historyEntries,
+        'HistoryOffset': this.historyOffset,
+        'HistoryEntry': this.currentEntry
+      });
     } else { // Refresh, history navigation, first navigation, manual navigation or cancel
       this.historyEntries = <IHistoryEntry[]>(this.historyEntries || this.getState('HistoryEntries') || []);
       // tslint:disable-next-line:strict-boolean-expressions
@@ -223,9 +233,11 @@ export class HistoryBrowser {
         };
         this.historyEntries = this.historyEntries.slice(0, historyEntry.index);
         this.historyEntries.push(historyEntry);
-        this.setState('HistoryEntries', this.historyEntries);
-        this.setState('HistoryOffset', this.historyOffset);
-        this.setState('HistoryEntry', historyEntry);
+        this.setState({
+          'HistoryEntries': this.historyEntries,
+          'HistoryOffset': this.historyOffset,
+          'HistoryEntry': historyEntry
+        });
       }
       this.lastHistoryMovement = (this.currentEntry ? historyEntry.index - this.currentEntry.index : 0);
       this.currentEntry = historyEntry;

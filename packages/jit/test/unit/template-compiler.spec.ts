@@ -37,6 +37,7 @@ import {
 } from '../../src/index';
 import { expect } from 'chai';
 import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual, enableTracing, disableTracing, SymbolTraceWriter } from './util';
+import { stringifyTemplateDefinition } from '../../src/debugging';
 
 const c = DI.createContainer();
 c.register(<any>DotSeparatedAttributePattern);
@@ -435,7 +436,7 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
       value: 'item',
       to: 'local'
     }];
-  } else {
+  } else if (value.length > 0) {
     return [{
       type: TT.propertyBinding,
       from: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
@@ -443,6 +444,8 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
       mode: BindingMode.toView,
       oneTime: false
     }];
+  } else {
+    return [];
   }
 }
 
@@ -478,7 +481,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       instructions: []
     }
     const output = {
-      template: createElement(`<div><au-m class="au"></au-m></div>`),
+      template: createElement(`<template><div><au-m class="au"></au-m></div></template>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];
@@ -486,10 +489,10 @@ function createTemplateController(attr: string, target: string, value: string, t
     let compiledMarkup;
     let instructions;
     if (childInstr === undefined) {
-      compiledMarkup = `<${tagName}></${tagName}>`;
+      compiledMarkup = `<${tagName} ${attr}="${value||''}"></${tagName}>`;
       instructions = []
     } else {
-      compiledMarkup = `<${tagName}><au-m class="au"></au-m></${tagName}>`;
+      compiledMarkup = `<${tagName} ${attr}="${value||''}"><au-m class="au"></au-m></${tagName}>`;
       instructions = [[childInstr]]
     }
     const instruction = {
@@ -509,7 +512,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       instructions: []
     }
     const output = {
-      template: createElement(finalize ? `<div><au-m class="au"></au-m></div>` : `<au-m class="au"></au-m>`),
+      template: createElement(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];
@@ -553,7 +556,7 @@ function createCustomAttribute(resName: string, finalize: boolean, attributes: [
   const outputMarkup = <HTMLElement>createElement(`<div ${resName}="${attributeMarkup}">${(childOutput&&childOutput.template.outerHTML)||''}</div>`);
   outputMarkup.classList.add('au');
   const output = {
-    template: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
+    template: finalize ? createElement(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
   }
   return [input, output];
@@ -660,7 +663,7 @@ describe(`TemplateCompiler - combinations`, () => {
 
       it(markup, () => {
         const input = { template: markup, instructions: [], surrogates: [] };
-        const expected = { template: createElement(`<${el} ${n1}="${v1}" class="au"></${el}>`), instructions: [[i1]], surrogates: [] };
+        const expected = { template: createElement(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`), instructions: [[i1]], surrogates: [] };
 
         const { sut, resources } = setup();
 
@@ -685,7 +688,8 @@ describe(`TemplateCompiler - combinations`, () => {
       <(() => [string, string, IExpression, Constructable])[]>[
         () => ['foo',     '', PrimitiveLiteral.$empty, class Foo{}],
         () => ['foo-foo', '', PrimitiveLiteral.$empty, class FooFoo{}],
-        () => ['foo',     'bar', new AccessScope('bar'), class Foo{}]
+        () => ['foo',     'bar', new AccessScope('bar'), class Foo{}],
+        () => ['foo-foo', 'bar', new AccessScope('bar'), class Foo{}]
       ],
       // IAttributeDefinition.defaultBindingMode
       <(() => BindingMode | undefined)[]>[
@@ -710,8 +714,8 @@ describe(`TemplateCompiler - combinations`, () => {
 
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, () => {
         const input = { template: markup, instructions: [], surrogates: [] };
-        const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: [childInstruction] };
-        const expected = { template: createElement(`<div ${name}="${value}" class="au"></div>`), instructions: [[instruction]], surrogates: [] };
+        const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: value.length > 0 || name.indexOf('.') > 0 ? [childInstruction] : [] };
+        const expected = { template: createElement(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [] };
 
         const $def = CustomAttributeResource.define(def, ctor);
         const { sut, resources } = setup($def);
@@ -939,15 +943,19 @@ describe(`TemplateCompiler - combinations`, () => {
         );
 
         const output = {
-          template: createElement(`<div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div>`),
+          template: createElement(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]]
         };
+        //enableTracing();
+        //Tracer.enableLiveLogging(SymbolTraceWriter);
         const actual = sut.compile(<any>input, resources);
+        //console.log('\n'+stringifyTemplateDefinition(actual, 0));
+        //disableTracing();
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          //console.log('EXPECTED: ', JSON.stringify(output.instructions, null, 2));
+          //console.log('ACTUAL: ', JSON.stringify(actual.instructions, null, 2));
           throw err;
         }
       });
@@ -1006,13 +1014,29 @@ describe(`TemplateCompiler - combinations`, () => {
 
         const [input, output] = createCustomElement('foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []);
 
-        const actual = sut.compile(<any>input, resources);
-        try {
-          verifyBindingInstructionsEqual(actual, output);
-        } catch(err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-          throw err;
+        if (attrName.endsWith('.qux')) {
+          let e;
+          try {
+            sut.compile(<any>input, resources);
+          } catch(err) {
+            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            e = err;
+          }
+          expect(e).to.be.an('Error');
+        } else {
+          // enableTracing();
+          // Tracer.enableLiveLogging(SymbolTraceWriter);
+          const actual = sut.compile(<any>input, resources);
+          // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+          // disableTracing();
+          try {
+            verifyBindingInstructionsEqual(actual, output);
+          } catch(err) {
+            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            throw err;
+          }
         }
       });
     });
@@ -1044,12 +1068,16 @@ describe(`TemplateCompiler - combinations`, () => {
           <any>CustomElementResource.define({ name: 'baz' }, class Baz{})
         );
 
-        const actual = sut.compile(<any>input, resources);
+          // enableTracing();
+          // Tracer.enableLiveLogging(SymbolTraceWriter);
+          const actual = sut.compile(<any>input, resources);
+          // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+          // disableTracing();
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          console.log('EXPECTED: ', JSON.stringify(output.instructions, null, 2));
+          console.log('ACTUAL: ', JSON.stringify(actual.instructions, null, 2));
           throw err;
         }
       });

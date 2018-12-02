@@ -1,12 +1,10 @@
-import { Immutable, PLATFORM, Reporter, Tracer, Class, Constructable, IContainer, IResolver } from '@aurelia/kernel';
-import { AttributeDefinition, BindingType, CustomAttributeResource, CustomElementResource, DOM, IAttr, IBindableDescription, IChildNode, IDocumentFragment, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, IResourceDescriptions, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, TemplateDefinition, BindingMode, IsBindingBehavior, TargetedInstruction, ToViewBindingInstruction, OneTimeBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, TargetedInstructionType, HydrateTemplateController, HydrateAttributeInstruction, InterpolationInstruction, TextBindingInstruction, HydrateElementInstruction } from '@aurelia/runtime';
+import { PLATFORM } from '@aurelia/kernel';
+import { AttributeDefinition, BindingType, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, InterpolationInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, SetPropertyInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
-import { BindingCommandResource, IBindingCommand } from './binding-command';
+import { IBindingCommand } from './binding-command';
+import { AttributeInfo, BindableInfo, ElementInfo, MetadataModel } from './metadata-model';
 import { ITemplateFactory } from './template-factory';
-import { MetadataModel, ElementInfo, BindableInfo, AttributeInfo } from './metadata-model';
-
-const slice = Array.prototype.slice;
 
 // tslint:disable-next-line:no-any
 const emptyArray = PLATFORM.emptyArray as any[];
@@ -40,7 +38,6 @@ export const enum SymbolKind {
   elementBinding              = 0b010000000_0_000000_001_100,
   bindingCommand              = 0b100000000_0_000000_000_000,
 }
-
 
 function createMarker(): IElement {
   const marker = DOM.createElement('au-m');
@@ -826,8 +823,15 @@ export class ElementBindingSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
-    const instruction = this.command === null ? new BindingInstruction[this.info.mode](this.expr as IsBindingBehavior, this.info.propName) : this.command.compile(this);
-    row.push(instruction);
+    if (this.command === null) {
+      if (this.expr === null) {
+        row.push(new SetPropertyInstruction(this.attr.value, this.info.propName));
+      } else {
+        row.push(new BindingInstruction[this.info.mode](<IsBindingBehavior>this.expr, this.info.propName));
+      }
+    } else {
+      row.push(this.command.compile(this));
+    }
   }
 }
 

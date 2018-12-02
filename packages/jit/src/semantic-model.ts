@@ -1,4 +1,4 @@
-import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { AttributeDefinition, BindingType, DOM, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IAttr, IBindableDescription, IChildNode, IElement, IExpressionParser, IHTMLElement, IHTMLSlotElement, IHTMLTemplateElement, Interpolation, InterpolationInstruction, IResourceDescriptions, IsBindingBehavior, IsExpressionOrStatement, ITemplateDefinition, IText, NodeType, OneTimeBindingInstruction, SetPropertyInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition, TextBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, ExpressionKind } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
@@ -235,6 +235,8 @@ export const enum CompilerFlags {
   surrogate = 1
 }
 
+const slice = Array.prototype.slice;
+
 export class CompilationTarget implements IParentElementSymbol {
   public kind: SymbolKind.compilationTarget;
   public element: IHTMLTemplateElement;
@@ -272,6 +274,7 @@ export class CompilationTarget implements IParentElementSymbol {
   }
 
   public compile(flags: CompilerFlags = CompilerFlags.none): void {
+    if (Tracer.enabled) { Tracer.enter('CompilationTarget.compile', slice.call(arguments)); }
     const definition = this.definition;
     let attr = this.headAttr;
     while (attr !== null && attr.owner === this) {
@@ -280,7 +283,7 @@ export class CompilationTarget implements IParentElementSymbol {
     }
 
     const rows: TargetedInstruction[][] = definition.instructions;
-    let row: TargetedInstruction[] = [];
+    const row: TargetedInstruction[] = [];
     let el = this.headNode;
     while (el !== null) {
       el.compile(definition, rows, row, flags);
@@ -289,6 +292,7 @@ export class CompilationTarget implements IParentElementSymbol {
       }
       el = el.nextNode;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -336,6 +340,7 @@ export class PlainElementSymbol implements IParentElementSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('PlainElementSymbol.compile', slice.call(arguments)); }
     let attr = this.headAttr;
     while (attr !== null && attr.owner === this) {
       attr.compile(definition, rows, row, flags);
@@ -353,6 +358,7 @@ export class PlainElementSymbol implements IParentElementSymbol {
       }
       el = el.nextNode;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -398,11 +404,13 @@ export class SurrogateElementSymbol implements IParentElementSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('SurrogateElementSymbol.compile', slice.call(arguments)); }
     let attr = this.headAttr;
     while (attr !== null && attr.owner === this) {
       attr.compile(definition, rows, row, flags);
       attr = attr.nextAttr;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -438,7 +446,9 @@ export class SlotElementSymbol implements IParentElementSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('SlotElementSymbol.compile', slice.call(arguments)); }
     definition.hasSlots = true;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -470,6 +480,8 @@ export class LetElementSymbol implements IElementSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('LetElementSymbol.compile', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -518,7 +530,7 @@ export class CustomElementSymbol implements IParentElementSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
-
+    if (Tracer.enabled) { Tracer.enter('CustomElementSymbol.compile', slice.call(arguments)); }
     const bindables: TargetedInstruction[] = [];
     const siblings: TargetedInstruction[] = [];
     let attr = this.headAttr;
@@ -544,6 +556,7 @@ export class CustomElementSymbol implements IParentElementSymbol {
     if (row.length > 0) {
       rows.push(row.splice(0));
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -586,7 +599,9 @@ export class TextInterpolationSymbol implements ITextSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('TextInterpolationSymbol.compile', slice.call(arguments)); }
     rows.push([new TextBindingInstruction(this.expr)]);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -620,7 +635,9 @@ export class AttributeInterpolationSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('AttributeInterpolationSymbol.compile', slice.call(arguments)); }
     row.push(new InterpolationInstruction(this.expr, this.attr.name));
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -660,8 +677,10 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
-    const bindingInstructions = this.expr === null ? emptyArray : [this.command === null ? new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName) : this.command.compile(this)];
+    if (Tracer.enabled) { Tracer.enter('CustomAttributeSymbol.compile', slice.call(arguments)); }
+    const bindingInstructions = this.expr === null ? emptyArray : [this.command === null ? new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName) : this.command.compile(this)];
     row.push(new HydrateAttributeInstruction(this.syntax.target, bindingInstructions));
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -704,7 +723,8 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
-    let instruction = this.expr === null ? null : this.command === null ? new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName) : this.command.compile(this);
+    if (Tracer.enabled) { Tracer.enter('TemplateControllerAttributeSymbol.compile', slice.call(arguments)); }
+    let instruction = this.expr === null ? null : this.command === null ? new BindingInstruction[this.info.bindable.mode](<IsBindingBehavior>this.expr, this.info.bindable.propName) : this.command.compile(this);
     if (instruction === null || instruction.type !== TargetedInstructionType.hydrateTemplateController) {
       const name = this.syntax.target;
       const def: ITemplateDefinition = {
@@ -726,6 +746,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
       }
       el = el.nextNode;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -776,7 +797,9 @@ export class AttributeBindingSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('AttributeBindingSymbol.compile', slice.call(arguments)); }
     row.push(this.command.compile(this));
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -824,6 +847,7 @@ export class ElementBindingSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('ElementBindingSymbol.compile', slice.call(arguments)); }
     if (this.command === null) {
       if (this.expr === null) {
         row.push(new SetPropertyInstruction(this.attr.value, this.info.propName));
@@ -835,6 +859,7 @@ export class ElementBindingSymbol implements IAttributeSymbol {
     } else {
       row.push(this.command.compile(this));
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -877,7 +902,9 @@ export class BoundAttributeSymbol implements IAttributeSymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('BoundAttributeSymbol.compile', slice.call(arguments)); }
     row.push(this.command.compile(this));
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -916,6 +943,8 @@ export class BindingCommandSymbol implements ISymbol {
   }
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
+    if (Tracer.enabled) { Tracer.enter('BindingCommandSymbol.compile', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.leave(); }
     return null;
   }
 }

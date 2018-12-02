@@ -90,7 +90,15 @@ export class OneTimeBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new OneTimeBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    switch ($symbol.kind) {
+      case SymbolKind.customAttribute:
+      case SymbolKind.templateControllerAttribute:
+        return new OneTimeBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.bindable.propName);
+      case SymbolKind.elementBinding:
+        return new OneTimeBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.propName);
+      default:
+        return new OneTimeBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    }
   }
 }
 
@@ -101,7 +109,15 @@ export class ToViewBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new ToViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    switch ($symbol.kind) {
+      case SymbolKind.customAttribute:
+      case SymbolKind.templateControllerAttribute:
+        return new ToViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.bindable.propName);
+      case SymbolKind.elementBinding:
+        return new ToViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.propName);
+      default:
+        return new ToViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    }
   }
 }
 
@@ -112,7 +128,15 @@ export class FromViewBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new FromViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    switch ($symbol.kind) {
+      case SymbolKind.customAttribute:
+      case SymbolKind.templateControllerAttribute:
+        return new FromViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.bindable.propName);
+      case SymbolKind.elementBinding:
+        return new FromViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.propName);
+      default:
+        return new FromViewBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    }
   }
 }
 
@@ -123,13 +147,28 @@ export class TwoWayBindingCommand implements IBindingCommand {
   public static register: IRegistry['register'];
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new TwoWayBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    switch ($symbol.kind) {
+      case SymbolKind.customAttribute:
+      case SymbolKind.templateControllerAttribute:
+        return new TwoWayBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.bindable.propName);
+      case SymbolKind.elementBinding:
+        return new TwoWayBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.info.propName);
+      default:
+        return new TwoWayBindingInstruction(<IsBindingBehavior>$symbol.expr, $symbol.syntax.target);
+    }
   }
 }
 
 // Not bothering to throw on non-existing modes, should never happen anyway.
 // Keeping all array elements of the same type for better optimizeability.
 const compileMode = ['', '$1', '$2', '', '$4', '', '$6'];
+const compileCommand = {
+  'bind': '$2',
+  'one-time': '$1',
+  'to-view': '$2',
+  'from-view': '$4',
+  'two-way': '$6',
+};
 
 export interface DefaultBindingCommand extends IBindingCommand {}
 
@@ -149,7 +188,17 @@ export class DefaultBindingCommand implements IBindingCommand {
   }
 
   public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return this[compileMode[BindingMode.toView]]($symbol); //TODO: temp hard-coded, need to fix again
+    switch ($symbol.kind) {
+      case SymbolKind.customAttribute:
+      case SymbolKind.templateControllerAttribute:
+        return this[compileMode[$symbol.info.bindable.mode]]($symbol);
+      case SymbolKind.attributeBinding:
+        return this[compileCommand[$symbol.syntax.command]]($symbol);
+      case SymbolKind.elementBinding:
+        return this[compileMode[$symbol.info.mode]]($symbol);
+      case SymbolKind.boundAttribute:
+        return this[compileCommand[$symbol.syntax.command]]($symbol);
+    }
   }
 }
 

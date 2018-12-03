@@ -111,7 +111,7 @@ export class Scope {
   public viewportStates(): string[] {
     const states: string[] = [];
     for (const viewport in this.viewports) {
-      states.push((<Viewport>this.viewports[viewport]).scopedDescription());
+      states.push((this.viewports[viewport] as Viewport).scopedDescription());
     }
     for (const scope of this.children) {
       states.push(...scope.viewportStates());
@@ -141,10 +141,10 @@ export class Scope {
     if (typeof component === 'string') {
       const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(component));
       if (resolver !== null) {
-        component = <ICustomElementType>resolver.getFactory(this.router.container).Type;
+        component = resolver.getFactory(this.router.container).Type as ICustomElementType;
       }
     }
-    return <ICustomElementType>component;
+    return component as ICustomElementType;
   }
 
   // This is not an optimal way of doing this

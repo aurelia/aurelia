@@ -53,7 +53,7 @@ export class LinkHandler {
       anchor: null
     };
 
-    const target = LinkHandler.findClosestAnchor(<Element>event.target);
+    const target = LinkHandler.findClosestAnchor(event.target as Element);
     if (!target || !LinkHandler.targetIsThisWindow(target)) {
       return info;
     }
@@ -62,7 +62,7 @@ export class LinkHandler {
       return info;
     }
 
-    if ((<MouseEvent>event).altKey || (<MouseEvent>event).ctrlKey || (<MouseEvent>event).metaKey || (<MouseEvent>event).shiftKey) {
+    if ((event as MouseEvent).altKey || (event as MouseEvent).ctrlKey || (event as MouseEvent).metaKey || (event as MouseEvent).shiftKey) {
       return info;
     }
 
@@ -70,7 +70,7 @@ export class LinkHandler {
     info.anchor = target;
     info.href = href;
 
-    const leftButtonClicked = (<MouseEvent>event).which === 1;
+    const leftButtonClicked = (event as MouseEvent).which === 1;
 
     info.shouldHandleEvent = leftButtonClicked;
     return info;
@@ -87,7 +87,7 @@ export class LinkHandler {
       if (el.tagName === 'A') {
         return el;
       }
-      el = <Element>el.parentNode;
+      el = el.parentNode as Element;
     }
   }
 
@@ -136,5 +136,5 @@ export class LinkHandler {
       e.preventDefault();
       this.options.callback(info);
     }
-  };
+  }
 }

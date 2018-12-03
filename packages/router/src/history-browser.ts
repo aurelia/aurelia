@@ -123,7 +123,7 @@ export class HistoryBrowser {
     const { pathname, search, hash } = this.location;
     let state = { ...this.history.state };
     if (typeof key === 'string') {
-      state[key as string] = JSON.parse(JSON.stringify(value));
+      state[key] = JSON.parse(JSON.stringify(value));
     } else {
       state = { ...state, ...JSON.parse(JSON.stringify(key)) };
     }
@@ -178,7 +178,7 @@ export class HistoryBrowser {
 
     const navigationFlags: INavigationFlags = {};
 
-    let historyEntry: IHistoryEntry = <IHistoryEntry>this.getState('HistoryEntry');
+    let historyEntry: IHistoryEntry = this.getState('HistoryEntry') as IHistoryEntry;
     if (this.activeEntry && this.activeEntry.path === path) { // Only happens with new history entries (including replacing ones)
       navigationFlags.isNew = true;
       const index = (this.isReplacing ? this.currentEntry.index : this.history.length - this.historyOffset);
@@ -209,9 +209,9 @@ export class HistoryBrowser {
         'HistoryEntry': this.currentEntry
       });
     } else { // Refresh, history navigation, first navigation, manual navigation or cancel
-      this.historyEntries = <IHistoryEntry[]>(this.historyEntries || this.getState('HistoryEntries') || []);
+      this.historyEntries = (this.historyEntries || this.getState('HistoryEntries') || []) as IHistoryEntry[];
       // tslint:disable-next-line:strict-boolean-expressions
-      this.historyOffset = <number>(this.historyOffset || this.getState('HistoryOffset') || 0);
+      this.historyOffset = (this.historyOffset || this.getState('HistoryOffset') || 0) as number;
       if (!historyEntry && !this.currentEntry) {
         navigationFlags.isNew = true;
         navigationFlags.isFirst = true;

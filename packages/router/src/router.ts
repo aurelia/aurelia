@@ -93,7 +93,8 @@ export class Router {
       throw new Error('Router has not been activated.');
     }
     this.linkHandler.deactivate();
-    return this.historyBrowser.deactivate();
+    this.historyBrowser.deactivate();
+    return;
   }
 
   public linkCallback = (info: AnchorEventInfo): void => {
@@ -166,15 +167,18 @@ export class Router {
 
     let results = await Promise.all(viewports.map((value) => value.canLeave()));
     if (results.findIndex((value) => value === false) >= 0) {
-      return Promise.resolve(this.historyBrowser.cancel());
+      this.historyBrowser.cancel();
+      return Promise.resolve();
     }
     results = await Promise.all(viewports.map((value) => value.canEnter()));
     if (results.findIndex((value) => value === false) >= 0) {
-      return Promise.resolve(this.historyBrowser.cancel());
+      this.historyBrowser.cancel();
+      return Promise.resolve();
     }
     results = await Promise.all(viewports.map((value) => value.loadContent()));
     if (results.findIndex((value) => value === false) >= 0) {
-      return Promise.resolve(this.historyBrowser.cancel());
+      this.historyBrowser.cancel();
+      return Promise.resolve();
     }
 
     let viewportStates = this.rootScope.viewportStates();
@@ -325,7 +329,7 @@ export class Router {
   public findScope(element: Element): Scope {
     if (!this.rootScope) {
       const aureliaRootElement = this.container.get(Aurelia).root().$host;
-      this.rootScope = new Scope(this, <Element>aureliaRootElement, null);
+      this.rootScope = new Scope(this, aureliaRootElement as Element, null);
       this.scopes.push(this.rootScope);
     }
     return this.closestScope(element);

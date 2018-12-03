@@ -34,12 +34,12 @@ export class Viewport {
       } else {
         const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(content));
         if (resolver !== null) {
-          content = <ICustomElementType>resolver.getFactory(this.router.container).Type;
+          content = resolver.getFactory(this.router.container).Type as ICustomElementType;
         }
       }
     }
 
-    this.nextContent = <ICustomElementType>content;
+    this.nextContent = content as ICustomElementType;
     this.nextInstruction = instruction;
 
     if (this.content !== content || instruction.isRefresh) {

@@ -28,10 +28,9 @@ export class HistoryBrowser {
   public replacedEntry: IHistoryEntry;
 
   public history: History;
+  public location: Location;
 
   private activeEntry: IHistoryEntry = null;
-
-  private location: Location;
 
   private options: IHistoryOptions;
   private isActive: boolean = false;
@@ -171,7 +170,7 @@ export class HistoryBrowser {
     return (this.historyEntries ? this.historyEntries.slice(0, this.currentEntry.index + 1).map((value) => value.title) : []);
   }
 
-  private pathChanged = (): void => {
+  public pathChanged = (): void => {
     const path: string = this.getPath();
     // tslint:disable-next-line:no-console
     console.log('path changed to', path, this.activeEntry, this.currentEntry);
@@ -281,6 +280,7 @@ export class HistoryBrowser {
     }
     this.pathChanged();
   }
+
   private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags): void {
     const instruction: INavigationInstruction = { ...currentEntry, ...navigationFlags };
     // tslint:disable-next-line:no-console

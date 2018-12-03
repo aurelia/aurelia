@@ -27,6 +27,7 @@ describe('Router', () => {
     router.goto('/left:foo');
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
     expect(host.textContent).to.contain('foo');
 
     await teardown(host, router, 1);
@@ -40,9 +41,34 @@ describe('Router', () => {
     router.goto('/left:foo');
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
     expect(host.textContent).to.contain('foo');
     await freshState(router, 1);
     expect(host.textContent).to.not.contain('foo');
+
+    await teardown(host, router, 1);
+    // Promise.resolve().then(() => done());
+  });
+
+  it('replaces foo in left', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    let historyLength = router.historyBrowser.history.length;
+    console.log('LENGTH', historyLength);
+    router.goto('/left:foo');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('foo');
+    expect(router.historyBrowser.history.length).to.equal(historyLength + 1);
+
+    router.replace('/left:bar');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('bar');
+    expect(router.historyBrowser.history.length).to.equal(historyLength + 1);
 
     await teardown(host, router, 1);
     // Promise.resolve().then(() => done());
@@ -53,6 +79,7 @@ describe('Router', () => {
     const { host, router } = await setup();
 
     router.goto('/right:bar');
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('bar');
@@ -68,10 +95,12 @@ describe('Router', () => {
     router.goto('/left:foo');
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
     router.goto('/right:bar');
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: foo');
@@ -90,10 +119,12 @@ describe('Router', () => {
     router.goto('/left:foo');
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
     router.goto('/left:bar');
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.not.contain('Viewport: foo');
@@ -102,14 +133,16 @@ describe('Router', () => {
     router.back();
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
-    // router.forward();
-    // await Promise.resolve();
-    // await Promise.resolve();
-    // expect(host.textContent).to.not.contain('Viewport: foo');
-    // expect(host.textContent).to.contain('Viewport: bar');
+    router.forward();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.not.contain('Viewport: foo');
+    expect(host.textContent).to.contain('Viewport: bar');
 
     await wait();
 
@@ -124,24 +157,28 @@ describe('Router', () => {
   //   router.goto('/left:foo');
   //   await Promise.resolve();
   //   await Promise.resolve();
+  // await Promise.resolve();
   //   expect(host.textContent).to.contain('Viewport: foo');
   //   expect(host.textContent).to.not.contain('Viewport: bar');
 
   //   router.goto('/right:bar');
   //   await Promise.resolve();
   //   await Promise.resolve();
+  // await Promise.resolve();
   //   expect(host.textContent).to.contain('Viewport: foo');
   //   expect(host.textContent).to.contain('Viewport: bar');
 
   //   router.back();
   //   await Promise.resolve();
   //   await Promise.resolve();
+  // await Promise.resolve();
   //   expect(host.textContent).to.contain('Viewport: foo');
   //   expect(host.textContent).to.not.contain('Viewport: bar');
 
   //   router.forward();
   //   await Promise.resolve();
   //   await Promise.resolve();
+  // await Promise.resolve();
   //   expect(host.textContent).to.contain('Viewport: foo');
   //   expect(host.textContent).to.contain('Viewport: bar');
 
@@ -156,6 +193,7 @@ describe('Router', () => {
     router.goto('/left:foo/right:bar');
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
     expect(host.textContent).to.contain('foo');
     expect(host.textContent).to.contain('bar');
 
@@ -163,32 +201,35 @@ describe('Router', () => {
     // Promise.resolve().then(() => done());
   });
 
-  // it('cancels if not canLeave', async function () {
-  //   this.timeout(30000);
-  //   const { host, router } = await setup();
+  it('cancels if not canLeave', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
 
-  //   router.goto('/left:baz/right:qux');
-  //   await Promise.resolve();
-  //   await Promise.resolve();
-  //   expect(host.textContent).to.contain('Viewport: baz');
-  //   expect(host.textContent).to.contain('Viewport: qux');
-  //   router.goto('/left:foo/right:bar');
-  //   await Promise.resolve();
-  //   await Promise.resolve();
-  //   expect(host.textContent).to.contain('Viewport: baz');
-  //   expect(host.textContent).to.contain('Viewport: qux');
-  //   expect(host.textContent).to.not.contain('Viewport: foo');
-  //   expect(host.textContent).to.not.contain('Viewport: bar');
+    router.goto('/left:baz/right:qux');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: baz');
+    expect(host.textContent).to.contain('Viewport: qux');
+    router.goto('/left:foo/right:bar');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: baz');
+    expect(host.textContent).to.contain('Viewport: qux');
+    expect(host.textContent).to.not.contain('Viewport: foo');
+    expect(host.textContent).to.not.contain('Viewport: bar');
 
-  //   await teardown(host, router, 2);
-  //   // Promise.resolve().then(() => done());
-  // });
+    await teardown(host, router, 2);
+    // Promise.resolve().then(() => done());
+  });
 
   it('navigates to foo/bar in left/right containing baz/qux respectively', async function () {
     this.timeout(30000);
     const { host, router } = await setup();
 
     router.goto('/left:foo/right:bar/foo:baz/bar:qux');
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: foo');
@@ -207,12 +248,56 @@ describe('Router', () => {
     router.goto('/left:foo');
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
     expect(host.textContent).to.contain('foo');
 
     (<any>host).getElementsByTagName('SPAN')[0].click();
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: baz');
+
+    await teardown(host, router, 1);
+    // Promise.resolve().then(() => done());
+  });
+
+  it('loads scoped viewport', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/left:quux');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: quux');
+
+    router.goto('/quux:quux');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    console.log(host.innerHTML);
+    expect(host.textContent).to.contain('Viewport: quux');
+
+    router.goto('/left:quux+quux:foo');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    console.log(host.innerHTML);
+    expect(host.textContent).to.contain('Viewport: foo');
+
+    (<any>host).getElementsByTagName('SPAN')[0].click();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    console.log(host.innerHTML);
+    expect(host.textContent).to.contain('Viewport: baz');
+
+    router.goto('/left:bar');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.not.contain('Viewport: quux');
 
     await teardown(host, router, 1);
     // Promise.resolve().then(() => done());
@@ -235,8 +320,9 @@ let setup = async (): Promise<{ au, container, host, router }> => {
     enter() { return true; }
     leave() { return true; }
   });
+  const Quux = (<any>CustomElementResource).define({ name: 'quux', template: '<template>quux<viewport name="quux" scope></viewport></template>' });
   container.register(<any>ViewportCustomElement);
-  container.register(Foo, Bar, Baz, Qux);
+  container.register(Foo, Bar, Baz, Qux, Quux);
   const au = new Aurelia(<any>container);
   const host = DOM.createElement('div');
   document.body.appendChild(<any>host);
@@ -261,13 +347,15 @@ let freshState = async (router, count) => {
   throttleCounter += (count * 2) + 2;
   router.goto('/left:-/right:-');
   await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
   if (throttleCounter >= 9) {
     await wait();
   }
 }
 let wait = async () => {
   await new Promise((resolve) => {
-    setTimeout(resolve, 10000);
+    setTimeout(resolve, 1000);
     throttleCounter = 0;
   });
 }

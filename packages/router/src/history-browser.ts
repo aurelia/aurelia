@@ -148,9 +148,9 @@ export class HistoryBrowser {
     const newHash = `#/${path}`;
     const { pathname, search, hash } = this.location;
     // tslint:disable-next-line:possible-timing-attack
-    // if (newHash === hash) {
-    //   return;
-    // }
+    if (newHash === hash) {
+      return;
+    }
     const state = { ...this.history.state };
     this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
     this.currentEntry.path = path;
@@ -227,6 +227,7 @@ export class HistoryBrowser {
       }
 
       if (!historyEntry) {
+        // TODO: max history length of 50, find better new index
         historyEntry = {
           path: path,
           index: this.history.length - this.historyOffset,

@@ -16,7 +16,7 @@ export class ViewportCustomElement {
   constructor(private router: Router, private element: Element) { }
 
   attached() {
-    this.viewport = this.router.addViewport(this.name, this.element, this.scope ? true : false);
+    this.viewport = this.router.addViewport(this.name, this.element, this.element.hasAttribute('scope'));
   }
   unbound() {
     // TODO: There's something hinky with remove!

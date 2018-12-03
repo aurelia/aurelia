@@ -111,7 +111,7 @@ export class Router {
     this.historyBrowser.setHash(href);
   }
 
-  public historyCallback(instruction: INavigationInstruction): Promise<void> {
+  public async historyCallback(instruction: INavigationInstruction): Promise<void> {
     if (this.options.reportCallback) {
       this.options.reportCallback(instruction);
     }
@@ -164,35 +164,54 @@ export class Router {
       this.isRedirecting = false;
     }
 
-    let cancel: boolean = false;
-    return Promise.all(viewports.map((value) => value.canLeave()))
-      .then((promises: boolean[]) => {
-        if (cancel || promises.findIndex((value) => value === false) >= 0) {
-          cancel = true;
-          return Promise.resolve([]);
-        } else {
-          return Promise.all(viewports.map((value) => value.canEnter()));
-        }
-      }).then((promises: boolean[]) => {
-        if (cancel || promises.findIndex((value) => value === false) >= 0) {
-          cancel = true;
-          return Promise.resolve([]);
-        } else {
-          return Promise.all(viewports.map((value) =>
-            value.loadContent()));
-        }
-      }).then(() => {
-        if (cancel) {
-          this.historyBrowser.cancel();
-        }
-      }).then(() => {
-        let viewportStates = this.rootScope.viewportStates();
-        viewportStates = this.removeStateDuplicates(viewportStates);
+    let results = await Promise.all(viewports.map((value) => value.canLeave()));
+    if (results.findIndex((value) => value === false) >= 0) {
+      return Promise.resolve(this.historyBrowser.cancel());
+    }
+    results = await Promise.all(viewports.map((value) => value.canEnter()));
+    if (results.findIndex((value) => value === false) >= 0) {
+      return Promise.resolve(this.historyBrowser.cancel());
+    }
+    results = await Promise.all(viewports.map((value) => value.loadContent()));
+    if (results.findIndex((value) => value === false) >= 0) {
+      return Promise.resolve(this.historyBrowser.cancel());
+    }
 
-        // TODO: Cut down on verbosity
+    let viewportStates = this.rootScope.viewportStates();
+    viewportStates = this.removeStateDuplicates(viewportStates);
 
-        this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling));
-      });
+    // TODO: Cut down on verbosity
+
+    this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling));
+
+    // let cancel: boolean = false;
+    // return Promise.all(viewports.map((value) => value.canLeave()))
+    //   .then((promises: boolean[]) => {
+    //     if (cancel || promises.findIndex((value) => value === false) >= 0) {
+    //       cancel = true;
+    //       return Promise.resolve([]);
+    //     } else {
+    //       return Promise.all(viewports.map((value) => value.canEnter()));
+    //     }
+    //   }).then((promises: boolean[]) => {
+    //     if (cancel || promises.findIndex((value) => value === false) >= 0) {
+    //       cancel = true;
+    //       return Promise.resolve([]);
+    //     } else {
+    //       return Promise.all(viewports.map((value) => value.loadContent()));
+    //     }
+    //   }).then(() => {
+    //     if (cancel) {
+    //       this.historyBrowser.cancel();
+    //     }
+    //   }).then(() => {
+    //     let viewportStates = this.rootScope.viewportStates();
+    //     viewportStates = this.removeStateDuplicates(viewportStates);
+
+    //     // TODO: Cut down on verbosity
+
+    //     this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling));
+    //   });
   }
 
   // public view(views: Object, title?: string, data?: Object): Promise<void> {

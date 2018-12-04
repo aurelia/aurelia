@@ -24,6 +24,7 @@ import {
   IText,
   NodeType,
   OneTimeBindingInstruction,
+  PrimitiveLiteral,
   RefBindingInstruction,
   SetPropertyInstruction,
   TargetedInstruction,
@@ -129,7 +130,11 @@ export class SemanticModel {
       }
       const nodeName = (node.getAttribute('as-element') || node.nodeName).toLowerCase();
       const info = this.metadata.elements[nodeName];
-      return info === undefined ? new PlainElementSymbol(node as IHTMLElement, parentNode) : new CustomElementSymbol(node as IHTMLElement, parentNode, info);
+      if (info === undefined) {
+        return new PlainElementSymbol(node as IHTMLElement, parentNode);
+      } else {
+        return new CustomElementSymbol(node as IHTMLElement, parentNode, info);
+      }
     }
     return null;
   }
@@ -159,24 +164,30 @@ export class SemanticModel {
       if (el.kind === SymbolKind.customElement) {
         const elBindable = el.info.bindables[target];
         if (elBindable !== undefined) {
-          return new ElementBindingSymbol(attr, el, cmd, attrSyntax, expr, elBindable);
+          return new ElementBindingSymbol(el, cmd, attrSyntax, expr, elBindable);
         }
       }
       if (command === null || cmd === null) {
         expr = exprParser.parse(value, BindingType.Interpolation);
-        return expr === null ? null : new AttributeInterpolationSymbol(attr, el, expr);
+        if (expr === null) {
+          return null;
+        } else {
+          return new AttributeInterpolationSymbol(el, new AttrSyntax(name, value, name, null), expr);
+        }
       }
-      return new BoundAttributeSymbol(attr, el, cmd, attrSyntax, expr);
+      return new BoundAttributeSymbol(el, cmd, attrSyntax, expr);
     }
     // it's a custom attribute
     if (command === null && value.length > 0) {
-      // for custom attribute, assume 'to-view' binding command if no binding command is declared
-      expr = exprParser.parse(value, BindingType.ToViewCommand);
+      expr = exprParser.parse(value, BindingType.Interpolation);
+      if (expr === null) {
+        expr = new PrimitiveLiteral(value);
+      }
     }
     if (attrInfo.isTemplateController) {
-      return new TemplateControllerAttributeSymbol(attr, el, attrInfo, cmd, attrSyntax, expr);
+      return new TemplateControllerAttributeSymbol(el, attrInfo, cmd, attrSyntax, expr);
     } else {
-      return new CustomAttributeSymbol(attr, el, attrInfo, cmd, attrSyntax, expr);
+      return new CustomAttributeSymbol(el, attrInfo, cmd, attrSyntax, expr);
     }
   }
 }
@@ -188,7 +199,6 @@ export interface ISymbol {
 
 export interface IAttributeSymbol extends ISymbol {
   nextAttr: AttributeSymbol | null;
-  attr: IAttr;
   syntax: AttrSyntax | null;
   command: IBindingCommand | null;
   expr: IsExpressionOrStatement | null;
@@ -653,26 +663,24 @@ export class TextInterpolationSymbol implements ITextSymbol {
 
 export class AttributeInterpolationSymbol implements IAttributeSymbol {
   public kind: SymbolKind.attributeInterpolation;
-  public attr: IAttr;
   public owner: IElementSymbol;
 
   public nextAttr: AttributeSymbol;
 
   public command: IBindingCommand | null;
-  public syntax: AttrSyntax | null;
+  public syntax: AttrSyntax;
   public expr: Interpolation;
 
   constructor(
-    attr: IAttr,
     owner: IElementSymbol,
+    syntax: AttrSyntax,
     expr: Interpolation
   ) {
     this.kind = SymbolKind.attributeInterpolation;
-    this.attr = attr;
     this.owner = owner;
     this.nextAttr = null;
     this.command = null;
-    this.syntax = null;
+    this.syntax = syntax;
     this.expr = expr;
   }
 
@@ -682,14 +690,13 @@ export class AttributeInterpolationSymbol implements IAttributeSymbol {
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     if (Tracer.enabled) { Tracer.enter('AttributeInterpolationSymbol.compile', slice.call(arguments)); }
-    row.push(new InterpolationInstruction(this.expr, this.attr.name));
+    row.push(new InterpolationInstruction(this.expr, this.syntax.rawName));
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 export class CustomAttributeSymbol implements IAttributeSymbol {
   public kind: SymbolKind.customAttribute;
-  public attr: IAttr;
   public owner: IElementSymbol;
 
   public nextAttr: AttributeSymbol;
@@ -701,7 +708,6 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
   public expr: IsExpressionOrStatement | null;
 
   constructor(
-    attr: IAttr,
     owner: IElementSymbol,
     info: AttributeInfo,
     command: IBindingCommand | null,
@@ -709,7 +715,6 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
     expr: IsExpressionOrStatement | null
   ) {
     this.kind = SymbolKind.customAttribute;
-    this.attr = attr;
     this.owner = owner;
     this.nextAttr = null;
     this.info = info;
@@ -726,12 +731,14 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
     if (Tracer.enabled) { Tracer.enter('CustomAttributeSymbol.compile', slice.call(arguments)); }
     let bindingInstructions: TargetedInstruction[];
     if (this.info.name === 'ref') {
-      row.push(new RefBindingInstruction(this.expr === null ? this.attr.value : this.expr as IsBindingBehavior));
+      row.push(new RefBindingInstruction(this.expr === null ? this.syntax.rawValue : this.expr as IsBindingBehavior));
     } else {
-      if (this.command !== null) {
-        bindingInstructions = [this.command.compile(this)];
-      } else if (this.expr !== null) {
-        bindingInstructions = [new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName)];
+      if (this.expr !== null) {
+        if (this.command !== null) {
+          bindingInstructions = [this.command.compile(this)];
+        } else {
+          bindingInstructions = [new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName)];
+        }
       } else {
         bindingInstructions = emptyArray;
       }
@@ -743,7 +750,6 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
 
 export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
   public kind: SymbolKind.templateControllerAttribute;
-  public attr: IAttr;
   public owner: LiftableElementSymbol;
 
   public nextAttr: AttributeSymbol;
@@ -757,7 +763,6 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
   public targetSurrogate: SurrogateElementSymbol;
 
   constructor(
-    attr: IAttr,
     owner: IElementSymbol,
     info: AttributeInfo,
     command: IBindingCommand | null,
@@ -765,7 +770,6 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
     expr: IsExpressionOrStatement | null
   ) {
     this.kind = SymbolKind.templateControllerAttribute;
-    this.attr = attr;
     this.owner = owner as LiftableElementSymbol;
     this.nextAttr = null;
     this.info = info;
@@ -782,10 +786,12 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     if (Tracer.enabled) { Tracer.enter('TemplateControllerAttributeSymbol.compile', slice.call(arguments)); }
     let instruction: TargetedInstruction;
-    if (this.command !== null) {
-      instruction = this.command.compile(this);
-    } else if (this.expr !== null) {
-      instruction = new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName);
+    if (this.expr !== null) {
+      if (this.command !== null) {
+        instruction = this.command.compile(this);
+      } else {
+        instruction = new BindingInstruction[this.info.bindable.mode](this.expr as IsBindingBehavior, this.info.bindable.propName);
+      }
     } else {
       instruction = null;
     }
@@ -824,7 +830,6 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
  */
 export class AttributeBindingSymbol implements IAttributeSymbol {
   public kind: SymbolKind.attributeBinding;
-  public attr: IAttr;
   public owner: IElementSymbol;
 
   public nextAttr: AttributeSymbol;
@@ -837,7 +842,6 @@ export class AttributeBindingSymbol implements IAttributeSymbol {
   public attrDef: AttributeDefinition;
 
   constructor(
-    attr: IAttr,
     owner: IElementSymbol,
     command: IBindingCommand,
     syntax: AttrSyntax,
@@ -846,7 +850,6 @@ export class AttributeBindingSymbol implements IAttributeSymbol {
     attrDef: AttributeDefinition
   ) {
     this.kind = SymbolKind.attributeBinding;
-    this.attr = attr;
     this.owner = owner;
     this.nextAttr = null;
     this.command = command;
@@ -877,7 +880,6 @@ export class AttributeBindingSymbol implements IAttributeSymbol {
  */
 export class ElementBindingSymbol implements IAttributeSymbol {
   public kind: SymbolKind.elementBinding;
-  public attr: IAttr;
   public owner: CustomElementSymbol;
 
   public nextAttr: AttributeSymbol;
@@ -889,7 +891,6 @@ export class ElementBindingSymbol implements IAttributeSymbol {
   public info: BindableInfo;
 
   constructor(
-    attr: IAttr,
     owner: CustomElementSymbol,
     command: IBindingCommand,
     syntax: AttrSyntax,
@@ -897,7 +898,6 @@ export class ElementBindingSymbol implements IAttributeSymbol {
     info: BindableInfo
   ) {
     this.kind = SymbolKind.elementBinding;
-    this.attr = attr;
     this.owner = owner;
     this.nextAttr = null;
     this.command = command;
@@ -914,13 +914,13 @@ export class ElementBindingSymbol implements IAttributeSymbol {
     if (Tracer.enabled) { Tracer.enter('ElementBindingSymbol.compile', slice.call(arguments)); }
     if (this.command === null) {
       if (this.expr === null) {
-        row.push(new SetPropertyInstruction(this.attr.value, this.info.propName));
+        row.push(new SetPropertyInstruction(this.syntax.rawValue, this.info.propName));
       } else if (this.expr.$kind === ExpressionKind.Interpolation) {
         row.push(new InterpolationInstruction(this.expr, this.info.propName));
       } else {
         row.push(new BindingInstruction[this.info.mode](this.expr as IsBindingBehavior, this.info.propName));
       }
-    } else {
+    } else if (this.expr !== null) {
       row.push(this.command.compile(this));
     }
     if (Tracer.enabled) { Tracer.leave(); }
@@ -936,7 +936,6 @@ export class ElementBindingSymbol implements IAttributeSymbol {
  */
 export class BoundAttributeSymbol implements IAttributeSymbol {
   public kind: SymbolKind.boundAttribute;
-  public attr: IAttr;
   public owner: IElementSymbol;
 
   public nextAttr: AttributeSymbol;
@@ -946,14 +945,12 @@ export class BoundAttributeSymbol implements IAttributeSymbol {
   public expr: IsExpressionOrStatement;
 
   constructor(
-    attr: IAttr,
     owner: IElementSymbol,
     command: IBindingCommand,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement
   ) {
     this.kind = SymbolKind.boundAttribute;
-    this.attr = attr;
     this.owner = owner;
     this.nextAttr = null;
     this.command = command;
@@ -967,7 +964,9 @@ export class BoundAttributeSymbol implements IAttributeSymbol {
 
   public compile(definition: ITemplateDefinition, rows: TargetedInstruction[][], row: TargetedInstruction[], flags: CompilerFlags): void {
     if (Tracer.enabled) { Tracer.enter('BoundAttributeSymbol.compile', slice.call(arguments)); }
-    row.push(this.command.compile(this));
+    if (this.expr !== null) {
+      row.push(this.command.compile(this));
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

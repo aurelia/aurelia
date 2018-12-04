@@ -439,7 +439,7 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   } else if (value.length > 0) {
     return [{
       type: TT.propertyBinding,
-      from: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
+      from: value.length === 0 ? PrimitiveLiteral.$empty : (attr.indexOf('.') !== -1 ? new AccessScope(value) : new PrimitiveLiteral(value)),
       to: 'value',
       mode: BindingMode.toView,
       oneTime: false
@@ -489,10 +489,10 @@ function createTemplateController(attr: string, target: string, value: string, t
     let compiledMarkup;
     let instructions;
     if (childInstr === undefined) {
-      compiledMarkup = `<${tagName} ${attr}="${value||''}"></${tagName}>`;
+      compiledMarkup = `<${tagName}></${tagName}>`;
       instructions = []
     } else {
-      compiledMarkup = `<${tagName} ${attr}="${value||''}"><au-m class="au"></au-m></${tagName}>`;
+      compiledMarkup = `<${tagName}><au-m class="au"></au-m></${tagName}>`;
       instructions = [[childInstr]]
     }
     const instruction = {
@@ -640,23 +640,23 @@ describe(`TemplateCompiler - combinations`, () => {
       <(() => [string])[]>[
         () => ['div']
       ],
-      <(($1: [string]) => [string, string, string, IExpression])[]>[
-        () => ['foo', 'foo', 'bar', new AccessScope('bar')],
-        () => ['foo.bar', 'foo', 'bar', new AccessScope('bar')],
-        () => ['foo.bind', 'foo', 'bar', new AccessScope('bar')],
-        () => ['value', 'value', 'value', new AccessScope('value')]
+      <(($1: [string]) => [string, string, string])[]>[
+        () => ['foo', 'foo', 'bar'],
+        () => ['foo.bar', 'foo', 'bar'],
+        () => ['foo.bind', 'foo', 'bar'],
+        () => ['value', 'value', 'value']
       ],
-      <(($1: [string], $2: [string, string, string, IExpression]) => [string, string, any])[]>[
-        ($1, [,, value, from]) => [`ref`,               value, { type: TT.refBinding,      from }],
-        ($1, [attr, to, value, from]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from, to, mode: BindingMode.toView,   oneTime: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from, to, mode: BindingMode.toView,   oneTime: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from, to, mode: BindingMode.oneTime,  oneTime: true  }],
-        ($1, [attr, to, value, from]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from, to, mode: BindingMode.fromView, oneTime: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from, to, mode: BindingMode.twoWay,   oneTime: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.none,      preventDefault: true }],
-        ($1, [attr, to, value, from]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.capturing, preventDefault: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.call`,      value, { type: TT.callBinding,     from, to }]
+      <(($1: [string], $2: [string, string, string]) => [string, string, any])[]>[
+        ($1, [,, value]) => [`ref`,               value, { type: TT.refBinding,      from: new PrimitiveLiteral(value) }],
+        ($1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
+        ($1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.fromView, oneTime: false }],
+        ($1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.twoWay,   oneTime: false }],
+        ($1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.none,      preventDefault: true }],
+        ($1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
+        ($1, [attr, to, value]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
+        ($1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,     from: new AccessScope(value), to }]
       ]
     ], ([el], $2, [n1, v1, i1]) => {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
@@ -685,11 +685,11 @@ describe(`TemplateCompiler - combinations`, () => {
         () => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay } }, BindingMode.twoWay, 'bazBaz'],
         () => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
       ],
-      <(() => [string, string, IExpression, Constructable])[]>[
-        () => ['foo',     '', PrimitiveLiteral.$empty, class Foo{}],
-        () => ['foo-foo', '', PrimitiveLiteral.$empty, class FooFoo{}],
-        () => ['foo',     'bar', new AccessScope('bar'), class Foo{}],
-        () => ['foo-foo', 'bar', new AccessScope('bar'), class Foo{}]
+      <(() => [string, string, Constructable])[]>[
+        () => ['foo',     '', class Foo{}],
+        () => ['foo-foo', '', class FooFoo{}],
+        () => ['foo',     'bar', class Foo{}],
+        () => ['foo-foo', 'bar', class Foo{}]
       ],
       // IAttributeDefinition.defaultBindingMode
       <(() => BindingMode | undefined)[]>[
@@ -699,22 +699,22 @@ describe(`TemplateCompiler - combinations`, () => {
         () => BindingMode.fromView,
         () => BindingMode.twoWay
       ],
-      <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, IExpression, Constructable], $3: BindingMode) => [string, any])[]>[
-        ([, mode, to], [attr,, from], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, from, to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([, mode, to], [attr,, from], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from, to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([,, to], [attr,, from]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from, to, mode: BindingMode.toView }],
-        ([,, to], [attr,, from]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from, to, mode: BindingMode.oneTime }],
-        ([,, to], [attr,, from]) => [`${attr}.from-view`, { type: TT.propertyBinding, from, to, mode: BindingMode.fromView }],
-        ([,, to], [attr,, from]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from, to, mode: BindingMode.twoWay }]
+      <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]>[
+        ([, mode, to], [attr, value], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, from: new PrimitiveLiteral(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: new AccessScope(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([,, to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView }],
+        ([,, to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.oneTime }],
+        ([,, to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.fromView }],
+        ([,, to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.twoWay }]
       ]
-    ], ([bindables], [attr, value,, ctor], defaultBindingMode, [name, childInstruction]) => {
+    ], ([bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
       childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
       const def = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, () => {
         const input = { template: markup, instructions: [], surrogates: [] };
-        const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: value.length > 0 || name.indexOf('.') > 0 ? [childInstruction] : [] };
+        const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: value.length > 0 ? [childInstruction] : [] };
         const expected = { template: createElement(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [] };
 
         const $def = CustomAttributeResource.define(def, ctor);

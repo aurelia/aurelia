@@ -110,10 +110,12 @@ export class SymbolPreprocessor implements ISymbolVisitor {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.command !== null) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
-    } else if (symbol.attr.value.length > 0) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    if (symbol.syntax.rawValue.length > 0) {
+      if (symbol.command !== null) {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, symbol.command.bindingType);
+      } else {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, BindingType.Interpolation);
+      }
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -123,10 +125,12 @@ export class SymbolPreprocessor implements ISymbolVisitor {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.command !== null) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
-    } else if (symbol.attr.value.length > 0) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    if (symbol.syntax.rawValue.length > 0) {
+      if (symbol.command !== null) {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, symbol.command.bindingType);
+      } else {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, BindingType.Interpolation);
+      }
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -136,10 +140,12 @@ export class SymbolPreprocessor implements ISymbolVisitor {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.command !== null) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
-    } else if (symbol.attr.value.length > 0) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    if (symbol.syntax.rawValue.length > 0) {
+      if (symbol.command !== null) {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, symbol.command.bindingType);
+      } else {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, BindingType.Interpolation);
+      }
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -149,10 +155,12 @@ export class SymbolPreprocessor implements ISymbolVisitor {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.command !== null) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
-    } else if (symbol.attr.value.length > 0) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    if (symbol.syntax.rawValue.length > 0) {
+      if (symbol.command !== null) {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, symbol.command.bindingType);
+      } else {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, BindingType.Interpolation);
+      }
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -162,10 +170,12 @@ export class SymbolPreprocessor implements ISymbolVisitor {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
-    if (symbol.command !== null) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, symbol.command.bindingType);
-    } else if (symbol.attr.value.length > 0) {
-      symbol.expr = this.model.parseExpression(symbol.attr.value, BindingType.Interpolation);
+    if (symbol.syntax.rawValue.length > 0) {
+      if (symbol.command !== null) {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, symbol.command.bindingType);
+      } else {
+        symbol.expr = this.model.parseExpression(symbol.syntax.rawValue, BindingType.Interpolation);
+      }
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -429,9 +439,15 @@ export class NodePreprocessor implements ISymbolVisitor {
   }
 
   private visitElementSymbolNode(symbol: PlainElementSymbol | SurrogateElementSymbol | CustomElementSymbol | CompilationTarget): void {
+    const el = symbol.element;
     let attr = symbol.headAttr;
-    while (attr !== null && attr.owner === symbol) {
-      attr.accept(this);
+    while (attr !== null) {
+      if (attr.owner === symbol) {
+        attr.accept(this);
+      }
+      if (attr.kind === SymbolKind.templateControllerAttribute) {
+        el.removeAttribute(attr.syntax.rawName);
+      }
       attr = attr.nextAttr;
     }
   }

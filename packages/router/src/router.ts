@@ -73,9 +73,9 @@ export class Router {
 
     this.separators = {
       ... {
-        viewport: ':',
-        sibling: '/',
-        scope: '+',
+        viewport: '@', // ':',
+        sibling: '+', // '/',
+        scope: '/', // '+',
         ownsScope: '!',
         parameters: '=',
         add: '+',
@@ -152,7 +152,7 @@ export class Router {
     const viewports: Viewport[] = [];
     for (const vp in views) {
       const component: ICustomElementType | string = views[vp];
-      const viewport = this.findViewport(`${vp}${this.separators.viewport}${component}`);
+      const viewport = this.findViewport(`${component}${this.separators.viewport}${vp}`);
       if (viewport.setNextContent(component, instruction)) {
         viewports.push(viewport);
       }
@@ -291,10 +291,12 @@ export class Router {
 
   public findViews(entry: IHistoryEntry): Object {
     const views: Object = {};
-    let sections: string[] = entry.path.split(this.separators.sibling);
-    if (sections.length && sections[0] === '') {
-      sections.shift();
+    let path = entry.path;
+    // TODO: Let this govern start of scope
+    if (path.startsWith('/')) {
+      path = path.substr(1);
     }
+    let sections: string[] = path.split(this.separators.sibling);
 
     // Expand with instances for all containing views
     const expandedSections: string[] = [];
@@ -312,9 +314,13 @@ export class Router {
       const view = sections.shift();
       // TODO: implement parameters
       // As a = part at the end of the view!
-      const parts = view.split(this.separators.viewport);
-      const component = parts.pop();
-      const name = (parts.length ? parts.join(this.separators.viewport) : `?${index++}`);
+      const scopes = view.split(this.separators.scope);
+      const leaf = scopes.pop();
+      const parts = leaf.split(this.separators.viewport);
+      // Noooooo?
+      const component = parts[0];
+      scopes.push(parts.length ? parts.join(this.separators.viewport) : `?${index++}`);
+      const name = scopes.join(this.separators.scope);
       if (component) {
         views[name] = component;
       }

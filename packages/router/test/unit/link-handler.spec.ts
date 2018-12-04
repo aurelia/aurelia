@@ -5,14 +5,14 @@ import { spy, SinonSpy } from 'sinon';
 describe('LinkHandler', () => {
   let linkHandler;
   let callback = ((info) => { });
-  class MockDockument {
+  class MockDocument {
     addEventListener(event, handler, preventDefault) {}
     removeEventListener(handler) {}
   }
 
   beforeEach(() => {
     linkHandler = new LinkHandler();
-    linkHandler.document = new MockDockument();
+    linkHandler.document = new MockDocument();
   });
 
   it('can be created', () => {

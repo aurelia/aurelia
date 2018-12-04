@@ -144,7 +144,7 @@ export class Viewport {
     if (this.content) {
       const component = this.content.description.name;
       const newScope: string = this.scope ? this.router.separators.ownsScope : '';
-      return `${this.name}${newScope}${this.router.separators.viewport}${component}`;
+      return `${component}${this.router.separators.viewport}${this.name}${newScope}`;
     }
   }
 

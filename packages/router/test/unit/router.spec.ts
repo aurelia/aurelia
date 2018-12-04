@@ -24,7 +24,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/left:foo');
+    router.goto('/foo@left');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
@@ -36,7 +36,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/left:foo');
+    router.goto('/foo@left');
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -52,13 +52,13 @@ describe('Router', () => {
     const { host, router } = await setup();
 
     let historyLength = router.historyBrowser.history.length;
-    router.goto('/left:foo');
+    router.goto('/foo@left');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
     expect(router.historyBrowser.history.length).to.equal(historyLength + 1);
 
-    router.replace('/left:bar');
+    router.replace('/bar@left');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('bar');
@@ -71,7 +71,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/right:bar');
+    router.goto('/bar@right');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('bar');
@@ -83,13 +83,13 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/left:foo');
+    router.goto('/foo@left');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
-    router.goto('/right:bar');
+    router.goto('/bar@right');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: foo');
@@ -102,14 +102,14 @@ describe('Router', () => {
     this.timeout(40000);
     const { host, router } = await setup();
 
-    router.goto('/left:foo');
+    router.goto('/foo@left');
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
-    router.goto('/left:bar');
+    router.goto('/bar@left');
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -137,13 +137,13 @@ describe('Router', () => {
   //   this.timeout(30000);
   //   const { host, router } = await setup();
 
-  //   router.goto('/left:foo');
+  //   router.goto('/foo@left');
   //   await Promise.resolve();
   // await Promise.resolve();
   //   expect(host.textContent).to.contain('Viewport: foo');
   //   expect(host.textContent).to.not.contain('Viewport: bar');
 
-  //   router.goto('/right:bar');
+  //   router.goto('/bar@right');
   //   await Promise.resolve();
   // await Promise.resolve();
   //   expect(host.textContent).to.contain('Viewport: foo');
@@ -168,7 +168,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/left:foo/right:bar');
+    router.goto('/foo@left+bar@right');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
@@ -181,12 +181,12 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/left:baz/right:qux');
+    router.goto('/baz@left+qux@right');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: baz');
     expect(host.textContent).to.contain('Viewport: qux');
-    router.goto('/left:foo/right:bar');
+    router.goto('/foo@left+bar@right');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: baz');
@@ -201,7 +201,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/left:foo/right:bar/foo:baz/bar:qux');
+    router.goto('/foo@left+bar@right+baz@foo+qux@bar');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: foo');
@@ -216,7 +216,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/left:foo');
+    router.goto('/foo@left');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
@@ -233,18 +233,21 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/left:quux');
+    router.goto('/quux@left');
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: quux');
 
-    router.goto('/quux:quux');
+    router.goto('/quux@quux!');
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     console.log(host.innerHTML);
     expect(host.textContent).to.contain('Viewport: quux');
 
-    router.goto('/left:quux+quux:foo');
+    router.goto('/quux@left/foo@quux!');
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     console.log(host.innerHTML);
@@ -253,10 +256,12 @@ describe('Router', () => {
     (<any>host).getElementsByTagName('SPAN')[0].click();
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
     console.log(host.innerHTML);
     expect(host.textContent).to.contain('Viewport: baz');
 
-    router.goto('/left:bar');
+    router.goto('/bar@left');
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: bar');
@@ -273,7 +278,7 @@ let setup = async (): Promise<{ au, container, host, router }> => {
   const container = DI.createContainer();
   container.register(<any>BasicConfiguration);
   const App = (<any>CustomElementResource).define({ name: 'app', template: '<template><viewport name="left"></viewport><viewport name="right"></viewport></template>' });
-  const Foo = (<any>CustomElementResource).define({ name: 'foo', template: '<template>foo <a href="#/foo:baz"><span>baz</span></a><viewport name="foo"></viewport></template>' });
+  const Foo = (<any>CustomElementResource).define({ name: 'foo', template: '<template>foo <a href="#/baz@foo"><span>baz</span></a><viewport name="foo"></viewport></template>' });
   const Bar = (<any>CustomElementResource).define({ name: 'bar', template: '<template>bar<viewport name="bar"></viewport></template>' });
   const Baz = (<any>CustomElementResource).define({ name: 'baz', template: '<template>baz<viewport name="baz"></viewport></template>' });
   const Qux = (<any>CustomElementResource).define({ name: 'qux', template: '<template>qux<viewport name="qux"></viewport></template>' }, class {
@@ -312,7 +317,7 @@ let teardown = async (host, router, count) => {
 let throttleCounter = 0;
 let freshState = async (router, count) => {
   throttleCounter += (count * 2) + 2;
-  router.goto('/left:-/right:-');
+  router.goto('/-@left+-@right');
   await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();

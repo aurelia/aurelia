@@ -21,7 +21,7 @@ export class Scope {
   public findViewport(name: string): Viewport {
     const parts = name.split(this.router.separators.scope);
     const names = parts.shift().split(this.router.separators.viewport);
-    const comp = names.pop();
+    const comp = names.shift();
     name = names.shift();
     let newScope = false;
     if (name.endsWith(this.router.separators.ownsScope)) {

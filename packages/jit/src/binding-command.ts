@@ -298,20 +298,11 @@ export class ForBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.ForCommand;
   }
 
-  public compile($symbol: TemplateControllerAttributeSymbol): TargetedInstruction {
-    const def: ITemplateDefinition = {
-      name: 'repeat',
-      template: $symbol.targetSurrogate.element,
-      instructions: []
-    };
-    const instructions = [
-      new IteratorBindingInstruction($symbol.expr as ForOfStatement, 'items'),
-      new SetPropertyInstruction('item', 'local')
-    ];
-    return new HydrateTemplateController(def, 'repeat', instructions, false);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return new IteratorBindingInstruction($symbol.expr as ForOfStatement, 'items');
   }
 
   public handles($symbol: AttributeSymbol): boolean {
-    return $symbol.syntax.target === 'repeat';
+    return $symbol.kind === SymbolKind.templateControllerAttribute;
   }
 }

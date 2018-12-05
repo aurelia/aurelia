@@ -36,7 +36,7 @@ import {
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
-import { AttributeInfo, BindableInfo, ElementInfo, MetadataModel } from './metadata-model';
+import { AttrInfo, BindableInfo, ElementInfo, MetadataModel } from './metadata-model';
 import { ITemplateFactory } from './template-factory';
 
 // tslint:disable-next-line:no-any
@@ -701,7 +701,7 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
 
   public nextAttr: AttributeSymbol;
 
-  public info: AttributeInfo;
+  public info: AttrInfo;
 
   public command: IBindingCommand | null;
   public syntax: AttrSyntax;
@@ -709,7 +709,7 @@ export class CustomAttributeSymbol implements IAttributeSymbol {
 
   constructor(
     owner: IElementSymbol,
-    info: AttributeInfo,
+    info: AttrInfo,
     command: IBindingCommand | null,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement | null
@@ -754,7 +754,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
 
   public nextAttr: AttributeSymbol;
 
-  public info: AttributeInfo;
+  public info: AttrInfo;
 
   public command: IBindingCommand | null;
   public syntax: AttrSyntax;
@@ -764,7 +764,7 @@ export class TemplateControllerAttributeSymbol implements IAttributeSymbol {
 
   constructor(
     owner: IElementSymbol,
-    info: AttributeInfo,
+    info: AttrInfo,
     command: IBindingCommand | null,
     syntax: AttrSyntax,
     expr: IsExpressionOrStatement | null

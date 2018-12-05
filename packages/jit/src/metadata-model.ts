@@ -18,7 +18,7 @@ export class MetadataModel {
    * Information about custom attributes resources, indexed by the name of the attribute
    * as it would appear in parsed markup.
    */
-  public attributes: Record<string, AttributeInfo>;
+  public attributes: Record<string, AttrInfo>;
 
   /**
    * Instantiated binding command resources, indexed by the name as it would come out
@@ -55,7 +55,7 @@ export class MetadataModel {
       }
     }
     // manually add ref since it's not a real custom attribute
-    attributes['ref'] = new AttributeInfo('ref', false);
+    attributes['ref'] = new AttrInfo('ref', false);
   }
 }
 
@@ -93,9 +93,9 @@ function createElementInfo(resources: IResourceDescriptions, name: string): Elem
   return info;
 }
 
-function createAttributeInfo(resources: IResourceDescriptions, name: string): AttributeInfo {
+function createAttributeInfo(resources: IResourceDescriptions, name: string): AttrInfo {
   const def = resources.find(CustomAttributeResource, name);
-  const info = new AttributeInfo(name, def.isTemplateController);
+  const info = new AttrInfo(name, def.isTemplateController);
   const bindables = def.bindables;
   const defaultBindingMode = def.defaultBindingMode !== undefined && def.defaultBindingMode !== BindingMode.default
     ? def.defaultBindingMode
@@ -180,7 +180,7 @@ export class ElementInfo {
  * Pre-processed information about a custom attribute resource, optimized
  * for consumption by the template compiler.
  */
-export class AttributeInfo {
+export class AttrInfo {
   public name: string;
 
   /**

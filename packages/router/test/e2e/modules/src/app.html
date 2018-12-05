@@ -35,27 +35,27 @@
     <viewport name="right" class="split"></viewport> -->
 
     <div style="padding: 10px;">
-      <viewport name="header"></viewport>
+      <viewport name="header" used-by="header"></viewport>
     </div>
     <div style="padding: 10px;">
-      <viewport name="steps"></viewport>
+      <viewport name="steps" used-by="one,two,three"></viewport>
     </div>
     <div style="padding: 10px;">
-      <a href="one@steps">One</a>
-      <a href="two@steps">Two</a>
-      <a href="three@steps">Three</a>
+      <a href="one">One</a>
+      <a href="two">Two</a>
+      <a href="three">Three</a>
     </div>
     <div style="padding: 10px;">
-      <a href="email@application">Email</a>
-      <a href="calendar@application">Calendar</a>
-      <a href="email@application+contacts@email-content">Email Contacts</a>
+      <a href="email">Email</a>
+      <a href="calendar">Calendar</a>
+      <a href="email+contacts@email-content">Email Contacts</a>
       <a href="contacts@email-content">Only Contacts</a>
-      <a href="calendar@application/recursive@calendar-content!/email@application">Recursive > Email</a>
-      <a href="header@header">Add the header</a>
+      <a href="calendar/recursive@calendar-content!/email">Recursive > Email</a>
+      <a href="header">Add the header</a>
       <a href="-@header">Remove the header</a>
     </div>
     <div style="padding: 10px;">
-      <viewport name="application"></viewport>
+      <viewport name="application" used-by="email,calendar"></viewport>
     </div>
 
     <div style="padding: 10px;">

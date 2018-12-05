@@ -1,9 +1,14 @@
 import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
 import { Router } from './router';
-import { Viewport } from './viewport';
+import { IViewportOptions, Viewport } from './viewport';
 
 export interface IViewportCustomElementType extends ICustomElementType {
   viewport?: string;
+}
+
+export interface IComponentViewport {
+  component: ICustomElementType | string;
+  viewport: Viewport;
 }
 
 export class Scope {
@@ -18,48 +23,135 @@ export class Scope {
     }
   }
 
-  public findViewport(name: string): Viewport {
-    const parts = name.split(this.router.separators.scope);
-    const names = parts.shift().split(this.router.separators.viewport);
-    const comp = names.shift();
-    name = names.shift();
-    let newScope = false;
-    if (name.endsWith(this.router.separators.ownsScope)) {
-      newScope = true;
-      name = name.substr(0, name.length - 1);
+  public findViewports(viewports: Object): IComponentViewport[] {
+    const foundViewports: IComponentViewport[] = [];
+    // Get a shallow copy of all available viewports
+    const availableViewports = { ...this.viewports };
+
+    // Get the parts for this scope (pointing to the rest)
+    const scopeViewportParts = {};
+    for (const viewport in viewports) {
+      const parts = viewport.split(this.router.separators.scope);
+      const vp = parts.shift();
+      scopeViewportParts[vp] = parts;
     }
-    const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, newScope);
-    if (!parts.length) {
-      return viewport;
+
+    // Configured viewport is ruling
+    for (const viewportPart in scopeViewportParts) {
+      const component = viewportPart.split(this.router.separators.viewport).shift();
+      for (const name in availableViewports) {
+        const viewport: Viewport = availableViewports[name];
+        // TODO: Also check if (resolved) component wants a specific viewport
+        if (viewport.wantComponent(component)) {
+          foundViewports.push(...this.foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport));
+          delete availableViewports[name];
+          delete scopeViewportParts[viewportPart];
+          break;
+        }
+      }
+    }
+
+    // Next in line is specified viewport
+    for (const viewportPart in scopeViewportParts) {
+      const parts = viewportPart.split(this.router.separators.viewport)
+      const component = parts.shift();
+      let name = parts.shift();
+      if (!name || !name.length || name.startsWith('?')) {
+        continue;
+      }
+      let newScope = false;
+      if (name.endsWith(this.router.separators.ownsScope)) {
+        newScope = true;
+        name = name.substr(0, name.length - 1);
+      }
+      if (!this.viewports[name]) {
+        this.addViewport(name, null, { scope: newScope, forceDescription: true });
+        availableViewports[name] = this.viewports[name];
+      }
+      const viewport = availableViewports[name];
+      if (viewport && viewport.acceptComponent(component)) {
+        foundViewports.push(...this.foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport));
+        delete availableViewports[name];
+        delete scopeViewportParts[viewportPart];
+        break;
+      }
+    }
+
+    // Finally, only one accepting viewport left?
+    for (const viewportPart in scopeViewportParts) {
+      const component = viewportPart.split(this.router.separators.viewport).shift();
+      const remainingViewports = [];
+      for (const name in availableViewports) {
+        const viewport: Viewport = availableViewports[name];
+        if (viewport.acceptComponent(component)) {
+          remainingViewports.push(viewport);
+        }
+      }
+      if (remainingViewports.length === 1) {
+        const viewport = remainingViewports.shift();
+        foundViewports.push(...this.foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport));
+        delete availableViewports[name];
+        delete scopeViewportParts[viewportPart];
+        break;
+      }
+    }
+    return foundViewports;
+  }
+
+  public foundViewport(viewports: Object, scopeViewportParts: Object, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IComponentViewport[] {
+    if (!scopeViewportParts[viewportPart].length) {
+      return [{ component: component, viewport: viewport }];
     } else {
       const scope = viewport.scope || viewport.owningScope;
-      return scope.findViewport(parts.join(this.router.separators.scope));
+      const remaining = scopeViewportParts[viewportPart].join(this.router.separators.scope);
+      const vps = {};
+      vps[remaining] = viewports[viewportPart + this.router.separators.scope + remaining];
+      return scope.findViewports(vps);
     }
   }
 
-  public resolveViewport(name: string, component: string): Viewport {
-    if (name.length && name.charAt(0) !== '?') {
-      return this.viewports[name];
-    }
-    // Need more ways to resolve viewport based on component name!
-    const comp = this.resolveComponent(component);
-    if (comp.viewport) {
-      name = comp.viewport;
-      return this.viewports[name];
-    }
-    return null;
-  }
+  // public findViewport(name: string): Viewport {
+  //   const parts = name.split(this.router.separators.scope);
+  //   const names = parts.shift().split(this.router.separators.viewport);
+  //   const comp = names.shift();
+  //   name = names.shift();
+  //   let newScope = false;
+  //   if (name.endsWith(this.router.separators.ownsScope)) {
+  //     newScope = true;
+  //     name = name.substr(0, name.length - 1);
+  //   }
+  //   const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, { scope: newScope });
+  //   if (!parts.length) {
+  //     return viewport;
+  //   } else {
+  //     const scope = viewport.scope || viewport.owningScope;
+  //     return scope.findViewport(parts.join(this.router.separators.scope));
+  //   }
+  // }
 
-  public addViewport(name: string, element: Element, newScope: boolean): Viewport {
+  // public resolveViewport(name: string, component: string): Viewport {
+  //   if (name.length && name.charAt(0) !== '?') {
+  //     return this.viewports[name];
+  //   }
+  //   // Need more ways to resolve viewport based on component name!
+  //   const comp = this.resolveComponent(component);
+  //   if (comp.viewport) {
+  //     name = comp.viewport;
+  //     return this.viewports[name];
+  //   }
+  //   return null;
+  // }
+
+  public addViewport(name: string, element: Element, options?: IViewportOptions): Viewport {
     let viewport = this.viewports[name];
     if (!viewport) {
       let scope: Scope;
-      if (newScope) {
+      if (options.scope) {
         scope = new Scope(this.router, element, this);
         this.router.scopes.push(scope);
       }
 
-      viewport = this.viewports[name] = new Viewport(this.router, name, element, this, scope);
+      viewport = this.viewports[name] = new Viewport(this.router, name, element, this, scope, options);
     }
     if (element) {
       // First added viewport with element is always scope viewport (except for root scope)

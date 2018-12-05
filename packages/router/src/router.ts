@@ -3,7 +3,7 @@ import { Aurelia, ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { Scope } from './scope';
-import { Viewport } from './viewport';
+import { Viewport, IViewportOptions } from './viewport';
 
 export interface IRouterOptions extends IHistoryOptions {
   reportCallback?: Function;
@@ -150,13 +150,20 @@ export class Router {
     }
 
     const viewports: Viewport[] = [];
-    for (const vp in views) {
-      const component: ICustomElementType | string = views[vp];
-      const viewport = this.findViewport(`${component}${this.separators.viewport}${vp}`);
+    const componentViewports = this.rootScope.findViewports(views);
+    for (const componentViewport of componentViewports) {
+      const { component, viewport } = componentViewport;
       if (viewport.setNextContent(component, instruction)) {
         viewports.push(viewport);
       }
     }
+    // for (const vp in views) {
+    //   const component: ICustomElementType | string = views[vp];
+    //   const viewport = this.findViewport(`${component}${this.separators.viewport}${vp}`);
+    //   if (viewport.setNextContent(component, instruction)) {
+    //     viewports.push(viewport);
+    //   }
+    // }
 
     // We've gone via a redirected route back to same viewport status so
     // we need to remove the added history entry for the redirect
@@ -328,9 +335,9 @@ export class Router {
     return views;
   }
 
-  public findViewport(name: string): Viewport {
-    return this.rootScope.findViewport(name);
-  }
+  // public findViewport(name: string): Viewport {
+  //   return this.rootScope.findViewport(name);
+  // }
 
   public findScope(element: Element): Scope {
     if (!this.rootScope) {
@@ -342,9 +349,9 @@ export class Router {
   }
 
   // Called from the viewport custom element in attached()
-  public addViewport(name: string, element: Element, newScope?: boolean): Viewport {
+  public addViewport(name: string, element: Element, options?: IViewportOptions): Viewport {
     const parentScope = this.findScope(element);
-    return parentScope.addViewport(name, element, newScope);
+    return parentScope.addViewport(name, element, options);
   }
   // Called from the viewport custom element
   public removeViewport(viewport: Viewport): void {

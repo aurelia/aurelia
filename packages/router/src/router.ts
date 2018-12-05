@@ -3,7 +3,7 @@ import { Aurelia, ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { Scope } from './scope';
-import { Viewport, IViewportOptions } from './viewport';
+import { IViewportOptions, Viewport } from './viewport';
 
 export interface IRouterOptions extends IHistoryOptions {
   reportCallback?: Function;
@@ -149,80 +149,49 @@ export class Router {
       this.historyBrowser.setEntryTitle(title);
     }
 
-    const viewports: Viewport[] = [];
-    const componentViewports = this.rootScope.findViewports(views);
-    for (const componentViewport of componentViewports) {
-      const { component, viewport } = componentViewport;
-      if (viewport.setNextContent(component, instruction)) {
-        viewports.push(viewport);
+    // TODO: Take care of cancellations down in subsets/iterations
+    let { componentViewports, viewports } = this.rootScope.findViewports(views);
+    while (componentViewports.length || Object.keys(viewports).length) {
+      const changedViewports: Viewport[] = [];
+      for (const componentViewport of componentViewports) {
+        const { component, viewport } = componentViewport;
+        if (viewport.setNextContent(component, instruction)) {
+          changedViewports.push(viewport);
+        }
       }
-    }
-    // for (const vp in views) {
-    //   const component: ICustomElementType | string = views[vp];
-    //   const viewport = this.findViewport(`${component}${this.separators.viewport}${vp}`);
-    //   if (viewport.setNextContent(component, instruction)) {
-    //     viewports.push(viewport);
-    //   }
-    // }
 
-    // We've gone via a redirected route back to same viewport status so
-    // we need to remove the added history entry for the redirect
-    if (!viewports.length && this.isRedirecting) {
-      this.historyBrowser.cancel();
-      this.isRedirecting = false;
-    }
+      // We've gone via a redirected route back to same viewport status so
+      // we need to remove the added history entry for the redirect
+      // TODO: Take care of empty subsets/iterations where previous has length
+      if (!changedViewports.length && this.isRedirecting) {
+        this.historyBrowser.cancel();
+        this.isRedirecting = false;
+      }
 
-    let results = await Promise.all(viewports.map((value) => value.canLeave()));
-    if (results.findIndex((value) => value === false) >= 0) {
-      this.historyBrowser.cancel();
-      return Promise.resolve();
-    }
-    results = await Promise.all(viewports.map((value) => value.canEnter()));
-    if (results.findIndex((value) => value === false) >= 0) {
-      this.historyBrowser.cancel();
-      return Promise.resolve();
-    }
-    results = await Promise.all(viewports.map((value) => value.loadContent()));
-    if (results.findIndex((value) => value === false) >= 0) {
-      this.historyBrowser.cancel();
-      return Promise.resolve();
+      let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
+      if (results.findIndex((value) => value === false) >= 0) {
+        this.historyBrowser.cancel();
+        return Promise.resolve();
+      }
+      results = await Promise.all(changedViewports.map((value) => value.canEnter()));
+      if (results.findIndex((value) => value === false) >= 0) {
+        this.historyBrowser.cancel();
+        return Promise.resolve();
+      }
+      results = await Promise.all(changedViewports.map((value) => value.loadContent()));
+      if (results.findIndex((value) => value === false) >= 0) {
+        this.historyBrowser.cancel();
+        return Promise.resolve();
+      }
+
+      const remaining = this.rootScope.findViewports(viewports, true);
+      componentViewports = remaining.componentViewports;
+      viewports = remaining.viewports;
     }
 
     let viewportStates = this.rootScope.viewportStates();
     viewportStates = this.removeStateDuplicates(viewportStates);
-
-    // TODO: Cut down on verbosity
-
     this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling));
-
-    // let cancel: boolean = false;
-    // return Promise.all(viewports.map((value) => value.canLeave()))
-    //   .then((promises: boolean[]) => {
-    //     if (cancel || promises.findIndex((value) => value === false) >= 0) {
-    //       cancel = true;
-    //       return Promise.resolve([]);
-    //     } else {
-    //       return Promise.all(viewports.map((value) => value.canEnter()));
-    //     }
-    //   }).then((promises: boolean[]) => {
-    //     if (cancel || promises.findIndex((value) => value === false) >= 0) {
-    //       cancel = true;
-    //       return Promise.resolve([]);
-    //     } else {
-    //       return Promise.all(viewports.map((value) => value.loadContent()));
-    //     }
-    //   }).then(() => {
-    //     if (cancel) {
-    //       this.historyBrowser.cancel();
-    //     }
-    //   }).then(() => {
-    //     let viewportStates = this.rootScope.viewportStates();
-    //     viewportStates = this.removeStateDuplicates(viewportStates);
-
-    //     // TODO: Cut down on verbosity
-
-    //     this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling));
-    //   });
   }
 
   // public view(views: Object, title?: string, data?: Object): Promise<void> {

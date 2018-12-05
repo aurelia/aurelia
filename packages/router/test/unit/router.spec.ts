@@ -106,8 +106,8 @@ describe('Router', () => {
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
-    expect(host.textContent).to.contain('Viewport: foo');
-    expect(host.textContent).to.not.contain('Viewport: bar');
+    // expect(host.textContent).to.contain('Viewport: foo');
+    // expect(host.textContent).to.not.contain('Viewport: bar');
 
     router.goto('/bar@left');
     await Promise.resolve();
@@ -133,36 +133,40 @@ describe('Router', () => {
     await teardown(host, router, 4);
   });
 
-  // it('navigates back and forward with two viewports', async function () {
-  //   this.timeout(30000);
-  //   const { host, router } = await setup();
+  it('navigates back and forward with two viewports', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
 
-  //   router.goto('/foo@left');
-  //   await Promise.resolve();
-  // await Promise.resolve();
-  //   expect(host.textContent).to.contain('Viewport: foo');
-  //   expect(host.textContent).to.not.contain('Viewport: bar');
+    router.goto('/foo@left');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: foo');
+    expect(host.textContent).to.not.contain('Viewport: bar');
 
-  //   router.goto('/bar@right');
-  //   await Promise.resolve();
-  // await Promise.resolve();
-  //   expect(host.textContent).to.contain('Viewport: foo');
-  //   expect(host.textContent).to.contain('Viewport: bar');
+    router.goto('/bar@right');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: foo');
+    expect(host.textContent).to.contain('Viewport: bar');
 
-  //   router.back();
-  //   await Promise.resolve();
-  // await Promise.resolve();
-  //   expect(host.textContent).to.contain('Viewport: foo');
-  //   expect(host.textContent).to.not.contain('Viewport: bar');
+    router.back();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: foo');
+    expect(host.textContent).to.not.contain('Viewport: bar');
 
-  //   router.forward();
-  //   await Promise.resolve();
-  // await Promise.resolve();
-  //   expect(host.textContent).to.contain('Viewport: foo');
-  //   expect(host.textContent).to.contain('Viewport: bar');
+    router.forward();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: foo');
+    expect(host.textContent).to.contain('Viewport: bar');
 
-  //   await teardown(host, router, 4);
-  // });
+    await teardown(host, router, 4);
+  });
 
   it('navigates to foo/bar in left/right', async function () {
     this.timeout(30000);

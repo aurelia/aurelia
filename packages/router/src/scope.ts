@@ -1,5 +1,6 @@
 import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
 import { Router } from './router';
+import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 
 export interface IViewportCustomElementType extends ICustomElementType {
@@ -11,11 +12,18 @@ export interface IComponentViewport {
   viewport: Viewport;
 }
 
+export interface IFindViewportsResult {
+  componentViewports?: IComponentViewport[];
+  viewports?: Object;
+}
+
 export class Scope {
   public viewport: Viewport;
 
   public children: Scope[] = [];
   public viewports: Object = {};
+
+  private availableViewports: Object;
 
   constructor(private router: Router, public element: Element, public parent: Scope) {
     if (this.parent) {
@@ -23,10 +31,15 @@ export class Scope {
     }
   }
 
-  public findViewports(viewports: Object): IComponentViewport[] {
-    const foundViewports: IComponentViewport[] = [];
-    // Get a shallow copy of all available viewports
-    const availableViewports = { ...this.viewports };
+  public findViewports(viewports: Object, remaining: boolean = false): IFindViewportsResult {
+    const componentViewports: IComponentViewport[] = [];
+    let unknownViewports: Object = {};
+
+    // Get a shallow copy of all available viewports (clean if it's the first find)
+    if (!remaining) {
+      this.availableViewports = {};
+    }
+    this.availableViewports = { ...this.viewports, ...this.availableViewports };
 
     // Get the parts for this scope (pointing to the rest)
     const scopeViewportParts = {};
@@ -39,12 +52,14 @@ export class Scope {
     // Configured viewport is ruling
     for (const viewportPart in scopeViewportParts) {
       const component = viewportPart.split(this.router.separators.viewport).shift();
-      for (const name in availableViewports) {
-        const viewport: Viewport = availableViewports[name];
+      for (const name in this.availableViewports) {
+        const viewport: Viewport = this.availableViewports[name];
         // TODO: Also check if (resolved) component wants a specific viewport
-        if (viewport.wantComponent(component)) {
-          foundViewports.push(...this.foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport));
-          delete availableViewports[name];
+        if (viewport && viewport.wantComponent(component)) {
+          const found = this.foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport);
+          componentViewports.push(...found.componentViewports);
+          unknownViewports = { ...found.viewports };
+          this.availableViewports[name] = null;
           delete scopeViewportParts[viewportPart];
           break;
         }
@@ -53,7 +68,7 @@ export class Scope {
 
     // Next in line is specified viewport
     for (const viewportPart in scopeViewportParts) {
-      const parts = viewportPart.split(this.router.separators.viewport)
+      const parts = viewportPart.split(this.router.separators.viewport);
       const component = parts.shift();
       let name = parts.shift();
       if (!name || !name.length || name.startsWith('?')) {
@@ -66,14 +81,15 @@ export class Scope {
       }
       if (!this.viewports[name]) {
         this.addViewport(name, null, { scope: newScope, forceDescription: true });
-        availableViewports[name] = this.viewports[name];
+        this.availableViewports[name] = this.viewports[name];
       }
-      const viewport = availableViewports[name];
+      const viewport = this.availableViewports[name];
       if (viewport && viewport.acceptComponent(component)) {
-        foundViewports.push(...this.foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport));
-        delete availableViewports[name];
+        const found = this.foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport);
+        componentViewports.push(...found.componentViewports);
+        unknownViewports = { ...found.viewports };
+        this.availableViewports[name] = null;
         delete scopeViewportParts[viewportPart];
-        break;
       }
     }
 
@@ -81,26 +97,38 @@ export class Scope {
     for (const viewportPart in scopeViewportParts) {
       const component = viewportPart.split(this.router.separators.viewport).shift();
       const remainingViewports = [];
-      for (const name in availableViewports) {
-        const viewport: Viewport = availableViewports[name];
-        if (viewport.acceptComponent(component)) {
+      for (const name in this.availableViewports) {
+        const viewport: Viewport = this.availableViewports[name];
+        if (viewport && viewport.acceptComponent(component)) {
           remainingViewports.push(viewport);
         }
       }
       if (remainingViewports.length === 1) {
         const viewport = remainingViewports.shift();
-        foundViewports.push(...this.foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport));
-        delete availableViewports[name];
+        const found = this.foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport);
+        componentViewports.push(...found.componentViewports);
+        unknownViewports = { ...found.viewports };
+        this.availableViewports[viewport.name] = null;
         delete scopeViewportParts[viewportPart];
         break;
       }
     }
-    return foundViewports;
+
+    // These we didn't find (now)
+    for (const viewportPart in scopeViewportParts) {
+      const notFound = [viewportPart, ...scopeViewportParts[viewportPart]].join(this.router.separators.scope);
+      unknownViewports[notFound] = viewportPart;
+    }
+
+    return {
+      componentViewports: componentViewports,
+      viewports: unknownViewports
+    };
   }
 
-  public foundViewport(viewports: Object, scopeViewportParts: Object, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IComponentViewport[] {
+  public foundViewport(viewports: Object, scopeViewportParts: Object, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult {
     if (!scopeViewportParts[viewportPart].length) {
-      return [{ component: component, viewport: viewport }];
+      return { componentViewports: [{ component: component, viewport: viewport }], viewports: [] };
     } else {
       const scope = viewport.scope || viewport.owningScope;
       const remaining = scopeViewportParts[viewportPart].join(this.router.separators.scope);

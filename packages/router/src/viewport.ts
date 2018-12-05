@@ -1,9 +1,8 @@
-import { IViewportOptions } from './viewport';
-import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRenderingEngine, LifecycleFlags, valueConverter } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { Router } from './router';
 import { Scope } from './scope';
-import { copyFile } from 'fs';
+import { IViewportOptions } from './viewport';
 
 export interface IRouteableCustomElement extends ICustomElement {
   canEnter?: Function;

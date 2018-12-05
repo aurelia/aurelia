@@ -1,4 +1,4 @@
-import { DI, IDisposable } from '@aurelia/kernel';
+import { DI, IDisposable } from '../../kernel';
 import { DOM, INode } from '../dom';
 
 export interface IEventWithStandardPropagation extends Event {
@@ -85,17 +85,13 @@ function handleDelegatedEvent(event: IEventWithStandardPropagation): void {
 }
 
 export class ListenerTracker {
-  private capture: boolean;
-  private count: number;
-  private eventName: string;
-  private listener: EventListenerOrEventListenerObject;
+  private count: number = 0;
 
-  constructor(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean) {
-    this.capture = capture;
-    this.count = 0;
-    this.eventName = eventName;
-    this.listener = listener;
-  }
+  constructor(
+    private eventName: string,
+    private listener: EventListenerOrEventListenerObject,
+    private capture: boolean
+  ) { }
 
   public increment(): void {
     this.count++;
@@ -294,7 +290,7 @@ export class EventManager implements IEventManager {
   ): EventSubscription {
     let delegatedHandlers: Record<string, ListenerTracker> | undefined;
     let capturedHandlers: Record<string, ListenerTracker> | undefined;
-    let handlerEntry: ListenerTracker | undefined;
+    let handlerEntry: ListenerTracker | ListenerTracker | undefined;
 
     if (strategy === DelegationStrategy.bubbling) {
       delegatedHandlers = this.delegatedHandlers;

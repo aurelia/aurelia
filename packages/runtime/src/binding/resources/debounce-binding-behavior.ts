@@ -1,4 +1,4 @@
-import { IRegistry } from '@aurelia/kernel';
+import { IRegistry } from '../../../kernel';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding, IBinding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
@@ -23,7 +23,7 @@ const unset = {};
 export function debounceCallSource(this: DebounceableBinding, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
-  state.timeoutId = setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
+  state.timeoutId = setTimeout(() => this.debouncedMethod(newValue, oldValue, flags), state.delay);
 }
 
 /*@internal*/

@@ -1,5 +1,5 @@
-import { IContainer, inject, IRegistry } from '@aurelia/kernel';
-import { Binding, IBindingTarget } from './binding/binding';
+import { IContainer, inject, IRegistry } from '../kernel';
+import { Binding } from './binding/binding';
 import { BindingMode } from './binding/binding-mode';
 import { Call } from './binding/call';
 import { IEventManager } from './binding/event-manager';
@@ -15,12 +15,13 @@ import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderCont
 import { ICustomAttribute } from './templating/custom-attribute';
 import { ICustomElement } from './templating/custom-element';
 import { IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
+import { IKonvaNode, IKonvaRenderLocation, KonvaDOM } from './konva-dom';
 
 export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
   if (typeof srcOrExpr === 'string') {
-    return parser.parse(srcOrExpr, bindingType) as unknown as Exclude<TFrom, string>;
+    return <Exclude<TFrom, string>><unknown>parser.parse(srcOrExpr, bindingType);
   }
-  return srcOrExpr as Exclude<TFrom, string>;
+  return <Exclude<TFrom, string>>srcOrExpr;
 }
 
 export function addBindable(renderable: IBindables, bindable: IBindScope): void {
@@ -146,7 +147,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
     this.eventManager = eventManager;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IListenerBindingInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IKonvaNode, instruction: IListenerBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const bindable = new Listener(instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
     addBindable(renderable, bindable);
@@ -203,7 +204,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IStylePropertyBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
-    const bindable = new Binding(expr, (target as INode & {style: IBindingTarget}).style, instruction.to, BindingMode.toView, this.observerLocator, context);
+    const bindable = new Binding(expr, (<any>target).style, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBindable(renderable, bindable);
   }
 }
@@ -234,8 +235,8 @@ export class CustomElementRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void {
-    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
+  public render(context: IRenderContext, renderable: IRenderable, target: IKonvaNode, instruction: IHydrateElementInstruction): void {
+    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target as IKonvaRenderLocation, true);
     const component = context.get<ICustomElement>(customElementKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
@@ -264,7 +265,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IKonvaNode, instruction: IHydrateAttributeInstruction): void {
     const operation = context.beginComponentOperation(renderable, target, instruction);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -294,9 +295,9 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IKonvaNode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
     const factory = this.renderingEngine.getViewFactory(instruction.def, context);
-    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
+    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, KonvaDOM.convertToRenderLocation(target), false);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
@@ -304,7 +305,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     component.$hydrate(this.renderingEngine);
 
     if (instruction.link) {
-      (component as ICustomAttribute & { link(attachableTail: IAttach): void}).link(renderable.$attachableTail);
+      (component as any).link(renderable.$attachableTail);
     }
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -347,20 +348,20 @@ export class LetElementRenderer implements IInstructionRenderer {
 export const HtmlRenderer = {
   register(container: IContainer): void {
     container.register(
-      TextBindingRenderer as unknown as IRegistry,
-      InterpolationBindingRenderer as unknown as IRegistry,
-      PropertyBindingRenderer as unknown as IRegistry,
-      IteratorBindingRenderer as unknown as IRegistry,
-      ListenerBindingRenderer as unknown as IRegistry,
-      CallBindingRenderer as unknown as IRegistry,
-      RefBindingRenderer as unknown as IRegistry,
-      StylePropertyBindingRenderer as unknown as IRegistry,
-      SetPropertyRenderer as unknown as IRegistry,
-      SetAttributeRenderer as unknown as IRegistry,
-      CustomElementRenderer as unknown as IRegistry,
-      CustomAttributeRenderer as unknown as IRegistry,
-      TemplateControllerRenderer as unknown as IRegistry,
-      LetElementRenderer as unknown as IRegistry
+      <IRegistry><unknown>TextBindingRenderer,
+      <IRegistry><unknown>InterpolationBindingRenderer,
+      <IRegistry><unknown>PropertyBindingRenderer,
+      <IRegistry><unknown>IteratorBindingRenderer,
+      <IRegistry><unknown>ListenerBindingRenderer,
+      <IRegistry><unknown>CallBindingRenderer,
+      <IRegistry><unknown>RefBindingRenderer,
+      <IRegistry><unknown>StylePropertyBindingRenderer,
+      <IRegistry><unknown>SetPropertyRenderer,
+      <IRegistry><unknown>SetAttributeRenderer,
+      <IRegistry><unknown>CustomElementRenderer,
+      <IRegistry><unknown>CustomAttributeRenderer,
+      <IRegistry><unknown>TemplateControllerRenderer,
+      <IRegistry><unknown>LetElementRenderer
     );
   }
 };

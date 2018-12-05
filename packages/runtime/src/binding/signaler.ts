@@ -1,4 +1,4 @@
-import { DI, Immutable } from '@aurelia/kernel';
+import { DI, Immutable } from '../../kernel';
 import { IPropertySubscriber, LifecycleFlags } from '../observation';
 
 type Signal = string;

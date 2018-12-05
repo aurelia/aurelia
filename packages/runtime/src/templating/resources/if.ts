@@ -1,35 +1,28 @@
-import { inject, IRegistry } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
+import { inject, IRegistry } from '../../../kernel';
+// import { IRenderLocation } from '../../dom';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IKonvaRenderLocation } from '../../konva-dom';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')
-@inject(IViewFactory, IRenderLocation, CompositionCoordinator)
+@inject(IViewFactory, IKonvaRenderLocation, CompositionCoordinator)
 export class If {
   public static register: IRegistry['register'];
 
-  @bindable public value: boolean;
+  @bindable public value: boolean = false;
 
-  public elseFactory: IViewFactory ;
-  public elseView: IView;
-  public ifFactory: IViewFactory;
-  public ifView: IView;
-  public location: IRenderLocation;
-  public coordinator: CompositionCoordinator;
+  public elseFactory: IViewFactory = null;
 
-  constructor(ifFactory: IViewFactory, location: IRenderLocation, coordinator: CompositionCoordinator) {
-    this.value = false;
+  public ifView: IView = null;
+  public elseView: IView = null;
 
-    this.coordinator = coordinator;
-    this.elseFactory = null;
-    this.elseView = null;
-    this.ifFactory = ifFactory;
-    this.ifView = null;
-    this.location = location;
-  }
+  constructor(
+    public ifFactory: IViewFactory,
+    public location: IKonvaRenderLocation,
+    public coordinator: CompositionCoordinator) { }
 
   public binding(flags: LifecycleFlags): void {
     const view = this.updateView(flags);
@@ -66,7 +59,7 @@ export class If {
       const view = this.updateView(flags);
       this.coordinator.compose(view, flags);
     } else {
-      this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+      this.$lifecycle.enqueueFlush(this);
     }
   }
 
@@ -109,11 +102,7 @@ export interface Else extends ICustomAttribute {}
 export class Else {
   public static register: IRegistry['register'];
 
-  private factory: IViewFactory;
-
-  constructor(factory: IViewFactory) {
-    this.factory = factory;
-  }
+  constructor(private factory: IViewFactory) { }
 
   public link(ifBehavior: If): void {
     ifBehavior.elseFactory = this.factory;

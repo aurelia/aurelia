@@ -1,12 +1,16 @@
-import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, PLATFORM, Registration } from '../kernel';
 import { INode } from './dom';
 import { LifecycleFlags } from './observation';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './templating/custom-element';
 import { IRenderingEngine } from './templating/lifecycle-render';
+import { IKonvaNode } from './konva-dom';
+import { ILifecycle } from './lifecycle';
+import * as konva from 'konva';
 
 export interface ISinglePageApp {
-  host: INode;
+  // host: INode;
   component: unknown;
+  stage: konva.StageConfig
 }
 
 export class Aurelia {
@@ -36,14 +40,15 @@ export class Aurelia {
   }
 
   public app(config: ISinglePageApp): this {
-    const host = config.host as INode & {$au?: Aurelia | null};
+    const host = this.createStage(config) as konva.Stage & { $au: Aurelia };
+    // const host = config.host as INode & {$au?: Aurelia | null};
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
-    if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
-      this.container.register(componentOrType as ICustomElementType);
-      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
+    if (CustomElementResource.isType(<ICustomElementType>componentOrType)) {
+      this.container.register(<ICustomElementType>componentOrType);
+      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((<ICustomElementType>componentOrType).description.name));
     } else {
-      component = componentOrType as ICustomElement;
+      component = <ICustomElement>componentOrType;
     }
 
     const startTask = () => {
@@ -57,6 +62,7 @@ export class Aurelia {
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
       component.$attach(LifecycleFlags.fromStartTask, host);
+      host.draw();
     };
 
     this.startTasks.push(startTask);
@@ -93,6 +99,10 @@ export class Aurelia {
     }
     return this;
   }
+
+  public createStage(config: ISinglePageApp): konva.Stage {
+    return new konva.Stage(config.stage);
+  }
 }
 
-(PLATFORM.global as {Aurelia: unknown}).Aurelia = Aurelia;
+(<{Aurelia: unknown}>PLATFORM.global).Aurelia = Aurelia;

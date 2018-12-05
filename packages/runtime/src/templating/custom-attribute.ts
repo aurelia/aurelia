@@ -1,4 +1,4 @@
-import { Class, Constructable, IContainer, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, Omit, PLATFORM, Registration, Writable } from '../../kernel';
 import { BindingMode } from '../binding/binding-mode';
 import { AttributeDefinition, customAttributeKey, customAttributeName, IAttributeDefinition } from '../definitions';
 import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable, IState } from '../lifecycle';
@@ -81,7 +81,7 @@ function define<T>(this: ICustomAttributeResource, name: string, ctor: T): T & I
 function define<T>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType;
 function define<T>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
   const Type = ctor as T & Writable<ICustomAttributeType>;
-  const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type as T & ICustomAttributeType);
+  const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, <T & ICustomAttributeType>Type);
   const proto: Writable<ICustomAttribute> = Type.prototype;
 
   Type.kind = CustomAttributeResource;
@@ -135,7 +135,7 @@ function define<T>(this: ICustomAttributeResource, nameOrDefinition: string | IA
     proto.$nextDetached = null;
   }
 
-  return Type as ICustomAttributeType & T;
+  return <ICustomAttributeType & T>Type;
 }
 
 export const CustomAttributeResource: ICustomAttributeResource = {

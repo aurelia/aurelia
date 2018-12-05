@@ -1,4 +1,4 @@
-import { Writable } from '@aurelia/kernel';
+import { Writable } from '../../kernel';
 import { Hooks, IView, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { ICustomAttribute } from './custom-attribute';

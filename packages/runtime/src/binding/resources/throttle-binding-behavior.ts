@@ -1,4 +1,4 @@
-import { IRegistry } from '@aurelia/kernel';
+import { IRegistry } from '../../../kernel';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding, IBinding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';

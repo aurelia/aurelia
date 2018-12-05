@@ -1,4 +1,4 @@
-import { IServiceLocator } from '@aurelia/kernel';
+import { IServiceLocator } from '../../kernel';
 import { IBindScope, State } from '../lifecycle';
 import { IBindingTargetAccessor, IScope, LifecycleFlags } from '../observation';
 import { IExpression, Interpolation } from './ast';
@@ -7,34 +7,27 @@ import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
 
+// tslint:disable:no-any
+
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
-  public $state: State;
-  public $scope: IScope;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
-  public interpolation: Interpolation;
-  public observerLocator: IObserverLocator;
-  public locator: IServiceLocator;
-  public mode: BindingMode;
+  public $state: State = State.none;
+
+  public $scope: IScope = null;
+
   public parts: InterpolationBinding[];
-  public target: IBindingTarget;
-  public targetProperty: string;
 
-  constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, locator: IServiceLocator) {
-    this.$nextBind = null;
-    this.$prevBind = null;
-    this.$state = State.none;
-    this.$scope = null;
-
-    this.interpolation = interpolation;
-    this.locator = locator;
-    this.mode = mode;
-    this.observerLocator = observerLocator;
-    this.target = target;
-    this.targetProperty = targetProperty;
+  constructor(
+    public observerLocator: IObserverLocator,
+    public interpolation: Interpolation,
+    public target: IBindingTarget,
+    public targetProperty: string,
+    public mode: BindingMode,
+    public locator: IServiceLocator) {
 
     // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
     // value converters and binding behaviors.
@@ -81,46 +74,34 @@ export interface InterpolationBinding extends IConnectableBinding {}
 @connectable()
 export class InterpolationBinding implements IPartialConnectableBinding {
   public $scope: IScope;
-  public $state: State;
-
-  public interpolation: Interpolation;
-  public isFirst: boolean;
-  public locator: IServiceLocator;
-  public mode: BindingMode;
-  public observerLocator: IObserverLocator;
-  public sourceExpression: IExpression;
-  public target: IBindingTarget;
-  public targetProperty: string;
+  public $state: State = State.none;
 
   public targetObserver: IBindingTargetAccessor;
 
-  // tslint:disable-next-line:parameters-max-number
-  constructor(sourceExpression: IExpression, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
-    this.$state = State.none;
-
-    this.interpolation = interpolation;
-    this.isFirst = isFirst;
-    this.mode = mode;
-    this.locator = locator;
-    this.observerLocator = observerLocator;
-    this.sourceExpression = sourceExpression;
-    this.target = target;
-    this.targetProperty = targetProperty;
+  constructor(
+    public sourceExpression: IExpression,
+    public interpolation: Interpolation,
+    public target: IBindingTarget,
+    public targetProperty: string,
+    public mode: BindingMode,
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator,
+    public isFirst: boolean) {
 
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
   }
 
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+  public updateTarget(value: any, flags: LifecycleFlags): void {
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
-  public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
 
-    const previousValue = this.targetObserver.getValue();
-    const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
+    previousValue = this.targetObserver.getValue();
+    newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
     if (newValue !== previousValue) {
       this.updateTarget(newValue, flags);
     }

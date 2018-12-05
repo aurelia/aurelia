@@ -1,4 +1,4 @@
-import { all, Class, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { all, Class, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, PLATFORM, Registration, Reporter, Writable } from '../../kernel';
 import { Scope } from '../binding/binding-context';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
@@ -10,6 +10,8 @@ import { IResourceDescriptions, RuntimeCompilationResources } from '../resource'
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { ViewFactory } from './view';
+import { IKonvaNode, IKonvaRenderLocation, IKonvaNodeSequence, IKonvaNodeSequenceFactory, KonvaNodeSequenceFactory, BlessedNodeSequence } from '../konva-dom';
+
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -26,7 +28,7 @@ export enum ViewCompileFlags {
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
-export interface ICustomElementHost extends IRenderLocation {
+export interface ICustomElementHost extends IKonvaRenderLocation {
   $customElement?: ICustomElement;
 }
 
@@ -37,8 +39,8 @@ export interface IElementProjector {
   readonly children: ArrayLike<ICustomElementHost>;
 
   provideEncapsulationSource(parentEncapsulationSource: ICustomElementHost): ICustomElementHost;
-  project(nodes: INodeSequence): void;
-  take(nodes: INodeSequence): void;
+  project(nodes: IKonvaNodeSequence): void;
+  take(nodes: IKonvaNodeSequence): void;
 
   subscribeToChildrenChange(callback: () => void): void;
 }
@@ -71,7 +73,7 @@ export interface ILifecycleRender {
    * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
-  render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
+  render?(host: IKonvaNode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
 }
 
 /*@internal*/
@@ -86,12 +88,12 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEng
 }
 
 /*@internal*/
-export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: IKonvaNode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
   this.$scope = Scope.create(this, null);
-  this.$host = host;
+  this.$host = host as ICustomElementHost;
   this.$projector = determineProjector(this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
@@ -120,22 +122,22 @@ export const defaultShadowOptions = {
 
 function determineProjector(
   $customElement: ICustomElement,
-  host: ICustomElementHost,
+  host: IKonvaNode,
   definition: TemplateDefinition
 ): IElementProjector {
-  if (definition.shadowOptions || definition.hasSlots) {
-    if (definition.containerless) {
-      throw Reporter.error(21);
-    }
+  // if (definition.shadowOptions || definition.hasSlots) {
+  //   if (definition.containerless) {
+  //     throw Reporter.error(21);
+  //   }
 
-    return new ShadowDOMProjector($customElement, host, definition);
-  }
+  //   return new ShadowDOMProjector($customElement, host, definition);
+  // }
 
-  if (definition.containerless) {
-    return new ContainerlessProjector($customElement, host);
-  }
+  // if (definition.containerless) {
+  //   return new ContainerlessProjector($customElement, host);
+  // }
 
-  return new HostProjector($customElement, host);
+  return new HostProjector($customElement, host as ICustomElementHost);
 }
 
 export interface IRenderingEngine {
@@ -154,20 +156,12 @@ const defaultCompilerName = 'default';
 @inject(IContainer, ILifecycle, all(ITemplateCompiler))
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
-  private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
+  private templateLookup: Map<TemplateDefinition, ITemplate> = new Map();
+  private factoryLookup: Map<Immutable<ITemplateDefinition>, IViewFactory> = new Map();
+  private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior> = new Map();
   private compilers: Record<string, ITemplateCompiler>;
-  private container: IContainer;
-  private factoryLookup: Map<Immutable<ITemplateDefinition>, IViewFactory>;
-  private lifecycle: ILifecycle;
-  private templateLookup: Map<TemplateDefinition, ITemplate>;
 
-  constructor(container: IContainer, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
-    this.behaviorLookup = new Map();
-    this.container = container;
-    this.factoryLookup = new Map();
-    this.lifecycle = lifecycle;
-    this.templateLookup = new Map();
-
+  constructor(private container: IContainer, private lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
     this.compilers = templateCompilers.reduce(
       (acc, item) => {
         acc[item.name] = item;
@@ -189,7 +183,7 @@ export class RenderingEngine implements IRenderingEngine {
 
       //If the element has a view, support Recursive Components by adding self to own view template container.
       if (found.renderContext !== null && componentType) {
-        componentType.register(found.renderContext as ExposedContext);
+        componentType.register(<ExposedContext>found.renderContext);
       }
 
       this.templateLookup.set(definition, found);
@@ -228,7 +222,7 @@ export class RenderingEngine implements IRenderingEngine {
   }
 
   private templateFromSource(definition: TemplateDefinition, parentContext?: IRenderContext): ITemplate {
-    parentContext = parentContext || this.container as ExposedContext;
+    parentContext = parentContext || <ExposedContext>this.container;
 
     if (definition && definition.template) {
       if (definition.build.required) {
@@ -239,7 +233,7 @@ export class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(definition as ITemplateDefinition, new RuntimeCompilationResources(parentContext as ExposedContext), ViewCompileFlags.surrogate);
+        definition = compiler.compile(<ITemplateDefinition>definition, new RuntimeCompilationResources(<ExposedContext>parentContext), ViewCompileFlags.surrogate);
       }
 
       return new CompiledTemplate(this, parentContext, definition);
@@ -248,95 +242,16 @@ export class RenderingEngine implements IRenderingEngine {
     return noViewTemplate;
   }
 }
-const childObserverOptions = { childList: true };
-
-/*@internal*/
-export class ShadowDOMProjector implements IElementProjector {
-  public host: ICustomElementHost;
-  public shadowRoot: ICustomElementHost;
-
-  constructor($customElement: ICustomElement, host: ICustomElementHost, definition: TemplateDefinition) {
-    this.host = host;
-
-    this.shadowRoot = DOM.attachShadow(this.host, definition.shadowOptions || defaultShadowOptions);
-    this.host.$customElement = $customElement;
-    this.shadowRoot.$customElement = $customElement;
-  }
-
-  get children(): ArrayLike<INode> {
-    return this.host.childNodes;
-  }
-
-  public subscribeToChildrenChange(callback: () => void): void {
-    DOM.createNodeObserver(this.host, callback, childObserverOptions);
-  }
-
-  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
-    return this.shadowRoot;
-  }
-
-  public project(nodes: INodeSequence): void {
-    nodes.appendTo(this.host);
-  }
-
-  public take(nodes: INodeSequence): void {
-    nodes.remove();
-  }
-}
-
-/*@internal*/
-export class ContainerlessProjector implements IElementProjector {
-  public host: ICustomElementHost;
-
-  private childNodes: ArrayLike<INode>;
-
-  constructor($customElement: ICustomElement, host: ICustomElementHost) {
-    if (host.childNodes.length) {
-      this.childNodes = PLATFORM.toArray(host.childNodes);
-    } else {
-      this.childNodes = PLATFORM.emptyArray;
-    }
-
-    this.host = DOM.convertToRenderLocation(host);
-    this.host.$customElement = $customElement;
-  }
-
-  get children(): ArrayLike<INode> {
-    return this.childNodes;
-  }
-
-  public subscribeToChildrenChange(callback: () => void): void {
-    // Do nothing since this scenario will never have children.
-  }
-
-  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
-    if (!parentEncapsulationSource) {
-      throw Reporter.error(22);
-    }
-
-    return parentEncapsulationSource;
-  }
-
-  public project(nodes: INodeSequence): void {
-    nodes.insertBefore(this.host);
-  }
-
-  public take(nodes: INodeSequence): void {
-    nodes.remove();
-  }
-}
 
 /*@internal*/
 export class HostProjector implements IElementProjector {
-  public host: ICustomElementHost;
-
-  constructor($customElement: ICustomElement, host: ICustomElementHost) {
-    this.host = host;
-
-    this.host.$customElement = $customElement;
+  private readonly isAppHost: boolean;
+  constructor($customElement: ICustomElement, public host: ICustomElementHost) {
+    host.$customElement = $customElement;
+    this.isAppHost = host.hasOwnProperty('$au');
   }
 
-  get children(): ArrayLike<INode> {
+  get children(): ArrayLike<IKonvaNode & ICustomElementHost> {
     return PLATFORM.emptyArray;
   }
 
@@ -344,16 +259,24 @@ export class HostProjector implements IElementProjector {
     // Do nothing since this scenario will never have children.
   }
 
-  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
-    return parentEncapsulationSource || this.host;
+  public provideEncapsulationSource(parentEncapsulationSource: IKonvaNode): ICustomElementHost {
+    return (parentEncapsulationSource as ICustomElementHost) || this.host;
   }
 
-  public project(nodes: INodeSequence): void {
+  public project(nodes: IKonvaNodeSequence): void {
     nodes.appendTo(this.host);
+    if (!this.isAppHost) {
+      this.project = PLATFORM.noop;
+    }
   }
 
-  public take(nodes: INodeSequence): void {
-    nodes.remove();
+  public take(nodes: IKonvaNodeSequence): void {
+    // No special behavior is required because the host element removal
+    // will result in the projected nodes being removed, since they are children.
+    if (this.isAppHost) {
+      // The only exception to that is the app host, which is not part of a removable node sequence
+      nodes.remove();
+    }
   }
 }
 
@@ -435,27 +358,21 @@ export interface IChildrenObserver extends
 /*@internal*/
 @subscriberCollection(MutationKind.instance)
 export class ChildrenObserver implements Partial<IChildrenObserver> {
-  public hasChanges: boolean;
+  public hasChanges: boolean = false;
 
-  private children: ICustomElement[];
-  private customElement: ICustomElement & { $childrenChanged?(): void };
-  private lifecycle: ILifecycle;
-  private observing: boolean;
+  private children: ICustomElement[] = null;
+  private observing: boolean = false;
 
-  constructor(lifecycle: ILifecycle, customElement: ICustomElement & { $childrenChanged?(): void }) {
-    this.hasChanges = false;
-
-    this.children = null;
-    this.customElement = customElement;
-    this.lifecycle = lifecycle;
-    this.observing = false;
-  }
+  constructor(
+    private lifecycle: ILifecycle,
+    private customElement: ICustomElement & { $childrenChanged?(): void }
+  ) { }
 
   public getValue(): ICustomElement[] {
     if (!this.observing) {
       this.observing = true;
       this.customElement.$projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
-      this.children = findElements(this.customElement.$projector.children);
+      // this.children = findElements(this.customElement.$projector.children);
     }
 
     return this.children;
@@ -477,14 +394,14 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   }
 
   private onChildrenChanged(): void {
-    this.children = findElements(this.customElement.$projector.children);
+    // this.children = findElements(this.customElement.$projector.children);
 
-    if ('$childrenChanged' in this.customElement) {
-      this.customElement.$childrenChanged();
-    }
+    // if ('$childrenChanged' in this.customElement) {
+    //   this.customElement.$childrenChanged();
+    // }
 
-    this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
-    this.hasChanges = true;
+    // this.lifecycle.enqueueFlush(this);
+    // this.hasChanges = true;
   }
 }
 
@@ -492,14 +409,14 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
 export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
   const components: ICustomElement[] = [];
 
-  for (let i = 0, ii = nodes.length; i < ii; ++i) {
-    const current = nodes[i];
-    const component = customElementBehavior(current);
+  // for (let i = 0, ii = nodes.length; i < ii; ++i) {
+  //   const current = nodes[i];
+  //   const component = customElementBehavior(current);
 
-    if (component !== null) {
-      components.push(component);
-    }
-  }
+  //   if (component !== null) {
+  //     components.push(component);
+  //   }
+  // }
 
   return components;
 }
@@ -511,7 +428,7 @@ export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
 // context for the template.
 export interface ITemplate {
   readonly renderContext: IRenderContext;
-  render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(renderable: IRenderable, host?: IKonvaNode, parts?: TemplatePartDefinitions): void;
 }
 
 // This is the main implementation of ITemplate.
@@ -522,21 +439,17 @@ export interface ITemplate {
 // and create instances of it on demand.
 /*@internal*/
 export class CompiledTemplate implements ITemplate {
-  public readonly factory: INodeSequenceFactory;
+  public readonly factory: IKonvaNodeSequenceFactory;
   public readonly renderContext: IRenderContext;
 
-  private templateDefinition: TemplateDefinition;
-
-  constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, templateDefinition: TemplateDefinition) {
-    this.templateDefinition = templateDefinition;
-
-    this.factory = NodeSequenceFactory.createFor(this.templateDefinition.template);
-    this.renderContext = createRenderContext(renderingEngine, parentRenderContext, this.templateDefinition.dependencies);
+  constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
+    this.factory = KonvaNodeSequenceFactory.createFor(templateDefinition.template);
+    this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
   }
 
-  public render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (renderable as Writable<IRenderable>).$nodes = this.factory.createNodeSequence();
-    (renderable as Writable<IRenderable>).$context = this.renderContext;
+  public render(renderable: IRenderable, host?: IKonvaNode, parts?: TemplatePartDefinitions): void {
+    const nodes = (<Writable<IRenderable>>renderable).$nodes = this.factory.createNodeSequence();
+    (<Writable<IRenderable>>renderable).$context = this.renderContext;
     this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, parts);
   }
 }
@@ -546,8 +459,8 @@ export class CompiledTemplate implements ITemplate {
 export const noViewTemplate: ITemplate = {
   renderContext: null,
   render(renderable: IRenderable): void {
-    (renderable as Writable<IRenderable>).$nodes = NodeSequence.empty;
-    (renderable as Writable<IRenderable>).$context = null;
+    (<Writable<IRenderable>>renderable).$nodes = BlessedNodeSequence.empty;
+    (<Writable<IRenderable>>renderable).$context = null;
   }
 };
 
@@ -555,12 +468,12 @@ export const noViewTemplate: ITemplate = {
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
 export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext {
-  const context = parentRenderContext.createChild() as ExposedContext;
+  const context = <ExposedContext>parentRenderContext.createChild();
   const renderableProvider = new InstanceProvider();
   const elementProvider = new InstanceProvider();
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
   const factoryProvider = new ViewFactoryProvider(renderingEngine);
-  const renderLocationProvider = new InstanceProvider<IRenderLocation>();
+  const renderLocationProvider = new InstanceProvider<IKonvaRenderLocation>();
   const renderer = context.get(IRenderer);
 
   DOM.registerElementResolver(context, elementProvider);
@@ -568,17 +481,17 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   context.registerResolver(IViewFactory, factoryProvider);
   context.registerResolver(IRenderable, renderableProvider);
   context.registerResolver(ITargetedInstruction, instructionProvider);
-  context.registerResolver(IRenderLocation, renderLocationProvider);
+  context.registerResolver(IKonvaRenderLocation as any, renderLocationProvider);
 
   if (dependencies) {
     context.register(...dependencies);
   }
 
-  context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<IKonvaNode>, templateDefinition: TemplateDefinition, host?: IKonvaNode, parts?: TemplatePartDefinitions): void {
     renderer.render(this, renderable, targets, templateDefinition, host, parts);
   };
 
-  context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
+  context.beginComponentOperation = function(renderable: IRenderable, target: IKonvaNode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IKonvaRenderLocation): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
@@ -607,11 +520,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
 
 /*@internal*/
 export class InstanceProvider<T> implements IResolver {
-  private instance: T;
-
-  constructor() {
-    this.instance = null;
-  }
+  private instance: T = null;
 
   public prepare(instance: T): void {
     this.instance = instance;
@@ -632,12 +541,9 @@ export class InstanceProvider<T> implements IResolver {
 /*@internal*/
 export class ViewFactoryProvider implements IResolver {
   private factory: IViewFactory;
-  private renderingEngine: IRenderingEngine;
   private replacements: TemplatePartDefinitions;
 
-  constructor(renderingEngine: IRenderingEngine) {
-    this.renderingEngine = renderingEngine;
-  }
+  constructor(private renderingEngine: IRenderingEngine) {}
 
   public prepare(factory: IViewFactory, parts: TemplatePartDefinitions): void {
     this.factory = factory;
@@ -668,7 +574,7 @@ export class ViewFactoryProvider implements IResolver {
 
 export interface IRenderer {
   instructionRenderers: Record<string, IInstructionRenderer>;
-  render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<IKonvaNode>, templateDefinition: TemplateDefinition, host?: IKonvaNode, parts?: TemplatePartDefinitions): void;
 }
 
 export const IRenderer = DI.createInterface<IRenderer>().withDefault(x => x.singleton(Renderer));
@@ -723,7 +629,7 @@ export class Renderer implements IRenderer {
     });
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<IKonvaNode>, definition: TemplateDefinition, host?: IKonvaNode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
     const instructionRenderers = this.instructionRenderers;
 

@@ -6,7 +6,35 @@ import { IBindingCommand } from './binding-command';
 import { Char } from './common';
 import { AttrInfo, BindableInfo, ElementInfo, MetadataModel } from './metadata-model';
 
+export const enum SymbolFlags {
+  type                 = 0b0000000_1111,
+  isTemplateController = 0b0000000_0001,
+  isReplacePart        = 0b0000000_0010,
+  isCustomAttribute    = 0b0000000_0011,
+  isPlainAttribute     = 0b0000000_0100,
+  isCustomElement      = 0b0000000_0101,
+  isPlainElement       = 0b0000000_0110,
+  isText               = 0b0000000_0111,
+  isBinding            = 0b0000000_1000,
+  templateController   = 0b0000001_0001,
+  replacePart          = 0b0001000_0010,
+  customAttribute      = 0b0000101_0011,
+  plainAttribute       = 0b0000000_0100,
+  customElement        = 0b0001011_0101,
+  plainElement         = 0b0000011_0110,
+  text                 = 0b0000000_0111,
+  binding              = 0b0000000_1000,
+  canHaveAttributes    = 0b0000001_0000,
+  canHaveChildNodes    = 0b0000010_0000,
+  canHaveParts         = 0b0000100_0000,
+  hasTemplate          = 0b0001000_0000,
+  hasAttributes        = 0b0010000_0000,
+  hasChildNodes        = 0b0100000_0000,
+  hasParts             = 0b1000000_0000,
+}
+
 export class TemplateControllerSymbol {
+  public flags: SymbolFlags;
   public rawName: string;
   public target: string;
   public expression: IsExpressionOrStatement | null;
@@ -25,6 +53,7 @@ export class TemplateControllerSymbol {
   }
 
   constructor(syntax: AttrSyntax, expression: IsExpressionOrStatement | null, info: AttrInfo) {
+    this.flags = SymbolFlags.templateController;
     this.rawName = syntax.rawName;
     this.target = syntax.target;
     this.expression = expression;
@@ -36,44 +65,47 @@ export class TemplateControllerSymbol {
 }
 
 export class ReplacePartSymbol {
+  public flags: SymbolFlags;
   public name: string;
   public template: ParentNodeSymbol | null;
 
   constructor(name: string) {
+    this.flags = SymbolFlags.replacePart;
     this.name = name;
     this.template = null;
   }
 }
 
 export class CustomAttributeSymbol {
+  public flags: SymbolFlags;
   public rawName: string;
   public target: string;
   public expression: IsExpressionOrStatement | null;
   public bindable: BindableInfo;
   public bindables: Record<string, BindableInfo>;
-  public hasAttributes: boolean;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
     if (this._attributes === null) {
       this._attributes = [];
-      this.hasAttributes = true;
+      this.flags |= SymbolFlags.hasAttributes;
     }
     return this._attributes;
   }
 
   constructor(syntax: AttrSyntax, expression: IsExpressionOrStatement | null, info: AttrInfo) {
+    this.flags = SymbolFlags.customAttribute;
     this.rawName = syntax.rawName;
     this.target = syntax.target;
     this.expression = expression;
     this.bindable = info.bindable;
     this.bindables = info.bindables;
-    this.hasAttributes = false;
     this._attributes = null;
   }
 }
 
 export class PlainAttributeSymbol {
+  public flags: SymbolFlags;
   public syntax: AttrSyntax;
   public bindable: BindableInfo;
   public expression: IsExpressionOrStatement | null;
@@ -83,6 +115,7 @@ export class PlainAttributeSymbol {
     bindable: BindableInfo,
     expression: IsExpressionOrStatement | null
   ) {
+    this.flags = SymbolFlags.plainAttribute;
     this.syntax = syntax;
     this.bindable = bindable;
     this.expression = expression;
@@ -90,19 +123,15 @@ export class PlainAttributeSymbol {
 }
 
 export class CustomElementSymbol {
+  public flags: SymbolFlags;
   public physicalNode: IHTMLElement;
   public bindables: Record<string, BindableInfo>;
-  public isCustom: true;
-
-  public hasAttributes: boolean;
-  public hasChildNodes: boolean;
-  public hasParts: boolean;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
     if (this._attributes === null) {
       this._attributes = [];
-      this.hasAttributes = true;
+      this.flags |= SymbolFlags.hasAttributes;
     }
     return this._attributes;
   }
@@ -111,7 +140,7 @@ export class CustomElementSymbol {
   public get childNodes(): NodeSymbol[] {
     if (this._childNodes === null) {
       this._childNodes = [];
-      this.hasChildNodes = true;
+      this.flags |= SymbolFlags.hasChildNodes;
     }
     return this._childNodes;
   }
@@ -120,18 +149,15 @@ export class CustomElementSymbol {
   public get parts(): ReplacePartSymbol[] {
     if (this._parts === null) {
       this._parts = [];
-      this.hasParts = true;
+      this.flags |= SymbolFlags.hasParts;
     }
     return this._parts;
   }
 
   constructor(node: IHTMLElement, info: ElementInfo) {
+    this.flags = SymbolFlags.customElement;
     this.physicalNode = node;
     this.bindables = info.bindables;
-    this.isCustom = true;
-    this.hasAttributes = false;
-    this.hasChildNodes = false;
-    this.hasParts = false;
     this._attributes = null;
     this._childNodes = null;
     this._parts = null;
@@ -139,17 +165,14 @@ export class CustomElementSymbol {
 }
 
 export class PlainElementSymbol {
+  public flags: SymbolFlags;
   public physicalNode: IHTMLElement;
-  public isCustom: false;
-
-  public hasAttributes: boolean;
-  public hasChildNodes: boolean;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
     if (this._attributes === null) {
       this._attributes = [];
-      this.hasAttributes = true;
+      this.flags |= SymbolFlags.hasAttributes;
     }
     return this._attributes;
   }
@@ -158,37 +181,39 @@ export class PlainElementSymbol {
   public get childNodes(): NodeSymbol[] {
     if (this._childNodes === null) {
       this._childNodes = [];
-      this.hasChildNodes = true;
+      this.flags |= SymbolFlags.hasChildNodes;
     }
     return this._childNodes;
   }
 
   constructor(node: IHTMLElement) {
+    this.flags = SymbolFlags.plainElement;
     this.physicalNode = node;
-    this.isCustom = false;
-    this.hasAttributes = false;
-    this.hasChildNodes = false;
     this._attributes = null;
     this._childNodes = null;
   }
 }
 
 export class TextSymbol {
+  public flags: SymbolFlags;
   public physicalNode: IText;
   public interpolation: Interpolation;
 
   constructor(node: IText, interpolation: Interpolation) {
+    this.flags = SymbolFlags.text;
     this.physicalNode = node;
     this.interpolation = interpolation;
   }
 }
 
 export class BindingSymbol {
+  public flags: SymbolFlags;
   public type: BindingType;
   public command: IBindingCommand | null;
   public value: string;
 
   constructor(type: BindingType, command: IBindingCommand | null, value: string) {
+    this.flags = SymbolFlags.binding;
     this.type = type;
     this.command = command;
     this.value = value;
@@ -200,6 +225,17 @@ export type ResourceAttributeSymbol = CustomAttributeSymbol | TemplateController
 export type ElementSymbol = CustomElementSymbol | PlainElementSymbol;
 export type ParentNodeSymbol = ElementSymbol | TemplateControllerSymbol;
 export type NodeSymbol = TextSymbol | ParentNodeSymbol;
+export type SymbolWithAttributes = ElementSymbol | ResourceAttributeSymbol;
+export type SymbolWithTemplate = TemplateControllerSymbol | ReplacePartSymbol;
+export type AnySymbol =
+  TemplateControllerSymbol |
+  ReplacePartSymbol |
+  CustomAttributeSymbol |
+  PlainAttributeSymbol |
+  CustomElementSymbol |
+  PlainElementSymbol |
+  TextSymbol |
+  BindingSymbol;
 
 const slice = Array.prototype.slice;
 
@@ -232,7 +268,7 @@ export class ElementBinder {
   public bindSurrogate(node: IHTMLTemplateElement): PlainElementSymbol {
     if (Tracer.enabled) { Tracer.enter('ElementBinder.bindSurrogate', slice.call(arguments)); }
 
-    const result = this.manifest = new PlainElementSymbol(node);
+    const manifest = this.manifest = new PlainElementSymbol(node);
     let childNode = node.content.firstChild as INode;
     while (childNode !== null) {
       switch (childNode.nodeType) {
@@ -240,7 +276,7 @@ export class ElementBinder {
           childNode = this.bindText(childNode);
           break;
         case NodeType.Element:
-          this.bindElement(result, childNode as IHTMLElement);
+          this.bindManifest(manifest, childNode as IHTMLElement);
       }
       childNode = childNode.nextSibling as IHTMLElement;
     }
@@ -250,11 +286,11 @@ export class ElementBinder {
 
     if (Tracer.enabled) { Tracer.leave(); }
 
-    return result;
+    return manifest;
   }
 
-  private bindElement(parentManifest: ElementSymbol, node: IHTMLTemplateElement | IHTMLElement): void {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindElement', slice.call(arguments)); }
+  private bindManifest(parentManifest: ElementSymbol, node: IHTMLTemplateElement | IHTMLElement): void {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindManifest', slice.call(arguments)); }
 
     let elementKey = node.getAttribute('as-element');
     if (elementKey === null) {
@@ -348,7 +384,7 @@ export class ElementBinder {
           childNode = this.bindText(childNode);
           break;
         case NodeType.Element:
-          this.bindElement(this.manifest, childNode as IHTMLElement);
+          this.bindManifest(this.manifest, childNode as IHTMLElement);
       }
       childNode = childNode.nextSibling;
     }
@@ -433,8 +469,8 @@ export class ElementBinder {
     const type = this.getBindingType(attrSyntax);
     const manifest = this.manifest;
     const expr = this.exprParser.parse(attrSyntax.rawValue, type);
-    if (manifest.isCustom) {
-      const bindable = manifest.bindables[attrSyntax.target];
+    if (manifest.flags & SymbolFlags.isCustomElement) {
+      const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];
       if (bindable !== undefined) {
         manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, bindable, expr));
       } else if (expr !== null) {

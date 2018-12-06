@@ -1,11 +1,11 @@
 import { DI } from '@aurelia/kernel';
-import { DOM, IHTMLElement, IHTMLTemplateElement } from '@aurelia/runtime';
+import { DOM, IHTMLElement, IHTMLTemplateElement, INode } from '@aurelia/runtime';
 
 export interface ITemplateFactory {
   createTemplate(markup: string): IHTMLTemplateElement;
-  createTemplate(node: IHTMLElement): IHTMLTemplateElement;
-  createTemplate(input: string | IHTMLElement): IHTMLTemplateElement;
-  createTemplate(input: string | IHTMLElement): IHTMLTemplateElement;
+  createTemplate(node: INode): IHTMLTemplateElement;
+  createTemplate(input: string | INode): IHTMLTemplateElement;
+  createTemplate(input: string | INode): IHTMLTemplateElement;
 }
 
 export const ITemplateFactory = DI.createInterface<ITemplateFactory>()
@@ -19,9 +19,9 @@ export class TemplateFactory {
   }
 
   public createTemplate(markup: string): IHTMLTemplateElement;
-  public createTemplate(node: IHTMLElement): IHTMLTemplateElement;
-  public createTemplate(input: string | IHTMLElement): IHTMLTemplateElement;
-  public createTemplate(input: string | IHTMLElement): IHTMLTemplateElement {
+  public createTemplate(node: INode): IHTMLTemplateElement;
+  public createTemplate(input: string | INode): IHTMLTemplateElement;
+  public createTemplate(input: string | INode): IHTMLTemplateElement {
     if (typeof input === 'string') {
       const template = this.template;
       template.innerHTML = input;

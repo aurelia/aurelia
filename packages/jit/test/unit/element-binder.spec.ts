@@ -65,7 +65,27 @@ import {
   ForOfStatement,
   AccessScope,
   CustomAttributeResource,
-  PrimitiveLiteral
+  PrimitiveLiteral,
+  HydrateTemplateController,
+  HydrateAttributeInstruction,
+  HydrateElementInstruction,
+  InterpolationInstruction,
+  CallBindingInstruction,
+  CaptureBindingInstruction,
+  DelegateBindingInstruction,
+  FromViewBindingInstruction,
+  IteratorBindingInstruction,
+  LetBindingInstruction,
+  LetElementInstruction,
+  OneTimeBindingInstruction,
+  RefBindingInstruction,
+  SetAttributeInstruction,
+  SetPropertyInstruction,
+  StylePropertyBindingInstruction,
+  TextBindingInstruction,
+  ToViewBindingInstruction,
+  TriggerBindingInstruction,
+  TwoWayBindingInstruction
 } from '../../../runtime/src/index';
 import { expect } from 'chai';
 import {
@@ -91,7 +111,7 @@ function setup(markup: string, ...extraResources: any[]) {
   const template = factory.createTemplate(markup);
   const surrogate = binder.bindSurrogate(template);
 
-  return { container, surrogate };
+  return { container, factory, surrogate };
 }
 
 
@@ -102,8 +122,6 @@ describe.only('element-binder', () => {
 
     const { surrogate } = setup("<template><div repeat.for=\"i of 2\">${msg}</div></template>");
 
-    expect(surrogate.hasAttributes).to.equal(false, 'surrogate.hasAttributes');
-    expect(surrogate.hasChildNodes).to.equal(true, 'surrogate.hasChildNodes');
     expect(surrogate.childNodes.length).to.equal(1, 'surrogate.childNodes.length');
 
     const child$1 = surrogate.childNodes[0] as TemplateControllerSymbol;
@@ -113,8 +131,6 @@ describe.only('element-binder', () => {
 
     const child$2 = child$1.template as PlainElementSymbol;
 
-    expect(child$2.hasAttributes).to.equal(false, 'child$2.hasAttributes');
-    expect(child$2.hasChildNodes).to.equal(true, 'child$2.hasChildNodes');
     expect(child$2.childNodes.length).to.equal(1, 'child$2.childNodes.length');
 
     const child$3 = child$2.childNodes[0] as TextSymbol;
@@ -151,17 +167,11 @@ describe.only('element-binder', () => {
     </template>
     `, CA);
 
-    expect(surrogate.hasAttributes).to.equal(false, 'surrogate.hasAttributes');
-    expect(surrogate.hasChildNodes).to.equal(true, 'surrogate.hasChildNodes');
     expect(surrogate.childNodes.length).to.equal(1, 'surrogate.childNodes.length');
 
     const child$1 = surrogate.childNodes[0] as CustomElementSymbol;
 
-    expect(child$1.isCustom).to.equal(true, 'child$1.isCustom');
-    expect(child$1.hasAttributes).to.equal(true, 'child$1.hasAttributes');
     expect(child$1.attributes.length).to.equal(6, 'child$1.attributes.length');
-    expect(child$1.hasChildNodes).to.equal(false, 'child$1.hasChildNodes');
-    expect(child$1.hasParts).to.equal(true, 'child$1.hasParts');
     expect(child$1.parts.length).to.equal(2, 'child$1.parts.length');
 
     const child$1attr$1 = child$1.attributes[0] as PlainAttributeSymbol;
@@ -186,13 +196,64 @@ describe.only('element-binder', () => {
 
     const child$1attr$5 = child$1.attributes[4] as CustomAttributeSymbol;
 
-    expect(child$1attr$5.hasAttributes).to.equal(true, 'child$1attr$5.hasAttributes');
     expect(child$1attr$5.expression).to.equal(null, 'child$1attr$5.expression');
 
     const child$1attr$6 = child$1.attributes[5] as CustomAttributeSymbol;
 
     expect(child$1attr$6.bindable.propName).to.equal('a', 'child$1attr$6.bindable.propName');
     expect(child$1attr$6.expression).to.be.instanceof(PrimitiveLiteral, 'child$1attr$6.expression');
+
+    disableTracing();
+  });
+
+  it('compile template for repeater on div with interpolation', () => {
+    enableTracing();
+    Tracer.enableLiveLogging(SymbolTraceWriter);
+
+    const { surrogate, factory, container } = setup("<template><div repeat.for=\"i of 2\">${msg}</div></template>");
+
+    const templateController = surrogate.childNodes[0] as TemplateControllerSymbol;
+    const div = templateController.template as ElementSymbol;
+    const text = div.childNodes[0] as TextSymbol;
+
+    const def: ITemplateDefinition = {
+      name: 'app',
+      template: factory.createTemplate(`<au-m class="au"></au-m>`) as unknown as IHTMLTemplateElement,
+      instructions: [
+        [
+          new HydrateTemplateController(
+            {
+              name: 'repeat',
+              template: factory.createTemplate(`<au-m class="au"></au-m> `) as unknown as IHTMLTemplateElement,
+              instructions: [
+                [
+                  new TextBindingInstruction(text.interpolation as unknown as Interpolation)
+                ]
+              ]
+            },
+            'repeat',
+            [
+              new IteratorBindingInstruction(
+                templateController.expression as unknown as ForOfStatement,
+                templateController.bindable.propName
+              )
+            ],
+            false
+          )
+        ]
+      ]
+    };
+
+    const App = CustomElementResource.define(def, class { msg = 'hi' });
+    const component = new App();
+    const host = DOM.createElement('div');
+    const au = new Aurelia(container as any);
+    au.app({ host, component });
+    au.start();
+
+    expect(host.textContent).to.equal('hihi');
+
+
 
     disableTracing();
   });

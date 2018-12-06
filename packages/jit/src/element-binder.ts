@@ -1,25 +1,37 @@
 import { Reporter } from '@aurelia/kernel';
-import { BindingType, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IText, NodeType, IsExpressionOrStatement } from '@aurelia/runtime';
+import { BindingType, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
+import { Char } from './common';
 import { AttrInfo, BindableInfo, ElementInfo, MetadataModel } from './metadata-model';
 
 export class TemplateControllerSymbol {
   public rawName: string;
   public target: string;
-  public expressions: IsExpressionOrStatement[];
+  public expression: IsExpressionOrStatement | null;
   public bindable: BindableInfo;
   public bindables: Record<string, BindableInfo>;
   public template: ParentNodeSymbol | null;
+  public hasAttributes: boolean;
 
-  constructor(syntax: AttrSyntax, expressions: IsExpressionOrStatement[], info: AttrInfo) {
+  private _attributes: AttributeSymbol[] | null;
+  public get attributes(): AttributeSymbol[] {
+    if (this._attributes === null) {
+      this._attributes = [];
+      this.hasAttributes = true;
+    }
+    return this._attributes;
+  }
+
+  constructor(syntax: AttrSyntax, expression: IsExpressionOrStatement | null, info: AttrInfo) {
     this.rawName = syntax.rawName;
     this.target = syntax.target;
-    this.expressions = expressions;
+    this.expression = expression;
     this.bindable = info.bindable;
     this.bindables = info.bindables;
     this.template = null;
+    this.hasAttributes = false;
   }
 }
 
@@ -36,27 +48,42 @@ export class ReplacePartSymbol {
 export class CustomAttributeSymbol {
   public rawName: string;
   public target: string;
-  public expressions: IsExpressionOrStatement[];
+  public expression: IsExpressionOrStatement | null;
   public bindable: BindableInfo;
   public bindables: Record<string, BindableInfo>;
+  public hasAttributes: boolean;
 
-  constructor(syntax: AttrSyntax, expressions: IsExpressionOrStatement[], info: AttrInfo) {
+  private _attributes: AttributeSymbol[] | null;
+  public get attributes(): AttributeSymbol[] {
+    if (this._attributes === null) {
+      this._attributes = [];
+      this.hasAttributes = true;
+    }
+    return this._attributes;
+  }
+
+  constructor(syntax: AttrSyntax, expression: IsExpressionOrStatement | null, info: AttrInfo) {
     this.rawName = syntax.rawName;
     this.target = syntax.target;
-    this.expressions = expressions;
+    this.expression = expression;
     this.bindable = info.bindable;
     this.bindables = info.bindables;
+    this.hasAttributes = false;
   }
 }
 
 export class PlainAttributeSymbol {
-  public rawName: string;
-  public target: string;
-  public expression: IsExpressionOrStatement;
+  public syntax: AttrSyntax;
+  public bindable: BindableInfo;
+  public expression: IsExpressionOrStatement | null;
 
-  constructor(syntax: AttrSyntax, expression: IsExpressionOrStatement) {
-    this.rawName = syntax.rawName;
-    this.target = syntax.target;
+  constructor(
+    syntax: AttrSyntax,
+    bindable: BindableInfo,
+    expression: IsExpressionOrStatement | null
+  ) {
+    this.syntax = syntax;
+    this.bindable = bindable;
     this.expression = expression;
   }
 }
@@ -64,6 +91,7 @@ export class PlainAttributeSymbol {
 export class CustomElementSymbol {
   public physicalNode: IHTMLElement;
   public bindables: Record<string, BindableInfo>;
+  public isCustom: true;
 
   public hasAttributes: boolean;
   public hasChildNodes: boolean;
@@ -99,6 +127,7 @@ export class CustomElementSymbol {
   constructor(node: IHTMLElement, info: ElementInfo) {
     this.physicalNode = node;
     this.bindables = info.bindables;
+    this.isCustom = true;
     this.hasAttributes = false;
     this.hasChildNodes = false;
     this.hasParts = false;
@@ -110,6 +139,7 @@ export class CustomElementSymbol {
 
 export class PlainElementSymbol {
   public physicalNode: IHTMLElement;
+  public isCustom: false;
 
   public hasAttributes: boolean;
   public hasChildNodes: boolean;
@@ -134,6 +164,7 @@ export class PlainElementSymbol {
 
   constructor(node: IHTMLElement) {
     this.physicalNode = node;
+    this.isCustom = false;
     this.hasAttributes = false;
     this.hasChildNodes = false;
     this._attributes = null;
@@ -164,6 +195,7 @@ export class BindingSymbol {
 }
 
 export type AttributeSymbol = CustomAttributeSymbol | PlainAttributeSymbol;
+export type ResourceAttributeSymbol = CustomAttributeSymbol | TemplateControllerSymbol;
 export type ElementSymbol = CustomElementSymbol | PlainElementSymbol;
 export type NodeSymbol = TextSymbol | ElementSymbol | TemplateControllerSymbol;
 export type ParentNodeSymbol = ElementSymbol | TemplateControllerSymbol;
@@ -305,21 +337,58 @@ export class ElementBinder {
   }
 
   private declareTemplateController(attrSyntax: AttrSyntax, attrInfo: AttrInfo): TemplateControllerSymbol {
-    const type = this.getBindingType(attrSyntax);
-    const expr = this.exprParser.parse(attrSyntax.rawValue, type);
-    return new TemplateControllerSymbol(attrSyntax, [expr], attrInfo);
-  }
-
-  private bindPlainAttribute(attrSyntax: AttrSyntax): void {
-    const type = this.getBindingType(attrSyntax);
-    const expr = this.exprParser.parse(attrSyntax.rawValue, type);
-    this.manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, expr));
+    if (attrInfo.hasDynamicOptions) {
+      const symbol = new TemplateControllerSymbol(attrSyntax, null, attrInfo);
+      this.bindMultiAttribute(symbol, attrSyntax.rawValue);
+      return symbol;
+    } else {
+      const type = this.getBindingType(attrSyntax);
+      const expr = this.exprParser.parse(attrSyntax.rawValue, type);
+      return new TemplateControllerSymbol(attrSyntax, expr, attrInfo);
+    }
   }
 
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
+    let symbol: CustomAttributeSymbol;
+    if (attrInfo.hasDynamicOptions) {
+      symbol = new CustomAttributeSymbol(attrSyntax, null, attrInfo);
+      this.bindMultiAttribute(symbol, attrSyntax.rawValue);
+    } else {
+      const type = this.getBindingType(attrSyntax);
+      const expr = this.exprParser.parse(attrSyntax.rawValue, type);
+      symbol = new CustomAttributeSymbol(attrSyntax, expr, attrInfo);
+    }
+    this.manifest.attributes.push(symbol);
+  }
+
+  private bindMultiAttribute(symbol: ResourceAttributeSymbol, value: string): void {
+    const attributes = parseMultiAttributeBinding(value);
+    let attr: IAttrLike;
+    for (let i = 0, ii = attributes.length; i < ii; ++i) {
+      attr = attributes[i];
+      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+      const type = this.getBindingType(attrSyntax);
+      const expr = this.exprParser.parse(attrSyntax.rawValue, type);
+      const bindable = symbol.bindables[attrSyntax.target];
+      symbol.attributes.push(new PlainAttributeSymbol(attrSyntax, bindable, expr));
+    }
+  }
+
+  private bindPlainAttribute(attrSyntax: AttrSyntax): void {
+    if (attrSyntax.rawValue.length === 0) {
+      return;
+    }
     const type = this.getBindingType(attrSyntax);
+    const manifest = this.manifest;
     const expr = this.exprParser.parse(attrSyntax.rawValue, type);
-    this.manifest.attributes.push(new CustomAttributeSymbol(attrSyntax, [expr], attrInfo));
+    if (manifest.isCustom) {
+      const bindable = manifest.bindables[attrSyntax.target];
+      if (bindable !== undefined) {
+        manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, bindable, expr));
+      }
+    } else if (expr !== null) {
+      manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, null, expr));
+    }
   }
 
   private getBindingType(attrSyntax: AttrSyntax): BindingType {
@@ -342,4 +411,96 @@ export class ElementBinder {
     node.removeAttribute('replace-part');
     return new ReplacePartSymbol(name);
   }
+}
+
+interface IAttrLike {
+  name: string;
+  value: string;
+}
+
+class ParserState {
+  public input: string;
+  public index: number;
+  public length: number;
+
+  constructor(input: string) {
+    this.input = input;
+    this.index = 0;
+    this.length = input.length;
+  }
+}
+
+const fromCharCode = String.fromCharCode;
+
+// TODO: move to expression parser
+function parseMultiAttributeBinding(input: string): IAttrLike[] {
+  const attributes: IAttrLike[] = [];
+
+  const state = new ParserState(input);
+  const length = state.length;
+  let name: string;
+  let value: string;
+  while (state.index < length) {
+    name = scanAttributeName(state);
+    if (name.length === 0) {
+      return attributes;
+    }
+    value = scanAttributeValue(state);
+    attributes.push({ name, value });
+  }
+
+  return attributes;
+}
+
+function scanAttributeName(state: ParserState): string {
+  const start = state.index;
+  const { length, input } = state;
+  while (state.index < length && input.charCodeAt(++state.index) !== Char.Colon);
+
+  return input.slice(start, state.index).trim();
+}
+
+function scanAttributeValue(state: ParserState): string {
+  ++state.index;
+  const { length, input } = state;
+  let token = '';
+  let inString = false;
+  let quote = null;
+  let ch = 0;
+  while (state.index < length) {
+    ch = input.charCodeAt(state.index);
+    switch (ch) {
+      case Char.Semicolon:
+        ++state.index;
+        return token.trim();
+      case Char.Slash:
+        ch = input.charCodeAt(++state.index);
+        if (ch === Char.DoubleQuote) {
+          if (inString === false) {
+            inString = true;
+            quote = Char.DoubleQuote;
+          } else if (quote === Char.DoubleQuote) {
+            inString = false;
+            quote = null;
+          }
+        }
+        token += `\\${fromCharCode(ch)}`;
+        break;
+      case Char.SingleQuote:
+        if (inString === false) {
+          inString = true;
+          quote = Char.SingleQuote;
+        } else if (quote === Char.SingleQuote) {
+          inString = false;
+          quote = null;
+        }
+        token += '\'';
+        break;
+      default:
+        token += fromCharCode(ch);
+    }
+    ++state.index;
+  }
+
+  return token.trim();
 }

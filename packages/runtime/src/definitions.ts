@@ -81,6 +81,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
   defaultBindingMode?: BindingMode;
   aliases?: string[];
   isTemplateController?: boolean;
+  hasDynamicOptions?: boolean;
   bindables?: Record<string, IBindableDescription>;
 }
 

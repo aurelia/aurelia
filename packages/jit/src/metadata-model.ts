@@ -104,8 +104,10 @@ function createAttributeInfo(resources: IResourceDescriptions, name: string): At
   let bindable: IBindableDescription;
   let prop: string;
   let mode: BindingMode;
+  let bindableCount: number = 0;
 
   for (prop in bindables) {
+    ++bindableCount;
     bindable = bindables[prop];
     // explicitly provided property name has priority over the implicit property name
     if (bindable.property !== undefined) {
@@ -125,6 +127,9 @@ function createAttributeInfo(resources: IResourceDescriptions, name: string): At
   // if no bindables are present, default to "value"
   if (info.bindable === null) {
     info.bindable = new BindableInfo('value', defaultBindingMode);
+  }
+  if (bindableCount > 0) {
+    info.hasDynamicOptions = true;
   }
   return info;
 }
@@ -201,10 +206,13 @@ export class AttrInfo {
 
   public isTemplateController: boolean;
 
+  public hasDynamicOptions: boolean;
+
   constructor(name: string, isTemplateController: boolean) {
     this.name = name;
     this.bindables = {};
     this.bindable = null;
     this.isTemplateController = isTemplateController;
+    this.hasDynamicOptions = false;
   }
 }

@@ -73,6 +73,25 @@ export function templateController(nameOrDefinition: string | Omit<IAttributeDef
     target);
 }
 
+type HasDynamicOptions = Pick<IAttributeDefinition, 'hasDynamicOptions'>;
+
+function dynamicOptionsDecorator<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions> {
+  target.hasDynamicOptions = true;
+  return target as T & Required<HasDynamicOptions>;
+}
+
+/**
+ * Decorator: Indicates that the custom attributes has dynamic options.
+ */
+export function dynamicOptions(): typeof dynamicOptionsDecorator;
+/**
+ * Decorator: Indicates that the custom attributes has dynamic options.
+ */
+export function dynamicOptions<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions>;
+export function dynamicOptions<T extends Constructable>(target?: T & HasDynamicOptions): T & Required<HasDynamicOptions> | typeof dynamicOptionsDecorator {
+  return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator<T>(target);
+}
+
 function isType<T>(this: ICustomAttributeResource, Type: T & Partial<ICustomAttributeType>): Type is T & ICustomAttributeType {
   return Type.kind === this;
 }
@@ -153,6 +172,7 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     name: def.name,
     aliases: aliases === undefined || aliases === null ? PLATFORM.emptyArray : aliases,
     defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
+    hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
     bindables: {...Type.bindables, ...def.bindables}
   };

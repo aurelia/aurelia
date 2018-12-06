@@ -1,7 +1,7 @@
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
-import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType } from './definitions';
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType } from './definitions';
 import { INode } from './dom.interfaces';
 
 export class TextBindingInstruction implements ITextBindingInstruction {
@@ -288,14 +288,14 @@ export class HydrateTemplateController implements IHydrateTemplateController {
   }
 }
 
-export class LetElementInstruction implements ILetElementInstruction {
-  public type: TargetedInstructionType.letElement;
+export class LetElementInstruction implements IHydrateLetElementInstruction {
+  public type: TargetedInstructionType.hydrateLetElement;
 
   public instructions: ILetBindingInstruction[];
   public toViewModel: boolean;
 
   constructor(instructions: ILetBindingInstruction[], toViewModel: boolean) {
-    this.type = TargetedInstructionType.letElement;
+    this.type = TargetedInstructionType.hydrateLetElement;
 
     this.instructions = instructions;
     this.toViewModel = toViewModel;

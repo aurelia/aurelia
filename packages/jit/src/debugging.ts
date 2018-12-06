@@ -71,8 +71,8 @@ export function stringifyInstructions(instruction: TargetedInstruction, depth: n
     case TargetedInstructionType.interpolation:
       output += 'interpolation\n';
       break;
-    case TargetedInstructionType.letElement:
-      output += 'letElement\n';
+    case TargetedInstructionType.hydrateLetElement:
+      output += 'hydrateLetElement\n';
       instruction.instructions.forEach(i => {
         output += stringifyInstructions(i, depth + 1);
       });

@@ -48,11 +48,11 @@ export const enum TargetedInstructionType {
   hydrateElement = 'k',
   hydrateAttribute = 'l',
   hydrateTemplateController = 'm',
-  letElement = 'n',
+  hydrateLetElement = 'n',
   letBinding = 'o'
 }
 
-const instructionTypeValues = 'abcdefghijkl';
+const instructionTypeValues = 'abcdefghijklmno';
 
 export interface IBuildInstruction {
   required: boolean;
@@ -92,7 +92,7 @@ export interface ITargetedInstruction {
   type: TargetedInstructionType;
 }
 
-export type TargetedInstruction =
+export type BindingInstruction =
   ITextBindingInstruction |
   IInterpolationInstruction |
   IPropertyBindingInstruction |
@@ -103,11 +103,15 @@ export type TargetedInstruction =
   IStylePropertyBindingInstruction |
   ISetPropertyInstruction |
   ISetAttributeInstruction |
+  ILetBindingInstruction;
+
+export type HydrateInstruction =
   IHydrateElementInstruction |
   IHydrateAttributeInstruction |
   IHydrateTemplateController |
-  ILetElementInstruction |
-  ILetBindingInstruction;
+  IHydrateLetElementInstruction;
+
+export type TargetedInstruction = BindingInstruction | HydrateInstruction;
 
 export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
   const type = value.type;
@@ -203,8 +207,8 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   link?: boolean;
 }
 
-export interface ILetElementInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.letElement;
+export interface IHydrateLetElementInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.hydrateLetElement;
   instructions: ILetBindingInstruction[];
   toViewModel: boolean;
 }

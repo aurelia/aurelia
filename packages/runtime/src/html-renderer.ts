@@ -9,7 +9,7 @@ import { LetBinding } from './binding/let-binding';
 import { Listener } from './binding/listener';
 import { IObserverLocator } from './binding/observer-locator';
 import { Ref } from './binding/ref';
-import { customAttributeKey, customElementKey, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TargetedInstructionType, TemplatePartDefinitions } from './definitions';
+import { customAttributeKey, customElementKey, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IHydrateLetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TargetedInstructionType, TemplatePartDefinitions } from './definitions';
 import { DOM } from './dom';
 import { IElement, IHTMLElement, INode, IRenderLocation, NodeType } from './dom.interfaces';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';
@@ -354,7 +354,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 }
 
 @inject(IExpressionParser, IObserverLocator)
-@instructionRenderer(TargetedInstructionType.letElement)
+@instructionRenderer(TargetedInstructionType.hydrateLetElement)
 /*@internal*/
 export class LetElementRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
@@ -365,7 +365,7 @@ export class LetElementRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: ILetElementInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: IHydrateLetElementInstruction): void {
     if (Tracer.enabled) { Tracer.enter('LetElementRenderer.render', slice.call(arguments)); }
     target.remove();
     const childInstructions = instruction.instructions;

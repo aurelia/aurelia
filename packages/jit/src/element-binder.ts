@@ -1,4 +1,4 @@
-import { Reporter } from '@aurelia/kernel';
+import { Reporter, Tracer } from '@aurelia/kernel';
 import { BindingType, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
@@ -69,6 +69,7 @@ export class CustomAttributeSymbol {
     this.bindable = info.bindable;
     this.bindables = info.bindables;
     this.hasAttributes = false;
+    this._attributes = null;
   }
 }
 
@@ -197,8 +198,10 @@ export class BindingSymbol {
 export type AttributeSymbol = CustomAttributeSymbol | PlainAttributeSymbol;
 export type ResourceAttributeSymbol = CustomAttributeSymbol | TemplateControllerSymbol;
 export type ElementSymbol = CustomElementSymbol | PlainElementSymbol;
-export type NodeSymbol = TextSymbol | ElementSymbol | TemplateControllerSymbol;
 export type ParentNodeSymbol = ElementSymbol | TemplateControllerSymbol;
+export type NodeSymbol = TextSymbol | ParentNodeSymbol;
+
+const slice = Array.prototype.slice;
 
 export class ElementBinder {
   public metadata: MetadataModel;
@@ -227,19 +230,32 @@ export class ElementBinder {
   }
 
   public bindSurrogate(node: IHTMLTemplateElement): PlainElementSymbol {
-    const result = new PlainElementSymbol(node);
-    let current = node.content.firstChild as IHTMLElement;
-    while (current !== null) {
-      this.bindElement(result, current);
-      current = current.nextSibling as IHTMLElement;
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindSurrogate', slice.call(arguments)); }
+
+    const result = this.manifest = new PlainElementSymbol(node);
+    let childNode = node.content.firstChild as INode;
+    while (childNode !== null) {
+      switch (childNode.nodeType) {
+        case NodeType.Text:
+          childNode = this.bindText(childNode);
+          break;
+        case NodeType.Element:
+          this.bindElement(result, childNode as IHTMLElement);
+      }
+      childNode = childNode.nextSibling as IHTMLElement;
     }
     this.manifest = null;
     this.manifestRoot = null;
     this.parentManifestRoot = null;
+
+    if (Tracer.enabled) { Tracer.leave(); }
+
     return result;
   }
 
   private bindElement(parentManifest: ElementSymbol, node: IHTMLTemplateElement | IHTMLElement): void {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindElement', slice.call(arguments)); }
+
     let elementKey = node.getAttribute('as-element');
     if (elementKey === null) {
       elementKey = node.nodeName.toLowerCase();
@@ -258,9 +274,13 @@ export class ElementBinder {
     this.bindAttributes(node, parentManifest);
 
     this.bindChildNodes(node);
+
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindAttributes(node: IHTMLTemplateElement | IHTMLElement, parentManifest: ElementSymbol): void {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindAttributes', slice.call(arguments)); }
+
     // This is the top-level symbol for the current depth.
     // If there are no template controllers or replace-parts, it is always the manifest itself.
     // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
@@ -309,9 +329,13 @@ export class ElementBinder {
         this.manifestRoot.parts.push(replacePart);
       }
     }
+
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindChildNodes(node: IHTMLTemplateElement | IHTMLElement): void {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindChildNodes', slice.call(arguments)); }
+
     let childNode: INode;
     if (node.nodeName === 'TEMPLATE') {
       childNode = (node as IHTMLTemplateElement).content.firstChild;
@@ -321,36 +345,53 @@ export class ElementBinder {
     while (childNode !== null) {
       switch (childNode.nodeType) {
         case NodeType.Text:
-          const interpolation = this.exprParser.parse((childNode as IText).wholeText, BindingType.Interpolation);
-          if (interpolation !== null) {
-            this.manifest.childNodes.push(new TextSymbol((childNode as IText), interpolation));
-          }
-          while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
-            childNode = node.nextSibling;
-          }
+          childNode = this.bindText(childNode);
           break;
         case NodeType.Element:
           this.bindElement(this.manifest, childNode as IHTMLElement);
       }
       childNode = childNode.nextSibling;
     }
+
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  private bindText(childNode: INode): INode {
+    const interpolation = this.exprParser.parse((childNode as IText).wholeText, BindingType.Interpolation);
+    if (interpolation !== null) {
+      this.manifest.childNodes.push(new TextSymbol((childNode as IText), interpolation));
+    }
+    while (childNode.nextSibling !== null && childNode.nextSibling.nodeType === NodeType.Text) {
+      childNode = childNode.nextSibling;
+    }
+    return childNode;
   }
 
   private declareTemplateController(attrSyntax: AttrSyntax, attrInfo: AttrInfo): TemplateControllerSymbol {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.declareTemplateController', slice.call(arguments)); }
+
     if (attrInfo.hasDynamicOptions) {
       const symbol = new TemplateControllerSymbol(attrSyntax, null, attrInfo);
       this.bindMultiAttribute(symbol, attrSyntax.rawValue);
+
+      if (Tracer.enabled) { Tracer.leave(); }
+
       return symbol;
     } else {
       const type = this.getBindingType(attrSyntax);
       const expr = this.exprParser.parse(attrSyntax.rawValue, type);
+
+      if (Tracer.enabled) { Tracer.leave(); }
+
       return new TemplateControllerSymbol(attrSyntax, expr, attrInfo);
     }
   }
 
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindCustomAttribute', slice.call(arguments)); }
+
     let symbol: CustomAttributeSymbol;
-    if (attrInfo.hasDynamicOptions) {
+    if (attrSyntax.command === null && attrInfo.hasDynamicOptions) {
       symbol = new CustomAttributeSymbol(attrSyntax, null, attrInfo);
       this.bindMultiAttribute(symbol, attrSyntax.rawValue);
     } else {
@@ -359,9 +400,13 @@ export class ElementBinder {
       symbol = new CustomAttributeSymbol(attrSyntax, expr, attrInfo);
     }
     this.manifest.attributes.push(symbol);
+
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindMultiAttribute(symbol: ResourceAttributeSymbol, value: string): void {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindMultiAttribute', slice.call(arguments)); }
+
     const attributes = parseMultiAttributeBinding(value);
     let attr: IAttrLike;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
@@ -372,10 +417,17 @@ export class ElementBinder {
       const bindable = symbol.bindables[attrSyntax.target];
       symbol.attributes.push(new PlainAttributeSymbol(attrSyntax, bindable, expr));
     }
+
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindPlainAttribute(attrSyntax: AttrSyntax): void {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindPlainAttribute', slice.call(arguments)); }
+
     if (attrSyntax.rawValue.length === 0) {
+
+      if (Tracer.enabled) { Tracer.leave(); }
+
       return;
     }
     const type = this.getBindingType(attrSyntax);
@@ -385,14 +437,23 @@ export class ElementBinder {
       const bindable = manifest.bindables[attrSyntax.target];
       if (bindable !== undefined) {
         manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, bindable, expr));
+      } else if (expr !== null) {
+        manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, null, expr));
       }
     } else if (expr !== null) {
       manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, null, expr));
     }
+
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private getBindingType(attrSyntax: AttrSyntax): BindingType {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.getBindingType', slice.call(arguments)); }
+
     if (attrSyntax.command === null) {
+
+      if (Tracer.enabled) { Tracer.leave(); }
+
       return BindingType.Interpolation;
     }
     const command = this.metadata.commands[attrSyntax.command];
@@ -400,15 +461,26 @@ export class ElementBinder {
       // unknown binding command
       throw Reporter.error(0); // TODO: create error code
     }
+
+    if (Tracer.enabled) { Tracer.leave(); }
+
     return command.bindingType;
   }
 
   private declareReplacePart(node: IHTMLTemplateElement | IHTMLElement): ReplacePartSymbol {
+    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindSurrogate', slice.call(arguments)); }
+
     const name = node.getAttribute('replace-part');
     if (name === null) {
+
+      if (Tracer.enabled) { Tracer.leave(); }
+
       return null;
     }
     node.removeAttribute('replace-part');
+
+    if (Tracer.enabled) { Tracer.leave(); }
+
     return new ReplacePartSymbol(name);
   }
 }

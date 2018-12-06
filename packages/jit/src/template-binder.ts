@@ -239,7 +239,7 @@ export type AnySymbol =
 
 const slice = Array.prototype.slice;
 
-export class ElementBinder {
+export class TemplateBinder {
   public metadata: MetadataModel;
   public attrParser: IAttributeParser;
   public exprParser: IExpressionParser;
@@ -265,7 +265,7 @@ export class ElementBinder {
     this.parentManifestRoot = null;
   }
 
-  public bindSurrogate(node: IHTMLTemplateElement): PlainElementSymbol {
+  public bind(node: IHTMLTemplateElement): PlainElementSymbol {
     if (Tracer.enabled) { Tracer.enter('ElementBinder.bindSurrogate', slice.call(arguments)); }
 
     const manifest = this.manifest = new PlainElementSymbol(node);

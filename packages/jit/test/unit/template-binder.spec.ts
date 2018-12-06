@@ -12,8 +12,8 @@ import {
   ElementSymbol,
   NodeSymbol,
   ParentNodeSymbol,
-  ElementBinder
-} from '../../src/element-binder';
+  TemplateBinder
+} from '../../src/template-binder';
 import {
   ITemplateFactory,
   TemplateFactory
@@ -88,11 +88,6 @@ import {
   TwoWayBindingInstruction
 } from '../../../runtime/src/index';
 import { expect } from 'chai';
-import {
-  TemplateCompiler,
-  SymbolPreprocessor,
-  NodePreprocessor,
-} from '../../src/template-compiler';
 import { enableTracing, disableTracing, SymbolTraceWriter } from '../unit/util';
 import { MetadataModel } from '../../src/metadata-model';
 
@@ -105,11 +100,11 @@ function setup(markup: string, ...extraResources: any[]) {
   const exprParser = container.get<IExpressionParser>(IExpressionParser);
   const resources = new RuntimeCompilationResources(<any>container);
   const metadata = new MetadataModel(<any>resources);
-  const binder = new ElementBinder(metadata, attrParser, <any>exprParser);
+  const binder = new TemplateBinder(metadata, attrParser, <any>exprParser);
 
   const factory = container.get<ITemplateFactory>(ITemplateFactory);
   const template = factory.createTemplate(markup);
-  const surrogate = binder.bindSurrogate(template);
+  const surrogate = binder.bind(template);
 
   return { container, factory, surrogate };
 }

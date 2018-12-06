@@ -92,8 +92,13 @@ export interface ITargetedInstruction {
   type: TargetedInstructionType;
 }
 
-export type BindingInstruction =
+export type NodeInstruction =
   ITextBindingInstruction |
+  IHydrateElementInstruction |
+  IHydrateTemplateController |
+  IHydrateLetElementInstruction;
+
+export type AttributeInstruction =
   IInterpolationInstruction |
   IPropertyBindingInstruction |
   IIteratorBindingInstruction |
@@ -103,15 +108,14 @@ export type BindingInstruction =
   IStylePropertyBindingInstruction |
   ISetPropertyInstruction |
   ISetAttributeInstruction |
-  ILetBindingInstruction;
+  ILetBindingInstruction |
+  IHydrateAttributeInstruction;
 
-export type HydrateInstruction =
-  IHydrateElementInstruction |
-  IHydrateAttributeInstruction |
-  IHydrateTemplateController |
-  IHydrateLetElementInstruction;
+export type TargetedInstruction = NodeInstruction | AttributeInstruction;
 
-export type TargetedInstruction = BindingInstruction | HydrateInstruction;
+// TODO: further improve specificity and integrate with the definitions;
+export type InstructionRow = [TargetedInstruction, ...AttributeInstruction[]];
+export type InstructionTable = InstructionRow[];
 
 export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
   const type = value.type;

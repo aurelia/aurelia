@@ -215,7 +215,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     } else {
       // either an element binding command, dynamic options attribute binding command,
       // or custom attribute / template controller (single value) binding command
-      return this.metadata.commands[symbol.syntax.target].compile(symbol);
+      return this.metadata.commands[symbol.syntax.command].compile(symbol);
     }
   }
 
@@ -253,7 +253,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     } else {
       // a plain attribute with a binding command
-      return this.metadata.commands[symbol.syntax.target].compile(symbol);
+      return this.metadata.commands[symbol.syntax.command].compile(symbol);
     }
   }
 

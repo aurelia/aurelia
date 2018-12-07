@@ -38,6 +38,7 @@ export const enum SymbolFlags {
 export class TemplateControllerSymbol {
   public flags: SymbolFlags;
   public res: string;
+  public partName: string | null;
   public physicalNode: IHTMLTemplateElement | null;
   public syntax: AttrSyntax;
   public expression: IsExpressionOrStatement | null;
@@ -56,9 +57,10 @@ export class TemplateControllerSymbol {
     return this._bindings;
   }
 
-  constructor(syntax: AttrSyntax, expression: IsExpressionOrStatement | null, info: AttrInfo) {
+  constructor(syntax: AttrSyntax, expression: IsExpressionOrStatement | null, info: AttrInfo, partName: string | null) {
     this.flags = SymbolFlags.templateController;
     this.res = info.name;
+    this.partName = partName;
     this.physicalNode = null;
     this.syntax = syntax;
     this.expression = expression;
@@ -264,6 +266,8 @@ export class TemplateBinder {
   // It exclusively collects replace-parts that are placed on the current manifestRoot.
   private parentManifestRoot: CustomElementSymbol | null;
 
+  private partName: string | null;
+
   constructor(metadata: MetadataModel, attrParser: IAttributeParser, exprParser: IExpressionParser) {
     this.metadata = metadata;
     this.attrParser = attrParser;
@@ -271,6 +275,7 @@ export class TemplateBinder {
     this.manifest = null;
     this.manifestRoot = null;
     this.parentManifestRoot = null;
+    this.partName = null;
   }
 
   public bind(node: IHTMLTemplateElement): PlainElementSymbol {
@@ -305,6 +310,11 @@ export class TemplateBinder {
       elementKey = node.nodeName.toLowerCase();
     } else {
       node.removeAttribute('as-element');
+    }
+
+    this.partName = node.getAttribute('part');
+    if (this.partName !== null) {
+      node.removeAttribute('part');
     }
 
     const elementInfo = this.metadata.elements[elementKey];
@@ -429,7 +439,8 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.enter('ElementBinder.declareTemplateController', slice.call(arguments)); }
 
     if (attrInfo.hasDynamicOptions) {
-      const symbol = new TemplateControllerSymbol(attrSyntax, null, attrInfo);
+      const symbol = new TemplateControllerSymbol(attrSyntax, null, attrInfo, this.partName);
+      this.partName = null;
       this.bindMultiAttribute(symbol, attrSyntax.rawValue);
 
       if (Tracer.enabled) { Tracer.leave(); }
@@ -438,8 +449,11 @@ export class TemplateBinder {
       const type = this.getBindingType(attrSyntax);
       const expr = this.exprParser.parse(attrSyntax.rawValue, type);
 
+      const symbol = new TemplateControllerSymbol(attrSyntax, expr, attrInfo, this.partName);
+      this.partName = null;
+
       if (Tracer.enabled) { Tracer.leave(); }
-      return new TemplateControllerSymbol(attrSyntax, expr, attrInfo);
+      return symbol;
     }
   }
 

@@ -176,7 +176,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.instructionRows = instructionRowsSave;
 
     const def = {
-      name: symbol.res,
+      name: symbol.partName === null ? symbol.res : symbol.partName,
       template: symbol.physicalNode,
       instructions: controllerInstructions
     };
@@ -276,7 +276,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         this.compileParentNode(replacePart.template);
         parts[replacePart.name] = {
           name: replacePart.name,
-          // TODO: template
+          template: replacePart.physicalNode,
           instructions: partInstructions
         };
         this.instructionRows = instructionRowsSave;

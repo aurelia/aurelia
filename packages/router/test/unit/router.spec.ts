@@ -24,7 +24,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left');
+    router.goto('foo@left');
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
@@ -36,13 +36,40 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left');
+    router.goto('foo@left');
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
-    await freshState(router, 1);
+    router.goto('-@left');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
     expect(host.textContent).to.not.contain('foo');
+
+    await teardown(host, router, 1);
+  });
+
+  it('clears all viewports', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('foo@left');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: foo');
+    router.goto('bar@right');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: bar');
+    router.goto('-');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.not.contain('Viewport foo');
+    expect(host.textContent).to.not.contain('Viewport bar');
 
     await teardown(host, router, 1);
   });
@@ -52,13 +79,17 @@ describe('Router', () => {
     const { host, router } = await setup();
 
     let historyLength = router.historyBrowser.history.length;
-    router.goto('/foo@left');
+    router.goto('foo@left');
+    await Promise.resolve();
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
     expect(router.historyBrowser.history.length).to.equal(historyLength + 1);
 
-    router.replace('/bar@left');
+    router.replace('bar@left');
+    await Promise.resolve();
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('bar');
@@ -321,7 +352,7 @@ let teardown = async (host, router, count) => {
 let throttleCounter = 0;
 let freshState = async (router, count) => {
   throttleCounter += (count * 2) + 2;
-  router.goto('/-@left+-@right');
+  router.goto('-');
   await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();

@@ -150,12 +150,24 @@ export class HistoryBrowser {
     if (newHash === hash) {
       return;
     }
-    const state = { ...this.history.state };
     this.currentEntry.path = path;
-    this.setState({
-      'HistoryEntry': this.currentEntry,
-      'HistoryEntries': this.historyEntries
+    // const state = { ...this.history.state };
+    // this.setState({
+    //   'HistoryEntry': this.currentEntry,
+    //   'HistoryEntries': this.historyEntries
+    // });
+    console.log(')))))))))))))))))))))', {
+      'HistoryEntry': JSON.parse(JSON.stringify(this.currentEntry)),
+      'HistoryEntries': JSON.parse(JSON.stringify(this.historyEntries)),
     });
+    // tslint:disable-next-line:prefer-object-spread
+    const state = Object.assign(
+      {},
+      this.history.state,
+      {
+        'HistoryEntry': JSON.parse(JSON.stringify(this.currentEntry)),
+        'HistoryEntries': JSON.parse(JSON.stringify(this.historyEntries)),
+      });
     this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
   }
 

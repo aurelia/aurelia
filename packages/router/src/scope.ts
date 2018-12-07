@@ -239,6 +239,17 @@ export class Scope {
     return states.filter((value) => value && value.length);
   }
 
+  public allViewports(): Viewport[] {
+    const viewports: Viewport[] = [];
+    for (const viewport in this.viewports) {
+      viewports.push(this.viewports[viewport]);
+    }
+    for (const scope of this.children) {
+      viewports.push(...scope.allViewports());
+    }
+    return viewports;
+  }
+
   public context(): string {
     if (!this.element || !this.parent) {
       return '';

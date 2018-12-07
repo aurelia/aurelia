@@ -121,6 +121,16 @@ export class Router {
       return Promise.resolve();
     }
 
+    const path = instruction.path;
+    let clearViewports: boolean = false;
+    if (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add) ||
+      instruction.isBack || instruction.isForward) {
+      clearViewports = true;
+      if (path.startsWith(this.separators.clear)) {
+        instruction.path = path.substr(1);
+      }
+    }
+
     let title;
     let views: Object;
     let route: IRoute = this.findRoute(instruction);
@@ -141,13 +151,15 @@ export class Router {
       views = this.findViews(instruction);
     }
 
-    if (!views && !Object.keys(views).length) {
+    if (!views && !Object.keys(views).length && !clearViewports) {
       return Promise.resolve();
     }
 
     if (title) {
       this.historyBrowser.setEntryTitle(title);
     }
+
+    const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
 
     // TODO: Take care of cancellations down in subsets/iterations
     let { componentViewports, viewports } = this.rootScope.findViewports(views);
@@ -156,6 +168,15 @@ export class Router {
       for (const componentViewport of componentViewports) {
         const { component, viewport } = componentViewport;
         if (viewport.setNextContent(component, instruction)) {
+          changedViewports.push(viewport);
+        }
+        const usedIndex = usedViewports.findIndex((value) => value === viewport);
+        if (usedIndex >= 0) {
+          usedViewports.splice(usedIndex, 1);
+        }
+      }
+      for (const viewport of usedViewports) {
+        if (viewport.setNextContent(this.separators.clear, instruction)) {
           changedViewports.push(viewport);
         }
       }

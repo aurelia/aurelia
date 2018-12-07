@@ -115,7 +115,6 @@ export type TargetedInstruction = NodeInstruction | AttributeInstruction;
 
 // TODO: further improve specificity and integrate with the definitions;
 export type InstructionRow = [TargetedInstruction, ...AttributeInstruction[]];
-export type InstructionTable = InstructionRow[];
 
 export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
   const type = value.type;

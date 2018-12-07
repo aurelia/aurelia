@@ -1,31 +1,27 @@
 import { Class, Constructable, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
 import {
+  AttributeInstruction,
   BindingType,
   CallBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
   ForOfStatement,
   FromViewBindingInstruction,
-  HydrateTemplateController,
   IResourceDefinition,
   IResourceKind,
   IResourceType,
   IsBindingBehavior,
-  ITemplateDefinition,
   IteratorBindingInstruction,
   OneTimeBindingInstruction,
-  SetPropertyInstruction,
-  TargetedInstruction,
   ToViewBindingInstruction,
   TriggerBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
-import { AttributeSymbol, SymbolKind, TemplateControllerAttributeSymbol } from './semantic-model';
+import { AttributeSymbol, PlainAttributeSymbol, ResourceAttributeSymbol, SymbolFlags } from './template-binder';
 
 export interface IBindingCommand {
   bindingType: BindingType;
-  compile($symbol: AttributeSymbol): TargetedInstruction;
-  handles?($symbol: AttributeSymbol): boolean;
+  compile(binding: AttributeSymbol): AttributeInstruction;
 }
 
 export interface IBindingCommandDefinition extends IResourceDefinition { }
@@ -66,10 +62,6 @@ function define<T extends Constructable>(this: IBindingCommandResource, nameOrDe
   Type.description = description;
   Type.register = register;
 
-  const proto = Type.prototype;
-
-  proto.handles = proto.handles || defaultHandles;
-
   return Type;
 }
 
@@ -79,10 +71,6 @@ export const BindingCommandResource: IBindingCommandResource = {
   isType,
   define
 };
-
-function defaultHandles(this: IBindingCommand, $symbol: AttributeSymbol): boolean {
-  return $symbol.kind !== SymbolKind.templateControllerAttribute;
-}
 
 export interface OneTimeBindingCommand extends IBindingCommand {}
 
@@ -95,15 +83,15 @@ export class OneTimeBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.OneTimeCommand;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    switch ($symbol.kind) {
-      case SymbolKind.customAttribute:
-      case SymbolKind.templateControllerAttribute:
-        return new OneTimeBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.bindable.propName);
-      case SymbolKind.elementBinding:
-        return new OneTimeBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.propName);
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    switch ((binding.flags & SymbolFlags.type)) {
+      case SymbolFlags.isCustomAttribute:
+      case SymbolFlags.isTemplateController:
+        return new OneTimeBindingInstruction(binding.expression as IsBindingBehavior, (binding as ResourceAttributeSymbol).bindable.propName);
+      case SymbolFlags.isPlainAttribute:
+        return new OneTimeBindingInstruction(binding.expression as IsBindingBehavior, binding.syntax.target);
       default:
-        return new OneTimeBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
+        return new OneTimeBindingInstruction(binding.expression as IsBindingBehavior, (binding as PlainAttributeSymbol).bindable.propName);
     }
   }
 }
@@ -119,15 +107,15 @@ export class ToViewBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.ToViewCommand;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    switch ($symbol.kind) {
-      case SymbolKind.customAttribute:
-      case SymbolKind.templateControllerAttribute:
-        return new ToViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.bindable.propName);
-      case SymbolKind.elementBinding:
-        return new ToViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.propName);
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    switch ((binding.flags & SymbolFlags.type)) {
+      case SymbolFlags.isCustomAttribute:
+      case SymbolFlags.isTemplateController:
+        return new ToViewBindingInstruction(binding.expression as IsBindingBehavior, (binding as ResourceAttributeSymbol).bindable.propName);
+      case SymbolFlags.isPlainAttribute:
+        return new ToViewBindingInstruction(binding.expression as IsBindingBehavior, binding.syntax.target);
       default:
-        return new ToViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
+        return new ToViewBindingInstruction(binding.expression as IsBindingBehavior, (binding as PlainAttributeSymbol).bindable.propName);
     }
   }
 }
@@ -143,15 +131,15 @@ export class FromViewBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.FromViewCommand;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    switch ($symbol.kind) {
-      case SymbolKind.customAttribute:
-      case SymbolKind.templateControllerAttribute:
-        return new FromViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.bindable.propName);
-      case SymbolKind.elementBinding:
-        return new FromViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.propName);
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    switch ((binding.flags & SymbolFlags.type)) {
+      case SymbolFlags.isCustomAttribute:
+      case SymbolFlags.isTemplateController:
+        return new FromViewBindingInstruction(binding.expression as IsBindingBehavior, (binding as ResourceAttributeSymbol).bindable.propName);
+      case SymbolFlags.isPlainAttribute:
+        return new FromViewBindingInstruction(binding.expression as IsBindingBehavior, binding.syntax.target);
       default:
-        return new FromViewBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
+        return new FromViewBindingInstruction(binding.expression as IsBindingBehavior, (binding as PlainAttributeSymbol).bindable.propName);
     }
   }
 }
@@ -167,15 +155,15 @@ export class TwoWayBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.TwoWayCommand;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    switch ($symbol.kind) {
-      case SymbolKind.customAttribute:
-      case SymbolKind.templateControllerAttribute:
-        return new TwoWayBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.bindable.propName);
-      case SymbolKind.elementBinding:
-        return new TwoWayBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.info.propName);
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    switch ((binding.flags & SymbolFlags.type)) {
+      case SymbolFlags.isCustomAttribute:
+      case SymbolFlags.isTemplateController:
+        return new TwoWayBindingInstruction(binding.expression as IsBindingBehavior, (binding as ResourceAttributeSymbol).bindable.propName);
+      case SymbolFlags.isPlainAttribute:
+        return new TwoWayBindingInstruction(binding.expression as IsBindingBehavior, binding.syntax.target);
       default:
-        return new TwoWayBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
+        return new TwoWayBindingInstruction(binding.expression as IsBindingBehavior, (binding as PlainAttributeSymbol).bindable.propName);
     }
   }
 }
@@ -210,17 +198,15 @@ export class DefaultBindingCommand implements IBindingCommand {
     this.$6 = TwoWayBindingCommand.prototype.compile;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    switch ($symbol.kind) {
-      case SymbolKind.customAttribute:
-      case SymbolKind.templateControllerAttribute:
-        return this[compileMode[$symbol.info.bindable.mode]]($symbol);
-      case SymbolKind.attributeBinding:
-        return this[compileCommand[$symbol.syntax.command]]($symbol);
-      case SymbolKind.elementBinding:
-        return this[compileMode[$symbol.info.mode]]($symbol);
-      case SymbolKind.boundAttribute:
-        return this[compileCommand[$symbol.syntax.command]]($symbol);
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    switch ((binding.flags & SymbolFlags.type)) {
+      case SymbolFlags.isCustomAttribute:
+      case SymbolFlags.isTemplateController:
+        return this[compileMode[(binding as ResourceAttributeSymbol).bindable.mode]](binding);
+      case SymbolFlags.isPlainAttribute:
+        return this[compileCommand[(binding as PlainAttributeSymbol).syntax.command]](binding);
+      default:
+        return this[compileMode[(binding as PlainAttributeSymbol).bindable.mode]](binding);
     }
   }
 }
@@ -236,8 +222,8 @@ export class TriggerBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.TriggerCommand;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new TriggerBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    return new TriggerBindingInstruction(binding.expression as IsBindingBehavior, binding.syntax.target);
   }
 }
 
@@ -252,8 +238,8 @@ export class DelegateBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.DelegateCommand;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new DelegateBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    return new DelegateBindingInstruction(binding.expression as IsBindingBehavior, binding.syntax.target);
   }
 }
 
@@ -268,8 +254,8 @@ export class CaptureBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.CaptureCommand;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new CaptureBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    return new CaptureBindingInstruction(binding.expression as IsBindingBehavior, binding.syntax.target);
   }
 }
 
@@ -284,8 +270,8 @@ export class CallBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.CallCommand;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new CallBindingInstruction($symbol.expr as IsBindingBehavior, $symbol.syntax.target);
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    return new CallBindingInstruction(binding.expression as IsBindingBehavior, binding.syntax.target);
   }
 }
 
@@ -298,11 +284,7 @@ export class ForBindingCommand implements IBindingCommand {
     this.bindingType = BindingType.ForCommand;
   }
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
-    return new IteratorBindingInstruction($symbol.expr as ForOfStatement, 'items');
-  }
-
-  public handles($symbol: AttributeSymbol): boolean {
-    return $symbol.kind === SymbolKind.templateControllerAttribute;
+  public compile(binding: AttributeSymbol): AttributeInstruction {
+    return new IteratorBindingInstruction(binding.expression as ForOfStatement, 'items');
   }
 }

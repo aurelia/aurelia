@@ -271,7 +271,7 @@ describe('SemanticModel', () => {
     Tracer.enableLiveLogging(SymbolTraceWriter);
     const container = DI.createContainer();
     container.register(<any>BasicConfiguration);
-    const def = { name: 'app', template: "<template><template if.bind=\"true\">${msg}</template></template>" };
+    const def = { name: 'app', template: "<template><div if.bind=\"true\">${msg}</div></template>" };
     const App = CustomElementResource.define(def, class { msg = 'a'});
     const component = new App();
     const host = <any>DOM.createElement('div');
@@ -298,7 +298,7 @@ describe('SemanticModel', () => {
     Tracer.enableLiveLogging(SymbolTraceWriter);
     const container = DI.createContainer();
     container.register(<any>BasicConfiguration);
-    const def = { name: 'app', template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</template></template>" };
+    const def = { name: 'app', template: "<template><div if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\">${item}</div></template>" };
     const App = CustomElementResource.define(def, class { msg = 'a'});
     const component = new App();
     const host = <any>DOM.createElement('div');

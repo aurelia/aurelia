@@ -110,10 +110,10 @@ function setup(markup: string, ...extraResources: any[]) {
 }
 
 
-describe.only('element-binder', () => {
+describe('element-binder', () => {
   it('repeater on div with interpolation', () => {
-    enableTracing();
-    Tracer.enableLiveLogging(SymbolTraceWriter);
+    //enableTracing();
+    //Tracer.enableLiveLogging(SymbolTraceWriter);
 
     const { surrogate } = setup("<template><div repeat.for=\"i of 2\">${msg}</div></template>");
 
@@ -132,12 +132,12 @@ describe.only('element-binder', () => {
 
     expect(child$3.interpolation).to.be.instanceof(Interpolation, 'child$3.interpolation');
 
-    disableTracing();
+    //disableTracing();
   });
 
   it('au-compose with various attributes', () => {
-    enableTracing();
-    Tracer.enableLiveLogging(SymbolTraceWriter);
+    //enableTracing();
+    //Tracer.enableLiveLogging(SymbolTraceWriter);
 
     const CA = CustomAttributeResource.define({
       name: 'foo',
@@ -198,12 +198,12 @@ describe.only('element-binder', () => {
     expect(child$1attr$6.bindable.propName).to.equal('a', 'child$1attr$6.bindable.propName');
     expect(child$1attr$6.expression).to.be.instanceof(PrimitiveLiteral, 'child$1attr$6.expression');
 
-    disableTracing();
+    //disableTracing();
   });
 
   it('compile template for repeater on div with interpolation', () => {
-    enableTracing();
-    Tracer.enableLiveLogging(SymbolTraceWriter);
+    //enableTracing();
+    //Tracer.enableLiveLogging(SymbolTraceWriter);
 
     const { surrogate, factory, container } = setup("<template><div repeat.for=\"i of 2\">${msg}</div></template>");
 
@@ -250,6 +250,6 @@ describe.only('element-binder', () => {
 
 
 
-    disableTracing();
+    //disableTracing();
   });
 })

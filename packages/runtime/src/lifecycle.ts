@@ -703,7 +703,7 @@ export class Lifecycle implements ILifecycle {
   /*@internal*/public $nextUnbound: ILifecycleUnbound;
   /*@internal*/public unbound: ILifecycleUnbound['unbound'];
 
-  /*@internal*/public task: AggregateLifecycleTask;
+  /*@internal*/public task: AggregateLifecycleTask | null;
 
   constructor() {
     this.bindDepth = 0;
@@ -1197,7 +1197,7 @@ export class CompositionCoordinator {
   private currentView: IView;
   private isAttached: boolean;
   private isBound: boolean;
-  private queue: (IView | PromiseSwap)[];
+  private queue: (IView | PromiseSwap)[] | null;
   private scope: IScope;
   private swapTask: ILifecycleTask;
 

@@ -1,6 +1,6 @@
-import { Class, Constructable, IContainer, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, Immutable, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
-import { AttributeDefinition, customAttributeKey, customAttributeName, IAttributeDefinition } from '../definitions';
+import { customAttributeKey, customAttributeName, IAttributeDefinition } from '../definitions';
 import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable, IState } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
@@ -8,7 +8,7 @@ import { $attachAttribute, $cacheAttribute, $detachAttribute } from './lifecycle
 import { $bindAttribute, $unbindAttribute } from './lifecycle-bind';
 import { $hydrateAttribute, IRenderingEngine } from './lifecycle-render';
 
-type CustomAttributeStaticProperties = Pick<AttributeDefinition, 'bindables'>;
+type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 

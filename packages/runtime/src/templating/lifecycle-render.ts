@@ -607,7 +607,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
 
 /*@internal*/
 export class InstanceProvider<T> implements IResolver {
-  private instance: T;
+  private instance: T | null;
 
   constructor() {
     this.instance = null;
@@ -617,7 +617,7 @@ export class InstanceProvider<T> implements IResolver {
     this.instance = instance;
   }
 
-  public resolve(handler: IContainer, requestor: IContainer): T {
+  public resolve(handler: IContainer, requestor: IContainer): T | null {
     if (this.instance === undefined) { // unmet precondition: call prepare
       throw Reporter.error(50); // TODO: organize error codes
     }
@@ -631,7 +631,7 @@ export class InstanceProvider<T> implements IResolver {
 
 /*@internal*/
 export class ViewFactoryProvider implements IResolver {
-  private factory: IViewFactory;
+  private factory: IViewFactory | null;
   private renderingEngine: IRenderingEngine;
   private replacements: TemplatePartDefinitions;
 
@@ -646,7 +646,7 @@ export class ViewFactoryProvider implements IResolver {
 
   public resolve(handler: IContainer, requestor: ExposedContext): IViewFactory {
     const factory = this.factory;
-    if (factory === undefined) { // unmet precondition: call prepare
+    if (factory === undefined || factory === null) { // unmet precondition: call prepare
       throw Reporter.error(50); // TODO: organize error codes
     }
     if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name
@@ -657,12 +657,12 @@ export class ViewFactoryProvider implements IResolver {
       return this.renderingEngine.getViewFactory(found, requestor);
     }
 
-    return this.factory;
+    return factory;
   }
 
   public dispose(): void {
     this.factory = null;
-    this.replacements = null;
+    this.replacements = PLATFORM.emptyObject;
   }
 }
 

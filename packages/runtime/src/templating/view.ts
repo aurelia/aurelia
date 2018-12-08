@@ -149,7 +149,7 @@ export class ViewFactory implements IViewFactory {
     let view: View;
 
     if (cache !== null && cache.length > 0) {
-      view = cache.pop();
+      view = cache.pop() as View;
       view.$state &= ~State.isCached;
       return view;
     }

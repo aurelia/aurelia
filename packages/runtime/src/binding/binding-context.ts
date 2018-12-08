@@ -119,7 +119,7 @@ export class Scope implements IScope {
     return new Scope(oc.bindingContext, oc);
   }
 
-  public static fromParent(ps: IScope, bc: IBindingContext | IBindScope): Scope {
+  public static fromParent(ps: IScope | null, bc: IBindingContext | IBindScope): Scope {
     if (ps === null || ps === undefined) {
       throw Reporter.error(RuntimeError.NilParentScope);
     }

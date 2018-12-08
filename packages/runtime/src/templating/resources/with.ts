@@ -15,7 +15,7 @@ export class With {
   // TODO: this type is incorrect (it can be any user-provided object), need to fix and double check Scope.
   @bindable public value: IBindScope | IBindingContext;
 
-  private currentView: IView = null;
+  private currentView: IView;
   private factory: IViewFactory;
 
   constructor(factory: IViewFactory, location: IRenderLocation) {

@@ -147,11 +147,11 @@ export class Viewport {
     return Promise.resolve(true);
   }
 
-  public description(): string {
+  public description(full: boolean = false): string {
     if (this.content) {
       const component = this.content.description.name;
       const newScope: string = this.scope ? this.router.separators.ownsScope : '';
-      if (newScope.length || this.options.forceDescription) {
+      if (full || newScope.length || this.options.forceDescription) {
         return `${component}${this.router.separators.viewport}${this.name}${newScope}`;
       }
       const viewports = {};
@@ -164,8 +164,8 @@ export class Viewport {
     }
   }
 
-  public scopedDescription(): string {
-    const descriptions = [this.owningScope.context(), this.description()];
+  public scopedDescription(full: boolean = false): string {
+    const descriptions = [this.owningScope.context(), this.description(full)];
     return descriptions.filter((value) => value && value.length).join(this.router.separators.scope);
   }
 

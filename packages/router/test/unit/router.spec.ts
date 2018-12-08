@@ -137,8 +137,8 @@ describe('Router', () => {
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
-    // expect(host.textContent).to.contain('Viewport: foo');
-    // expect(host.textContent).to.not.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Viewport: foo');
+    expect(host.textContent).to.not.contain('Viewport: bar');
 
     router.goto('/bar@left');
     await Promise.resolve();

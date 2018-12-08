@@ -121,10 +121,12 @@ export class Router {
       return Promise.resolve();
     }
 
-    const path = instruction.path;
     let clearViewports: boolean = false;
-    if (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add) ||
-      instruction.isBack || instruction.isForward) {
+    if (instruction.isBack || instruction.isForward) {
+      instruction.path = instruction.fullStatePath;
+    }
+    const path = instruction.path;
+    if (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add)) {
       clearViewports = true;
       if (path.startsWith(this.separators.clear)) {
         instruction.path = path.substr(1);
@@ -163,7 +165,8 @@ export class Router {
 
     // TODO: Take care of cancellations down in subsets/iterations
     let { componentViewports, viewports } = this.rootScope.findViewports(views);
-    while (componentViewports.length || Object.keys(viewports).length) {
+    let guard = 100;
+    while ((componentViewports.length || Object.keys(viewports).length) && guard--) {
       const changedViewports: Viewport[] = [];
       for (const componentViewport of componentViewports) {
         const { component, viewport } = componentViewport;
@@ -209,10 +212,7 @@ export class Router {
       componentViewports = remaining.componentViewports;
       viewports = remaining.viewports;
     }
-
-    let viewportStates = this.rootScope.viewportStates();
-    viewportStates = this.removeStateDuplicates(viewportStates);
-    this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling));
+    this.replacePaths();
   }
 
   // public view(views: Object, title?: string, data?: Object): Promise<void> {
@@ -275,6 +275,7 @@ export class Router {
     while (route.redirect) {
       const redirectRoute: IRoute = this.findRoute({
         path: route.redirect,
+        fullStatePath: route.redirect,
         data: data,
       });
       if (redirectRoute) {
@@ -434,5 +435,14 @@ export class Router {
     unique.sort((a, b) => a.split(this.separators.scope).length - b.split(this.separators.scope).length);
 
     return unique;
+  }
+
+  private replacePaths(): void {
+    let viewportStates = this.rootScope.viewportStates();
+    viewportStates = this.removeStateDuplicates(viewportStates);
+    let fullViewportStates = this.rootScope.viewportStates(true);
+    fullViewportStates = this.removeStateDuplicates(fullViewportStates);
+    fullViewportStates.unshift(this.separators.clear);
+    this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling), fullViewportStates.join(this.separators.sibling));
   }
 }

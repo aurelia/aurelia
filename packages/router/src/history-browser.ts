@@ -1,5 +1,6 @@
 export interface IHistoryEntry {
   path: string;
+  fullStatePath: string;
   index?: number;
   title?: string;
   data?: Object;
@@ -41,8 +42,6 @@ export class HistoryBrowser {
   private isReplacing: boolean = false;
   private isRefreshing: boolean = false;
 
-  private __path: string; // For development, should be removed
-
   constructor() {
     this.location = window.location;
     this.history = window.history;
@@ -71,6 +70,7 @@ export class HistoryBrowser {
   public goto(path: string, title?: string, data?: Object): void {
     this.activeEntry = {
       path: path,
+      fullStatePath: path,
       title: title,
       data: data,
     };
@@ -81,6 +81,7 @@ export class HistoryBrowser {
     this.isReplacing = true;
     this.activeEntry = {
       path: path,
+      fullStatePath: path,
       title: title,
       data: data,
     };
@@ -143,7 +144,7 @@ export class HistoryBrowser {
     });
   }
 
-  public replacePath(path: string): void {
+  public replacePath(path: string, fullStatePath: string): void {
     const newHash = `#/${path}`;
     const { pathname, search, hash } = this.location;
     // tslint:disable-next-line:possible-timing-attack
@@ -151,23 +152,14 @@ export class HistoryBrowser {
       return;
     }
     this.currentEntry.path = path;
-    // const state = { ...this.history.state };
-    // this.setState({
-    //   'HistoryEntry': this.currentEntry,
-    //   'HistoryEntries': this.historyEntries
-    // });
-    console.log(')))))))))))))))))))))', {
-      'HistoryEntry': JSON.parse(JSON.stringify(this.currentEntry)),
-      'HistoryEntries': JSON.parse(JSON.stringify(this.historyEntries)),
-    });
-    // tslint:disable-next-line:prefer-object-spread
-    const state = Object.assign(
-      {},
-      this.history.state,
-      {
-        'HistoryEntry': JSON.parse(JSON.stringify(this.currentEntry)),
-        'HistoryEntries': JSON.parse(JSON.stringify(this.historyEntries)),
-      });
+    this.currentEntry.fullStatePath = fullStatePath;
+    const state = {
+      ...this.history.state,
+      ...{
+        'HistoryEntry': this.currentEntry,
+        'HistoryEntries': this.historyEntries,
+      }
+    };
     this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
   }
 
@@ -241,6 +233,7 @@ export class HistoryBrowser {
         // TODO: max history length of 50, find better new index
         historyEntry = {
           path: path,
+          fullStatePath: path,
           index: this.history.length - this.historyOffset,
         };
         this.historyEntries = this.historyEntries.slice(0, historyEntry.index);

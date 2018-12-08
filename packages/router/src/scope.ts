@@ -228,13 +228,13 @@ export class Scope {
     this.children.splice(this.children.indexOf(child), 1);
   }
 
-  public viewportStates(): string[] {
+  public viewportStates(full: boolean = false): string[] {
     const states: string[] = [];
     for (const viewport in this.viewports) {
-      states.push((this.viewports[viewport] as Viewport).scopedDescription());
+      states.push((this.viewports[viewport] as Viewport).scopedDescription(full));
     }
     for (const scope of this.children) {
-      states.push(...scope.viewportStates());
+      states.push(...scope.viewportStates(full));
     }
     return states.filter((value) => value && value.length);
   }

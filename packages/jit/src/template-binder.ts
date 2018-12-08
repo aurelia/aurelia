@@ -1,5 +1,5 @@
 import { Reporter, Tracer } from '@aurelia/kernel';
-import { BindingType, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
+import { BindingType, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType, IElement, DOM } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -16,11 +16,11 @@ export const enum SymbolFlags {
   isPlainElement       = 0b000000000_0110,
   isText               = 0b000000000_0111,
   isBinding            = 0b000000000_1000,
-  templateController   = 0b000000010_0001,
+  templateController   = 0b000010010_0001,
   replacePart          = 0b000010000_0010,
   customAttribute      = 0b000001010_0011,
   plainAttribute       = 0b000000000_0100,
-  customElement        = 0b000010111_0101,
+  customElement        = 0b000000111_0101,
   plainElement         = 0b000000101_0110,
   text                 = 0b000000000_0111,
   binding              = 0b000000000_1000,
@@ -35,21 +35,20 @@ export const enum SymbolFlags {
   hasParts             = 0b100000000_0000,
 }
 
+/**
+ * A html attribute that is associated with a registered resource, specifically a template controller.
+ */
 export class TemplateControllerSymbol {
   public flags: SymbolFlags;
   public res: string;
   public partName: string | null;
   public physicalNode: IHTMLTemplateElement | null;
   public syntax: AttrSyntax;
-  public expression: IsExpressionOrStatement | null;
-  public bindable: BindableInfo;
-  public bindables: Record<string, BindableInfo>;
   public parent: ParentNodeSymbol | null;
   public template: ParentNodeSymbol | null;
-  public hasAttributes: boolean;
 
-  private _bindings: PlainAttributeSymbol[] | null;
-  public get bindings(): PlainAttributeSymbol[] {
+  private _bindings: BindingSymbol[] | null;
+  public get bindings(): BindingSymbol[] {
     if (this._bindings === null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
@@ -57,22 +56,24 @@ export class TemplateControllerSymbol {
     return this._bindings;
   }
 
-  constructor(syntax: AttrSyntax, expression: IsExpressionOrStatement | null, info: AttrInfo, partName: string | null) {
+  constructor(syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
     this.flags = SymbolFlags.templateController;
     this.res = info.name;
     this.partName = partName;
-    this.physicalNode = null;
+    this.physicalNode = DOM.createTemplate();
     this.syntax = syntax;
-    this.expression = expression;
-    this.bindable = info.bindable;
-    this.bindables = info.bindables;
     this.parent = null;
     this.template = null;
-    this.hasAttributes = false;
     this._bindings = null;
   }
 }
 
+/**
+ * Wrapper for an element (with all of its attributes, regardless of the order in which they are declared)
+ * that has a replace-part attribute on it.
+ *
+ * This element will be lifted from the DOM just like a template controller.
+ */
 export class ReplacePartSymbol {
   public flags: SymbolFlags;
   public name: string;
@@ -83,22 +84,22 @@ export class ReplacePartSymbol {
   constructor(name: string) {
     this.flags = SymbolFlags.replacePart;
     this.name = name;
-    this.physicalNode = null;
+    this.physicalNode = DOM.createTemplate();
     this.parent = null;
     this.template = null;
   }
 }
 
+/**
+ * A html attribute that is associated with a registered resource, but not a template controller.
+ */
 export class CustomAttributeSymbol {
   public flags: SymbolFlags;
   public res: string;
   public syntax: AttrSyntax;
-  public expression: IsExpressionOrStatement | null;
-  public bindable: BindableInfo;
-  public bindables: Record<string, BindableInfo>;
 
-  private _bindings: PlainAttributeSymbol[] | null;
-  public get bindings(): PlainAttributeSymbol[] {
+  private _bindings: BindingSymbol[] | null;
+  public get bindings(): BindingSymbol[] {
     if (this._bindings === null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
@@ -106,40 +107,77 @@ export class CustomAttributeSymbol {
     return this._bindings;
   }
 
-  constructor(syntax: AttrSyntax, expression: IsExpressionOrStatement | null, info: AttrInfo) {
+  constructor(syntax: AttrSyntax, info: AttrInfo) {
     this.flags = SymbolFlags.customAttribute;
     this.res = info.name;
     this.syntax = syntax;
-    this.expression = expression;
-    this.bindable = info.bindable;
-    this.bindables = info.bindables;
     this._bindings = null;
   }
 }
 
+/**
+ * An attribute, with either a binding command or an interpolation, whose target is the html
+ * attribute of the element.
+ *
+ * This will never target a bindable property of a custom attribute or element;
+ */
 export class PlainAttributeSymbol {
   public flags: SymbolFlags;
   public syntax: AttrSyntax;
-  public bindable: BindableInfo;
+  public command: IBindingCommand | null;
   public expression: IsExpressionOrStatement | null;
 
   constructor(
     syntax: AttrSyntax,
-    bindable: BindableInfo,
+    command: IBindingCommand | undefined,
     expression: IsExpressionOrStatement | null
   ) {
     this.flags = SymbolFlags.plainAttribute;
     this.syntax = syntax;
-    this.bindable = bindable;
+    this.command = command === undefined ? null : command;
     this.expression = expression;
   }
 }
 
+/**
+ * Either an attribute on an custom element that maps to a declared bindable property of that element,
+ * a single-value bound custom attribute, or one of several bindables that were extracted from the attribute
+ * value of a dynamicOptions custom attribute.
+ *
+ * This will always target a bindable property of a custom attribute or element;
+ */
+export class BindingSymbol {
+  public flags: SymbolFlags;
+  public command: IBindingCommand | null;
+  public bindable: BindableInfo;
+  public expression: IsExpressionOrStatement | null;
+  public rawValue: string;
+
+  constructor(
+    command: IBindingCommand | undefined,
+    bindable: BindableInfo,
+    expression: IsExpressionOrStatement | null,
+    rawValue: string
+  ) {
+    this.flags = SymbolFlags.binding;
+    this.command = command === undefined ? null : command;
+    this.bindable = bindable;
+    this.expression = expression;
+    this.rawValue = rawValue;
+  }
+}
+
+/**
+ * A html element that is associated with a registered resource either via its (lowerCase) `nodeName`
+ * or the value of its `as-element` attribute.
+ */
 export class CustomElementSymbol {
   public flags: SymbolFlags;
   public res: string;
   public physicalNode: IHTMLElement;
   public bindables: Record<string, BindableInfo>;
+  public isTarget: true;
+  public isContainerless: boolean;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
@@ -150,8 +188,8 @@ export class CustomElementSymbol {
     return this._attributes;
   }
 
-  private _bindings: PlainAttributeSymbol[] | null;
-  public get bindings(): PlainAttributeSymbol[] {
+  private _bindings: BindingSymbol[] | null;
+  public get bindings(): BindingSymbol[] {
     if (this._bindings === null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
@@ -182,6 +220,8 @@ export class CustomElementSymbol {
     this.res = info.name;
     this.physicalNode = node;
     this.bindables = info.bindables;
+    this.isTarget = true;
+    this.isContainerless = info.containerless;
     this._attributes = null;
     this._bindings = null;
     this._childNodes = null;
@@ -189,9 +229,15 @@ export class CustomElementSymbol {
   }
 }
 
+/**
+ * A normal html element that may or may not have attribute behaviors and/or child node behaviors.
+ *
+ * It is possible for a PlainElementSymbol to not yield any instructions during compilation.
+ */
 export class PlainElementSymbol {
   public flags: SymbolFlags;
   public physicalNode: IHTMLElement;
+  public isTarget: boolean;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
@@ -214,11 +260,15 @@ export class PlainElementSymbol {
   constructor(node: IHTMLElement) {
     this.flags = SymbolFlags.plainElement;
     this.physicalNode = node;
+    this.isTarget = false;
     this._attributes = null;
     this._childNodes = null;
   }
 }
 
+/**
+ * A standalone text node that has an interpolation.
+ */
 export class TextSymbol {
   public flags: SymbolFlags;
   public physicalNode: IText;
@@ -248,6 +298,39 @@ export type AnySymbol =
   TextSymbol;
 
 const slice = Array.prototype.slice;
+
+function createMarker(): IHTMLElement {
+  const marker = DOM.createElement('au-m');
+  marker.className = 'au';
+  return marker as IHTMLElement;
+}
+
+function liftContent(from: ParentNodeSymbol, to: SymbolWithTemplate, replaceWithMarker: boolean): void {
+  if (replaceWithMarker) {
+    if (from.physicalNode.nodeName === 'TEMPLATE') {
+      if (from.physicalNode.parentNode === null) {
+        const marker = createMarker();
+        to.physicalNode.content.appendChild((from.physicalNode as IHTMLTemplateElement).content);
+        (from.physicalNode as IHTMLTemplateElement).content.appendChild(marker);
+      } else {
+        const marker = createMarker();
+        from.physicalNode.parentNode.replaceChild(marker, from.physicalNode);
+        to.physicalNode.content.appendChild((from.physicalNode as IHTMLTemplateElement).content);
+      }
+    } else {
+      const marker = createMarker();
+      from.physicalNode.parentNode.replaceChild(marker, from.physicalNode);
+      to.physicalNode.content.appendChild(from.physicalNode);
+    }
+  } else {
+    if (from.physicalNode.nodeName === 'TEMPLATE') {
+      to.physicalNode.content.appendChild((from.physicalNode as IHTMLTemplateElement).content);
+    } else {
+      to.physicalNode.content.appendChild(from.physicalNode);
+    }
+    from.physicalNode.remove();
+  }
+}
 
 export class TemplateBinder {
   public metadata: MetadataModel;
@@ -279,14 +362,14 @@ export class TemplateBinder {
   }
 
   public bind(node: IHTMLTemplateElement): PlainElementSymbol {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindSurrogate', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bind', slice.call(arguments)); }
 
     const manifest = this.manifest = new PlainElementSymbol(node);
     let childNode = node.content.firstChild as INode;
     while (childNode !== null) {
       switch (childNode.nodeType) {
         case NodeType.Text:
-          childNode = this.bindText(childNode);
+          childNode = this.bindText(childNode as IText);
           break;
         case NodeType.Element:
           this.bindManifest(manifest, childNode as IHTMLElement);
@@ -303,7 +386,7 @@ export class TemplateBinder {
   }
 
   private bindManifest(parentManifest: ElementSymbol, node: IHTMLTemplateElement | IHTMLElement): void {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindManifest', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindManifest', slice.call(arguments)); }
 
     let elementKey = node.getAttribute('as-element');
     if (elementKey === null) {
@@ -327,13 +410,25 @@ export class TemplateBinder {
     }
 
     this.bindAttributes(node, parentManifest);
+
+    let needsReplace = false;
+    if (this.manifest === this.manifestRoot && this.manifestRoot.isContainerless) {
+      needsReplace = true;
+    } else if (this.manifest.isTarget) {
+      node.classList.add('au');
+    }
+
     this.bindChildNodes(node);
+
+    if (needsReplace) {
+      node.parentNode.replaceChild(createMarker(), node);
+    }
 
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindAttributes(node: IHTMLTemplateElement | IHTMLElement, parentManifest: ElementSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindAttributes', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindAttributes', slice.call(arguments)); }
 
     // This is the top-level symbol for the current depth.
     // If there are no template controllers or replace-parts, it is always the manifest itself.
@@ -358,8 +453,11 @@ export class TemplateBinder {
       } else if (attrInfo.isTemplateController) {
         nextController = this.declareTemplateController(attrSyntax, attrInfo);
         if (manifestProxy === null) {
-          nextController.parent = parentManifest;
+          nextController.parent = this.manifest;
           manifestProxy = nextController;
+
+          const manifestNode = this.manifest.physicalNode;
+          manifestNode.parentNode.replaceChild(createMarker(), manifestNode);
         } else {
           nextController.parent = currentController;
           currentController.template = nextController;
@@ -377,9 +475,8 @@ export class TemplateBinder {
       manifestProxy = this.manifest;
     } else {
       currentController.template = this.manifest;
-      if (this.manifest.physicalNode.nodeName === 'TEMPLATE') {
-        currentController.physicalNode = this.manifest.physicalNode as IHTMLTemplateElement;
-      }
+      const manifestNode = this.manifest.physicalNode;
+      currentController.physicalNode.content.appendChild(manifestNode.nodeName === 'TEMPLATE' ? (manifestNode as IHTMLTemplateElement).content : manifestNode);
     }
 
     if (replacePart === null) {
@@ -387,9 +484,6 @@ export class TemplateBinder {
     } else {
       replacePart.parent = parentManifest;
       replacePart.template = manifestProxy;
-      if (manifestProxy.physicalNode !== null && manifestProxy.physicalNode.nodeName === 'TEMPLATE') {
-        replacePart.physicalNode = manifestProxy.physicalNode as IHTMLTemplateElement;
-      }
       if (this.manifest === this.manifestRoot) {
         this.parentManifestRoot.parts.push(replacePart);
       } else {
@@ -401,7 +495,7 @@ export class TemplateBinder {
   }
 
   private bindChildNodes(node: IHTMLTemplateElement | IHTMLElement): void {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindChildNodes', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindChildNodes', slice.call(arguments)); }
 
     let childNode: INode;
     if (node.nodeName === 'TEMPLATE') {
@@ -413,7 +507,7 @@ export class TemplateBinder {
     while (childNode !== null) {
       switch (childNode.nodeType) {
         case NodeType.Text:
-          childNode = this.bindText(childNode);
+          childNode = this.bindText(childNode as IText);
           break;
         case NodeType.Element:
           this.bindManifest(this.manifest, childNode as IHTMLElement);
@@ -424,106 +518,122 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private bindText(childNode: INode): INode {
-    const interpolation = this.exprParser.parse((childNode as IText).wholeText, BindingType.Interpolation);
+  private bindText(node: IText): INode {
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindText', slice.call(arguments)); }
+    const parentNode = node.parentNode;
+    const interpolation = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
     if (interpolation !== null) {
-      this.manifest.childNodes.push(new TextSymbol((childNode as IText), interpolation));
+      this.manifest.childNodes.push(new TextSymbol(node, interpolation));
+      while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
+        parentNode.removeChild(node.nextSibling);
+      }
+      node.textContent = '';
+      parentNode.insertBefore(createMarker(), node);
+    } else {
+      while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
+        node = node.nextSibling as IText;
+      }
     }
-    while (childNode.nextSibling !== null && childNode.nextSibling.nodeType === NodeType.Text) {
-      childNode = childNode.nextSibling;
-    }
-    return childNode;
+    if (Tracer.enabled) { Tracer.leave(); }
+    return node;
   }
 
   private declareTemplateController(attrSyntax: AttrSyntax, attrInfo: AttrInfo): TemplateControllerSymbol {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.declareTemplateController', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.declareTemplateController', slice.call(arguments)); }
 
-    if (attrInfo.hasDynamicOptions) {
-      const symbol = new TemplateControllerSymbol(attrSyntax, null, attrInfo, this.partName);
+    let symbol: TemplateControllerSymbol;
+    const command = this.getCommand(attrSyntax);
+    if (command === null && attrInfo.hasDynamicOptions) {
+      symbol = new TemplateControllerSymbol(attrSyntax, attrInfo, this.partName);
       this.partName = null;
-      this.bindMultiAttribute(symbol, attrSyntax.rawValue);
-
-      if (Tracer.enabled) { Tracer.leave(); }
-      return symbol;
+      this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
     } else {
-      const type = this.getBindingType(attrSyntax);
-      const expr = this.exprParser.parse(attrSyntax.rawValue, type);
-
-      const symbol = new TemplateControllerSymbol(attrSyntax, expr, attrInfo, this.partName);
+      symbol = new TemplateControllerSymbol(attrSyntax, attrInfo, this.partName);
+      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue));
       this.partName = null;
-
-      if (Tracer.enabled) { Tracer.leave(); }
-      return symbol;
     }
+
+    if (Tracer.enabled) { Tracer.leave(); }
+    return symbol;
   }
 
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindCustomAttribute', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindCustomAttribute', slice.call(arguments)); }
 
+    const command = this.getCommand(attrSyntax);
     let symbol: CustomAttributeSymbol;
-    if (attrSyntax.command === null && attrInfo.hasDynamicOptions) {
-      symbol = new CustomAttributeSymbol(attrSyntax, null, attrInfo);
-      this.bindMultiAttribute(symbol, attrSyntax.rawValue);
+    if (command === null && attrInfo.hasDynamicOptions) {
+      symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
+      this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
     } else {
-      const type = this.getBindingType(attrSyntax);
-      const expr = this.exprParser.parse(attrSyntax.rawValue, type);
-      symbol = new CustomAttributeSymbol(attrSyntax, expr, attrInfo);
+      symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
+      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue));
     }
     this.manifest.attributes.push(symbol);
+    this.manifest.isTarget = true;
 
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private bindMultiAttribute(symbol: ResourceAttributeSymbol, value: string): void {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindMultiAttribute', slice.call(arguments)); }
+  private bindMultiAttribute(symbol: ResourceAttributeSymbol, attrInfo: AttrInfo, value: string): void {
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindMultiAttribute', slice.call(arguments)); }
 
     const attributes = parseMultiAttributeBinding(value);
     let attr: IAttrLike;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const type = this.getBindingType(attrSyntax);
-      const expr = this.exprParser.parse(attrSyntax.rawValue, type);
-      const bindable = symbol.bindables[attrSyntax.target];
+      const command = this.getCommand(attrSyntax);
+      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+      const bindable = attrInfo.bindables[attrSyntax.target];
 
-      symbol.bindings.push(new PlainAttributeSymbol(attrSyntax, bindable, expr));
+      symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue));
     }
 
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindPlainAttribute(attrSyntax: AttrSyntax): void {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindPlainAttribute', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindPlainAttribute', slice.call(arguments)); }
 
     if (attrSyntax.rawValue.length === 0) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
-    const type = this.getBindingType(attrSyntax);
+    const command = this.getCommand(attrSyntax);
+    const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
     const manifest = this.manifest;
-    const expr = this.exprParser.parse(attrSyntax.rawValue, type);
+    const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
 
-    if (manifest.flags & SymbolFlags.isCustomElement) {
+    if ((manifest.flags & SymbolFlags.isCustomElement) === SymbolFlags.isCustomElement) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];
       if (bindable !== undefined) {
-        (manifest as CustomElementSymbol).bindings.push(new PlainAttributeSymbol(attrSyntax, bindable, expr));
+        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue));
+        manifest.isTarget = true;
       } else if (expr !== null) {
         manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, null, expr));
+        manifest.isTarget = true;
       }
     } else if (expr !== null) {
       manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, null, expr));
+      manifest.isTarget = true;
     }
 
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private getBindingType(attrSyntax: AttrSyntax): BindingType {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.getBindingType', slice.call(arguments)); }
+  private getCommand(attrSyntax: AttrSyntax): IBindingCommand {
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.getBindingType', slice.call(arguments)); }
 
     if (attrSyntax.command === null) {
       if (Tracer.enabled) { Tracer.leave(); }
-      return BindingType.Interpolation;
+      return null;
     }
 
     const command = this.metadata.commands[attrSyntax.command];
@@ -533,11 +643,11 @@ export class TemplateBinder {
     }
 
     if (Tracer.enabled) { Tracer.leave(); }
-    return command.bindingType;
+    return command;
   }
 
   private declareReplacePart(node: IHTMLTemplateElement | IHTMLElement): ReplacePartSymbol {
-    if (Tracer.enabled) { Tracer.enter('ElementBinder.bindSurrogate', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder.declareReplacePart', slice.call(arguments)); }
 
     const name = node.getAttribute('replace-part');
     if (name === null) {
@@ -546,8 +656,11 @@ export class TemplateBinder {
     }
     node.removeAttribute('replace-part');
 
+    const symbol = new ReplacePartSymbol(name);
+    liftContent(this.manifest, symbol, false);
+
     if (Tracer.enabled) { Tracer.leave(); }
-    return new ReplacePartSymbol(name);
+    return symbol;
   }
 }
 

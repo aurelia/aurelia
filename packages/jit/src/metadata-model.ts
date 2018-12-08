@@ -60,8 +60,8 @@ export class MetadataModel {
 }
 
 function createElementInfo(resources: IResourceDescriptions, name: string): ElementInfo {
-  const info = new ElementInfo(name);
   const def = resources.find(CustomElementResource, name) as TemplateDefinition;
+  const info = new ElementInfo(name, def.containerless);
   const bindables = def.bindables;
   const defaultBindingMode = BindingMode.toView;
 
@@ -168,6 +168,7 @@ export class BindableInfo {
  */
 export class ElementInfo {
   public name: string;
+  public containerless: boolean;
 
   /**
    * A lookup of the bindables of this element, indexed by the (pre-processed)
@@ -175,8 +176,9 @@ export class ElementInfo {
    */
   public bindables: Record<string, BindableInfo>;
 
-  constructor(name: string) {
+  constructor(name: string, containerless: boolean) {
     this.name = name;
+    this.containerless = containerless;
     this.bindables = {};
   }
 }

@@ -1,5 +1,5 @@
-import { Reporter, Tracer } from '@aurelia/kernel';
-import { BindingType, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType, IElement, DOM } from '@aurelia/runtime';
+import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { BindingType, DOM, IChildNode, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -44,8 +44,8 @@ export class TemplateControllerSymbol {
   public partName: string | null;
   public physicalNode: IHTMLTemplateElement | null;
   public syntax: AttrSyntax;
-  public parent: ParentNodeSymbol | null;
   public template: ParentNodeSymbol | null;
+  public templateController: TemplateControllerSymbol | null;
 
   private _bindings: BindingSymbol[] | null;
   public get bindings(): BindingSymbol[] {
@@ -60,10 +60,10 @@ export class TemplateControllerSymbol {
     this.flags = SymbolFlags.templateController;
     this.res = info.name;
     this.partName = partName;
-    this.physicalNode = DOM.createTemplate();
+    this.physicalNode = null;
     this.syntax = syntax;
-    this.parent = null;
     this.template = null;
+    this.templateController = null;
     this._bindings = null;
   }
 }
@@ -84,7 +84,7 @@ export class ReplacePartSymbol {
   constructor(name: string) {
     this.flags = SymbolFlags.replacePart;
     this.name = name;
-    this.physicalNode = DOM.createTemplate();
+    this.physicalNode = null;
     this.parent = null;
     this.template = null;
   }
@@ -178,6 +178,7 @@ export class CustomElementSymbol {
   public bindables: Record<string, BindableInfo>;
   public isTarget: true;
   public isContainerless: boolean;
+  public templateController: TemplateControllerSymbol | null;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
@@ -222,6 +223,7 @@ export class CustomElementSymbol {
     this.bindables = info.bindables;
     this.isTarget = true;
     this.isContainerless = info.containerless;
+    this.templateController = null;
     this._attributes = null;
     this._bindings = null;
     this._childNodes = null;
@@ -238,6 +240,7 @@ export class PlainElementSymbol {
   public flags: SymbolFlags;
   public physicalNode: IHTMLElement;
   public isTarget: boolean;
+  public templateController: TemplateControllerSymbol | null;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
@@ -261,6 +264,7 @@ export class PlainElementSymbol {
     this.flags = SymbolFlags.plainElement;
     this.physicalNode = node;
     this.isTarget = false;
+    this.templateController = null;
     this._attributes = null;
     this._childNodes = null;
   }
@@ -305,33 +309,6 @@ function createMarker(): IHTMLElement {
   return marker as IHTMLElement;
 }
 
-function liftContent(from: ParentNodeSymbol, to: SymbolWithTemplate, replaceWithMarker: boolean): void {
-  if (replaceWithMarker) {
-    if (from.physicalNode.nodeName === 'TEMPLATE') {
-      if (from.physicalNode.parentNode === null) {
-        const marker = createMarker();
-        to.physicalNode.content.appendChild((from.physicalNode as IHTMLTemplateElement).content);
-        (from.physicalNode as IHTMLTemplateElement).content.appendChild(marker);
-      } else {
-        const marker = createMarker();
-        from.physicalNode.parentNode.replaceChild(marker, from.physicalNode);
-        to.physicalNode.content.appendChild((from.physicalNode as IHTMLTemplateElement).content);
-      }
-    } else {
-      const marker = createMarker();
-      from.physicalNode.parentNode.replaceChild(marker, from.physicalNode);
-      to.physicalNode.content.appendChild(from.physicalNode);
-    }
-  } else {
-    if (from.physicalNode.nodeName === 'TEMPLATE') {
-      to.physicalNode.content.appendChild((from.physicalNode as IHTMLTemplateElement).content);
-    } else {
-      to.physicalNode.content.appendChild(from.physicalNode);
-    }
-    from.physicalNode.remove();
-  }
-}
-
 export class TemplateBinder {
   public metadata: MetadataModel;
   public attrParser: IAttributeParser;
@@ -364,9 +341,15 @@ export class TemplateBinder {
   public bind(node: IHTMLTemplateElement): PlainElementSymbol {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bind', slice.call(arguments)); }
 
+    const parentManifestRootSave = this.parentManifestRoot;
+    const manifestRootSave = this.manifestRoot;
+    const manifestSave = this.manifest;
+
     const manifest = this.manifest = new PlainElementSymbol(node);
-    let childNode = node.content.firstChild as INode;
-    while (childNode !== null) {
+    const childNodes = PLATFORM.toArray(node.content.childNodes);
+    let childNode: INode;
+    for (let i = 0, ii = childNodes.length; i < ii; ++i) {
+      childNode = childNodes[i];
       switch (childNode.nodeType) {
         case NodeType.Text:
           childNode = this.bindText(childNode as IText);
@@ -374,12 +357,11 @@ export class TemplateBinder {
         case NodeType.Element:
           this.bindManifest(manifest, childNode as IHTMLElement);
       }
-      childNode = childNode.nextSibling as IHTMLElement;
     }
 
-    this.manifest = null;
-    this.manifestRoot = null;
-    this.parentManifestRoot = null;
+    this.parentManifestRoot = parentManifestRootSave;
+    this.manifestRoot = manifestRootSave;
+    this.manifest = manifestSave;
 
     if (Tracer.enabled) { Tracer.leave(); }
     return manifest;
@@ -387,6 +369,10 @@ export class TemplateBinder {
 
   private bindManifest(parentManifest: ElementSymbol, node: IHTMLTemplateElement | IHTMLElement): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindManifest', slice.call(arguments)); }
+
+    const parentManifestRootSave = this.parentManifestRoot;
+    const manifestRootSave = this.manifestRoot;
+    const manifestSave = this.manifest;
 
     let elementKey = node.getAttribute('as-element');
     if (elementKey === null) {
@@ -405,24 +391,22 @@ export class TemplateBinder {
       this.manifest = new PlainElementSymbol(node);
     } else {
       this.parentManifestRoot = this.manifestRoot;
-      this.manifest = new CustomElementSymbol(node, elementInfo);
-      this.manifestRoot = this.manifest;
-    }
-
-    this.bindAttributes(node, parentManifest);
-
-    let needsReplace = false;
-    if (this.manifest === this.manifestRoot && this.manifestRoot.isContainerless) {
-      needsReplace = true;
-    } else if (this.manifest.isTarget) {
-      node.classList.add('au');
+      this.manifestRoot = this.manifest = new CustomElementSymbol(node, elementInfo);
     }
 
     this.bindChildNodes(node);
 
-    if (needsReplace) {
+    this.bindAttributes(node, parentManifest);
+
+    if (elementInfo !== undefined && elementInfo.containerless) {
       node.parentNode.replaceChild(createMarker(), node);
+    } else if (this.manifest.isTarget) {
+      node.classList.add('au');
     }
+
+    this.parentManifestRoot = parentManifestRootSave;
+    this.manifestRoot = manifestRootSave;
+    this.manifest = manifestSave;
 
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -430,10 +414,11 @@ export class TemplateBinder {
   private bindAttributes(node: IHTMLTemplateElement | IHTMLElement, parentManifest: ElementSymbol): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindAttributes', slice.call(arguments)); }
 
+    const { parentManifestRoot, manifestRoot, manifest } = this;
     // This is the top-level symbol for the current depth.
     // If there are no template controllers or replace-parts, it is always the manifest itself.
     // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
-    let manifestProxy: ParentNodeSymbol = null;
+    let manifestProxy = manifest as ParentNodeSymbol;
 
     const replacePart = this.declareReplacePart(node);
 
@@ -451,16 +436,28 @@ export class TemplateBinder {
         this.bindPlainAttribute(attrSyntax);
         ++i;
       } else if (attrInfo.isTemplateController) {
-        nextController = this.declareTemplateController(attrSyntax, attrInfo);
-        if (manifestProxy === null) {
-          nextController.parent = this.manifest;
-          manifestProxy = nextController;
+        nextController = manifest.templateController = this.declareTemplateController(attrSyntax, attrInfo);
 
-          const manifestNode = this.manifest.physicalNode;
-          manifestNode.parentNode.replaceChild(createMarker(), manifestNode);
+        if (manifestProxy === manifest) {
+          manifest.physicalNode.parentNode.replaceChild(createMarker(), manifest.physicalNode);
+
+          if (manifest.physicalNode.nodeName === 'TEMPLATE') {
+            nextController.template = manifest;
+            nextController.physicalNode = manifest.physicalNode as IHTMLTemplateElement;
+          } else {
+            nextController.template = manifest;
+            nextController.physicalNode = DOM.createTemplate();
+            nextController.physicalNode.content.appendChild(manifest.physicalNode);
+          }
+          manifestProxy = nextController;
         } else {
-          nextController.parent = currentController;
+          nextController.templateController = currentController;
+          nextController.template = currentController.template;
+          nextController.physicalNode = currentController.physicalNode;
+
           currentController.template = nextController;
+          currentController.physicalNode = DOM.createTemplate();
+          currentController.physicalNode.content.appendChild(createMarker());
         }
         currentController = nextController;
 
@@ -471,23 +468,22 @@ export class TemplateBinder {
       }
     }
 
-    if (manifestProxy === null) {
-      manifestProxy = this.manifest;
-    } else {
-      currentController.template = this.manifest;
-      const manifestNode = this.manifest.physicalNode;
-      currentController.physicalNode.content.appendChild(manifestNode.nodeName === 'TEMPLATE' ? (manifestNode as IHTMLTemplateElement).content : manifestNode);
-    }
-
     if (replacePart === null) {
       parentManifest.childNodes.push(manifestProxy);
     } else {
       replacePart.parent = parentManifest;
       replacePart.template = manifestProxy;
-      if (this.manifest === this.manifestRoot) {
-        this.parentManifestRoot.parts.push(replacePart);
+      const proxyNode = manifestProxy.physicalNode;
+      if (proxyNode.nodeName === 'TEMPLATE') {
+        replacePart.physicalNode = proxyNode as IHTMLTemplateElement;
       } else {
-        this.manifestRoot.parts.push(replacePart);
+        replacePart.physicalNode = DOM.createTemplate();
+        replacePart.physicalNode.content.appendChild(proxyNode);
+      }
+      if (manifest === manifestRoot) {
+        parentManifestRoot.parts.push(replacePart);
+      } else {
+        manifestRoot.parts.push(replacePart);
       }
     }
 
@@ -497,14 +493,16 @@ export class TemplateBinder {
   private bindChildNodes(node: IHTMLTemplateElement | IHTMLElement): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindChildNodes', slice.call(arguments)); }
 
-    let childNode: INode;
+    let childNodes: IChildNode[];
     if (node.nodeName === 'TEMPLATE') {
-      childNode = (node as IHTMLTemplateElement).content.firstChild;
+      childNodes = PLATFORM.toArray((node as IHTMLTemplateElement).content.childNodes);
     } else {
-      childNode = node.firstChild;
+      childNodes = PLATFORM.toArray(node.childNodes);
     }
 
-    while (childNode !== null) {
+    let childNode: INode;
+    for (let i = 0, ii = childNodes.length; i < ii; ++i) {
+      childNode = childNodes[i];
       switch (childNode.nodeType) {
         case NodeType.Text:
           childNode = this.bindText(childNode as IText);
@@ -512,7 +510,6 @@ export class TemplateBinder {
         case NodeType.Element:
           this.bindManifest(this.manifest, childNode as IHTMLElement);
       }
-      childNode = childNode.nextSibling;
     }
 
     if (Tracer.enabled) { Tracer.leave(); }
@@ -657,7 +654,6 @@ export class TemplateBinder {
     node.removeAttribute('replace-part');
 
     const symbol = new ReplacePartSymbol(name);
-    liftContent(this.manifest, symbol, false);
 
     if (Tracer.enabled) { Tracer.leave(); }
     return symbol;

@@ -18,7 +18,7 @@ import {
   TriggerBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
-import { BindingSymbol, PlainAttributeSymbol, ResourceAttributeSymbol, SymbolFlags } from './template-binder';
+import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from './template-binder';
 
 export interface IBindingCommand {
   bindingType: BindingType;

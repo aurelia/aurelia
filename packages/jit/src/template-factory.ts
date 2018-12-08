@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { DOM, IHTMLElement, IHTMLTemplateElement, INode } from '@aurelia/runtime';
+import { DOM, IHTMLTemplateElement, INode } from '@aurelia/runtime';
 
 export interface ITemplateFactory {
   createTemplate(markup: string): IHTMLTemplateElement;

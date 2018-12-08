@@ -1,5 +1,5 @@
 import { IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
-import { AttributeDefinition, BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, IResourceDescriptions, TemplateDefinition } from '@aurelia/runtime';
+import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, IResourceDescriptions, TemplateDefinition } from '@aurelia/runtime';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
 
 /**

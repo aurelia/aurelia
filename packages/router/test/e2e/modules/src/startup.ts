@@ -2,7 +2,7 @@ import { DI } from '@aurelia/kernel';
 import { BasicConfiguration } from '@aurelia/jit';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { App } from './app';
-import { ViewportCustomElement } from './components/viewport';
+import { ViewportCustomElement } from '../../../../src/resources/viewport';
 import { GotoCustomElement } from './components/goto';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';

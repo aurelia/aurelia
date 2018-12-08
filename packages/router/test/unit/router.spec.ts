@@ -1,5 +1,5 @@
 import { MockBrowserHistoryLocation } from './../mock/browser-history-location.mock';
-import { ViewportCustomElement } from './../../test/e2e/modules/src/components/viewport';
+import { ViewportCustomElement } from '../../src/resources/viewport';
 import { Router } from '../../src/index';
 import { expect } from 'chai';
 import { DI } from '../../../kernel/src';
@@ -305,6 +305,22 @@ describe('Router', () => {
     await teardown(host, router, 1);
   });
 
+  it('understands used-by', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/corge@left');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: corge');
+
+    router.goto('/baz');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(host.textContent).to.contain('Viewport: baz');
+
+    await teardown(host, router, 1);
+  });
 });
 
 let quxCantLeave = 2;
@@ -312,19 +328,20 @@ let quxCantLeave = 2;
 let setup = async (): Promise<{ au, container, host, router }> => {
   const container = DI.createContainer();
   container.register(<any>BasicConfiguration);
-  const App = (<any>CustomElementResource).define({ name: 'app', template: '<template><viewport name="left"></viewport><viewport name="right"></viewport></template>' });
-  const Foo = (<any>CustomElementResource).define({ name: 'foo', template: '<template>foo <a href="#/baz@foo"><span>baz</span></a><viewport name="foo"></viewport></template>' });
-  const Bar = (<any>CustomElementResource).define({ name: 'bar', template: '<template>bar<viewport name="bar"></viewport></template>' });
-  const Baz = (<any>CustomElementResource).define({ name: 'baz', template: '<template>baz<viewport name="baz"></viewport></template>' });
-  const Qux = (<any>CustomElementResource).define({ name: 'qux', template: '<template>qux<viewport name="qux"></viewport></template>' }, class {
+  const App = (<any>CustomElementResource).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+  const Foo = (<any>CustomElementResource).define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
+  const Bar = (<any>CustomElementResource).define({ name: 'bar', template: '<template>Viewport: bar<au-viewport name="bar"></au-viewport></template>' });
+  const Baz = (<any>CustomElementResource).define({ name: 'baz', template: '<template>Viewport: baz<au-viewport name="baz"></au-viewport></template>' });
+  const Qux = (<any>CustomElementResource).define({ name: 'qux', template: '<template>Viewport: qux<au-viewport name="qux"></au-viewport></template>' }, class {
     canEnter() { return true; }
     canLeave() { if (quxCantLeave > 0) { quxCantLeave--; return false; } else { return true; } }
     enter() { return true; }
     leave() { return true; }
   });
-  const Quux = (<any>CustomElementResource).define({ name: 'quux', template: '<template>quux<viewport name="quux" scope></viewport></template>' });
+  const Quux = (<any>CustomElementResource).define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
+  const Corge = (<any>CustomElementResource).define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport></template>' });
   container.register(<any>ViewportCustomElement);
-  container.register(Foo, Bar, Baz, Qux, Quux);
+  container.register(Foo, Bar, Baz, Qux, Quux, Corge);
   const au = new Aurelia(<any>container);
   const host = DOM.createElement('div');
   document.body.appendChild(<any>host);

@@ -4,6 +4,7 @@ import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
+  IBuildInstruction,
   IExpressionParser,
   InstructionRow,
   Interpolation,
@@ -35,6 +36,11 @@ import {
   TextSymbol
 } from './template-binder';
 import { ITemplateFactory } from './template-factory';
+
+const buildNotRequired: IBuildInstruction = Object.freeze({
+  required: false,
+  compiler: 'default'
+});
 
 @inject(ITemplateFactory, IAttributeParser, IExpressionParser)
 export class TemplateCompiler implements ITemplateCompiler {
@@ -125,7 +131,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     const def = {
       name: symbol.partName === null ? symbol.res : symbol.partName,
       template: symbol.physicalNode,
-      instructions: controllerInstructions
+      instructions: controllerInstructions,
+      build: buildNotRequired
     };
     this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
   }
@@ -216,7 +223,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         parts[replacePart.name] = {
           name: replacePart.name,
           template: replacePart.physicalNode,
-          instructions: partInstructions
+          instructions: partInstructions,
+          build: buildNotRequired
         };
         this.instructionRows = instructionRowsSave;
       }

@@ -23,7 +23,7 @@ export const Tracer = {
    */
   enabled: false,
   liveLoggingEnabled: false,
-  liveWriter: <ITraceWriter>null,
+  liveWriter: null as ITraceWriter,
   /**
    * Call this at the start of a method/function.
    * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.

@@ -19,15 +19,15 @@ export const DOM = {
     if (markupOrNode === undefined || markupOrNode === null) {
       return document.createDocumentFragment();
     }
-    if (typeof markupOrNode === 'string') {
-      return DOM.createTemplate(markupOrNode).content;
+    if (DOM.isNodeInstance(markupOrNode)) {
+      if ((markupOrNode as IHTMLTemplateElement).content !== undefined) {
+        return (markupOrNode as IHTMLTemplateElement).content;
+      }
+      const fragment = document.createDocumentFragment();
+      fragment.appendChild(markupOrNode);
+      return fragment;
     }
-    if ((markupOrNode as IHTMLTemplateElement).content !== undefined) {
-      return (markupOrNode as IHTMLTemplateElement).content;
-    }
-    const fragment = document.createDocumentFragment();
-    fragment.appendChild(markupOrNode);
-    return fragment;
+    return DOM.createTemplate(markupOrNode).content;
   },
   createTemplate(markup?: string): IHTMLTemplateElement {
     if (markup === undefined) {

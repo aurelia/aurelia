@@ -79,14 +79,14 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$04 text$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();
@@ -112,7 +112,7 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$06 text$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
             static containerless = true;
             msg = "";
@@ -120,7 +120,7 @@ describe("generated.template-compiler.static", function () {
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();
@@ -146,7 +146,7 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$08 text$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
             static shadowOptions = { mode: "open" };
             msg = "";
@@ -154,7 +154,7 @@ describe("generated.template-compiler.static", function () {
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();
@@ -180,7 +180,7 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$10 text$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"the-part\"></template><template replaceable part=\"the-not-part\"></template></template>" }, class {
+        const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
             static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
             static shadowOptions = { mode: "closed" };
             msg = "";
@@ -188,7 +188,7 @@ describe("generated.template-compiler.static", function () {
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"the-part\">${msg}</template></my-foo></template>" }, class {
+        const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();

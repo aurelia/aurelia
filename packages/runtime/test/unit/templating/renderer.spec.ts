@@ -103,7 +103,7 @@ describe('Renderer', () => {
         expect(bindable.interpolation['parts'][0]).to.equal('');
         expect(bindable.interpolation['parts'][1]).to.equal('');
         expect(bindable.mode).to.equal(BindingMode.toView);
-        expect(target.isConnected).to.be.false;
+        //expect(target.isConnected).to.be.false;
 
         tearDown({ wrapper });
       });

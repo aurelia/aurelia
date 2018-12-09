@@ -501,11 +501,13 @@ export class TemplateBinder {
       const command = this.getCommand(attrSyntax);
       const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-      const info = new BindableInfo(PLATFORM.camelCase(attrSyntax.target), BindingMode.toView);
-      symbol.bindings.push(new BindingSymbol(command, info, expr, attrSyntax.rawValue, attrSyntax.target));
+      const to = PLATFORM.camelCase(attrSyntax.target);
+      const info = new BindableInfo(to, BindingMode.toView);
+      symbol.bindings.push(new BindingSymbol(command, info, expr, attrSyntax.rawValue, to));
 
       ++i;
     }
+    node.parentNode.replaceChild(createMarker(), node);
   }
 
   private bindAttributes(node: IHTMLTemplateElement | IHTMLElement, parentManifest: ElementSymbol): void {

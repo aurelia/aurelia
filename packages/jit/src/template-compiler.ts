@@ -10,8 +10,10 @@ import {
   Interpolation,
   InterpolationInstruction,
   IResourceDescriptions,
+  IsBindingBehavior,
   ITemplateCompiler,
   ITemplateDefinition,
+  RefBindingInstruction,
   SetAttributeInstruction,
   SetPropertyInstruction,
   TemplateDefinition,
@@ -188,6 +190,9 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compileAttribute(symbol: AttributeSymbol): AttributeInstruction {
+    if (symbol.syntax.target === 'ref') {
+      return new RefBindingInstruction(symbol.syntax.rawValue);
+    }
     // any attribute on a custom element (which is not a bindable) or a plain element
     if (symbol.flags & SymbolFlags.isCustomAttribute) {
       // a normal custom attribute (not template controller)

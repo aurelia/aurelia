@@ -140,18 +140,21 @@ export class BindingSymbol {
   public bindable: BindableInfo;
   public expression: IsExpressionOrStatement | null;
   public rawValue: string;
+  public target: string;
 
   constructor(
     command: IBindingCommand | undefined,
     bindable: BindableInfo,
     expression: IsExpressionOrStatement | null,
-    rawValue: string
+    rawValue: string,
+    target: string
   ) {
     this.flags = SymbolFlags.isBinding;
     this.command = command === undefined ? null : command;
     this.bindable = bindable;
     this.expression = expression;
     this.rawValue = rawValue;
+    this.target = target;
   }
 }
 
@@ -536,7 +539,7 @@ export class TemplateBinder {
       symbol = new TemplateControllerSymbol(attrSyntax, attrInfo, this.partName);
       const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue));
+      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
       this.partName = null;
     }
 
@@ -556,7 +559,7 @@ export class TemplateBinder {
       symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
       const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue));
+      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
     }
     this.manifest.attributes.push(symbol);
     this.manifest.isTarget = true;
@@ -580,7 +583,7 @@ export class TemplateBinder {
         bindable = attrInfo.bindables[attrSyntax.target] = new BindableInfo(attrSyntax.target, BindingMode.toView);
       }
 
-      symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue));
+      symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
     }
 
     if (Tracer.enabled) { Tracer.leave(); }
@@ -602,13 +605,13 @@ export class TemplateBinder {
     if (manifest.flags & SymbolFlags.isCustomElement) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];
       if (bindable !== undefined) {
-        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue));
+        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
         manifest.isTarget = true;
       } else if (expr !== null) {
         manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
         manifest.isTarget = true;
       }
-    } else if (expr !== null) {
+    } else if (expr !== null || attrSyntax.target === 'ref') {
       manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
       manifest.isTarget = true;
     }

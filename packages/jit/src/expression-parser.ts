@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { IContainer, IRegistry, Reporter } from '@aurelia/kernel';
 import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
@@ -186,9 +185,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         nextToken(state);
         access++; // ancestor
         if (consumeOpt(state, Token.Dot)) {
-          if (state!.currentToken === Token.Dot) {
+          if ((state.currentToken as Token) === Token.Dot) {
             throw Reporter.error(SyntaxError.DoubleDot, { state });
-          } else if (state!.currentToken === Token.EOF) {
+          } else if ((state.currentToken as Token) === Token.EOF) {
             throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
         } else if (state.currentToken & Token.AccessScopeTerminal) {
@@ -298,7 +297,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      */
     let name = state.tokenValue as string;
     while ((state.currentToken & Token.LeftHandSide) > 0) {
-      switch (state!.currentToken) {
+      switch ((state.currentToken as Token)) {
         case Token.Dot:
           state.assignable = true;
           nextToken(state);
@@ -309,7 +308,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           nextToken(state);
           // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
           access = ((access & (Access.This | Access.Scope)) << 1) | (access & Access.Member) | ((access & Access.Keyed) >> 1);
-          if (state!.currentToken === Token.OpenParen) {
+          if ((state.currentToken as Token) === Token.OpenParen) {
             if (access === Access.Reset) { // if the left hand side is a literal, make sure we parse a CallMember
               access = Access.Member;
             }
@@ -332,7 +331,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           state.assignable = false;
           nextToken(state);
           const args = new Array<IsAssign>();
-          while (state!.currentToken !== Token.CloseParen) {
+          while ((state.currentToken as Token) !== Token.CloseParen) {
             args.push(parse(state, Access.Reset, Precedence.Assign, bindingType));
             if (!consumeOpt(state, Token.Comma)) {
               break;
@@ -510,14 +509,14 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
   while (state.currentToken !== Token.CloseBracket) {
     if (consumeOpt(state, Token.Comma)) {
       elements.push($undefined);
-      if (state!.currentToken === Token.CloseBracket) {
+      if ((state.currentToken as Token) === Token.CloseBracket) {
         elements.push($undefined);
         break;
       }
     } else {
       elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator));
       if (consumeOpt(state, Token.Comma)) {
-        if (state!.currentToken === Token.CloseBracket) {
+        if ((state.currentToken as Token) === Token.CloseBracket) {
           elements.push($undefined);
           break;
         }
@@ -596,7 +595,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
     } else {
       throw Reporter.error(SyntaxError.InvalidObjectLiteralPropertyDefinition, { state });
     }
-    if (state!.currentToken !== Token.CloseBrace) {
+    if ((state.currentToken as Token) !== Token.CloseBrace) {
       consume(state, Token.Comma);
     }
   }
@@ -681,21 +680,16 @@ function parseInterpolation(state: ParserState): Interpolation {
 function parseTemplate(state: ParserState, access: Access, bindingType: BindingType, result: IsLeftHandSide, tagged: boolean): TaggedTemplate | Template {
   const cooked = [state.tokenValue as string];
   // TODO: properly implement raw parts / decide whether we want this
-  //const raw = [state.tokenRaw];
   consume(state, Token.TemplateContinuation);
   const expressions = [parse(state, access, Precedence.Assign, bindingType)];
   while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
     cooked.push(state.tokenValue as string);
-    // if (tagged) {
-    //   raw.push(state.tokenRaw);
-    // }
     consume(state, Token.TemplateContinuation);
     expressions.push(parse(state, access, Precedence.Assign, bindingType));
   }
   cooked.push(state.tokenValue as string);
   state.assignable = false;
   if (tagged) {
-    //raw.push(state.tokenRaw);
     nextToken(state);
     return new TaggedTemplate(cooked, cooked, result, expressions);
   } else {

@@ -3,18 +3,18 @@
 // [1] https://requirejs.org/docs/plugins.html#apiload
 // [2] https://github.com/aurelia/aurelia/pull/256
 
-/*@internal*/
+/** @internal */
 export type Require = {
   (name: string[], callback: (text: string) => void):
   void; toUrl(name: string): string;
 };
 
-/*@internal*/
+/** @internal */
 export type RequireConfig = {
   isBuild?: boolean;
 };
 
-/*@internal*/
+/** @internal */
 export type RequireOnLoad = {
   (content: string|{}): void;
   error?(error: Error): void;

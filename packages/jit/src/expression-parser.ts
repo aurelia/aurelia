@@ -28,7 +28,7 @@ const $undefined = PrimitiveLiteral.$undefined;
 const $this = AccessThis.$this;
 const $parent = AccessThis.$parent;
 
-/*@internal*/
+/** @internal */
 export class ParserState {
   public index: number;
   public startIndex: number;
@@ -80,7 +80,7 @@ const enum SemanticError {
   UnexpectedForOf = 151
 }
 
-/*@internal*/
+/** @internal */
 export function parseCore(input: string, bindingType?: BindingType): IExpression {
   $state.input = input;
   $state.length = input.length;
@@ -89,7 +89,7 @@ export function parseCore(input: string, bindingType?: BindingType): IExpression
   return parse($state, Access.Reset, Precedence.Variadic, bindingType === undefined ? BindingType.BindCommand : bindingType);
 }
 
-/*@internal*/
+/** @internal */
 // JUSTIFICATION: This is performance-critical code which follows a subset of the well-known ES spec.
 // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
 // single source of information for being able to figure it out.

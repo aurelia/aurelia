@@ -32,12 +32,12 @@ export function enableImprovedExpressionDebugging(): void {
   astTypeMap.forEach(x => { adoptDebugMethods(x.type, x.name); });
 }
 
-/*@internal*/
+/** @internal */
 export function adoptDebugMethods($type: Unwrap<typeof astTypeMap>['type'], name: string): void {
   $type.prototype.toString = function(): string { return Unparser.unparse(this); };
 }
 
-/*@internal*/
+/** @internal */
 export class Unparser implements AST.IVisitor<void> {
   public text: string = '';
 
@@ -289,7 +289,7 @@ export class Unparser implements AST.IVisitor<void> {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class Serializer implements AST.IVisitor<string> {
   public static serialize(expr: AST.IExpression): string {
     const visitor = new Serializer();

@@ -10,7 +10,7 @@ const enum RuntimeError {
   NilParentScope = 253
 }
 
-/*@internal*/
+/** @internal */
 export class InternalObserversLookup {
   public getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver {
     let observer = this[key];

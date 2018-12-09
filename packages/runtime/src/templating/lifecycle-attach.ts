@@ -5,7 +5,7 @@ import { LifecycleFlags } from '../observation';
 import { ICustomAttribute } from './custom-attribute';
 import { ICustomElement } from './custom-element';
 
-/*@internal*/
+/** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
 export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
@@ -33,7 +33,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
   lifecycle.endAttach(flags);
 }
 
-/*@internal*/
+/** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
 export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
@@ -70,7 +70,7 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
   lifecycle.endAttach(flags);
 }
 
-/*@internal*/
+/** @internal */
 export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
     return;
@@ -92,7 +92,7 @@ export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encaps
   this.$state &= ~State.isAttaching;
 }
 
-/*@internal*/
+/** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
 export function $detachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
@@ -117,7 +117,7 @@ export function $detachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
   }
 }
 
-/*@internal*/
+/** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
 export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
@@ -156,7 +156,7 @@ export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleF
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $detachView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     // add isDetaching flag
@@ -182,7 +182,7 @@ export function $detachView(this: Writable<IView>, flags: LifecycleFlags): void 
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $cacheAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   flags |= LifecycleFlags.fromCache;
   if (this.$hooks & Hooks.hasCaching) {
@@ -190,7 +190,7 @@ export function $cacheAttribute(this: Writable<ICustomAttribute>, flags: Lifecyc
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $cacheElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   flags |= LifecycleFlags.fromCache;
   if (this.$hooks & Hooks.hasCaching) {
@@ -204,7 +204,7 @@ export function $cacheElement(this: Writable<ICustomElement>, flags: LifecycleFl
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $cacheView(this: Writable<IView>, flags: LifecycleFlags): void {
   flags |= LifecycleFlags.fromCache;
   let current = this.$attachableTail;
@@ -214,7 +214,7 @@ export function $cacheView(this: Writable<IView>, flags: LifecycleFlags): void {
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $mountElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (!(this.$state & State.isMounted)) {
     this.$state |= State.isMounted;
@@ -222,7 +222,7 @@ export function $mountElement(this: Writable<ICustomElement>, flags: LifecycleFl
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $unmountElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isMounted) {
     this.$state &= ~State.isMounted;
@@ -230,7 +230,7 @@ export function $unmountElement(this: Writable<ICustomElement>, flags: Lifecycle
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (!(this.$state & State.isMounted)) {
     this.$state |= State.isMounted;
@@ -238,7 +238,7 @@ export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $unmountView(this: Writable<IView>, flags: LifecycleFlags): boolean {
   if (this.$state & State.isMounted) {
     this.$state &= ~State.isMounted;

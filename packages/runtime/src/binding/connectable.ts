@@ -36,7 +36,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding {
   patch(flags: LifecycleFlags): void;
 }
 
-/*@internal*/
+/** @internal */
 export function addObserver(this: IConnectableBinding, observer: IBindingTargetObserver): void {
   // find the observer.
   const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
@@ -65,7 +65,7 @@ export function addObserver(this: IConnectableBinding, observer: IBindingTargetO
   ensureEnoughSlotNames(i);
 }
 
-/*@internal*/
+/** @internal */
 export function observeProperty(this: IConnectableBinding, obj: IIndexable, propertyName: string): void {
   const observer = this.observerLocator.getObserver(obj, propertyName) as IBindingTargetObserver;
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
@@ -78,7 +78,7 @@ export function observeProperty(this: IConnectableBinding, obj: IIndexable, prop
   this.addObserver(observer);
 }
 
-/*@internal*/
+/** @internal */
 export function unobserve(this: IConnectableBinding, all?: boolean): void {
   const slots = this.observerSlots;
   let slotName: string;

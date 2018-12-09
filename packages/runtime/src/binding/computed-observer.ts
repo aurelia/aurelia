@@ -144,7 +144,7 @@ export interface GetterObserver extends IBindingTargetObserver { }
 
 // Used when there is no setter, and the getter is dependent on other properties of the object;
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
-/*@internal*/
+/** @internal */
 @subscriberCollection(MutationKind.instance)
 export class GetterObserver implements GetterObserver {
   public dispose: () => void;
@@ -190,7 +190,7 @@ export class GetterObserver implements GetterObserver {
 
 GetterObserver.prototype.dispose = PLATFORM.noop;
 
-/*@internal*/
+/** @internal */
 export class GetterController {
   public value: unknown;
   public isCollecting: boolean;

@@ -159,7 +159,7 @@ export interface ILifecycleBinding extends IHooks, IState {
 }
 
 export interface ILifecycleBound extends IHooks, IState {
-  /*@internal*/$nextBound?: ILifecycleBound;
+  /** @internal */$nextBound?: ILifecycleBound;
 
   /**
    * Called at the end of `$bind`, after this instance and its children (if any) are bound.
@@ -204,7 +204,7 @@ export interface ILifecycleUnbinding extends IHooks, IState {
 }
 
 export interface ILifecycleUnbound extends IHooks, IState {
-  /*@internal*/$nextUnbound?: ILifecycleUnbound;
+  /** @internal */$nextUnbound?: ILifecycleUnbound;
 
   /**
    * Called at the end of `$unbind`, after this instance and its children (if any) are unbound.
@@ -248,7 +248,7 @@ export interface ILifecycleAttaching extends IHooks, IState {
 }
 
 export interface ILifecycleAttached extends IHooks, IState {
-  /*@internal*/$nextAttached?: ILifecycleAttached;
+  /** @internal */$nextAttached?: ILifecycleAttached;
 
   /**
    * Called at the end of `$attach`, after this instance and its children (if any) are attached.
@@ -284,7 +284,7 @@ export interface ILifecycleDetaching extends IHooks, IState {
 }
 
 export interface ILifecycleDetached extends IHooks, IState {
-  /*@internal*/$nextDetached?: ILifecycleDetached;
+  /** @internal */$nextDetached?: ILifecycleDetached;
 
   /**
    * Called at the end of `$detach`, after this instance and its children (if any) are detached.
@@ -347,12 +347,12 @@ export interface ILifecycleDetach {
 }
 
 export interface IAttach extends ILifecycleAttach, ILifecycleDetach, ICachable {
-  /*@internal*/$nextAttach: IAttach;
-  /*@internal*/$prevAttach: IAttach;
+  /** @internal */$nextAttach: IAttach;
+  /** @internal */$prevAttach: IAttach;
 }
 
 export interface ILifecycleMount {
-  /*@internal*/$nextMount?: ILifecycleMount;
+  /** @internal */$nextMount?: ILifecycleMount;
 
   /**
    * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
@@ -361,7 +361,7 @@ export interface ILifecycleMount {
 }
 
 export interface ILifecycleUnmount {
-  /*@internal*/$nextUnmount?: ILifecycleUnmount;
+  /** @internal */$nextUnmount?: ILifecycleUnmount;
 
   /**
    * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
@@ -399,8 +399,8 @@ export interface ILifecycleBindScope {
 }
 
 export interface IBind extends ILifecycleBind, ILifecycleUnbind {
-  /*@internal*/$nextBind: IBindSelf | IBindScope;
-  /*@internal*/$prevBind: IBindSelf | IBindScope;
+  /** @internal */$nextBind: IBindSelf | IBindScope;
+  /** @internal */$prevBind: IBindSelf | IBindScope;
 }
 
 export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope { }
@@ -628,82 +628,82 @@ export const IFlushLifecycle = ILifecycle as InterfaceSymbol<IFlushLifecycle>;
 export const IBindLifecycle = ILifecycle as InterfaceSymbol<IBindLifecycle>;
 export const IAttachLifecycle = ILifecycle as InterfaceSymbol<IAttachLifecycle>;
 
-/*@internal*/
+/** @internal */
 export class Lifecycle implements ILifecycle {
-  /*@internal*/public bindDepth: number;
-  /*@internal*/public attachDepth: number;
-  /*@internal*/public detachDepth: number;
-  /*@internal*/public unbindDepth: number;
+  /** @internal */public bindDepth: number;
+  /** @internal */public attachDepth: number;
+  /** @internal */public detachDepth: number;
+  /** @internal */public unbindDepth: number;
 
-  /*@internal*/public flushHead: IChangeTracker;
-  /*@internal*/public flushTail: IChangeTracker;
+  /** @internal */public flushHead: IChangeTracker;
+  /** @internal */public flushTail: IChangeTracker;
 
-  /*@internal*/public connectHead: IConnectableBinding;
-  /*@internal*/public connectTail: IConnectableBinding;
+  /** @internal */public connectHead: IConnectableBinding;
+  /** @internal */public connectTail: IConnectableBinding;
 
-  /*@internal*/public patchHead: IConnectableBinding;
-  /*@internal*/public patchTail: IConnectableBinding;
+  /** @internal */public patchHead: IConnectableBinding;
+  /** @internal */public patchTail: IConnectableBinding;
 
-  /*@internal*/public boundHead: ILifecycleBound;
-  /*@internal*/public boundTail: ILifecycleBound;
+  /** @internal */public boundHead: ILifecycleBound;
+  /** @internal */public boundTail: ILifecycleBound;
 
-  /*@internal*/public mountHead: ILifecycleMount;
-  /*@internal*/public mountTail: ILifecycleMount;
+  /** @internal */public mountHead: ILifecycleMount;
+  /** @internal */public mountTail: ILifecycleMount;
 
-  /*@internal*/public attachedHead: ILifecycleAttached;
-  /*@internal*/public attachedTail: ILifecycleAttached;
+  /** @internal */public attachedHead: ILifecycleAttached;
+  /** @internal */public attachedTail: ILifecycleAttached;
 
-  /*@internal*/public unmountHead: ILifecycleUnmount;
-  /*@internal*/public unmountTail: ILifecycleUnmount;
+  /** @internal */public unmountHead: ILifecycleUnmount;
+  /** @internal */public unmountTail: ILifecycleUnmount;
 
-  /*@internal*/public detachedHead: ILifecycleDetached;
-  /*@internal*/public detachedTail: ILifecycleDetached;
+  /** @internal */public detachedHead: ILifecycleDetached;
+  /** @internal */public detachedTail: ILifecycleDetached;
 
-  /*@internal*/public unbindAfterDetachHead: ILifecycleUnbindAfterDetach;
-  /*@internal*/public unbindAfterDetachTail: ILifecycleUnbindAfterDetach;
+  /** @internal */public unbindAfterDetachHead: ILifecycleUnbindAfterDetach;
+  /** @internal */public unbindAfterDetachTail: ILifecycleUnbindAfterDetach;
 
-  /*@internal*/public unboundHead: ILifecycleUnbound;
-  /*@internal*/public unboundTail: ILifecycleUnbound;
+  /** @internal */public unboundHead: ILifecycleUnbound;
+  /** @internal */public unboundTail: ILifecycleUnbound;
 
-  /*@internal*/public flushed: Promise<void>;
-  /*@internal*/public promise: Promise<void>;
+  /** @internal */public flushed: Promise<void>;
+  /** @internal */public promise: Promise<void>;
 
-  /*@internal*/public flushCount: number;
-  /*@internal*/public connectCount: number;
-  /*@internal*/public patchCount: number;
-  /*@internal*/public boundCount: number;
-  /*@internal*/public mountCount: number;
-  /*@internal*/public attachedCount: number;
-  /*@internal*/public unmountCount: number;
-  /*@internal*/public detachedCount: number;
-  /*@internal*/public unbindAfterDetachCount: number;
-  /*@internal*/public unboundCount: number;
+  /** @internal */public flushCount: number;
+  /** @internal */public connectCount: number;
+  /** @internal */public patchCount: number;
+  /** @internal */public boundCount: number;
+  /** @internal */public mountCount: number;
+  /** @internal */public attachedCount: number;
+  /** @internal */public unmountCount: number;
+  /** @internal */public detachedCount: number;
+  /** @internal */public unbindAfterDetachCount: number;
+  /** @internal */public unboundCount: number;
 
   // These are dummy properties to make the lifecycle conform to the interfaces
   // of the components it manages. This allows the lifecycle itself to be the first link
   // in the chain and removes the need for an additional null check on each addition.
-  /*@internal*/public $nextFlush: IChangeTracker;
-  /*@internal*/public flush: IChangeTracker['flush'];
-  /*@internal*/public $nextConnect: IConnectableBinding;
-  /*@internal*/public connect: IConnectableBinding['connect'];
-  /*@internal*/public $nextPatch: IConnectableBinding;
-  /*@internal*/public patch: IConnectableBinding['patch'];
-  /*@internal*/public $nextBound: ILifecycleBound;
-  /*@internal*/public bound: ILifecycleBound['bound'];
-  /*@internal*/public $nextMount: ILifecycleMount;
-  /*@internal*/public $mount: ILifecycleMount['$mount'];
-  /*@internal*/public $nextAttached: ILifecycleAttached;
-  /*@internal*/public attached: ILifecycleAttached['attached'];
-  /*@internal*/public $nextUnmount: ILifecycleUnmount;
-  /*@internal*/public $unmount: ILifecycleUnmount['$unmount'];
-  /*@internal*/public $nextDetached: ILifecycleDetached;
-  /*@internal*/public detached: ILifecycleDetached['detached'];
-  /*@internal*/public $nextUnbindAfterDetach: ILifecycleUnbindAfterDetach;
-  /*@internal*/public $unbind: ILifecycleUnbindAfterDetach['$unbind'];
-  /*@internal*/public $nextUnbound: ILifecycleUnbound;
-  /*@internal*/public unbound: ILifecycleUnbound['unbound'];
+  /** @internal */public $nextFlush: IChangeTracker;
+  /** @internal */public flush: IChangeTracker['flush'];
+  /** @internal */public $nextConnect: IConnectableBinding;
+  /** @internal */public connect: IConnectableBinding['connect'];
+  /** @internal */public $nextPatch: IConnectableBinding;
+  /** @internal */public patch: IConnectableBinding['patch'];
+  /** @internal */public $nextBound: ILifecycleBound;
+  /** @internal */public bound: ILifecycleBound['bound'];
+  /** @internal */public $nextMount: ILifecycleMount;
+  /** @internal */public $mount: ILifecycleMount['$mount'];
+  /** @internal */public $nextAttached: ILifecycleAttached;
+  /** @internal */public attached: ILifecycleAttached['attached'];
+  /** @internal */public $nextUnmount: ILifecycleUnmount;
+  /** @internal */public $unmount: ILifecycleUnmount['$unmount'];
+  /** @internal */public $nextDetached: ILifecycleDetached;
+  /** @internal */public detached: ILifecycleDetached['detached'];
+  /** @internal */public $nextUnbindAfterDetach: ILifecycleUnbindAfterDetach;
+  /** @internal */public $unbind: ILifecycleUnbindAfterDetach['$unbind'];
+  /** @internal */public $nextUnbound: ILifecycleUnbound;
+  /** @internal */public unbound: ILifecycleUnbound['unbound'];
 
-  /*@internal*/public task: AggregateLifecycleTask | null;
+  /** @internal */public task: AggregateLifecycleTask | null;
 
   constructor() {
     this.bindDepth = 0;
@@ -1370,7 +1370,7 @@ export interface ILifecycleTask<T = unknown> {
 export class AggregateLifecycleTask implements ILifecycleTask<void> {
   public done: boolean;
 
-  /*@internal*/
+  /** @internal */
   public owner: Lifecycle;
 
   private resolve: () => void;
@@ -1463,7 +1463,7 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class PromiseSwap implements ILifecycleTask<IView> {
   public done: boolean;
 

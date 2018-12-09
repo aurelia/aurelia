@@ -9,7 +9,7 @@ export interface IDirtyChecker {
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>()
   .withDefault(x => x.singleton(DirtyChecker));
 
-/*@internal*/
+/** @internal */
 export class DirtyChecker {
   private checkDelay: number;
   private tracked: DirtyCheckProperty[];
@@ -62,7 +62,7 @@ export class DirtyChecker {
 
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
-/*@internal*/
+/** @internal */
 @propertyObserver()
 export class DirtyCheckProperty implements DirtyCheckProperty {
   public obj: IObservable;

@@ -75,7 +75,7 @@ export class If {
     this.coordinator.compose(view, flags);
   }
 
-  /*@internal*/
+  /** @internal */
   public updateView(flags: LifecycleFlags): IView | null {
     let view: IView | null;
 
@@ -90,7 +90,7 @@ export class If {
     return view;
   }
 
-  /*@internal*/
+  /** @internal */
   public ensureView(view: IView | null, factory: IViewFactory, flags: LifecycleFlags): IView {
     if (view === null) {
       view = factory.create();

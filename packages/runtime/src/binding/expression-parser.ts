@@ -14,7 +14,7 @@ export interface IExpressionParser {
 export const IExpressionParser = DI.createInterface<IExpressionParser>()
   .withDefault(x => x.singleton(ExpressionParser));
 
-/*@internal*/
+/** @internal */
 export class ExpressionParser implements IExpressionParser {
   private expressionLookup: Record<string, IsBindingBehavior>;
   private forOfLookup: Record<string, ForOfStatement>;

@@ -321,7 +321,7 @@ export class TextNodeSequence implements INodeSequence {
 // has an instance of this under the hood. Anyone who wants to create a node sequence from
 // a string of markup would also receive an instance of this.
 // CompiledTemplates create instances of FragmentNodeSequence.
-/*@internal*/
+/** @internal */
 export class FragmentNodeSequence implements INodeSequence {
   public firstChild: INode;
   public lastChild: INode;
@@ -495,7 +495,7 @@ export class NodeSequenceFactory {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class AuMarker implements INode {
   public get parentNode(): INode {
     return this.nextSibling.parentNode;

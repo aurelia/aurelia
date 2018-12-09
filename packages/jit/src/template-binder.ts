@@ -423,19 +423,24 @@ export class TemplateBinder {
 
     switch (node.nodeName) {
       case 'LET':
+        // let cannot have children and has some different processing rules, so return early
         this.bindLetElement(parentManifest, node);
         if (Tracer.enabled) { Tracer.leave(); }
         return;
       case 'SLOT':
+        // slot requires no compilation
         this.surrogate.hasSlots = true;
         if (Tracer.enabled) { Tracer.leave(); }
         return;
     }
 
+    // nodes are processed bottom-up so we need to store the manifests before traversing down and
+    // restore them again afterwards
     const parentManifestRootSave = this.parentManifestRoot;
     const manifestRootSave = this.manifestRoot;
     const manifestSave = this.manifest;
 
+    // get the lower case element name to resolve the associated custom element (if any)
     let elementKey = node.getAttribute('as-element');
     if (elementKey === null) {
       elementKey = node.nodeName.toLowerCase();
@@ -443,6 +448,7 @@ export class TemplateBinder {
       node.removeAttribute('as-element');
     }
 
+    // get the part name to override the name of the compiled definition
     this.partName = node.getAttribute('part');
     if (this.partName !== null) {
       node.removeAttribute('part');
@@ -450,14 +456,19 @@ export class TemplateBinder {
 
     const elementInfo = this.metadata.elements[elementKey];
     if (elementInfo === undefined) {
+      // there is no registered custom element with this name
       this.manifest = new PlainElementSymbol(node);
     } else {
+      // it's a custom element so we set the manifestRoot as well (for storing replace-parts)
       this.parentManifestRoot = this.manifestRoot;
       this.manifestRoot = this.manifest = new CustomElementSymbol(node, elementInfo);
     }
 
+    // lifting operations done by template controllers and replace-parts effectively unlink the nodes, so start at the bottom
     this.bindChildNodes(node);
 
+    // the parentManifest will receive either the direct child nodes, or the template controllers / replace-parts
+    // wrapping them
     this.bindAttributes(node, parentManifest);
 
     if (elementInfo !== undefined && elementInfo.containerless) {
@@ -466,6 +477,7 @@ export class TemplateBinder {
       node.classList.add('au');
     }
 
+    // restore the stored manifests so the attributes are processed on the correct lavel
     this.parentManifestRoot = parentManifestRootSave;
     this.manifestRoot = manifestRootSave;
     this.manifest = manifestSave;
@@ -508,8 +520,8 @@ export class TemplateBinder {
 
     const replacePart = this.declareReplacePart(node);
 
+    let previousController: TemplateControllerSymbol;
     let currentController: TemplateControllerSymbol;
-    let nextController: TemplateControllerSymbol;
 
     const attributes = node.attributes;
     let i = 0;
@@ -519,54 +531,77 @@ export class TemplateBinder {
       const attrInfo = this.metadata.attributes[attrSyntax.target];
 
       if (attrInfo === undefined) {
+        // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         this.bindPlainAttribute(attrSyntax);
         ++i;
       } else if (attrInfo.isTemplateController) {
-        nextController = manifest.templateController = this.declareTemplateController(attrSyntax, attrInfo);
+        // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
+        // so keep setting manifest.templateController to the latest template controller we find
+        currentController = manifest.templateController = this.declareTemplateController(attrSyntax, attrInfo);
 
+        // the proxy and the manifest are only identical when we're at the first template controller (since the controller
+        // is assigned to the proxy), so this evaluates to true at most once per node
         if (manifestProxy === manifest) {
+          // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
           manifest.physicalNode.parentNode.replaceChild(createMarker(), manifest.physicalNode);
 
+          // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
+          // and simply use the template directly, saving a bit of work
           if (manifest.physicalNode.nodeName === 'TEMPLATE') {
-            nextController.template = manifest;
-            nextController.physicalNode = manifest.physicalNode as IHTMLTemplateElement;
+            currentController.template = manifest;
+            currentController.physicalNode = manifest.physicalNode as IHTMLTemplateElement;
+            // the template could safely stay without affecting anything visible, but let's keep the DOM tidy
+            manifest.physicalNode.remove();
           } else {
-            nextController.template = manifest;
-            nextController.physicalNode = DOM.createTemplate();
-            nextController.physicalNode.content.appendChild(manifest.physicalNode);
+            // the manifest is not a template element so we need to wrap it in one
+            currentController.template = manifest;
+            currentController.physicalNode = DOM.createTemplate();
+            currentController.physicalNode.content.appendChild(manifest.physicalNode);
           }
-          manifestProxy = nextController;
+          // the proxy comes directly underneath the parent of the manifest, so only set that once (to the first controller)
+          manifestProxy = currentController;
         } else {
-          nextController.templateController = currentController;
-          nextController.template = currentController.template;
-          nextController.physicalNode = currentController.physicalNode;
+          // we're now at more than one controller on the same element, so shift the original manifest + its node
+          // down to the latest controller and give the previous controller a new template element with a marker
+          currentController.templateController = previousController;
+          currentController.template = previousController.template;
+          currentController.physicalNode = previousController.physicalNode;
 
-          currentController.template = nextController;
-          currentController.physicalNode = DOM.createTemplate();
-          currentController.physicalNode.content.appendChild(createMarker());
+          previousController.template = currentController;
+          previousController.physicalNode = DOM.createTemplate();
+          previousController.physicalNode.content.appendChild(createMarker());
         }
-        currentController = nextController;
+        previousController = currentController;
 
         node.removeAttribute(attr.name); // note: removing an attribute shifts the next one to the current spot, so no need for ++i
       } else {
+        // a regular custom attribute
         this.bindCustomAttribute(attrSyntax, attrInfo);
         ++i;
       }
     }
 
     if (replacePart === null) {
+      // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
       parentManifest.childNodes.push(manifestProxy);
     } else {
+      // there is a replace-part attribute on this node, so add it to the parts collection of the manifestRoot
+      // instead of to the childNodes
       replacePart.parent = parentManifest;
       replacePart.template = manifestProxy;
       const proxyNode = manifestProxy.physicalNode;
       if (proxyNode.nodeName === 'TEMPLATE') {
+        // if it's a template element, no need to do anything special, just assign it to the replacePart
         replacePart.physicalNode = proxyNode as IHTMLTemplateElement;
+        proxyNode.remove();
       } else {
+        // otherwise wrap the replace-part in a template
         replacePart.physicalNode = DOM.createTemplate();
         replacePart.physicalNode.content.appendChild(proxyNode);
       }
       if (manifest === manifestRoot) {
+        // if the current manifest is also the manifestRoot, it means the replace-part sits on a custom
+        // element, so add the part to the parent wrapping custom element instead
         parentManifestRoot.parts.push(replacePart);
       } else {
         manifestRoot.parts.push(replacePart);
@@ -625,6 +660,7 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.declareTemplateController', slice.call(arguments)); }
 
     let symbol: TemplateControllerSymbol;
+    // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
     const command = this.getCommand(attrSyntax);
     if (command === null && attrInfo.hasDynamicOptions) {
       symbol = new TemplateControllerSymbol(attrSyntax, attrInfo, this.partName);
@@ -648,9 +684,13 @@ export class TemplateBinder {
     const command = this.getCommand(attrSyntax);
     let symbol: CustomAttributeSymbol;
     if (command === null && attrInfo.hasDynamicOptions) {
+      // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
+      // the binding commands must be declared in the dynamicOptions expression itself
       symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
       this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
     } else {
+      // we've either got a command (with or without dynamicOptions, the latter maps to the first bindable),
+      // or a null command but without dynamicOptions (which may be an interpolation or a normal string)
       symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
       const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
@@ -675,6 +715,7 @@ export class TemplateBinder {
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       let bindable = attrInfo.bindables[attrSyntax.target];
       if (bindable === undefined) {
+        // everything in a dynamicOptions expression must be used, so if it's not a bindable then we create one on the spot
         bindable = attrInfo.bindables[attrSyntax.target] = new BindableInfo(attrSyntax.target, BindingMode.toView);
       }
 
@@ -700,16 +741,22 @@ export class TemplateBinder {
     if (manifest.flags & SymbolFlags.isCustomElement) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];
       if (bindable !== undefined) {
+        // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
+        // the template compiler will translate it to the correct instruction
         (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
         manifest.isTarget = true;
       } else if (expr !== null) {
+        // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
         manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
         manifest.isTarget = true;
       }
     } else if (expr !== null || attrSyntax.target === 'ref') {
+      // either a binding command, an interpolation, or a ref
       manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
       manifest.isTarget = true;
     } else if (manifest === this.surrogate) {
+      // any attributes, even if they are plain (no command/interpolation etc), should be added if they
+      // are on the surrogate element
       manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
     }
 

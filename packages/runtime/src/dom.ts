@@ -15,7 +15,7 @@ declare var SVGElement: ISVGElement;
 
 // tslint:disable:no-any
 export const DOM = {
-  createDocumentFragment(markupOrNode?: string | INode): IDocumentFragment {
+  createDocumentFragment(markupOrNode?: unknown): IDocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {
       return document.createDocumentFragment();
     }
@@ -29,12 +29,12 @@ export const DOM = {
     }
     return DOM.createTemplate(markupOrNode).content;
   },
-  createTemplate(markup?: string): IHTMLTemplateElement {
-    if (markup === undefined) {
+  createTemplate(markup?: unknown): IHTMLTemplateElement {
+    if (markup === undefined || markup === null) {
       return document.createElement('template');
     }
     const template = document.createElement('template');
-    template.innerHTML = markup;
+    template.innerHTML = (markup as string | object).toString();
     return template;
   },
   addClass(node: IElement, className: string): void {
@@ -364,7 +364,7 @@ export class NodeSequenceFactory {
     }
   }
 
-  public static createFor(markupOrNode: string | INode): NodeSequenceFactory {
+  public static createFor(markupOrNode: unknown): NodeSequenceFactory {
     if (Tracer.enabled) { Tracer.enter('NodeSequenceFactory.createFor', slice.call(arguments)); }
     const fragment = DOM.createDocumentFragment(markupOrNode);
     if (Tracer.enabled) { Tracer.leave(); }

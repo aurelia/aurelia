@@ -61,7 +61,7 @@ export interface IBuildInstruction {
 
 export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
-  template?: string | INode;
+  template?: unknown;
   instructions?: TargetedInstruction[][];
   dependencies?: IRegistry[];
   build?: IBuildInstruction;
@@ -72,9 +72,9 @@ export interface ITemplateDefinition extends IResourceDefinition {
   hasSlots?: boolean;
 }
 
-export type TemplateDefinition = ResourceDescription<Omit<ITemplateDefinition, 'template'>> & Required<Pick<ITemplateDefinition, 'template'>>;
+export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 
-export type TemplatePartDefinitions = Record<string, ResourcePartDescription<Omit<ITemplateDefinition, 'template'>> & Required<Pick<ITemplateDefinition, 'template'>>>;
+export type TemplatePartDefinitions = Record<string, ResourcePartDescription<ITemplateDefinition>>;
 export type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
 
 export interface IAttributeDefinition extends IResourceDefinition {
@@ -293,7 +293,7 @@ export function buildTemplateDefinition(
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   name: string | null,
-  template: string | INode,
+  template: unknown,
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
@@ -307,7 +307,7 @@ export function buildTemplateDefinition(
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | Immutable<ITemplateDefinition> | null,
-  template?: string | INode | null,
+  template?: unknown | null,
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,

@@ -1,4 +1,4 @@
-import { Class, Constructable, IContainer, Immutable, IRegistry, Omit } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, Immutable, IRegistry } from '@aurelia/kernel';
 
 export interface IResourceDefinition {
   name: string;
@@ -14,17 +14,9 @@ export interface IResourceKind<TDef, TProto, TClass extends Class<TProto, unknow
   define<T extends Constructable>(nameOrDefinition: string | TDef, ctor: T): T & TClass & IResourceType<TDef, TProto>;
 }
 
-// We can't make the template property immutable+required because it's a DOM type and we can't necessarily
-// satisfy those constraints. This is a hacky workaround and we need something better for this.
-export type ResourceDescription<TDef> =
-  TDef extends { template: infer TTemplate } ?
-  Immutable<Required<Omit<TDef, 'template'>>> & { template: TTemplate } :
-  Immutable<Required<TDef>>;
+export type ResourceDescription<TDef> = Immutable<Required<TDef>>;
 
-export type ResourcePartDescription<TDef> =
-  TDef extends { template: infer TTemplate } ?
-  Immutable<Omit<TDef, 'template'>> & { template: TTemplate } :
-  Immutable<TDef>;
+export type ResourcePartDescription<TDef> = Immutable<TDef>;
 
 export interface IResourceType<TDef, TProto, TClass extends Class<TProto, unknown> = Class<TProto>> extends Class<TProto, unknown>, IRegistry {
   readonly kind: IResourceKind<TDef, TProto, TClass>;

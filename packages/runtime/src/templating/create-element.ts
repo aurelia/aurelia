@@ -8,9 +8,7 @@ import { IRenderingEngine, ITemplate } from './lifecycle-render';
 
 const slice = Array.prototype.slice;
 
-type ChildType = RenderPlan | string | INode;
-
-export function createElement(tagOrType: string | Constructable, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
+export function createElement(tagOrType: string | Constructable, props?: object, children?: ArrayLike<unknown>): RenderPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(tagOrType, props as Record<string, string | ITargetedInstruction>, children);
   } else {
@@ -56,7 +54,7 @@ export class RenderPlan {
   }
 }
 
-function createElementForTag(tagName: string, props?: Record<string, string | ITargetedInstruction>, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForTag(tagName: string, props?: Record<string, string | ITargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
   if (Tracer.enabled) { Tracer.enter('createElementForTag', slice.call(arguments)); }
   const instructions: TargetedInstruction[] = [];
   const allInstructions: TargetedInstruction[][] = [];
@@ -91,7 +89,7 @@ function createElementForTag(tagName: string, props?: Record<string, string | IT
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function createElementForType(Type: ICustomElementType, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForType(Type: ICustomElementType, props?: object, children?: ArrayLike<unknown>): RenderPlan {
   if (Tracer.enabled) { Tracer.enter('createElementForType', slice.call(arguments)); }
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
@@ -148,16 +146,20 @@ function createElementForType(Type: ICustomElementType, props?: object, children
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
+function addChildren(parent: INode, children: ArrayLike<unknown>, allInstructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {
     const current = children[i];
 
-    if (typeof current === 'string') {
-      DOM.appendChild(parent, DOM.createTextNode(current));
-    } else if (DOM.isNodeInstance(current)) {
-      DOM.appendChild(parent, current);
-    } else {
-      current.mergeInto(parent, allInstructions, dependencies);
+    switch (typeof current) {
+      case 'string':
+        DOM.appendChild(parent, DOM.createTextNode(current));
+        break;
+      case 'object':
+        if (DOM.isNodeInstance(current)) {
+          DOM.appendChild(parent, current);
+        } else if ('mergeInto' in (current as RenderPlan)) {
+          (current as RenderPlan).mergeInto(parent, allInstructions, dependencies);
+        }
     }
   }
 }

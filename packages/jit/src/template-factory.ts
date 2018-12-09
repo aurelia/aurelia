@@ -24,10 +24,10 @@ export interface ITemplateFactory {
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node or html string.
    *
-   * @param node A DOM node or raw html string that may or may not be wrapped in `<template></template>`
+   * @param input A DOM node or raw html string that may or may not be wrapped in `<template></template>`
    */
-  createTemplate(input: string | INode): IHTMLTemplateElement;
-  createTemplate(input: string | INode): IHTMLTemplateElement;
+  createTemplate(input: unknown): IHTMLTemplateElement;
+  createTemplate(input: unknown): IHTMLTemplateElement;
 }
 
 export const ITemplateFactory = DI.createInterface<ITemplateFactory>()
@@ -47,7 +47,7 @@ export class TemplateFactory {
 
   public createTemplate(markup: string): IHTMLTemplateElement;
   public createTemplate(node: INode): IHTMLTemplateElement;
-  public createTemplate(input: string | INode): IHTMLTemplateElement;
+  public createTemplate(input: unknown): IHTMLTemplateElement;
   public createTemplate(input: string | INode): IHTMLTemplateElement {
     if (typeof input === 'string') {
       const template = this.template;

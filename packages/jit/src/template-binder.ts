@@ -171,7 +171,6 @@ export class CustomElementSymbol {
   public isTarget: true;
   public isContainerless: boolean;
   public templateController: TemplateControllerSymbol | null;
-  public hasSlots: boolean;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
@@ -217,7 +216,6 @@ export class CustomElementSymbol {
     this.isTarget = true;
     this.isContainerless = info.containerless;
     this.templateController = null;
-    this.hasSlots = false;
     this._attributes = null;
     this._bindings = null;
     this._childNodes = null;
@@ -257,6 +255,7 @@ export class PlainElementSymbol {
   public physicalNode: IHTMLElement;
   public isTarget: boolean;
   public templateController: TemplateControllerSymbol | null;
+  public hasSlots?: boolean;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
@@ -330,6 +329,8 @@ export class TemplateBinder {
   public attrParser: IAttributeParser;
   public exprParser: IExpressionParser;
 
+  private surrogate: PlainElementSymbol | null;
+
   // This is any "original" (as in, not a template created for a template controller) element.
   // It collects all attribute symbols except for template controllers and replace-parts.
   private manifest: ElementSymbol | null;
@@ -348,6 +349,7 @@ export class TemplateBinder {
     this.metadata = metadata;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
+    this.surrogate = null;
     this.manifest = null;
     this.manifestRoot = null;
     this.parentManifestRoot = null;
@@ -357,11 +359,12 @@ export class TemplateBinder {
   public bind(node: IHTMLTemplateElement): PlainElementSymbol {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bind', slice.call(arguments)); }
 
+    const surrogateSave = this.surrogate;
     const parentManifestRootSave = this.parentManifestRoot;
     const manifestRootSave = this.manifestRoot;
     const manifestSave = this.manifest;
 
-    const manifest = this.manifest = new PlainElementSymbol(node);
+    const manifest = this.surrogate = this.manifest = new PlainElementSymbol(node);
     const childNodes = PLATFORM.toArray(node.content.childNodes);
     let childNode: INode;
     for (let i = 0, ii = childNodes.length; i < ii; ++i) {
@@ -375,6 +378,7 @@ export class TemplateBinder {
       }
     }
 
+    this.surrogate = surrogateSave;
     this.parentManifestRoot = parentManifestRootSave;
     this.manifestRoot = manifestRootSave;
     this.manifest = manifestSave;
@@ -392,7 +396,7 @@ export class TemplateBinder {
         if (Tracer.enabled) { Tracer.leave(); }
         return;
       case 'SLOT':
-        this.manifestRoot.hasSlots = true;
+        this.surrogate.hasSlots = true;
         if (Tracer.enabled) { Tracer.leave(); }
         return;
     }

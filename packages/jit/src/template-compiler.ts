@@ -54,7 +54,6 @@ export class TemplateCompiler implements ITemplateCompiler {
   private attrParser: IAttributeParser;
   private exprParser: IExpressionParser;
 
-  private compilation: ITemplateDefinition;
   private instructionRows: InstructionRow[];
 
   public get name(): string {
@@ -65,7 +64,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.factory = factory;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
-    this.compilation = null;
     this.instructionRows = null;
   }
 
@@ -77,16 +75,17 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
       definition.instructions = [];
     }
+    if (templateSymbol.hasSlots === true) {
+      definition.hasSlots = true;
+    }
 
     this.instructionRows = definition.instructions as InstructionRow[];
-    this.compilation = definition;
 
     // TODO: process surrogate attributes
 
     this.compileChildNodes(templateSymbol);
 
     this.instructionRows = null;
-    this.compilation = null;
 
     return definition as TemplateDefinition;
   }
@@ -114,9 +113,6 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compileCustomElement(symbol: CustomElementSymbol): void {
-    if (symbol.hasSlots) {
-      this.compilation.hasSlots = true;
-    }
     const bindings = this.compileBindings(symbol);
     const attributes = this.compileAttributes(symbol);
     const parts = this.compileParts(symbol);

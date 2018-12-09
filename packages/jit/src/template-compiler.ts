@@ -6,6 +6,7 @@ import {
   HydrateTemplateController,
   IBuildInstruction,
   IExpressionParser,
+  ILetBindingInstruction,
   InstructionRow,
   Interpolation,
   InterpolationInstruction,
@@ -13,6 +14,8 @@ import {
   IsBindingBehavior,
   ITemplateCompiler,
   ITemplateDefinition,
+  LetBindingInstruction,
+  LetElementInstruction,
   RefBindingInstruction,
   SetAttributeInstruction,
   SetPropertyInstruction,
@@ -27,6 +30,7 @@ import {
   CustomAttributeSymbol,
   CustomElementSymbol,
   ElementSymbol,
+  LetElementSymbol,
   ParentNodeSymbol,
   PlainAttributeSymbol,
   PlainElementSymbol,
@@ -94,6 +98,14 @@ export class TemplateCompiler implements ITemplateCompiler {
         const childNode = childNodes[i];
         if (childNode.flags & SymbolFlags.isText) {
           this.instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation)]);
+        } else if (childNode.flags & SymbolFlags.isLetElement) {
+          const bindings = (childNode as LetElementSymbol).bindings;
+          const instructions: ILetBindingInstruction[] = [];
+          for (let j = 0, jj = bindings.length; j < jj; ++j) {
+            const binding = bindings[j];
+            instructions[j] = new LetBindingInstruction(binding.expression as IsBindingBehavior, binding.target);
+          }
+          this.instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toViewModel)]);
         } else {
           this.compileParentNode(childNode as ParentNodeSymbol);
         }

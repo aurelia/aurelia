@@ -1,5 +1,5 @@
 import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { BindingMode, BindingType, DOM, IChildNode, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType, IHTMLSlotElement } from '@aurelia/runtime';
+import { BindingMode, BindingType, DOM, IChildNode, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -7,20 +7,21 @@ import { Char } from './common';
 import { AttrInfo, BindableInfo, ElementInfo, MetadataModel } from './metadata-model';
 
 export const enum SymbolFlags {
-  type                 = 0b00000_11111111,
-  isTemplateController = 0b00000_00000001,
-  isReplacePart        = 0b00000_00000010,
-  isCustomAttribute    = 0b00000_00000100,
-  isPlainAttribute     = 0b00000_00001000,
-  isCustomElement      = 0b00000_00010000,
-  isPlainElement       = 0b00000_00100000,
-  isText               = 0b00000_01000000,
-  isBinding            = 0b00000_10000000,
-  hasTemplate          = 0b00001_00000000,
-  hasAttributes        = 0b00010_00000000,
-  hasBindings          = 0b00100_00000000,
-  hasChildNodes        = 0b01000_00000000,
-  hasParts             = 0b10000_00000000,
+  type                 = 0b00000_111111111,
+  isTemplateController = 0b00000_000000001,
+  isReplacePart        = 0b00000_000000010,
+  isCustomAttribute    = 0b00000_000000100,
+  isPlainAttribute     = 0b00000_000001000,
+  isCustomElement      = 0b00000_000010000,
+  isLetElement         = 0b00000_000100000,
+  isPlainElement       = 0b00000_001000000,
+  isText               = 0b00000_010000000,
+  isBinding            = 0b00000_100000000,
+  hasTemplate          = 0b00001_000000000,
+  hasAttributes        = 0b00010_000000000,
+  hasBindings          = 0b00100_000000000,
+  hasChildNodes        = 0b01000_000000000,
+  hasParts             = 0b10000_000000000,
 }
 
 /**
@@ -224,6 +225,28 @@ export class CustomElementSymbol {
   }
 }
 
+export class LetElementSymbol {
+  public flags: SymbolFlags;
+  public physicalNode: IHTMLElement;
+  public toViewModel: boolean;
+
+  private _bindings: BindingSymbol[] | null;
+  public get bindings(): BindingSymbol[] {
+    if (this._bindings === null) {
+      this._bindings = [];
+      this.flags |= SymbolFlags.hasBindings;
+    }
+    return this._bindings;
+  }
+
+  constructor(node: IHTMLElement) {
+    this.flags = SymbolFlags.isLetElement;
+    this.physicalNode = node;
+    this.toViewModel = false;
+    this._bindings = null;
+  }
+}
+
 /**
  * A normal html element that may or may not have attribute behaviors and/or child node behaviors.
  *
@@ -282,8 +305,8 @@ export type AttributeSymbol = CustomAttributeSymbol | PlainAttributeSymbol;
 export type ResourceAttributeSymbol = CustomAttributeSymbol | TemplateControllerSymbol;
 export type ElementSymbol = CustomElementSymbol | PlainElementSymbol;
 export type ParentNodeSymbol = ElementSymbol | TemplateControllerSymbol;
-export type NodeSymbol = TextSymbol | ParentNodeSymbol;
-export type SymbolWithBindings = CustomElementSymbol | ResourceAttributeSymbol;
+export type NodeSymbol = TextSymbol | LetElementSymbol | ParentNodeSymbol;
+export type SymbolWithBindings = LetElementSymbol | CustomElementSymbol | ResourceAttributeSymbol;
 export type SymbolWithTemplate = TemplateControllerSymbol | ReplacePartSymbol;
 export type AnySymbol =
   TemplateControllerSymbol |
@@ -364,6 +387,10 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindManifest', slice.call(arguments)); }
 
     switch (node.nodeName) {
+      case 'LET':
+        this.bindLetElement(parentManifest, node);
+        if (Tracer.enabled) { Tracer.leave(); }
+        return;
       case 'SLOT':
         this.manifestRoot.hasSlots = true;
         if (Tracer.enabled) { Tracer.leave(); }
@@ -411,6 +438,30 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
+  private bindLetElement(parentManifest: ElementSymbol, node: IHTMLElement): void {
+    const symbol = new LetElementSymbol(node);
+    parentManifest.childNodes.push(symbol);
+
+    const attributes = node.attributes;
+    let i = 0;
+    while (i < attributes.length) {
+      const attr = attributes[i];
+      if (attr.name === 'to-view-model') {
+        node.removeAttribute('to-view-model');
+        symbol.toViewModel = true;
+        continue;
+      }
+      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+      const command = this.getCommand(attrSyntax);
+      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+      const info = new BindableInfo(PLATFORM.camelCase(attrSyntax.target), BindingMode.toView);
+      symbol.bindings.push(new BindingSymbol(command, info, expr, attrSyntax.rawValue, attrSyntax.target));
+
+      ++i;
+    }
+  }
+
   private bindAttributes(node: IHTMLTemplateElement | IHTMLElement, parentManifest: ElementSymbol): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindAttributes', slice.call(arguments)); }
 
@@ -428,7 +479,7 @@ export class TemplateBinder {
     const attributes = node.attributes;
     let i = 0;
     while (i < attributes.length) {
-      const attr = node.attributes[i];
+      const attr = attributes[i];
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
       const attrInfo = this.metadata.attributes[attrSyntax.target];
 

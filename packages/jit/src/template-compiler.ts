@@ -83,7 +83,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       const { childNodes } = parent;
       for (let i = 0, ii = childNodes.length; i < ii; ++i) {
         const childNode = childNodes[i];
-        if ((childNode.flags & SymbolFlags.type) === SymbolFlags.isText) {
+        if (childNode.flags & SymbolFlags.isText) {
           this.instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation)]);
         } else {
           this.compileParentNode(childNode as ParentNodeSymbol);
@@ -189,7 +189,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileAttribute(symbol: AttributeSymbol): AttributeInstruction {
     // any attribute on a custom element (which is not a bindable) or a plain element
-    if ((symbol.flags & SymbolFlags.type) === SymbolFlags.isCustomAttribute) {
+    if (symbol.flags & SymbolFlags.isCustomAttribute) {
       // a normal custom attribute (not template controller)
       const bindings = this.compileBindings(symbol as CustomAttributeSymbol);
       return new HydrateAttributeInstruction((symbol as CustomAttributeSymbol).res, bindings);

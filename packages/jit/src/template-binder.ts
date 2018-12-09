@@ -1,5 +1,5 @@
 import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { BindingType, DOM, IChildNode, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType, BindingMode } from '@aurelia/runtime';
+import { BindingMode, BindingType, DOM, IChildNode, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -7,32 +7,20 @@ import { Char } from './common';
 import { AttrInfo, BindableInfo, ElementInfo, MetadataModel } from './metadata-model';
 
 export const enum SymbolFlags {
-  type                 = 0b000000000_1111,
-  isTemplateController = 0b000000000_0001,
-  isReplacePart        = 0b000000000_0010,
-  isCustomAttribute    = 0b000000000_0011,
-  isPlainAttribute     = 0b000000000_0100,
-  isCustomElement      = 0b000000000_0101,
-  isPlainElement       = 0b000000000_0110,
-  isText               = 0b000000000_0111,
-  isBinding            = 0b000000000_1000,
-  templateController   = 0b000010010_0001,
-  replacePart          = 0b000010000_0010,
-  customAttribute      = 0b000001010_0011,
-  plainAttribute       = 0b000000000_0100,
-  customElement        = 0b000000111_0101,
-  plainElement         = 0b000000101_0110,
-  text                 = 0b000000000_0111,
-  binding              = 0b000000000_1000,
-  canHaveAttributes    = 0b000000001_0000,
-  canHaveBindings      = 0b000000010_0000,
-  canHaveChildNodes    = 0b000000100_0000,
-  canHaveParts         = 0b000001000_0000,
-  hasTemplate          = 0b000010000_0000,
-  hasAttributes        = 0b000100000_0000,
-  hasBindings          = 0b001000000_0000,
-  hasChildNodes        = 0b010000000_0000,
-  hasParts             = 0b100000000_0000,
+  type                 = 0b00000_11111111,
+  isTemplateController = 0b00000_00000001,
+  isReplacePart        = 0b00000_00000010,
+  isCustomAttribute    = 0b00000_00000100,
+  isPlainAttribute     = 0b00000_00001000,
+  isCustomElement      = 0b00000_00010000,
+  isPlainElement       = 0b00000_00100000,
+  isText               = 0b00000_01000000,
+  isBinding            = 0b00000_10000000,
+  hasTemplate          = 0b00001_00000000,
+  hasAttributes        = 0b00010_00000000,
+  hasBindings          = 0b00100_00000000,
+  hasChildNodes        = 0b01000_00000000,
+  hasParts             = 0b10000_00000000,
 }
 
 /**
@@ -57,7 +45,7 @@ export class TemplateControllerSymbol {
   }
 
   constructor(syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
-    this.flags = SymbolFlags.templateController;
+    this.flags = SymbolFlags.isTemplateController;
     this.res = info.name;
     this.partName = partName;
     this.physicalNode = null;
@@ -82,7 +70,7 @@ export class ReplacePartSymbol {
   public template: ParentNodeSymbol | null;
 
   constructor(name: string) {
-    this.flags = SymbolFlags.replacePart;
+    this.flags = SymbolFlags.isReplacePart;
     this.name = name;
     this.physicalNode = null;
     this.parent = null;
@@ -108,7 +96,7 @@ export class CustomAttributeSymbol {
   }
 
   constructor(syntax: AttrSyntax, info: AttrInfo) {
-    this.flags = SymbolFlags.customAttribute;
+    this.flags = SymbolFlags.isCustomAttribute;
     this.res = info.name;
     this.syntax = syntax;
     this._bindings = null;
@@ -132,7 +120,7 @@ export class PlainAttributeSymbol {
     command: IBindingCommand | undefined,
     expression: IsExpressionOrStatement | null
   ) {
-    this.flags = SymbolFlags.plainAttribute;
+    this.flags = SymbolFlags.isPlainAttribute;
     this.syntax = syntax;
     this.command = command === undefined ? null : command;
     this.expression = expression;
@@ -159,7 +147,7 @@ export class BindingSymbol {
     expression: IsExpressionOrStatement | null,
     rawValue: string
   ) {
-    this.flags = SymbolFlags.binding;
+    this.flags = SymbolFlags.isBinding;
     this.command = command === undefined ? null : command;
     this.bindable = bindable;
     this.expression = expression;
@@ -217,7 +205,7 @@ export class CustomElementSymbol {
   }
 
   constructor(node: IHTMLElement, info: ElementInfo) {
-    this.flags = SymbolFlags.customElement;
+    this.flags = SymbolFlags.isCustomElement;
     this.res = info.name;
     this.physicalNode = node;
     this.bindables = info.bindables;
@@ -261,7 +249,7 @@ export class PlainElementSymbol {
   }
 
   constructor(node: IHTMLElement) {
-    this.flags = SymbolFlags.plainElement;
+    this.flags = SymbolFlags.isPlainElement;
     this.physicalNode = node;
     this.isTarget = false;
     this.templateController = null;
@@ -279,7 +267,7 @@ export class TextSymbol {
   public interpolation: Interpolation;
 
   constructor(node: IText, interpolation: Interpolation) {
-    this.flags = SymbolFlags.text;
+    this.flags = SymbolFlags.isText;
     this.physicalNode = node;
     this.interpolation = interpolation;
   }
@@ -611,7 +599,7 @@ export class TemplateBinder {
     const manifest = this.manifest;
     const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
 
-    if ((manifest.flags & SymbolFlags.isCustomElement) === SymbolFlags.isCustomElement) {
+    if (manifest.flags & SymbolFlags.isCustomElement) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];
       if (bindable !== undefined) {
         (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue));

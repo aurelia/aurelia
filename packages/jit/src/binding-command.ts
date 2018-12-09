@@ -74,7 +74,7 @@ export const BindingCommandResource: IBindingCommandResource = {
 };
 
 function getTarget(binding: PlainAttributeSymbol | BindingSymbol, camelCase: boolean): string {
-  if ((binding.flags & SymbolFlags.type) === SymbolFlags.isBinding) {
+  if (binding.flags & SymbolFlags.isBinding) {
     return (binding as BindingSymbol).bindable.propName;
   } else if (camelCase) {
     return PLATFORM.camelCase((binding as PlainAttributeSymbol).syntax.target);
@@ -84,7 +84,7 @@ function getTarget(binding: PlainAttributeSymbol | BindingSymbol, camelCase: boo
 }
 
 function getMode(binding: PlainAttributeSymbol | BindingSymbol): BindingMode {
-  if ((binding.flags & SymbolFlags.type) === SymbolFlags.isBinding) {
+  if (binding.flags & SymbolFlags.isBinding) {
     return (binding as BindingSymbol).bindable.mode;
   } else {
     return commandToMode[(binding as PlainAttributeSymbol).syntax.command];

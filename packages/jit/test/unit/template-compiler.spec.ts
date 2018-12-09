@@ -280,7 +280,9 @@ describe('TemplateCompiler', () => {
           const [hydratePropAttrInstruction] = <[HydrateTemplateController]><unknown>instructions[0];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
             { toVerify: ['type', 'to', 'from'],
-              type: TT.propertyBinding, to: 'value', from: new AccessScope('p') },
+              type: TT.propertyBinding, to: 'value', from: new AccessScope('p') }
+          ]);
+          verifyInstructions(hydratePropAttrInstruction.def.instructions[0] as any, [
             { toVerify: ['type', 'to', 'from'],
               type: TT.propertyBinding, to: 'name', from: new AccessScope('name') },
             { toVerify: ['type', 'to', 'from'],

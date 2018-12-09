@@ -27,7 +27,9 @@ describe(spec, () => {
   it('04.', () => {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable text: string; }
-    const { au, lifecycle, host, component } = setupAndStart(`<template><foo text.bind="theText" repeat.for="i of count"></foo></template>`, null, Foo);
+    const { au, lifecycle, host, component } = setupAndStart(`<template><foo text.bind="theText" repeat.for="i of count"></foo></template>`, class {
+      theText = 'b'
+    }, Foo);
     component.count = 3;
     component.theText = 'a';
     lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -42,7 +44,9 @@ describe(spec, () => {
   it('05.', () => {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable text: string; }
-    const { au, lifecycle, host, component } = setupAndStart(`<template><foo text.bind="text" repeat.for="i of count"></foo></template>`, null, Foo);
+    const { au, lifecycle, host, component } = setupAndStart(`<template><foo text.bind="text" repeat.for="i of count"></foo></template>`, class {
+      text = 'b'
+    }, Foo);
     component.count = 3;
     component.text = 'a';
     lifecycle.processFlushQueue(LifecycleFlags.none);

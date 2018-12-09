@@ -128,7 +128,7 @@ function createAttributeInfo(resources: IResourceDescriptions, name: string): At
   if (info.bindable === null) {
     info.bindable = new BindableInfo('value', defaultBindingMode);
   }
-  if (bindableCount > 1) {
+  if (def.hasDynamicOptions || bindableCount > 1) {
     info.hasDynamicOptions = true;
   }
   return info;

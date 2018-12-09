@@ -297,7 +297,9 @@ export interface IMutationObserver {
 export interface IDocument extends INode, IDocumentOrShadowRoot, IParentNode {
   createComment(data: string): IComment;
   createDocumentFragment(): IDocumentFragment;
-  createElement<T extends IHTMLElement, TTag extends string>(tagName: TTag): TTag extends 'template' ? IHTMLTemplateElement : T;
+  createElement<T extends IHTMLElement, TTag extends string>(tagName: TTag):
+    TTag extends 'template' ? IHTMLTemplateElement :
+    TTag extends 'slot' ? IHTMLSlotElement : T;
   createTextNode(data: string): IText;
 }
 

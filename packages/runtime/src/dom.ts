@@ -70,9 +70,9 @@ export const DOM = {
   createComment(text: string): IComment {
     return document.createComment(text);
   },
-  createElement(name: string): IElement {
-    return document.createElement(name) as IElement;
-  },
+  createElement: ((name: string): IElement => {
+    return document.createElement(name);
+  }) as IDocument['createElement'],
   createNodeObserver(target: INode, callback: IMutationCallback, options: IMutationObserverInit): IMutationObserver {
     const observer = new MutationObserver(callback);
     observer.observe(target, options);

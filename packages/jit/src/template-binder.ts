@@ -394,19 +394,18 @@ export class TemplateBinder {
       ++i;
     }
 
-    const childNodes = PLATFORM.toArray(node.content.childNodes);
-    let childNode: INode;
-    i = 0;
-    while (i < childNodes.length) {
-      childNode = childNodes[i];
+    let childNode: INode = node.content.firstChild;
+    let nextChild: INode;
+    while (childNode !== null) {
       switch (childNode.nodeType) {
         case NodeType.Text:
-          childNode = this.bindText(childNode as IText);
+          childNode = this.bindText(childNode as IText).nextSibling;
           break;
         case NodeType.Element:
-          this.bindManifest(manifest, childNode as IHTMLElement);
+          nextChild = childNode.nextSibling;
+          this.bindManifest(this.manifest, childNode as IHTMLElement);
+          childNode = nextChild;
       }
-      ++i;
     }
 
     this.surrogate = surrogateSave;
@@ -614,22 +613,23 @@ export class TemplateBinder {
   private bindChildNodes(node: IHTMLTemplateElement | IHTMLElement): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindChildNodes', slice.call(arguments)); }
 
-    let childNodes: IChildNode[];
+    let childNode: INode;
     if (node.nodeName === 'TEMPLATE') {
-      childNodes = PLATFORM.toArray((node as IHTMLTemplateElement).content.childNodes);
+      childNode = (node as IHTMLTemplateElement).content.firstChild;
     } else {
-      childNodes = PLATFORM.toArray(node.childNodes);
+      childNode = node.firstChild;
     }
 
-    let childNode: INode;
-    for (let i = 0, ii = childNodes.length; i < ii; ++i) {
-      childNode = childNodes[i];
+    let nextChild: INode;
+    while (childNode !== null) {
       switch (childNode.nodeType) {
         case NodeType.Text:
-          childNode = this.bindText(childNode as IText);
+          childNode = this.bindText(childNode as IText).nextSibling;
           break;
         case NodeType.Element:
+          nextChild = childNode.nextSibling;
           this.bindManifest(this.manifest, childNode as IHTMLElement);
+          childNode = nextChild;
       }
     }
 

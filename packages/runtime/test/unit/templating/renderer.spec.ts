@@ -95,7 +95,6 @@ describe('Renderer', () => {
 
         sut.instructionRenderers[instruction.type].render(renderContext, renderable, target, instruction);
 
-        expect(placeholder['auInterpolationTarget']).to.be.true;
         expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
         expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
         const bindable = <InterpolationBinding>renderable.$bindableHead;

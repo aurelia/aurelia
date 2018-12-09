@@ -87,14 +87,14 @@ describe('NodeSequenceFactory', () => {
       }
     }
 
-    const validInputArr: any[] = ['', 'asdf', 'div', 1, true, false, {}, new Error(), undefined, null];
+    const validInputArr: any[] = ['', 'asdf', 'div', 1, true, false, {}, new Error(), undefined, null, Symbol()];
     for (const validInput of validInputArr) {
       it(`should not throw for valid input type "${typeof validInput}"`, () => {
         verifyDoesNotThrow(NodeSequenceFactory.createFor.bind(null, validInput));
       });
     }
 
-    const invalidInputArr: any[] = [Symbol()];
+    const invalidInputArr: any[] = [];
     for (const invalidInput of invalidInputArr) {
       it(`should throw for invalid input type "${typeof invalidInput}"`, () => {
         verifyThrows(NodeSequenceFactory.createFor.bind(null, invalidInput));

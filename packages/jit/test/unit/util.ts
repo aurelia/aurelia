@@ -9,7 +9,7 @@ import {
   Tracer, ITraceInfo, PLATFORM
 } from '../../../kernel/src/index';
 import {
-  stringifyLifecycleFlags, IHTMLElement
+  stringifyLifecycleFlags, IHTMLElement, isTargetedInstruction, TargetedInstructionType
 } from '../../../runtime/src/index';
 import { NodeSymbol, AttributeSymbol, ISymbol } from '../../src/index';
 
@@ -78,6 +78,43 @@ export function disableTracing() {
   Tracer.enabled = false;
 }
 
+export function targetedInstructionTypeName(type: string): string {
+  switch (type) {
+    case TargetedInstructionType.textBinding:
+      return 'textBinding';
+    case TargetedInstructionType.interpolation:
+      return 'interpolation';
+    case TargetedInstructionType.propertyBinding:
+      return 'propertyBinding';
+    case TargetedInstructionType.iteratorBinding:
+      return 'iteratorBinding';
+    case TargetedInstructionType.listenerBinding:
+      return 'listenerBinding';
+    case TargetedInstructionType.callBinding:
+      return 'callBinding';
+    case TargetedInstructionType.refBinding:
+      return 'refBinding';
+    case TargetedInstructionType.stylePropertyBinding:
+      return 'stylePropertyBinding';
+    case TargetedInstructionType.setProperty:
+      return 'setProperty';
+    case TargetedInstructionType.setAttribute:
+      return 'setAttribute';
+    case TargetedInstructionType.hydrateElement:
+      return 'hydrateElement';
+    case TargetedInstructionType.hydrateAttribute:
+      return 'hydrateAttribute';
+    case TargetedInstructionType.hydrateTemplateController:
+      return 'hydrateTemplateController';
+    case TargetedInstructionType.hydrateLetElement:
+      return 'hydrateLetElement';
+    case TargetedInstructionType.letBinding:
+      return 'letBinding';
+    default:
+      return type;
+  }
+}
+
 export function verifyBindingInstructionsEqual(actual: any, expected: any, errors?: string[], path?: string): any {
   if (path === undefined) {
     path = 'instruction';
@@ -93,7 +130,13 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
       if (typeof actual === 'object' && actual !== null) {
         actual = JSON.stringify(actual);
       }
-      errors.push(`Expected ${path} === ${expected}, but got: ${actual}`)
+      if (path.endsWith('type')) {
+        expected = targetedInstructionTypeName(expected);
+        actual = targetedInstructionTypeName(actual);
+      }
+      errors.push(`WRONG: ${path} === ${actual} (expected: ${expected})`);
+    } else {
+      errors.push(`OK   : ${path} === ${expected}`);
     }
   } else if (expected instanceof Array) {
     for (let i = 0, ii = Math.max(expected.length, actual.length); i < ii; ++i) {
@@ -106,7 +149,9 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
       }
     } else {
       if (actual.outerHTML !== expected['outerHTML']) {
-        errors.push(`Expected ${path}.outerHTML === ${expected['outerHTML']}, but got: ${actual.outerHTML}`)
+        errors.push(`WRONG: ${path}.outerHTML === ${actual.outerHTML} (expected: ${expected['outerHTML']})`);
+      } else {
+        errors.push(`OK   : ${path}.outerHTML === ${expected}`);
       }
     }
   } else if (actual) {
@@ -121,7 +166,7 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
       }
     }
   }
-  if (path === 'instruction' && errors.length) {
+  if (path === 'instruction' && errors.some(e => e[0] === 'W')) {
     throw new Error('Failed assertion: binding instruction mismatch\n  - '+errors.join('\n  - '));
   }
 }

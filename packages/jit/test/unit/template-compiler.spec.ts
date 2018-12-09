@@ -52,7 +52,7 @@ export function createAttribute(name: string, value: string): Attr {
   return attr;
 }
 
-xdescribe('TemplateCompiler', () => {
+describe('TemplateCompiler', () => {
   let container: IContainer;
   let sut: TemplateCompiler;
   let expressionParser: IExpressionParser;
@@ -431,21 +431,21 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
         new BindingIdentifier(value.split(' of ')[0]),
         new AccessScope(value.split(' of ')[1])),
       to: 'items'
-    }, {
-      type: TT.setProperty,
-      value: 'item',
-      to: 'local'
     }];
-  } else if (value.length > 0) {
+  } else if (attr.indexOf('.') !== -1) {
     return [{
       type: TT.propertyBinding,
-      from: value.length === 0 ? PrimitiveLiteral.$empty : (attr.indexOf('.') !== -1 ? new AccessScope(value) : new PrimitiveLiteral(value)),
+      from: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
       to: 'value',
       mode: BindingMode.toView,
       oneTime: false
     }];
   } else {
-    return [];
+    return [{
+      type: TT.setProperty,
+      to: 'value',
+      value
+    }];
   }
 }
 
@@ -471,7 +471,8 @@ function createTemplateController(attr: string, target: string, value: string, t
       def: {
         name: target,
         template: createElement(`<template><au-m class="au"></au-m></template>`),
-        instructions: [[childInstr]]
+        instructions: [[childInstr]],
+        build: { required: false, compiler: 'default' }
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -501,7 +502,8 @@ function createTemplateController(attr: string, target: string, value: string, t
       def: {
         name: target,
         template: createElement(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
-        instructions
+        instructions,
+        build: { required: false, compiler: 'default' }
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -625,7 +627,7 @@ type CTCResult = [ITemplateDefinition, ITemplateDefinition];
 
 type Bindables = { [pdName: string]: IBindableDescription };
 
-xdescribe(`TemplateCompiler - combinations`, () => {
+describe(`TemplateCompiler - combinations`, () => {
   function setup(...globals: IRegistry[]) {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
@@ -648,7 +650,7 @@ xdescribe(`TemplateCompiler - combinations`, () => {
         () => ['value', 'value', 'value']
       ],
       <(($1: [string], $2: [string, string, string]) => [string, string, any])[]>[
-        ($1, [,, value]) => [`ref`,               value, { type: TT.refBinding,      from: new PrimitiveLiteral(value) }],
+        ($1, [,, value]) => [`ref`,               value, { type: TT.refBinding,      from: value }],
         ($1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView,   oneTime: false }],
         ($1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView,   oneTime: false }],
         ($1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
@@ -701,21 +703,23 @@ xdescribe(`TemplateCompiler - combinations`, () => {
         () => BindingMode.twoWay
       ],
       <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]>[
-        ([, mode, to], [attr, value], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, from: new PrimitiveLiteral(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: new AccessScope(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([,, to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView }],
-        ([,, to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.oneTime }],
-        ([,, to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.fromView }],
-        ([,, to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.twoWay }]
+        ([, mode, to], [attr, value], defaultMode) => [`${attr}`,           { type: TT.setProperty, to, value }],
+        ([, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([,, to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.toView }],
+        ([,, to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.oneTime }],
+        ([,, to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.fromView }],
+        ([,, to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from:value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.twoWay }]
       ]
     ], ([bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
-      childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
+      if (childInstruction.mode !== undefined) {
+        childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
+      }
       const def = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, () => {
         const input = { template: markup, instructions: [], surrogates: [] };
-        const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: value.length > 0 ? [childInstruction] : [] };
+        const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: [childInstruction] };
         const expected = { template: createElement(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [] };
 
         const $def = CustomAttributeResource.define(def, ctor);
@@ -765,20 +769,36 @@ xdescribe(`TemplateCompiler - combinations`, () => {
       it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
 
         const { sut, resources } = setup(
-          <any>CustomAttributeResource.define({ name: 'asdf', bindables }, class FooBar{})
+          <any>CustomAttributeResource.define({ name: 'asdf', bindables, hasDynamicOptions: true }, class FooBar{})
         );
 
         const instruction = createAttributeInstruction(bindable, attrName, attrValue, true);
 
         const [input, output] = createCustomAttribute('asdf', true, [[attrName, attrValue]], [instruction], [], []);
 
-        const actual = sut.compile(<any>input, resources);
-        try {
-          verifyBindingInstructionsEqual(actual, output);
-        } catch(err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-          throw err;
+        if (attrName.endsWith('.qux')) {
+          let e;
+          try {
+            sut.compile(<any>input, resources);
+          } catch(err) {
+            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            e = err;
+          }
+          expect(e).to.be.an('Error');
+        } else {
+          // enableTracing();
+          // Tracer.enableLiveLogging(SymbolTraceWriter);
+          const actual = sut.compile(<any>input, resources);
+          // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+          // disableTracing();
+          try {
+            verifyBindingInstructionsEqual(actual, output);
+          } catch(err) {
+            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            throw err;
+          }
         }
       });
     });

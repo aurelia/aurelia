@@ -1,5 +1,5 @@
 import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { BindingMode, BindingType, DOM, IChildNode, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
+import { BindingMode, BindingType, DOM, IChildNode, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType, IHTMLSlotElement } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -170,6 +170,7 @@ export class CustomElementSymbol {
   public isTarget: true;
   public isContainerless: boolean;
   public templateController: TemplateControllerSymbol | null;
+  public hasSlots: boolean;
 
   private _attributes: AttributeSymbol[] | null;
   public get attributes(): AttributeSymbol[] {
@@ -215,6 +216,7 @@ export class CustomElementSymbol {
     this.isTarget = true;
     this.isContainerless = info.containerless;
     this.templateController = null;
+    this.hasSlots = false;
     this._attributes = null;
     this._bindings = null;
     this._childNodes = null;
@@ -360,6 +362,13 @@ export class TemplateBinder {
 
   private bindManifest(parentManifest: ElementSymbol, node: IHTMLTemplateElement | IHTMLElement): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindManifest', slice.call(arguments)); }
+
+    switch (node.nodeName) {
+      case 'SLOT':
+        this.manifestRoot.hasSlots = true;
+        if (Tracer.enabled) { Tracer.leave(); }
+        return;
+    }
 
     const parentManifestRootSave = this.parentManifestRoot;
     const manifestRootSave = this.manifestRoot;

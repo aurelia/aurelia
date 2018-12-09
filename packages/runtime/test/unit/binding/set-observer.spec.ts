@@ -86,14 +86,16 @@ describe(`SetObserver`, () => {
     });
   });
 
-  describe('should not notify batched subscribers if there are no changes', () => {
+  // the reason for this is because only a change will cause it to queue itself, so it would never normally be called without changes anyway,
+  // but for the occasion that it needs to be forced (such as via patch lifecycle), we do want all subscribers to be invoked regardless
+  describe('should notify batched subscribers even if there are no changes', () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(new Lifecycle(), set);
       sut.subscribeBatched(s);
       sut.flush(LifecycleFlags.none);
-      expect(s.handleBatchedChange).not.to.have.been.called;
+      expect(s.handleBatchedChange).to.have.been.called;
     });
   });
 

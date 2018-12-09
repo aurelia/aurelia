@@ -1,7 +1,7 @@
 import { Class, Constructable, IContainer, Immutable, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
 import { customAttributeKey, customAttributeName, IAttributeDefinition } from '../definitions';
-import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable, IState } from '../lifecycle';
+import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { $attachAttribute, $cacheAttribute, $detachAttribute } from './lifecycle-attach';
@@ -15,8 +15,6 @@ export type CustomAttributeConstructor = Constructable & CustomAttributeStaticPr
 export interface ICustomAttributeType extends
   IResourceType<IAttributeDefinition, ICustomAttribute>,
   CustomAttributeStaticProperties { }
-
-type PartialCustomAttributeType<T> = T & Partial<IResourceType<IAttributeDefinition, unknown, Constructable>>;
 
 export interface ICustomAttribute extends
   Partial<IChangeTracker>,
@@ -33,7 +31,7 @@ export interface ICustomAttributeResource extends
   IResourceKind<IAttributeDefinition, ICustomAttribute, Class<ICustomAttribute> & CustomAttributeStaticProperties> {
 }
 
-type CustomAttributeDecorator = <T>(target: PartialCustomAttributeType<T>) => T & ICustomAttributeType;
+type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType;
 
 /*@internal*/
 export function registerAttribute(this: ICustomAttributeType, container: IContainer): void {
@@ -96,9 +94,9 @@ function isType<T>(this: ICustomAttributeResource, Type: T & Partial<ICustomAttr
   return Type.kind === this;
 }
 
-function define<T>(this: ICustomAttributeResource, name: string, ctor: T): T & ICustomAttributeType;
-function define<T>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType;
-function define<T>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
+function define<T extends Constructable>(this: ICustomAttributeResource, name: string, ctor: T): T & ICustomAttributeType;
+function define<T extends Constructable>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType;
+function define<T extends Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
   const Type = ctor as T & Writable<ICustomAttributeType>;
   const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type as T & ICustomAttributeType);
   const proto: Writable<ICustomAttribute> = Type.prototype;

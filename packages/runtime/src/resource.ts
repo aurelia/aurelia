@@ -9,9 +9,9 @@ export interface IResourceKind<TDef, TProto, TClass extends Class<TProto, unknow
   keyFrom(name: string): string;
   isType<T>(Type: T & Partial<IResourceType<TDef, TProto>>): Type is T & TClass & IResourceType<TDef, TProto>;
 
-  define<T>(name: string, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
-  define<T>(definition: TDef, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
-  define<T>(nameOrDefinition: string | TDef, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
+  define<T extends Constructable>(name: string, ctor: T): T & TClass & IResourceType<TDef, TProto>;
+  define<T extends Constructable>(definition: TDef, ctor: T): T & TClass & IResourceType<TDef, TProto>;
+  define<T extends Constructable>(nameOrDefinition: string | TDef, ctor: T): T & TClass & IResourceType<TDef, TProto>;
 }
 
 // We can't make the template property immutable+required because it's a DOM type and we can't necessarily

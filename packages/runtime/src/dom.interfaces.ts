@@ -1,4 +1,4 @@
-import { DI, PLATFORM } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 
 export const enum NodeType {
   Element = 1,
@@ -93,7 +93,6 @@ export interface INode extends INodeLike, IEventTarget {
 }
 
 export interface IHTMLSlotElement extends IHTMLElement {
-  readonly nodeName: 'SLOT';
   name: string;
 }
 
@@ -153,7 +152,6 @@ export interface IShadowRootInit {
 }
 
 export interface IAttr extends INode {
-  readonly nodeType: NodeType.Attr;
   readonly name: string;
   value: string;
 }
@@ -176,7 +174,6 @@ export interface IElementCSSInlineStyle {
 export type IInsertPosition = 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend';
 
 export interface IElement extends INode, IParentNode, IChildNode, ISlotable {
-  readonly nodeType: NodeType.Element;
   readonly assignedSlot: IHTMLSlotElement | null;
   readonly attributes: INamedNodeMap;
   readonly classList: IDOMTokenList;
@@ -220,45 +217,33 @@ export interface IHTMLElement extends IElement, IElementCSSInlineStyle {}
 export interface ISVGElement extends IElement, IElementCSSInlineStyle {}
 
 export interface IHTMLInputElement extends IHTMLElement {
-  readonly nodeName: 'INPUT';
   value: string;
   checked: boolean;
   type: string;
 }
 
 export interface IHTMLSelectElement extends IHTMLElement {
-  readonly nodeName: 'SELECT';
   multiple: boolean;
   value: string;
   readonly options: ArrayLike<IHTMLOptionElement>;
 }
 
 export interface IHTMLOptionElement extends IHTMLElement {
-  readonly nodeName: 'OPTION';
   selected: boolean;
   value: string;
 }
 
-export interface IDocumentFragment extends INode, IParentNode {
-  readonly nodeType: NodeType.DocumentFragment;
-  readonly nodeName: '#document-fragment';
-}
+export interface IDocumentFragment extends INode, IParentNode {}
 
 export interface IHTMLTemplateElement extends IHTMLElement {
   readonly content: IDocumentFragment;
-  readonly nodeName: 'TEMPLATE';
 }
 
 export interface IText extends INode, IChildNode, ISlotable {
-  readonly nodeType: NodeType.Text;
-  readonly nodeName: '#text';
   readonly wholeText: string;
 }
 
-export interface IComment extends INode, IChildNode {
-  readonly nodeType: NodeType.Comment;
-  readonly nodeName: '#comment';
-}
+export interface IComment extends INode, IChildNode {}
 
 export interface IMutationObserverInit {
   attributeFilter?: string[];

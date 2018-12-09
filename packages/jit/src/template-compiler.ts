@@ -19,6 +19,7 @@ import {
   RefBindingInstruction,
   SetAttributeInstruction,
   SetPropertyInstruction,
+  TargetedInstruction,
   TemplateDefinition,
   TextBindingInstruction
 } from '@aurelia/runtime';
@@ -71,19 +72,30 @@ export class TemplateCompiler implements ITemplateCompiler {
     const metadata = new MetadataModel(resources);
     const binder = new TemplateBinder(metadata, this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template);
-    const templateSymbol = binder.bind(template);
+    const surrogate = binder.bind(template);
     if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
       definition.instructions = [];
     }
-    if (templateSymbol.hasSlots === true) {
+    if (surrogate.hasSlots === true) {
       definition.hasSlots = true;
     }
 
     this.instructionRows = definition.instructions as InstructionRow[];
 
-    // TODO: process surrogate attributes
+    const attributes = surrogate.attributes;
+    const len = attributes.length;
+    if (len > 0) {
+      let surrogates: TargetedInstruction[];
+      if (definition.surrogates === undefined || definition.surrogates === PLATFORM.emptyArray) {
+        definition.surrogates = Array(len);
+      }
+      surrogates = definition.surrogates;
+      for (let i = 0; i < len; ++i) {
+        surrogates[i] = this.compileAttribute(attributes[i]);
+      }
+    }
 
-    this.compileChildNodes(templateSymbol);
+    this.compileChildNodes(surrogate);
 
     this.instructionRows = null;
 
@@ -218,9 +230,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       return new HydrateAttributeInstruction((symbol as CustomAttributeSymbol).res, bindings);
     } else if ((symbol as PlainAttributeSymbol).command === null) {
       if ((symbol as PlainAttributeSymbol).expression === null) {
-        // there are no "core" conditions under which this line would get hit because
-        // the template binder will not let this combination through, but a customization
-        // of some sort (such as a binding command) could manually add the symbol
+        // a plain attribute on a surrogate
         return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
       } else {
         // a plain attribute with an interpolation

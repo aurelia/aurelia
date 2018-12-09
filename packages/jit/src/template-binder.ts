@@ -324,6 +324,12 @@ function createMarker(): IHTMLElement {
   return marker as IHTMLElement;
 }
 
+const invalidSurrogateAttribute = {
+  'id': true,
+  'part': true,
+  'replace-part': true
+};
+
 export class TemplateBinder {
   public metadata: MetadataModel;
   public attrParser: IAttributeParser;
@@ -365,9 +371,33 @@ export class TemplateBinder {
     const manifestSave = this.manifest;
 
     const manifest = this.surrogate = this.manifest = new PlainElementSymbol(node);
+
+    const attributes = node.attributes;
+    let i = 0;
+    while (i < attributes.length) {
+      const attr = attributes[i];
+      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+      const attrInfo = this.metadata.attributes[attrSyntax.target];
+
+      if (invalidSurrogateAttribute[attrSyntax.target]) {
+        throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
+        // TODO: use reporter
+      }
+      if (attrInfo === undefined) {
+        this.bindPlainAttribute(attrSyntax);
+      } else if (attrInfo.isTemplateController) {
+        throw new Error('Cannot have template controller on surrogate element.');
+        // TODO: use reporter
+      } else {
+        this.bindCustomAttribute(attrSyntax, attrInfo);
+      }
+      ++i;
+    }
+
     const childNodes = PLATFORM.toArray(node.content.childNodes);
     let childNode: INode;
-    for (let i = 0, ii = childNodes.length; i < ii; ++i) {
+    i = 0;
+    while (i < childNodes.length) {
       childNode = childNodes[i];
       switch (childNode.nodeType) {
         case NodeType.Text:
@@ -376,6 +406,7 @@ export class TemplateBinder {
         case NodeType.Element:
           this.bindManifest(manifest, childNode as IHTMLElement);
       }
+      ++i;
     }
 
     this.surrogate = surrogateSave;
@@ -678,6 +709,8 @@ export class TemplateBinder {
     } else if (expr !== null || attrSyntax.target === 'ref') {
       manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
       manifest.isTarget = true;
+    } else if (manifest === this.surrogate) {
+      manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
     }
 
     if (Tracer.enabled) { Tracer.leave(); }

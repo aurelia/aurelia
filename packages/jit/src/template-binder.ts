@@ -617,11 +617,11 @@ export class TemplateBinder {
         (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue));
         manifest.isTarget = true;
       } else if (expr !== null) {
-        manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, null, expr));
+        manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
         manifest.isTarget = true;
       }
     } else if (expr !== null) {
-      manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, null, expr));
+      manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
       manifest.isTarget = true;
     }
 

@@ -32,6 +32,7 @@ import {
   CustomElementSymbol,
   ElementSymbol,
   LetElementSymbol,
+  NodeSymbol,
   ParentNodeSymbol,
   PlainAttributeSymbol,
   PlainElementSymbol,
@@ -49,12 +50,20 @@ const buildNotRequired: IBuildInstruction = Object.freeze({
   compiler: 'default'
 });
 
+/**
+ * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
+ *
+ * @internal
+ */
 @inject(ITemplateFactory, IAttributeParser, IExpressionParser)
 export class TemplateCompiler implements ITemplateCompiler {
   private factory: ITemplateFactory;
   private attrParser: IAttributeParser;
   private exprParser: IExpressionParser;
 
+  /**
+   * The instructions array for the currently instruction-collecting `ITemplateDefinition`
+   */
   private instructionRows: InstructionRow[];
 
   public get name(): string {
@@ -105,15 +114,19 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compileChildNodes(parent: ElementSymbol): void {
     if (parent.flags & SymbolFlags.hasChildNodes) {
       const { childNodes } = parent;
-      for (let i = 0, ii = childNodes.length; i < ii; ++i) {
-        const childNode = childNodes[i];
+      let childNode: NodeSymbol;
+      const ii = childNodes.length;
+      for (let i = 0; i < ii; ++i) {
+        childNode = childNodes[i];
         if (childNode.flags & SymbolFlags.isText) {
           this.instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation)]);
         } else if (childNode.flags & SymbolFlags.isLetElement) {
           const bindings = (childNode as LetElementSymbol).bindings;
           const instructions: ILetBindingInstruction[] = [];
-          for (let j = 0, jj = bindings.length; j < jj; ++j) {
-            const binding = bindings[j];
+          let binding: BindingSymbol;
+          const jj = bindings.length;
+          for (let j = 0; j < jj; ++j) {
+            binding = bindings[j];
             instructions[j] = new LetBindingInstruction(binding.expression as IsBindingBehavior, binding.target);
           }
           this.instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toViewModel)]);
@@ -125,15 +138,19 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compileCustomElement(symbol: CustomElementSymbol): void {
-    const bindings = this.compileBindings(symbol);
-    const attributes = this.compileAttributes(symbol);
-    const parts = this.compileParts(symbol);
+    // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
+    const instructionRow = this.compileAttributes(symbol, 1) as InstructionRow;
+    instructionRow[0] = new HydrateElementInstruction(
+      symbol.res,
+      this.compileBindings(symbol),
+      this.compileParts(symbol)
+    );
 
-    this.instructionRows.push([new HydrateElementInstruction(symbol.res, bindings, parts), ...attributes]);
+    this.instructionRows.push(instructionRow);
   }
 
   private compilePlainElement(symbol: PlainElementSymbol): void {
-    const attributes = this.compileAttributes(symbol);
+    const attributes = this.compileAttributes(symbol, 0);
     if (attributes.length > 0) {
       this.instructionRows.push(attributes as InstructionRow);
     }
@@ -177,7 +194,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       const { bindings } = symbol;
       const len = bindings.length;
       bindingInstructions = Array(len);
-      for (let i = 0; i < len; ++i) {
+      let i = 0;
+      for (; i < len; ++i) {
         bindingInstructions[i] = this.compileBinding(bindings[i]);
       }
     } else {
@@ -203,16 +221,18 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
-  private compileAttributes(symbol: ElementSymbol): AttributeInstruction[] {
+  private compileAttributes(symbol: ElementSymbol, offset: number): AttributeInstruction[] {
     let attributeInstructions: AttributeInstruction[];
     if (symbol.flags & SymbolFlags.hasAttributes) {
       // any attributes on a custom element (which are not bindables) or a plain element
       const { attributes } = symbol;
       const len = attributes.length;
-      attributeInstructions = Array(len);
+      attributeInstructions = Array(offset + len);
       for (let i = 0; i < len; ++i) {
-        attributeInstructions[i] = this.compileAttribute(attributes[i]);
+        attributeInstructions[i + offset] = this.compileAttribute(attributes[i]);
       }
+    } else if (offset > 0) {
+      attributeInstructions = Array(offset);
     } else {
       attributeInstructions = PLATFORM.emptyArray as AttributeInstruction[];
     }
@@ -247,11 +267,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (symbol.flags & SymbolFlags.hasParts) {
       parts = {};
       const replaceParts = symbol.parts;
+      const ii = replaceParts.length;
+      let instructionRowsSave: InstructionRow[];
+      let partInstructions: InstructionRow[];
       let replacePart: ReplacePartSymbol;
-      for (let i = 0, ii = replaceParts.length; i < ii; ++i) {
+      for (let i = 0; i < ii; ++i) {
         replacePart = replaceParts[i];
-        const instructionRowsSave = this.instructionRows;
-        const partInstructions = this.instructionRows = [];
+        instructionRowsSave = this.instructionRows;
+        partInstructions = this.instructionRows = [];
         this.compileParentNode(replacePart.template);
         parts[replacePart.name] = {
           name: replacePart.name,

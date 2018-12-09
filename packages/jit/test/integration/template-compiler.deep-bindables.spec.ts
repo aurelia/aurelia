@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { defineCustomElement, createCustomElement, TestConfiguration } from "./prepare";
-import { ILifecycle, bindable, Aurelia, ICustomElementType, DOM, IObserverLocator } from '../../../runtime/src/index';
+import { ILifecycle, bindable, Aurelia, ICustomElementType, DOM, IObserverLocator, IHTMLElement, IHTMLTemplateElement } from '../../../runtime/src/index';
 import { baseSuite } from "./template-compiler.base";
 import { IContainer, Constructable, DI } from "@aurelia/kernel";
 import { trimFull } from "./util";
@@ -15,13 +15,13 @@ type TFooC = Constructable<{ c1: string; c2: string; c3: string }> & ICustomElem
 type TApp = Constructable<{ $1: string; $2: string; $3: string }> & ICustomElementType & TFooA & TFooB & TFooC;
 
 // #region parentSuite
-const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, IHTMLElement, TApp, TFooA, TFooB, TFooC, IHTMLElement, IHTMLElement, IHTMLElement>(spec);
 
 parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = document.createElement('template');
-  const text = document.createTextNode('${$1}${$2}${$3}');
-  const fooA_el = document.createElement('foo-a');
+  const template = DOM.createTemplate();
+  const text = DOM.createTextNode('${$1}${$2}${$3}');
+  const fooA_el = DOM.createElement('foo-a');
 
   fooA_el.setAttribute('a1.bind', '$1');
   fooA_el.setAttribute('a2.bind', '$2');
@@ -37,9 +37,9 @@ parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
 });
 parentSuite.addDataSlot('f').addData('foo-a').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = document.createElement('template');
-  const text = document.createTextNode('${a1}${a2}${a3}');
-  const fooB_el = document.createElement('foo-b');
+  const template = DOM.createElement('template');
+  const text = DOM.createTextNode('${a1}${a2}${a3}');
+  const fooB_el = DOM.createElement('foo-b');
 
   fooB_el.setAttribute('b1.bind', 'a1');
   fooB_el.setAttribute('b2.bind', 'a2');
@@ -62,9 +62,9 @@ parentSuite.addDataSlot('f').addData('foo-a').setFactory(ctx => {
 });
 parentSuite.addDataSlot('g').addData('foo-b').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = document.createElement('template');
-  const text = document.createTextNode('${b1}${b2}${b3}');
-  const fooC_el = document.createElement('foo-c');
+  const template = DOM.createElement('template');
+  const text = DOM.createTextNode('${b1}${b2}${b3}');
+  const fooC_el = DOM.createElement('foo-c');
 
   fooC_el.setAttribute('c1.bind', 'b1');
   fooC_el.setAttribute('c2.bind', 'b2');
@@ -87,8 +87,8 @@ parentSuite.addDataSlot('g').addData('foo-b').setFactory(ctx => {
 });
 parentSuite.addDataSlot('h').addData('foo-c').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = document.createElement('template');
-  const text = document.createTextNode('${c1}${c2}${c3}');
+  const template = DOM.createElement('template');
+  const text = DOM.createTextNode('${c1}${c2}${c3}');
 
   template.content.appendChild(text);
 
@@ -107,8 +107,8 @@ parentSuite.addDataSlot('h').addData('foo-c').setFactory(ctx => {
 // #endregion
 
 // #region basic
-const nonWrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
-const wrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const nonWrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, IHTMLElement, TApp, TFooA, TFooB, TFooC, IHTMLElement, IHTMLElement, IHTMLElement>(spec);
+const wrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, IHTMLElement, TApp, TFooA, TFooB, TFooC, IHTMLElement, IHTMLElement, IHTMLElement>(spec);
 
 wrappedBasic.addActionSlot('wrap in div')
   .addAction('setup', ctx => {
@@ -119,8 +119,8 @@ wrappedBasic.addActionSlot('wrap in div')
       h: { description: { template: fooCTemplate } }
     } = ctx;
 
-    for (const template of [appTemplate, fooATemplate, fooBTemplate, fooCTemplate]) {
-      const div = document.createElement('div');
+    for (const template of [appTemplate, fooATemplate, fooBTemplate, fooCTemplate] as IHTMLTemplateElement[]) {
+      const div = DOM.createElement('div');
       div.appendChild(template.content);
       template.content.appendChild(div);
     }
@@ -164,7 +164,7 @@ for (const suite of [nonWrappedBasic, wrappedBasic]) {
 // #endregion
 
 // #region noBindables
-const noBindables = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const noBindables = parentSuite.clone<IContainer, Aurelia, ILifecycle, IHTMLElement, TApp, TFooA, TFooB, TFooC, IHTMLElement, IHTMLElement, IHTMLElement>(spec);
 noBindables.addActionSlot('remove bindables')
   .addAction('setup', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
@@ -231,17 +231,18 @@ noBindables.run();
 // #endregion
 
 // #region duplicated
-const duplicated = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const duplicated = parentSuite.clone<IContainer, Aurelia, ILifecycle, IHTMLElement, TApp, TFooA, TFooB, TFooC, IHTMLElement, IHTMLElement, IHTMLElement>(spec);
 duplicated.addActionSlot('duplicate')
   .addAction('setup', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+    const { f: $fooA, g: $fooB, h: $fooC,  i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
     const fooC_clone = fooC_el.cloneNode(true);
     for (let i = 0; i < 100; ++i) {
-      fooC_el.appendChild(fooC_clone.cloneNode(true));
+      ($fooB.description.template as IHTMLTemplateElement).content.appendChild(fooC_clone.cloneNode(true));
     }
+
     const fooB_clone = fooB_el.cloneNode(true);
     for (let i = 0; i < 10; ++i) {
-      fooB_el.appendChild(fooB_clone.cloneNode(true));
+      ($fooA.description.template as IHTMLTemplateElement).content.appendChild(fooB_clone.cloneNode(true));
     }
   });
 
@@ -273,7 +274,7 @@ duplicated.run();
 // #endregion
 
 // #region staticTemplateCtrl
-const staticTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const staticTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, IHTMLElement, TApp, TFooA, TFooB, TFooC, IHTMLElement, IHTMLElement, IHTMLElement>(spec);
 
 staticTemplateCtrl.addActionSlot('static template controller')
   .addAction('prepend if+repeat', ctx => {
@@ -362,7 +363,7 @@ staticTemplateCtrl.run();
 // #endregion
 
 // #region boundTemplateCtrl
-const boundTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+const boundTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, IHTMLElement, TApp, TFooA, TFooB, TFooC, IHTMLElement, IHTMLElement, IHTMLElement>(spec);
 
 boundTemplateCtrl.addActionSlot('bound template controller')
   .addAction('prepend if+repeat', ctx => {

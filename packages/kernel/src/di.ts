@@ -125,7 +125,7 @@ export const DI = {
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
-          dependencies.push(...ctor.inject);
+          dependencies.push(...ctor.inject as Function[]);
         }
 
         ctor = Object.getPrototypeOf(ctor);
@@ -190,11 +190,11 @@ export const DI = {
         }
 
         if (dependencies.length === 1) {
-          target.inject[descriptor] = dependencies[0];
+          (target.inject as Function[])[descriptor] = dependencies[0];
         }
       } else if (key) { // It's a property decorator. Not supported by the container without plugins.
         const actualTarget = target.constructor as Injectable;
-        (actualTarget.inject || ((actualTarget.inject as {}) = {}))[key] = dependencies[0];
+        (actualTarget.inject || ((actualTarget.inject as unknown) = {}))[key] = dependencies[0];
       } else if (descriptor) { // It's a function decorator (not a Class constructor)
         const fn = descriptor.value;
         fn.inject = dependencies;

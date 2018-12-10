@@ -5,7 +5,7 @@ import { CustomElementResource, ICustomElement, ICustomElementType } from './tem
 import { IRenderingEngine } from './templating/lifecycle-render';
 
 export interface ISinglePageApp {
-  host: INode;
+  host: unknown;
   component: unknown;
 }
 

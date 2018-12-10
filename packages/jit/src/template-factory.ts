@@ -55,7 +55,7 @@ export class TemplateFactory {
       const node = template.content.firstChild;
       // if the input is either not wrapped in a template or there is more than one node,
       // return the whole template that wraps it/them (and create a new one for the next input)
-      if (node.nodeName !== 'TEMPLATE' || node.nextSibling !== null) {
+      if (node.nodeName !== 'TEMPLATE') {
         this.template = DOM.createTemplate();
         return template;
       }
@@ -66,8 +66,7 @@ export class TemplateFactory {
     }
     if (input.nodeName !== 'TEMPLATE') {
       // if we get one node that is not a template, wrap it in one
-      const template = this.template;
-      this.template = DOM.createTemplate();
+      const template = DOM.createTemplate();
       template.content.appendChild(input);
       return template;
     }

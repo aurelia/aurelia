@@ -44,7 +44,7 @@ export function escape(content: string): string {
 }
 
 export function createTemplateDescription(template: string): ITemplateDescription {
-  const imports = [];
+  const imports: ITemplateImport[] = [];
   const cleanedTemplate = template.replace(/^@import\s+\'([a-zA-z\/.\-_!%&\?=0-9]*)\'\s*;/gm, (match: string, url: string) => {
     imports.push(parseImport(url));
     return '';
@@ -57,7 +57,7 @@ export function createTemplateDescription(template: string): ITemplateDescriptio
 }
 
 export function parseImport(value: string): ITemplateImport {
-  const result: Partial<ITemplateImport> = {
+  const result: Partial<ITemplateImport> & Pick<ITemplateImport, 'path'> = {
     path: value
   };
 

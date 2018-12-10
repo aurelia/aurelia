@@ -27,7 +27,7 @@ export interface IElementParser {
 export const IElementParser = DI.createInterface<IElementParser>()
   .withDefault(x => x.singleton(ElementParser));
 
-/*@internal*/
+/** @internal */
 @inject(IAttributeParser)
 export class ElementParser implements IElementParser {
   public attrParser: IAttributeParser;

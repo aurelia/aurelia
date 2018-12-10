@@ -9,7 +9,7 @@ export interface IAttributeParser {
 export const IAttributeParser = DI.createInterface<IAttributeParser>()
   .withDefault(x => x.singleton(AttributeParser));
 
-/*@internal*/
+/** @internal */
 @inject(ISyntaxInterpreter, all(IAttributePattern))
 export class AttributeParser implements IAttributeParser {
   private interpreter: ISyntaxInterpreter;

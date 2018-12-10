@@ -7,20 +7,20 @@ import { IResourceDefinition, ResourceDescription } from './resource';
 import { CustomElementConstructor, ICustomElement } from './templating/custom-element';
 import { ICustomElementHost } from './templating/lifecycle-render';
 
-/*@internal*/
+/** @internal */
 export const customElementName = 'custom-element';
-/*@internal*/
+/** @internal */
 export function customElementKey(name: string): string {
   return `${customElementName}:${name}`;
 }
-/*@internal*/
-export function customElementBehavior(node: ICustomElementHost): ICustomElement {
+/** @internal */
+export function customElementBehavior(node: ICustomElementHost): ICustomElement | null {
   return node.$customElement === undefined ? null : node.$customElement;
 }
 
-/*@internal*/
+/** @internal */
 export const customAttributeName = 'custom-attribute';
-/*@internal*/
+/** @internal */
 export function customAttributeKey(name: string): string {
   return `${customAttributeName}:${name}`;
 }
@@ -212,7 +212,7 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
   to: string;
 }
 
-/*@internal*/
+/** @internal */
 export const buildRequired: IBuildInstruction = Object.freeze({
   required: true,
   compiler: 'default'

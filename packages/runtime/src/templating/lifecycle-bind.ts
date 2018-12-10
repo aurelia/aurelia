@@ -4,7 +4,7 @@ import { IScope, LifecycleFlags } from '../observation';
 import { ICustomAttribute } from './custom-attribute';
 import { ICustomElement } from './custom-element';
 
-/*@internal*/
+/** @internal */
 export function $bindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, scope: IScope): void {
   flags |= LifecycleFlags.fromBind;
 
@@ -39,7 +39,7 @@ export function $bindAttribute(this: Writable<ICustomAttribute>, flags: Lifecycl
   lifecycle.endBind(flags);
 }
 
-/*@internal*/
+/** @internal */
 export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     return;
@@ -74,7 +74,7 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
   lifecycle.endBind(flags);
 }
 
-/*@internal*/
+/** @internal */
 export function $bindView(this: Writable<IView>, flags: LifecycleFlags, scope: IScope): void {
   flags |= LifecycleFlags.fromBind;
 
@@ -100,7 +100,7 @@ export function $bindView(this: Writable<IView>, flags: LifecycleFlags, scope: I
   this.$state &= ~State.isBinding;
 }
 
-/*@internal*/
+/** @internal */
 export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     const lifecycle = this.$lifecycle;
@@ -126,7 +126,7 @@ export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     const lifecycle = this.$lifecycle;
@@ -158,7 +158,7 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleF
   }
 }
 
-/*@internal*/
+/** @internal */
 export function $unbindView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     // add isUnbinding flag

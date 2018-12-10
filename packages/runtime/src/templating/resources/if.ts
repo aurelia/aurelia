@@ -13,10 +13,10 @@ export class If {
 
   @bindable public value: boolean;
 
-  public elseFactory: IViewFactory ;
-  public elseView: IView;
+  public elseFactory: IViewFactory | null;
+  public elseView: IView | null;
   public ifFactory: IViewFactory;
-  public ifView: IView;
+  public ifView: IView | null;
   public location: IRenderLocation;
   public coordinator: CompositionCoordinator;
 
@@ -75,9 +75,9 @@ export class If {
     this.coordinator.compose(view, flags);
   }
 
-  /*@internal*/
-  public updateView(flags: LifecycleFlags): IView {
-    let view: IView;
+  /** @internal */
+  public updateView(flags: LifecycleFlags): IView | null {
+    let view: IView | null;
 
     if (this.value) {
       view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
@@ -90,8 +90,8 @@ export class If {
     return view;
   }
 
-  /*@internal*/
-  public ensureView(view: IView, factory: IViewFactory, flags: LifecycleFlags): IView {
+  /** @internal */
+  public ensureView(view: IView | null, factory: IViewFactory, flags: LifecycleFlags): IView {
     if (view === null) {
       view = factory.create();
     }

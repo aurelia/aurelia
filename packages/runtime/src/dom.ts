@@ -119,13 +119,13 @@ export const DOM = {
     }
     if ((markupOrNode as IElement).nodeType > 0) {
       if ((markupOrNode as IElement).content !== undefined) {
-        return (markupOrNode as IElement).content;
+        return (markupOrNode as IElement).content as IDocumentFragment;
       }
       const fragment = document.createDocumentFragment();
       fragment.appendChild(markupOrNode as any);
       return fragment as IDocumentFragment;
     }
-    return DOM.createTemplate(markupOrNode as string).content;
+    return DOM.createTemplate(markupOrNode as string).content as IDocumentFragment;
   },
   createTemplate(markup?: string): IElement {
     if (markup === undefined) {
@@ -169,7 +169,7 @@ export const DOM = {
     return document.createComment(text) as IComment;
   },
   createElement(name: string): IElement {
-    return document.createElement(name);
+    return document.createElement(name) as IElement;
   },
   createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit): MutationObserver {
     const observer = new MutationObserver(callback);
@@ -321,7 +321,7 @@ export class TextNodeSequence implements INodeSequence {
 // has an instance of this under the hood. Anyone who wants to create a node sequence from
 // a string of markup would also receive an instance of this.
 // CompiledTemplates create instances of FragmentNodeSequence.
-/*@internal*/
+/** @internal */
 export class FragmentNodeSequence implements INodeSequence {
   public firstChild: INode;
   public lastChild: INode;
@@ -495,7 +495,7 @@ export class NodeSequenceFactory {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class AuMarker implements INode {
   public get parentNode(): INode {
     return this.nextSibling.parentNode;

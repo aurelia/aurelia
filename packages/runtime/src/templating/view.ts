@@ -6,10 +6,10 @@ import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from '
 import { $bindView, $unbindView } from './lifecycle-bind';
 import { ITemplate } from './lifecycle-render';
 
-/*@internal*/
+/** @internal */
 export interface View extends IView {}
 
-/*@internal*/
+/** @internal */
 export class View implements IView {
   public $bindableHead: IBindScope;
   public $bindableTail: IBindScope;
@@ -86,7 +86,7 @@ export class View implements IView {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
 
@@ -149,7 +149,7 @@ export class ViewFactory implements IViewFactory {
     let view: View;
 
     if (cache !== null && cache.length > 0) {
-      view = cache.pop();
+      view = cache.pop() as View;
       view.$state &= ~State.isCached;
       return view;
     }

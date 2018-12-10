@@ -41,7 +41,7 @@ export interface ICustomElementResource extends
 
 type CustomElementDecorator = <T>(target: PartialCustomElementType<T>) => T & ICustomElementType;
 
-/*@internal*/
+/** @internal */
 export function registerElement(this: ICustomElementType, container: IContainer): void {
   const resourceKey = this.kind.keyFrom(this.description.name);
   container.register(Registration.transient(resourceKey, this));
@@ -102,9 +102,9 @@ function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElemen
   return Type.kind === this;
 }
 
-function define<T>(this: ICustomElementResource, name: string, ctor: PartialCustomElementType<T>): T & ICustomElementType;
-function define<T>(this: ICustomElementResource, definition: ITemplateDefinition, ctor: PartialCustomElementType<T>): T & ICustomElementType;
-function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: PartialCustomElementType<T> = null): T & ICustomElementType {
+function define<T>(this: ICustomElementResource, name: string, ctor: PartialCustomElementType<T> | null): T & ICustomElementType;
+function define<T>(this: ICustomElementResource, definition: ITemplateDefinition, ctor: PartialCustomElementType<T> | null): T & ICustomElementType;
+function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: PartialCustomElementType<T> | null = null): T & ICustomElementType {
   if (!nameOrDefinition) {
     throw Reporter.error(70);
   }

@@ -6,7 +6,7 @@ export interface IEventWithStandardPropagation extends Event {
   standardStopPropagation?: Event['stopPropagation'];
 }
 
-/*@internal*/
+/** @internal */
 export type CompatibleEvent = {
   target?: EventTarget;
 
@@ -21,7 +21,7 @@ export type CompatibleEvent = {
 };
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
-/*@internal*/
+/** @internal */
 export function findOriginalEventTarget(event: Event & CompatibleEvent): EventTarget {
   return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
 }
@@ -215,7 +215,7 @@ export interface IEventManager {
 export const IEventManager = DI.createInterface<IEventManager>()
   .withDefault(x => x.singleton(EventManager));
 
-/*@internal*/
+/** @internal */
 export class EventManager implements IEventManager {
   public elementHandlerLookup: Record<string, Record<string, string[]>> = {};
   public delegatedHandlers: Record<string, ListenerTracker> = {};

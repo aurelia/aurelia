@@ -1,4 +1,3 @@
-import { IIndexable, Primitive } from '@aurelia/kernel';
 import {
   IBatchedCollectionSubscriber, IBatchedSubscriberCollection, IndexMap, IPropertySubscriber,
   ISubscriberCollection, LifecycleFlags, MutationKind, MutationKindToBatchedSubscriber,
@@ -7,7 +6,7 @@ import {
 
 export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
   return function(target: Function): void {
-    const proto = <ISubscriberCollection<MutationKind.instance | MutationKind.collection>>target.prototype;
+    const proto = target.prototype as ISubscriberCollection<MutationKind.instance | MutationKind.collection>;
 
     proto._subscriberFlags = SubscriberFlags.None;
     proto._subscriber0 = null;
@@ -86,8 +85,8 @@ function removeSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>
 
 function callPropertySubscribers(
   this: ISubscriberCollection<MutationKind.instance>,
-  newValue: IIndexable | Primitive,
-  previousValue: IIndexable | Primitive,
+  newValue: unknown,
+  previousValue: unknown,
   flags: LifecycleFlags): void {
   /**
    * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
@@ -149,7 +148,7 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
       }
     }
   }
-  this.lifecycle.enqueueFlush(this);
+  this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
 }
 
 function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>): boolean {
@@ -184,7 +183,7 @@ function hasSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, s
 
 export function batchedSubscriberCollection(): ClassDecorator {
   return function(target: Function): void {
-    const proto = <IBatchedSubscriberCollection<MutationKind.collection>>target.prototype;
+    const proto = target.prototype as IBatchedSubscriberCollection<MutationKind.collection>;
 
     proto._batchedSubscriberFlags = SubscriberFlags.None;
     proto._batchedSubscriber0 = null;

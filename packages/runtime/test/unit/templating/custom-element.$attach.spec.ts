@@ -170,10 +170,10 @@ describe('@customElement', () => {
         // Assert
         if (propsSpec.callsBehaviors) {
           if (hooks & Hooks.hasDetached) {
-            sut.verifyDetachedCalled(LifecycleFlags.fromDetach);
+            sut.verifyDetachedCalled(LifecycleFlags.fromDetach | LifecycleFlags.parentUnmountQueued);
           }
           if (hooks & Hooks.hasDetaching) {
-            sut.verifyDetachingCalled(LifecycleFlags.fromDetach);
+            sut.verifyDetachingCalled(LifecycleFlags.fromDetach | LifecycleFlags.parentUnmountQueued);
           }
         }
         sut.verifyNoFurtherCalls();
@@ -257,6 +257,7 @@ describe('@customElement', () => {
           takeNodes = nodes;
         }
       };
+      sut.$state |= State.isMounted;
 
       sut.$unmount(LifecycleFlags.none);
 

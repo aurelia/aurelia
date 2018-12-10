@@ -1,4 +1,4 @@
-import { Class, Constructable, IContainer, IIndexable, IRegistry, Registration, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
 import {
   BindingType,
   CallBindingInstruction,
@@ -28,7 +28,7 @@ export interface IBindingCommand {
 
 export interface IBindingCommandDefinition extends IResourceDefinition { }
 
-export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand, IIndexable>> { }
+export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> { }
 
 export interface IBindingCommandResource extends
   IResourceKind<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> { }

@@ -1,4 +1,3 @@
-import { IIndexable, Primitive } from '@aurelia/kernel';
 import { DOM } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor, LifecycleFlags, MutationKind } from '../observation';
@@ -7,14 +6,14 @@ import { subscriberCollection } from './subscriber-collection';
 type BindingTargetAccessor = IBindingTargetAccessor & {
   lifecycle: ILifecycle;
   currentFlags: LifecycleFlags;
-  oldValue?: IIndexable | Primitive;
-  defaultValue: Primitive | IIndexable;
+  oldValue?: unknown;
+  defaultValue: unknown;
   $nextFlush?: BindingTargetAccessor;
   flush(flags: LifecycleFlags): void;
-  setValueCore(value: Primitive | IIndexable, flags: LifecycleFlags): void;
+  setValueCore(value: unknown, flags: LifecycleFlags): void;
 };
 
-function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable, flags: LifecycleFlags): Promise<void> {
+function setValue(this: BindingTargetAccessor, newValue: unknown, flags: LifecycleFlags): Promise<void> {
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
@@ -31,12 +30,10 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
 }
 
 function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
-  if (flags & LifecycleFlags.doNotUpdateDOM) {
-    if (DOM.isNodeInstance(this.obj)) {
-      // re-queue the change so it will still propagate on flush when it's attached again
-      this.lifecycle.enqueueFlush(this);
-      return;
-    }
+  if ((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj)) {
+    // re-queue the change so it will still propagate on flush when it's attached again
+    this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
+    return;
   }
   const currentValue = this.currentValue;
   // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
@@ -56,10 +53,10 @@ function dispose(this: BindingTargetAccessor): void {
   this.propertyKey = '';
 }
 
-export function targetObserver(defaultValue: Primitive | IIndexable = null): ClassDecorator {
+export function targetObserver(defaultValue: unknown = null): ClassDecorator {
   return function(target: Function): void {
     subscriberCollection(MutationKind.instance)(target);
-    const proto = <BindingTargetAccessor>target.prototype;
+    const proto = target.prototype as BindingTargetAccessor;
 
     proto.$nextFlush = null;
 

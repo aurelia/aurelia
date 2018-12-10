@@ -20,6 +20,7 @@ import {
   UpdateTriggerBindingBehavior,
   With
 } from '@aurelia/runtime';
+import { DotSeparatedAttributePattern } from './attribute-pattern';
 import {
   CallBindingCommand,
   CaptureBindingCommand,
@@ -65,7 +66,8 @@ const defaultBindingLanguage: IRegistry[] = [
   DelegateBindingCommand,
   CaptureBindingCommand,
   CallBindingCommand,
-  ForBindingCommand
+  ForBindingCommand,
+  DotSeparatedAttributePattern
 ];
 
 export const BasicConfiguration = {

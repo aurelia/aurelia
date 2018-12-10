@@ -1,8 +1,8 @@
 import { inject, IRegistry } from '@aurelia/kernel';
 import { Scope } from '../../binding/binding-context';
 import { INsRenderLocation } from '../../ns-dom';
-import { IView, IViewFactory, State } from '../../lifecycle';
-import { LifecycleFlags } from '../../observation';
+import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
+import { IBindingContext, LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 
@@ -12,11 +12,16 @@ export interface With extends ICustomAttribute {}
 export class With {
   public static register: IRegistry['register'];
 
-  @bindable public value: any = null;
+  // TODO: this type is incorrect (it can be any user-provided object), need to fix and double check Scope.
+  @bindable public value: IBindScope | IBindingContext;
 
   private currentView: IView = null;
+  private factory: IViewFactory;
 
-  constructor(private factory: IViewFactory, location: INsRenderLocation) {
+  constructor(factory: IViewFactory, location: INsRenderLocation) {
+    this.value = null;
+
+    this.factory = factory;
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

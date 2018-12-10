@@ -21,22 +21,25 @@ export class InternalObserversLookup {
   }
 }
 
-export class BindingContext implements IBindingContext {
-  [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
+type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
-  public readonly $synthetic: true = true;
+export class BindingContext implements IBindingContext {
+  [key: string]: BindingContextValue;
+
+  public readonly $synthetic: true;
 
   public $observers: ObserversLookup<IOverrideContext>;
 
-  private constructor(keyOrObj?: string | IIndexable, value?: ObservedCollection | StrictPrimitive | IIndexable) {
+  private constructor(keyOrObj?: string | IIndexable, value?: BindingContextValue) {
+    this.$synthetic = true;
+
     if (keyOrObj !== undefined) {
       if (value !== undefined) {
         // if value is defined then it's just a property and a value to initialize with
-        // tslint:disable-next-line:no-any
-        this[<any>keyOrObj] = value;
+        this[keyOrObj as string] = value;
       } else {
         // can either be some random object or another bindingContext to clone from
-        for (const prop in <IIndexable>keyOrObj) {
+        for (const prop in keyOrObj as IIndexable) {
           if (keyOrObj.hasOwnProperty(prop)) {
             this[prop] = keyOrObj[prop];
           }
@@ -46,12 +49,11 @@ export class BindingContext implements IBindingContext {
   }
 
   public static create(obj?: IIndexable): BindingContext;
-  public static create(key: string, value: ObservedCollection | StrictPrimitive | IIndexable): BindingContext;
-  public static create(keyOrObj?: string | IIndexable, value?: ObservedCollection | StrictPrimitive | IIndexable): BindingContext {
+  public static create(key: string, value: BindingContextValue): BindingContext;
+  public static create(keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
-  // tslint:disable-next-line:no-reserved-keywords
   public static get(scope: IScope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBindScope {
     if (scope === undefined) {
       throw Reporter.error(RuntimeError.UndefinedScope);
@@ -98,10 +100,13 @@ export class BindingContext implements IBindingContext {
 }
 
 export class Scope implements IScope {
-  private constructor(
-    public readonly bindingContext: IBindingContext | IBindScope,
-    public readonly overrideContext: IOverrideContext
-  ) { }
+  public readonly bindingContext: IBindingContext | IBindScope;
+  public readonly overrideContext: IOverrideContext;
+
+  private constructor(bindingContext: IBindingContext | IBindScope, overrideContext: IOverrideContext) {
+    this.bindingContext = bindingContext;
+    this.overrideContext = overrideContext;
+  }
 
   public static create(bc: IBindingContext | IBindScope, oc: IOverrideContext | null): Scope {
     return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc) : oc);
@@ -125,12 +130,15 @@ export class Scope implements IScope {
 export class OverrideContext implements IOverrideContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
 
-  public readonly $synthetic: true = true;
+  public readonly $synthetic: true;
+  public readonly bindingContext: IBindingContext | IBindScope;
+  public readonly parentOverrideContext: IOverrideContext | null;
 
-  private constructor(
-    public readonly bindingContext: IBindingContext | IBindScope,
-    public readonly parentOverrideContext: IOverrideContext | null
-  ) { }
+  private constructor(bindingContext: IBindingContext | IBindScope, parentOverrideContext: IOverrideContext | null) {
+    this.$synthetic = true;
+    this.bindingContext = bindingContext;
+    this.parentOverrideContext = parentOverrideContext;
+  }
 
   public static create(bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext {
     return new OverrideContext(bc, poc === undefined ? null : poc);

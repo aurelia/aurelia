@@ -91,6 +91,14 @@ export function parseCore(input: string, bindingType?: BindingType): IExpression
 }
 
 /*@internal*/
+// JUSTIFICATION: This is performance-critical code which follows a subset of the well-known ES spec.
+// Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
+// single source of information for being able to figure it out.
+// It generally does not need to change unless the spec changes or spec violations are found, or optimization
+// opportunities are found (which would likely not fix these warnings in any case).
+// It's therefore not considered to have any tangible impact on the maintainability of the code base.
+// For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
+// tslint:disable-next-line:no-big-function cognitive-complexity
 export function parse<TPrec extends Precedence, TType extends BindingType>(state: ParserState, access: Access, minPrecedence: TPrec, bindingType: TType):
   TPrec extends Precedence.Unary ? IsUnary :
   TPrec extends Precedence.Binary ? IsBinary :
@@ -183,7 +191,6 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           } else if (state!.currentToken === Token.EOF) {
             throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
-          continue;
         } else if (state.currentToken & Token.AccessScopeTerminal) {
           const ancestor = access & Access.Ancestor;
           result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThis(ancestor);
@@ -196,9 +203,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     // falls through
     case Token.Identifier: // identifier
       if (bindingType & BindingType.IsIterator) {
-        result = new BindingIdentifier(<string>state.tokenValue);
+        result = new BindingIdentifier(state.tokenValue as string);
       } else {
-        result = new AccessScope(<string>state.tokenValue, access & Access.Ancestor);
+        result = new AccessScope(state.tokenValue as string, access & Access.Ancestor);
         access = Access.Scope;
       }
       state.assignable = true;
@@ -225,7 +232,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       access = Access.Reset;
       break;
     case Token.TemplateTail:
-      result = new Template([<string>state.tokenValue]);
+      result = new Template([state.tokenValue as string]);
       state.assignable = false;
       nextToken(state);
       access = Access.Reset;
@@ -343,7 +350,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           break;
         case Token.TemplateTail:
           state.assignable = false;
-          const strings = [<string>state.tokenValue];
+          const strings = [state.tokenValue as string];
           result = new TaggedTemplate(strings, strings, result as IsLeftHandSide);
           nextToken(state);
           break;
@@ -673,6 +680,7 @@ function parseInterpolation(state: ParserState): Interpolation {
  */
 function parseTemplate(state: ParserState, access: Access, bindingType: BindingType, result: IsLeftHandSide, tagged: boolean): TaggedTemplate | Template {
   const cooked = [state.tokenValue as string];
+  // TODO: properly implement raw parts / decide whether we want this
   //const raw = [state.tokenRaw];
   consume(state, Token.TemplateContinuation);
   const expressions = [parse(state, access, Precedence.Assign, bindingType)];
@@ -903,7 +911,7 @@ function decompress(lookup: (CharScanner | number)[] | null, $set: Set<number> |
     let end = compressed[i + 1];
     end = end > 0 ? end : start + 1;
     if (lookup) {
-      lookup.fill(<CharScanner | number>value, start, end);
+      lookup.fill(value as CharScanner | number, start, end);
     }
     if ($set) {
       for (let ch = start; ch < end; ch++) {
@@ -932,9 +940,9 @@ decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
 // IdentifierPart lookup
 const IdParts = new Uint8Array(0xFFFF);
 // tslint:disable-next-line:no-any
-decompress(<any>IdParts, null, codes.IdStart, 1);
+decompress(IdParts as any, null, codes.IdStart, 1);
 // tslint:disable-next-line:no-any
-decompress(<any>IdParts, null, codes.Digit, 1);
+decompress(IdParts as any, null, codes.Digit, 1);
 
 type CharScanner = ((p: ParserState) => Token | null) & { notMapped?: boolean };
 

@@ -18,8 +18,7 @@ export const enum State {
   isMounted             = 0b000000010000,
   isDetaching           = 0b000000100000,
   isUnbinding           = 0b000001000000,
-  isCached              = 0b000010000000,
-  needsMount            = 0b000100000000
+  isCached              = 0b000010000000
 }
 
 export const enum Hooks {
@@ -636,80 +635,154 @@ export const IAttachLifecycle = ILifecycle as InterfaceSymbol<IAttachLifecycle>;
 
 /*@internal*/
 export class Lifecycle implements ILifecycle {
-  /*@internal*/public bindDepth: number = 0;
-  /*@internal*/public attachDepth: number = 0;
-  /*@internal*/public detachDepth: number = 0;
-  /*@internal*/public unbindDepth: number = 0;
+  /*@internal*/public bindDepth: number;
+  /*@internal*/public attachDepth: number;
+  /*@internal*/public detachDepth: number;
+  /*@internal*/public unbindDepth: number;
 
-  /*@internal*/public flushHead: IChangeTracker = this;
-  /*@internal*/public flushTail: IChangeTracker = this;
+  /*@internal*/public flushHead: IChangeTracker;
+  /*@internal*/public flushTail: IChangeTracker;
 
-  /*@internal*/public connectHead: IConnectableBinding = <IConnectableBinding><unknown>this; // this cast is safe because we know exactly which properties we'll use
-  /*@internal*/public connectTail: IConnectableBinding = <IConnectableBinding><unknown>this;
+  /*@internal*/public connectHead: IConnectableBinding;
+  /*@internal*/public connectTail: IConnectableBinding;
 
-  /*@internal*/public patchHead: IConnectableBinding = <IConnectableBinding><unknown>this;
-  /*@internal*/public patchTail: IConnectableBinding = <IConnectableBinding><unknown>this;
+  /*@internal*/public patchHead: IConnectableBinding;
+  /*@internal*/public patchTail: IConnectableBinding;
 
-  /*@internal*/public boundHead: ILifecycleBound = this;
-  /*@internal*/public boundTail: ILifecycleBound = this;
+  /*@internal*/public boundHead: ILifecycleBound;
+  /*@internal*/public boundTail: ILifecycleBound;
 
-  /*@internal*/public mountHead: ILifecycleMount = this;
-  /*@internal*/public mountTail: ILifecycleMount = this;
+  /*@internal*/public mountHead: ILifecycleMount;
+  /*@internal*/public mountTail: ILifecycleMount;
 
-  /*@internal*/public attachedHead: ILifecycleAttached = this;
-  /*@internal*/public attachedTail: ILifecycleAttached = this;
+  /*@internal*/public attachedHead: ILifecycleAttached;
+  /*@internal*/public attachedTail: ILifecycleAttached;
 
-  /*@internal*/public unmountHead: ILifecycleUnmount = this;
-  /*@internal*/public unmountTail: ILifecycleUnmount = this;
+  /*@internal*/public unmountHead: ILifecycleUnmount;
+  /*@internal*/public unmountTail: ILifecycleUnmount;
 
-  /*@internal*/public detachedHead: ILifecycleDetached = this; //LOL
-  /*@internal*/public detachedTail: ILifecycleDetached = this;
+  /*@internal*/public detachedHead: ILifecycleDetached;
+  /*@internal*/public detachedTail: ILifecycleDetached;
 
-  /*@internal*/public unbindAfterDetachHead: ILifecycleUnbindAfterDetach = this;
-  /*@internal*/public unbindAfterDetachTail: ILifecycleUnbindAfterDetach = this;
+  /*@internal*/public unbindAfterDetachHead: ILifecycleUnbindAfterDetach;
+  /*@internal*/public unbindAfterDetachTail: ILifecycleUnbindAfterDetach;
 
-  /*@internal*/public unboundHead: ILifecycleUnbound = this;
-  /*@internal*/public unboundTail: ILifecycleUnbound = this;
+  /*@internal*/public unboundHead: ILifecycleUnbound;
+  /*@internal*/public unboundTail: ILifecycleUnbound;
 
-  /*@internal*/public flushed: Promise<void> = null;
-  /*@internal*/public promise: Promise<void> = Promise.resolve();
+  /*@internal*/public flushed: Promise<void>;
+  /*@internal*/public promise: Promise<void>;
 
-  /*@internal*/public flushCount: number = 0;
-  /*@internal*/public connectCount: number = 0;
-  /*@internal*/public patchCount: number = 0;
-  /*@internal*/public boundCount: number = 0;
-  /*@internal*/public mountCount: number = 0;
-  /*@internal*/public attachedCount: number = 0;
-  /*@internal*/public unmountCount: number = 0;
-  /*@internal*/public detachedCount: number = 0;
-  /*@internal*/public unbindAfterDetachCount: number = 0;
-  /*@internal*/public unboundCount: number = 0;
+  /*@internal*/public flushCount: number;
+  /*@internal*/public connectCount: number;
+  /*@internal*/public patchCount: number;
+  /*@internal*/public boundCount: number;
+  /*@internal*/public mountCount: number;
+  /*@internal*/public attachedCount: number;
+  /*@internal*/public unmountCount: number;
+  /*@internal*/public detachedCount: number;
+  /*@internal*/public unbindAfterDetachCount: number;
+  /*@internal*/public unboundCount: number;
 
   // These are dummy properties to make the lifecycle conform to the interfaces
   // of the components it manages. This allows the lifecycle itself to be the first link
   // in the chain and removes the need for an additional null check on each addition.
-  /*@internal*/public $nextFlush: IChangeTracker = marker;
-  /*@internal*/public flush: IChangeTracker['flush'] = PLATFORM.noop;
-  /*@internal*/public $nextConnect: IConnectableBinding = marker;
-  /*@internal*/public connect: IConnectableBinding['connect'] = PLATFORM.noop;
-  /*@internal*/public $nextPatch: IConnectableBinding = marker;
-  /*@internal*/public patch: IConnectableBinding['patch'] = PLATFORM.noop;
-  /*@internal*/public $nextBound: ILifecycleBound = marker;
-  /*@internal*/public bound: ILifecycleBound['bound'] = PLATFORM.noop;
-  /*@internal*/public $nextMount: ILifecycleMount = marker;
-  /*@internal*/public $mount: ILifecycleMount['$mount'] = PLATFORM.noop;
-  /*@internal*/public $nextAttached: ILifecycleAttached = marker;
-  /*@internal*/public attached: ILifecycleAttached['attached'] = PLATFORM.noop;
-  /*@internal*/public $nextUnmount: ILifecycleUnmount = marker;
-  /*@internal*/public $unmount: ILifecycleUnmount['$unmount'] = PLATFORM.noop;
-  /*@internal*/public $nextDetached: ILifecycleDetached = marker;
-  /*@internal*/public detached: ILifecycleDetached['detached'] = PLATFORM.noop;
-  /*@internal*/public $nextUnbindAfterDetach: ILifecycleUnbindAfterDetach = marker;
-  /*@internal*/public $unbind: ILifecycleUnbindAfterDetach['$unbind'] = PLATFORM.noop;
-  /*@internal*/public $nextUnbound: ILifecycleUnbound = marker;
-  /*@internal*/public unbound: ILifecycleUnbound['unbound'] = PLATFORM.noop;
+  /*@internal*/public $nextFlush: IChangeTracker;
+  /*@internal*/public flush: IChangeTracker['flush'];
+  /*@internal*/public $nextConnect: IConnectableBinding;
+  /*@internal*/public connect: IConnectableBinding['connect'];
+  /*@internal*/public $nextPatch: IConnectableBinding;
+  /*@internal*/public patch: IConnectableBinding['patch'];
+  /*@internal*/public $nextBound: ILifecycleBound;
+  /*@internal*/public bound: ILifecycleBound['bound'];
+  /*@internal*/public $nextMount: ILifecycleMount;
+  /*@internal*/public $mount: ILifecycleMount['$mount'];
+  /*@internal*/public $nextAttached: ILifecycleAttached;
+  /*@internal*/public attached: ILifecycleAttached['attached'];
+  /*@internal*/public $nextUnmount: ILifecycleUnmount;
+  /*@internal*/public $unmount: ILifecycleUnmount['$unmount'];
+  /*@internal*/public $nextDetached: ILifecycleDetached;
+  /*@internal*/public detached: ILifecycleDetached['detached'];
+  /*@internal*/public $nextUnbindAfterDetach: ILifecycleUnbindAfterDetach;
+  /*@internal*/public $unbind: ILifecycleUnbindAfterDetach['$unbind'];
+  /*@internal*/public $nextUnbound: ILifecycleUnbound;
+  /*@internal*/public unbound: ILifecycleUnbound['unbound'];
 
-  /*@internal*/public task: AggregateLifecycleTask = null;
+  /*@internal*/public task: AggregateLifecycleTask;
+
+  constructor() {
+    this.bindDepth = 0;
+    this.attachDepth = 0;
+    this.detachDepth = 0;
+    this.unbindDepth = 0;
+
+    this.flushHead = this;
+    this.flushTail = this;
+
+    this.connectHead = this as unknown as IConnectableBinding; // this cast is safe because we know exactly which properties we'll use
+    this.connectTail = this as unknown as IConnectableBinding;
+
+    this.patchHead = this as unknown as IConnectableBinding;
+    this.patchTail = this as unknown as IConnectableBinding;
+
+    this.boundHead = this;
+    this.boundTail = this;
+
+    this.mountHead = this;
+    this.mountTail = this;
+
+    this.attachedHead = this;
+    this.attachedTail = this;
+
+    this.unmountHead = this;
+    this.unmountTail = this;
+
+    this.detachedHead = this; //LOL
+    this.detachedTail = this;
+
+    this.unbindAfterDetachHead = this;
+    this.unbindAfterDetachTail = this;
+
+    this.unboundHead = this;
+    this.unboundTail = this;
+
+    this.flushed = null;
+    this.promise = Promise.resolve();
+
+    this.flushCount = 0;
+    this.connectCount = 0;
+    this.patchCount = 0;
+    this.boundCount = 0;
+    this.mountCount = 0;
+    this.attachedCount = 0;
+    this.unmountCount = 0;
+    this.detachedCount = 0;
+    this.unbindAfterDetachCount = 0;
+    this.unboundCount = 0;
+
+    this.$nextFlush = marker;
+    this.flush = PLATFORM.noop;
+    this.$nextConnect = marker;
+    this.connect = PLATFORM.noop;
+    this.$nextPatch = marker;
+    this.patch = PLATFORM.noop;
+    this.$nextBound = marker;
+    this.bound = PLATFORM.noop;
+    this.$nextMount = marker;
+    this.$mount = PLATFORM.noop;
+    this.$nextAttached = marker;
+    this.attached = PLATFORM.noop;
+    this.$nextUnmount = marker;
+    this.$unmount = PLATFORM.noop;
+    this.$nextDetached = marker;
+    this.detached = PLATFORM.noop;
+    this.$nextUnbindAfterDetach = marker;
+    this.$unbind = PLATFORM.noop;
+    this.$nextUnbound = marker;
+    this.unbound = PLATFORM.noop;
+
+    this.task = null;
+  }
 
   public registerTask(task: ILifecycleTask): void {
     if (this.task === null) {
@@ -759,6 +832,14 @@ export class Lifecycle implements ILifecycle {
         current.flush(flags);
         current = next;
       } while (current !== marker);
+      // doNotUpdateDOM will cause DOM updates to be re-queued which results in an infinite loop
+      // unless we break here
+      // Note that breaking on this flag is still not the ideal solution; future improvement would
+      // be something like a separate DOM queue and a non-DOM queue, but for now this fixes the infinite
+      // loop without breaking anything (apart from the edgiest of edge cases which are not yet tested)
+      if (flags & LifecycleFlags.doNotUpdateDOM) {
+        break;
+      }
     }
   }
 
@@ -803,7 +884,7 @@ export class Lifecycle implements ILifecycle {
     if (this.connectCount > 0) {
       this.connectCount = 0;
       let current = this.connectHead.$nextConnect;
-      this.connectHead = this.connectTail = <IConnectableBinding><unknown>this;
+      this.connectHead = this.connectTail = this as unknown as IConnectableBinding;
       let next: typeof current;
       do {
         current.connect(flags);
@@ -825,7 +906,7 @@ export class Lifecycle implements ILifecycle {
     while (this.patchCount > 0) {
       this.patchCount = 0;
       let current = this.patchHead.$nextPatch;
-      this.patchHead = this.patchTail = <IConnectableBinding><unknown>this;
+      this.patchHead = this.patchTail = this as unknown as IConnectableBinding;
       let next: typeof current;
       do {
         current.patch(flags);
@@ -1114,17 +1195,28 @@ export class Lifecycle implements ILifecycle {
 
 @inject(ILifecycle)
 export class CompositionCoordinator {
-  public onSwapComplete: () => void = PLATFORM.noop;
+  public readonly $lifecycle: ILifecycle;
 
-  private queue: (IView | PromiseSwap)[] = null;
-  private swapTask: ILifecycleTask = LifecycleTask.done;
+  public onSwapComplete: () => void;
 
-  private currentView: IView = null;
+  private currentView: IView;
+  private isAttached: boolean;
+  private isBound: boolean;
+  private queue: (IView | PromiseSwap)[];
   private scope: IScope;
-  private isBound: boolean = false;
-  private isAttached: boolean = false;
+  private swapTask: ILifecycleTask;
 
-  constructor(public readonly $lifecycle: ILifecycle) {}
+  constructor($lifecycle: ILifecycle) {
+    this.$lifecycle = $lifecycle;
+
+    this.onSwapComplete = PLATFORM.noop;
+
+    this.currentView = null;
+    this.isAttached = false;
+    this.isBound = false;
+    this.queue = null;
+    this.swapTask = LifecycleTask.done;
+  }
 
   public static register(container: IContainer): IResolver<CompositionCoordinator> {
     return Registration.transient(this, this).register(container, this);
@@ -1244,7 +1336,7 @@ export class CompositionCoordinator {
       this.swapTask.wait().then(() => {
         this.onSwapComplete();
         this.processNext();
-      });
+      }).catch(error => { throw error; });
     }
   }
 
@@ -1268,8 +1360,7 @@ export const LifecycleTask = {
   done: {
     done: true,
     canCancel(): boolean { return false; },
-    // tslint:disable-next-line:no-empty
-    cancel(): void {},
+    cancel(): void { return; },
     wait(): Promise<unknown> { return Promise.resolve(); }
   }
 };
@@ -1282,20 +1373,30 @@ export interface ILifecycleTask<T = unknown> {
 }
 
 export class AggregateLifecycleTask implements ILifecycleTask<void> {
-  public done: boolean = true;
+  public done: boolean;
 
   /*@internal*/
-  public owner: Lifecycle = null;
+  public owner: Lifecycle;
 
-  private tasks: ILifecycleTask[] = [];
-  private waiter: Promise<void> = null;
-  private resolve: () => void = null;
+  private resolve: () => void;
+  private tasks: ILifecycleTask[];
+  private waiter: Promise<void>;
+
+  constructor() {
+    this.done = true;
+
+    this.owner = null;
+
+    this.resolve = null;
+    this.tasks = [];
+    this.waiter = null;
+  }
 
   public addTask(task: ILifecycleTask): void {
     if (!task.done) {
       this.done = false;
       this.tasks.push(task);
-      task.wait().then(() => { this.tryComplete(); });
+      task.wait().then(() => { this.tryComplete(); }).catch(error => { throw error; });
     }
   }
 
@@ -1306,11 +1407,9 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
         this.tasks.splice(idx, 1);
       }
     }
-    if (this.tasks.length === 0) {
-      if (this.owner !== null) {
-        this.owner.finishTask(this);
-        this.owner = null;
-      }
+    if (this.tasks.length === 0 && this.owner !== null) {
+      this.owner.finishTask(this);
+      this.owner = null;
     }
   }
 
@@ -1371,13 +1470,18 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
 
 /*@internal*/
 export class PromiseSwap implements ILifecycleTask<IView> {
-  public done: boolean = false;
-  private isCancelled: boolean = false;
+  public done: boolean;
 
-  constructor(
-    private coordinator: CompositionCoordinator,
-    private promise: Promise<IView>
-  ) {}
+  private coordinator: CompositionCoordinator;
+  private isCancelled: boolean;
+  private promise: Promise<IView>;
+
+  constructor(coordinator: CompositionCoordinator, promise: Promise<IView>) {
+    this.coordinator = coordinator;
+    this.done = false;
+    this.isCancelled = false;
+    this.promise = promise;
+  }
 
   public static is(object: object): object is PromiseSwap {
     return 'start' in object;
@@ -1461,14 +1565,12 @@ export class MyViewModel {
 // tslint:enable:jsdoc-format
 export class PromiseTask<T = void> implements ILifecycleTask<T> {
   public done: boolean;
+
   private isCancelled: boolean;
   private promise: Promise<T>;
   private callback: (result?: T) => void;
 
-  constructor(
-    promise: Promise<T>,
-    callback: (result?: T) => void
-  ) {
+  constructor(promise: Promise<T>, callback: (result?: T) => void) {
     this.done = false;
     this.isCancelled = false;
     this.callback = callback;

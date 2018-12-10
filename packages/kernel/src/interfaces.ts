@@ -7,7 +7,7 @@ export interface IDisposable {
 }
 
 export type Constructable<T = {}> = {
-  // tslint:disable-next-line:no-any
+  // tslint:disable-next-line:no-any no-useless-intersection
   new(...args: unknown[]): T & any; // this is a "hack" to stop typescript from nagging about the type parameter T being unused (the parameter may be used for type inference)
 };
 
@@ -18,13 +18,7 @@ export type Class<T, C = IIndexable> = C & {
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: Function[] };
 
-// Note: use of "any" here can perfectly well be replaced by "unknown" but that would also involve fixing consumers of this
-// interface since their indexed properties are now all returning "unknown" which is not assignable to anything else.
-// We are however not disabling this rule with "no-any" because it is a legitimate problem that tslint is warning us about,
-// and it should remind us of the fact that we have more work to do in making typings across the runtime more accurate.
-// For changing this "any" to "unknown", we could either resort to upcasting at the consumer side of things (less preferable because unsafe)
-// or we could simply return "unknown" at the API boundaries of consumers that return values from this object (more preferable but more work)
-export type IIndexable<T extends object = object> = T & { [key: string]: any };
+export type IIndexable<T extends object = object> = T & { [key: string]: unknown };
 
 export type ImmutableObject<T> =
     T extends [infer A1, infer B1, infer C1, infer D1, infer E1, infer F1, infer G] ? ImmutableArray<[A1, B1, C1, D1, E1, F1, G]> :

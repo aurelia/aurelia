@@ -1,4 +1,4 @@
-import { inject, IRegistry } from '@aurelia/kernel';
+import { IIndexable, inject, IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
 import { BindingContext, Scope } from '../../binding/binding-context';
@@ -23,18 +23,25 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public $scope: IScope;
   public $observers: { items: SetterObserver };
 
-  public encapsulationSource: INsNode = null;
-  public views: IView[] = [];
-  public observer: CollectionObserver = null;
-  public hasPendingInstanceMutation: boolean = false;
-
+  public encapsulationSource: INsNode;
   public forOf: ForOfStatement;
+  public hasPendingInstanceMutation: boolean;
   public local: string;
+  public location: INsRenderLocation;
+  public observer: CollectionObserver;
+  public renderable: IRenderable;
+  public factory: IViewFactory;
+  public views: IView[];
 
-  constructor(
-    public location: INsRenderLocation,
-    public renderable: IRenderable,
-    public factory: IViewFactory) { }
+  constructor(location: INsRenderLocation, renderable: IRenderable, factory: IViewFactory) {
+    this.encapsulationSource = null;
+    this.factory = factory;
+    this.hasPendingInstanceMutation = false;
+    this.location = location;
+    this.observer = null;
+    this.renderable = renderable;
+    this.views = [];
+  }
 
   public binding(flags: LifecycleFlags): void {
     this.checkCollectionObserver();
@@ -43,13 +50,13 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public bound(flags: LifecycleFlags): void {
     let current = this.renderable.$bindableHead;
     while (current !== null) {
-      if ((<Binding>current).target === this && (<Binding>current).targetProperty === 'items') {
-        this.forOf = (<Binding>current).sourceExpression as ForOfStatement;
+      if ((current as Binding).target === this && (current as Binding).targetProperty === 'items') {
+        this.forOf = (current as Binding).sourceExpression as ForOfStatement;
         break;
       }
       current = current.$nextBind;
     }
-    this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
+    this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
 
     this.processViews(null, flags);
   }
@@ -94,6 +101,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   }
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
+  // TODO: Reduce complexity (currently at 46)
   private processViews(indexMap: number[] | null, flags: LifecycleFlags): void {
     const { views, $lifecycle } = this;
     if (this.$state & State.isBound) {
@@ -127,7 +135,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
       $lifecycle.beginBind();
       if (indexMap === null) {
-        forOf.iterate(items, (arr, i, item) => {
+        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           const view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
@@ -136,7 +144,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           }
         });
       } else {
-        forOf.iterate(items, (arr, i, item) => {
+        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           const view = views[i];
           if (indexMap[i] === i && !!view.$scope) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
@@ -174,10 +182,8 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     const oldObserver = this.observer;
     if (this.$state & (State.isBound | State.isBinding)) {
       const newObserver = this.observer = getCollectionObserver(this.$lifecycle, this.items);
-      if (oldObserver !== newObserver) {
-        if (oldObserver) {
-          oldObserver.unsubscribeBatched(this);
-        }
+      if (oldObserver !== newObserver && oldObserver) {
+        oldObserver.unsubscribeBatched(this);
       }
       if (newObserver) {
         newObserver.subscribeBatched(this);

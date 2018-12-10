@@ -29,26 +29,33 @@ export interface Compose extends ICustomElement {}
 export class Compose {
   public static register: IRegistry['register'];
 
-  @bindable public subject: Subject | Promise<Subject> = null;
-  @bindable public composing: boolean = false;
+  @bindable public subject: Subject | Promise<Subject>;
+  @bindable public composing: boolean;
 
-  private properties: Record<string, TargetedInstruction> = null;
-  private lastSubject: Subject | Promise<Subject> = null;
+  private coordinator: CompositionCoordinator;
+  private lastSubject: Subject | Promise<Subject>;
+  private properties: Record<string, TargetedInstruction>;
+  private renderable: IRenderable;
+  private renderingEngine: IRenderingEngine;
 
-  constructor(
-    private renderable: IRenderable,
-    instruction: Immutable<IHydrateElementInstruction>,
-    private renderingEngine: IRenderingEngine,
-    private coordinator: CompositionCoordinator
-  ) {
+  constructor(renderable: IRenderable, instruction: Immutable<IHydrateElementInstruction>, renderingEngine: IRenderingEngine, coordinator: CompositionCoordinator) {
+    this.subject = null;
+    this.composing = false;
+
+    this.coordinator = coordinator;
+    this.lastSubject = null;
+    this.properties = null;
+    this.renderable = renderable;
+    this.renderingEngine = renderingEngine;
+
     this.coordinator.onSwapComplete = () => {
       this.composing = false;
     };
 
     this.properties = instruction.instructions
-      .filter((x: any) => !composeProps.includes(x.to))
+      .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to))
       .reduce(
-        (acc, item: any) => {
+        (acc, item: ITargetedInstruction & {to?: string}) => {
           if (item.to) {
             acc[item.to] = item;
           }

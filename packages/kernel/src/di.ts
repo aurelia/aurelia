@@ -1,5 +1,4 @@
 /// <reference types="reflect-metadata" />
-// tslint:disable:no-reserved-keywords
 import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
@@ -29,9 +28,9 @@ export interface IRegistration<T = any> {
 }
 
 export interface IFactory<T = any> {
-  readonly type: Function;
+  readonly Type: Function;
   registerTransformer(transformer: (instance: T) => T): boolean;
-  construct(container: IContainer, dynamicDependencies?: any[]): T;
+  construct(container: IContainer, dynamicDependencies?: Function[]): T;
 }
 
 export interface IServiceLocator {
@@ -71,7 +70,7 @@ export interface IContainer extends IServiceLocator {
   getResolver<T>(key: Key<T>, autoRegister?: boolean): IResolver<T> | null;
   getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>> | null;
 
-  getFactory<T extends Constructable>(type: T): IFactory<InstanceType<T>>;
+  getFactory<T extends Constructable>(Type: T): IFactory<InstanceType<T>>;
 
   createChild(): IContainer;
 }
@@ -95,13 +94,13 @@ export type RegisterSelf<T extends Constructable> = {
 if (!('getOwnMetadata' in Reflect)) {
   // tslint:disable-next-line:no-any
   Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
-    return (<IIndexable>target)[metadataKey];
+    return (target as IIndexable)[metadataKey];
   };
 
   // tslint:disable-next-line:no-any
   Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
     return function(target: Function): void {
-      (<IIndexable>target)[metadataKey] = metadataValue;
+      (target as IIndexable)[metadataKey] = metadataValue;
     };
   };
 }
@@ -115,14 +114,14 @@ export const DI = {
     return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
-  getDependencies(type: Function | Injectable): Function[] {
+  getDependencies(Type: Function | Injectable): Function[] {
     let dependencies: Function[];
 
-    if ((type as Injectable).inject === undefined) {
-      dependencies = DI.getDesignParamTypes(type);
+    if ((Type as Injectable).inject === undefined) {
+      dependencies = DI.getDesignParamTypes(Type);
     } else {
       dependencies = [];
-      let ctor = type as Injectable;
+      let ctor = Type as Injectable;
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
@@ -138,6 +137,9 @@ export const DI = {
 
   createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
     const Key: any = function(target: Injectable, property: string, index: number): any {
+      if (target === undefined) {
+        throw Reporter.error(16, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+      }
       Key.friendlyName = friendlyName || 'Interface';
       (target.inject || (target.inject = []))[index] = Key;
       return target;
@@ -179,25 +181,27 @@ export const DI = {
     return Key;
   },
 
-  inject(...dependencies: Function[]): (target: any, key?: string, descriptor?: PropertyDescriptor | number) => void {
-    return function(target: any, key?: string, descriptor?: PropertyDescriptor | number): void {
+  inject(...dependencies: Function[]): (target: Injectable, key?: string, descriptor?: PropertyDescriptor | number) => void {
+    return function(target: Injectable, key?: string, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!target.hasOwnProperty('inject')) {
-          target.inject = DI.getDesignParamTypes(target).slice();
+          const types = DI.getDesignParamTypes(target);
+          target.inject = types.slice();
         }
 
         if (dependencies.length === 1) {
           target.inject[descriptor] = dependencies[0];
         }
       } else if (key) { // It's a property decorator. Not supported by the container without plugins.
-        const actualTarget = target.constructor;
-        (actualTarget.inject || (actualTarget.inject = {}))[key] = dependencies[0];
+        const actualTarget = target.constructor as Injectable;
+        (actualTarget.inject || ((actualTarget.inject as {}) = {}))[key] = dependencies[0];
       } else if (descriptor) { // It's a function decorator (not a Class constructor)
         const fn = descriptor.value;
         fn.inject = dependencies;
       } else { // It's a class decorator.
         if (dependencies.length === 0) {
-          target.inject = DI.getDesignParamTypes(target).slice();
+          const types = DI.getDesignParamTypes(target);
+          target.inject = types.slice();
         } else {
           target.inject = dependencies;
         }
@@ -228,9 +232,10 @@ Foo.register(container);
   // tslint:enable:jsdoc-format
   transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
-      return Registration.transient(target, target).register(container, target);
+      const registration = Registration.transient(target, target);
+      return registration.register(container, target);
     };
-    return <T & RegisterSelf<T>>target;
+    return target as T & RegisterSelf<T>;
   },
 
   // tslint:disable:jsdoc-format
@@ -255,9 +260,10 @@ Foo.register(container);
   // tslint:enable:jsdoc-format
   singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
-      return Registration.singleton(target, target).register(container, target);
+      const registration = Registration.singleton(target, target);
+      return registration.register(container, target);
     };
-    return <T & RegisterSelf<T>>target;
+    return target as T & RegisterSelf<T>;
   }
 };
 
@@ -269,7 +275,7 @@ function createResolver(
 ): (key: any) => ReturnType<typeof DI.inject> {
   return function(key: any): ReturnType<typeof DI.inject> {
     const Key = function Key(target: Injectable, property?: string, descriptor?: PropertyDescriptor | number): void {
-      return DI.inject(Key)(target, property, descriptor);
+      DI.inject(Key)(target, property, descriptor);
     };
 
     (Key as any).resolve = function(handler: IContainer, requestor: IContainer): any {
@@ -403,11 +409,17 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.instance:
         return this.state;
       case ResolverStrategy.singleton:
+      {
         this.strategy = ResolverStrategy.instance;
-        return this.state = handler.getFactory(this.state).construct(handler);
+        const factory = handler.getFactory(this.state);
+        return this.state = factory.construct(handler);
+      }
       case ResolverStrategy.transient:
+      {
         // Always create transients from the requesting container
-        return handler.getFactory(this.state).construct(requestor);
+        const factory = handler.getFactory(this.state);
+        return factory.construct(requestor);
+      }
       case ResolverStrategy.callback:
         return (this.state as ResolveCallback)(handler, requestor, this);
       case ResolverStrategy.array:
@@ -432,40 +444,40 @@ export class Resolver implements IResolver, IRegistration {
 
 /*@internal*/
 export interface IInvoker {
-  invoke(container: IContainer, fn: Function, dependencies: any[]): any;
+  invoke(container: IContainer, fn: Function, dependencies: Function[]): any;
   invokeWithDynamicDependencies(
     container: IContainer,
     fn: Function,
-    staticDependencies: any[],
-    dynamicDependencies: any[]
+    staticDependencies: Function[],
+    dynamicDependencies: Function[]
   ): any;
 }
 
 /*@internal*/
 export class Factory implements IFactory {
-  public type: Function;
+  public Type: Function;
   private invoker: IInvoker;
-  private dependencies: any[];
+  private dependencies: Function[];
   private transformers: ((instance: any) => any)[] | null;
 
-  constructor(type: Function, invoker: IInvoker, dependencies: any[]) {
-    this.type = type;
+  constructor(Type: Function, invoker: IInvoker, dependencies: Function[]) {
+    this.Type = Type;
     this.invoker = invoker;
     this.dependencies = dependencies;
     this.transformers = null;
   }
 
-  public static create(type: Function): IFactory {
-    const dependencies = DI.getDependencies(type);
+  public static create(Type: Function): IFactory {
+    const dependencies = DI.getDependencies(Type);
     const invoker = classInvokers[dependencies.length] || fallbackInvoker;
-    return new Factory(type, invoker, dependencies);
+    return new Factory(Type, invoker, dependencies);
   }
 
-  public construct(container: IContainer, dynamicDependencies?: any[]): any {
+  public construct(container: IContainer, dynamicDependencies?: Function[]): any {
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
-      ? this.invoker.invokeWithDynamicDependencies(container, this.type, this.dependencies, dynamicDependencies)
-      : this.invoker.invoke(container, this.type, this.dependencies);
+      ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
+      : this.invoker.invoke(container, this.Type, this.dependencies);
 
     if (transformers === null) {
       return instance;
@@ -621,11 +633,12 @@ export class Container implements IContainer {
     let current: Container = this;
 
     while (current !== null) {
-      const resolver = current.resolvers.get(key);
+      let resolver = current.resolvers.get(key);
 
       if (resolver === undefined) {
         if (current.parent === null) {
-          return this.jitRegister(key, current).resolve(current, this);
+          resolver = this.jitRegister(key, current);
+          return resolver.resolve(current, this);
         }
 
         current = current.parent;
@@ -657,12 +670,12 @@ export class Container implements IContainer {
     return PLATFORM.emptyArray;
   }
 
-  public getFactory(type: Function): IFactory {
-    let factory = this.factories.get(type);
+  public getFactory(Type: Function): IFactory {
+    let factory = this.factories.get(Type);
 
     if (factory === undefined) {
-      factory = Factory.create(type);
-      this.factories.set(type, factory);
+      factory = Factory.create(Type);
+      this.factories.set(Type, factory);
     }
 
     return factory;
@@ -771,25 +784,25 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(container.get(deps[0]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -800,7 +813,7 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: any[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -815,7 +828,7 @@ export const classInvokers: IInvoker[] = [
 
 /*@internal*/
 export const fallbackInvoker: IInvoker = {
-  invoke: invokeWithDynamicDependencies as any,
+  invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Function, dependencies: Function[]) => any,
   invokeWithDynamicDependencies
 };
 
@@ -823,12 +836,12 @@ export const fallbackInvoker: IInvoker = {
 export function invokeWithDynamicDependencies<T extends Constructable, K>(
   container: IContainer,
   Type: T,
-  staticDependencies: any[],
-  dynamicDependencies: any[]
+  staticDependencies: Function[],
+  dynamicDependencies: Function[]
 ): K {
   let i = staticDependencies.length;
-  let args = new Array(i);
-  let lookup;
+  let args: Function[] = new Array(i);
+  let lookup: Function;
 
   while (i--) {
     lookup = staticDependencies[i];

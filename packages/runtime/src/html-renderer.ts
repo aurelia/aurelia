@@ -1,5 +1,5 @@
 import { IContainer, inject, IRegistry } from '@aurelia/kernel';
-import { Binding } from './binding/binding';
+import { Binding, IBindingTarget } from './binding/binding';
 import { BindingMode } from './binding/binding-mode';
 import { Call } from './binding/call';
 import { IEventManager } from './binding/event-manager';
@@ -19,9 +19,9 @@ import { INsNode, INsRenderLocation, NsDOM } from './ns-dom';
 
 export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
   if (typeof srcOrExpr === 'string') {
-    return <Exclude<TFrom, string>><unknown>parser.parse(srcOrExpr, bindingType);
+    return parser.parse(srcOrExpr, bindingType) as unknown as Exclude<TFrom, string>;
   }
-  return <Exclude<TFrom, string>>srcOrExpr;
+  return srcOrExpr as Exclude<TFrom, string>;
 }
 
 export function addBindable(renderable: IBindables, bindable: IBindScope): void {
@@ -204,7 +204,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IStylePropertyBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
-    const bindable = new Binding(expr, (<any>target).style, instruction.to, BindingMode.toView, this.observerLocator, context);
+    const bindable = new Binding(expr, (target as INode & {style: IBindingTarget}).style, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBindable(renderable, bindable);
   }
 }
@@ -305,7 +305,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     component.$hydrate(this.renderingEngine);
 
     if (instruction.link) {
-      (component as any).link(renderable.$attachableTail);
+      (component as ICustomAttribute & { link(attachableTail: IAttach): void}).link(renderable.$attachableTail);
     }
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -348,20 +348,20 @@ export class LetElementRenderer implements IInstructionRenderer {
 export const HtmlRenderer = {
   register(container: IContainer): void {
     container.register(
-      <IRegistry><unknown>TextBindingRenderer,
-      <IRegistry><unknown>InterpolationBindingRenderer,
-      <IRegistry><unknown>PropertyBindingRenderer,
-      <IRegistry><unknown>IteratorBindingRenderer,
-      <IRegistry><unknown>ListenerBindingRenderer,
-      <IRegistry><unknown>CallBindingRenderer,
-      <IRegistry><unknown>RefBindingRenderer,
-      <IRegistry><unknown>StylePropertyBindingRenderer,
-      <IRegistry><unknown>SetPropertyRenderer,
-      <IRegistry><unknown>SetAttributeRenderer,
-      <IRegistry><unknown>CustomElementRenderer,
-      <IRegistry><unknown>CustomAttributeRenderer,
-      <IRegistry><unknown>TemplateControllerRenderer,
-      <IRegistry><unknown>LetElementRenderer
+      TextBindingRenderer as unknown as IRegistry,
+      InterpolationBindingRenderer as unknown as IRegistry,
+      PropertyBindingRenderer as unknown as IRegistry,
+      IteratorBindingRenderer as unknown as IRegistry,
+      ListenerBindingRenderer as unknown as IRegistry,
+      CallBindingRenderer as unknown as IRegistry,
+      RefBindingRenderer as unknown as IRegistry,
+      StylePropertyBindingRenderer as unknown as IRegistry,
+      SetPropertyRenderer as unknown as IRegistry,
+      SetAttributeRenderer as unknown as IRegistry,
+      CustomElementRenderer as unknown as IRegistry,
+      CustomAttributeRenderer as unknown as IRegistry,
+      TemplateControllerRenderer as unknown as IRegistry,
+      LetElementRenderer as unknown as IRegistry
     );
   }
 };

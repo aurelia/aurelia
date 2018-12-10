@@ -32,9 +32,7 @@ export class ViewFake implements IView {
   public $prevAttach: IAttach = null;
 
   public $nextMount: IMountable = null;
-  public $mountFlags: LifecycleFlags = 0;
   public $nextUnmount: IMountable = null;
-  public $unmountFlags: LifecycleFlags = 0;
 
   public $nextUnbindAfterDetach: ILifecycleUnbind = null;
 
@@ -65,19 +63,18 @@ export class ViewFake implements IView {
   }
 
   public $mount() {
-    this.$state &= ~State.needsMount;
+    this.$state |= State.isMounted;
     this.$nodes.insertBefore(this.location);
   }
 
   public $unmount() {
-    this.$state |= State.needsMount;
+    this.$state &= ~State.isMounted;
     this.$nodes.remove();
   }
 
   public $cache() {}
 
   public hold(location: IRenderLocation): void {
-    this.$state |= State.needsMount;
     this.location = location;
   }
 
@@ -101,9 +98,7 @@ export class ViewFake implements IView {
 
   // IAttach impl
   public $attach(): void {
-    if (this.$state & State.needsMount) {
-      this.$lifecycle.enqueueMount(this);
-    }
+    this.$lifecycle.enqueueMount(this);
     this.$state |= State.isAttached;
   }
 

@@ -27,7 +27,11 @@ export interface IResourceDescriptions {
 }
 
 export class RuntimeCompilationResources implements IResourceDescriptions {
-  constructor(private context: IContainer) {}
+  private context: IContainer;
+
+  constructor(context: IContainer) {
+    this.context = context;
+  }
 
   public find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null {
     const key = kind.keyFrom(name);
@@ -37,7 +41,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
       const factory = resolver.getFactory(this.context);
 
       if (factory !== null) {
-        const description = (factory.type as IResourceType<TDef, TProto>).description;
+        const description = (factory.Type as IResourceType<TDef, TProto>).description;
         return description === undefined ? null : description;
       }
     }

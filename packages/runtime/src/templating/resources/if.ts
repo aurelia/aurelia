@@ -8,21 +8,29 @@ import { INsRenderLocation } from '../../ns-dom';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')
-@inject(IViewFactory, IRenderLocation, CompositionCoordinator)
+@inject(IViewFactory, INsRenderLocation, CompositionCoordinator)
 export class If {
   public static register: IRegistry['register'];
 
-  @bindable public value: boolean = false;
+  @bindable public value: boolean;
 
-  public elseFactory: IViewFactory = null;
+  public elseFactory: IViewFactory ;
+  public elseView: IView;
+  public ifFactory: IViewFactory;
+  public ifView: IView;
+  public location: INsRenderLocation;
+  public coordinator: CompositionCoordinator;
 
-  public ifView: IView = null;
-  public elseView: IView = null;
+  constructor(ifFactory: IViewFactory, location: INsRenderLocation, coordinator: CompositionCoordinator) {
+    this.value = false;
 
-  constructor(
-    public ifFactory: IViewFactory,
-    public location: INsRenderLocation,
-    public coordinator: CompositionCoordinator) { }
+    this.coordinator = coordinator;
+    this.elseFactory = null;
+    this.elseView = null;
+    this.ifFactory = ifFactory;
+    this.ifView = null;
+    this.location = location;
+  }
 
   public binding(flags: LifecycleFlags): void {
     const view = this.updateView(flags);
@@ -59,7 +67,7 @@ export class If {
       const view = this.updateView(flags);
       this.coordinator.compose(view, flags);
     } else {
-      this.$lifecycle.enqueueFlush(this);
+      this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
     }
   }
 
@@ -102,7 +110,11 @@ export interface Else extends ICustomAttribute {}
 export class Else {
   public static register: IRegistry['register'];
 
-  constructor(private factory: IViewFactory) { }
+  private factory: IViewFactory;
+
+  constructor(factory: IViewFactory) {
+    this.factory = factory;
+  }
 
   public link(ifBehavior: If): void {
     ifBehavior.elseFactory = this.factory;

@@ -18,7 +18,7 @@ export declare class Scope implements IScope {
     private constructor();
     static create(bc: IBindingContext | IBindScope, oc: IOverrideContext | null): Scope;
     static fromOverride(oc: IOverrideContext): Scope;
-    static fromParent(ps: IScope, bc: IBindingContext | IBindScope): Scope;
+    static fromParent(ps: IScope | null, bc: IBindingContext | IBindScope): Scope;
 }
 export declare class OverrideContext implements IOverrideContext {
     [key: string]: ObservedCollection | StrictPrimitive | IIndexable;

@@ -370,7 +370,7 @@ export declare class BindingIdentifier implements IExpression {
     $kind: ExpressionKind.BindingIdentifier;
     readonly name: string;
     constructor(name: string);
-    evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string;
+    evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): string;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }

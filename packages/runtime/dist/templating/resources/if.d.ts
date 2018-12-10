@@ -8,10 +8,10 @@ export interface If extends ICustomAttribute {
 export declare class If {
     static register: IRegistry['register'];
     value: boolean;
-    elseFactory: IViewFactory;
-    elseView: IView;
+    elseFactory: IViewFactory | null;
+    elseView: IView | null;
     ifFactory: IViewFactory;
-    ifView: IView;
+    ifView: IView | null;
     location: IRenderLocation;
     coordinator: CompositionCoordinator;
     constructor(ifFactory: IViewFactory, location: IRenderLocation, coordinator: CompositionCoordinator);

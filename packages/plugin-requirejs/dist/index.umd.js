@@ -14,7 +14,7 @@
       });
   }
   const capitalMatcher = /([A-Z])/g;
-  /*@internal*/
+  /** @internal */
   function addHyphenAndLower(char) {
       return `-${char.toLowerCase()}`;
   }
@@ -102,7 +102,7 @@
           }
       }
   }
-  /*@internal*/
+  /** @internal */
   function trimDots(ary) {
       for (let i = 0; i < ary.length; ++i) {
           const part = ary[i];
@@ -190,7 +190,7 @@
   });
 
   const buildMap$1 = {};
-  /*@internal*/
+  /** @internal */
   function finishLoad$1(name, content, onLoad) {
       buildMap$1[name] = content;
       onLoad(content);

@@ -1,7 +1,7 @@
 import { IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { SetterObserver } from '../../binding/property-observation';
-import { INode, IRenderLocation } from '../../dom';
+import { IRenderLocation } from '../../dom';
 import { IRenderable, IView, IViewFactory } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { ICustomAttribute } from '../custom-attribute';
@@ -14,12 +14,11 @@ export declare class Repeat<T extends ObservedCollection = IObservedArray> {
     $observers: {
         items: SetterObserver;
     };
-    encapsulationSource: INode;
     forOf: ForOfStatement;
     hasPendingInstanceMutation: boolean;
     local: string;
     location: IRenderLocation;
-    observer: CollectionObserver;
+    observer: CollectionObserver | null;
     renderable: IRenderable;
     factory: IViewFactory;
     views: IView[];

@@ -48,7 +48,7 @@ this.au.jit = (function (exports,kernel,runtime) {
       return c > 3 && r && Object.defineProperty(target, key, r), r;
   }
 
-  /*@internal*/
+  /** @internal */
   class CharSpec {
       constructor(chars, repeat, isSymbol, isInverted) {
           this.chars = chars;
@@ -154,7 +154,7 @@ this.au.jit = (function (exports,kernel,runtime) {
           }
       }
   }
-  /*@internal*/
+  /** @internal */
   class State {
       get pattern() {
           return this.isEndpoint ? this.patterns[0] : null;
@@ -222,7 +222,7 @@ this.au.jit = (function (exports,kernel,runtime) {
           return results;
       }
   }
-  /*@internal*/
+  /** @internal */
   class StaticSegment {
       constructor(text) {
           this.text = text;
@@ -239,7 +239,7 @@ this.au.jit = (function (exports,kernel,runtime) {
           }
       }
   }
-  /*@internal*/
+  /** @internal */
   class DynamicSegment {
       constructor(symbols) {
           this.text = 'PART';
@@ -249,7 +249,7 @@ this.au.jit = (function (exports,kernel,runtime) {
           callback(this.spec);
       }
   }
-  /*@internal*/
+  /** @internal */
   class SymbolSegment {
       constructor(text) {
           this.text = text;
@@ -259,7 +259,7 @@ this.au.jit = (function (exports,kernel,runtime) {
           callback(this.spec);
       }
   }
-  /*@internal*/
+  /** @internal */
   class SegmentTypes {
       constructor() {
           this.statics = 0;
@@ -268,7 +268,7 @@ this.au.jit = (function (exports,kernel,runtime) {
       }
   }
   const ISyntaxInterpreter = kernel.DI.createInterface().withDefault(x => x.singleton(SyntaxInterpreter));
-  /*@internal*/
+  /** @internal */
   class SyntaxInterpreter {
       constructor() {
           this.rootState = new State(null);
@@ -451,7 +451,7 @@ this.au.jit = (function (exports,kernel,runtime) {
 
   const IAttributeParser = kernel.DI.createInterface()
       .withDefault(x => x.singleton(exports.AttributeParser));
-  /*@internal*/
+  /** @internal */
   exports.AttributeParser = class AttributeParser {
       constructor(interpreter, attrPatterns) {
           this.interpreter = interpreter;
@@ -655,7 +655,7 @@ this.au.jit = (function (exports,kernel,runtime) {
       bindingCommand('for')
   ], exports.ForBindingCommand);
 
-  /*@internal*/
+  /** @internal */
   function unescapeCode(code) {
       switch (code) {
           case 98 /* LowerB */: return 8 /* Backspace */;
@@ -671,7 +671,6 @@ this.au.jit = (function (exports,kernel,runtime) {
       }
   }
 
-  // tslint:disable:no-non-null-assertion
   const ParserRegistration = {
       register(container) {
           container.registerTransformer(runtime.IExpressionParser, parser => {
@@ -686,7 +685,7 @@ this.au.jit = (function (exports,kernel,runtime) {
   const $undefined = runtime.PrimitiveLiteral.$undefined;
   const $this = runtime.AccessThis.$this;
   const $parent = runtime.AccessThis.$parent;
-  /*@internal*/
+  /** @internal */
   class ParserState {
       get tokenRaw() {
           return this.input.slice(this.startIndex, this.index);
@@ -704,7 +703,7 @@ this.au.jit = (function (exports,kernel,runtime) {
       }
   }
   const $state = new ParserState('');
-  /*@internal*/
+  /** @internal */
   function parseCore(input, bindingType) {
       $state.input = input;
       $state.length = input.length;
@@ -712,7 +711,7 @@ this.au.jit = (function (exports,kernel,runtime) {
       $state.currentChar = input.charCodeAt(0);
       return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === undefined ? 53 /* BindCommand */ : bindingType);
   }
-  /*@internal*/
+  /** @internal */
   // JUSTIFICATION: This is performance-critical code which follows a subset of the well-known ES spec.
   // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
   // single source of information for being able to figure it out.
@@ -1291,21 +1290,16 @@ this.au.jit = (function (exports,kernel,runtime) {
   function parseTemplate(state, access, bindingType, result, tagged) {
       const cooked = [state.tokenValue];
       // TODO: properly implement raw parts / decide whether we want this
-      //const raw = [state.tokenRaw];
       consume(state, 540714 /* TemplateContinuation */);
       const expressions = [parse(state, access, 62 /* Assign */, bindingType)];
       while ((state.currentToken = scanTemplateTail(state)) !== 540713 /* TemplateTail */) {
           cooked.push(state.tokenValue);
-          // if (tagged) {
-          //   raw.push(state.tokenRaw);
-          // }
           consume(state, 540714 /* TemplateContinuation */);
           expressions.push(parse(state, access, 62 /* Assign */, bindingType));
       }
       cooked.push(state.tokenValue);
       state.assignable = false;
       if (tagged) {
-          //raw.push(state.tokenRaw);
           nextToken(state);
           return new runtime.TaggedTemplate(cooked, cooked, result, expressions);
       }
@@ -1625,7 +1619,7 @@ this.au.jit = (function (exports,kernel,runtime) {
   const domParser = runtime.DOM.createElement('div');
   const IElementParser = kernel.DI.createInterface()
       .withDefault(x => x.singleton(exports.ElementParser));
-  /*@internal*/
+  /** @internal */
   exports.ElementParser = class ElementParser {
       constructor(attrParser) {
           this.attrParser = attrParser;

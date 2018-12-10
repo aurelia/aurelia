@@ -30,11 +30,11 @@ const astTypeMap = [
 function enableImprovedExpressionDebugging() {
     astTypeMap.forEach(x => { adoptDebugMethods(x.type, x.name); });
 }
-/*@internal*/
+/** @internal */
 function adoptDebugMethods($type, name) {
     $type.prototype.toString = function () { return Unparser.unparse(this); };
 }
-/*@internal*/
+/** @internal */
 class Unparser {
     constructor() {
         this.text = '';
@@ -263,7 +263,7 @@ class Unparser {
         this.text += ')';
     }
 }
-/*@internal*/
+/** @internal */
 class Serializer {
     static serialize(expr) {
         const visitor = new Serializer();

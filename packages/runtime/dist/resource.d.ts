@@ -17,12 +17,12 @@ export interface IResourceType<TDef, TProto, TClass extends Class<TProto, unknow
 }
 export interface IResourceDescriptions {
     find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null;
-    create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto;
+    create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null;
 }
 export declare class RuntimeCompilationResources implements IResourceDescriptions {
     private context;
     constructor(context: IContainer);
     find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null;
-    create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto;
+    create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null;
 }
 //# sourceMappingURL=resource.d.ts.map

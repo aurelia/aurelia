@@ -291,7 +291,7 @@ const optional = createResolver((key, handler, requestor) => {
         return null;
     }
 });
-/*@internal*/
+/** @internal */
 class Resolver {
     constructor(key, strategy, state) {
         this.key = key;
@@ -337,7 +337,7 @@ class Resolver {
         }
     }
 }
-/*@internal*/
+/** @internal */
 class Factory {
     constructor(Type, invoker, dependencies) {
         this.Type = Type;
@@ -379,7 +379,7 @@ const containerResolver = {
 function isRegistry(obj) {
     return typeof obj.register === 'function';
 }
-/*@internal*/
+/** @internal */
 class Container {
     constructor(configuration = {}) {
         this.parent = null;
@@ -568,7 +568,7 @@ const Registration = {
         };
     }
 };
-/*@internal*/
+/** @internal */
 function validateKey(key) {
     // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
     // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
@@ -588,7 +588,7 @@ function buildAllResponse(resolver, handler, requestor) {
     }
     return [resolver.resolve(handler, requestor)];
 }
-/*@internal*/
+/** @internal */
 const classInvokers = [
     {
         invoke(container, Type) {
@@ -627,12 +627,12 @@ const classInvokers = [
         invokeWithDynamicDependencies
     }
 ];
-/*@internal*/
+/** @internal */
 const fallbackInvoker = {
     invoke: invokeWithDynamicDependencies,
     invokeWithDynamicDependencies
 };
-/*@internal*/
+/** @internal */
 function invokeWithDynamicDependencies(container, Type, staticDependencies, dynamicDependencies) {
     let i = staticDependencies.length;
     let args = new Array(i);

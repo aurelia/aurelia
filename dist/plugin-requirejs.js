@@ -12,7 +12,7 @@ this.au.pluginRequirejs = (function (exports,runtime) {
       });
   }
   const capitalMatcher = /([A-Z])/g;
-  /*@internal*/
+  /** @internal */
   function addHyphenAndLower(char) {
       return `-${char.toLowerCase()}`;
   }
@@ -100,7 +100,7 @@ this.au.pluginRequirejs = (function (exports,runtime) {
           }
       }
   }
-  /*@internal*/
+  /** @internal */
   function trimDots(ary) {
       for (let i = 0; i < ary.length; ++i) {
           const part = ary[i];
@@ -188,7 +188,7 @@ this.au.pluginRequirejs = (function (exports,runtime) {
   });
 
   const buildMap$1 = {};
-  /*@internal*/
+  /** @internal */
   function finishLoad$1(name, content, onLoad) {
       buildMap$1[name] = content;
       onLoad(content);

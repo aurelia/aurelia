@@ -10,7 +10,7 @@ function processImports(toProcess, relativeTo) {
     });
 }
 const capitalMatcher = /([A-Z])/g;
-/*@internal*/
+/** @internal */
 function addHyphenAndLower(char) {
     return `-${char.toLowerCase()}`;
 }
@@ -98,7 +98,7 @@ function loadFromFile(url, callback, errback) {
         }
     }
 }
-/*@internal*/
+/** @internal */
 function trimDots(ary) {
     for (let i = 0; i < ary.length; ++i) {
         const part = ary[i];
@@ -186,7 +186,7 @@ var componentPlugin = /*#__PURE__*/Object.freeze({
 });
 
 const buildMap$1 = {};
-/*@internal*/
+/** @internal */
 function finishLoad$1(name, content, onLoad) {
     buildMap$1[name] = content;
     onLoad(content);

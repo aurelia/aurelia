@@ -10,7 +10,7 @@ export interface Compose extends ICustomElement {
 }
 export declare class Compose {
     static register: IRegistry['register'];
-    subject: Subject | Promise<Subject>;
+    subject: Subject | Promise<Subject> | null;
     composing: boolean;
     private coordinator;
     private lastSubject;

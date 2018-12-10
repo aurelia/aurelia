@@ -69,7 +69,7 @@
     const IFlushLifecycle = ILifecycle;
     const IBindLifecycle = ILifecycle;
     const IAttachLifecycle = ILifecycle;
-    /*@internal*/
+    /** @internal */
     class Lifecycle {
         constructor() {
             this.bindDepth = 0;
@@ -714,7 +714,7 @@
             }
         }
     }
-    /*@internal*/
+    /** @internal */
     class PromiseSwap {
         constructor(coordinator, promise) {
             this.coordinator = coordinator;
@@ -1058,7 +1058,7 @@
     // has an instance of this under the hood. Anyone who wants to create a node sequence from
     // a string of markup would also receive an instance of this.
     // CompiledTemplates create instances of FragmentNodeSequence.
-    /*@internal*/
+    /** @internal */
     class FragmentNodeSequence {
         constructor(fragment) {
             this.fragment = fragment;
@@ -1200,7 +1200,7 @@
             return new this.Type(this.node.cloneNode(this.deepClone));
         }
     }
-    /*@internal*/
+    /** @internal */
     class AuMarker {
         get parentNode() {
             return this.nextSibling.parentNode;
@@ -1973,7 +1973,7 @@
         propertyObserver()
     ], exports.Observer);
 
-    /*@internal*/
+    /** @internal */
     class InternalObserversLookup {
         getOrCreate(obj, key) {
             let observer = this[key];
@@ -2082,7 +2082,7 @@
     }
 
     const ISignaler = kernel.DI.createInterface().withDefault(x => x.singleton(Signaler));
-    /*@internal*/
+    /** @internal */
     class Signaler {
         constructor() {
             this.signals = Object.create(null);
@@ -2992,8 +2992,8 @@
             this.assign = kernel.PLATFORM.noop;
             this.parts = parts;
             this.expressions = expressions === undefined ? kernel.PLATFORM.emptyArray : expressions;
-            this.isMulti = expressions.length > 1;
-            this.firstExpression = expressions[0];
+            this.isMulti = this.expressions.length > 1;
+            this.firstExpression = this.expressions[0];
         }
         evaluate(flags, scope, locator) {
             if (this.isMulti) {
@@ -3084,7 +3084,7 @@
         }
         return true;
     }
-    /*@internal*/
+    /** @internal */
     const IterateForOfStatement = {
         ['[object Array]'](result, func) {
             for (let i = 0, ii = result.length; i < ii; ++i) {
@@ -3121,7 +3121,7 @@
             return;
         }
     };
-    /*@internal*/
+    /** @internal */
     const CountForOfStatement = {
         ['[object Array]'](result) { return result.length; },
         ['[object Map]'](result) { return result.size; },
@@ -3146,7 +3146,7 @@
         }
     }
     ensureEnoughSlotNames(-1);
-    /*@internal*/
+    /** @internal */
     function addObserver(observer) {
         // find the observer.
         const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
@@ -3173,7 +3173,7 @@
         this[versionSlotNames[i]] = this.version;
         ensureEnoughSlotNames(i);
     }
-    /*@internal*/
+    /** @internal */
     function observeProperty(obj, propertyName) {
         const observer = this.observerLocator.getObserver(obj, propertyName);
         /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
@@ -3185,7 +3185,7 @@
          */
         this.addObserver(observer);
     }
-    /*@internal*/
+    /** @internal */
     function unobserve(all) {
         const slots = this.observerSlots;
         let slotName;
@@ -3367,13 +3367,13 @@
     ], exports.Binding);
 
     const unset = {};
-    /*@internal*/
+    /** @internal */
     function debounceCallSource(newValue, oldValue, flags) {
         const state = this.debounceState;
         clearTimeout(state.timeoutId);
         state.timeoutId = setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
     }
-    /*@internal*/
+    /** @internal */
     function debounceCall(newValue, oldValue, flags) {
         const state = this.debounceState;
         clearTimeout(state.timeoutId);
@@ -3468,7 +3468,7 @@
     ], exports.SanitizeValueConverter);
 
     //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
-    /*@internal*/
+    /** @internal */
     function findOriginalEventTarget(event) {
         return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
     }
@@ -3611,7 +3611,7 @@
     }
     const IEventManager = kernel.DI.createInterface()
         .withDefault(x => x.singleton(EventManager));
-    /*@internal*/
+    /** @internal */
     class EventManager {
         constructor() {
             this.elementHandlerLookup = {};
@@ -3698,7 +3698,7 @@
         }
     }
 
-    /*@internal*/
+    /** @internal */
     function handleSelfEvent(event) {
         const target = findOriginalEventTarget(event);
         if (this.target !== target) {
@@ -3769,7 +3769,7 @@
         kernel.inject(ISignaler)
     ], exports.SignalBindingBehavior);
 
-    /*@internal*/
+    /** @internal */
     function throttle(newValue) {
         const state = this.throttleState;
         const elapsed = +new Date() - state.last;
@@ -4365,7 +4365,7 @@
     exports.CustomSetterObserver.prototype.dispose = kernel.PLATFORM.noop;
     // Used when there is no setter, and the getter is dependent on other properties of the object;
     // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
-    /*@internal*/
+    /** @internal */
     exports.GetterObserver = class GetterObserver {
         constructor(overrides, obj, propertyKey, descriptor, observerLocator, lifecycle) {
             this.obj = obj;
@@ -4398,7 +4398,7 @@
         subscriberCollection(exports.MutationKind.instance)
     ], exports.GetterObserver);
     exports.GetterObserver.prototype.dispose = kernel.PLATFORM.noop;
-    /*@internal*/
+    /** @internal */
     class GetterController {
         constructor(overrides, instance, propertyName, descriptor, owner, observerLocator, lifecycle) {
             this.isCollecting = false;
@@ -4503,7 +4503,7 @@
 
     const IDirtyChecker = kernel.DI.createInterface()
         .withDefault(x => x.singleton(DirtyChecker));
-    /*@internal*/
+    /** @internal */
     class DirtyChecker {
         constructor() {
             this.checkDelay = 120;
@@ -4540,7 +4540,7 @@
             }
         }
     }
-    /*@internal*/
+    /** @internal */
     exports.DirtyCheckProperty = class DirtyCheckProperty {
         constructor(dirtyChecker, obj, propertyKey) {
             this.obj = obj;
@@ -5232,7 +5232,7 @@
         return pd;
     }
     exports.ObserverLocator = 
-    /*@internal*/
+    /** @internal */
     class ObserverLocator {
         constructor(lifecycle, eventManager, dirtyChecker, svgAnalyzer) {
             this.adapters = [];
@@ -5395,7 +5395,7 @@
     };
     exports.ObserverLocator = __decorate([
         kernel.inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
-        /*@internal*/
+        /** @internal */
     ], exports.ObserverLocator);
     function getCollectionObserver(lifecycle, collection) {
         switch (toStringTag$1.call(collection)) {
@@ -5505,7 +5505,7 @@
 
     const IExpressionParser = kernel.DI.createInterface()
         .withDefault(x => x.singleton(ExpressionParser));
-    /*@internal*/
+    /** @internal */
     class ExpressionParser {
         constructor() {
             this.expressionLookup = Object.create(null);
@@ -5904,19 +5904,19 @@
         }
     }
 
-    /*@internal*/
+    /** @internal */
     const customElementName = 'custom-element';
-    /*@internal*/
+    /** @internal */
     function customElementKey(name) {
         return `${customElementName}:${name}`;
     }
-    /*@internal*/
+    /** @internal */
     function customElementBehavior(node) {
         return node.$customElement === undefined ? null : node.$customElement;
     }
-    /*@internal*/
+    /** @internal */
     const customAttributeName = 'custom-attribute';
-    /*@internal*/
+    /** @internal */
     function customAttributeKey(name) {
         return `${customAttributeName}:${name}`;
     }
@@ -5926,7 +5926,7 @@
         const type = value.type;
         return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
     }
-    /*@internal*/
+    /** @internal */
     const buildRequired = Object.freeze({
         required: true,
         compiler: 'default'
@@ -6114,7 +6114,7 @@
         getViewFactory(engine, parentContext) {
             return engine.getViewFactory(this.definition, parentContext);
         }
-        /*@internal*/
+        /** @internal */
         mergeInto(parent, instructions, dependencies) {
             DOM.appendChild(parent, this.node);
             instructions.push(...this.instructions);
@@ -6212,7 +6212,7 @@
         }
     }
 
-    /*@internal*/
+    /** @internal */
     // tslint:disable-next-line:no-ignored-initial-value
     function $attachAttribute(flags, encapsulationSource) {
         if (this.$state & 8 /* isAttached */) {
@@ -6235,7 +6235,7 @@
         }
         lifecycle.endAttach(flags);
     }
-    /*@internal*/
+    /** @internal */
     // tslint:disable-next-line:no-ignored-initial-value
     function $attachElement(flags, encapsulationSource) {
         if (this.$state & 8 /* isAttached */) {
@@ -6265,7 +6265,7 @@
         }
         lifecycle.endAttach(flags);
     }
-    /*@internal*/
+    /** @internal */
     function $attachView(flags, encapsulationSource) {
         if (this.$state & 8 /* isAttached */) {
             return;
@@ -6283,7 +6283,7 @@
         this.$state |= 8 /* isAttached */;
         this.$state &= ~4 /* isAttaching */;
     }
-    /*@internal*/
+    /** @internal */
     // tslint:disable-next-line:no-ignored-initial-value
     function $detachAttribute(flags) {
         if (this.$state & 8 /* isAttached */) {
@@ -6304,7 +6304,7 @@
             lifecycle.endDetach(flags);
         }
     }
-    /*@internal*/
+    /** @internal */
     // tslint:disable-next-line:no-ignored-initial-value
     function $detachElement(flags) {
         if (this.$state & 8 /* isAttached */) {
@@ -6337,7 +6337,7 @@
             lifecycle.endDetach(flags);
         }
     }
-    /*@internal*/
+    /** @internal */
     function $detachView(flags) {
         if (this.$state & 8 /* isAttached */) {
             // add isDetaching flag
@@ -6359,14 +6359,14 @@
             this.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */);
         }
     }
-    /*@internal*/
+    /** @internal */
     function $cacheAttribute(flags) {
         flags |= exports.LifecycleFlags.fromCache;
         if (this.$hooks & 2048 /* hasCaching */) {
             this.caching(flags);
         }
     }
-    /*@internal*/
+    /** @internal */
     function $cacheElement(flags) {
         flags |= exports.LifecycleFlags.fromCache;
         if (this.$hooks & 2048 /* hasCaching */) {
@@ -6378,7 +6378,7 @@
             current = current.$prevAttach;
         }
     }
-    /*@internal*/
+    /** @internal */
     function $cacheView(flags) {
         flags |= exports.LifecycleFlags.fromCache;
         let current = this.$attachableTail;
@@ -6387,28 +6387,28 @@
             current = current.$prevAttach;
         }
     }
-    /*@internal*/
+    /** @internal */
     function $mountElement(flags) {
         if (!(this.$state & 16 /* isMounted */)) {
             this.$state |= 16 /* isMounted */;
             this.$projector.project(this.$nodes);
         }
     }
-    /*@internal*/
+    /** @internal */
     function $unmountElement(flags) {
         if (this.$state & 16 /* isMounted */) {
             this.$state &= ~16 /* isMounted */;
             this.$projector.take(this.$nodes);
         }
     }
-    /*@internal*/
+    /** @internal */
     function $mountView(flags) {
         if (!(this.$state & 16 /* isMounted */)) {
             this.$state |= 16 /* isMounted */;
             this.$nodes.insertBefore(this.location);
         }
     }
-    /*@internal*/
+    /** @internal */
     function $unmountView(flags) {
         if (this.$state & 16 /* isMounted */) {
             this.$state &= ~16 /* isMounted */;
@@ -6425,7 +6425,7 @@
         return false;
     }
 
-    /*@internal*/
+    /** @internal */
     function $bindAttribute(flags, scope) {
         flags |= exports.LifecycleFlags.fromBind;
         if (this.$state & 2 /* isBound */) {
@@ -6451,7 +6451,7 @@
         this.$state &= ~1 /* isBinding */;
         lifecycle.endBind(flags);
     }
-    /*@internal*/
+    /** @internal */
     function $bindElement(flags) {
         if (this.$state & 2 /* isBound */) {
             return;
@@ -6479,7 +6479,7 @@
         this.$state &= ~1 /* isBinding */;
         lifecycle.endBind(flags);
     }
-    /*@internal*/
+    /** @internal */
     function $bindView(flags, scope) {
         flags |= exports.LifecycleFlags.fromBind;
         if (this.$state & 2 /* isBound */) {
@@ -6500,7 +6500,7 @@
         this.$state |= 2 /* isBound */;
         this.$state &= ~1 /* isBinding */;
     }
-    /*@internal*/
+    /** @internal */
     function $unbindAttribute(flags) {
         if (this.$state & 2 /* isBound */) {
             const lifecycle = this.$lifecycle;
@@ -6520,7 +6520,7 @@
             lifecycle.endUnbind(flags);
         }
     }
-    /*@internal*/
+    /** @internal */
     function $unbindElement(flags) {
         if (this.$state & 2 /* isBound */) {
             const lifecycle = this.$lifecycle;
@@ -6545,7 +6545,7 @@
             lifecycle.endUnbind(flags);
         }
     }
-    /*@internal*/
+    /** @internal */
     function $unbindView(flags) {
         if (this.$state & 2 /* isBound */) {
             // add isUnbinding flag
@@ -6588,7 +6588,7 @@
         }
     }
 
-    /*@internal*/
+    /** @internal */
     class View {
         constructor($lifecycle, cache) {
             this.$bindableHead = null;
@@ -6626,7 +6626,7 @@
             return !!this.$unmount(flags);
         }
     }
-    /*@internal*/
+    /** @internal */
     class ViewFactory {
         constructor(name, template, lifecycle) {
             this.isCaching = false;
@@ -6713,7 +6713,7 @@
         ViewCompileFlags[ViewCompileFlags["surrogate"] = 2] = "surrogate";
         ViewCompileFlags[ViewCompileFlags["shadowDOM"] = 4] = "shadowDOM";
     })(exports.ViewCompileFlags || (exports.ViewCompileFlags = {}));
-    /*@internal*/
+    /** @internal */
     function $hydrateAttribute(renderingEngine) {
         const Type = this.constructor;
         renderingEngine.applyRuntimeBehavior(Type, this);
@@ -6721,7 +6721,7 @@
             this.created();
         }
     }
-    /*@internal*/
+    /** @internal */
     function $hydrateElement(renderingEngine, host, options = kernel.PLATFORM.emptyObject) {
         const Type = this.constructor;
         const description = Type.description;
@@ -6744,7 +6744,7 @@
             this.created();
         }
     }
-    /*@internal*/
+    /** @internal */
     const defaultShadowOptions = {
         mode: 'open'
     };
@@ -6764,7 +6764,7 @@
         .withDefault(x => x.singleton(exports.RenderingEngine));
     const defaultCompilerName = 'default';
     exports.RenderingEngine = 
-    /*@internal*/
+    /** @internal */
     class RenderingEngine {
         constructor(container, lifecycle, templateCompilers) {
             this.behaviorLookup = new Map();
@@ -6832,10 +6832,10 @@
     };
     exports.RenderingEngine = __decorate([
         kernel.inject(kernel.IContainer, ILifecycle, kernel.all(ITemplateCompiler))
-        /*@internal*/
+        /** @internal */
     ], exports.RenderingEngine);
     const childObserverOptions$1 = { childList: true };
-    /*@internal*/
+    /** @internal */
     class ShadowDOMProjector {
         constructor($customElement, host, definition) {
             this.host = host;
@@ -6859,7 +6859,7 @@
             nodes.remove();
         }
     }
-    /*@internal*/
+    /** @internal */
     class ContainerlessProjector {
         constructor($customElement, host) {
             if (host.childNodes.length) {
@@ -6890,7 +6890,7 @@
             nodes.remove();
         }
     }
-    /*@internal*/
+    /** @internal */
     class HostProjector {
         constructor($customElement, host) {
             this.host = host;
@@ -6962,7 +6962,7 @@
             set: function (value) { this['$observers'][name].setValue(value, exports.LifecycleFlags.updateTargetInstance); }
         });
     }
-    /*@internal*/
+    /** @internal */
     exports.ChildrenObserver = class ChildrenObserver {
         constructor(lifecycle, customElement) {
             this.hasChanges = false;
@@ -7002,7 +7002,7 @@
     exports.ChildrenObserver = __decorate([
         subscriberCollection(exports.MutationKind.instance)
     ], exports.ChildrenObserver);
-    /*@internal*/
+    /** @internal */
     function findElements(nodes) {
         const components = [];
         for (let i = 0, ii = nodes.length; i < ii; ++i) {
@@ -7020,7 +7020,7 @@
     // TemplateCompiler either through a JIT or AOT process.
     // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
     // and create instances of it on demand.
-    /*@internal*/
+    /** @internal */
     class CompiledTemplate {
         constructor(renderingEngine, parentRenderContext, templateDefinition) {
             this.templateDefinition = templateDefinition;
@@ -7034,7 +7034,7 @@
         }
     }
     // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
-    /*@internal*/
+    /** @internal */
     const noViewTemplate = {
         renderContext: null,
         render(renderable) {
@@ -7082,7 +7082,7 @@
         };
         return context;
     }
-    /*@internal*/
+    /** @internal */
     class InstanceProvider {
         constructor() {
             this.instance = null;
@@ -7100,7 +7100,7 @@
             this.instance = null;
         }
     }
-    /*@internal*/
+    /** @internal */
     class ViewFactoryProvider {
         constructor(renderingEngine) {
             this.renderingEngine = renderingEngine;
@@ -7111,7 +7111,7 @@
         }
         resolve(handler, requestor) {
             const factory = this.factory;
-            if (factory === undefined) { // unmet precondition: call prepare
+            if (factory === undefined || factory === null) { // unmet precondition: call prepare
                 throw kernel.Reporter.error(50); // TODO: organize error codes
             }
             if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name
@@ -7121,11 +7121,11 @@
             if (found) {
                 return this.renderingEngine.getViewFactory(found, requestor);
             }
-            return this.factory;
+            return factory;
         }
         dispose() {
             this.factory = null;
-            this.replacements = null;
+            this.replacements = kernel.PLATFORM.emptyObject;
         }
     }
     const IRenderer = kernel.DI.createInterface().withDefault(x => x.singleton(exports.Renderer));
@@ -7192,7 +7192,7 @@
         kernel.inject(kernel.all(IInstructionRenderer))
     ], exports.Renderer);
 
-    /*@internal*/
+    /** @internal */
     function registerElement(container) {
         const resourceKey = this.kind.keyFrom(this.description.name);
         container.register(kernel.Registration.transient(resourceKey, this));
@@ -7330,7 +7330,6 @@
             this.composing = false;
             this.coordinator = coordinator;
             this.lastSubject = null;
-            this.properties = null;
             this.renderable = renderable;
             this.renderingEngine = renderingEngine;
             this.coordinator.onSwapComplete = () => {
@@ -7346,7 +7345,7 @@
             }, {});
         }
         binding(flags) {
-            this.startComposition(this.subject, undefined, flags);
+            this.startComposition(this.subject, null, flags);
             this.coordinator.binding(flags, this.$scope);
         }
         attaching(flags) {
@@ -7419,7 +7418,7 @@
         kernel.inject(IRenderable, ITargetedInstruction, IRenderingEngine, exports.CompositionCoordinator)
     ], exports.Compose);
 
-    /*@internal*/
+    /** @internal */
     function registerAttribute(container) {
         const description = this.description;
         const resourceKey = this.kind.keyFrom(description.name);
@@ -7501,7 +7500,7 @@
         isType: isType$3,
         define: define$3
     };
-    /*@internal*/
+    /** @internal */
     function createCustomAttributeDescription(def, Type) {
         const aliases = def.aliases;
         const defaultBindingMode = def.defaultBindingMode;
@@ -7560,7 +7559,7 @@
             const view = this.updateView(flags);
             this.coordinator.compose(view, flags);
         }
-        /*@internal*/
+        /** @internal */
         updateView(flags) {
             let view;
             if (this.value) {
@@ -7574,7 +7573,7 @@
             }
             return view;
         }
-        /*@internal*/
+        /** @internal */
         ensureView(view, factory, flags) {
             if (view === null) {
                 view = factory.create();
@@ -7605,7 +7604,6 @@
 
     exports.Repeat = class Repeat {
         constructor(location, renderable, factory) {
-            this.encapsulationSource = null;
             this.factory = factory;
             this.hasPendingInstanceMutation = false;
             this.location = location;
@@ -7792,7 +7790,6 @@
 
     exports.With = class With {
         constructor(factory, location) {
-            this.currentView = null;
             this.value = null;
             this.factory = factory;
             this.currentView = this.factory.create();
@@ -7926,7 +7923,7 @@
         renderable.$attachableTail = attachable;
     }
     exports.TextBindingRenderer = 
-    /*@internal*/
+    /** @internal */
     class TextBindingRenderer {
         constructor(parser, observerLocator) {
             this.parser = parser;
@@ -7950,10 +7947,10 @@
     exports.TextBindingRenderer = __decorate([
         kernel.inject(IExpressionParser, IObserverLocator),
         instructionRenderer("a" /* textBinding */)
-        /*@internal*/
+        /** @internal */
     ], exports.TextBindingRenderer);
     exports.InterpolationBindingRenderer = 
-    /*@internal*/
+    /** @internal */
     class InterpolationBindingRenderer {
         constructor(parser, observerLocator) {
             this.parser = parser;
@@ -7974,10 +7971,10 @@
     exports.InterpolationBindingRenderer = __decorate([
         kernel.inject(IExpressionParser, IObserverLocator),
         instructionRenderer("b" /* interpolation */)
-        /*@internal*/
+        /** @internal */
     ], exports.InterpolationBindingRenderer);
     exports.PropertyBindingRenderer = 
-    /*@internal*/
+    /** @internal */
     class PropertyBindingRenderer {
         constructor(parser, observerLocator) {
             this.parser = parser;
@@ -7992,10 +7989,10 @@
     exports.PropertyBindingRenderer = __decorate([
         kernel.inject(IExpressionParser, IObserverLocator),
         instructionRenderer("c" /* propertyBinding */)
-        /*@internal*/
+        /** @internal */
     ], exports.PropertyBindingRenderer);
     exports.IteratorBindingRenderer = 
-    /*@internal*/
+    /** @internal */
     class IteratorBindingRenderer {
         constructor(parser, observerLocator) {
             this.parser = parser;
@@ -8010,10 +8007,10 @@
     exports.IteratorBindingRenderer = __decorate([
         kernel.inject(IExpressionParser, IObserverLocator),
         instructionRenderer("d" /* iteratorBinding */)
-        /*@internal*/
+        /** @internal */
     ], exports.IteratorBindingRenderer);
     exports.ListenerBindingRenderer = 
-    /*@internal*/
+    /** @internal */
     class ListenerBindingRenderer {
         constructor(parser, eventManager) {
             this.parser = parser;
@@ -8028,10 +8025,10 @@
     exports.ListenerBindingRenderer = __decorate([
         kernel.inject(IExpressionParser, IEventManager),
         instructionRenderer("e" /* listenerBinding */)
-        /*@internal*/
+        /** @internal */
     ], exports.ListenerBindingRenderer);
     exports.CallBindingRenderer = 
-    /*@internal*/
+    /** @internal */
     class CallBindingRenderer {
         constructor(parser, observerLocator) {
             this.parser = parser;
@@ -8046,10 +8043,10 @@
     exports.CallBindingRenderer = __decorate([
         kernel.inject(IExpressionParser, IObserverLocator),
         instructionRenderer("f" /* callBinding */)
-        /*@internal*/
+        /** @internal */
     ], exports.CallBindingRenderer);
     exports.RefBindingRenderer = 
-    /*@internal*/
+    /** @internal */
     class RefBindingRenderer {
         constructor(parser) {
             this.parser = parser;
@@ -8063,10 +8060,10 @@
     exports.RefBindingRenderer = __decorate([
         kernel.inject(IExpressionParser),
         instructionRenderer("g" /* refBinding */)
-        /*@internal*/
+        /** @internal */
     ], exports.RefBindingRenderer);
     exports.StylePropertyBindingRenderer = 
-    /*@internal*/
+    /** @internal */
     class StylePropertyBindingRenderer {
         constructor(parser, observerLocator) {
             this.parser = parser;
@@ -8081,10 +8078,10 @@
     exports.StylePropertyBindingRenderer = __decorate([
         kernel.inject(IExpressionParser, IObserverLocator),
         instructionRenderer("h" /* stylePropertyBinding */)
-        /*@internal*/
+        /** @internal */
     ], exports.StylePropertyBindingRenderer);
     exports.SetPropertyRenderer = 
-    /*@internal*/
+    /** @internal */
     class SetPropertyRenderer {
         render(context, renderable, target, instruction) {
             target[instruction.to] = instruction.value;
@@ -8092,10 +8089,10 @@
     };
     exports.SetPropertyRenderer = __decorate([
         instructionRenderer("i" /* setProperty */)
-        /*@internal*/
+        /** @internal */
     ], exports.SetPropertyRenderer);
     exports.SetAttributeRenderer = 
-    /*@internal*/
+    /** @internal */
     class SetAttributeRenderer {
         render(context, renderable, target, instruction) {
             DOM.setAttribute(target, instruction.to, instruction.value);
@@ -8103,10 +8100,10 @@
     };
     exports.SetAttributeRenderer = __decorate([
         instructionRenderer("j" /* setAttribute */)
-        /*@internal*/
+        /** @internal */
     ], exports.SetAttributeRenderer);
     exports.CustomElementRenderer = 
-    /*@internal*/
+    /** @internal */
     class CustomElementRenderer {
         constructor(renderingEngine) {
             this.renderingEngine = renderingEngine;
@@ -8129,10 +8126,10 @@
     exports.CustomElementRenderer = __decorate([
         kernel.inject(IRenderingEngine),
         instructionRenderer("k" /* hydrateElement */)
-        /*@internal*/
+        /** @internal */
     ], exports.CustomElementRenderer);
     exports.CustomAttributeRenderer = 
-    /*@internal*/
+    /** @internal */
     class CustomAttributeRenderer {
         constructor(renderingEngine) {
             this.renderingEngine = renderingEngine;
@@ -8155,10 +8152,10 @@
     exports.CustomAttributeRenderer = __decorate([
         kernel.inject(IRenderingEngine),
         instructionRenderer("l" /* hydrateAttribute */)
-        /*@internal*/
+        /** @internal */
     ], exports.CustomAttributeRenderer);
     exports.TemplateControllerRenderer = 
-    /*@internal*/
+    /** @internal */
     class TemplateControllerRenderer {
         constructor(renderingEngine) {
             this.renderingEngine = renderingEngine;
@@ -8185,10 +8182,10 @@
     exports.TemplateControllerRenderer = __decorate([
         kernel.inject(IRenderingEngine),
         instructionRenderer("m" /* hydrateTemplateController */)
-        /*@internal*/
+        /** @internal */
     ], exports.TemplateControllerRenderer);
     exports.LetElementRenderer = 
-    /*@internal*/
+    /** @internal */
     class LetElementRenderer {
         constructor(parser, observerLocator) {
             this.parser = parser;
@@ -8209,7 +8206,7 @@
     exports.LetElementRenderer = __decorate([
         kernel.inject(IExpressionParser, IObserverLocator),
         instructionRenderer("n" /* letElement */)
-        /*@internal*/
+        /** @internal */
     ], exports.LetElementRenderer);
     const HtmlRenderer = {
         register(container) {

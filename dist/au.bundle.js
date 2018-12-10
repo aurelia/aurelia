@@ -294,7 +294,7 @@ var au = (function (exports) {
           return null;
       }
   });
-  /*@internal*/
+  /** @internal */
   class Resolver {
       constructor(key, strategy, state) {
           this.key = key;
@@ -340,7 +340,7 @@ var au = (function (exports) {
           }
       }
   }
-  /*@internal*/
+  /** @internal */
   class Factory {
       constructor(Type, invoker, dependencies) {
           this.Type = Type;
@@ -382,7 +382,7 @@ var au = (function (exports) {
   function isRegistry(obj) {
       return typeof obj.register === 'function';
   }
-  /*@internal*/
+  /** @internal */
   class Container {
       constructor(configuration = {}) {
           this.parent = null;
@@ -571,7 +571,7 @@ var au = (function (exports) {
           };
       }
   };
-  /*@internal*/
+  /** @internal */
   function validateKey(key) {
       // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
       // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
@@ -591,7 +591,7 @@ var au = (function (exports) {
       }
       return [resolver.resolve(handler, requestor)];
   }
-  /*@internal*/
+  /** @internal */
   const classInvokers = [
       {
           invoke(container, Type) {
@@ -630,12 +630,12 @@ var au = (function (exports) {
           invokeWithDynamicDependencies
       }
   ];
-  /*@internal*/
+  /** @internal */
   const fallbackInvoker = {
       invoke: invokeWithDynamicDependencies,
       invokeWithDynamicDependencies
   };
-  /*@internal*/
+  /** @internal */
   function invokeWithDynamicDependencies(container, Type, staticDependencies, dynamicDependencies) {
       let i = staticDependencies.length;
       let args = new Array(i);
@@ -747,7 +747,7 @@ var au = (function (exports) {
   const IFlushLifecycle = ILifecycle;
   const IBindLifecycle = ILifecycle;
   const IAttachLifecycle = ILifecycle;
-  /*@internal*/
+  /** @internal */
   class Lifecycle {
       constructor() {
           this.bindDepth = 0;
@@ -1392,7 +1392,7 @@ var au = (function (exports) {
           }
       }
   }
-  /*@internal*/
+  /** @internal */
   class PromiseSwap {
       constructor(coordinator, promise) {
           this.coordinator = coordinator;
@@ -1736,7 +1736,7 @@ var au = (function (exports) {
   // has an instance of this under the hood. Anyone who wants to create a node sequence from
   // a string of markup would also receive an instance of this.
   // CompiledTemplates create instances of FragmentNodeSequence.
-  /*@internal*/
+  /** @internal */
   class FragmentNodeSequence {
       constructor(fragment) {
           this.fragment = fragment;
@@ -1878,7 +1878,7 @@ var au = (function (exports) {
           return new this.Type(this.node.cloneNode(this.deepClone));
       }
   }
-  /*@internal*/
+  /** @internal */
   class AuMarker {
       get parentNode() {
           return this.nextSibling.parentNode;
@@ -2652,7 +2652,7 @@ var au = (function (exports) {
       propertyObserver()
   ], Observer);
 
-  /*@internal*/
+  /** @internal */
   class InternalObserversLookup {
       getOrCreate(obj, key) {
           let observer = this[key];
@@ -2761,7 +2761,7 @@ var au = (function (exports) {
   }
 
   const ISignaler = DI.createInterface().withDefault(x => x.singleton(Signaler));
-  /*@internal*/
+  /** @internal */
   class Signaler {
       constructor() {
           this.signals = Object.create(null);
@@ -3671,8 +3671,8 @@ var au = (function (exports) {
           this.assign = PLATFORM.noop;
           this.parts = parts;
           this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
-          this.isMulti = expressions.length > 1;
-          this.firstExpression = expressions[0];
+          this.isMulti = this.expressions.length > 1;
+          this.firstExpression = this.expressions[0];
       }
       evaluate(flags, scope, locator) {
           if (this.isMulti) {
@@ -3763,7 +3763,7 @@ var au = (function (exports) {
       }
       return true;
   }
-  /*@internal*/
+  /** @internal */
   const IterateForOfStatement = {
       ['[object Array]'](result, func) {
           for (let i = 0, ii = result.length; i < ii; ++i) {
@@ -3800,7 +3800,7 @@ var au = (function (exports) {
           return;
       }
   };
-  /*@internal*/
+  /** @internal */
   const CountForOfStatement = {
       ['[object Array]'](result) { return result.length; },
       ['[object Map]'](result) { return result.size; },
@@ -3825,7 +3825,7 @@ var au = (function (exports) {
       }
   }
   ensureEnoughSlotNames(-1);
-  /*@internal*/
+  /** @internal */
   function addObserver(observer) {
       // find the observer.
       const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
@@ -3852,7 +3852,7 @@ var au = (function (exports) {
       this[versionSlotNames[i]] = this.version;
       ensureEnoughSlotNames(i);
   }
-  /*@internal*/
+  /** @internal */
   function observeProperty(obj, propertyName) {
       const observer = this.observerLocator.getObserver(obj, propertyName);
       /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
@@ -3864,7 +3864,7 @@ var au = (function (exports) {
        */
       this.addObserver(observer);
   }
-  /*@internal*/
+  /** @internal */
   function unobserve(all$$1) {
       const slots = this.observerSlots;
       let slotName;
@@ -4046,13 +4046,13 @@ var au = (function (exports) {
   ], Binding);
 
   const unset = {};
-  /*@internal*/
+  /** @internal */
   function debounceCallSource(newValue, oldValue, flags) {
       const state = this.debounceState;
       clearTimeout(state.timeoutId);
       state.timeoutId = setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
   }
-  /*@internal*/
+  /** @internal */
   function debounceCall(newValue, oldValue, flags) {
       const state = this.debounceState;
       clearTimeout(state.timeoutId);
@@ -4147,7 +4147,7 @@ var au = (function (exports) {
   ], SanitizeValueConverter);
 
   //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
-  /*@internal*/
+  /** @internal */
   function findOriginalEventTarget(event) {
       return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
   }
@@ -4291,7 +4291,7 @@ var au = (function (exports) {
   }
   const IEventManager = DI.createInterface()
       .withDefault(x => x.singleton(EventManager));
-  /*@internal*/
+  /** @internal */
   class EventManager {
       constructor() {
           this.elementHandlerLookup = {};
@@ -4378,7 +4378,7 @@ var au = (function (exports) {
       }
   }
 
-  /*@internal*/
+  /** @internal */
   function handleSelfEvent(event) {
       const target = findOriginalEventTarget(event);
       if (this.target !== target) {
@@ -4449,7 +4449,7 @@ var au = (function (exports) {
       inject(ISignaler)
   ], SignalBindingBehavior);
 
-  /*@internal*/
+  /** @internal */
   function throttle(newValue) {
       const state = this.throttleState;
       const elapsed = +new Date() - state.last;
@@ -5045,7 +5045,7 @@ var au = (function (exports) {
   CustomSetterObserver.prototype.dispose = PLATFORM.noop;
   // Used when there is no setter, and the getter is dependent on other properties of the object;
   // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
-  /*@internal*/
+  /** @internal */
   let GetterObserver = class GetterObserver {
       constructor(overrides, obj, propertyKey, descriptor, observerLocator, lifecycle) {
           this.obj = obj;
@@ -5078,7 +5078,7 @@ var au = (function (exports) {
       subscriberCollection(MutationKind.instance)
   ], GetterObserver);
   GetterObserver.prototype.dispose = PLATFORM.noop;
-  /*@internal*/
+  /** @internal */
   class GetterController {
       constructor(overrides, instance, propertyName, descriptor, owner, observerLocator, lifecycle) {
           this.isCollecting = false;
@@ -5183,7 +5183,7 @@ var au = (function (exports) {
 
   const IDirtyChecker = DI.createInterface()
       .withDefault(x => x.singleton(DirtyChecker));
-  /*@internal*/
+  /** @internal */
   class DirtyChecker {
       constructor() {
           this.checkDelay = 120;
@@ -5220,7 +5220,7 @@ var au = (function (exports) {
           }
       }
   }
-  /*@internal*/
+  /** @internal */
   let DirtyCheckProperty = class DirtyCheckProperty {
       constructor(dirtyChecker, obj, propertyKey) {
           this.obj = obj;
@@ -5912,7 +5912,7 @@ var au = (function (exports) {
       return pd;
   }
   let ObserverLocator = 
-  /*@internal*/
+  /** @internal */
   class ObserverLocator {
       constructor(lifecycle, eventManager, dirtyChecker, svgAnalyzer) {
           this.adapters = [];
@@ -6075,7 +6075,7 @@ var au = (function (exports) {
   };
   ObserverLocator = __decorate([
       inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
-      /*@internal*/
+      /** @internal */
   ], ObserverLocator);
   function getCollectionObserver(lifecycle, collection) {
       switch (toStringTag$1.call(collection)) {
@@ -6185,7 +6185,7 @@ var au = (function (exports) {
 
   const IExpressionParser = DI.createInterface()
       .withDefault(x => x.singleton(ExpressionParser));
-  /*@internal*/
+  /** @internal */
   class ExpressionParser {
       constructor() {
           this.expressionLookup = Object.create(null);
@@ -6584,19 +6584,19 @@ var au = (function (exports) {
       }
   }
 
-  /*@internal*/
+  /** @internal */
   const customElementName = 'custom-element';
-  /*@internal*/
+  /** @internal */
   function customElementKey(name) {
       return `${customElementName}:${name}`;
   }
-  /*@internal*/
+  /** @internal */
   function customElementBehavior(node) {
       return node.$customElement === undefined ? null : node.$customElement;
   }
-  /*@internal*/
+  /** @internal */
   const customAttributeName = 'custom-attribute';
-  /*@internal*/
+  /** @internal */
   function customAttributeKey(name) {
       return `${customAttributeName}:${name}`;
   }
@@ -6606,7 +6606,7 @@ var au = (function (exports) {
       const type = value.type;
       return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
   }
-  /*@internal*/
+  /** @internal */
   const buildRequired = Object.freeze({
       required: true,
       compiler: 'default'
@@ -6794,7 +6794,7 @@ var au = (function (exports) {
       getViewFactory(engine, parentContext) {
           return engine.getViewFactory(this.definition, parentContext);
       }
-      /*@internal*/
+      /** @internal */
       mergeInto(parent, instructions, dependencies) {
           DOM.appendChild(parent, this.node);
           instructions.push(...this.instructions);
@@ -6892,7 +6892,7 @@ var au = (function (exports) {
       }
   }
 
-  /*@internal*/
+  /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $attachAttribute(flags, encapsulationSource) {
       if (this.$state & 8 /* isAttached */) {
@@ -6915,7 +6915,7 @@ var au = (function (exports) {
       }
       lifecycle.endAttach(flags);
   }
-  /*@internal*/
+  /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $attachElement(flags, encapsulationSource) {
       if (this.$state & 8 /* isAttached */) {
@@ -6945,7 +6945,7 @@ var au = (function (exports) {
       }
       lifecycle.endAttach(flags);
   }
-  /*@internal*/
+  /** @internal */
   function $attachView(flags, encapsulationSource) {
       if (this.$state & 8 /* isAttached */) {
           return;
@@ -6963,7 +6963,7 @@ var au = (function (exports) {
       this.$state |= 8 /* isAttached */;
       this.$state &= ~4 /* isAttaching */;
   }
-  /*@internal*/
+  /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $detachAttribute(flags) {
       if (this.$state & 8 /* isAttached */) {
@@ -6984,7 +6984,7 @@ var au = (function (exports) {
           lifecycle.endDetach(flags);
       }
   }
-  /*@internal*/
+  /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $detachElement(flags) {
       if (this.$state & 8 /* isAttached */) {
@@ -7017,7 +7017,7 @@ var au = (function (exports) {
           lifecycle.endDetach(flags);
       }
   }
-  /*@internal*/
+  /** @internal */
   function $detachView(flags) {
       if (this.$state & 8 /* isAttached */) {
           // add isDetaching flag
@@ -7039,14 +7039,14 @@ var au = (function (exports) {
           this.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */);
       }
   }
-  /*@internal*/
+  /** @internal */
   function $cacheAttribute(flags) {
       flags |= LifecycleFlags.fromCache;
       if (this.$hooks & 2048 /* hasCaching */) {
           this.caching(flags);
       }
   }
-  /*@internal*/
+  /** @internal */
   function $cacheElement(flags) {
       flags |= LifecycleFlags.fromCache;
       if (this.$hooks & 2048 /* hasCaching */) {
@@ -7058,7 +7058,7 @@ var au = (function (exports) {
           current = current.$prevAttach;
       }
   }
-  /*@internal*/
+  /** @internal */
   function $cacheView(flags) {
       flags |= LifecycleFlags.fromCache;
       let current = this.$attachableTail;
@@ -7067,28 +7067,28 @@ var au = (function (exports) {
           current = current.$prevAttach;
       }
   }
-  /*@internal*/
+  /** @internal */
   function $mountElement(flags) {
       if (!(this.$state & 16 /* isMounted */)) {
           this.$state |= 16 /* isMounted */;
           this.$projector.project(this.$nodes);
       }
   }
-  /*@internal*/
+  /** @internal */
   function $unmountElement(flags) {
       if (this.$state & 16 /* isMounted */) {
           this.$state &= ~16 /* isMounted */;
           this.$projector.take(this.$nodes);
       }
   }
-  /*@internal*/
+  /** @internal */
   function $mountView(flags) {
       if (!(this.$state & 16 /* isMounted */)) {
           this.$state |= 16 /* isMounted */;
           this.$nodes.insertBefore(this.location);
       }
   }
-  /*@internal*/
+  /** @internal */
   function $unmountView(flags) {
       if (this.$state & 16 /* isMounted */) {
           this.$state &= ~16 /* isMounted */;
@@ -7105,7 +7105,7 @@ var au = (function (exports) {
       return false;
   }
 
-  /*@internal*/
+  /** @internal */
   function $bindAttribute(flags, scope) {
       flags |= LifecycleFlags.fromBind;
       if (this.$state & 2 /* isBound */) {
@@ -7131,7 +7131,7 @@ var au = (function (exports) {
       this.$state &= ~1 /* isBinding */;
       lifecycle.endBind(flags);
   }
-  /*@internal*/
+  /** @internal */
   function $bindElement(flags) {
       if (this.$state & 2 /* isBound */) {
           return;
@@ -7159,7 +7159,7 @@ var au = (function (exports) {
       this.$state &= ~1 /* isBinding */;
       lifecycle.endBind(flags);
   }
-  /*@internal*/
+  /** @internal */
   function $bindView(flags, scope) {
       flags |= LifecycleFlags.fromBind;
       if (this.$state & 2 /* isBound */) {
@@ -7180,7 +7180,7 @@ var au = (function (exports) {
       this.$state |= 2 /* isBound */;
       this.$state &= ~1 /* isBinding */;
   }
-  /*@internal*/
+  /** @internal */
   function $unbindAttribute(flags) {
       if (this.$state & 2 /* isBound */) {
           const lifecycle = this.$lifecycle;
@@ -7200,7 +7200,7 @@ var au = (function (exports) {
           lifecycle.endUnbind(flags);
       }
   }
-  /*@internal*/
+  /** @internal */
   function $unbindElement(flags) {
       if (this.$state & 2 /* isBound */) {
           const lifecycle = this.$lifecycle;
@@ -7225,7 +7225,7 @@ var au = (function (exports) {
           lifecycle.endUnbind(flags);
       }
   }
-  /*@internal*/
+  /** @internal */
   function $unbindView(flags) {
       if (this.$state & 2 /* isBound */) {
           // add isUnbinding flag
@@ -7268,7 +7268,7 @@ var au = (function (exports) {
       }
   }
 
-  /*@internal*/
+  /** @internal */
   class View {
       constructor($lifecycle, cache) {
           this.$bindableHead = null;
@@ -7306,7 +7306,7 @@ var au = (function (exports) {
           return !!this.$unmount(flags);
       }
   }
-  /*@internal*/
+  /** @internal */
   class ViewFactory {
       constructor(name, template, lifecycle) {
           this.isCaching = false;
@@ -7394,7 +7394,7 @@ var au = (function (exports) {
       ViewCompileFlags[ViewCompileFlags["surrogate"] = 2] = "surrogate";
       ViewCompileFlags[ViewCompileFlags["shadowDOM"] = 4] = "shadowDOM";
   })(ViewCompileFlags || (ViewCompileFlags = {}));
-  /*@internal*/
+  /** @internal */
   function $hydrateAttribute(renderingEngine) {
       const Type = this.constructor;
       renderingEngine.applyRuntimeBehavior(Type, this);
@@ -7402,7 +7402,7 @@ var au = (function (exports) {
           this.created();
       }
   }
-  /*@internal*/
+  /** @internal */
   function $hydrateElement(renderingEngine, host, options = PLATFORM.emptyObject) {
       const Type = this.constructor;
       const description = Type.description;
@@ -7425,7 +7425,7 @@ var au = (function (exports) {
           this.created();
       }
   }
-  /*@internal*/
+  /** @internal */
   const defaultShadowOptions = {
       mode: 'open'
   };
@@ -7445,7 +7445,7 @@ var au = (function (exports) {
       .withDefault(x => x.singleton(RenderingEngine));
   const defaultCompilerName = 'default';
   let RenderingEngine = 
-  /*@internal*/
+  /** @internal */
   class RenderingEngine {
       constructor(container, lifecycle, templateCompilers) {
           this.behaviorLookup = new Map();
@@ -7513,10 +7513,10 @@ var au = (function (exports) {
   };
   RenderingEngine = __decorate([
       inject(IContainer, ILifecycle, all(ITemplateCompiler))
-      /*@internal*/
+      /** @internal */
   ], RenderingEngine);
   const childObserverOptions$1 = { childList: true };
-  /*@internal*/
+  /** @internal */
   class ShadowDOMProjector {
       constructor($customElement, host, definition) {
           this.host = host;
@@ -7540,7 +7540,7 @@ var au = (function (exports) {
           nodes.remove();
       }
   }
-  /*@internal*/
+  /** @internal */
   class ContainerlessProjector {
       constructor($customElement, host) {
           if (host.childNodes.length) {
@@ -7571,7 +7571,7 @@ var au = (function (exports) {
           nodes.remove();
       }
   }
-  /*@internal*/
+  /** @internal */
   class HostProjector {
       constructor($customElement, host) {
           this.host = host;
@@ -7643,7 +7643,7 @@ var au = (function (exports) {
           set: function (value) { this['$observers'][name].setValue(value, LifecycleFlags.updateTargetInstance); }
       });
   }
-  /*@internal*/
+  /** @internal */
   let ChildrenObserver = class ChildrenObserver {
       constructor(lifecycle, customElement) {
           this.hasChanges = false;
@@ -7683,7 +7683,7 @@ var au = (function (exports) {
   ChildrenObserver = __decorate([
       subscriberCollection(MutationKind.instance)
   ], ChildrenObserver);
-  /*@internal*/
+  /** @internal */
   function findElements(nodes) {
       const components = [];
       for (let i = 0, ii = nodes.length; i < ii; ++i) {
@@ -7701,7 +7701,7 @@ var au = (function (exports) {
   // TemplateCompiler either through a JIT or AOT process.
   // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
   // and create instances of it on demand.
-  /*@internal*/
+  /** @internal */
   class CompiledTemplate {
       constructor(renderingEngine, parentRenderContext, templateDefinition) {
           this.templateDefinition = templateDefinition;
@@ -7715,7 +7715,7 @@ var au = (function (exports) {
       }
   }
   // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
-  /*@internal*/
+  /** @internal */
   const noViewTemplate = {
       renderContext: null,
       render(renderable) {
@@ -7763,7 +7763,7 @@ var au = (function (exports) {
       };
       return context;
   }
-  /*@internal*/
+  /** @internal */
   class InstanceProvider {
       constructor() {
           this.instance = null;
@@ -7781,7 +7781,7 @@ var au = (function (exports) {
           this.instance = null;
       }
   }
-  /*@internal*/
+  /** @internal */
   class ViewFactoryProvider {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
@@ -7792,7 +7792,7 @@ var au = (function (exports) {
       }
       resolve(handler, requestor) {
           const factory = this.factory;
-          if (factory === undefined) { // unmet precondition: call prepare
+          if (factory === undefined || factory === null) { // unmet precondition: call prepare
               throw Reporter.error(50); // TODO: organize error codes
           }
           if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name
@@ -7802,11 +7802,11 @@ var au = (function (exports) {
           if (found) {
               return this.renderingEngine.getViewFactory(found, requestor);
           }
-          return this.factory;
+          return factory;
       }
       dispose() {
           this.factory = null;
-          this.replacements = null;
+          this.replacements = PLATFORM.emptyObject;
       }
   }
   const IRenderer = DI.createInterface().withDefault(x => x.singleton(Renderer));
@@ -7873,7 +7873,7 @@ var au = (function (exports) {
       inject(all(IInstructionRenderer))
   ], Renderer);
 
-  /*@internal*/
+  /** @internal */
   function registerElement(container) {
       const resourceKey = this.kind.keyFrom(this.description.name);
       container.register(Registration.transient(resourceKey, this));
@@ -8011,7 +8011,6 @@ var au = (function (exports) {
           this.composing = false;
           this.coordinator = coordinator;
           this.lastSubject = null;
-          this.properties = null;
           this.renderable = renderable;
           this.renderingEngine = renderingEngine;
           this.coordinator.onSwapComplete = () => {
@@ -8027,7 +8026,7 @@ var au = (function (exports) {
           }, {});
       }
       binding(flags) {
-          this.startComposition(this.subject, undefined, flags);
+          this.startComposition(this.subject, null, flags);
           this.coordinator.binding(flags, this.$scope);
       }
       attaching(flags) {
@@ -8100,7 +8099,7 @@ var au = (function (exports) {
       inject(IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator)
   ], Compose);
 
-  /*@internal*/
+  /** @internal */
   function registerAttribute(container) {
       const description = this.description;
       const resourceKey = this.kind.keyFrom(description.name);
@@ -8182,7 +8181,7 @@ var au = (function (exports) {
       isType: isType$3,
       define: define$3
   };
-  /*@internal*/
+  /** @internal */
   function createCustomAttributeDescription(def, Type) {
       const aliases = def.aliases;
       const defaultBindingMode = def.defaultBindingMode;
@@ -8241,7 +8240,7 @@ var au = (function (exports) {
           const view = this.updateView(flags);
           this.coordinator.compose(view, flags);
       }
-      /*@internal*/
+      /** @internal */
       updateView(flags) {
           let view;
           if (this.value) {
@@ -8255,7 +8254,7 @@ var au = (function (exports) {
           }
           return view;
       }
-      /*@internal*/
+      /** @internal */
       ensureView(view, factory, flags) {
           if (view === null) {
               view = factory.create();
@@ -8286,7 +8285,6 @@ var au = (function (exports) {
 
   let Repeat = class Repeat {
       constructor(location, renderable, factory) {
-          this.encapsulationSource = null;
           this.factory = factory;
           this.hasPendingInstanceMutation = false;
           this.location = location;
@@ -8473,7 +8471,6 @@ var au = (function (exports) {
 
   let With = class With {
       constructor(factory, location) {
-          this.currentView = null;
           this.value = null;
           this.factory = factory;
           this.currentView = this.factory.create();
@@ -8607,7 +8604,7 @@ var au = (function (exports) {
       renderable.$attachableTail = attachable;
   }
   let TextBindingRenderer = 
-  /*@internal*/
+  /** @internal */
   class TextBindingRenderer {
       constructor(parser, observerLocator) {
           this.parser = parser;
@@ -8631,10 +8628,10 @@ var au = (function (exports) {
   TextBindingRenderer = __decorate([
       inject(IExpressionParser, IObserverLocator),
       instructionRenderer("a" /* textBinding */)
-      /*@internal*/
+      /** @internal */
   ], TextBindingRenderer);
   let InterpolationBindingRenderer = 
-  /*@internal*/
+  /** @internal */
   class InterpolationBindingRenderer {
       constructor(parser, observerLocator) {
           this.parser = parser;
@@ -8655,10 +8652,10 @@ var au = (function (exports) {
   InterpolationBindingRenderer = __decorate([
       inject(IExpressionParser, IObserverLocator),
       instructionRenderer("b" /* interpolation */)
-      /*@internal*/
+      /** @internal */
   ], InterpolationBindingRenderer);
   let PropertyBindingRenderer = 
-  /*@internal*/
+  /** @internal */
   class PropertyBindingRenderer {
       constructor(parser, observerLocator) {
           this.parser = parser;
@@ -8673,10 +8670,10 @@ var au = (function (exports) {
   PropertyBindingRenderer = __decorate([
       inject(IExpressionParser, IObserverLocator),
       instructionRenderer("c" /* propertyBinding */)
-      /*@internal*/
+      /** @internal */
   ], PropertyBindingRenderer);
   let IteratorBindingRenderer = 
-  /*@internal*/
+  /** @internal */
   class IteratorBindingRenderer {
       constructor(parser, observerLocator) {
           this.parser = parser;
@@ -8691,10 +8688,10 @@ var au = (function (exports) {
   IteratorBindingRenderer = __decorate([
       inject(IExpressionParser, IObserverLocator),
       instructionRenderer("d" /* iteratorBinding */)
-      /*@internal*/
+      /** @internal */
   ], IteratorBindingRenderer);
   let ListenerBindingRenderer = 
-  /*@internal*/
+  /** @internal */
   class ListenerBindingRenderer {
       constructor(parser, eventManager) {
           this.parser = parser;
@@ -8709,10 +8706,10 @@ var au = (function (exports) {
   ListenerBindingRenderer = __decorate([
       inject(IExpressionParser, IEventManager),
       instructionRenderer("e" /* listenerBinding */)
-      /*@internal*/
+      /** @internal */
   ], ListenerBindingRenderer);
   let CallBindingRenderer = 
-  /*@internal*/
+  /** @internal */
   class CallBindingRenderer {
       constructor(parser, observerLocator) {
           this.parser = parser;
@@ -8727,10 +8724,10 @@ var au = (function (exports) {
   CallBindingRenderer = __decorate([
       inject(IExpressionParser, IObserverLocator),
       instructionRenderer("f" /* callBinding */)
-      /*@internal*/
+      /** @internal */
   ], CallBindingRenderer);
   let RefBindingRenderer = 
-  /*@internal*/
+  /** @internal */
   class RefBindingRenderer {
       constructor(parser) {
           this.parser = parser;
@@ -8744,10 +8741,10 @@ var au = (function (exports) {
   RefBindingRenderer = __decorate([
       inject(IExpressionParser),
       instructionRenderer("g" /* refBinding */)
-      /*@internal*/
+      /** @internal */
   ], RefBindingRenderer);
   let StylePropertyBindingRenderer = 
-  /*@internal*/
+  /** @internal */
   class StylePropertyBindingRenderer {
       constructor(parser, observerLocator) {
           this.parser = parser;
@@ -8762,10 +8759,10 @@ var au = (function (exports) {
   StylePropertyBindingRenderer = __decorate([
       inject(IExpressionParser, IObserverLocator),
       instructionRenderer("h" /* stylePropertyBinding */)
-      /*@internal*/
+      /** @internal */
   ], StylePropertyBindingRenderer);
   let SetPropertyRenderer = 
-  /*@internal*/
+  /** @internal */
   class SetPropertyRenderer {
       render(context, renderable, target, instruction) {
           target[instruction.to] = instruction.value;
@@ -8773,10 +8770,10 @@ var au = (function (exports) {
   };
   SetPropertyRenderer = __decorate([
       instructionRenderer("i" /* setProperty */)
-      /*@internal*/
+      /** @internal */
   ], SetPropertyRenderer);
   let SetAttributeRenderer = 
-  /*@internal*/
+  /** @internal */
   class SetAttributeRenderer {
       render(context, renderable, target, instruction) {
           DOM.setAttribute(target, instruction.to, instruction.value);
@@ -8784,10 +8781,10 @@ var au = (function (exports) {
   };
   SetAttributeRenderer = __decorate([
       instructionRenderer("j" /* setAttribute */)
-      /*@internal*/
+      /** @internal */
   ], SetAttributeRenderer);
   let CustomElementRenderer = 
-  /*@internal*/
+  /** @internal */
   class CustomElementRenderer {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
@@ -8810,10 +8807,10 @@ var au = (function (exports) {
   CustomElementRenderer = __decorate([
       inject(IRenderingEngine),
       instructionRenderer("k" /* hydrateElement */)
-      /*@internal*/
+      /** @internal */
   ], CustomElementRenderer);
   let CustomAttributeRenderer = 
-  /*@internal*/
+  /** @internal */
   class CustomAttributeRenderer {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
@@ -8836,10 +8833,10 @@ var au = (function (exports) {
   CustomAttributeRenderer = __decorate([
       inject(IRenderingEngine),
       instructionRenderer("l" /* hydrateAttribute */)
-      /*@internal*/
+      /** @internal */
   ], CustomAttributeRenderer);
   let TemplateControllerRenderer = 
-  /*@internal*/
+  /** @internal */
   class TemplateControllerRenderer {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
@@ -8866,10 +8863,10 @@ var au = (function (exports) {
   TemplateControllerRenderer = __decorate([
       inject(IRenderingEngine),
       instructionRenderer("m" /* hydrateTemplateController */)
-      /*@internal*/
+      /** @internal */
   ], TemplateControllerRenderer);
   let LetElementRenderer = 
-  /*@internal*/
+  /** @internal */
   class LetElementRenderer {
       constructor(parser, observerLocator) {
           this.parser = parser;
@@ -8890,7 +8887,7 @@ var au = (function (exports) {
   LetElementRenderer = __decorate([
       inject(IExpressionParser, IObserverLocator),
       instructionRenderer("n" /* letElement */)
-      /*@internal*/
+      /** @internal */
   ], LetElementRenderer);
   const HtmlRenderer = {
       register(container) {
@@ -9379,7 +9376,7 @@ var au = (function (exports) {
       return c > 3 && r && Object.defineProperty(target, key, r), r;
   }
 
-  /*@internal*/
+  /** @internal */
   class CharSpec {
       constructor(chars, repeat, isSymbol, isInverted) {
           this.chars = chars;
@@ -9485,7 +9482,7 @@ var au = (function (exports) {
           }
       }
   }
-  /*@internal*/
+  /** @internal */
   class State {
       get pattern() {
           return this.isEndpoint ? this.patterns[0] : null;
@@ -9553,7 +9550,7 @@ var au = (function (exports) {
           return results;
       }
   }
-  /*@internal*/
+  /** @internal */
   class StaticSegment {
       constructor(text) {
           this.text = text;
@@ -9570,7 +9567,7 @@ var au = (function (exports) {
           }
       }
   }
-  /*@internal*/
+  /** @internal */
   class DynamicSegment {
       constructor(symbols) {
           this.text = 'PART';
@@ -9580,7 +9577,7 @@ var au = (function (exports) {
           callback(this.spec);
       }
   }
-  /*@internal*/
+  /** @internal */
   class SymbolSegment {
       constructor(text) {
           this.text = text;
@@ -9590,7 +9587,7 @@ var au = (function (exports) {
           callback(this.spec);
       }
   }
-  /*@internal*/
+  /** @internal */
   class SegmentTypes {
       constructor() {
           this.statics = 0;
@@ -9599,7 +9596,7 @@ var au = (function (exports) {
       }
   }
   const ISyntaxInterpreter = DI.createInterface().withDefault(x => x.singleton(SyntaxInterpreter));
-  /*@internal*/
+  /** @internal */
   class SyntaxInterpreter {
       constructor() {
           this.rootState = new State(null);
@@ -9782,7 +9779,7 @@ var au = (function (exports) {
 
   const IAttributeParser = DI.createInterface()
       .withDefault(x => x.singleton(AttributeParser));
-  /*@internal*/
+  /** @internal */
   let AttributeParser = class AttributeParser {
       constructor(interpreter, attrPatterns) {
           this.interpreter = interpreter;
@@ -9986,7 +9983,7 @@ var au = (function (exports) {
       bindingCommand('for')
   ], ForBindingCommand);
 
-  /*@internal*/
+  /** @internal */
   function unescapeCode(code) {
       switch (code) {
           case 98 /* LowerB */: return 8 /* Backspace */;
@@ -10002,7 +9999,6 @@ var au = (function (exports) {
       }
   }
 
-  // tslint:disable:no-non-null-assertion
   const ParserRegistration = {
       register(container) {
           container.registerTransformer(IExpressionParser, parser => {
@@ -10017,7 +10013,7 @@ var au = (function (exports) {
   const $undefined = PrimitiveLiteral.$undefined;
   const $this = AccessThis.$this;
   const $parent = AccessThis.$parent;
-  /*@internal*/
+  /** @internal */
   class ParserState {
       get tokenRaw() {
           return this.input.slice(this.startIndex, this.index);
@@ -10035,7 +10031,7 @@ var au = (function (exports) {
       }
   }
   const $state = new ParserState('');
-  /*@internal*/
+  /** @internal */
   function parseCore(input, bindingType) {
       $state.input = input;
       $state.length = input.length;
@@ -10043,7 +10039,7 @@ var au = (function (exports) {
       $state.currentChar = input.charCodeAt(0);
       return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === undefined ? 53 /* BindCommand */ : bindingType);
   }
-  /*@internal*/
+  /** @internal */
   // JUSTIFICATION: This is performance-critical code which follows a subset of the well-known ES spec.
   // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
   // single source of information for being able to figure it out.
@@ -10622,21 +10618,16 @@ var au = (function (exports) {
   function parseTemplate(state, access, bindingType, result, tagged) {
       const cooked = [state.tokenValue];
       // TODO: properly implement raw parts / decide whether we want this
-      //const raw = [state.tokenRaw];
       consume(state, 540714 /* TemplateContinuation */);
       const expressions = [parse(state, access, 62 /* Assign */, bindingType)];
       while ((state.currentToken = scanTemplateTail(state)) !== 540713 /* TemplateTail */) {
           cooked.push(state.tokenValue);
-          // if (tagged) {
-          //   raw.push(state.tokenRaw);
-          // }
           consume(state, 540714 /* TemplateContinuation */);
           expressions.push(parse(state, access, 62 /* Assign */, bindingType));
       }
       cooked.push(state.tokenValue);
       state.assignable = false;
       if (tagged) {
-          //raw.push(state.tokenRaw);
           nextToken(state);
           return new TaggedTemplate(cooked, cooked, result, expressions);
       }
@@ -10956,7 +10947,7 @@ var au = (function (exports) {
   const domParser = DOM.createElement('div');
   const IElementParser = DI.createInterface()
       .withDefault(x => x.singleton(ElementParser));
-  /*@internal*/
+  /** @internal */
   let ElementParser = class ElementParser {
       constructor(attrParser) {
           this.attrParser = attrParser;

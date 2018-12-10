@@ -5,7 +5,6 @@ import { bindingBehavior } from '../binding-behavior';
 import { findOriginalEventTarget } from '../event-manager';
 import { Listener } from '../listener';
 
-/*@internal*/
 // export function handleSelfEvent(this: SelfableBinding, event: Event): ReturnType<Listener['callSource']> {
 //   const target = <INode><unknown>findOriginalEventTarget(event);
 

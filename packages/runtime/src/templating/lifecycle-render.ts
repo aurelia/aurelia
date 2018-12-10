@@ -538,7 +538,7 @@ export class CompiledTemplate implements ITemplate {
   constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, templateDefinition: TemplateDefinition) {
     this.templateDefinition = templateDefinition;
 
-    this.factory = NodeSequenceFactory.createFor(this.templateDefinition.template);
+    this.factory = PixiNodeSequenceFactory.createFor(this.templateDefinition.template as any);
     this.renderContext = createRenderContext(renderingEngine, parentRenderContext, this.templateDefinition.dependencies);
   }
 

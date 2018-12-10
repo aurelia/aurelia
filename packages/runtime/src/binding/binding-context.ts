@@ -93,7 +93,7 @@ export class BindingContext implements IBindingContext {
   public getObservers(): ObserversLookup<IOverrideContext> {
     let observers = this.$observers;
     if (observers === undefined) {
-      this.$observers = observers = new InternalObserversLookup() as ObserversLookup<this>;
+      this.$observers = observers = new InternalObserversLookup() as any;
     }
     return observers;
   }

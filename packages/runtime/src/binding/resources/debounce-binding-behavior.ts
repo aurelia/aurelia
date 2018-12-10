@@ -19,14 +19,14 @@ export type DebounceableBinding = IBinding & {
 
 const unset = {};
 
-/*@internal*/
+/** @internal */
 export function debounceCallSource(this: DebounceableBinding, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
   state.timeoutId = setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
 }
 
-/*@internal*/
+/** @internal */
 export function debounceCall(this: DebounceableBinding, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);

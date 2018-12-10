@@ -38,7 +38,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding {
   patch(flags: LifecycleFlags): void;
 }
 
-/*@internal*/
+/** @internal */
 export function addObserver(this: IConnectableBinding, observer: IBindingTargetObserver): void {
   // find the observer.
   const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
@@ -67,7 +67,7 @@ export function addObserver(this: IConnectableBinding, observer: IBindingTargetO
   ensureEnoughSlotNames(i);
 }
 
-/*@internal*/
+/** @internal */
 export function observeProperty(this: IConnectableBinding, obj: IIndexable, propertyName: string): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.observeProperty`, slice.call(arguments)); }
   const observer = this.observerLocator.getObserver(obj, propertyName) as IBindingTargetObserver;
@@ -82,7 +82,7 @@ export function observeProperty(this: IConnectableBinding, obj: IIndexable, prop
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export function unobserve(this: IConnectableBinding, all?: boolean): void {
   const slots = this.observerSlots;
   let slotName: string;

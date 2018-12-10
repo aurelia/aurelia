@@ -1292,7 +1292,7 @@ function isNumeric(value: unknown): value is number {
   return true;
 }
 
-/*@internal*/
+/** @internal */
 export const IterateForOfStatement = {
   ['[object Array]'](result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
     for (let i = 0, ii = result.length; i < ii; ++i) {
@@ -1330,7 +1330,7 @@ export const IterateForOfStatement = {
   }
 };
 
-/*@internal*/
+/** @internal */
 export const CountForOfStatement = {
   ['[object Array]'](result: unknown[]): number { return result.length; },
   ['[object Map]'](result: Map<unknown, unknown>): number { return result.size; },

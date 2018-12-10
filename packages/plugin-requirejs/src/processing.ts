@@ -23,7 +23,7 @@ export function processImports(toProcess: ITemplateImport[], relativeTo: string)
 
 const capitalMatcher = /([A-Z])/g;
 
-/*@internal*/
+/** @internal */
 export function addHyphenAndLower(char: string): string {
   return `-${char.toLowerCase()}`;
 }
@@ -131,7 +131,7 @@ export function loadFromFile(url: string, callback: (content: string) => void, e
   }
 }
 
-/*@internal*/
+/** @internal */
 export function trimDots(ary: string[]): void {
   for (let i = 0; i < ary.length; ++i) {
     const part = ary[i];

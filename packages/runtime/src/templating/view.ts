@@ -8,10 +8,10 @@ import { ITemplate } from './lifecycle-render';
 
 const slice = Array.prototype.slice;
 
-/*@internal*/
+/** @internal */
 export interface View extends IView {}
 
-/*@internal*/
+/** @internal */
 export class View implements IView {
   public $bindableHead: IBindScope;
   public $bindableTail: IBindScope;
@@ -95,7 +95,7 @@ export class View implements IView {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
 

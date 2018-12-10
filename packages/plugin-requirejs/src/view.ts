@@ -3,7 +3,7 @@ import { Require, RequireConfig, RequireOnLoad } from './types';
 
 const buildMap = {};
 
-/*@internal*/
+/** @internal */
 export function finishLoad(name: string, content: string, onLoad: (content: string) => void): void {
   buildMap[name] = content;
   onLoad(content);

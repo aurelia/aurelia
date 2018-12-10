@@ -69,7 +69,7 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   return flagNames.join('|');
 }
 
-/*@internal*/
+/** @internal */
 export const enum SubscriberFlags {
   None            = 0,
   Subscriber0     = 0b0001,
@@ -248,11 +248,11 @@ export interface ISubscribable<T extends MutationKind> {
  * A collection of property or collection subscribers
  */
 export interface ISubscriberCollection<T extends MutationKind> extends ISubscribable<T> {
-  /*@internal*/_subscriberFlags?: SubscriberFlags;
-  /*@internal*/_subscriber0?: MutationKindToSubscriber<T>;
-  /*@internal*/_subscriber1?: MutationKindToSubscriber<T>;
-  /*@internal*/_subscriber2?: MutationKindToSubscriber<T>;
-  /*@internal*/_subscribersRest?: MutationKindToSubscriber<T>[];
+  /** @internal */_subscriberFlags?: SubscriberFlags;
+  /** @internal */_subscriber0?: MutationKindToSubscriber<T>;
+  /** @internal */_subscriber1?: MutationKindToSubscriber<T>;
+  /** @internal */_subscriber2?: MutationKindToSubscriber<T>;
+  /** @internal */_subscribersRest?: MutationKindToSubscriber<T>[];
 
   callSubscribers: MutationKindToNotifier<T>;
   hasSubscribers(): boolean;
@@ -265,16 +265,16 @@ export interface ISubscriberCollection<T extends MutationKind> extends ISubscrib
  * A collection of batched property or collection subscribers
  */
 export interface IBatchedSubscriberCollection<T extends MutationKind> extends IBatchedSubscribable<T> {
-  /*@internal*/_batchedSubscriberFlags?: SubscriberFlags;
-  /*@internal*/_batchedSubscriber0?: MutationKindToBatchedSubscriber<T>;
-  /*@internal*/_batchedSubscriber1?: MutationKindToBatchedSubscriber<T>;
-  /*@internal*/_batchedSubscriber2?: MutationKindToBatchedSubscriber<T>;
-  /*@internal*/_batchedSubscribersRest?: MutationKindToBatchedSubscriber<T>[];
+  /** @internal */_batchedSubscriberFlags?: SubscriberFlags;
+  /** @internal */_batchedSubscriber0?: MutationKindToBatchedSubscriber<T>;
+  /** @internal */_batchedSubscriber1?: MutationKindToBatchedSubscriber<T>;
+  /** @internal */_batchedSubscriber2?: MutationKindToBatchedSubscriber<T>;
+  /** @internal */_batchedSubscribersRest?: MutationKindToBatchedSubscriber<T>[];
 
-  /*@internal*/lifecycle?: ILifecycle;
+  /** @internal */lifecycle?: ILifecycle;
   callBatchedSubscribers: MutationKindToBatchedNotifier<T>;
 
-  /*@internal*/flush(flags: LifecycleFlags): void;
+  /** @internal */flush(flags: LifecycleFlags): void;
   hasBatchedSubscribers(): boolean;
   hasBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;
   removeBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;
@@ -294,7 +294,7 @@ export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj
   IAccessor<TObj[TProp]>,
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection<MutationKind.instance> {
-  /*@internal*/observing: boolean;
+  /** @internal */observing: boolean;
 }
 
 /**

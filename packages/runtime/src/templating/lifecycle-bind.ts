@@ -6,7 +6,7 @@ import { ICustomElement } from './custom-element';
 
 const slice = Array.prototype.slice;
 
-/*@internal*/
+/** @internal */
 export function $bindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, scope: IScope): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$bindAttribute`, slice.call(arguments)); }
   flags |= LifecycleFlags.fromBind;
@@ -44,7 +44,7 @@ export function $bindAttribute(this: Writable<ICustomAttribute>, flags: Lifecycl
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFlags, parentScope: IScope | null): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$bindElement`, slice.call(arguments)); }
   if (this.$state & State.isBound) {
@@ -84,7 +84,7 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export function $bindView(this: Writable<IView>, flags: LifecycleFlags, scope: IScope): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$bindView`, slice.call(arguments)); }
   flags |= LifecycleFlags.fromBind;
@@ -113,7 +113,7 @@ export function $bindView(this: Writable<IView>, flags: LifecycleFlags, scope: I
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$unbindAttribute`, slice.call(arguments)); }
   if (this.$state & State.isBound) {
@@ -141,7 +141,7 @@ export function $unbindAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$unbindElement`, slice.call(arguments)); }
   if (this.$state & State.isBound) {
@@ -177,7 +177,7 @@ export function $unbindElement(this: Writable<ICustomElement>, flags: LifecycleF
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export function $unbindView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$unbindView`, slice.call(arguments)); }
   if (this.$state & State.isBound) {

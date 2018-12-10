@@ -40,7 +40,7 @@ export interface ICustomElementResource extends
 
 type CustomElementDecorator = <T extends Constructable>(target: T) => T & ICustomElementType;
 
-/*@internal*/
+/** @internal */
 export function registerElement(this: ICustomElementType, container: IContainer): void {
   const resourceKey = this.kind.keyFrom(this.description.name);
   container.register(Registration.transient(resourceKey, this));

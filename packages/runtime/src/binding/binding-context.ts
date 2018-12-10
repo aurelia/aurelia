@@ -12,7 +12,7 @@ const enum RuntimeError {
   NilParentScope = 253
 }
 
-/*@internal*/
+/** @internal */
 export class InternalObserversLookup {
   public getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver {
     if (Tracer.enabled) { Tracer.enter('InternalObserversLookup.getOrCreate', slice.call(arguments)); }

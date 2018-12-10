@@ -75,7 +75,7 @@ export interface ILifecycleRender {
   render?(host: INode, parts: Record<string, TemplateDefinition>): IElementTemplateProvider | void;
 }
 
-/*@internal*/
+/** @internal */
 export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEngine: IRenderingEngine): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice.call(arguments)); }
   const Type = this.constructor as ICustomAttributeType;
@@ -88,7 +88,7 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEng
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice.call(arguments)); }
   const Type = this.constructor as ICustomElementType;
@@ -118,7 +118,7 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
@@ -157,7 +157,7 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>()
 const defaultCompilerName = 'default';
 
 @inject(IContainer, ILifecycle, all(ITemplateCompiler))
-/*@internal*/
+/** @internal */
 export class RenderingEngine implements IRenderingEngine {
   private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
   private compilers: Record<string, ITemplateCompiler>;
@@ -255,7 +255,7 @@ export class RenderingEngine implements IRenderingEngine {
 }
 const childObserverOptions = { childList: true };
 
-/*@internal*/
+/** @internal */
 export class ShadowDOMProjector implements IElementProjector {
   public host: ICustomElementHost;
   public shadowRoot: ICustomElementHost;
@@ -293,7 +293,7 @@ export class ShadowDOMProjector implements IElementProjector {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class ContainerlessProjector implements IElementProjector {
   public host: ICustomElementHost;
 
@@ -339,7 +339,7 @@ export class ContainerlessProjector implements IElementProjector {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class HostProjector implements IElementProjector {
   public host: ICustomElementHost;
 
@@ -449,7 +449,7 @@ export interface IChildrenObserver extends
   ISubscribable<MutationKind.instance>,
   ISubscriberCollection<MutationKind.instance> { }
 
-/*@internal*/
+/** @internal */
 @subscriberCollection(MutationKind.instance)
 export class ChildrenObserver implements Partial<IChildrenObserver> {
   public hasChanges: boolean;
@@ -505,7 +505,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   }
 }
 
-/*@internal*/
+/** @internal */
 export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
   const components: ICustomElement[] = [];
 
@@ -537,7 +537,7 @@ export interface ITemplate {
 // TemplateCompiler either through a JIT or AOT process.
 // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
 // and create instances of it on demand.
-/*@internal*/
+/** @internal */
 export class CompiledTemplate implements ITemplate {
   public readonly factory: INodeSequenceFactory;
   public readonly renderContext: IRenderContext;
@@ -559,7 +559,7 @@ export class CompiledTemplate implements ITemplate {
 }
 
 // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
-/*@internal*/
+/** @internal */
 export const noViewTemplate: ITemplate = {
   renderContext: null,
   render(renderable: IRenderable): void {
@@ -568,7 +568,7 @@ export const noViewTemplate: ITemplate = {
   }
 };
 
-/*@internal*/
+/** @internal */
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
 export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext {
@@ -622,7 +622,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   return context;
 }
 
-/*@internal*/
+/** @internal */
 export class InstanceProvider<T> implements IResolver {
   private instance: T | null;
 
@@ -646,7 +646,7 @@ export class InstanceProvider<T> implements IResolver {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class ViewFactoryProvider implements IResolver {
   private factory: IViewFactory | null;
   private renderingEngine: IRenderingEngine;

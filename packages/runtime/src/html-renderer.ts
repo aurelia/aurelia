@@ -54,7 +54,7 @@ export function addAttachable(renderable: IAttachables, attachable: IAttach): vo
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.textBinding)
-/*@internal*/
+/** @internal */
 export class TextBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -84,7 +84,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.interpolation)
-/*@internal*/
+/** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -110,7 +110,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.propertyBinding)
-/*@internal*/
+/** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -131,7 +131,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.iteratorBinding)
-/*@internal*/
+/** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -152,7 +152,7 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
 
 @inject(IExpressionParser, IEventManager)
 @instructionRenderer(TargetedInstructionType.listenerBinding)
-/*@internal*/
+/** @internal */
 export class ListenerBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private eventManager: IEventManager;
@@ -173,7 +173,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.callBinding)
-/*@internal*/
+/** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -194,7 +194,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
 
 @inject(IExpressionParser)
 @instructionRenderer(TargetedInstructionType.refBinding)
-/*@internal*/
+/** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
 
@@ -213,7 +213,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.stylePropertyBinding)
-/*@internal*/
+/** @internal */
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -233,7 +233,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
 }
 
 @instructionRenderer(TargetedInstructionType.setProperty)
-/*@internal*/
+/** @internal */
 export class SetPropertyRenderer implements IInstructionRenderer {
   public render(context: IRenderContext, renderable: IRenderable, target: IIndexable, instruction: ISetPropertyInstruction): void {
     if (Tracer.enabled) { Tracer.enter('SetPropertyRenderer.render', slice.call(arguments)); }
@@ -243,7 +243,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 }
 
 @instructionRenderer(TargetedInstructionType.setAttribute)
-/*@internal*/
+/** @internal */
 export class SetAttributeRenderer implements IInstructionRenderer {
   public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: ISetAttributeInstruction): void {
     if (Tracer.enabled) { Tracer.enter('SetAttributeRenderer.render', slice.call(arguments)); }
@@ -254,7 +254,7 @@ export class SetAttributeRenderer implements IInstructionRenderer {
 
 @inject(IRenderingEngine)
 @instructionRenderer(TargetedInstructionType.hydrateElement)
-/*@internal*/
+/** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
   private renderingEngine: IRenderingEngine;
 
@@ -286,7 +286,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
 @inject(IRenderingEngine)
 @instructionRenderer(TargetedInstructionType.hydrateAttribute)
-/*@internal*/
+/** @internal */
 export class CustomAttributeRenderer implements IInstructionRenderer {
   private renderingEngine: IRenderingEngine;
 
@@ -318,7 +318,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 
 @inject(IRenderingEngine)
 @instructionRenderer(TargetedInstructionType.hydrateTemplateController)
-/*@internal*/
+/** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
   private renderingEngine: IRenderingEngine;
 
@@ -355,7 +355,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.hydrateLetElement)
-/*@internal*/
+/** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;

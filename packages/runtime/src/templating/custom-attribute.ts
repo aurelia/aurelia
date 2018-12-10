@@ -33,7 +33,7 @@ export interface ICustomAttributeResource extends
 
 type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType;
 
-/*@internal*/
+/** @internal */
 export function registerAttribute(this: ICustomAttributeType, container: IContainer): void {
   const description = this.description;
   const resourceKey = this.kind.keyFrom(description.name);
@@ -162,7 +162,7 @@ export const CustomAttributeResource: ICustomAttributeResource = {
   define
 };
 
-/*@internal*/
+/** @internal */
 export function createCustomAttributeDescription(def: IAttributeDefinition, Type: ICustomAttributeType): ResourceDescription<IAttributeDefinition> {
   const aliases = def. aliases;
   const defaultBindingMode = def.defaultBindingMode;

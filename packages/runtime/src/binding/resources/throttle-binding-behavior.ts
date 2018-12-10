@@ -18,7 +18,7 @@ export type ThrottleableBinding = IBinding & {
   };
 };
 
-/*@internal*/
+/** @internal */
 export function throttle(this: ThrottleableBinding, newValue: unknown): void {
   const state = this.throttleState;
   const elapsed = +new Date() - state.last;

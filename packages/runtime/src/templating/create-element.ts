@@ -46,7 +46,7 @@ export class RenderPlan {
     return engine.getViewFactory(this.definition, parentContext);
   }
 
-  /*@internal*/
+  /** @internal */
   public mergeInto(parent: INode, instructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
     DOM.appendChild(parent, this.node);
     instructions.push(...this.instructions);

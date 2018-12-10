@@ -13,7 +13,6 @@ declare var Element: IElement;
 declare var HTMLElement: IHTMLElement;
 declare var SVGElement: ISVGElement;
 
-// tslint:disable:no-any
 export const DOM = {
   createDocumentFragment(markupOrNode?: unknown): IDocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {
@@ -81,7 +80,7 @@ export const DOM = {
   createTextNode(text: string): IText {
     return document.createTextNode(text);
   },
-  getAttribute(node: IElement, name: string): any {
+  getAttribute(node: IElement, name: string): string {
     return node.getAttribute(name);
   },
   hasClass(node: IElement, className: string): boolean {
@@ -102,8 +101,8 @@ export const DOM = {
   isElementNodeType(node: INode): node is IElement {
     return node.nodeType === NodeType.Element;
   },
-  isNodeInstance(potentialNode: any): potentialNode is INode {
-    return potentialNode.nodeType > 0;
+  isNodeInstance(potentialNode: unknown): potentialNode is INode {
+    return (potentialNode as { nodeType?: number }).nodeType > 0;
   },
   isTextNodeType(node: INode): node is IText {
     return node.nodeType === NodeType.Text;
@@ -140,7 +139,7 @@ export const DOM = {
       oldChild.parentNode.replaceChild(newChild, oldChild);
     }
   },
-  setAttribute(node: IElement, name: string, value: any): void {
+  setAttribute(node: IElement, name: string, value: string): void {
     node.setAttribute(name, value);
   }
 };

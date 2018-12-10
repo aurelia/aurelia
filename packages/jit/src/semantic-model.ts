@@ -1,9 +1,10 @@
 import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
 import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, HydrateTemplateController, IAttributeDefinition, IBindableDescription, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
-import { AttrSyntax, IAttributeParser } from './attribute-parser';
+import { AttrSyntax, ElementSyntax } from './ast';
+import { IAttributeParser } from './attribute-parser';
 import { BindingCommandResource,  IBindingCommand } from './binding-command';
 import { Char } from './common';
-import { ElementSyntax, IElementParser, NodeType } from './element-parser';
+import { IElementParser, NodeType } from './element-parser';
 
 export class SemanticModel {
   public readonly isSemanticModel: true;
@@ -79,7 +80,7 @@ export class SemanticModel {
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <IAttributeDefinition>this.resources.find(CustomAttributeResource, name);
+    const definition = this.resources.find(CustomAttributeResource, name) as IAttributeDefinition;
     return this.attrDefCache[name] = definition === undefined ? null : definition;
   }
 
@@ -88,7 +89,7 @@ export class SemanticModel {
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <ITemplateDefinition>this.resources.find(CustomElementResource, name);
+    const definition = this.resources.find(CustomElementResource, name) as ITemplateDefinition;
     return this.elDefCache[name] = definition === undefined ? null : definition;
   }
 
@@ -275,6 +276,7 @@ export class AttributeSymbol implements IAttributeSymbol {
     return this._isProcessed;
   }
 
+  // TODO: Reduce complexity (currently at 60)
   constructor(
     semanticModel: SemanticModel,
     $element: ElementSymbol,
@@ -347,8 +349,9 @@ export class AttributeSymbol implements IAttributeSymbol {
       if (!this.isMultiAttrBinding) {
         for (const prop in bindables) {
           const b = bindables[prop];
+          const defaultBindingMode = definition.defaultBindingMode === undefined ? BindingMode.toView : definition.defaultBindingMode;
           this.to = b.property;
-          this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : (definition.defaultBindingMode || BindingMode.toView);
+          this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : defaultBindingMode;
           this.bindable = b as Immutable<Required<IBindableDescription>>;
           this.isBindable = this.isAttributeBindable = true;
           break;
@@ -382,7 +385,7 @@ export class AttributeSymbol implements IAttributeSymbol {
   public markAsProcessed(): void {
     this._isProcessed = true;
     if (this.isTemplateController) {
-      (<Element>this.$element.node).removeAttribute(this.rawName);
+      (this.$element.node as Element).removeAttribute(this.rawName);
     }
   }
 }
@@ -522,7 +525,7 @@ export class ElementSymbol {
   }
 
   public makeTarget(): void {
-    (<Element>this.node).classList.add('au');
+    (this.node as Element).classList.add('au');
   }
 
   public replaceTextNodeWithMarker(): void {
@@ -542,7 +545,7 @@ export class ElementSymbol {
     if (node.parentNode) {
       node.parentNode.replaceChild(marker.node, node);
     } else if (this.isTemplate) {
-      (<HTMLTemplateElement>node).content.appendChild(marker.node);
+      (node as HTMLTemplateElement).content.appendChild(marker.node);
     }
     this.setToMarker(marker);
   }
@@ -583,7 +586,7 @@ export class ElementSymbol {
     this._$content = null;
     this._isCustomElement = this._isLet = this._isSlot = this._isTemplate = false;
     this._isMarker = true;
-    this._name = 'AU-MARKER';
+    this._name = 'AU-M';
     this._node = marker.node;
     this._syntax = marker;
   }

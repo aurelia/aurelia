@@ -24,19 +24,26 @@ import {
   BindingIdentifier,
   IExpression,
   PrimitiveLiteral
-} from '../../../runtime/src';
+} from '../../../runtime/src/index';
 import {
   TemplateCompiler,
   BasicConfiguration,
   parseCore,
   AttributeParser,
-  ElementParser
-} from '../../src';
+  ElementParser,
+  SyntaxInterpreter,
+  DotSeparatedAttributePattern,
+  IAttributeParser
+} from '../../src/index';
 import { expect } from 'chai';
 import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from './util';
 
-const attrParser = new AttributeParser();
-const elParser = new ElementParser(attrParser);
+const c = DI.createContainer();
+c.register(<any>DotSeparatedAttributePattern);
+
+const attrParser = c.get(IAttributeParser);
+const elParser = new ElementParser(<any>attrParser);
+
 
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);
@@ -52,10 +59,10 @@ describe('TemplateCompiler', () => {
 
   beforeEach(() => {
     container = DI.createContainer();
-    container.register(BasicConfiguration);
+    container.register(<any>BasicConfiguration);
     expressionParser = container.get(IExpressionParser);
     sut = new TemplateCompiler(expressionParser as any, elParser, attrParser);
-    container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
+    container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ Type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
 
@@ -251,7 +258,7 @@ describe('TemplateCompiler', () => {
             `<template><el prop.bind="p"></el></template>`,
             [Prop]
           );
-          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
+          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
           expect((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
         });
@@ -268,7 +275,7 @@ describe('TemplateCompiler', () => {
             `<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>`,
             [Prop]
           );
-          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
+          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
             { toVerify: ['type', 'to', 'from'],
@@ -460,7 +467,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       res: target,
       def: {
         name: target,
-        template: createElement(`<template><au-marker class="au"></au-marker></template>`),
+        template: createElement(`<template><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]]
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
@@ -471,7 +478,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       instructions: []
     }
     const output = {
-      template: createElement(`<div><au-marker class="au"></au-marker></div>`),
+      template: createElement(`<div><au-m class="au"></au-m></div>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];
@@ -482,7 +489,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       compiledMarkup = `<${tagName}></${tagName}>`;
       instructions = []
     } else {
-      compiledMarkup = `<${tagName}><au-marker class="au"></au-marker></${tagName}>`;
+      compiledMarkup = `<${tagName}><au-m class="au"></au-m></${tagName}>`;
       instructions = [[childInstr]]
     }
     const instruction = {
@@ -502,7 +509,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       instructions: []
     }
     const output = {
-      template: createElement(finalize ? `<div><au-marker class="au"></au-marker></div>` : `<au-marker class="au"></au-marker>`),
+      template: createElement(finalize ? `<div><au-m class="au"></au-m></div>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];

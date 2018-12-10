@@ -1,4 +1,4 @@
-import { DI, IIndexable, Primitive } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { propertyObserver } from './property-observer';
 
@@ -11,8 +11,13 @@ export const IDirtyChecker = DI.createInterface<IDirtyChecker>()
 
 /*@internal*/
 export class DirtyChecker {
-  private tracked: DirtyCheckProperty[] = [];
-  private checkDelay: number = 120;
+  private checkDelay: number;
+  private tracked: DirtyCheckProperty[];
+
+  public constructor() {
+    this.checkDelay = 120;
+    this.tracked = [];
+  }
 
   public createProperty(obj: IObservable, propertyName: string): DirtyCheckProperty {
     return new DirtyCheckProperty(this, obj, propertyName);
@@ -60,24 +65,28 @@ export interface DirtyCheckProperty extends IBindingTargetObserver { }
 /*@internal*/
 @propertyObserver()
 export class DirtyCheckProperty implements DirtyCheckProperty {
-  public oldValue: IIndexable | Primitive;
+  public obj: IObservable;
+  public oldValue: unknown;
+  public propertyKey: string;
 
-  constructor(
-    private dirtyChecker: DirtyChecker,
-    public obj: IObservable,
-    public propertyKey: string) {
+  private dirtyChecker: DirtyChecker;
 
-    }
+  constructor(dirtyChecker: DirtyChecker, obj: IObservable, propertyKey: string) {
+    this.obj = obj;
+    this.propertyKey = propertyKey;
+
+    this.dirtyChecker = dirtyChecker;
+  }
 
   public isDirty(): boolean {
     return this.oldValue !== this.obj[this.propertyKey];
   }
 
-  public getValue(): IIndexable | Primitive {
+  public getValue(): unknown {
     return this.obj[this.propertyKey];
   }
 
-  public setValue(newValue: IIndexable | Primitive): void {
+  public setValue(newValue: unknown): void {
     this.obj[this.propertyKey] = newValue;
   }
 

@@ -45,10 +45,11 @@ export function write(pluginName: string, moduleName: string, writer: (content: 
     const text = buildMap[moduleName];
     const description = createTemplateDescription(text);
     const depsToLoad = processImports(description.imports, moduleName);
+    const depsToLoadMapped = depsToLoad.map(x => `"${x}"`).join(',');
 
     depsToLoad.unshift('@aurelia/runtime');
 
-    writer(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() {
+    writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function() {
       var Component = arguments[0].Component;
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',

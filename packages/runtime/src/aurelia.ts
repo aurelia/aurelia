@@ -42,11 +42,11 @@ export class Aurelia {
     const host = config.host as INode & {$au?: Aurelia | null};
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
-    if (CustomElementResource.isType(<ICustomElementType>componentOrType)) {
-      this.container.register(<ICustomElementType>componentOrType);
-      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((<ICustomElementType>componentOrType).description.name));
+    if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
+      this.container.register(componentOrType as ICustomElementType);
+      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
     } else {
-      component = <ICustomElement>componentOrType;
+      component = componentOrType as ICustomElement;
     }
 
     const startTask = () => {
@@ -110,4 +110,4 @@ export class Aurelia {
   }
 }
 
-(<{Aurelia: unknown}>PLATFORM.global).Aurelia = Aurelia;
+(PLATFORM.global as {Aurelia: unknown}).Aurelia = Aurelia;

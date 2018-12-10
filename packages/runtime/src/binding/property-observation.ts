@@ -32,7 +32,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.
   }
 
   private getStringLength(): number {
-    return (<string>this.obj).length;
+    return (this.obj as string).length;
   }
   private returnUndefined(): undefined {
     return undefined;
@@ -57,10 +57,10 @@ export class SetterObserver implements SetterObserver {
     this.propertyKey = propertyKey;
   }
 
-  public getValue(): IIndexable | Primitive {
+  public getValue(): unknown {
     return this.currentValue;
   }
-  public setValue(newValue: IIndexable | Primitive, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
     if (currentValue !== newValue) {
       this.currentValue = newValue;
@@ -86,9 +86,9 @@ export interface Observer extends IPropertyObserver<IIndexable, string> {}
 export class Observer implements Observer {
   public obj: IIndexable;
   public propertyKey: string;
-  public currentValue: IIndexable | Primitive;
+  public currentValue: unknown;
 
-  private callback: (newValue: IIndexable | Primitive, oldValue: IIndexable | Primitive) => IIndexable | Primitive;
+  private callback: (newValue: unknown, oldValue: unknown) => unknown;
 
   constructor(
     instance: object,
@@ -103,11 +103,11 @@ export class Observer implements Observer {
         : noop;
   }
 
-  public getValue(): IIndexable | Primitive {
+  public getValue(): unknown {
     return this.currentValue;
   }
 
-  public setValue(newValue: IIndexable | Primitive, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
 
     if (currentValue !== newValue) {

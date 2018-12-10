@@ -1,4 +1,4 @@
-import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
+import { DI, inject, Reporter } from '@aurelia/kernel';
 import { DOM, IHTMLElement, IInputElement } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -29,9 +29,9 @@ export interface IObserverLocator {
   getObserver(obj: IObservable, propertyName: string): AccessorOrObserver;
   getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
   addAdapter(adapter: IObjectObservationAdapter): void;
-  getArrayObserver(observedArray: (IIndexable | Primitive)[]): ICollectionObserver<CollectionKind.array>;
-  getMapObserver(observedMap: Map<IIndexable | Primitive, IIndexable | Primitive>): ICollectionObserver<CollectionKind.map>;
-  getSetObserver(observedSet: Set<IIndexable | Primitive>): ICollectionObserver<CollectionKind.set>;
+  getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
+  getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
+  getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
 }
 
 export const IObserverLocator = DI.createInterface<IObserverLocator>()
@@ -52,14 +52,19 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 @inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
 /*@internal*/
 export class ObserverLocator implements IObserverLocator {
-  private adapters: IObjectObservationAdapter[] = [];
+  private adapters: IObjectObservationAdapter[];
+  private dirtyChecker: IDirtyChecker;
+  private eventManager: IEventManager;
+  private lifecycle: ILifecycle;
+  private svgAnalyzer: ISVGAnalyzer;
 
-  constructor(
-    private lifecycle: ILifecycle,
-    private eventManager: IEventManager,
-    private dirtyChecker: IDirtyChecker,
-    private svgAnalyzer: ISVGAnalyzer
-  ) {}
+  constructor(lifecycle: ILifecycle, eventManager: IEventManager, dirtyChecker: IDirtyChecker, svgAnalyzer: ISVGAnalyzer) {
+    this.adapters = [];
+    this.dirtyChecker = dirtyChecker;
+    this.eventManager = eventManager;
+    this.lifecycle = lifecycle;
+    this.svgAnalyzer = svgAnalyzer;
+  }
 
   public getObserver(obj: IObservable | IBindingContext | IOverrideContext, propertyName: string): AccessorOrObserver {
     if (obj.$synthetic === true) {
@@ -162,6 +167,7 @@ export class ObserverLocator implements IObserverLocator {
     return null;
   }
 
+  // TODO: Reduce complexity (currently at 37)
   private createPropertyObserver(obj: IObservable, propertyName: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
       return new PrimitiveObserver(obj as any, propertyName) as IBindingTargetAccessor;
@@ -180,17 +186,17 @@ export class ObserverLocator implements IObserverLocator {
       }
 
       if (propertyName === 'style' || propertyName === 'css') {
-        return new StyleAttributeAccessor(this.lifecycle, <IHTMLElement>obj);
+        return new StyleAttributeAccessor(this.lifecycle, obj as IHTMLElement);
       }
 
       const tagName = obj['tagName'];
       const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && tagName === 'SELECT') {
-        return new SelectValueObserver(this.lifecycle, <ISelectElement>obj, handler, this);
+        return new SelectValueObserver(this.lifecycle, obj as ISelectElement, handler, this);
       }
 
       if (propertyName === 'checked' && tagName === 'INPUT') {
-        return new CheckedObserver(this.lifecycle, <IInputElement>obj, handler, this);
+        return new CheckedObserver(this.lifecycle, obj as IInputElement, handler, this);
       }
 
       if (handler) {
@@ -199,7 +205,7 @@ export class ObserverLocator implements IObserverLocator {
 
       const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
       if (xlinkResult) {
-        return new XLinkAttributeAccessor(this.lifecycle, <IHTMLElement>obj, propertyName, xlinkResult[1]);
+        return new XLinkAttributeAccessor(this.lifecycle, obj as IHTMLElement, propertyName, xlinkResult[1]);
       }
 
       if (propertyName === 'role'
@@ -214,44 +220,41 @@ export class ObserverLocator implements IObserverLocator {
     switch (tag) {
       case '[object Array]':
         if (propertyName === 'length') {
-          return this.getArrayObserver(<IObservedArray>obj).getLengthObserver();
+          return this.getArrayObserver(obj as IObservedArray).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Map]':
         if (propertyName === 'size') {
-          return this.getMapObserver(<IObservedMap>obj).getLengthObserver();
+          return this.getMapObserver(obj as IObservedMap).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Set]':
         if (propertyName === 'size') {
-          return this.getSetObserver(<IObservedSet>obj).getLengthObserver();
+          return this.getSetObserver(obj as IObservedSet).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
     }
 
     const descriptor = getPropertyDescriptor(obj, propertyName) as PropertyDescriptor & {
-      // tslint:disable-next-line:no-reserved-keywords
       get: PropertyDescriptor['get'] & { getObserver(obj: IObservable): IBindingTargetObserver };
     };
 
-    if (descriptor) {
-      if (descriptor.get || descriptor.set) {
-        if (descriptor.get && descriptor.get.getObserver) {
-          return descriptor.get.getObserver(obj);
-        }
-
-        // attempt to use an adapter before resorting to dirty checking.
-        const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
-        if (adapterObserver) {
-          return adapterObserver;
-        }
-        if (isNode) {
-          // TODO: use MutationObserver
-          return this.dirtyChecker.createProperty(obj, propertyName);
-        }
-
-        return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
+    if (descriptor && (descriptor.get || descriptor.set)) {
+      if (descriptor.get && descriptor.get.getObserver) {
+        return descriptor.get.getObserver(obj);
       }
+
+      // attempt to use an adapter before resorting to dirty checking.
+      const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
+      if (adapterObserver) {
+        return adapterObserver;
+      }
+      if (isNode) {
+        // TODO: use MutationObserver
+        return this.dirtyChecker.createProperty(obj, propertyName);
+      }
+
+      return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
     }
     return new SetterObserver(obj, propertyName);
   }
@@ -260,11 +263,11 @@ export class ObserverLocator implements IObserverLocator {
 export function getCollectionObserver(lifecycle: ILifecycle, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
   switch (toStringTag.call(collection)) {
     case '[object Array]':
-      return getArrayObserver(lifecycle, <IObservedArray>collection);
+      return getArrayObserver(lifecycle, collection as IObservedArray);
     case '[object Map]':
-      return getMapObserver(lifecycle, <IObservedMap>collection);
+      return getMapObserver(lifecycle, collection as IObservedMap);
     case '[object Set]':
-      return getSetObserver(lifecycle, <IObservedSet>collection);
+      return getSetObserver(lifecycle, collection as IObservedSet);
   }
   return null;
 }

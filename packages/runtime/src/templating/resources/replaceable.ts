@@ -12,8 +12,11 @@ export class Replaceable {
   public static register: IRegistry['register'];
 
   private currentView: IView;
+  private factory: IViewFactory;
 
-  constructor(private factory: IViewFactory, location: IPixiRenderLocation) {
+  constructor(factory: IViewFactory, location: IPixiRenderLocation) {
+    this.factory = factory;
+
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

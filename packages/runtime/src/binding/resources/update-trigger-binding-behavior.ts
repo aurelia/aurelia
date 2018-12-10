@@ -20,7 +20,11 @@ export type UpdateTriggerableBinding = Binding & {
 export class UpdateTriggerBindingBehavior {
   public static register: IRegistry['register'];
 
-  constructor(private observerLocator: IObserverLocator) {}
+  private observerLocator: IObserverLocator;
+
+  constructor(observerLocator: IObserverLocator) {
+    this.observerLocator = observerLocator;
+  }
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void {
     if (events.length === 0) {
@@ -32,7 +36,7 @@ export class UpdateTriggerBindingBehavior {
     }
 
     // ensure the binding's target observer has been set.
-    const targetObserver = <UpdateTriggerableObserver>this.observerLocator.getObserver(binding.target, binding.targetProperty);
+    const targetObserver = this.observerLocator.getObserver(binding.target, binding.targetProperty) as UpdateTriggerableObserver;
     if (!targetObserver.handler) {
       throw Reporter.error(10);
     }

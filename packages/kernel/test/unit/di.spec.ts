@@ -699,7 +699,7 @@ describe(`The Resolver class`, () => {
       const sut = new Resolver(Foo, ResolverStrategy.singleton, Foo);
       const actual = sut.getFactory(container);
       expect(actual).to.be.instanceof(Factory);
-      expect(actual.type).to.equal(Foo);;
+      expect(actual.Type).to.equal(Foo);;
     });
 
     it(`returns a new transient Factory if it does not exist`, () => {
@@ -707,7 +707,7 @@ describe(`The Resolver class`, () => {
       const sut = new Resolver(Foo, ResolverStrategy.transient, Foo);
       const actual = sut.getFactory(container);
       expect(actual).to.be.instanceof(Factory);
-      expect(actual.type).to.equal(Foo);
+      expect(actual.Type).to.equal(Foo);
     });
 
     it(`returns a null for instance strategy`, () => {
@@ -749,7 +749,7 @@ describe(`The Factory class`, () => {
         class Foo{static inject=Array(count).map(c => Bar)}
         const actual = Factory.create(Foo);
         expect(actual).to.be.instanceof(Factory);
-        expect(actual.type).to.equal(Foo);
+        expect(actual.Type).to.equal(Foo);
         if (count < 6) {
           expect(actual['invoker']).to.equal(classInvokers[count]);
         } else {
@@ -994,7 +994,7 @@ describe(`The Container class`, () => {
         class Foo{static inject=Array(count).map(c => Bar)}
         const actual = sut.getFactory(Foo);
         expect(actual).to.be.instanceof(Factory);
-        expect(actual.type).to.equal(Foo);
+        expect(actual.Type).to.equal(Foo);
         if (count < 6) {
           expect(actual['invoker']).to.equal(classInvokers[count]);
         } else {

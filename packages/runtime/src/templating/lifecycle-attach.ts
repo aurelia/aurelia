@@ -6,6 +6,7 @@ import { ICustomAttribute } from './custom-attribute';
 import { ICustomElement } from './custom-element';
 
 /*@internal*/
+// tslint:disable-next-line:no-ignored-initial-value
 export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
     return;
@@ -27,12 +28,13 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
   this.$state &= ~State.isAttaching;
 
   if (hooks & Hooks.hasAttached) {
-    lifecycle.enqueueAttached(<Required<typeof this>>this);
+    lifecycle.enqueueAttached(this as Required<typeof this>);
   }
   lifecycle.endAttach(flags);
 }
 
 /*@internal*/
+// tslint:disable-next-line:no-ignored-initial-value
 export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void {
   if (this.$state & State.isAttached) {
     return;
@@ -60,16 +62,14 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
     current = current.$nextAttach;
   }
 
-  if (!(this.$state & State.isMounted)) {
-    lifecycle.enqueueMount(this);
-  }
+  lifecycle.enqueueMount(this);
 
   // add isAttached flag, remove isAttaching flag
   this.$state |= State.isAttached;
   this.$state &= ~State.isAttaching;
 
   if (hooks & Hooks.hasAttached) {
-    lifecycle.enqueueAttached(<Required<typeof this>>this);
+    lifecycle.enqueueAttached(this as Required<typeof this>);
   }
   lifecycle.endAttach(flags);
 }
@@ -89,9 +89,7 @@ export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encaps
     current = current.$nextAttach;
   }
 
-  if (!(this.$state & State.isMounted)) {
-    this.$lifecycle.enqueueMount(this);
-  }
+  this.$lifecycle.enqueueMount(this);
 
   // add isAttached flag, remove isAttaching flag
   this.$state |= State.isAttached;
@@ -99,6 +97,7 @@ export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encaps
 }
 
 /*@internal*/
+// tslint:disable-next-line:no-ignored-initial-value
 export function $detachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     const lifecycle = this.$lifecycle;
@@ -116,13 +115,14 @@ export function $detachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
     this.$state &= ~(State.isAttached | State.isDetaching);
 
     if (hooks & Hooks.hasDetached) {
-      lifecycle.enqueueDetached(<Required<typeof this>>this);
+      lifecycle.enqueueDetached(this as Required<typeof this>);
     }
     lifecycle.endDetach(flags);
   }
 }
 
 /*@internal*/
+// tslint:disable-next-line:no-ignored-initial-value
 export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (this.$state & State.isAttached) {
     const lifecycle = this.$lifecycle;
@@ -131,14 +131,12 @@ export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleF
     this.$state |= State.isDetaching;
     flags |= LifecycleFlags.fromDetach;
 
-    if (this.$state & State.isMounted) {
-      // Only unmount if either:
-      // - No parent view/element is queued for unmount yet, or
-      // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-      if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
-        lifecycle.enqueueUnmount(this);
-        flags |= LifecycleFlags.parentUnmountQueued;
-      }
+    // Only unmount if either:
+    // - No parent view/element is queued for unmount yet, or
+    // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
+    if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
+      lifecycle.enqueueUnmount(this);
+      flags |= LifecycleFlags.parentUnmountQueued;
     }
 
     const hooks = this.$hooks;
@@ -156,7 +154,7 @@ export function $detachElement(this: Writable<ICustomElement>, flags: LifecycleF
     this.$state &= ~(State.isAttached | State.isDetaching);
 
     if (hooks & Hooks.hasDetached) {
-      lifecycle.enqueueDetached(<Required<typeof this>>this);
+      lifecycle.enqueueDetached(this as Required<typeof this>);
     }
     lifecycle.endDetach(flags);
   }
@@ -169,14 +167,12 @@ export function $detachView(this: Writable<IView>, flags: LifecycleFlags): void 
     this.$state |= State.isDetaching;
     flags |= LifecycleFlags.fromDetach;
 
-    if (this.$state & State.isMounted) {
-      // Only unmount if either:
-      // - No parent view/element is queued for unmount yet, or
-      // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-      if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
-        this.$lifecycle.enqueueUnmount(this);
-        flags |= LifecycleFlags.parentUnmountQueued;
-      }
+    // Only unmount if either:
+    // - No parent view/element is queued for unmount yet, or
+    // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
+    if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
+      this.$lifecycle.enqueueUnmount(this);
+      flags |= LifecycleFlags.parentUnmountQueued;
     }
 
     let current = this.$attachableTail;
@@ -224,35 +220,42 @@ export function $cacheView(this: Writable<IView>, flags: LifecycleFlags): void {
 
 /*@internal*/
 export function $mountElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
-  this.$state |= State.isMounted;
-  this.$projector.project(this.$nodes);
+  if (!(this.$state & State.isMounted)) {
+    this.$state |= State.isMounted;
+    this.$projector.project(this.$nodes);
+  }
 }
 
 /*@internal*/
 export function $unmountElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
-  this.$state &= ~State.isMounted;
-  this.$projector.take(this.$nodes);
+  if (this.$state & State.isMounted) {
+    this.$state &= ~State.isMounted;
+    this.$projector.take(this.$nodes);
+  }
 }
 
 /*@internal*/
 export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
-  this.$state |= State.isMounted;
-  this.$state &= ~State.needsMount;
-  this.$nodes.insertBefore(this.location);
+  if (!(this.$state & State.isMounted)) {
+    this.$state |= State.isMounted;
+    this.$nodes.insertBefore(this.location);
+  }
 }
 
 /*@internal*/
 export function $unmountView(this: Writable<IView>, flags: LifecycleFlags): boolean {
-  this.$state &= ~State.isMounted;
-  this.$state |= State.needsMount;
-  this.$nodes.remove();
+  if (this.$state & State.isMounted) {
+    this.$state &= ~State.isMounted;
+    this.$nodes.remove();
 
-  if (this.isFree) {
-    this.isFree = false;
-    if (this.cache.tryReturnToCache(this)) {
-      this.$state |= State.isCached;
-      return true;
+    if (this.isFree) {
+      this.isFree = false;
+      if (this.cache.tryReturnToCache(this)) {
+        this.$state |= State.isCached;
+        return true;
+      }
     }
+    return false;
   }
   return false;
 }

@@ -1127,7 +1127,7 @@ export class BindingIdentifier implements IExpression {
     this.name = name;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): string {
     return this.name;
   }
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -1197,8 +1197,8 @@ export class Interpolation implements IExpression {
     this.assign = PLATFORM.noop as () => unknown;
     this.parts = parts;
     this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
-    this.isMulti = expressions.length > 1;
-    this.firstExpression = expressions[0];
+    this.isMulti = this.expressions.length > 1;
+    this.firstExpression = this.expressions[0];
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string {

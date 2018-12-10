@@ -23,7 +23,7 @@ export interface IResourceType<TDef, TProto, TClass extends Class<TProto, unknow
 
 export interface IResourceDescriptions {
   find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null;
-  create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto;
+  create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null;
 }
 
 export class RuntimeCompilationResources implements IResourceDescriptions {
@@ -49,7 +49,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
     return null;
   }
 
-  public create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto {
+  public create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null {
     const key = kind.keyFrom(name);
     if (this.context.has(key, false)) {
       const instance = this.context.get<Constructable>(key);

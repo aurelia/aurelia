@@ -102,9 +102,9 @@ function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElemen
   return Type.kind === this;
 }
 
-function define<T>(this: ICustomElementResource, name: string, ctor: PartialCustomElementType<T>): T & ICustomElementType;
-function define<T>(this: ICustomElementResource, definition: ITemplateDefinition, ctor: PartialCustomElementType<T>): T & ICustomElementType;
-function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: PartialCustomElementType<T> = null): T & ICustomElementType {
+function define<T>(this: ICustomElementResource, name: string, ctor: PartialCustomElementType<T> | null): T & ICustomElementType;
+function define<T>(this: ICustomElementResource, definition: ITemplateDefinition, ctor: PartialCustomElementType<T> | null): T & ICustomElementType;
+function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: PartialCustomElementType<T> | null = null): T & ICustomElementType {
   if (!nameOrDefinition) {
     throw Reporter.error(70);
   }

@@ -119,13 +119,13 @@ export const DOM = {
     }
     if ((markupOrNode as IElement).nodeType > 0) {
       if ((markupOrNode as IElement).content !== undefined) {
-        return (markupOrNode as IElement).content;
+        return (markupOrNode as IElement).content as IDocumentFragment;
       }
       const fragment = document.createDocumentFragment();
       fragment.appendChild(markupOrNode as any);
       return fragment as IDocumentFragment;
     }
-    return DOM.createTemplate(markupOrNode as string).content;
+    return DOM.createTemplate(markupOrNode as string).content as IDocumentFragment;
   },
   createTemplate(markup?: string): IElement {
     if (markup === undefined) {
@@ -169,7 +169,7 @@ export const DOM = {
     return document.createComment(text) as IComment;
   },
   createElement(name: string): IElement {
-    return document.createElement(name);
+    return document.createElement(name) as IElement;
   },
   createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit): MutationObserver {
     const observer = new MutationObserver(callback);

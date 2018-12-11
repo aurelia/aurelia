@@ -1,5 +1,5 @@
 import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { BindingMode, BindingType, DOM, IChildNode, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
+import { BindingMode, BindingType, DOM, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType, IParentNode } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -626,20 +626,14 @@ export class TemplateBinder {
 
   private bindText(node: IText): INode {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindText', slice.call(arguments)); }
-    const parentNode = node.parentNode;
     const interpolation = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
     if (interpolation !== null) {
       const symbol = new TextSymbol(node, interpolation);
       this.manifest.childNodes.push(symbol);
-      while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
-        parentNode.removeChild(node.nextSibling);
-      }
-      node.textContent = '';
-      parentNode.insertBefore(symbol.marker, node);
-    } else {
-      while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
-        node = node.nextSibling as IText;
-      }
+      processInterpolationText(symbol);
+    }
+    while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
+      node = node.nextSibling as IText;
     }
     if (Tracer.enabled) { Tracer.leave(); }
     return node;
@@ -785,6 +779,16 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
     return symbol;
   }
+}
+
+function processInterpolationText(symbol: TextSymbol): void {
+  const node = symbol.physicalNode;
+  const parentNode = node.parentNode;
+  while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
+    parentNode.removeChild(node.nextSibling);
+  }
+  node.textContent = '';
+  parentNode.insertBefore(symbol.marker, node);
 }
 
 /**

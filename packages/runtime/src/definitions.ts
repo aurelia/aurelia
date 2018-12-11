@@ -116,8 +116,8 @@ export type TargetedInstruction = NodeInstruction | AttributeInstruction;
 // TODO: further improve specificity and integrate with the definitions;
 export type InstructionRow = [TargetedInstruction, ...AttributeInstruction[]];
 
-export function isTargetedInstruction(value: { type?: string }): value is TargetedInstruction {
-  const type = value.type;
+export function isTargetedInstruction(value: unknown): value is TargetedInstruction {
+  const type = (value as { type?: string }).type;
   return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
 }
 
@@ -185,7 +185,7 @@ export interface ISetPropertyInstruction extends ITargetedInstruction {
 
 export interface ISetAttributeInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setAttribute;
-  value: unknown;
+  value: string;
   to: string;
 }
 

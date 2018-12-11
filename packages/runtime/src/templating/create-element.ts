@@ -1,5 +1,5 @@
 import { Constructable, IRegistry, Tracer } from '@aurelia/kernel';
-import { buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
+import { buildTemplateDefinition, isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
 import { DOM } from '../dom';
 import { INode } from '../dom.interfaces';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
@@ -8,9 +8,9 @@ import { IRenderingEngine, ITemplate } from './lifecycle-render';
 
 const slice = Array.prototype.slice;
 
-export function createElement(tagOrType: string | Constructable, props?: object, children?: ArrayLike<unknown>): RenderPlan {
+export function createElement(tagOrType: string | Constructable, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
   if (typeof tagOrType === 'string') {
-    return createElementForTag(tagOrType, props as Record<string, string | ITargetedInstruction>, children);
+    return createElementForTag(tagOrType, props, children);
   } else {
     return createElementForType(tagOrType as ICustomElementType, props, children);
   }
@@ -54,7 +54,7 @@ export class RenderPlan {
   }
 }
 
-function createElementForTag(tagName: string, props?: Record<string, string | ITargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
+function createElementForTag(tagName: string, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
   if (Tracer.enabled) { Tracer.enter('createElementForTag', slice.call(arguments)); }
   const instructions: TargetedInstruction[] = [];
   const allInstructions: TargetedInstruction[][] = [];
@@ -67,9 +67,9 @@ function createElementForTag(tagName: string, props?: Record<string, string | IT
       .forEach(to => {
         const value = props[to];
 
-        if (isTargetedInstruction(value as ITargetedInstruction)) {
+        if (isTargetedInstruction(value)) {
           hasInstructions = true;
-          instructions.push(value as TargetedInstruction);
+          instructions.push(value);
         } else {
           DOM.setAttribute(element, to, value);
         }
@@ -114,10 +114,10 @@ function createElementForType(Type: ICustomElementType, props?: object, children
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value: unknown = props[to];
+        const value: TargetedInstruction | string = props[to];
 
-        if (isTargetedInstruction(value as ITargetedInstruction)) {
-          childInstructions.push(value as TargetedInstruction);
+        if (isTargetedInstruction(value)) {
+          childInstructions.push(value);
         } else {
           const bindable = bindables[to];
 

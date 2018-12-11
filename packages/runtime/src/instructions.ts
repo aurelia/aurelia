@@ -228,9 +228,9 @@ export class SetAttributeInstruction implements ITargetedInstruction {
   public type: TargetedInstructionType.setAttribute;
 
   public to: string;
-  public value: unknown;
+  public value: string;
 
-  constructor(value: unknown, to: string) {
+  constructor(value: string, to: string) {
     this.type = TargetedInstructionType.setAttribute;
 
     this.to = to;

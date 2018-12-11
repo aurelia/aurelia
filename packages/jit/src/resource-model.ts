@@ -6,7 +6,7 @@ import { BindingCommandResource, IBindingCommand } from './binding-command';
  * A pre-processed piece of information about declared custom elements, attributes and
  * binding commands, optimized for consumption by the template compiler.
  */
-export class MetadataModel {
+export class ResourceModel {
 
   /**
    * Information about custom element resources, indexed by the name of the element
@@ -27,9 +27,9 @@ export class MetadataModel {
   public commands: Record<string, IBindingCommand>;
 
   constructor(resources: IResourceDescriptions) {
-    const elements: MetadataModel['elements'] = this.elements = {};
-    const attributes: MetadataModel['attributes'] = this.attributes = {};
-    const commands: MetadataModel['commands'] = this.commands = {};
+    const elements: ResourceModel['elements'] = this.elements = {};
+    const attributes: ResourceModel['attributes'] = this.attributes = {};
+    const commands: ResourceModel['commands'] = this.commands = {};
     const element = CustomElementResource.name;
     const attribute = CustomAttributeResource.name;
     const command = BindingCommandResource.name;

@@ -6,7 +6,7 @@ export * from './common';
 export * from './configuration';
 export * from './debugging';
 export * from './expression-parser';
-export * from './metadata-model';
+export * from './resource-model';
 export * from './template-binder';
 export * from './template-compiler';
 export * from './template-factory';

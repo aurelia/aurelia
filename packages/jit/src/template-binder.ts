@@ -1,10 +1,10 @@
 import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { BindingMode, BindingType, DOM, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType, IParentNode } from '@aurelia/runtime';
+import { BindingMode, BindingType, DOM, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
 import { Char } from './common';
-import { AttrInfo, BindableInfo, ElementInfo, MetadataModel } from './metadata-model';
+import { AttrInfo, BindableInfo, ElementInfo, ResourceModel } from './resource-model';
 
 export const enum SymbolFlags {
   type                 = 0b000000_111111111,
@@ -347,7 +347,7 @@ const invalidSurrogateAttribute = {
 };
 
 export class TemplateBinder {
-  public metadata: MetadataModel;
+  public metadata: ResourceModel;
   public attrParser: IAttributeParser;
   public exprParser: IExpressionParser;
 
@@ -367,7 +367,7 @@ export class TemplateBinder {
 
   private partName: string | null;
 
-  constructor(metadata: MetadataModel, attrParser: IAttributeParser, exprParser: IExpressionParser) {
+  constructor(metadata: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser) {
     this.metadata = metadata;
     this.attrParser = attrParser;
     this.exprParser = exprParser;

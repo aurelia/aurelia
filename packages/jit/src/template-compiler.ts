@@ -24,7 +24,7 @@ import {
   TextBindingInstruction
 } from '@aurelia/runtime';
 import { IAttributeParser } from './attribute-parser';
-import { MetadataModel } from './metadata-model';
+import { ResourceModel } from './resource-model';
 import {
   AttributeSymbol,
   BindingSymbol,
@@ -78,7 +78,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public compile(definition: ITemplateDefinition, resources: IResourceDescriptions): TemplateDefinition {
-    const metadata = new MetadataModel(resources);
+    const metadata = new ResourceModel(resources);
     const binder = new TemplateBinder(metadata, this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template);
     const surrogate = binder.bind(template);

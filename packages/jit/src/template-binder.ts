@@ -560,45 +560,23 @@ export class TemplateBinder {
         // the proxy and the manifest are only identical when we're at the first template controller (since the controller
         // is assigned to the proxy), so this evaluates to true at most once per node
         if (manifestProxy === manifest) {
-          const manifestNode = manifest.physicalNode;
-          // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
-          manifestNode.parentNode.replaceChild(currentController.marker, manifestNode);
-
-          // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
-          // and simply use the template directly, saving a bit of work
-          if (manifestNode.nodeName === 'TEMPLATE') {
-            currentController.template = manifest;
-            currentController.physicalNode = manifestNode as IHTMLTemplateElement;
-            // the template could safely stay without affecting anything visible, but let's keep the DOM tidy
-            manifestNode.remove();
-          } else {
-            // the manifest is not a template element so we need to wrap it in one
-            currentController.template = manifest;
-            currentController.physicalNode = DOM.createTemplate();
-            currentController.physicalNode.content.appendChild(manifestNode);
-          }
-          // the proxy comes directly underneath the parent of the manifest, so only set that once (to the first controller)
+          currentController.template = manifest;
           manifestProxy = currentController;
         } else {
-          // we're now at more than one controller on the same element, so shift the original manifest + its node
-          // down to the latest controller and give the previous controller a new template element with a marker
           currentController.templateController = previousController;
           currentController.template = previousController.template;
-          currentController.physicalNode = previousController.physicalNode;
-
           previousController.template = currentController;
-          previousController.physicalNode = DOM.createTemplate();
-          previousController.physicalNode.content.appendChild(currentController.marker);
         }
         previousController = currentController;
-
-        node.removeAttribute(attr.name); // note: removing an attribute shifts the next one to the current spot, so no need for ++i
+        ++i;
       } else {
         // a regular custom attribute
         this.bindCustomAttribute(attrSyntax, attrInfo);
         ++i;
       }
     }
+
+    processTemplateControllers(manifestProxy, manifest);
 
     if (replacePart === null) {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
@@ -820,6 +798,38 @@ export class TemplateBinder {
 
     if (Tracer.enabled) { Tracer.leave(); }
     return symbol;
+  }
+}
+
+/**
+ * A (temporary) standalone function that purely does the DOM processing (lifting) related to template controllers.
+ * It's a first refactoring step towards separating DOM parsing/binding from mutations.
+ */
+function processTemplateControllers(manifestProxy: ParentNodeSymbol, manifest: ElementSymbol): void {
+  const manifestNode = manifest.physicalNode;
+  let current = manifestProxy as TemplateControllerSymbol;
+  while ((current as ParentNodeSymbol) !== manifest) {
+    if (current.template === manifest) {
+      // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
+      manifestNode.parentNode.replaceChild(current.marker, manifestNode);
+
+      // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
+      // and simply use the template directly, saving a bit of work
+      if (manifestNode.nodeName === 'TEMPLATE') {
+        current.physicalNode = manifestNode as IHTMLTemplateElement;
+        // the template could safely stay without affecting anything visible, but let's keep the DOM tidy
+        manifestNode.remove();
+      } else {
+        // the manifest is not a template element so we need to wrap it in one
+        current.physicalNode = DOM.createTemplate();
+        current.physicalNode.content.appendChild(manifestNode);
+      }
+    } else {
+      current.physicalNode = DOM.createTemplate();
+      current.physicalNode.content.appendChild(current.marker);
+    }
+    manifestNode.removeAttribute(current.syntax.rawName);
+    current = current.template as TemplateControllerSymbol;
   }
 }
 

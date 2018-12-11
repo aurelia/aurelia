@@ -586,27 +586,13 @@ export class TemplateBinder {
       // instead of to the childNodes
       replacePart.parent = parentManifest;
       replacePart.template = manifestProxy;
-      let proxyNode: IHTMLElement;
-      if (manifestProxy.flags & SymbolFlags.hasMarker) {
-        proxyNode = (manifestProxy as SymbolWithMarker).marker;
-      } else {
-        proxyNode = manifestProxy.physicalNode;
-      }
-      if (proxyNode.nodeName === 'TEMPLATE') {
-        // if it's a template element, no need to do anything special, just assign it to the replacePart
-        replacePart.physicalNode = proxyNode as IHTMLTemplateElement;
-      } else {
-        // otherwise wrap the replace-part in a template
-        replacePart.physicalNode = DOM.createTemplate();
-        replacePart.physicalNode.content.appendChild(proxyNode);
-      }
-      if (manifest === manifestRoot) {
-        // if the current manifest is also the manifestRoot, it means the replace-part sits on a custom
-        // element, so add the part to the parent wrapping custom element instead
-        parentManifestRoot.parts.push(replacePart);
-      } else {
-        manifestRoot.parts.push(replacePart);
-      }
+
+      // if the current manifest is also the manifestRoot, it means the replace-part sits on a custom
+      // element, so add the part to the parent wrapping custom element instead
+      const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
+      partOwner.parts.push(replacePart);
+
+      processReplacePart(replacePart, manifestProxy);
     }
 
     if (Tracer.enabled) { Tracer.leave(); }
@@ -831,6 +817,23 @@ function processTemplateControllers(manifestProxy: ParentNodeSymbol, manifest: E
     manifestNode.removeAttribute(current.syntax.rawName);
     current = current.template as TemplateControllerSymbol;
   }
+}
+
+function processReplacePart(replacePart: ReplacePartSymbol, manifestProxy: ParentNodeSymbol): void {
+    let proxyNode: IHTMLElement;
+    if (manifestProxy.flags & SymbolFlags.hasMarker) {
+      proxyNode = (manifestProxy as SymbolWithMarker).marker;
+    } else {
+      proxyNode = manifestProxy.physicalNode;
+    }
+    if (proxyNode.nodeName === 'TEMPLATE') {
+      // if it's a template element, no need to do anything special, just assign it to the replacePart
+      replacePart.physicalNode = proxyNode as IHTMLTemplateElement;
+    } else {
+      // otherwise wrap the replace-part in a template
+      replacePart.physicalNode = DOM.createTemplate();
+      replacePart.physicalNode.content.appendChild(proxyNode);
+    }
 }
 
 interface IAttrLike {

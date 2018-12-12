@@ -3,17 +3,17 @@ import { inject, IRegistry } from '../../../kernel';
 import { IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IBlessedRenderLocation } from '../../blessed-dom';
+import { IFabricRenderLocation } from '../../fabric-dom';
 
 export interface Replaceable extends ICustomAttribute {}
 @templateController('replaceable')
-@inject(IViewFactory, IBlessedRenderLocation)
+@inject(IViewFactory, IFabricRenderLocation)
 export class Replaceable {
   public static register: IRegistry['register'];
 
   private currentView: IView;
 
-  constructor(private factory: IViewFactory, location: IBlessedRenderLocation) {
+  constructor(private factory: IViewFactory, location: IFabricRenderLocation) {
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

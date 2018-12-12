@@ -3,14 +3,15 @@ import { INode } from './dom';
 import { LifecycleFlags } from './observation';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './templating/custom-element';
 import { IRenderingEngine } from './templating/lifecycle-render';
-import { IBlessedNode } from './blessed-dom';
-import * as blessed from 'blessed';
+import { IFabricNode } from './fabric-dom';
 import { ILifecycle } from './lifecycle';
+import { VNode } from 'dom/node';
 
 export interface ISinglePageApp {
-  // host: INode;
+  host?: INode;
   component: unknown;
-  screen: blessed.Widgets.IScreenOptions
+  canvas?: fabric.StaticCanvas;
+  fabric?: fabric.IStaticCanvasOptions | fabric.ICanvasOptions;
 }
 
 export class Aurelia {
@@ -40,8 +41,11 @@ export class Aurelia {
   }
 
   public app(config: ISinglePageApp): this {
-    const host = this.createScreen(config) as blessed.Widgets.Screen & { $au: Aurelia };
-    // const host = config.host as INode & {$au?: Aurelia | null};
+    const host = this.createContainer(config) as HTMLElement & { $au: Aurelia };
+
+    const hostVNode = new VNode('$root', false);
+    hostVNode.nativeObject = host;
+
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
     if (CustomElementResource.isType(<ICustomElementType>componentOrType)) {
@@ -57,12 +61,11 @@ export class Aurelia {
         this._root = component;
         this.components.push(component);
         const re = this.container.get(IRenderingEngine);
-        component.$hydrate(re, host);
+        component.$hydrate(re, hostVNode);
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach(LifecycleFlags.fromStartTask, host);
-      host.render();
+      component.$attach(LifecycleFlags.fromStartTask, hostVNode);
     };
 
     this.startTasks.push(startTask);
@@ -100,22 +103,11 @@ export class Aurelia {
     return this;
   }
 
-  public createScreen(config: ISinglePageApp): blessed.Widgets.Screen {
-    const lifecycle = this.container.get(ILifecycle);
-    const screen = blessed.screen(config.screen);
-    lifecycle['_flushCount'] = lifecycle['flushCount'];
-    Reflect.defineProperty(lifecycle, 'flushCount', {
-      get: function() { return this._flushCount; },
-      set: function(value: any) {
-        this._flushCount = value;
-        screen.render();
-      },
-      configurable: true
-    });
-    screen.key(['escape', 'q', 'C-c'], function(ch, key) {
-      return process.exit(0);
-    });
-    return screen;
+  public createContainer(config: ISinglePageApp): HTMLElement {
+    if (config.host) {
+      return config.host as HTMLElement;
+    }
+    return document.createElement('div');
   }
 }
 

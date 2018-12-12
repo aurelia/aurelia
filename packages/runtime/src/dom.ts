@@ -1,5 +1,6 @@
 import { Constructable, DI, IContainer, IResolver, PLATFORM, Reporter, Writable } from '../kernel';
-import { IBlessedNode } from './blessed-dom';
+import { IFabricNode } from './fabric-dom';
+import { IFabricVNode } from './fabric-vnode';
 
 export const ELEMENT_NODE = 1;
 export const ATTRIBUTE_NODE = 2;
@@ -29,7 +30,7 @@ export interface IRemovableNode extends INode {
   remove(): void;
 }
 export const IEncapsulationSource = DI.createInterface<IEncapsulationSource>().noDefault();
-export interface IEncapsulationSource extends IBlessedNode {}
+export interface IEncapsulationSource extends IFabricVNode {}
 
 export interface IAttr extends Partial<INode> {
   readonly name: string;
@@ -112,18 +113,18 @@ export interface INodeSequence extends INodeLike {
 export interface INodeObserver {
   disconnect(): void;
 }
-export let document  = typeof global['document'] !== 'undefined' ? global['document'] : null;
-export let Element = typeof global['Element'] !== 'undefined' ? global['Element'] : null;
-export let HTMLElement  = typeof global['HTMLElement'] !== 'undefined' ? global['HTMLElement'] : null;
-export let SVGElement  = typeof global['SVGElement'] !== 'undefined' ? global['SVGElement'] : null;
+// export let document  = typeof global['document'] !== 'undefined' ? global['document'] : null;
+// export let Element = typeof global['Element'] !== 'undefined' ? global['Element'] : null;
+// export let HTMLElement  = typeof global['HTMLElement'] !== 'undefined' ? global['HTMLElement'] : null;
+// export let SVGElement  = typeof global['SVGElement'] !== 'undefined' ? global['SVGElement'] : null;
 
 // tslint:disable:no-any
 export const DOM = new class VinDiesel {
   setHtmlReference(doc: Document, element: Element, htmlElement: HTMLElement, svg: SVGElement) {
-    document = doc;
-    Element = element;
-    HTMLElement = htmlElement;
-    SVGElement = svg;
+    // document = doc;
+    // Element = element;
+    // HTMLElement = htmlElement;
+    // SVGElement = svg;
   }
   createDocumentFragment(markupOrNode?: string | IElement): IDocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {

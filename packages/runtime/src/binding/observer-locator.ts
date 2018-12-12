@@ -16,9 +16,10 @@ import { PrimitiveObserver, SetterObserver } from './property-observation';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ClassAttributeAccessor, DataAttributeAccessor, ElementPropertyAccessor, PropertyAccessor, StyleAttributeAccessor, XLinkAttributeAccessor } from './target-accessors';
-import { BlessedDOM, IBlessedNode } from '../blessed-dom';
-import { BlessedInputObserver, BlessedCheckedObserver } from './libui-entry-observer';
-import { Widgets } from 'blessed';
+import { FabricDOM, IFabricNode } from '../fabric-dom';
+import { FabricPropertyObserver } from './fabric-observer';
+import { IFabricVNode } from 'runtime/fabric-vnode';
+import { VNode } from 'dom/node';
 
 const toStringTag = Object.prototype.toString;
 
@@ -91,10 +92,8 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   public getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor {
-    if (BlessedDOM.isNodeInstance(obj)) {
-      if (propertyName === 'text') {
-        return new BlessedTextPropertyAccessor(obj as Widgets.BlessedElement);
-      }
+    if (obj instanceof VNode && FabricDOM.isNodeInstance(obj.nativeObject)) {
+      return new FabricPropertyAccessor(obj, propertyName);
     }
     if (DOM.isNodeInstance(obj)) {
       const tagName = obj['tagName'];
@@ -170,13 +169,17 @@ export class ObserverLocator implements IObserverLocator {
       return new PrimitiveObserver(obj as any, propertyName) as IBindingTargetAccessor;
     }
 
-    if (BlessedDOM.isNodeInstance(obj)) {
-      const type = obj.type;
-      if ((type === 'textbox' || type === 'textarea') && propertyName === 'value') {
-        return new BlessedInputObserver(this.lifecycle, obj as Widgets.TextboxElement);
-      }
-      if (type === 'checkbox' && propertyName === 'checked') {
-        return new BlessedCheckedObserver(this.lifecycle, obj as Widgets.CheckboxElement, this);
+    if (obj instanceof VNode && FabricDOM.isNodeInstance(obj.nativeObject)) {
+      if (propertyName === 'x'
+        || propertyName === 'top'
+        || propertyName === 'y'
+        || propertyName === 'left'
+        || propertyName === 'width'
+        || propertyName === 'height'
+        || propertyName === 'rx'
+        || propertyName === 'ry'
+      ) {
+        return new FabricPropertyObserver(this.lifecycle, obj, propertyName);
       }
     }
 
@@ -277,17 +280,39 @@ export function getCollectionObserver(lifecycle: ILifecycle, collection: IObserv
 }
 
 
-interface BlessedTextPropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
-class BlessedTextPropertyAccessor implements PropertyAccessor {
-  propertyKey: string;
-  constructor(public obj: Widgets.BlessedElement) { }
+interface FabricPropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
+class FabricPropertyAccessor implements PropertyAccessor {
+  constructor(public obj: IFabricVNode, public propertyKey: string) {
+    const nativeObject = obj.nativeObject;
+    const type = nativeObject.type;
+    if (type === 'canvas' || type === 'canvas') {
+      if (propertyKey === 'width' || propertyKey === 'height') {
+        this.getValue = this[`getCanvas${propertyKey}`];
+      }
+    }
+  }
 
   public getValue(): Primitive | IIndexable {
-    return this.obj.getText();
+    return this.obj.nativeObject[this.propertyKey];
   }
 
   public setValue(value: Primitive | IIndexable): void {
-    this.obj.setText(value as any);
-    this.obj.screen.render();
+    this.obj.nativeObject[this.propertyKey] = value;
+  }
+
+  public getCanvasWidth() {
+    return (this.obj.nativeObject as any as fabric.StaticCanvas).getWidth();
+  }
+
+  public setCanvasWidth(value: Primitive | IIndexable): void {
+    (this.obj.nativeObject as any as fabric.StaticCanvas).setWidth(value as number);
+  }
+
+  public getCanvasHeight() {
+    return (this.obj.nativeObject as any as fabric.StaticCanvas).getHeight();
+  }
+  
+  public setCanvasHeight(value: Primitive | IIndexable): void {
+    (this.obj.nativeObject as any as fabric.StaticCanvas).setHeight(value as number);
   }
 }

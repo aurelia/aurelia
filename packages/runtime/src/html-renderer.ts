@@ -15,8 +15,8 @@ import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderCont
 import { ICustomAttribute } from './templating/custom-attribute';
 import { ICustomElement } from './templating/custom-element';
 import { IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
-import { IBlessedNode, IBlessedRenderLocation, BlessedDOM } from './blessed-dom';
-import { Widgets } from 'blessed';
+import { IFabricNode, IFabricRenderLocation, FabricDOM } from './fabric-dom';
+import { IFabricVNode } from './fabric-vnode';
 
 export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
   if (typeof srcOrExpr === 'string') {
@@ -148,9 +148,9 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
     this.eventManager = eventManager;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: IBlessedNode, instruction: IListenerBindingInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IFabricVNode, instruction: IListenerBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
-    const bindable = new Listener(instruction.to, instruction.strategy, expr, target as Widgets.BlessedElement, instruction.preventDefault, this.eventManager, context);
+    const bindable = new Listener(instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
     addBindable(renderable, bindable);
   }
 }
@@ -184,7 +184,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
     this.parser = parser;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IRefBindingInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IFabricVNode, instruction: IRefBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
     const bindable = new Ref(expr, target, context);
     addBindable(renderable, bindable);
@@ -236,8 +236,8 @@ export class CustomElementRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: IBlessedNode, instruction: IHydrateElementInstruction): void {
-    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target as IBlessedRenderLocation, true);
+  public render(context: IRenderContext, renderable: IRenderable, target: IFabricVNode, instruction: IHydrateElementInstruction): void {
+    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target as IFabricRenderLocation, true);
     const component = context.get<ICustomElement>(customElementKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
@@ -266,7 +266,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: IBlessedNode, instruction: IHydrateAttributeInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IFabricVNode, instruction: IHydrateAttributeInstruction): void {
     const operation = context.beginComponentOperation(renderable, target, instruction);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -296,9 +296,9 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: IBlessedNode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IFabricVNode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
     const factory = this.renderingEngine.getViewFactory(instruction.def, context);
-    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, BlessedDOM.convertToRenderLocation(target), false);
+    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, FabricDOM.convertToRenderLocation(target), false);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;

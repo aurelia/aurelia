@@ -5,11 +5,11 @@ import { IView, IViewFactory, State } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IBlessedRenderLocation } from '../../blessed-dom';
+import { IFabricRenderLocation } from '../../fabric-dom';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')
-@inject(IViewFactory, IBlessedRenderLocation)
+@inject(IViewFactory, IFabricRenderLocation)
 export class With {
   public static register: IRegistry['register'];
 
@@ -17,7 +17,7 @@ export class With {
 
   private currentView: IView = null;
 
-  constructor(private factory: IViewFactory, location: IBlessedRenderLocation) {
+  constructor(private factory: IViewFactory, location: IFabricRenderLocation) {
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

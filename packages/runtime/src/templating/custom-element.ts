@@ -6,7 +6,8 @@ import { IResourceKind, IResourceType } from '../resource';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindElement, $unbindElement } from './lifecycle-bind';
 import { $hydrateElement, defaultShadowOptions, ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
-import { IBlessedNode } from '../blessed-dom';
+// import { IFabricNode } from '../fabric-dom';
+import { IFabricVNode } from 'runtime/fabric-vnode';
 
 type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
 
@@ -30,13 +31,13 @@ export interface ICustomElement extends
 
   readonly $projector: IElementProjector;
   readonly $host: ICustomElementHost;
-  $hydrate(renderingEngine: IRenderingEngine, host: IBlessedNode, options?: IElementHydrationOptions): void;
+  $hydrate(renderingEngine: IRenderingEngine, host: IFabricVNode, options?: IElementHydrationOptions): void;
 }
 
 export interface ICustomElementResource extends
   IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
 
-  behaviorFor(node: IBlessedNode): ICustomElement | null;
+  behaviorFor(node: IFabricVNode): ICustomElement | null;
 }
 
 type CustomElementDecorator = <T>(target: PartialCustomElementType<T>) => T & ICustomElementType;

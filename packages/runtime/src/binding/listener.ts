@@ -6,8 +6,12 @@ import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
-import { IBlessedNode } from '../blessed-dom';
-import { Widgets } from 'blessed';
+import { IFabricNode } from '../fabric-dom';
+import { IFabricVNode } from '../fabric-vnode';
+
+const validMouseEvents = [
+  ''
+];
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
@@ -24,7 +28,7 @@ export class Listener implements IBinding {
     public targetEvent: string,
     public delegationStrategy: DelegationStrategy,
     public sourceExpression: IsBindingBehavior,
-    public target: Widgets.BlessedElement,
+    public target: IFabricVNode,
     public preventDefault: boolean,
     private eventManager: IEventManager,
     public locator: IServiceLocator) {
@@ -69,9 +73,11 @@ export class Listener implements IBinding {
       sourceExpression.bind(flags, scope, this);
     }
 
+    this.target.nativeObject.on(this.targetEvent, this.handleEvent);
+
     // should it be normalized in uicontrol
     // (this.target as any).onChanged(this.handleEvent);
-    this.target.addListener(this.targetEvent, this.handleEvent);
+    // this.target.addListener(this.targetEvent, this.handleEvent);
 
     // this.handler = this.eventManager.addEventListener(
     //   this.target,
@@ -98,7 +104,7 @@ export class Listener implements IBinding {
     }
 
     this.$scope = null;
-    this.target.removeListener('keypress', this.handleEvent);
+    this.target.nativeObject.off(this.targetEvent, this.handleEvent);
     // this.handler.dispose();
     this.handler = null;
 

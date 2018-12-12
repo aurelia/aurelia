@@ -4,11 +4,11 @@ import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IBlessedRenderLocation } from '../../blessed-dom';
+import { IFabricRenderLocation } from '../../fabric-dom';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')
-@inject(IViewFactory, IBlessedRenderLocation, CompositionCoordinator)
+@inject(IViewFactory, IFabricRenderLocation, CompositionCoordinator)
 export class If {
   public static register: IRegistry['register'];
 
@@ -21,7 +21,7 @@ export class If {
 
   constructor(
     public ifFactory: IViewFactory,
-    public location: IBlessedRenderLocation,
+    public location: IFabricRenderLocation,
     public coordinator: CompositionCoordinator) { }
 
   public binding(flags: LifecycleFlags): void {

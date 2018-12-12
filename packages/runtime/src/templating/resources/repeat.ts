@@ -9,11 +9,12 @@ import { IRenderable, IView, IViewFactory, State } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IBlessedRenderLocation, IBlessedNode } from '../../blessed-dom';
+import { IFabricRenderLocation, IFabricNode } from '../../fabric-dom';
+import { IFabricVNode } from 'runtime/fabric-vnode';
 
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}
 
-@inject(IBlessedRenderLocation, IRenderable, IViewFactory)
+@inject(IFabricRenderLocation, IRenderable, IViewFactory)
 @templateController('repeat')
 export class Repeat<T extends ObservedCollection = IObservedArray> {
   public static register: IRegistry['register'];
@@ -23,7 +24,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public $scope: IScope;
   public $observers: { items: SetterObserver };
 
-  public encapsulationSource: IBlessedNode = null;
+  public encapsulationSource: IFabricVNode = null;
   public views: IView[] = [];
   public observer: CollectionObserver = null;
   public hasPendingInstanceMutation: boolean = false;
@@ -32,7 +33,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public local: string;
 
   constructor(
-    public location: IBlessedRenderLocation,
+    public location: IFabricRenderLocation,
     public renderable: IRenderable,
     public factory: IViewFactory) { }
 

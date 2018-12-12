@@ -4,6 +4,7 @@ import { IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { IConnectableBinding } from './connectable';
+import { IFabricVNode } from 'runtime/fabric-vnode';
 
 export interface Ref extends IConnectableBinding {}
 export class Ref implements IBinding {
@@ -16,7 +17,7 @@ export class Ref implements IBinding {
 
   constructor(
     public sourceExpression: IsBindingBehavior,
-    public target: IBindingTarget,
+    public target: IFabricVNode,
     public locator: IServiceLocator) { }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
@@ -37,7 +38,7 @@ export class Ref implements IBinding {
       sourceExpression.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
+    this.sourceExpression.assign(flags, this.$scope, this.locator, this.target.nativeObject);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;

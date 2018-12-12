@@ -58,4 +58,4 @@ export * from './instructions';
 export * from './lifecycle';
 export * from './observation';
 export * from './resource';
-import './blessed-dom-map';
+import './fabric-dom-map';

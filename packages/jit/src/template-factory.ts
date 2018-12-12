@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { DOM, IHTMLTemplateElement, INode } from '@aurelia/runtime';
+import { DOM, IElement, IHTMLTemplateElement, INode } from '@aurelia/runtime';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.
@@ -52,10 +52,10 @@ export class TemplateFactory {
     if (typeof input === 'string') {
       const template = this.template;
       template.innerHTML = input;
-      const node = template.content.firstChild;
+      const node = template.content.firstElementChild as IElement;
       // if the input is either not wrapped in a template or there is more than one node,
       // return the whole template that wraps it/them (and create a new one for the next input)
-      if (node.nodeName !== 'TEMPLATE' || node.nextSibling !== null) {
+      if (node === null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling !== null) {
         this.template = DOM.createTemplate();
         return template;
       }

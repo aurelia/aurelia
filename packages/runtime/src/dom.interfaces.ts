@@ -173,7 +173,7 @@ export interface IElementCSSInlineStyle {
 
 export type IInsertPosition = 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend';
 
-export interface IElement extends INode, IParentNode, IChildNode, ISlotable {
+export interface IElement extends INode, INonDocumentTypeChildNode, IParentNode, IChildNode, ISlotable {
   readonly assignedSlot: IHTMLSlotElement | null;
   readonly attributes: INamedNodeMap;
   readonly classList: IDOMTokenList;
@@ -233,17 +233,22 @@ export interface IHTMLOptionElement extends IHTMLElement {
   value: string;
 }
 
+interface INonDocumentTypeChildNode {
+  readonly nextElementSibling: IElement | null;
+  readonly previousElementSibling: IElement | null;
+}
+
 export interface IDocumentFragment extends INode, IParentNode {}
 
 export interface IHTMLTemplateElement extends IHTMLElement {
   readonly content: IDocumentFragment;
 }
 
-export interface IText extends INode, IChildNode, ISlotable {
+export interface IText extends INode, INonDocumentTypeChildNode, IChildNode, ISlotable {
   readonly wholeText: string;
 }
 
-export interface IComment extends INode, IChildNode {}
+export interface IComment extends INode, INonDocumentTypeChildNode, IChildNode {}
 
 export interface IMutationObserverInit {
   attributeFilter?: string[];

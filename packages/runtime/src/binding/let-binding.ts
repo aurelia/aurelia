@@ -1,10 +1,12 @@
-import { IIndexable, IServiceLocator, Reporter } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { IExpression } from './ast';
 import { IBindingTarget } from './binding';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
+
+const slice = Array.prototype.slice;
 
 export interface LetBinding extends IConnectableBinding {}
 
@@ -41,7 +43,9 @@ export class LetBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('LetBinding.handleChange', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -52,6 +56,7 @@ export class LetBinding implements IPartialConnectableBinding {
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -59,8 +64,10 @@ export class LetBinding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
+    if (Tracer.enabled) { Tracer.enter('LetBinding.$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
+        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
       this.$unbind(flags | LifecycleFlags.fromBind);
@@ -82,10 +89,13 @@ export class LetBinding implements IPartialConnectableBinding {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('LetBinding.$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -100,5 +110,6 @@ export class LetBinding implements IPartialConnectableBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }

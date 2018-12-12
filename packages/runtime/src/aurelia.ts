@@ -1,11 +1,11 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
-import { INode } from './dom';
+import { INode } from './dom.interfaces';
 import { LifecycleFlags } from './observation';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './templating/custom-element';
 import { IRenderingEngine } from './templating/lifecycle-render';
 
 export interface ISinglePageApp {
-  host: INode;
+  host: unknown;
   component: unknown;
 }
 
@@ -55,14 +55,14 @@ export class Aurelia {
         component.$hydrate(re, host);
       }
 
-      component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach(LifecycleFlags.fromStartTask, host);
+      component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+      component.$attach(LifecycleFlags.fromStartTask | LifecycleFlags.fromAttach, host);
     };
 
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      component.$detach(LifecycleFlags.fromStopTask);
+      component.$detach(LifecycleFlags.fromStopTask | LifecycleFlags.fromDetach);
       component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
       host.$au = null;
     });

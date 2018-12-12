@@ -1,4 +1,5 @@
-import { DOM, IElement, IInputElement, INode, INodeObserver } from '../dom';
+import { DOM } from '../dom';
+import { IHTMLInputElement, IHTMLOptionElement, IHTMLSelectElement, IMutationObserver, INode } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import {
   CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver,
@@ -122,7 +123,7 @@ ValueAttributeObserver.prototype.handler = null;
 
 const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance;
 
-interface IInternalInputElement extends IInputElement {
+export interface IInputElement extends IHTMLInputElement {
   matcher?: typeof defaultMatcher;
   model?: unknown;
   $observers?: ObserversLookup & {
@@ -132,7 +133,7 @@ interface IInternalInputElement extends IInputElement {
 }
 
 export interface CheckedObserver extends
-  IBindingTargetObserver<IInternalInputElement, string>,
+  IBindingTargetObserver<IInputElement, string>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
@@ -144,14 +145,14 @@ export class CheckedObserver implements CheckedObserver {
   public flush: () => void;
   public handler: IEventSubscriber;
   public lifecycle: ILifecycle;
-  public obj: IInternalInputElement;
+  public obj: IInputElement;
   public observerLocator: IObserverLocator;
   public oldValue: unknown;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver | SetterObserver;
 
-  constructor(lifecycle: ILifecycle, obj: IInternalInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
+  constructor(lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
     this.handler = handler;
     this.lifecycle = lifecycle;
     this.obj = obj;
@@ -288,16 +289,12 @@ function defaultMatcher(a: unknown, b: unknown): boolean {
   return a === b;
 }
 
-export interface ISelectElement extends IElement {
-  multiple: boolean;
-  value: string;
+export interface ISelectElement extends IHTMLSelectElement {
   options: ArrayLike<IOptionElement>;
   matcher?: typeof defaultMatcher;
 }
-export interface IOptionElement extends IElement {
+export interface IOptionElement extends IHTMLOptionElement {
   model?: unknown;
-  selected: boolean;
-  value: string;
 }
 
 export interface SelectValueObserver extends
@@ -315,7 +312,7 @@ export class SelectValueObserver implements SelectValueObserver {
   public flush: () => void;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
-  private nodeObserver: INodeObserver;
+  private nodeObserver: IMutationObserver;
 
   constructor(
     public lifecycle: ILifecycle,

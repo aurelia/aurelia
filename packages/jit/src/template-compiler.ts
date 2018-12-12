@@ -1,333 +1,292 @@
 import { inject, PLATFORM } from '@aurelia/kernel';
 import {
-  BindingMode,
-  BindingType,
-  FromViewBindingInstruction,
+  AttributeInstruction,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
+  IBuildInstruction,
   IExpressionParser,
   ILetBindingInstruction,
+  InstructionRow,
+  Interpolation,
   InterpolationInstruction,
   IResourceDescriptions,
+  IsBindingBehavior,
   ITemplateCompiler,
   ITemplateDefinition,
   LetBindingInstruction,
   LetElementInstruction,
-  OneTimeBindingInstruction,
   RefBindingInstruction,
   SetAttributeInstruction,
   SetPropertyInstruction,
   TargetedInstruction,
-  TargetedInstructionType,
   TemplateDefinition,
-  TextBindingInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction,
-  ViewCompileFlags
+  TextBindingInstruction
 } from '@aurelia/runtime';
 import { IAttributeParser } from './attribute-parser';
-import { IElementParser, NodeType } from './element-parser';
-import { AttributeSymbol, ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
+import { ResourceModel } from './resource-model';
+import {
+  AttributeSymbol,
+  BindingSymbol,
+  CustomAttributeSymbol,
+  CustomElementSymbol,
+  ElementSymbol,
+  LetElementSymbol,
+  NodeSymbol,
+  ParentNodeSymbol,
+  PlainAttributeSymbol,
+  PlainElementSymbol,
+  ReplacePartSymbol,
+  SymbolFlags,
+  SymbolWithBindings,
+  TemplateBinder,
+  TemplateControllerSymbol,
+  TextSymbol
+} from './template-binder';
+import { ITemplateFactory } from './template-factory';
 
-@inject(IExpressionParser, IElementParser, IAttributeParser)
+const buildNotRequired: IBuildInstruction = Object.freeze({
+  required: false,
+  compiler: 'default'
+});
+
+/**
+ * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
+ *
+ * @internal
+ */
+@inject(ITemplateFactory, IAttributeParser, IExpressionParser)
 export class TemplateCompiler implements ITemplateCompiler {
-  public exprParser: IExpressionParser;
-  public elParser: IElementParser;
-  public attrParser: IAttributeParser;
+  private factory: ITemplateFactory;
+  private attrParser: IAttributeParser;
+  private exprParser: IExpressionParser;
+
+  /**
+   * The instructions array for the currently instruction-collecting `ITemplateDefinition`
+   */
+  private instructionRows: InstructionRow[];
 
   public get name(): string {
     return 'default';
   }
 
-  constructor(exprParser: IExpressionParser, elParser: IElementParser, attrParser: IAttributeParser) {
-    this.exprParser = exprParser;
-    this.elParser = elParser;
+  constructor(factory: ITemplateFactory, attrParser: IAttributeParser, exprParser: IExpressionParser) {
+    this.factory = factory;
     this.attrParser = attrParser;
+    this.exprParser = exprParser;
+    this.instructionRows = null;
   }
 
-  public compile(definition: ITemplateDefinition, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
-    const model = SemanticModel.create(definition, resources, this.attrParser, this.elParser, this.exprParser);
-    const root = model.root;
-    let $el = root.isTemplate ? root.$content : root;
-    while ($el = this.compileNode($el));
-
-    // the flag should be passed correctly from rendering engine
-    if (root.isTemplate && (flags & ViewCompileFlags.surrogate)) {
-      this.compileSurrogate(root);
+  public compile(definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
+    const resources = new ResourceModel(descriptions);
+    const binder = new TemplateBinder(resources, this.attrParser, this.exprParser);
+    const template = definition.template = this.factory.createTemplate(definition.template);
+    const surrogate = binder.bind(template);
+    if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
+      definition.instructions = [];
     }
+    if (surrogate.hasSlots === true) {
+      definition.hasSlots = true;
+    }
+
+    this.instructionRows = definition.instructions as InstructionRow[];
+
+    const attributes = surrogate.attributes;
+    const len = attributes.length;
+    if (len > 0) {
+      let surrogates: TargetedInstruction[];
+      if (definition.surrogates === undefined || definition.surrogates === PLATFORM.emptyArray) {
+        definition.surrogates = Array(len);
+      }
+      surrogates = definition.surrogates;
+      for (let i = 0; i < len; ++i) {
+        surrogates[i] = this.compileAttribute(attributes[i]);
+      }
+    }
+
+    this.compileChildNodes(surrogate);
+
+    this.instructionRows = null;
 
     return definition as TemplateDefinition;
   }
 
-  private compileNode($el: ElementSymbol): ElementSymbol {
-    const node = $el.node;
-    const nextSibling = $el.nextSibling;
-    switch (node.nodeType) {
-      case NodeType.Element:
-        if ($el.isSlot) {
-          $el.$root.definition.hasSlots = true;
-        } else if ($el.isLet) {
-          this.compileLetElement($el);
-        } else if ($el.isCustomElement) {
-          this.compileCustomElement($el);
-        } else {
-          this.compileElementNode($el);
-        }
-        if (!$el.isLifted) {
-          let $child = $el.firstChild || $el.$content;
-          while ($child) {
-            $child = this.compileNode($child);
+  private compileChildNodes(parent: ElementSymbol): void {
+    if (parent.flags & SymbolFlags.hasChildNodes) {
+      const { childNodes } = parent;
+      let childNode: NodeSymbol;
+      const ii = childNodes.length;
+      for (let i = 0; i < ii; ++i) {
+        childNode = childNodes[i];
+        if (childNode.flags & SymbolFlags.isText) {
+          this.instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation)]);
+        } else if (childNode.flags & SymbolFlags.isLetElement) {
+          const bindings = (childNode as LetElementSymbol).bindings;
+          const instructions: ILetBindingInstruction[] = [];
+          let binding: BindingSymbol;
+          const jj = bindings.length;
+          for (let j = 0; j < jj; ++j) {
+            binding = bindings[j];
+            instructions[j] = new LetBindingInstruction(binding.expression as IsBindingBehavior, binding.target);
           }
-        }
-        return nextSibling;
-      case NodeType.Text:
-        const expression = this.exprParser.parse(($el.node as Text).wholeText, BindingType.Interpolation);
-        if (expression === null) {
-          while (($el = $el.nextSibling) && $el.node.nodeType === NodeType.Text);
-          return $el;
-        }
-        $el.replaceTextNodeWithMarker();
-        $el.addInstructions([new TextBindingInstruction(expression)]);
-        return nextSibling;
-      case NodeType.Comment:
-        return nextSibling;
-      case NodeType.Document:
-        return $el.firstChild;
-      case NodeType.DocumentType:
-        return nextSibling;
-      case NodeType.DocumentFragment:
-        return $el.firstChild;
-    }
-  }
-
-  private compileSurrogate($el: ElementSymbol): void {
-    const attributes = $el.$attributes;
-    for (let i = 0, ii = attributes.length; i < ii; ++i) {
-      const $attr = attributes[i];
-      if ($attr.isTemplateController) {
-        throw new Error('Cannot have template controller on surrogate element.');
-      }
-      const instruction = this.compileAttribute($attr);
-      if (instruction !== null) {
-        $el.definition.surrogates.push(instruction);
-      } else {
-        let attrInst: TargetedInstruction;
-        // Doesn't make sense for these properties as they need to be unique
-        const name = $attr.target;
-        if (name !== 'id' && name !== 'part' && name !== 'replace-part') {
-          // tslint:disable-next-line:no-small-switch
-          switch (name) {
-            // TODO: handle simple surrogate style attribute
-            case 'style':
-            default:
-              attrInst = new SetAttributeInstruction($attr.rawValue, name);
-          }
-          $el.definition.surrogates.push(attrInst);
+          this.instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toViewModel)]);
         } else {
-          throw new Error(`Invalid surrogate attribute: ${name}`);
+          this.compileParentNode(childNode as ParentNodeSymbol);
         }
       }
     }
   }
 
-  private compileElementNode($el: ElementSymbol): void {
-    if ($el.$attributes.length === 0) {
-      return;
+  private compileCustomElement(symbol: CustomElementSymbol): void {
+    // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
+    const instructionRow = this.compileAttributes(symbol, 1) as InstructionRow;
+    instructionRow[0] = new HydrateElementInstruction(
+      symbol.res,
+      this.compileBindings(symbol),
+      this.compileParts(symbol)
+    );
+
+    this.instructionRows.push(instructionRow);
+  }
+
+  private compilePlainElement(symbol: PlainElementSymbol): void {
+    const attributes = this.compileAttributes(symbol, 0);
+    if (attributes.length > 0) {
+      this.instructionRows.push(attributes as InstructionRow);
     }
-    const attributes = $el.$attributes;
-    const attributeInstructions: TargetedInstruction[] = [];
-    for (let i = 0, ii = attributes.length; i < ii; ++i) {
-      const $attr = attributes[i];
-      if ($attr.isProcessed) continue;
-      $attr.markAsProcessed();
-      if ($attr.isTemplateController) {
-        let instruction = this.compileAttribute($attr);
-        // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
-        if (instruction.type !== TargetedInstructionType.hydrateTemplateController) {
-          const name = $attr.res;
-          instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
-        }
-        // all attribute instructions preceding the template controller become children of the hydrate instruction
-        instruction.instructions.push(...attributeInstructions);
-        this.compileNode($el.lift(instruction));
-        return;
-      } else if ($attr.isCustomAttribute) {
-        attributeInstructions.push(this.compileCustomAttribute($attr));
-      } else {
-        const instruction = this.compileAttribute($attr);
-        if (instruction !== null) {
-          attributeInstructions.push(instruction);
-        }
-      }
-    }
-    if (attributeInstructions.length) {
-      $el.addInstructions(attributeInstructions);
-      $el.makeTarget();
+    this.compileChildNodes(symbol);
+  }
+
+  private compileParentNode(symbol: ParentNodeSymbol): void {
+    switch (symbol.flags & SymbolFlags.type) {
+      case SymbolFlags.isCustomElement:
+        this.compileCustomElement(symbol as CustomElementSymbol);
+        break;
+      case SymbolFlags.isPlainElement:
+        this.compilePlainElement(symbol as PlainElementSymbol);
+        break;
+      case SymbolFlags.isTemplateController:
+        this.compileTemplateController(symbol as TemplateControllerSymbol);
     }
   }
 
-  private compileCustomElement($el: ElementSymbol): void {
-    if ($el.$attributes.length === 0) {
-      $el.addInstructions([new HydrateElementInstruction($el.definition.name, PLATFORM.emptyArray as TargetedInstruction[])]);
-      if ($el.definition.containerless) {
-        $el.replaceNodeWithMarker();
-      } else {
-        $el.makeTarget();
-      }
-      return;
-    }
-    const attributeInstructions: TargetedInstruction[] = [];
-    // if there is a custom element, then only the attributes that map to bindables become children of the hydrate instruction,
-    // otherwise they become sibling instructions; if there is no custom element, then sibling instructions are never appended to
-    const siblingInstructions: TargetedInstruction[] = [];
-    const attributes = $el.$attributes;
-    for (let i = 0, ii = attributes.length; i < ii; ++i) {
-      const $attr = attributes[i];
-      if ($attr.isProcessed) continue;
-      $attr.markAsProcessed();
-      if ($attr.isTemplateController) {
-        let instruction = this.compileAttribute($attr);
-        // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
-        if (instruction.type !== TargetedInstructionType.hydrateTemplateController) {
-          const name = $attr.res;
-          instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
-        }
-        // all attribute instructions preceding the template controller become children of the hydrate instruction
-        instruction.instructions.push(...attributeInstructions);
-        this.compileNode($el.lift(instruction));
-        return;
-      } else if ($attr.isCustomAttribute) {
-        if ($attr.isAttributeBindable) {
-          siblingInstructions.push(this.compileCustomAttribute($attr));
-        } else {
-          attributeInstructions.push(this.compileCustomAttribute($attr));
-        }
-      } else {
-        const instruction = this.compileAttribute($attr);
-        if (instruction !== null) {
-          if (!$attr.isElementBindable) {
-            siblingInstructions.push(instruction);
-          } else {
-            attributeInstructions.push(instruction);
-          }
-        }
-      }
-    }
-    $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
-    if ($el.definition.containerless) {
-      $el.replaceNodeWithMarker();
-    } else {
-      $el.makeTarget();
-    }
+  private compileTemplateController(symbol: TemplateControllerSymbol): void {
+    const bindings = this.compileBindings(symbol);
+    const instructionRowsSave = this.instructionRows;
+    const controllerInstructions = this.instructionRows = [];
+    this.compileParentNode(symbol.template);
+    this.instructionRows = instructionRowsSave;
+
+    const def = {
+      name: symbol.partName === null ? symbol.res : symbol.partName,
+      template: symbol.physicalNode,
+      instructions: controllerInstructions,
+      build: buildNotRequired
+    };
+    this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
   }
 
-  private compileCustomAttribute($attr: AttributeSymbol): HydrateAttributeInstruction {
-    const childInstructions = [];
-    if ($attr.isMultiAttrBinding) {
-      const mBindings = $attr.$multiAttrBindings;
-      for (let j = 0, jj = mBindings.length; j < jj; ++j) {
-        childInstructions.push(this.compileAttribute(mBindings[j]));
+  private compileBindings(symbol: SymbolWithBindings): AttributeInstruction[] {
+    let bindingInstructions: AttributeInstruction[];
+    if (symbol.flags & SymbolFlags.hasBindings) {
+      // either a custom element with bindings, a custom attribute / template controller with dynamic options,
+      // or a single value custom attribute binding
+      const { bindings } = symbol;
+      const len = bindings.length;
+      bindingInstructions = Array(len);
+      let i = 0;
+      for (; i < len; ++i) {
+        bindingInstructions[i] = this.compileBinding(bindings[i]);
       }
     } else {
-      childInstructions.push(this.compileAttribute($attr));
+      bindingInstructions = PLATFORM.emptyArray as AttributeInstruction[];
     }
-    return new HydrateAttributeInstruction($attr.res, childInstructions);
+    return bindingInstructions;
   }
 
-  private compileLetElement($el: ElementSymbol): void {
-    const letInstructions: ILetBindingInstruction[] = [];
-    const attributes = $el.$attributes;
-    let toViewModel = false;
-    for (let i = 0, ii = attributes.length; ii > i; ++i) {
-      const $attr = attributes[i];
-      const to = PLATFORM.camelCase($attr.to);
-      if ($attr.hasBindingCommand) {
-        const expr = this.exprParser.parse($attr.rawValue, BindingType.BindCommand);
-        letInstructions.push(new LetBindingInstruction(expr, to));
-      } else if ($attr.rawName === 'to-view-model') {
-        toViewModel = true;
-        ($el.node as Element).removeAttribute('to-view-model');
+  private compileBinding(symbol: BindingSymbol): AttributeInstruction {
+    if (symbol.command === null) {
+      // either an interpolation or a normal string value assigned to an element or attribute binding
+      if (symbol.expression === null) {
+        // the template binder already filtered out non-bindables, so we know we need a setProperty here
+        return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
       } else {
-        const expr = this.exprParser.parse($attr.rawValue, BindingType.Interpolation);
-        if (expr === null) {
-          // Should just be a warning, but throw for now
-          throw new Error(`Invalid let binding. String liternal given for attribute: ${$attr.to}`);
-        }
-        letInstructions.push(new LetBindingInstruction(expr, to));
+        // either an element binding interpolation or a dynamic options attribute binding interpolation
+        return new InterpolationInstruction(symbol.expression as Interpolation, symbol.bindable.propName);
       }
+    } else {
+      // either an element binding command, dynamic options attribute binding command,
+      // or custom attribute / template controller (single value) binding command
+      return symbol.command.compile(symbol);
     }
-    $el.addInstructions([new LetElementInstruction(letInstructions, toViewModel)]);
-    // theoretically there's no need to replace, but to keep it consistent
-    $el.replaceNodeWithMarker();
   }
 
-  private compileAttribute($attr: IAttributeSymbol): TargetedInstruction {
-      // binding commands get priority over all; they may override default behaviors
-      // it is the responsibility of the implementor to ensure they filter out stuff they shouldn't override
-      if ($attr.isHandledByBindingCommand) {
-        return $attr.command.compile($attr);
+  private compileAttributes(symbol: ElementSymbol, offset: number): AttributeInstruction[] {
+    let attributeInstructions: AttributeInstruction[];
+    if (symbol.flags & SymbolFlags.hasAttributes) {
+      // any attributes on a custom element (which are not bindables) or a plain element
+      const { attributes } = symbol;
+      const len = attributes.length;
+      attributeInstructions = Array(offset + len);
+      for (let i = 0; i < len; ++i) {
+        attributeInstructions[i + offset] = this.compileAttribute(attributes[i]);
       }
-      // simple path for ref binding
-      const parser = this.exprParser;
-      if ($attr.target === 'ref') {
-        return new RefBindingInstruction(parser.parse($attr.rawValue, BindingType.IsRef));
+    } else if (offset > 0) {
+      attributeInstructions = Array(offset);
+    } else {
+      attributeInstructions = PLATFORM.emptyArray as AttributeInstruction[];
+    }
+    return attributeInstructions;
+  }
+
+  private compileAttribute(symbol: AttributeSymbol): AttributeInstruction {
+    if (symbol.syntax.target === 'ref') {
+      return new RefBindingInstruction(symbol.syntax.rawValue);
+    }
+    // any attribute on a custom element (which is not a bindable) or a plain element
+    if (symbol.flags & SymbolFlags.isCustomAttribute) {
+      // a normal custom attribute (not template controller)
+      const bindings = this.compileBindings(symbol as CustomAttributeSymbol);
+      return new HydrateAttributeInstruction((symbol as CustomAttributeSymbol).res, bindings);
+    } else if ((symbol as PlainAttributeSymbol).command === null) {
+      if ((symbol as PlainAttributeSymbol).expression === null) {
+        // a plain attribute on a surrogate
+        return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
+      } else {
+        // a plain attribute with an interpolation
+        return new InterpolationInstruction((symbol as PlainAttributeSymbol).expression as Interpolation, symbol.syntax.target);
       }
-      // simple path for style bindings (TODO: this doesnt work, but we need to use StylePropertyBindingInstruction right?)
-      // if (target === 'style' || target === 'css') {
-      //   const expression = parser.parse(value, BindingType.Interpolation);
-      //   if (expression === null) {
-      //     return null;
-      //   }
-      //   return new StylePropertyBindingInstruction(expression, target);
-      // }
-      // plain custom attribute on any kind of element
-      if ($attr.isCustomAttribute) {
-        if (!$attr.hasBindingCommand) {
-          const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
-          if (expression !== null) {
-            return new InterpolationInstruction(expression, $attr.to);
-          }
-          if ($attr.isMultiAttrBinding) {
-            return new SetPropertyInstruction($attr.rawValue, $attr.to);
-          }
-        }
-        // intentional nested block without a statement to ensure the expression variable isn't shadowed
-        // (we're not declaring it at the outer block for better typing without explicit casting)
-        {
-          const expression = parser.parse($attr.rawValue, BindingType.ToViewCommand);
-          switch ($attr.mode) {
-            case BindingMode.oneTime:
-              return new OneTimeBindingInstruction(expression, $attr.to);
-            case BindingMode.fromView:
-              return new FromViewBindingInstruction(expression, $attr.to);
-            case BindingMode.twoWay:
-              return new TwoWayBindingInstruction(expression, $attr.to);
-            case BindingMode.toView:
-            default:
-              return new ToViewBindingInstruction(expression, $attr.to);
-          }
-        }
+    } else {
+      // a plain attribute with a binding command
+      return (symbol as PlainAttributeSymbol).command.compile(symbol as PlainAttributeSymbol);
+    }
+  }
+
+  private compileParts(symbol: CustomElementSymbol): Record<string, ITemplateDefinition> {
+    let parts: Record<string, ITemplateDefinition>;
+    if (symbol.flags & SymbolFlags.hasParts) {
+      parts = {};
+      const replaceParts = symbol.parts;
+      const ii = replaceParts.length;
+      let instructionRowsSave: InstructionRow[];
+      let partInstructions: InstructionRow[];
+      let replacePart: ReplacePartSymbol;
+      for (let i = 0; i < ii; ++i) {
+        replacePart = replaceParts[i];
+        instructionRowsSave = this.instructionRows;
+        partInstructions = this.instructionRows = [];
+        this.compileParentNode(replacePart.template);
+        parts[replacePart.name] = {
+          name: replacePart.name,
+          template: replacePart.physicalNode,
+          instructions: partInstructions,
+          build: buildNotRequired
+        };
+        this.instructionRows = instructionRowsSave;
       }
-      // plain bindable attribute on a custom element
-      if ($attr.onCustomElement && $attr.isElementBindable) {
-        const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
-        if (expression === null) {
-          // no interpolation -> make it a setProperty on the component
-          return new SetPropertyInstruction($attr.rawValue, $attr.to);
-        }
-        // interpolation -> behave like toView (e.g. foo="${someProp}")
-        return new InterpolationInstruction(expression, $attr.to);
-      }
-      {
-        // plain attribute on a normal element
-        const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
-        if (expression === null) {
-          // no interpolation -> do not return an instruction
-          return null;
-        }
-        // interpolation -> behave like toView (e.g. id="${someId}")
-        return new InterpolationInstruction(expression, $attr.to);
-      }
+    } else {
+      parts = PLATFORM.emptyObject;
+    }
+    return parts;
   }
 }

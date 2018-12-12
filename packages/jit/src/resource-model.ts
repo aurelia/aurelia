@@ -1,5 +1,6 @@
-import { IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
-import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, IResourceDescriptions, TemplateDefinition } from '@aurelia/runtime';
+import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { AttributeDefinition, BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, IElement, IResourceDescriptions, TemplateDefinition } from '@aurelia/runtime';
+import { AttrSyntax } from './ast';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
 
 /**
@@ -8,58 +9,92 @@ import { BindingCommandResource, IBindingCommand } from './binding-command';
  */
 export class ResourceModel {
 
-  /**
-   * Information about custom element resources, indexed by the name of the element
-   * as it would appear in parsed markup.
-   */
-  public elements: Record<string, ElementInfo>;
-
-  /**
-   * Information about custom attributes resources, indexed by the name of the attribute
-   * as it would appear in parsed markup.
-   */
-  public attributes: Record<string, AttrInfo>;
-
-  /**
-   * Instantiated binding command resources, indexed by the name as it would come out
-   * of the attribute parser.
-   */
-  public commands: Record<string, IBindingCommand>;
+  private resources: IResourceDescriptions;
+  private elementLookup: Record<string, ElementInfo>;
+  private attributeLookup: Record<string, AttrInfo>;
+  private commandLookup: Record<string, IBindingCommand>;
 
   constructor(resources: IResourceDescriptions) {
-    const elements: ResourceModel['elements'] = this.elements = {};
-    const attributes: ResourceModel['attributes'] = this.attributes = {};
-    const commands: ResourceModel['commands'] = this.commands = {};
-    const element = CustomElementResource.name;
-    const attribute = CustomAttributeResource.name;
-    const command = BindingCommandResource.name;
-    // TODO: make a less hacky way to do this
-    const container = (resources as unknown as { context: IContainer & { resolvers: Map<unknown, IResolver> } }).context;
-    let type: string;
-    let name: string;
-    let key: unknown;
-    const keys = container.resolvers.keys();
-    for (key of keys) {
-      if (typeof key === 'string') {
-        [type, name] = key.split(':');
-        switch (type) {
-          case element:
-            elements[name] = createElementInfo(resources, name);
-            break;
-          case attribute:
-            attributes[PLATFORM.kebabCase(name)] = createAttributeInfo(resources, name);
-            break;
-          case command:
-            commands[name] = resources.create(BindingCommandResource, name);
-        }
-      }
+    this.resources = resources;
+    this.elementLookup = {};
+    this.attributeLookup = {};
+    this.commandLookup = {};
+  }
+
+  /**
+   * Retrieve information about a custom element resource.
+   *
+   * @param element The original DOM element.
+   *
+   * @returns The resource information if the element exists, or `null` if it does not exist.
+   */
+  public getElementInfo(element: IElement): ElementInfo | null {
+    let name = element.getAttribute('as-element');
+    if (name === null) {
+      name = element.nodeName.toLowerCase();
     }
+    let result = this.elementLookup[name];
+    if (result === undefined) {
+      const def = this.resources.find(CustomElementResource, name);
+      if (def === null) {
+        result = null;
+      } else {
+        result = createElementInfo(def);
+      }
+      this.elementLookup[name] = result;
+    }
+    return result;
+  }
+
+  /**
+   * Retrieve information about a custom attribute resource.
+   *
+   * @param syntax The parsed `AttrSyntax`
+   *
+   * @returns The resource information if the attribute exists, or `null` if it does not exist.
+   */
+  public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
+    const name = PLATFORM.camelCase(syntax.target);
+    let result = this.attributeLookup[name];
+    if (result === undefined) {
+      const def = this.resources.find(CustomAttributeResource, name);
+      if (def === null) {
+        result = null;
+      } else {
+        result = createAttributeInfo(def);
+      }
+      this.attributeLookup[name] = result;
+    }
+    return result;
+  }
+
+  /**
+   * Retrieve a binding command resource.
+   *
+   * @param name The parsed `AttrSyntax`
+   *
+   * @returns An instance of the command if it exists, or `null` if it does not exist.
+   */
+  public getBindingCommand(syntax: AttrSyntax): IBindingCommand | null {
+    const name = syntax.command;
+    if (name === null) {
+      return null;
+    }
+    let result = this.commandLookup[name];
+    if (result === undefined) {
+      result = this.resources.create(BindingCommandResource, name);
+      if (result === null) {
+        // unknown binding command
+        throw Reporter.error(0); // TODO: create error code
+      }
+      this.commandLookup[name] = result;
+    }
+    return result;
   }
 }
 
-function createElementInfo(resources: IResourceDescriptions, name: string): ElementInfo {
-  const def = resources.find(CustomElementResource, name) as TemplateDefinition;
-  const info = new ElementInfo(name, def.containerless);
+function createElementInfo(def: TemplateDefinition): ElementInfo {
+  const info = new ElementInfo(def.name, def.containerless);
   const bindables = def.bindables;
   const defaultBindingMode = BindingMode.toView;
 
@@ -91,9 +126,8 @@ function createElementInfo(resources: IResourceDescriptions, name: string): Elem
   return info;
 }
 
-function createAttributeInfo(resources: IResourceDescriptions, name: string): AttrInfo {
-  const def = resources.find(CustomAttributeResource, name);
-  const info = new AttrInfo(name, def.isTemplateController);
+function createAttributeInfo(def: AttributeDefinition): AttrInfo {
+  const info = new AttrInfo(def.name, def.isTemplateController);
   const bindables = def.bindables;
   const defaultBindingMode = def.defaultBindingMode !== undefined && def.defaultBindingMode !== BindingMode.default
     ? def.defaultBindingMode

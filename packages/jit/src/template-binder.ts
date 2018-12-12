@@ -121,12 +121,12 @@ export class PlainAttributeSymbol {
 
   constructor(
     syntax: AttrSyntax,
-    command: IBindingCommand | undefined,
+    command: IBindingCommand | null,
     expression: IsExpressionOrStatement | null
   ) {
     this.flags = SymbolFlags.isPlainAttribute;
     this.syntax = syntax;
-    this.command = command === undefined ? null : command;
+    this.command = command;
     this.expression = expression;
   }
 }
@@ -147,14 +147,14 @@ export class BindingSymbol {
   public target: string;
 
   constructor(
-    command: IBindingCommand | undefined,
+    command: IBindingCommand | null,
     bindable: BindableInfo,
     expression: IsExpressionOrStatement | null,
     rawValue: string,
     target: string
   ) {
     this.flags = SymbolFlags.isBinding;
-    this.command = command === undefined ? null : command;
+    this.command = command;
     this.bindable = bindable;
     this.expression = expression;
     this.rawValue = rawValue;
@@ -346,8 +346,14 @@ const invalidSurrogateAttribute = {
   'replace-part': true
 };
 
+const attributesToIgnore = {
+  'as-element': true,
+  'part': true,
+  'replace-part': true
+};
+
 export class TemplateBinder {
-  public metadata: ResourceModel;
+  public resources: ResourceModel;
   public attrParser: IAttributeParser;
   public exprParser: IExpressionParser;
 
@@ -367,8 +373,8 @@ export class TemplateBinder {
 
   private partName: string | null;
 
-  constructor(metadata: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser) {
-    this.metadata = metadata;
+  constructor(resources: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser) {
+    this.resources = resources;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
     this.surrogate = null;
@@ -393,13 +399,13 @@ export class TemplateBinder {
     while (i < attributes.length) {
       const attr = attributes[i];
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const attrInfo = this.metadata.attributes[attrSyntax.target];
 
-      if (invalidSurrogateAttribute[attrSyntax.target]) {
+      if (invalidSurrogateAttribute[attrSyntax.target] === true) {
         throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
         // TODO: use reporter
       }
-      if (attrInfo === undefined) {
+      const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+      if (attrInfo === null) {
         this.bindPlainAttribute(attrSyntax);
       } else if (attrInfo.isTemplateController) {
         throw new Error('Cannot have template controller on surrogate element.');
@@ -455,23 +461,12 @@ export class TemplateBinder {
     const manifestRootSave = this.manifestRoot;
     const manifestSave = this.manifest;
 
-    // get the lower case element name to resolve the associated custom element (if any)
-    let elementKey = node.getAttribute('as-element');
-    if (elementKey === null) {
-      elementKey = node.nodeName.toLowerCase();
-    } else {
-      node.removeAttribute('as-element');
-    }
-
     // get the part name to override the name of the compiled definition
     this.partName = node.getAttribute('part');
-    if (this.partName !== null) {
-      node.removeAttribute('part');
-    }
 
     let manifestRoot: CustomElementSymbol;
-    const elementInfo = this.metadata.elements[elementKey];
-    if (elementInfo === undefined) {
+    const elementInfo = this.resources.getElementInfo(node);
+    if (elementInfo === null) {
       // there is no registered custom element with this name
       this.manifest = new PlainElementSymbol(node);
     } else {
@@ -515,7 +510,7 @@ export class TemplateBinder {
         continue;
       }
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const command = this.getCommand(attrSyntax);
+      const command = this.resources.getBindingCommand(attrSyntax);
       const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       const to = PLATFORM.camelCase(attrSyntax.target);
@@ -545,13 +540,16 @@ export class TemplateBinder {
     let i = 0;
     while (i < attributes.length) {
       const attr = attributes[i];
+      ++i;
+      if (attributesToIgnore[attr.name] === true) {
+        continue;
+      }
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const attrInfo = this.metadata.attributes[attrSyntax.target];
+      const attrInfo = this.resources.getAttributeInfo(attrSyntax);
 
-      if (attrInfo === undefined) {
+      if (attrInfo === null) {
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         this.bindPlainAttribute(attrSyntax);
-        ++i;
       } else if (attrInfo.isTemplateController) {
         // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
         // so keep setting manifest.templateController to the latest template controller we find
@@ -568,11 +566,9 @@ export class TemplateBinder {
           previousController.template = currentController;
         }
         previousController = currentController;
-        ++i;
       } else {
         // a regular custom attribute
         this.bindCustomAttribute(attrSyntax, attrInfo);
-        ++i;
       }
     }
 
@@ -644,7 +640,7 @@ export class TemplateBinder {
 
     let symbol: TemplateControllerSymbol;
     // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
-    const command = this.getCommand(attrSyntax);
+    const command = this.resources.getBindingCommand(attrSyntax);
     if (command === null && attrInfo.hasDynamicOptions) {
       symbol = new TemplateControllerSymbol(attrSyntax, attrInfo, this.partName);
       this.partName = null;
@@ -664,7 +660,7 @@ export class TemplateBinder {
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindCustomAttribute', slice.call(arguments)); }
 
-    const command = this.getCommand(attrSyntax);
+    const command = this.resources.getBindingCommand(attrSyntax);
     let symbol: CustomAttributeSymbol;
     if (command === null && attrInfo.hasDynamicOptions) {
       // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
@@ -693,7 +689,7 @@ export class TemplateBinder {
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const command = this.getCommand(attrSyntax);
+      const command = this.resources.getBindingCommand(attrSyntax);
       const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       let bindable = attrInfo.bindables[attrSyntax.target];
@@ -716,7 +712,7 @@ export class TemplateBinder {
       return;
     }
 
-    const command = this.getCommand(attrSyntax);
+    const command = this.resources.getBindingCommand(attrSyntax);
     const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
     const manifest = this.manifest;
     const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
@@ -744,24 +740,6 @@ export class TemplateBinder {
     }
 
     if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  private getCommand(attrSyntax: AttrSyntax): IBindingCommand {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.getBindingType', slice.call(arguments)); }
-
-    if (attrSyntax.command === null) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return null;
-    }
-
-    const command = this.metadata.commands[attrSyntax.command];
-    if (command === undefined) {
-      // unknown binding command
-      throw Reporter.error(0); // TODO: create error code
-    }
-
-    if (Tracer.enabled) { Tracer.leave(); }
-    return command;
   }
 
   private declareReplacePart(node: IHTMLTemplateElement | IHTMLElement): ReplacePartSymbol {

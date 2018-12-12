@@ -77,9 +77,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.instructionRows = null;
   }
 
-  public compile(definition: ITemplateDefinition, resources: IResourceDescriptions): TemplateDefinition {
-    const metadata = new ResourceModel(resources);
-    const binder = new TemplateBinder(metadata, this.attrParser, this.exprParser);
+  public compile(definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
+    const resources = new ResourceModel(descriptions);
+    const binder = new TemplateBinder(resources, this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template);
     const surrogate = binder.bind(template);
     if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {

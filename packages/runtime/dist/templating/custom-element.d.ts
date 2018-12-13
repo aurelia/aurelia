@@ -1,16 +1,16 @@
 import { Class, Constructable } from '@aurelia/kernel';
 import { ITemplateDefinition, TemplateDefinition } from '../definitions';
-import { INode } from '../dom';
-import { IAttach, IBindSelf, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable } from '../lifecycle';
+import { INode } from '../dom.interfaces';
+import { IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
 declare type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
 export declare type CustomElementConstructor = Constructable & CustomElementStaticProperties;
 export interface ICustomElementType extends IResourceType<ITemplateDefinition, ICustomElement>, CustomElementStaticProperties {
+    description: TemplateDefinition;
 }
-declare type PartialCustomElementType<T> = T & Partial<IResourceType<ITemplateDefinition, unknown, Constructable>>;
-export interface ICustomElement extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IBindSelf, ILifecycleUnbindAfterDetach, IAttach, IMountable, IRenderable {
+export interface ICustomElement extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IBindScope, ILifecycleUnbindAfterDetach, IAttach, IMountable, IRenderable {
     readonly $projector: IElementProjector;
     readonly $host: ICustomElementHost;
     $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
@@ -18,7 +18,7 @@ export interface ICustomElement extends Partial<IChangeTracker>, ILifecycleHooks
 export interface ICustomElementResource extends IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
     behaviorFor(node: INode): ICustomElement | null;
 }
-declare type CustomElementDecorator = <T>(target: PartialCustomElementType<T>) => T & ICustomElementType;
+declare type CustomElementDecorator = <T extends Constructable>(target: T) => T & ICustomElementType;
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */

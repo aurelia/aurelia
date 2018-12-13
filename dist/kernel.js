@@ -84,6 +84,48 @@ this.au.kernel = (function (exports) {
       write(code, ...params) { return; },
       error(code, ...params) { return new Error(`Code ${code}`); }
   };
+  const Tracer = {
+      /**
+       * A convenience property for the user to conditionally call the tracer.
+       * This saves unnecessary `noop` and `slice` calls in non-AOT scenarios even if debugging is disabled.
+       * In AOT these calls will simply be removed entirely.
+       *
+       * This property **only** turns on tracing if `@aurelia/debug` is included and configured as well.
+       */
+      enabled: false,
+      liveLoggingEnabled: false,
+      liveWriter: null,
+      /**
+       * Call this at the start of a method/function.
+       * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
+       * @param name Any human-friendly name to identify the traced method with.
+       * @param args Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
+       */
+      enter(name, args) { return; },
+      /**
+       * Call this at the end of a method/function. Pops one trace item off the stack.
+       */
+      leave() { return; },
+      /**
+       * Writes only the trace info leading up to the current method call.
+       * @param writer An object to write the output to.
+       */
+      writeStack(writer) { return; },
+      /**
+       * Writes all trace info captured since the previous flushAll operation.
+       * @param writer An object to write the output to. Can be null to simply reset the tracer state.
+       */
+      flushAll(writer) { return; },
+      /**
+       * Writes out each trace info item as they are traced.
+       * @param writer An object to write the output to.
+       */
+      enableLiveLogging(writer) { return; },
+      /**
+       * Stops writing out each trace info item as they are traced.
+       */
+      disableLiveLogging() { return; }
+  };
 
   // Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
   // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
@@ -675,6 +717,7 @@ this.au.kernel = (function (exports) {
   exports.invokeWithDynamicDependencies = invokeWithDynamicDependencies;
   exports.PLATFORM = PLATFORM;
   exports.Reporter = Reporter;
+  exports.Tracer = Tracer;
 
   return exports;
 

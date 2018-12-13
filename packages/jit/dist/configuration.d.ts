@@ -1,4 +1,6 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, IRegistry } from '@aurelia/kernel';
+export declare const GlobalResources: IRegistry[];
+export declare const DefaultBindingLanguage: IRegistry[];
 export declare const BasicConfiguration: {
     register(container: IContainer): void;
 };

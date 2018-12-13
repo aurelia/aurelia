@@ -1,8 +1,8 @@
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
-import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType } from './definitions';
-import { INode } from './dom';
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType } from './definitions';
+import { INode } from './dom.interfaces';
 export declare class TextBindingInstruction implements ITextBindingInstruction {
     type: TargetedInstructionType.textBinding;
     from: string | Interpolation;
@@ -102,8 +102,8 @@ export declare class SetPropertyInstruction implements ISetPropertyInstruction {
 export declare class SetAttributeInstruction implements ITargetedInstruction {
     type: TargetedInstructionType.setAttribute;
     to: string;
-    value: unknown;
-    constructor(value: unknown, to: string);
+    value: string;
+    constructor(value: string, to: string);
 }
 export declare class HydrateElementInstruction implements IHydrateElementInstruction {
     type: TargetedInstructionType.hydrateElement;
@@ -127,8 +127,8 @@ export declare class HydrateTemplateController implements IHydrateTemplateContro
     res: string;
     constructor(def: ITemplateDefinition, res: string, instructions: TargetedInstruction[], link?: boolean);
 }
-export declare class LetElementInstruction implements ILetElementInstruction {
-    type: TargetedInstructionType.letElement;
+export declare class LetElementInstruction implements IHydrateLetElementInstruction {
+    type: TargetedInstructionType.hydrateLetElement;
     instructions: ILetBindingInstruction[];
     toViewModel: boolean;
     constructor(instructions: ILetBindingInstruction[], toViewModel: boolean);

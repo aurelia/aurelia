@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IHTMLElement, INode } from '../dom';
+import { IElement, IHTMLElement, INode } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor } from '../observation';
 export interface XLinkAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, string, string> {
@@ -22,10 +22,10 @@ export declare class DataAttributeAccessor implements DataAttributeAccessor {
     currentValue: string;
     defaultValue: string;
     lifecycle: ILifecycle;
-    obj: INode;
+    obj: IElement;
     oldValue: string;
     propertyKey: string;
-    constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string);
+    constructor(lifecycle: ILifecycle, obj: IElement, propertyKey: string);
     getValue(): string;
     setValueCore(newValue: string): void;
 }
@@ -53,10 +53,10 @@ export declare class ClassAttributeAccessor implements ClassAttributeAccessor {
     doNotCache: true;
     lifecycle: ILifecycle;
     nameIndex: object;
-    obj: INode;
+    obj: IElement;
     oldValue: string;
     version: number;
-    constructor(lifecycle: ILifecycle, obj: INode);
+    constructor(lifecycle: ILifecycle, obj: IElement);
     getValue(): string;
     setValueCore(newValue: string): void;
 }

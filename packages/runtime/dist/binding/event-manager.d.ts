@@ -1,15 +1,11 @@
 import { IDisposable } from '@aurelia/kernel';
-import { INode } from '../dom';
-export interface IEventWithStandardPropagation extends Event {
-    propagationStopped?: boolean;
-    standardStopPropagation?: Event['stopPropagation'];
-}
+import { IEventListenerOrEventListenerObject, INode } from '../dom.interfaces';
 export declare class ListenerTracker {
     private capture;
     private count;
     private eventName;
     private listener;
-    constructor(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean);
+    constructor(eventName: string, listener: IEventListenerOrEventListenerObject, capture: boolean);
     increment(): void;
     decrement(): void;
 }
@@ -18,9 +14,9 @@ export declare class ListenerTracker {
  */
 export declare class DelegateOrCaptureSubscription {
     entry: ListenerTracker;
-    lookup: Record<string, EventListenerOrEventListenerObject>;
+    lookup: Record<string, IEventListenerOrEventListenerObject>;
     targetEvent: string;
-    constructor(entry: ListenerTracker, lookup: Record<string, EventListenerOrEventListenerObject>, targetEvent: string, callback: EventListenerOrEventListenerObject);
+    constructor(entry: ListenerTracker, lookup: Record<string, IEventListenerOrEventListenerObject>, targetEvent: string, callback: IEventListenerOrEventListenerObject);
     dispose(): void;
 }
 /**
@@ -29,13 +25,13 @@ export declare class DelegateOrCaptureSubscription {
 export declare class TriggerSubscription {
     target: INode;
     targetEvent: string;
-    callback: EventListenerOrEventListenerObject;
-    constructor(target: INode, targetEvent: string, callback: EventListenerOrEventListenerObject);
+    callback: IEventListenerOrEventListenerObject;
+    constructor(target: INode, targetEvent: string, callback: IEventListenerOrEventListenerObject);
     dispose(): void;
 }
 export interface IEventTargetWithLookups extends INode {
-    delegatedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
-    capturedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
+    delegatedCallbacks?: Record<string, IEventListenerOrEventListenerObject>;
+    capturedCallbacks?: Record<string, IEventListenerOrEventListenerObject>;
 }
 export declare enum DelegationStrategy {
     none = 0,
@@ -47,21 +43,21 @@ export interface IElementConfiguration {
     properties: Record<string, string[]>;
 }
 export interface IEventSubscriber extends IDisposable {
-    subscribe(node: INode, callbackOrListener: EventListenerOrEventListenerObject): void;
+    subscribe(node: INode, callbackOrListener: IEventListenerOrEventListenerObject): void;
 }
 export declare class EventSubscriber implements IEventSubscriber {
     private readonly events;
     private target;
     private handler;
     constructor(events: string[]);
-    subscribe(node: INode, callbackOrListener: EventListenerOrEventListenerObject): void;
+    subscribe(node: INode, callbackOrListener: IEventListenerOrEventListenerObject): void;
     dispose(): void;
 }
 export declare type EventSubscription = DelegateOrCaptureSubscription | TriggerSubscription;
 export interface IEventManager {
     registerElementConfiguration(config: IElementConfiguration): void;
     getElementHandler(target: INode, propertyName: string): IEventSubscriber | null;
-    addEventListener(target: INode, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
+    addEventListener(target: INode, targetEvent: string, callbackOrListener: IEventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
 export declare const IEventManager: import("@aurelia/kernel/dist/di").InterfaceSymbol<IEventManager>;
 //# sourceMappingURL=event-manager.d.ts.map

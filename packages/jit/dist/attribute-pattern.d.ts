@@ -39,6 +39,13 @@ export declare class DotSeparatedAttributePattern implements DotSeparatedAttribu
     ['PART.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
     ['PART.PART.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
 }
+export interface RefAttributePattern extends IAttributePattern {
+}
+export declare class RefAttributePattern implements RefAttributePattern {
+    static register: IRegistry['register'];
+    ['ref'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
+    ['ref.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
+}
 export interface ColonPrefixedBindAttributePattern extends IAttributePattern {
 }
 export declare class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttributePattern {

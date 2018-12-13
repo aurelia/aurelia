@@ -1,9 +1,9 @@
 import { Class, IRegistry } from '@aurelia/kernel';
-import { IExpressionParser, IResourceDefinition, IResourceKind, IResourceType, TargetedInstruction } from '@aurelia/runtime';
-import { IAttributeSymbol } from './semantic-model';
+import { AttributeInstruction, BindingType, IResourceDefinition, IResourceKind, IResourceType } from '@aurelia/runtime';
+import { BindingSymbol, PlainAttributeSymbol } from './template-binder';
 export interface IBindingCommand {
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
-    handles?($symbol: IAttributeSymbol): boolean;
+    bindingType: BindingType;
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface IBindingCommandDefinition extends IResourceDefinition {
 }
@@ -18,95 +18,84 @@ export declare const BindingCommandResource: IBindingCommandResource;
 export interface OneTimeBindingCommand extends IBindingCommand {
 }
 export declare class OneTimeBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
+    bindingType: BindingType.OneTimeCommand;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface ToViewBindingCommand extends IBindingCommand {
 }
 export declare class ToViewBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
+    bindingType: BindingType.ToViewCommand;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface FromViewBindingCommand extends IBindingCommand {
 }
 export declare class FromViewBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
+    bindingType: BindingType.FromViewCommand;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface TwoWayBindingCommand extends IBindingCommand {
 }
 export declare class TwoWayBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
+    bindingType: BindingType.TwoWayCommand;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface DefaultBindingCommand extends IBindingCommand {
 }
 export declare class DefaultBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
+    bindingType: BindingType.BindCommand;
     $1: typeof OneTimeBindingCommand.prototype.compile;
     $2: typeof ToViewBindingCommand.prototype.compile;
     $4: typeof FromViewBindingCommand.prototype.compile;
     $6: typeof TwoWayBindingCommand.prototype.compile;
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface TriggerBindingCommand extends IBindingCommand {
 }
 export declare class TriggerBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
+    bindingType: BindingType.TriggerCommand;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface DelegateBindingCommand extends IBindingCommand {
 }
 export declare class DelegateBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
+    bindingType: BindingType.DelegateCommand;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface CaptureBindingCommand extends IBindingCommand {
 }
 export declare class CaptureBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
+    bindingType: BindingType.CaptureCommand;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface CallBindingCommand extends IBindingCommand {
 }
 export declare class CallBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
+    bindingType: BindingType.CallCommand;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export declare class ForBindingCommand implements IBindingCommand {
-    static inject: Function[];
     static register: IRegistry['register'];
-    private parser;
-    constructor(parser: IExpressionParser);
-    compile($symbol: IAttributeSymbol): TargetedInstruction;
-    handles($symbol: IAttributeSymbol): boolean;
+    bindingType: BindingType.ForCommand;
+    constructor();
+    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export {};
 //# sourceMappingURL=binding-command.d.ts.map

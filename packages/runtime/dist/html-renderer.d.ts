@@ -1,9 +1,9 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, IIndexable } from '@aurelia/kernel';
 import { IEventManager } from './binding/event-manager';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { IObserverLocator } from './binding/observer-locator';
-import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TemplatePartDefinitions } from './definitions';
-import { INode, IRemovableNode } from './dom';
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TemplatePartDefinitions } from './definitions';
+import { IElement, IHTMLElement, INode, IRenderLocation } from './dom.interfaces';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';
 import { IInstructionRenderer, IRenderingEngine } from './templating/lifecycle-render';
 export declare function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string>;
@@ -54,34 +54,34 @@ export declare class StylePropertyBindingRenderer implements IInstructionRendere
     private parser;
     private observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IStylePropertyBindingInstruction): void;
+    render(context: IRenderContext, renderable: IRenderable, target: IHTMLElement, instruction: IStylePropertyBindingInstruction): void;
 }
 export declare class SetPropertyRenderer implements IInstructionRenderer {
-    render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ISetPropertyInstruction): void;
+    render(context: IRenderContext, renderable: IRenderable, target: IIndexable, instruction: ISetPropertyInstruction): void;
 }
 export declare class SetAttributeRenderer implements IInstructionRenderer {
-    render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ISetAttributeInstruction): void;
+    render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: ISetAttributeInstruction): void;
 }
 export declare class CustomElementRenderer implements IInstructionRenderer {
     private renderingEngine;
     constructor(renderingEngine: IRenderingEngine);
-    render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void;
+    render(context: IRenderContext, renderable: IRenderable, target: IRenderLocation, instruction: IHydrateElementInstruction): void;
 }
 export declare class CustomAttributeRenderer implements IInstructionRenderer {
     private renderingEngine;
     constructor(renderingEngine: IRenderingEngine);
-    render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void;
+    render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: IHydrateAttributeInstruction): void;
 }
 export declare class TemplateControllerRenderer implements IInstructionRenderer {
     private renderingEngine;
     constructor(renderingEngine: IRenderingEngine);
-    render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void;
+    render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void;
 }
 export declare class LetElementRenderer implements IInstructionRenderer {
     private parser;
     private observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(context: IRenderContext, renderable: IRenderable, target: IRemovableNode, instruction: ILetElementInstruction): void;
+    render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: IHydrateLetElementInstruction): void;
 }
 export declare const HtmlRenderer: {
     register(container: IContainer): void;

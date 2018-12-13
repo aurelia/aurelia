@@ -1,6 +1,6 @@
 import { Class, IContainer, Immutable, ImmutableArray, IRegistry } from '@aurelia/kernel';
 import { IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
-import { INode, INodeSequence, IRenderLocation } from '../dom';
+import { INode, INodeSequence, IRenderLocation } from '../dom.interfaces';
 import { ILifecycle, IRenderable, IRenderContext, IViewFactory } from '../lifecycle';
 import { IAccessor, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
 import { IResourceDescriptions } from '../resource';
@@ -16,11 +16,12 @@ export declare enum ViewCompileFlags {
     surrogate = 2,
     shadowDOM = 4
 }
-export declare type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
+export declare type IElementHydrationOptions = {
+    parts?: Record<string, TemplateDefinition>;
+};
 export interface ICustomElementHost extends IRenderLocation {
     $customElement?: ICustomElement;
 }
-export declare type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
 export interface IElementProjector {
     readonly host: ICustomElementHost;
     readonly children: ArrayLike<ICustomElementHost>;
@@ -56,7 +57,7 @@ export interface ILifecycleRender {
      * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
      * which can happen many times per instance), though it can happen many times per type (once for each instance)
      */
-    render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
+    render?(host: INode, parts: Record<string, TemplateDefinition>): IElementTemplateProvider | void;
 }
 export interface IRenderingEngine {
     getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
@@ -82,7 +83,7 @@ export interface IChildrenObserver extends IAccessor, ISubscribable<MutationKind
 }
 export interface ITemplate {
     readonly renderContext: IRenderContext;
-    render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void;
+    render(renderable: IRenderable, host?: INode, parts?: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): void;
 }
 export declare function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext;
 export interface IRenderer {

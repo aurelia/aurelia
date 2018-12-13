@@ -1,4 +1,4 @@
-import { INode } from '../dom';
+import { INode } from '../dom.interfaces';
 export interface ISVGAnalyzer {
     isStandardSvgAttribute(node: INode, attributeName: string): boolean;
 }

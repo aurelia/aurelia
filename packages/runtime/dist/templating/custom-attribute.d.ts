@@ -8,13 +8,12 @@ declare type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttribut
 export declare type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 export interface ICustomAttributeType extends IResourceType<IAttributeDefinition, ICustomAttribute>, CustomAttributeStaticProperties {
 }
-declare type PartialCustomAttributeType<T> = T & Partial<IResourceType<IAttributeDefinition, unknown, Constructable>>;
 export interface ICustomAttribute extends Partial<IChangeTracker>, ILifecycleHooks, IBindScope, ILifecycleUnbindAfterDetach, IAttach, IRenderable {
     $hydrate(renderingEngine: IRenderingEngine): void;
 }
 export interface ICustomAttributeResource extends IResourceKind<IAttributeDefinition, ICustomAttribute, Class<ICustomAttribute> & CustomAttributeStaticProperties> {
 }
-declare type CustomAttributeDecorator = <T>(target: PartialCustomAttributeType<T>) => T & ICustomAttributeType;
+declare type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType;
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
  */
@@ -27,6 +26,16 @@ export declare function customAttribute(definition: IAttributeDefinition): Custo
  */
 export declare function templateController(name: string): CustomAttributeDecorator;
 export declare function templateController(definition: IAttributeDefinition): CustomAttributeDecorator;
+declare type HasDynamicOptions = Pick<IAttributeDefinition, 'hasDynamicOptions'>;
+declare function dynamicOptionsDecorator<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions>;
+/**
+ * Decorator: Indicates that the custom attributes has dynamic options.
+ */
+export declare function dynamicOptions(): typeof dynamicOptionsDecorator;
+/**
+ * Decorator: Indicates that the custom attributes has dynamic options.
+ */
+export declare function dynamicOptions<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions>;
 export declare const CustomAttributeResource: ICustomAttributeResource;
 export {};
 //# sourceMappingURL=custom-attribute.d.ts.map

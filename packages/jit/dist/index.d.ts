@@ -4,8 +4,10 @@ export * from './attribute-pattern';
 export * from './binding-command';
 export * from './common';
 export * from './configuration';
-export * from './element-parser';
+export * from './debugging';
 export * from './expression-parser';
-export * from './semantic-model';
+export * from './resource-model';
+export * from './template-binder';
 export * from './template-compiler';
+export * from './template-factory';
 //# sourceMappingURL=index.d.ts.map

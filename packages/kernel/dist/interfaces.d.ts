@@ -1,3 +1,20 @@
+export interface IPerformance {
+    now(): number;
+}
+export declare type ITimerHandler = string | Function;
+export interface IWindowOrWorkerGlobalScope {
+    readonly performance: IPerformance;
+    clearInterval(handle?: number): void;
+    clearTimeout(handle?: number): void;
+    setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
+    setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
+}
+export interface IFrameRequestCallback {
+    (time: number): void;
+}
+export interface IWindow extends IWindowOrWorkerGlobalScope {
+    requestAnimationFrame(callback: IFrameRequestCallback): number;
+}
 export interface ICallable {
     call(...args: unknown[]): unknown;
 }
@@ -26,7 +43,64 @@ export declare type Immutable<T> = {
 export declare type Writable<T> = {
     -readonly [K in keyof T]: T[K];
 };
-export declare type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+export declare type Diff<T extends string, U extends string> = ({
+    [P in T]: P;
+} & {
+    [P in U]: never;
+} & {
+    [x: string]: never;
+})[T];
+export declare type Omit<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
+export declare type Overwrite<T1, T2> = Pick<T1, Exclude<keyof T1, keyof T2>> & T2;
+export declare type KnownKeys<T> = {
+    [K in keyof T]: string extends K ? never : number extends K ? never : K;
+} extends {
+    [_ in keyof T]: infer U;
+} ? U : never;
+export declare type RequiredKnownKeys<T> = {
+    [K in keyof T]: {} extends Pick<T, K> ? never : K;
+} extends {
+    [_ in keyof T]: infer U;
+} ? ({} extends U ? never : U) : never;
+export declare type OptionalKnownKeys<T> = {
+    [K in keyof T]: string extends K ? never : number extends K ? never : {} extends Pick<T, K> ? K : never;
+} extends {
+    [_ in keyof T]: infer U;
+} ? ({} extends U ? never : U) : never;
+export declare type ValuesOf<T> = T extends {
+    [_ in keyof T]: infer U;
+} ? U : never;
+export declare type RequiredValuesOf<T> = T extends {
+    [_ in keyof T]: infer U;
+} ? U : never;
+export declare type OptionalValuesOf<T> = T extends {
+    [_ in keyof T]: infer U;
+} ? U : never;
+export declare type NoInfer<T> = T & {
+    [K in keyof T]: T[K];
+};
+export declare type Purify<T extends string> = {
+    [P in T]: T;
+}[T];
+export declare type Public<T> = {
+    [P in keyof T]: T[P];
+};
+export declare type Param0<Func> = Func extends (a: infer T, ...args: any[]) => any ? T : never;
+export declare type Param1<Func> = Func extends (a: any, b: infer T, ...args: any[]) => any ? T : never;
+export declare type Param2<Func> = Func extends (a: any, b: any, c: infer T, ...args: any[]) => any ? T : never;
+export declare type Param3<Func> = Func extends (a: any, b: any, c: any, d: infer T, ...args: any[]) => any ? T : never;
+export declare type Pick2<T, K1 extends keyof T, K2 extends keyof T[K1]> = {
+    [P1 in K1]: {
+        [P2 in K2]: (T[K1])[P2];
+    };
+};
+export declare type Pick3<T, K1 extends keyof T, K2 extends keyof T[K1], K3 extends keyof T[K1][K2]> = {
+    [P1 in K1]: {
+        [P2 in K2]: {
+            [P3 in K3]: ((T[K1])[K2])[P3];
+        };
+    };
+};
 export declare type Primitive = undefined | null | number | boolean | symbol | string;
 export declare type Unwrap<T> = T extends (infer U)[] ? U : T extends (...args: unknown[]) => infer U ? U : T extends Promise<infer U> ? U : T;
 export declare type StrictPrimitive = string | number | boolean | null | undefined;

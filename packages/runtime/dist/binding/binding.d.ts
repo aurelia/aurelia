@@ -1,5 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { INode } from '../dom';
+import { INode } from '../dom.interfaces';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { AccessorOrObserver, IObservable, IScope, LifecycleFlags } from '../observation';
 import { ForOfStatement, IsBindingBehavior } from './ast';
@@ -28,6 +28,7 @@ export declare class Binding implements IPartialConnectableBinding {
     target: IBindingTarget;
     targetProperty: string;
     targetObserver: AccessorOrObserver;
+    persistentFlags: LifecycleFlags;
     constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;

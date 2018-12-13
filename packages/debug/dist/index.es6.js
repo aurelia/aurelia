@@ -1,5 +1,5 @@
 import { AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, HtmlLiteral, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter } from '@aurelia/runtime';
-import { Reporter } from '@aurelia/kernel';
+import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 
 const astTypeMap = [
     { type: AccessKeyed, name: 'AccessKeyed' },
@@ -398,6 +398,48 @@ function escape(ch) {
     }
 }
 
+const marker = {
+    name: 'marker',
+    params: PLATFORM.emptyArray,
+    depth: -1,
+    prev: null,
+    next: null
+};
+class TraceInfo {
+    constructor(name, params) {
+        this.name = name;
+        this.depth = TraceInfo.stack.length;
+        this.params = params;
+        this.next = marker;
+        this.prev = TraceInfo.tail;
+        TraceInfo.tail.next = this;
+        TraceInfo.tail = this;
+        TraceInfo.stack.push(this);
+    }
+    static reset() {
+        let current = TraceInfo.head;
+        let next = null;
+        while (current !== null) {
+            next = current.next;
+            current.next = null;
+            current.prev = null;
+            current.params = null;
+            current = next;
+        }
+        TraceInfo.head = marker;
+        TraceInfo.tail = marker;
+        TraceInfo.stack = [];
+    }
+    static enter(name, params) {
+        return new TraceInfo(name, params);
+    }
+    static leave() {
+        return TraceInfo.stack.pop();
+    }
+}
+TraceInfo.head = marker;
+TraceInfo.tail = marker;
+TraceInfo.stack = [];
 const Reporter$1 = Object.assign({}, Reporter, { write(code, ...params) {
         const info = getMessageInfoForCode(code);
         // tslint:disable:no-console
@@ -421,6 +463,79 @@ const Reporter$1 = Object.assign({}, Reporter, { write(code, ...params) {
         const error = new Error(info.message);
         error.data = params;
         return error;
+    } });
+const Tracer$1 = Object.assign({}, Tracer, { 
+    /**
+     * A convenience property for the user to conditionally call the tracer.
+     * This saves unnecessary `noop` and `slice` calls in non-AOT scenarios even if debugging is disabled.
+     * In AOT these calls will simply be removed entirely.
+     *
+     * This property **only** turns on tracing if `@aurelia/debug` is included and configured as well.
+     */
+    enabled: false, liveLoggingEnabled: false, liveWriter: null, 
+    /**
+     * Call this at the start of a method/function.
+     * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
+     * @param name Any human-friendly name to identify the traced method with.
+     * @param args Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
+     */
+    enter(name, args) {
+        if (this.enabled) {
+            const info = TraceInfo.enter(name, args);
+            if (this.liveLoggingEnabled) {
+                this.liveWriter.write(info);
+            }
+        }
+    },
+    /**
+     * Call this at the end of a method/function. Pops one trace item off the stack.
+     */
+    leave() {
+        if (this.enabled) {
+            TraceInfo.leave();
+        }
+    },
+    /**
+     * Writes only the trace info leading up to the current method call.
+     * @param writer An object to write the output to.
+     */
+    writeStack(writer) {
+        let i = 0;
+        const stack = TraceInfo.stack;
+        const len = stack.length;
+        while (i < len) {
+            writer.write(stack[i]);
+            ++i;
+        }
+    },
+    /**
+     * Writes all trace info captured since the previous flushAll operation.
+     * @param writer An object to write the output to. Can be null to simply reset the tracer state.
+     */
+    flushAll(writer) {
+        if (writer !== null) {
+            let current = TraceInfo.head.next; // skip the marker
+            while (current !== null && current !== marker) {
+                writer.write(current);
+                current = current.next;
+            }
+        }
+        TraceInfo.reset();
+    },
+    /**
+     * Writes out each trace info item as they are traced.
+     * @param writer An object to write the output to.
+     */
+    enableLiveLogging(writer) {
+        this.liveLoggingEnabled = true;
+        this.liveWriter = writer;
+    },
+    /**
+     * Stops writing out each trace info item as they are traced.
+     */
+    disableLiveLogging() {
+        this.liveLoggingEnabled = false;
+        this.liveWriter = null;
     } });
 function getMessageInfoForCode(code) {
     return codeLookup[code] || createInvalidCodeMessageInfo(code);
@@ -593,6 +708,11 @@ const DebugConfiguration = {
         enableImprovedExpressionDebugging();
     }
 };
+const TraceConfiguration = {
+    register(container) {
+        Object.assign(Tracer, Tracer$1);
+    }
+};
 
-export { enableImprovedExpressionDebugging, adoptDebugMethods, Unparser, Serializer, DebugConfiguration, Reporter$1 as Reporter };
+export { enableImprovedExpressionDebugging, adoptDebugMethods, Unparser, Serializer, DebugConfiguration, TraceConfiguration, Reporter$1 as Reporter, Tracer$1 as Tracer };
 //# sourceMappingURL=index.es6.js.map

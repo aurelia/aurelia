@@ -83,6 +83,48 @@ var au = (function (exports) {
       write(code, ...params) { return; },
       error(code, ...params) { return new Error(`Code ${code}`); }
   };
+  const Tracer = {
+      /**
+       * A convenience property for the user to conditionally call the tracer.
+       * This saves unnecessary `noop` and `slice` calls in non-AOT scenarios even if debugging is disabled.
+       * In AOT these calls will simply be removed entirely.
+       *
+       * This property **only** turns on tracing if `@aurelia/debug` is included and configured as well.
+       */
+      enabled: false,
+      liveLoggingEnabled: false,
+      liveWriter: null,
+      /**
+       * Call this at the start of a method/function.
+       * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
+       * @param name Any human-friendly name to identify the traced method with.
+       * @param args Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
+       */
+      enter(name, args) { return; },
+      /**
+       * Call this at the end of a method/function. Pops one trace item off the stack.
+       */
+      leave() { return; },
+      /**
+       * Writes only the trace info leading up to the current method call.
+       * @param writer An object to write the output to.
+       */
+      writeStack(writer) { return; },
+      /**
+       * Writes all trace info captured since the previous flushAll operation.
+       * @param writer An object to write the output to. Can be null to simply reset the tracer state.
+       */
+      flushAll(writer) { return; },
+      /**
+       * Writes out each trace info item as they are traced.
+       * @param writer An object to write the output to.
+       */
+      enableLiveLogging(writer) { return; },
+      /**
+       * Stops writing out each trace info item as they are traced.
+       */
+      disableLiveLogging() { return; }
+  };
 
   // Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
   // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
@@ -674,7 +716,8 @@ var au = (function (exports) {
     fallbackInvoker: fallbackInvoker,
     invokeWithDynamicDependencies: invokeWithDynamicDependencies,
     PLATFORM: PLATFORM,
-    Reporter: Reporter
+    Reporter: Reporter,
+    Tracer: Tracer
   });
 
   /*! *****************************************************************************
@@ -730,7 +773,88 @@ var au = (function (exports) {
       // this flag is for the synchronous flush before detach (no point in updating the
       // DOM if it's about to be detached)
       LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 2097152] = "doNotUpdateDOM";
+      LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 4194304] = "isTraversingParentScope";
+      // Bitmask for flags that need to be stored on a binding during $bind for mutation
+      // callbacks outside of $bind
+      LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 8388608] = "persistentBindingFlags";
+      LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 8388608] = "allowParentScopeTraversal";
   })(LifecycleFlags || (LifecycleFlags = {}));
+  function stringifyLifecycleFlags(flags) {
+      const flagNames = [];
+      if (flags & LifecycleFlags.mustEvaluate) {
+          flagNames.push('mustEvaluate');
+      }
+      if (flags & LifecycleFlags.isCollectionMutation) {
+          flagNames.push('isCollectionMutation');
+      }
+      if (flags & LifecycleFlags.isInstanceMutation) {
+          flagNames.push('isInstanceMutation');
+      }
+      if (flags & LifecycleFlags.updateTargetObserver) {
+          flagNames.push('updateTargetObserver');
+      }
+      if (flags & LifecycleFlags.updateTargetInstance) {
+          flagNames.push('updateTargetInstance');
+      }
+      if (flags & LifecycleFlags.updateSourceExpression) {
+          flagNames.push('updateSourceExpression');
+      }
+      if (flags & LifecycleFlags.fromAsyncFlush) {
+          flagNames.push('fromAsyncFlush');
+      }
+      if (flags & LifecycleFlags.fromSyncFlush) {
+          flagNames.push('fromSyncFlush');
+      }
+      if (flags & LifecycleFlags.fromStartTask) {
+          flagNames.push('fromStartTask');
+      }
+      if (flags & LifecycleFlags.fromStopTask) {
+          flagNames.push('fromStopTask');
+      }
+      if (flags & LifecycleFlags.fromBind) {
+          flagNames.push('fromBind');
+      }
+      if (flags & LifecycleFlags.fromUnbind) {
+          flagNames.push('fromUnbind');
+      }
+      if (flags & LifecycleFlags.fromAttach) {
+          flagNames.push('fromAttach');
+      }
+      if (flags & LifecycleFlags.fromDetach) {
+          flagNames.push('fromDetach');
+      }
+      if (flags & LifecycleFlags.fromCache) {
+          flagNames.push('fromCache');
+      }
+      if (flags & LifecycleFlags.fromCreate) {
+          flagNames.push('fromCreate');
+      }
+      if (flags & LifecycleFlags.fromDOMEvent) {
+          flagNames.push('fromDOMEvent');
+      }
+      if (flags & LifecycleFlags.fromObserverSetter) {
+          flagNames.push('fromObserverSetter');
+      }
+      if (flags & LifecycleFlags.fromBindableHandler) {
+          flagNames.push('fromBindableHandler');
+      }
+      if (flags & LifecycleFlags.fromLifecycleTask) {
+          flagNames.push('fromLifecycleTask');
+      }
+      if (flags & LifecycleFlags.parentUnmountQueued) {
+          flagNames.push('parentUnmountQueued');
+      }
+      if (flags & LifecycleFlags.doNotUpdateDOM) {
+          flagNames.push('doNotUpdateDOM');
+      }
+      if (flags & LifecycleFlags.isTraversingParentScope) {
+          flagNames.push('isTraversingParentScope');
+      }
+      if (flags & LifecycleFlags.allowParentScopeTraversal) {
+          flagNames.push('allowParentScopeTraversal');
+      }
+      return flagNames.join('|');
+  }
   /**
    * Mostly just a marker enum to help with typings (specifically to reduce duplication)
    */
@@ -740,6 +864,7 @@ var au = (function (exports) {
       MutationKind[MutationKind["collection"] = 2] = "collection";
   })(MutationKind || (MutationKind = {}));
 
+  const slice = Array.prototype.slice;
   const IRenderable = DI.createInterface().noDefault();
   const IViewFactory = DI.createInterface().noDefault();
   const marker = Object.freeze(Object.create(null));
@@ -825,6 +950,9 @@ var au = (function (exports) {
           }
       }
       enqueueFlush(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueFlush', slice.call(arguments));
+          }
           // Queue a flush() callback; the depth is just for debugging / testing purposes and has
           // no effect on execution. flush() will automatically be invoked when the promise resolves,
           // or it can be manually invoked synchronously.
@@ -837,9 +965,15 @@ var au = (function (exports) {
               this.flushTail = requestor;
               ++this.flushCount;
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return this.flushed;
       }
       processFlushQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processFlushQueue', slice.call(arguments));
+          }
           flags |= LifecycleFlags.fromSyncFlush;
           // flush callbacks may lead to additional flush operations, so keep looping until
           // the flush head is back to `this` (though this will typically happen in the first iteration)
@@ -863,11 +997,23 @@ var au = (function (exports) {
                   break;
               }
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       beginBind() {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.beginBind', slice.call(arguments));
+          }
           ++this.bindDepth;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       enqueueBound(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueBound', slice.call(arguments));
+          }
           // build a standard singly linked list for bound callbacks
           if (requestor.$nextBound === null) {
               requestor.$nextBound = marker;
@@ -875,8 +1021,14 @@ var au = (function (exports) {
               this.boundTail = requestor;
               ++this.boundCount;
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       enqueueConnect(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueConnect', slice.call(arguments));
+          }
           // enqueue connect and patch calls in separate lists so that they can be invoked
           // independently from eachother
           // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path
@@ -895,8 +1047,14 @@ var au = (function (exports) {
               this.patchTail = requestor;
               ++this.patchCount;
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       processConnectQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processConnectQueue', slice.call(arguments));
+          }
           // connects cannot lead to additional connects, so we don't need to loop here
           if (this.connectCount > 0) {
               this.connectCount = 0;
@@ -910,8 +1068,14 @@ var au = (function (exports) {
                   current = next;
               } while (current !== marker);
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       processPatchQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processPatchQueue', slice.call(arguments));
+          }
           // flush before patching, but only if this is the initial bind;
           // no DOM is attached yet so we can safely let everything propagate
           if (flags & LifecycleFlags.fromStartTask) {
@@ -931,19 +1095,37 @@ var au = (function (exports) {
                   current = next;
               } while (current !== marker);
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       endBind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.endBind', slice.call(arguments));
+          }
           // close / shrink a bind batch
           if (--this.bindDepth === 0) {
               if (this.task !== null && !this.task.done) {
                   this.task.owner = this;
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return this.task;
               }
               this.processBindQueue(flags);
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return LifecycleTask.done;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
       }
       processBindQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processBindQueue', slice.call(arguments));
+          }
           // flush before processing bound callbacks, but only if this is the initial bind;
           // no DOM is attached yet so we can safely let everything propagate
           if (flags & LifecycleFlags.fromStartTask) {
@@ -963,12 +1145,24 @@ var au = (function (exports) {
                   current = next;
               } while (current !== marker);
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       beginUnbind() {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.beginUnbind', slice.call(arguments));
+          }
           // open up / expand an unbind batch; the very first caller will close it again with endUnbind
           ++this.unbindDepth;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       enqueueUnbound(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueUnbound', slice.call(arguments));
+          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for unbound callbacks
@@ -978,19 +1172,37 @@ var au = (function (exports) {
               this.unboundTail = requestor;
               ++this.unboundCount;
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       endUnbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.endUnbind', slice.call(arguments));
+          }
           // close / shrink an unbind batch
           if (--this.unbindDepth === 0) {
               if (this.task !== null && !this.task.done) {
                   this.task.owner = this;
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return this.task;
               }
               this.processUnbindQueue(flags);
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return LifecycleTask.done;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
       }
       processUnbindQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processUnbindQueue', slice.call(arguments));
+          }
           // unbound callbacks may lead to additional unbind operations, so keep looping until
           // the unbound head is back to `this` (though this will typically happen in the first iteration)
           while (this.unboundCount > 0) {
@@ -1005,12 +1217,24 @@ var au = (function (exports) {
                   current = next;
               } while (current !== marker);
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       beginAttach() {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.beginAttach', slice.call(arguments));
+          }
           // open up / expand an attach batch; the very first caller will close it again with endAttach
           ++this.attachDepth;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       enqueueMount(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueMount', slice.call(arguments));
+          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for mount callbacks
@@ -1020,8 +1244,14 @@ var au = (function (exports) {
               this.mountTail = requestor;
               ++this.mountCount;
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       enqueueAttached(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueAttached', slice.call(arguments));
+          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for attached callbacks
@@ -1031,19 +1261,37 @@ var au = (function (exports) {
               this.attachedTail = requestor;
               ++this.attachedCount;
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       endAttach(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.endAttach', slice.call(arguments));
+          }
           // close / shrink an attach batch
           if (--this.attachDepth === 0) {
               if (this.task !== null && !this.task.done) {
                   this.task.owner = this;
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return this.task;
               }
               this.processAttachQueue(flags);
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return LifecycleTask.done;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
       }
       processAttachQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processAttachQueue', slice.call(arguments));
+          }
           // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
           // and the DOM is updated
           this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
@@ -1080,12 +1328,24 @@ var au = (function (exports) {
                   currentAttached = nextAttached;
               } while (currentAttached !== marker);
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       beginDetach() {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.beginDetach', slice.call(arguments));
+          }
           // open up / expand a detach batch; the very first caller will close it again with endDetach
           ++this.detachDepth;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       enqueueUnmount(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueUnmount', slice.call(arguments));
+          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for unmount callbacks
@@ -1095,8 +1355,14 @@ var au = (function (exports) {
               this.unmountTail = requestor;
               ++this.unmountCount;
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       enqueueDetached(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueDetached', slice.call(arguments));
+          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for detached callbacks
@@ -1106,8 +1372,14 @@ var au = (function (exports) {
               this.detachedTail = requestor;
               ++this.detachedCount;
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       enqueueUnbindAfterDetach(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueUnbindAfterDetach', slice.call(arguments));
+          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for unbindAfterDetach callbacks
@@ -1117,8 +1389,14 @@ var au = (function (exports) {
               this.unbindAfterDetachTail = requestor;
               ++this.unbindAfterDetachCount;
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       endDetach(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.endDetach', slice.call(arguments));
+          }
           // close / shrink a detach batch
           if (--this.detachDepth === 0) {
               if (this.task !== null && !this.task.done) {
@@ -1126,10 +1404,19 @@ var au = (function (exports) {
                   return this.task;
               }
               this.processDetachQueue(flags);
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return LifecycleTask.done;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
       }
       processDetachQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processDetachQueue', slice.call(arguments));
+          }
           // flush before unmounting to ensure batched collection changes propagate to the repeaters,
           // which may lead to additional unmount operations
           this.processFlushQueue(flags | LifecycleFlags.fromFlush | LifecycleFlags.doNotUpdateDOM);
@@ -1170,6 +1457,9 @@ var au = (function (exports) {
                   currentUnbind = nextUnbind;
               } while (currentUnbind !== marker);
               this.endUnbind(flags);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
       }
   }
@@ -1528,24 +1818,19 @@ var au = (function (exports) {
       define
   };
 
-  const ELEMENT_NODE = 1;
-  const ATTRIBUTE_NODE = 2;
-  const TEXT_NODE = 3;
-  const COMMENT_NODE = 8;
-  const DOCUMENT_FRAGMENT_NODE = 11;
+  const INode = DI.createInterface().noDefault();
+  const IRenderLocation = DI.createInterface().noDefault();
+
+  const slice$1 = Array.prototype.slice;
   function isRenderLocation(node) {
       return node.textContent === 'au-end';
   }
-  const INode = DI.createInterface().noDefault();
-  const IEncapsulationSource = DI.createInterface().noDefault();
-  const IRenderLocation = DI.createInterface().noDefault();
-  // tslint:disable:no-any
   const DOM = {
       createDocumentFragment(markupOrNode) {
           if (markupOrNode === undefined || markupOrNode === null) {
               return document.createDocumentFragment();
           }
-          if (markupOrNode.nodeType > 0) {
+          if (DOM.isNodeInstance(markupOrNode)) {
               if (markupOrNode.content !== undefined) {
                   return markupOrNode.content;
               }
@@ -1556,11 +1841,11 @@ var au = (function (exports) {
           return DOM.createTemplate(markupOrNode).content;
       },
       createTemplate(markup) {
-          if (markup === undefined) {
+          if (markup === undefined || markup === null) {
               return document.createElement('template');
           }
           const template = document.createElement('template');
-          template.innerHTML = markup;
+          template.innerHTML = markup.toString();
           return template;
       },
       addClass(node, className) {
@@ -1596,9 +1881,9 @@ var au = (function (exports) {
       createComment(text) {
           return document.createComment(text);
       },
-      createElement(name) {
+      createElement: ((name) => {
           return document.createElement(name);
-      },
+      }),
       createNodeObserver(target, callback, options) {
           const observer = new MutationObserver(callback);
           observer.observe(target, options);
@@ -1616,37 +1901,23 @@ var au = (function (exports) {
       insertBefore(nodeToInsert, referenceNode) {
           referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
       },
-      isAllWhitespace(node) {
-          if (node.auInterpolationTarget === true) {
-              return false;
-          }
-          const text = node.textContent;
-          const len = text.length;
-          let i = 0;
-          // for perf benchmark of this compared to the regex method: http://jsben.ch/p70q2 (also a general case against using regex)
-          while (i < len) {
-              // charCodes 0-0x20(32) can all be considered whitespace (non-whitespace chars in this range don't have a visual representation anyway)
-              if (text.charCodeAt(i) > 0x20) {
-                  return false;
-              }
-              i++;
-          }
-          return true;
+      isMarker(node) {
+          return node.nodeName === 'AU-M';
       },
       isCommentNodeType(node) {
-          return node.nodeType === COMMENT_NODE;
+          return node.nodeType === 8 /* Comment */;
       },
       isDocumentFragmentType(node) {
-          return node.nodeType === DOCUMENT_FRAGMENT_NODE;
+          return node.nodeType === 11 /* DocumentFragment */;
       },
       isElementNodeType(node) {
-          return node.nodeType === ELEMENT_NODE;
+          return node.nodeType === 1 /* Element */;
       },
       isNodeInstance(potentialNode) {
           return potentialNode.nodeType > 0;
       },
       isTextNodeType(node) {
-          return node.nodeType === TEXT_NODE;
+          return node.nodeType === 3 /* Text */;
       },
       migrateChildNodes(currentParent, newParent) {
           while (currentParent.firstChild) {
@@ -1683,10 +1954,6 @@ var au = (function (exports) {
       },
       setAttribute(node, name, value) {
           node.setAttribute(name, value);
-      },
-      treatAsNonWhitespace(node) {
-          // see isAllWhitespace above
-          node.auInterpolationTarget = true;
       }
   };
   // This is an implementation of INodeSequence that represents "no DOM" to render.
@@ -1855,8 +2122,7 @@ var au = (function (exports) {
                   const target = childNodes[0];
                   if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
                       const text = childNodes[1];
-                      if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
-                          text.textContent = '';
+                      if (text.nodeType === 3 /* Text */ && text.textContent.length === 0) {
                           this.deepClone = false;
                           this.node = text;
                           this.Type = TextNodeSequence;
@@ -1871,7 +2137,13 @@ var au = (function (exports) {
           }
       }
       static createFor(markupOrNode) {
+          if (Tracer.enabled) {
+              Tracer.enter('NodeSequenceFactory.createFor', slice$1.call(arguments));
+          }
           const fragment = DOM.createDocumentFragment(markupOrNode);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return new NodeSequenceFactory(fragment);
       }
       createNodeSequence() {
@@ -1895,7 +2167,7 @@ var au = (function (exports) {
       proto.lastChild = null;
       proto.childNodes = PLATFORM.emptyArray;
       proto.nodeName = 'AU-M';
-      proto.nodeType = ELEMENT_NODE;
+      proto.nodeType = 1 /* Element */;
   })(AuMarker.prototype);
 
   function subscriberCollection(mutationKind) {
@@ -2192,7 +2464,11 @@ var au = (function (exports) {
       return false;
   }
 
+  const slice$2 = Array.prototype.slice;
   function setValue(newValue, flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.setValue`, slice$2.call(arguments));
+      }
       const currentValue = this.currentValue;
       newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
       if (currentValue !== newValue) {
@@ -2203,15 +2479,27 @@ var au = (function (exports) {
           }
           else {
               this.currentFlags = flags;
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return this.lifecycle.enqueueFlush(this);
           }
+      }
+      if (Tracer.enabled) {
+          Tracer.leave();
       }
       return Promise.resolve();
   }
   function flush(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.flush`, slice$2.call(arguments));
+      }
       if ((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj)) {
           // re-queue the change so it will still propagate on flush when it's attached again
           this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return;
       }
       const currentValue = this.currentValue;
@@ -2220,6 +2508,9 @@ var au = (function (exports) {
       if (this.oldValue !== currentValue) {
           this.setValueCore(currentValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
           this.oldValue = this.currentValue;
+      }
+      if (Tracer.enabled) {
+          Tracer.leave();
       }
   }
   function dispose() {
@@ -2652,12 +2943,19 @@ var au = (function (exports) {
       propertyObserver()
   ], Observer);
 
+  const slice$3 = Array.prototype.slice;
   /** @internal */
   class InternalObserversLookup {
       getOrCreate(obj, key) {
+          if (Tracer.enabled) {
+              Tracer.enter('InternalObserversLookup.getOrCreate', slice$3.call(arguments));
+          }
           let observer = this[key];
           if (observer === undefined) {
               observer = this[key] = new SetterObserver(obj, key);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
           return observer;
       }
@@ -2683,7 +2981,10 @@ var au = (function (exports) {
       static create(keyOrObj, value) {
           return new BindingContext(keyOrObj, value);
       }
-      static get(scope, name, ancestor) {
+      static get(scope, name, ancestor, flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('BindingContext.get', slice$3.call(arguments));
+          }
           if (scope === undefined) {
               throw Reporter.error(250 /* UndefinedScope */);
           }
@@ -2695,10 +2996,16 @@ var au = (function (exports) {
               // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
               while (ancestor > 0) {
                   if (overrideContext.parentOverrideContext === null) {
+                      if (Tracer.enabled) {
+                          Tracer.leave();
+                      }
                       return undefined;
                   }
                   ancestor--;
                   overrideContext = overrideContext.parentOverrideContext;
+              }
+              if (Tracer.enabled) {
+                  Tracer.leave();
               }
               return name in overrideContext ? overrideContext : overrideContext.bindingContext;
           }
@@ -2707,16 +3014,50 @@ var au = (function (exports) {
               overrideContext = overrideContext.parentOverrideContext;
           }
           if (overrideContext) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               // we located a context with the property.  return it.
               return name in overrideContext ? overrideContext : overrideContext.bindingContext;
           }
-          // the name wasn't found.  return the root binding context.
+          // the name wasn't found. see if parent scope traversal is allowed and if so, try that
+          if ((flags & LifecycleFlags.allowParentScopeTraversal) && scope.parentScope !== null) {
+              const result = this.get(scope.parentScope, name, ancestor, flags
+                  // unset the flag; only allow one level of scope boundary traversal
+                  & ~LifecycleFlags.allowParentScopeTraversal
+                  // tell the scope to return null if the name could not be found
+                  | LifecycleFlags.isTraversingParentScope);
+              if (result !== null) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return result;
+              }
+          }
+          // still nothing found. return the root binding context (or null
+          // if this is a parent scope traversal, to ensure we fall back to the
+          // correct level)
+          if (flags & LifecycleFlags.isTraversingParentScope) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return null;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return scope.bindingContext || scope.overrideContext;
       }
       getObservers() {
+          if (Tracer.enabled) {
+              Tracer.enter('BindingContext.getObservers', slice$3.call(arguments));
+          }
           let observers = this.$observers;
           if (observers === undefined) {
               this.$observers = observers = new InternalObserversLookup();
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
           return observers;
       }
@@ -2725,19 +3066,38 @@ var au = (function (exports) {
       constructor(bindingContext, overrideContext) {
           this.bindingContext = bindingContext;
           this.overrideContext = overrideContext;
+          this.parentScope = null;
       }
       static create(bc, oc) {
+          if (Tracer.enabled) {
+              Tracer.enter('Scope.create', slice$3.call(arguments));
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc) : oc);
       }
       static fromOverride(oc) {
+          if (Tracer.enabled) {
+              Tracer.enter('Scope.fromOverride', slice$3.call(arguments));
+          }
           if (oc === null || oc === undefined) {
               throw Reporter.error(252 /* NilOverrideContext */);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
           return new Scope(oc.bindingContext, oc);
       }
       static fromParent(ps, bc) {
+          if (Tracer.enabled) {
+              Tracer.enter('Scope.fromParent', slice$3.call(arguments));
+          }
           if (ps === null || ps === undefined) {
               throw Reporter.error(253 /* NilParentScope */);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
           return new Scope(bc, OverrideContext.create(bc, ps.overrideContext));
       }
@@ -2749,12 +3109,24 @@ var au = (function (exports) {
           this.parentOverrideContext = parentOverrideContext;
       }
       static create(bc, poc) {
+          if (Tracer.enabled) {
+              Tracer.enter('OverrideContext.create', slice$3.call(arguments));
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return new OverrideContext(bc, poc === undefined ? null : poc);
       }
       getObservers() {
+          if (Tracer.enabled) {
+              Tracer.enter('OverrideContext.getObservers', slice$3.call(arguments));
+          }
           let observers = this.$observers;
           if (observers === undefined) {
               this.$observers = observers = new InternalObserversLookup();
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
           return observers;
       }
@@ -3113,16 +3485,16 @@ var au = (function (exports) {
       }
       evaluate(flags, scope, locator) {
           const name = this.name;
-          return BindingContext.get(scope, name, this.ancestor)[name];
+          return BindingContext.get(scope, name, this.ancestor, flags)[name];
       }
       assign(flags, scope, locator, value) {
           const name = this.name;
-          const context = BindingContext.get(scope, name, this.ancestor);
+          const context = BindingContext.get(scope, name, this.ancestor, flags);
           return context ? (context[name] = value) : undefined;
       }
       connect(flags, scope, binding) {
           const name = this.name;
-          const context = BindingContext.get(scope, name, this.ancestor);
+          const context = BindingContext.get(scope, name, this.ancestor, flags);
           binding.observeProperty(context, name);
       }
       accept(visitor) {
@@ -3207,7 +3579,7 @@ var au = (function (exports) {
       }
       evaluate(flags, scope, locator) {
           const args = evalList(flags, scope, locator, this.args);
-          const context = BindingContext.get(scope, this.name, this.ancestor);
+          const context = BindingContext.get(scope, this.name, this.ancestor, flags);
           const func = getFunction(flags, context, this.name);
           if (func) {
               return func.apply(context, args);
@@ -3811,6 +4183,7 @@ var au = (function (exports) {
   };
 
   // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
+  const slice$4 = Array.prototype.slice;
   const slotNames = [];
   const versionSlotNames = [];
   let lastSlot = -1;
@@ -3854,6 +4227,9 @@ var au = (function (exports) {
   }
   /** @internal */
   function observeProperty(obj, propertyName) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.observeProperty`, slice$4.call(arguments));
+      }
       const observer = this.observerLocator.getObserver(obj, propertyName);
       /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
        *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -3863,6 +4239,9 @@ var au = (function (exports) {
        * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
        */
       this.addObserver(observer);
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function unobserve(all$$1) {
@@ -3907,6 +4286,7 @@ var au = (function (exports) {
       return target === undefined ? connectableDecorator : connectableDecorator(target);
   }
 
+  const slice$5 = Array.prototype.slice;
   // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
   const { oneTime: oneTime$1, toView: toView$1, fromView: fromView$1 } = BindingMode;
   // pre-combining flags for bitwise checks is a minor perf tweak
@@ -3928,18 +4308,27 @@ var au = (function (exports) {
           this.targetProperty = targetProperty;
       }
       updateTarget(value, flags) {
+          flags |= this.persistentFlags;
           this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
       }
       updateSource(value, flags) {
+          flags |= this.persistentFlags;
           this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
       }
       handleChange(newValue, _previousValue, flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Binding.handleChange', slice$5.call(arguments));
+          }
           if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           const sourceExpression = this.sourceExpression;
           const $scope = this.$scope;
           const locator = this.locator;
+          flags |= this.persistentFlags;
           if (flags & LifecycleFlags.updateTargetInstance) {
               const targetObserver = this.targetObserver;
               const mode = this.mode;
@@ -3956,25 +4345,40 @@ var au = (function (exports) {
                   sourceExpression.connect(flags, $scope, this);
                   this.unobserve(false);
               }
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           if (flags & LifecycleFlags.updateSourceExpression) {
               if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
                   this.updateSource(newValue, flags);
               }
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           throw Reporter.error(15, LifecycleFlags[flags]);
       }
       $bind(flags, scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('Binding.$bind', slice$5.call(arguments));
+          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return;
               }
               this.$unbind(flags | LifecycleFlags.fromBind);
           }
           // add isBinding flag
           this.$state |= 1 /* isBinding */;
+          // Store flags which we can only receive during $bind and need to pass on
+          // to the AST during evaluate/connect/assign
+          this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
           this.$scope = scope;
           let sourceExpression = this.sourceExpression;
           if (hasBind(sourceExpression)) {
@@ -4007,13 +4411,24 @@ var au = (function (exports) {
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       $unbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Binding.$unbind', slice$5.call(arguments));
+          }
           if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           // add isUnbinding flag
           this.$state |= 64 /* isUnbinding */;
+          // clear persistent flags
+          this.persistentFlags = LifecycleFlags.none;
           const sourceExpression = this.sourceExpression;
           if (hasUnbind(sourceExpression)) {
               sourceExpression.unbind(flags, this.$scope, this);
@@ -4029,15 +4444,32 @@ var au = (function (exports) {
           this.unobserve(true);
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       connect(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Binding.connect', slice$5.call(arguments));
+          }
           if (this.$state & 2 /* isBound */) {
+              flags |= this.persistentFlags;
               this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
       }
       patch(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Binding.patch', slice$5.call(arguments));
+          }
           if (this.$state & 2 /* isBound */) {
+              flags |= this.persistentFlags;
               this.updateTarget(this.sourceExpression.evaluate(flags | LifecycleFlags.mustEvaluate, this.$scope, this.locator), flags);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
       }
   };
@@ -4512,9 +4944,19 @@ var au = (function (exports) {
       bindingBehavior('throttle')
   ], ThrottleBindingBehavior);
 
+  const slice$6 = Array.prototype.slice;
   function flush$1() {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.flush`, slice$6.call(arguments));
+      }
       this.callBatchedSubscribers(this.indexMap);
+      if (!!this.lengthObserver) {
+          this.lengthObserver.patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+      }
       this.resetIndexMap();
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   function dispose$2() {
       this.collection.$observer = undefined;
@@ -4574,6 +5016,10 @@ var au = (function (exports) {
       }
       setValueCore(newValue) {
           this.obj[this.propertyKey] = newValue;
+      }
+      patch(flags) {
+          this.callSubscribers(this.obj[this.propertyKey], this.currentValue, flags);
+          this.currentValue = this.obj[this.propertyKey];
       }
       subscribe(subscriber) {
           this.addSubscriber(subscriber);
@@ -6123,6 +6569,7 @@ var au = (function (exports) {
       inject(IObserverLocator)
   ], UpdateTriggerBindingBehavior);
 
+  const slice$7 = Array.prototype.slice;
   class Call {
       constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
           this.$nextBind = null;
@@ -6133,17 +6580,29 @@ var au = (function (exports) {
           this.targetObserver = observerLocator.getObserver(target, targetProperty);
       }
       callSource(args) {
+          if (Tracer.enabled) {
+              Tracer.enter('Call.callSource', slice$7.call(arguments));
+          }
           const overrideContext = this.$scope.overrideContext;
           Object.assign(overrideContext, args);
           const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
           for (const prop in args) {
               delete overrideContext[prop];
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return result;
       }
       $bind(flags, scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('Call.$bind', slice$7.call(arguments));
+          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return;
               }
               this.$unbind(flags | LifecycleFlags.fromBind);
@@ -6159,9 +6618,18 @@ var au = (function (exports) {
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       $unbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Call.$unbind', slice$7.call(arguments));
+          }
           if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           // add isUnbinding flag
@@ -6174,6 +6642,9 @@ var au = (function (exports) {
           this.targetObserver.setValue(null, flags);
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       observeProperty(obj, propertyName) {
           return;
@@ -6391,6 +6862,7 @@ var au = (function (exports) {
       connectable()
   ], InterpolationBinding);
 
+  const slice$8 = Array.prototype.slice;
   let LetBinding = class LetBinding {
       constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
           this.$nextBind = null;
@@ -6406,7 +6878,13 @@ var au = (function (exports) {
           this.toViewModel = toViewModel;
       }
       handleChange(_newValue, _previousValue, flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('LetBinding.handleChange', slice$8.call(arguments));
+          }
           if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           if (flags & LifecycleFlags.updateTargetInstance) {
@@ -6416,13 +6894,22 @@ var au = (function (exports) {
               if (newValue !== previousValue) {
                   target[targetProperty] = newValue;
               }
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           throw Reporter.error(15, flags);
       }
       $bind(flags, scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('LetBinding.$bind', slice$8.call(arguments));
+          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return;
               }
               this.$unbind(flags | LifecycleFlags.fromBind);
@@ -6441,9 +6928,18 @@ var au = (function (exports) {
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       $unbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('LetBinding.$unbind', slice$8.call(arguments));
+          }
           if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           // add isUnbinding flag
@@ -6456,12 +6952,16 @@ var au = (function (exports) {
           this.unobserve(true);
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   LetBinding = __decorate([
       connectable()
   ], LetBinding);
 
+  const slice$9 = Array.prototype.slice;
   class Listener {
       constructor(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
           this.$nextBind = null;
@@ -6476,6 +6976,9 @@ var au = (function (exports) {
           this.eventManager = eventManager;
       }
       callSource(event) {
+          if (Tracer.enabled) {
+              Tracer.enter('Listener.callSource', slice$9.call(arguments));
+          }
           const overrideContext = this.$scope.overrideContext;
           overrideContext['$event'] = event;
           const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
@@ -6483,14 +6986,23 @@ var au = (function (exports) {
           if (result !== true && this.preventDefault) {
               event.preventDefault();
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return result;
       }
       handleEvent(event) {
           this.callSource(event);
       }
       $bind(flags, scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('Listener.$bind', slice$9.call(arguments));
+          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return;
               }
               this.$unbind(flags | LifecycleFlags.fromBind);
@@ -6506,9 +7018,18 @@ var au = (function (exports) {
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       $unbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Listener.$unbind', slice$9.call(arguments));
+          }
           if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           // add isUnbinding flag
@@ -6522,6 +7043,9 @@ var au = (function (exports) {
           this.handler = null;
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       observeProperty(obj, propertyName) {
           return;
@@ -6531,6 +7055,7 @@ var au = (function (exports) {
       }
   }
 
+  const slice$a = Array.prototype.slice;
   class Ref {
       constructor(sourceExpression, target, locator) {
           this.$nextBind = null;
@@ -6541,8 +7066,14 @@ var au = (function (exports) {
           this.target = target;
       }
       $bind(flags, scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('Ref.$bind', slice$a.call(arguments));
+          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return;
               }
               this.$unbind(flags | LifecycleFlags.fromBind);
@@ -6558,9 +7089,18 @@ var au = (function (exports) {
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       $unbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Ref.$unbind', slice$a.call(arguments));
+          }
           if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           // add isUnbinding flag
@@ -6575,6 +7115,9 @@ var au = (function (exports) {
           this.$scope = null;
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       observeProperty(obj, propertyName) {
           return;
@@ -6600,7 +7143,7 @@ var au = (function (exports) {
   function customAttributeKey(name) {
       return `${customAttributeName}:${name}`;
   }
-  const instructionTypeValues = 'abcdefghijkl';
+  const instructionTypeValues = 'abcdefghijklmno';
   const ITargetedInstruction = DI.createInterface();
   function isTargetedInstruction(value) {
       const type = value.type;
@@ -6767,6 +7310,7 @@ var au = (function (exports) {
       return decorator;
   }
 
+  const slice$b = Array.prototype.slice;
   function createElement(tagOrType, props, children) {
       if (typeof tagOrType === 'string') {
           return createElementForTag(tagOrType, props, children);
@@ -6802,6 +7346,9 @@ var au = (function (exports) {
       }
   }
   function createElementForTag(tagName, props, children) {
+      if (Tracer.enabled) {
+          Tracer.enter('createElementForTag', slice$b.call(arguments));
+      }
       const instructions = [];
       const allInstructions = [];
       const dependencies = [];
@@ -6827,9 +7374,15 @@ var au = (function (exports) {
       if (children) {
           addChildren(element, children, allInstructions, dependencies);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
       return new RenderPlan(element, allInstructions, dependencies);
   }
   function createElementForType(Type, props, children) {
+      if (Tracer.enabled) {
+          Tracer.enter('createElementForType', slice$b.call(arguments));
+      }
       const tagName = Type.description.name;
       const instructions = [];
       const allInstructions = [instructions];
@@ -6875,27 +7428,40 @@ var au = (function (exports) {
       if (children) {
           addChildren(element, children, allInstructions, dependencies);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
       return new RenderPlan(element, allInstructions, dependencies);
   }
   function addChildren(parent, children, allInstructions, dependencies) {
       for (let i = 0, ii = children.length; i < ii; ++i) {
           const current = children[i];
-          if (typeof current === 'string') {
-              DOM.appendChild(parent, DOM.createTextNode(current));
-          }
-          else if (DOM.isNodeInstance(current)) {
-              DOM.appendChild(parent, current);
-          }
-          else {
-              current.mergeInto(parent, allInstructions, dependencies);
+          switch (typeof current) {
+              case 'string':
+                  DOM.appendChild(parent, DOM.createTextNode(current));
+                  break;
+              case 'object':
+                  if (DOM.isNodeInstance(current)) {
+                      DOM.appendChild(parent, current);
+                  }
+                  else if ('mergeInto' in current) {
+                      current.mergeInto(parent, allInstructions, dependencies);
+                  }
           }
       }
   }
 
+  const slice$c = Array.prototype.slice;
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $attachAttribute(flags, encapsulationSource) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$attachAttribute`, slice$c.call(arguments));
+      }
       if (this.$state & 8 /* isAttached */) {
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return;
       }
       const lifecycle = this.$lifecycle;
@@ -6914,11 +7480,20 @@ var au = (function (exports) {
           lifecycle.enqueueAttached(this);
       }
       lifecycle.endAttach(flags);
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $attachElement(flags, encapsulationSource) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$attachElement`, slice$c.call(arguments));
+      }
       if (this.$state & 8 /* isAttached */) {
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return;
       }
       const lifecycle = this.$lifecycle;
@@ -6944,10 +7519,19 @@ var au = (function (exports) {
           lifecycle.enqueueAttached(this);
       }
       lifecycle.endAttach(flags);
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $attachView(flags, encapsulationSource) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$attachView`, slice$c.call(arguments));
+      }
       if (this.$state & 8 /* isAttached */) {
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return;
       }
       // add isAttaching flag
@@ -6962,10 +7546,16 @@ var au = (function (exports) {
       // add isAttached flag, remove isAttaching flag
       this.$state |= 8 /* isAttached */;
       this.$state &= ~4 /* isAttaching */;
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $detachAttribute(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$detachAttribute`, slice$c.call(arguments));
+      }
       if (this.$state & 8 /* isAttached */) {
           const lifecycle = this.$lifecycle;
           lifecycle.beginDetach();
@@ -6983,10 +7573,16 @@ var au = (function (exports) {
           }
           lifecycle.endDetach(flags);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $detachElement(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$detachElement`, slice$c.call(arguments));
+      }
       if (this.$state & 8 /* isAttached */) {
           const lifecycle = this.$lifecycle;
           lifecycle.beginDetach();
@@ -7016,9 +7612,15 @@ var au = (function (exports) {
           }
           lifecycle.endDetach(flags);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $detachView(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$detachView`, slice$c.call(arguments));
+      }
       if (this.$state & 8 /* isAttached */) {
           // add isDetaching flag
           this.$state |= 32 /* isDetaching */;
@@ -7038,16 +7640,28 @@ var au = (function (exports) {
           // remove isAttached and isDetaching flags
           this.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $cacheAttribute(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$cacheAttribute`, slice$c.call(arguments));
+      }
       flags |= LifecycleFlags.fromCache;
       if (this.$hooks & 2048 /* hasCaching */) {
           this.caching(flags);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $cacheElement(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$cacheElement`, slice$c.call(arguments));
+      }
       flags |= LifecycleFlags.fromCache;
       if (this.$hooks & 2048 /* hasCaching */) {
           this.caching(flags);
@@ -7057,9 +7671,15 @@ var au = (function (exports) {
           current.$cache(flags);
           current = current.$prevAttach;
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $cacheView(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$cacheView`, slice$c.call(arguments));
+      }
       flags |= LifecycleFlags.fromCache;
       let current = this.$attachableTail;
       while (current !== null) {
@@ -7069,27 +7689,48 @@ var au = (function (exports) {
   }
   /** @internal */
   function $mountElement(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$mountElement`, slice$c.call(arguments));
+      }
       if (!(this.$state & 16 /* isMounted */)) {
           this.$state |= 16 /* isMounted */;
           this.$projector.project(this.$nodes);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $unmountElement(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$unmountElement`, slice$c.call(arguments));
+      }
       if (this.$state & 16 /* isMounted */) {
           this.$state &= ~16 /* isMounted */;
           this.$projector.take(this.$nodes);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $mountView(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$mountView`, slice$c.call(arguments));
+      }
       if (!(this.$state & 16 /* isMounted */)) {
           this.$state |= 16 /* isMounted */;
           this.$nodes.insertBefore(this.location);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $unmountView(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$unmountView`, slice$c.call(arguments));
+      }
       if (this.$state & 16 /* isMounted */) {
           this.$state &= ~16 /* isMounted */;
           this.$nodes.remove();
@@ -7097,19 +7738,35 @@ var au = (function (exports) {
               this.isFree = false;
               if (this.cache.tryReturnToCache(this)) {
                   this.$state |= 128 /* isCached */;
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return true;
               }
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return false;
+      }
+      if (Tracer.enabled) {
+          Tracer.leave();
       }
       return false;
   }
 
+  const slice$d = Array.prototype.slice;
   /** @internal */
   function $bindAttribute(flags, scope) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$bindAttribute`, slice$d.call(arguments));
+      }
       flags |= LifecycleFlags.fromBind;
       if (this.$state & 2 /* isBound */) {
           if (this.$scope === scope) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           this.$unbind(flags);
@@ -7130,12 +7787,23 @@ var au = (function (exports) {
       this.$state |= 2 /* isBound */;
       this.$state &= ~1 /* isBinding */;
       lifecycle.endBind(flags);
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
-  function $bindElement(flags) {
+  function $bindElement(flags, parentScope) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$bindElement`, slice$d.call(arguments));
+      }
       if (this.$state & 2 /* isBound */) {
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return;
       }
+      const scope = this.$scope;
+      scope.parentScope = parentScope;
       const lifecycle = this.$lifecycle;
       lifecycle.beginBind();
       // add isBinding flag
@@ -7148,7 +7816,6 @@ var au = (function (exports) {
       if (hooks & 4 /* hasBinding */) {
           this.binding(flags);
       }
-      const scope = this.$scope;
       let current = this.$bindableHead;
       while (current !== null) {
           current.$bind(flags, scope);
@@ -7158,12 +7825,21 @@ var au = (function (exports) {
       this.$state |= 2 /* isBound */;
       this.$state &= ~1 /* isBinding */;
       lifecycle.endBind(flags);
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $bindView(flags, scope) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$bindView`, slice$d.call(arguments));
+      }
       flags |= LifecycleFlags.fromBind;
       if (this.$state & 2 /* isBound */) {
           if (this.$scope === scope) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return;
           }
           this.$unbind(flags);
@@ -7179,9 +7855,15 @@ var au = (function (exports) {
       // add isBound flag and remove isBinding flag
       this.$state |= 2 /* isBound */;
       this.$state &= ~1 /* isBinding */;
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $unbindAttribute(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$unbindAttribute`, slice$d.call(arguments));
+      }
       if (this.$state & 2 /* isBound */) {
           const lifecycle = this.$lifecycle;
           lifecycle.beginUnbind();
@@ -7199,9 +7881,15 @@ var au = (function (exports) {
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
           lifecycle.endUnbind(flags);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $unbindElement(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$unbindElement`, slice$d.call(arguments));
+      }
       if (this.$state & 2 /* isBound */) {
           const lifecycle = this.$lifecycle;
           lifecycle.beginUnbind();
@@ -7220,13 +7908,20 @@ var au = (function (exports) {
               current.$unbind(flags);
               current = current.$prevBind;
           }
+          this.$scope.parentScope = null;
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
           lifecycle.endUnbind(flags);
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $unbindView(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$unbindView`, slice$d.call(arguments));
+      }
       if (this.$state & 2 /* isBound */) {
           // add isUnbinding flag
           this.$state |= 64 /* isUnbinding */;
@@ -7239,6 +7934,9 @@ var au = (function (exports) {
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
           this.$scope = null;
+      }
+      if (Tracer.enabled) {
+          Tracer.leave();
       }
   }
 
@@ -7268,6 +7966,7 @@ var au = (function (exports) {
       }
   }
 
+  const slice$e = Array.prototype.slice;
   /** @internal */
   class View {
       constructor($lifecycle, cache) {
@@ -7289,19 +7988,40 @@ var au = (function (exports) {
           this.cache = cache;
       }
       hold(location, flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('View.hold', slice$e.call(arguments));
+          }
           if (!location.parentNode) { // unmet invariant: location must be a child of some other node
               throw Reporter.error(60); // TODO: organize error codes
           }
           this.location = location;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       lockScope(scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('View.lockScope', slice$e.call(arguments));
+          }
           this.$scope = scope;
           this.$bind = lockedBind;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       release(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('View.release', slice$e.call(arguments));
+          }
           this.isFree = true;
           if (this.$state & 8 /* isAttached */) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return this.cache.canReturnToCache(this);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
           return !!this.$unmount(flags);
       }
@@ -7366,6 +8086,9 @@ var au = (function (exports) {
   ViewFactory.maxCacheSize = 0xFFFF;
   function lockedBind(flags) {
       if (this.$state & 2 /* isBound */) {
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
           return;
       }
       flags |= LifecycleFlags.fromBind;
@@ -7376,6 +8099,9 @@ var au = (function (exports) {
           current = current.$nextBind;
       }
       this.$state |= 2 /* isBound */;
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   ((proto) => {
       proto.$bind = $bindView;
@@ -7387,6 +8113,7 @@ var au = (function (exports) {
       proto.$unmount = $unmountView;
   })(View.prototype);
 
+  const slice$f = Array.prototype.slice;
   const ITemplateCompiler = DI.createInterface().noDefault();
   var ViewCompileFlags;
   (function (ViewCompileFlags) {
@@ -7396,14 +8123,23 @@ var au = (function (exports) {
   })(ViewCompileFlags || (ViewCompileFlags = {}));
   /** @internal */
   function $hydrateAttribute(renderingEngine) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice$f.call(arguments));
+      }
       const Type = this.constructor;
       renderingEngine.applyRuntimeBehavior(Type, this);
       if (this.$hooks & 2 /* hasCreated */) {
           this.created();
       }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   /** @internal */
   function $hydrateElement(renderingEngine, host, options = PLATFORM.emptyObject) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice$f.call(arguments));
+      }
       const Type = this.constructor;
       const description = Type.description;
       this.$scope = Scope.create(this, null);
@@ -7423,6 +8159,9 @@ var au = (function (exports) {
       }
       if (this.$hooks & 2 /* hasCreated */) {
           this.created();
+      }
+      if (Tracer.enabled) {
+          Tracer.leave();
       }
   }
   /** @internal */
@@ -7534,10 +8273,22 @@ var au = (function (exports) {
           return this.shadowRoot;
       }
       project(nodes) {
+          if (Tracer.enabled) {
+              Tracer.enter('ShadowDOMProjector.project', slice$f.call(arguments));
+          }
           nodes.appendTo(this.host);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       take(nodes) {
+          if (Tracer.enabled) {
+              Tracer.enter('ShadowDOMProjector.take', slice$f.call(arguments));
+          }
           nodes.remove();
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   }
   /** @internal */
@@ -7565,10 +8316,22 @@ var au = (function (exports) {
           return parentEncapsulationSource;
       }
       project(nodes) {
+          if (Tracer.enabled) {
+              Tracer.enter('ContainerlessProjector.project', slice$f.call(arguments));
+          }
           nodes.insertBefore(this.host);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       take(nodes) {
+          if (Tracer.enabled) {
+              Tracer.enter('ContainerlessProjector.take', slice$f.call(arguments));
+          }
           nodes.remove();
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   }
   /** @internal */
@@ -7587,10 +8350,22 @@ var au = (function (exports) {
           return parentEncapsulationSource || this.host;
       }
       project(nodes) {
+          if (Tracer.enabled) {
+              Tracer.enter('HostProjector.project', slice$f.call(arguments));
+          }
           nodes.appendTo(this.host);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
       take(nodes) {
+          if (Tracer.enabled) {
+              Tracer.enter('HostProjector.take', slice$f.call(arguments));
+          }
           nodes.remove();
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   }
   /** @internal */
@@ -7842,6 +8617,9 @@ var au = (function (exports) {
           });
       }
       render(context, renderable, targets, definition, host, parts) {
+          if (Tracer.enabled) {
+              Tracer.enter('Renderer.render', slice$f.call(arguments));
+          }
           const targetInstructions = definition.instructions;
           const instructionRenderers = this.instructionRenderers;
           if (targets.length !== targetInstructions.length) {
@@ -7867,6 +8645,9 @@ var au = (function (exports) {
                   instructionRenderers[current.type].render(context, renderable, host, current, parts);
               }
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   Renderer = __decorate([
@@ -7879,7 +8660,7 @@ var au = (function (exports) {
       container.register(Registration.transient(resourceKey, this));
   }
   function customElement(nameOrDefinition) {
-      return target => CustomElementResource.define(nameOrDefinition, target);
+      return (target => CustomElementResource.define(nameOrDefinition, target));
   }
   function useShadowDOM(targetOrOptions) {
       const options = typeof targetOrOptions === 'function' || !targetOrOptions
@@ -8118,6 +8899,13 @@ var au = (function (exports) {
           ? { isTemplateController: true, name: nameOrDefinition }
           : Object.assign({ isTemplateController: true }, nameOrDefinition), target);
   }
+  function dynamicOptionsDecorator(target) {
+      target.hasDynamicOptions = true;
+      return target;
+  }
+  function dynamicOptions(target) {
+      return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator(target);
+  }
   function isType$3(Type) {
       return Type.kind === this;
   }
@@ -8189,6 +8977,7 @@ var au = (function (exports) {
           name: def.name,
           aliases: aliases === undefined || aliases === null ? PLATFORM.emptyArray : aliases,
           defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
+          hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
           isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
           bindables: Object.assign({}, Type.bindables, def.bindables)
       };
@@ -8452,7 +9241,7 @@ var au = (function (exports) {
           this.currentView.hold(location, LifecycleFlags.fromCreate);
       }
       binding(flags) {
-          this.currentView.$bind(flags, this.$scope);
+          this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
       }
       attaching(flags) {
           this.currentView.$attach(flags);
@@ -8541,12 +9330,12 @@ var au = (function (exports) {
                   const re = this.container.get(IRenderingEngine);
                   component.$hydrate(re, host);
               }
-              component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-              component.$attach(LifecycleFlags.fromStartTask, host);
+              component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+              component.$attach(LifecycleFlags.fromStartTask | LifecycleFlags.fromAttach, host);
           };
           this.startTasks.push(startTask);
           this.stopTasks.push(() => {
-              component.$detach(LifecycleFlags.fromStopTask);
+              component.$detach(LifecycleFlags.fromStopTask | LifecycleFlags.fromDetach);
               component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
               host.$au = null;
           });
@@ -8575,6 +9364,7 @@ var au = (function (exports) {
   }
   PLATFORM.global.Aurelia = Aurelia;
 
+  const slice$g = Array.prototype.slice;
   function ensureExpression(parser, srcOrExpr, bindingType) {
       if (typeof srcOrExpr === 'string') {
           return parser.parse(srcOrExpr, bindingType);
@@ -8582,6 +9372,9 @@ var au = (function (exports) {
       return srcOrExpr;
   }
   function addBindable(renderable, bindable) {
+      if (Tracer.enabled) {
+          Tracer.enter('addBindable', slice$g.call(arguments));
+      }
       bindable.$prevBind = renderable.$bindableTail;
       bindable.$nextBind = null;
       if (renderable.$bindableTail === null) {
@@ -8591,8 +9384,14 @@ var au = (function (exports) {
           renderable.$bindableTail.$nextBind = bindable;
       }
       renderable.$bindableTail = bindable;
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   function addAttachable(renderable, attachable) {
+      if (Tracer.enabled) {
+          Tracer.enter('addAttachable', slice$g.call(arguments));
+      }
       attachable.$prevAttach = renderable.$attachableTail;
       attachable.$nextAttach = null;
       if (renderable.$attachableTail === null) {
@@ -8602,6 +9401,9 @@ var au = (function (exports) {
           renderable.$attachableTail.$nextAttach = attachable;
       }
       renderable.$attachableTail = attachable;
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
   }
   let TextBindingRenderer = 
   /** @internal */
@@ -8611,9 +9413,13 @@ var au = (function (exports) {
           this.observerLocator = observerLocator;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('TextBindingRenderer.render', slice$g.call(arguments));
+          }
           const next = target.nextSibling;
-          DOM.treatAsNonWhitespace(next);
-          DOM.remove(target);
+          if (DOM.isMarker(target)) {
+              DOM.remove(target);
+          }
           let bindable;
           const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
           if (expr.isMulti) {
@@ -8623,6 +9429,9 @@ var au = (function (exports) {
               bindable = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
           }
           addBindable(renderable, bindable);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   TextBindingRenderer = __decorate([
@@ -8638,6 +9447,9 @@ var au = (function (exports) {
           this.observerLocator = observerLocator;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('InterpolationBindingRenderer.render', slice$g.call(arguments));
+          }
           let bindable;
           const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
           if (expr.isMulti) {
@@ -8647,6 +9459,9 @@ var au = (function (exports) {
               bindable = new InterpolationBinding(expr.firstExpression, expr, target, instruction.to, BindingMode.toView, this.observerLocator, context, true);
           }
           addBindable(renderable, bindable);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   InterpolationBindingRenderer = __decorate([
@@ -8662,9 +9477,15 @@ var au = (function (exports) {
           this.observerLocator = observerLocator;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('PropertyBindingRenderer.render', slice$g.call(arguments));
+          }
           const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
           const bindable = new Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
           addBindable(renderable, bindable);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   PropertyBindingRenderer = __decorate([
@@ -8680,9 +9501,15 @@ var au = (function (exports) {
           this.observerLocator = observerLocator;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('IteratorBindingRenderer.render', slice$g.call(arguments));
+          }
           const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
           const bindable = new Binding(expr, target, instruction.to, BindingMode.toView, this.observerLocator, context);
           addBindable(renderable, bindable);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   IteratorBindingRenderer = __decorate([
@@ -8698,9 +9525,15 @@ var au = (function (exports) {
           this.eventManager = eventManager;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('ListenerBindingRenderer.render', slice$g.call(arguments));
+          }
           const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
           const bindable = new Listener(instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
           addBindable(renderable, bindable);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   ListenerBindingRenderer = __decorate([
@@ -8716,9 +9549,15 @@ var au = (function (exports) {
           this.observerLocator = observerLocator;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('CallBindingRenderer.render', slice$g.call(arguments));
+          }
           const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
           const bindable = new Call(expr, target, instruction.to, this.observerLocator, context);
           addBindable(renderable, bindable);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   CallBindingRenderer = __decorate([
@@ -8733,9 +9572,15 @@ var au = (function (exports) {
           this.parser = parser;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('RefBindingRenderer.render', slice$g.call(arguments));
+          }
           const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
           const bindable = new Ref(expr, target, context);
           addBindable(renderable, bindable);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   RefBindingRenderer = __decorate([
@@ -8751,9 +9596,15 @@ var au = (function (exports) {
           this.observerLocator = observerLocator;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('StylePropertyBindingRenderer.render', slice$g.call(arguments));
+          }
           const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
           const bindable = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
           addBindable(renderable, bindable);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   StylePropertyBindingRenderer = __decorate([
@@ -8765,7 +9616,13 @@ var au = (function (exports) {
   /** @internal */
   class SetPropertyRenderer {
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('SetPropertyRenderer.render', slice$g.call(arguments));
+          }
           target[instruction.to] = instruction.value;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   SetPropertyRenderer = __decorate([
@@ -8776,7 +9633,13 @@ var au = (function (exports) {
   /** @internal */
   class SetAttributeRenderer {
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('SetAttributeRenderer.render', slice$g.call(arguments));
+          }
           DOM.setAttribute(target, instruction.to, instruction.value);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   SetAttributeRenderer = __decorate([
@@ -8790,6 +9653,9 @@ var au = (function (exports) {
           this.renderingEngine = renderingEngine;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('CustomElementRenderer.render', slice$g.call(arguments));
+          }
           const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
           const component = context.get(customElementKey(instruction.res));
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -8802,6 +9668,9 @@ var au = (function (exports) {
           addBindable(renderable, component);
           addAttachable(renderable, component);
           operation.dispose();
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   CustomElementRenderer = __decorate([
@@ -8816,6 +9685,9 @@ var au = (function (exports) {
           this.renderingEngine = renderingEngine;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('CustomAttributeRenderer.render', slice$g.call(arguments));
+          }
           const operation = context.beginComponentOperation(renderable, target, instruction);
           const component = context.get(customAttributeKey(instruction.res));
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -8828,6 +9700,9 @@ var au = (function (exports) {
           addBindable(renderable, component);
           addAttachable(renderable, component);
           operation.dispose();
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   CustomAttributeRenderer = __decorate([
@@ -8842,6 +9717,9 @@ var au = (function (exports) {
           this.renderingEngine = renderingEngine;
       }
       render(context, renderable, target, instruction, parts) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateControllerRenderer.render', slice$g.call(arguments));
+          }
           const factory = this.renderingEngine.getViewFactory(instruction.def, context);
           const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
           const component = context.get(customAttributeKey(instruction.res));
@@ -8858,6 +9736,9 @@ var au = (function (exports) {
           addBindable(renderable, component);
           addAttachable(renderable, component);
           operation.dispose();
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   TemplateControllerRenderer = __decorate([
@@ -8873,6 +9754,9 @@ var au = (function (exports) {
           this.observerLocator = observerLocator;
       }
       render(context, renderable, target, instruction) {
+          if (Tracer.enabled) {
+              Tracer.enter('LetElementRenderer.render', slice$g.call(arguments));
+          }
           target.remove();
           const childInstructions = instruction.instructions;
           const toViewModel = instruction.toViewModel;
@@ -8882,11 +9766,14 @@ var au = (function (exports) {
               const bindable = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
               addBindable(renderable, bindable);
           }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
       }
   };
   LetElementRenderer = __decorate([
       inject(IExpressionParser, IObserverLocator),
-      instructionRenderer("n" /* letElement */)
+      instructionRenderer("n" /* hydrateLetElement */)
       /** @internal */
   ], LetElementRenderer);
   const HtmlRenderer = {
@@ -9040,7 +9927,7 @@ var au = (function (exports) {
   }
   class LetElementInstruction {
       constructor(instructions, toViewModel) {
-          this.type = "n" /* letElement */;
+          this.type = "n" /* hydrateLetElement */;
           this.instructions = instructions;
           this.toViewModel = toViewModel;
       }
@@ -9201,6 +10088,7 @@ var au = (function (exports) {
     registerAttribute: registerAttribute,
     customAttribute: customAttribute,
     templateController: templateController,
+    dynamicOptions: dynamicOptions,
     CustomAttributeResource: CustomAttributeResource,
     createCustomAttributeDescription: createCustomAttributeDescription,
     registerElement: registerElement,
@@ -9261,13 +10149,7 @@ var au = (function (exports) {
     isTargetedInstruction: isTargetedInstruction,
     buildRequired: buildRequired,
     buildTemplateDefinition: buildTemplateDefinition,
-    ELEMENT_NODE: ELEMENT_NODE,
-    ATTRIBUTE_NODE: ATTRIBUTE_NODE,
-    TEXT_NODE: TEXT_NODE,
-    COMMENT_NODE: COMMENT_NODE,
-    DOCUMENT_FRAGMENT_NODE: DOCUMENT_FRAGMENT_NODE,
     INode: INode,
-    IEncapsulationSource: IEncapsulationSource,
     IRenderLocation: IRenderLocation,
     DOM: DOM,
     NodeSequence: NodeSequence,
@@ -9326,6 +10208,7 @@ var au = (function (exports) {
     PromiseSwap: PromiseSwap,
     PromiseTask: PromiseTask,
     get LifecycleFlags () { return LifecycleFlags; },
+    stringifyLifecycleFlags: stringifyLifecycleFlags,
     get MutationKind () { return MutationKind; },
     RuntimeCompilationResources: RuntimeCompilationResources
   });
@@ -9336,21 +10219,6 @@ var au = (function (exports) {
           this.rawValue = rawValue;
           this.target = target;
           this.command = command;
-      }
-  }
-  const marker$1 = DOM.createElement('au-m');
-  marker$1.classList.add('au');
-  const createMarker = marker$1.cloneNode.bind(marker$1, false);
-  class ElementSyntax {
-      constructor(node, name, $content, $children, $attributes) {
-          this.node = node;
-          this.name = name;
-          this.$content = $content;
-          this.$children = $children;
-          this.$attributes = $attributes;
-      }
-      static createMarker() {
-          return new ElementSyntax(createMarker(), 'au-m', null, PLATFORM.emptyArray, PLATFORM.emptyArray);
       }
   }
 
@@ -9760,6 +10628,17 @@ var au = (function (exports) {
   DotSeparatedAttributePattern = __decorate$1([
       attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })
   ], DotSeparatedAttributePattern);
+  let RefAttributePattern = class RefAttributePattern {
+      ['ref'](rawName, rawValue, parts) {
+          return new AttrSyntax(rawName, rawValue, 'ref', null);
+      }
+      ['ref.PART'](rawName, rawValue, parts) {
+          return new AttrSyntax(rawName, rawValue, 'ref', parts[1]);
+      }
+  };
+  RefAttributePattern = __decorate$1([
+      attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'ref.PART', symbols: '.' })
+  ], RefAttributePattern);
   let ColonPrefixedBindAttributePattern = class ColonPrefixedBindAttributePattern {
       [':PART'](rawName, rawValue, parts) {
           return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
@@ -9830,8 +10709,6 @@ var au = (function (exports) {
       Type.kind = BindingCommandResource;
       Type.description = description;
       Type.register = register$2;
-      const proto = Type.prototype;
-      proto.handles = proto.handles || defaultHandles;
       return Type;
   }
   const BindingCommandResource = {
@@ -9840,145 +10717,146 @@ var au = (function (exports) {
       isType: isType$4,
       define: define$4
   };
-  function defaultHandles($symbol) {
-      return !$symbol.isTemplateController;
+  function getTarget(binding, camelCase) {
+      if (binding.flags & 256 /* isBinding */) {
+          return binding.bindable.propName;
+      }
+      else if (camelCase) {
+          return PLATFORM.camelCase(binding.syntax.target);
+      }
+      else {
+          return binding.syntax.target;
+      }
+  }
+  function getMode(binding) {
+      if (binding.flags & 256 /* isBinding */) {
+          return binding.bindable.mode;
+      }
+      else {
+          return commandToMode[binding.syntax.command];
+      }
   }
   let OneTimeBindingCommand = class OneTimeBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 49 /* OneTimeCommand */;
       }
-      compile($symbol) {
-          return new OneTimeBindingInstruction(this.parser.parse($symbol.rawValue, 49 /* OneTimeCommand */), $symbol.to);
+      compile(binding) {
+          return new OneTimeBindingInstruction(binding.expression, getTarget(binding, false));
       }
   };
-  OneTimeBindingCommand.inject = [IExpressionParser];
   OneTimeBindingCommand = __decorate$1([
       bindingCommand('one-time')
   ], OneTimeBindingCommand);
   let ToViewBindingCommand = class ToViewBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 50 /* ToViewCommand */;
       }
-      compile($symbol) {
-          return new ToViewBindingInstruction(this.parser.parse($symbol.rawValue, 50 /* ToViewCommand */), $symbol.to);
+      compile(binding) {
+          return new ToViewBindingInstruction(binding.expression, getTarget(binding, false));
       }
   };
-  ToViewBindingCommand.inject = [IExpressionParser];
   ToViewBindingCommand = __decorate$1([
       bindingCommand('to-view')
   ], ToViewBindingCommand);
   let FromViewBindingCommand = class FromViewBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 51 /* FromViewCommand */;
       }
-      compile($symbol) {
-          return new FromViewBindingInstruction(this.parser.parse($symbol.rawValue, 51 /* FromViewCommand */), $symbol.to);
+      compile(binding) {
+          return new FromViewBindingInstruction(binding.expression, getTarget(binding, false));
       }
   };
-  FromViewBindingCommand.inject = [IExpressionParser];
   FromViewBindingCommand = __decorate$1([
       bindingCommand('from-view')
   ], FromViewBindingCommand);
   let TwoWayBindingCommand = class TwoWayBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 52 /* TwoWayCommand */;
       }
-      compile($symbol) {
-          return new TwoWayBindingInstruction(this.parser.parse($symbol.rawValue, 52 /* TwoWayCommand */), $symbol.to);
+      compile(binding) {
+          return new TwoWayBindingInstruction(binding.expression, getTarget(binding, false));
       }
   };
-  TwoWayBindingCommand.inject = [IExpressionParser];
   TwoWayBindingCommand = __decorate$1([
       bindingCommand('two-way')
   ], TwoWayBindingCommand);
   // Not bothering to throw on non-existing modes, should never happen anyway.
   // Keeping all array elements of the same type for better optimizeability.
-  const compileMode = ['', '$1', '$2', '', '$4', '', '$6'];
+  const modeToProperty = ['', '$1', '$2', '', '$4', '', '$6'];
+  const commandToMode = {
+      'bind': BindingMode.toView,
+      'one-time': BindingMode.oneTime,
+      'to-view': BindingMode.toView,
+      'from-view': BindingMode.fromView,
+      'two-way': BindingMode.twoWay,
+  };
   let DefaultBindingCommand = class DefaultBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 53 /* BindCommand */;
           this.$1 = OneTimeBindingCommand.prototype.compile;
           this.$2 = ToViewBindingCommand.prototype.compile;
           this.$4 = FromViewBindingCommand.prototype.compile;
           this.$6 = TwoWayBindingCommand.prototype.compile;
       }
-      compile($symbol) {
-          return this[compileMode[$symbol.mode]]($symbol);
+      compile(binding) {
+          return this[modeToProperty[getMode(binding)]](binding);
       }
   };
-  DefaultBindingCommand.inject = [IExpressionParser];
   DefaultBindingCommand = __decorate$1([
       bindingCommand('bind')
   ], DefaultBindingCommand);
   let TriggerBindingCommand = class TriggerBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 86 /* TriggerCommand */;
       }
-      compile($symbol) {
-          return new TriggerBindingInstruction(this.parser.parse($symbol.rawValue, 86 /* TriggerCommand */), $symbol.to);
+      compile(binding) {
+          return new TriggerBindingInstruction(binding.expression, getTarget(binding, false));
       }
   };
-  TriggerBindingCommand.inject = [IExpressionParser];
   TriggerBindingCommand = __decorate$1([
       bindingCommand('trigger')
   ], TriggerBindingCommand);
   let DelegateBindingCommand = class DelegateBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 88 /* DelegateCommand */;
       }
-      compile($symbol) {
-          return new DelegateBindingInstruction(this.parser.parse($symbol.rawValue, 88 /* DelegateCommand */), $symbol.to);
+      compile(binding) {
+          return new DelegateBindingInstruction(binding.expression, getTarget(binding, false));
       }
   };
-  DelegateBindingCommand.inject = [IExpressionParser];
   DelegateBindingCommand = __decorate$1([
       bindingCommand('delegate')
   ], DelegateBindingCommand);
   let CaptureBindingCommand = class CaptureBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 87 /* CaptureCommand */;
       }
-      compile($symbol) {
-          return new CaptureBindingInstruction(this.parser.parse($symbol.rawValue, 87 /* CaptureCommand */), $symbol.to);
+      compile(binding) {
+          return new CaptureBindingInstruction(binding.expression, getTarget(binding, false));
       }
   };
-  CaptureBindingCommand.inject = [IExpressionParser];
   CaptureBindingCommand = __decorate$1([
       bindingCommand('capture')
   ], CaptureBindingCommand);
   let CallBindingCommand = class CallBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 153 /* CallCommand */;
       }
-      compile($symbol) {
-          return new CallBindingInstruction(this.parser.parse($symbol.rawValue, 153 /* CallCommand */), $symbol.to);
+      compile(binding) {
+          return new CallBindingInstruction(binding.expression, getTarget(binding, true));
       }
   };
-  CallBindingCommand.inject = [IExpressionParser];
   CallBindingCommand = __decorate$1([
       bindingCommand('call')
   ], CallBindingCommand);
   let ForBindingCommand = class ForBindingCommand {
-      constructor(parser) {
-          this.parser = parser;
+      constructor() {
+          this.bindingType = 539 /* ForCommand */;
       }
-      compile($symbol) {
-          const def = {
-              name: 'repeat',
-              template: $symbol.$element.node,
-              instructions: []
-          };
-          const instructions = [
-              new IteratorBindingInstruction(this.parser.parse($symbol.rawValue, 539 /* ForCommand */), 'items'),
-              new SetPropertyInstruction('item', 'local')
-          ];
-          return new HydrateTemplateController(def, 'repeat', instructions, false);
-      }
-      handles($symbol) {
-          return $symbol.target === 'repeat';
+      compile(binding) {
+          return new IteratorBindingInstruction(binding.expression, getTarget(binding, false));
       }
   };
-  ForBindingCommand.inject = [IExpressionParser];
   ForBindingCommand = __decorate$1([
       bindingCommand('for')
   ], ForBindingCommand);
@@ -10944,772 +11822,1184 @@ var au = (function (exports) {
   CharScanners[123 /* OpenBrace */] = returnToken(131079 /* OpenBrace */);
   CharScanners[125 /* CloseBrace */] = returnToken(1835017 /* CloseBrace */);
 
-  const domParser = DOM.createElement('div');
-  const IElementParser = DI.createInterface()
-      .withDefault(x => x.singleton(ElementParser));
-  /** @internal */
-  let ElementParser = class ElementParser {
-      constructor(attrParser) {
-          this.attrParser = attrParser;
+  /**
+   * A pre-processed piece of information about declared custom elements, attributes and
+   * binding commands, optimized for consumption by the template compiler.
+   */
+  class ResourceModel {
+      constructor(resources) {
+          this.resources = resources;
+          this.elementLookup = {};
+          this.attributeLookup = {};
+          this.commandLookup = {};
       }
-      parse(markupOrNode) {
-          let node;
-          if (typeof markupOrNode === 'string') {
-              domParser.innerHTML = markupOrNode;
-              node = domParser.firstElementChild;
-              domParser.removeChild(node);
+      /**
+       * Retrieve information about a custom element resource.
+       *
+       * @param element The original DOM element.
+       *
+       * @returns The resource information if the element exists, or `null` if it does not exist.
+       */
+      getElementInfo(element) {
+          let name = element.getAttribute('as-element');
+          if (name === null) {
+              name = element.nodeName.toLowerCase();
           }
-          else {
-              node = markupOrNode;
-          }
-          let children;
-          let content;
-          if (node.nodeName === 'TEMPLATE') {
-              content = this.parse(node.content);
-              children = PLATFORM.emptyArray;
-          }
-          else {
-              content = null;
-              const nodeChildNodes = node.childNodes;
-              const nodeLen = nodeChildNodes.length;
-              if (nodeLen > 0) {
-                  children = Array(nodeLen);
-                  for (let i = 0, ii = nodeLen; i < ii; ++i) {
-                      children[i] = this.parse(nodeChildNodes[i]);
-                  }
+          let result = this.elementLookup[name];
+          if (result === undefined) {
+              const def = this.resources.find(CustomElementResource, name);
+              if (def === null) {
+                  result = null;
               }
               else {
-                  children = PLATFORM.emptyArray;
+                  result = createElementInfo(def);
               }
+              this.elementLookup[name] = result;
           }
-          let attributes;
-          const nodeAttributes = node.attributes;
-          const attrLen = nodeAttributes === undefined ? 0 : nodeAttributes.length;
-          if (attrLen > 0) {
-              attributes = Array(attrLen);
-              for (let i = 0, ii = attrLen; i < ii; ++i) {
-                  const attr = nodeAttributes[i];
-                  attributes[i] = this.attrParser.parse(attr.name, attr.value);
+          return result;
+      }
+      /**
+       * Retrieve information about a custom attribute resource.
+       *
+       * @param syntax The parsed `AttrSyntax`
+       *
+       * @returns The resource information if the attribute exists, or `null` if it does not exist.
+       */
+      getAttributeInfo(syntax) {
+          const name = PLATFORM.camelCase(syntax.target);
+          let result = this.attributeLookup[name];
+          if (result === undefined) {
+              const def = this.resources.find(CustomAttributeResource, name);
+              if (def === null) {
+                  result = null;
               }
-          }
-          else {
-              attributes = PLATFORM.emptyArray;
-          }
-          return new ElementSyntax(node, node.nodeName, content, children, attributes);
-      }
-  };
-  ElementParser = __decorate$1([
-      inject(IAttributeParser)
-  ], ElementParser);
-
-  class SemanticModel {
-      constructor(definition, resources, attrParser, elParser, exprParser) {
-          this.isSemanticModel = true;
-          this.resources = resources;
-          this.attrParser = attrParser;
-          this.elParser = elParser;
-          this.exprParser = exprParser;
-          this.attrDefCache = {};
-          this.elDefCache = {};
-          this.commandCache = {};
-          const syntax = this.elParser.parse(definition.template);
-          definition.template = syntax.node;
-          this.root = new ElementSymbol(
-          /*   semanticModel*/ this, 
-          /*isDefinitionRoot*/ true, 
-          /* $definitionRoot*/ null, 
-          /*         $parent*/ null, 
-          /*          syntax*/ syntax, 
-          /*      definition*/ definition);
-      }
-      static create(definition, resources, attrParser, elParser, exprParser) {
-          if ('get' in attrParser) {
-              const locator = attrParser;
-              attrParser = locator.get(IAttributeParser);
-              elParser = locator.get(IElementParser);
-              exprParser = locator.get(IExpressionParser);
-          }
-          return new SemanticModel(definition, resources, attrParser, elParser, exprParser);
-      }
-      getAttributeDefinition(name) {
-          const existing = this.attrDefCache[name];
-          if (existing !== undefined) {
-              return existing;
-          }
-          const definition = this.resources.find(CustomAttributeResource, name);
-          return this.attrDefCache[name] = definition === undefined ? null : definition;
-      }
-      getElementDefinition(name) {
-          const existing = this.elDefCache[name];
-          if (existing !== undefined) {
-              return existing;
-          }
-          const definition = this.resources.find(CustomElementResource, name);
-          return this.elDefCache[name] = definition === undefined ? null : definition;
-      }
-      getBindingCommand(name) {
-          const existing = this.commandCache[name];
-          if (existing !== undefined) {
-              return existing;
-          }
-          const instance = this.resources.create(BindingCommandResource, name);
-          return this.commandCache[name] = instance === undefined ? null : instance;
-      }
-      getAttributeSymbol(syntax, element) {
-          const definition = this.getAttributeDefinition(PLATFORM.camelCase(syntax.target));
-          const command = this.getBindingCommand(syntax.command);
-          return new AttributeSymbol(this, element, syntax, definition, command);
-      }
-      getMultiAttrBindingSymbol(syntax, parent) {
-          const command = this.getBindingCommand(syntax.command);
-          return new MultiAttributeBindingSymbol(this, parent, syntax, command);
-      }
-      getElementSymbol(syntax, parent) {
-          const node = syntax.node;
-          let definition;
-          if (node.nodeType === 1 /* Element */) {
-              const resourceKey = (node.getAttribute('as-element') || node.nodeName).toLowerCase();
-              definition = this.getElementDefinition(resourceKey);
-          }
-          return new ElementSymbol(
-          /*   semanticModel*/ this, 
-          /*isDefinitionRoot*/ false, 
-          /* $definitionRoot*/ parent.$root, 
-          /*         $parent*/ parent, 
-          /*          syntax*/ syntax, 
-          /*      definition*/ definition);
-      }
-      getTemplateElementSymbol(syntax, parent, definition, definitionRoot) {
-          return new ElementSymbol(
-          /*   semanticModel*/ this, 
-          /*isDefinitionRoot*/ true, 
-          /* $definitionRoot*/ definitionRoot, 
-          /*         $parent*/ parent, 
-          /*          syntax*/ syntax, 
-          /*      definition*/ definition);
-      }
-  }
-  class MultiAttributeBindingSymbol {
-      constructor(semanticModel, $parent, syntax, command) {
-          this.semanticModel = semanticModel;
-          this.$parent = $parent;
-          this.$element = null;
-          this.syntax = syntax;
-          this.command = command;
-          this.target = syntax.target;
-          this.res = null;
-          const parentDefinition = $parent.definition;
-          // this.to, this.mode and this.bindable will be overridden if there is a matching bindable property
-          this.to = syntax.target;
-          this.mode = parentDefinition.defaultBindingMode === undefined ? BindingMode.toView : parentDefinition.defaultBindingMode;
-          this.bindable = null;
-          this.rawName = syntax.rawName;
-          this.rawValue = syntax.rawValue;
-          this.rawCommand = syntax.command;
-          this.hasBindingCommand = !!command;
-          this.isMultiAttrBinding = true;
-          this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
-          this.isTemplateController = false;
-          this.isCustomAttribute = true;
-          this.isAttributeBindable = false;
-          this.onCustomElement = false;
-          this.isElementBindable = false;
-          const bindables = parentDefinition.bindables;
-          for (const prop in bindables) {
-              const b = bindables[prop];
-              if (b.property === syntax.target) {
-                  this.to = b.property;
-                  this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
-                  this.bindable = b;
-                  this.isAttributeBindable = true;
-                  break;
+              else {
+                  result = createAttributeInfo(def);
               }
+              this.attributeLookup[name] = result;
           }
+          return result;
       }
-  }
-  class AttributeSymbol {
-      get isProcessed() {
-          return this._isProcessed;
-      }
-      // TODO: Reduce complexity (currently at 60)
-      constructor(semanticModel, $element, syntax, definition, command) {
-          this.semanticModel = semanticModel;
-          this.definition = definition;
-          this.$element = $element;
-          this.syntax = syntax;
-          this.command = command;
-          this.target = syntax.target;
-          this.res = null;
-          // this.to, this.mode and this.bindable will be overridden if there is a matching bindable property
-          this.to = syntax.target;
-          this.mode = BindingMode.toView;
-          this.bindable = null;
-          this.rawName = syntax.rawName;
-          this.rawValue = syntax.rawValue;
-          this.rawCommand = syntax.command;
-          this.hasBindingCommand = !!command;
-          this.isMultiAttrBinding = false;
-          this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
-          this.isTemplateController = false;
-          this.isCustomAttribute = !!definition;
-          this.isAttributeBindable = false;
-          this.isDefaultAttributeBindable = false;
-          this.onCustomElement = $element.isCustomElement;
-          this.isElementBindable = false;
-          this.$multiAttrBindings = PLATFORM.emptyArray;
-          this.isBindable = false;
-          this._isProcessed = this.rawName === 'as-element'; // as-element is processed by the semantic model and shouldn't be processed by the template compiler
-          if (this.isCustomAttribute) {
-              this.isTemplateController = !!definition.isTemplateController;
-              this.res = definition.name;
-              const value = syntax.rawValue;
-              let lastIndex = 0;
-              let multiAttrBindings;
-              for (let i = 0, ii = value.length; i < ii; ++i) {
-                  if (value.charCodeAt(i) === 59 /* Semicolon */) {
-                      if (!this.isMultiAttrBinding) {
-                          multiAttrBindings = [];
-                          this.isMultiAttrBinding = true;
-                      }
-                      const innerAttr = value.slice(lastIndex, i).trim();
-                      lastIndex = i + 1;
-                      if (innerAttr.length === 0) {
-                          continue;
-                      }
-                      for (let j = 0, jj = innerAttr.length; j < jj; ++j) {
-                          if (innerAttr.charCodeAt(j) === 58 /* Colon */) {
-                              const innerAttrName = innerAttr.slice(0, j).trim();
-                              const innerAttrValue = innerAttr.slice(j + 1).trim();
-                              const innerAttrSyntax = this.semanticModel.attrParser.parse(innerAttrName, innerAttrValue);
-                              multiAttrBindings.push(this.semanticModel.getMultiAttrBindingSymbol(innerAttrSyntax, this));
-                          }
-                      }
-                  }
-              }
-              if (this.isMultiAttrBinding) {
-                  this.$multiAttrBindings = multiAttrBindings;
-              }
-              const bindables = definition.bindables;
-              if (!this.isMultiAttrBinding) {
-                  for (const prop in bindables) {
-                      const b = bindables[prop];
-                      const defaultBindingMode = definition.defaultBindingMode === undefined ? BindingMode.toView : definition.defaultBindingMode;
-                      this.to = b.property;
-                      this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : defaultBindingMode;
-                      this.bindable = b;
-                      this.isBindable = this.isAttributeBindable = true;
-                      break;
-                  }
-                  if (!this.isAttributeBindable) {
-                      const defaultBindingMode = definition.defaultBindingMode;
-                      this.to = 'value';
-                      this.mode = defaultBindingMode === undefined ? BindingMode.toView : defaultBindingMode;
-                      this.isBindable = this.isAttributeBindable = this.isDefaultAttributeBindable = true;
-                  }
-              }
-          }
-          else if ($element.isCustomElement) {
-              const bindables = $element.definition.bindables;
-              for (const prop in bindables) {
-                  const b = bindables[prop];
-                  if (b.attribute === syntax.target) {
-                      this.to = b.property;
-                      this.mode = (b.mode !== undefined && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
-                      this.bindable = b;
-                      this.isBindable = this.isElementBindable = true;
-                      break;
-                  }
-              }
-              if (!this.isElementBindable) {
-                  this.to = syntax.target;
-                  this.mode = BindingMode.toView;
-              }
-          }
-      }
-      markAsProcessed() {
-          this._isProcessed = true;
-          if (this.isTemplateController) {
-              this.$element.node.removeAttribute(this.rawName);
-          }
-      }
-  }
-  class ElementSymbol {
-      get $content() {
-          return this._$content;
-      }
-      get isMarker() {
-          return this._isMarker;
-      }
-      get isTemplate() {
-          return this._isTemplate;
-      }
-      get isSlot() {
-          return this._isSlot;
-      }
-      get isLet() {
-          return this._isLet;
-      }
-      get node() {
-          return this._node;
-      }
-      get syntax() {
-          return this._syntax;
-      }
-      get name() {
-          return this._name;
-      }
-      get isCustomElement() {
-          return this._isCustomElement;
-      }
-      get nextSibling() {
-          if (!this.$parent) {
+      /**
+       * Retrieve a binding command resource.
+       *
+       * @param name The parsed `AttrSyntax`
+       *
+       * @returns An instance of the command if it exists, or `null` if it does not exist.
+       */
+      getBindingCommand(syntax) {
+          const name = syntax.command;
+          if (name === null) {
               return null;
           }
-          const siblings = this.$parent.$children;
-          for (let i = 0, ii = siblings.length; i < ii; ++i) {
-              if (siblings[i] === this) {
-                  const nextSibling = siblings[i + 1];
-                  return nextSibling === undefined ? null : nextSibling;
+          let result = this.commandLookup[name];
+          if (result === undefined) {
+              result = this.resources.create(BindingCommandResource, name);
+              if (result === null) {
+                  // unknown binding command
+                  throw Reporter.error(0); // TODO: create error code
               }
+              this.commandLookup[name] = result;
           }
-          return null;
+          return result;
       }
-      get firstChild() {
-          const firstChild = this.$children[0];
-          return firstChild === undefined ? null : firstChild;
-      }
-      get componentRoot() {
-          return this.semanticModel.root;
-      }
-      get isLifted() {
-          return this._isLifted;
-      }
-      constructor(semanticModel, isRoot, $root, $parent, syntax, definition) {
-          this.semanticModel = semanticModel;
-          this.isRoot = isRoot;
-          this.$root = isRoot ? this : $root;
-          this.$parent = $parent;
-          this.definition = definition;
-          this._$content = null;
-          this._isMarker = false;
-          this._isTemplate = false;
-          this._isSlot = false;
-          this._isLet = false;
-          this._node = syntax.node;
-          this._syntax = syntax;
-          this._name = this.node.nodeName;
-          this._isCustomElement = false;
-          this._isLifted = false;
-          switch (this.name) {
-              case 'TEMPLATE':
-                  this._isTemplate = true;
-                  this._$content = this.semanticModel.getElementSymbol(syntax.$content, this);
-                  break;
-              case 'SLOT':
-                  this._isSlot = true;
-                  break;
-              case 'LET':
-                  this._isLet = true;
+  }
+  function createElementInfo(def) {
+      const info = new ElementInfo(def.name, def.containerless);
+      const bindables = def.bindables;
+      const defaultBindingMode = BindingMode.toView;
+      let bindable$$1;
+      let prop;
+      let attr;
+      let mode;
+      for (prop in bindables) {
+          bindable$$1 = bindables[prop];
+          // explicitly provided property name has priority over the implicit property name
+          if (bindable$$1.property !== undefined) {
+              prop = bindable$$1.property;
           }
-          this._isCustomElement = !isRoot && !!definition;
-          const attributes = syntax.$attributes;
-          const attrLen = attributes.length;
-          if (attrLen > 0) {
-              const attrSymbols = Array(attrLen);
-              for (let i = 0, ii = attrLen; i < ii; ++i) {
-                  attrSymbols[i] = this.semanticModel.getAttributeSymbol(attributes[i], this);
-              }
-              this.$attributes = attrSymbols;
+          // explicitly provided attribute name has priority over the derived implicit attribute name
+          if (bindable$$1.attribute !== undefined) {
+              attr = bindable$$1.attribute;
           }
           else {
-              this.$attributes = PLATFORM.emptyArray;
+              // derive the attribute name from the resolved property name
+              attr = PLATFORM.kebabCase(prop);
           }
-          const children = syntax.$children;
-          const childLen = children.length;
-          if (childLen > 0) {
-              const childSymbols = Array(childLen);
-              for (let i = 0, ii = childLen; i < ii; ++i) {
-                  childSymbols[i] = this.semanticModel.getElementSymbol(children[i], this);
-              }
-              this.$children = childSymbols;
+          if (bindable$$1.mode !== undefined && bindable$$1.mode !== BindingMode.default) {
+              mode = bindable$$1.mode;
           }
           else {
-              this.$children = PLATFORM.emptyArray;
+              mode = defaultBindingMode;
           }
+          info.bindables[attr] = new BindableInfo(prop, mode);
       }
-      makeTarget() {
-          this.node.classList.add('au');
-      }
-      replaceTextNodeWithMarker() {
-          const marker = ElementSyntax.createMarker();
-          const node = this.node;
-          node.parentNode.insertBefore(marker.node, node);
-          node.textContent = ' ';
-          while (node.nextSibling && node.nextSibling.nodeType === 3 /* Text */) {
-              node.parentNode.removeChild(node.nextSibling);
+      return info;
+  }
+  function createAttributeInfo(def) {
+      const info = new AttrInfo(def.name, def.isTemplateController);
+      const bindables = def.bindables;
+      const defaultBindingMode = def.defaultBindingMode !== undefined && def.defaultBindingMode !== BindingMode.default
+          ? def.defaultBindingMode
+          : BindingMode.toView;
+      let bindable$$1;
+      let prop;
+      let mode;
+      let bindableCount = 0;
+      for (prop in bindables) {
+          ++bindableCount;
+          bindable$$1 = bindables[prop];
+          // explicitly provided property name has priority over the implicit property name
+          if (bindable$$1.property !== undefined) {
+              prop = bindable$$1.property;
           }
-          this.setToMarker(marker);
-      }
-      replaceNodeWithMarker() {
-          const marker = ElementSyntax.createMarker();
-          const node = this.node;
-          if (node.parentNode) {
-              node.parentNode.replaceChild(marker.node, node);
-          }
-          else if (this.isTemplate) {
-              node.content.appendChild(marker.node);
-          }
-          this.setToMarker(marker);
-      }
-      lift(instruction) {
-          const template = instruction.def.template = DOM.createElement('template');
-          const node = this.node;
-          if (this.isTemplate) {
-              // copy remaining attributes over to the newly created template
-              const attributes = node.attributes;
-              while (attributes.length) {
-                  const attr = attributes[0];
-                  template.setAttribute(attr.name, attr.value);
-                  node.removeAttribute(attr.name);
-              }
-              template.content.appendChild(node.content);
-              this.replaceNodeWithMarker();
+          if (bindable$$1.mode !== undefined && bindable$$1.mode !== BindingMode.default) {
+              mode = bindable$$1.mode;
           }
           else {
-              this.replaceNodeWithMarker();
-              template.content.appendChild(node);
+              mode = defaultBindingMode;
           }
-          this.addInstructions([instruction]);
-          this._isLifted = true;
-          return this.semanticModel.getTemplateElementSymbol(this.semanticModel.elParser.parse(template), this, instruction.def, null);
-      }
-      addInstructions(instructions) {
-          const def = this.$root.definition;
-          if (def.instructions === PLATFORM.emptyArray) {
-              def.instructions = [];
+          info.bindables[prop] = new BindableInfo(prop, mode);
+          // set to first bindable by convention
+          if (info.bindable === null) {
+              info.bindable = info.bindables[prop];
           }
-          def.instructions.push(instructions);
       }
-      setToMarker(marker) {
-          this._$content = null;
-          this._isCustomElement = this._isLet = this._isSlot = this._isTemplate = false;
-          this._isMarker = true;
-          this._name = 'AU-M';
-          this._node = marker.node;
-          this._syntax = marker;
+      // if no bindables are present, default to "value"
+      if (info.bindable === null) {
+          info.bindable = new BindableInfo('value', defaultBindingMode);
+      }
+      if (def.hasDynamicOptions || bindableCount > 1) {
+          info.hasDynamicOptions = true;
+      }
+      return info;
+  }
+  /**
+   * A pre-processed piece of information about a defined bindable property on a custom
+   * element or attribute, optimized for consumption by the template compiler.
+   */
+  class BindableInfo {
+      constructor(propName, mode) {
+          this.propName = propName;
+          this.mode = mode;
+      }
+  }
+  /**
+   * Pre-processed information about a custom element resource, optimized
+   * for consumption by the template compiler.
+   */
+  class ElementInfo {
+      constructor(name, containerless$$1) {
+          this.name = name;
+          this.containerless = containerless$$1;
+          this.bindables = {};
+      }
+  }
+  /**
+   * Pre-processed information about a custom attribute resource, optimized
+   * for consumption by the template compiler.
+   */
+  class AttrInfo {
+      constructor(name, isTemplateController) {
+          this.name = name;
+          this.bindables = {};
+          this.bindable = null;
+          this.isTemplateController = isTemplateController;
+          this.hasDynamicOptions = false;
       }
   }
 
-  let TemplateCompiler = class TemplateCompiler {
-      constructor(exprParser, elParser, attrParser) {
-          this.exprParser = exprParser;
-          this.elParser = elParser;
+  /**
+   * A html attribute that is associated with a registered resource, specifically a template controller.
+   */
+  class TemplateControllerSymbol {
+      get bindings() {
+          if (this._bindings === null) {
+              this._bindings = [];
+              this.flags |= 4096 /* hasBindings */;
+          }
+          return this._bindings;
+      }
+      constructor(syntax, info, partName) {
+          this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
+          this.res = info.name;
+          this.partName = partName;
+          this.physicalNode = null;
+          this.syntax = syntax;
+          this.template = null;
+          this.templateController = null;
+          this.marker = createMarker();
+          this._bindings = null;
+      }
+  }
+  /**
+   * Wrapper for an element (with all of its attributes, regardless of the order in which they are declared)
+   * that has a replace-part attribute on it.
+   *
+   * This element will be lifted from the DOM just like a template controller.
+   */
+  class ReplacePartSymbol {
+      constructor(name) {
+          this.flags = 2 /* isReplacePart */;
+          this.name = name;
+          this.physicalNode = null;
+          this.parent = null;
+          this.template = null;
+      }
+  }
+  /**
+   * A html attribute that is associated with a registered resource, but not a template controller.
+   */
+  class CustomAttributeSymbol {
+      get bindings() {
+          if (this._bindings === null) {
+              this._bindings = [];
+              this.flags |= 4096 /* hasBindings */;
+          }
+          return this._bindings;
+      }
+      constructor(syntax, info) {
+          this.flags = 4 /* isCustomAttribute */;
+          this.res = info.name;
+          this.syntax = syntax;
+          this._bindings = null;
+      }
+  }
+  /**
+   * An attribute, with either a binding command or an interpolation, whose target is the html
+   * attribute of the element.
+   *
+   * This will never target a bindable property of a custom attribute or element;
+   */
+  class PlainAttributeSymbol {
+      constructor(syntax, command, expression) {
+          this.flags = 8 /* isPlainAttribute */;
+          this.syntax = syntax;
+          this.command = command;
+          this.expression = expression;
+      }
+  }
+  /**
+   * Either an attribute on an custom element that maps to a declared bindable property of that element,
+   * a single-value bound custom attribute, or one of several bindables that were extracted from the attribute
+   * value of a dynamicOptions custom attribute.
+   *
+   * This will always target a bindable property of a custom attribute or element;
+   */
+  class BindingSymbol {
+      constructor(command, bindable$$1, expression, rawValue, target) {
+          this.flags = 256 /* isBinding */;
+          this.command = command;
+          this.bindable = bindable$$1;
+          this.expression = expression;
+          this.rawValue = rawValue;
+          this.target = target;
+      }
+  }
+  /**
+   * A html element that is associated with a registered resource either via its (lowerCase) `nodeName`
+   * or the value of its `as-element` attribute.
+   */
+  class CustomElementSymbol {
+      get attributes() {
+          if (this._attributes === null) {
+              this._attributes = [];
+              this.flags |= 2048 /* hasAttributes */;
+          }
+          return this._attributes;
+      }
+      get bindings() {
+          if (this._bindings === null) {
+              this._bindings = [];
+              this.flags |= 4096 /* hasBindings */;
+          }
+          return this._bindings;
+      }
+      get childNodes() {
+          if (this._childNodes === null) {
+              this._childNodes = [];
+              this.flags |= 8192 /* hasChildNodes */;
+          }
+          return this._childNodes;
+      }
+      get parts() {
+          if (this._parts === null) {
+              this._parts = [];
+              this.flags |= 16384 /* hasParts */;
+          }
+          return this._parts;
+      }
+      constructor(node, info) {
+          this.flags = 16 /* isCustomElement */;
+          this.res = info.name;
+          this.physicalNode = node;
+          this.bindables = info.bindables;
+          this.isTarget = true;
+          this.templateController = null;
+          if (info.containerless) {
+              this.isContainerless = true;
+              this.marker = createMarker();
+              this.flags |= 512 /* hasMarker */;
+          }
+          else {
+              this.isContainerless = false;
+              this.marker = null;
+          }
+          this._attributes = null;
+          this._bindings = null;
+          this._childNodes = null;
+          this._parts = null;
+      }
+  }
+  class LetElementSymbol {
+      get bindings() {
+          if (this._bindings === null) {
+              this._bindings = [];
+              this.flags |= 4096 /* hasBindings */;
+          }
+          return this._bindings;
+      }
+      constructor(node) {
+          this.flags = 32 /* isLetElement */ | 512 /* hasMarker */;
+          this.physicalNode = node;
+          this.toViewModel = false;
+          this.marker = createMarker();
+          this._bindings = null;
+      }
+  }
+  /**
+   * A normal html element that may or may not have attribute behaviors and/or child node behaviors.
+   *
+   * It is possible for a PlainElementSymbol to not yield any instructions during compilation.
+   */
+  class PlainElementSymbol {
+      get attributes() {
+          if (this._attributes === null) {
+              this._attributes = [];
+              this.flags |= 2048 /* hasAttributes */;
+          }
+          return this._attributes;
+      }
+      get childNodes() {
+          if (this._childNodes === null) {
+              this._childNodes = [];
+              this.flags |= 8192 /* hasChildNodes */;
+          }
+          return this._childNodes;
+      }
+      constructor(node) {
+          this.flags = 64 /* isPlainElement */;
+          this.physicalNode = node;
+          this.isTarget = false;
+          this.templateController = null;
+          this._attributes = null;
+          this._childNodes = null;
+      }
+  }
+  /**
+   * A standalone text node that has an interpolation.
+   */
+  class TextSymbol {
+      constructor(node, interpolation) {
+          this.flags = 128 /* isText */ | 512 /* hasMarker */;
+          this.physicalNode = node;
+          this.interpolation = interpolation;
+          this.marker = createMarker();
+      }
+  }
+  const slice$h = Array.prototype.slice;
+  function createMarker() {
+      const marker = DOM.createElement('au-m');
+      marker.className = 'au';
+      return marker;
+  }
+  const invalidSurrogateAttribute = {
+      'id': true,
+      'part': true,
+      'replace-part': true
+  };
+  const attributesToIgnore = {
+      'as-element': true,
+      'part': true,
+      'replace-part': true
+  };
+  class TemplateBinder {
+      constructor(resources, attrParser, exprParser) {
+          this.resources = resources;
           this.attrParser = attrParser;
+          this.exprParser = exprParser;
+          this.surrogate = null;
+          this.manifest = null;
+          this.manifestRoot = null;
+          this.parentManifestRoot = null;
+          this.partName = null;
+      }
+      bind(node) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.bind', slice$h.call(arguments));
+          }
+          const surrogateSave = this.surrogate;
+          const parentManifestRootSave = this.parentManifestRoot;
+          const manifestRootSave = this.manifestRoot;
+          const manifestSave = this.manifest;
+          const manifest = this.surrogate = this.manifest = new PlainElementSymbol(node);
+          const attributes = node.attributes;
+          let i = 0;
+          while (i < attributes.length) {
+              const attr = attributes[i];
+              const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+              if (invalidSurrogateAttribute[attrSyntax.target] === true) {
+                  throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
+                  // TODO: use reporter
+              }
+              const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+              if (attrInfo === null) {
+                  this.bindPlainAttribute(attrSyntax);
+              }
+              else if (attrInfo.isTemplateController) {
+                  throw new Error('Cannot have template controller on surrogate element.');
+                  // TODO: use reporter
+              }
+              else {
+                  this.bindCustomAttribute(attrSyntax, attrInfo);
+              }
+              ++i;
+          }
+          let childNode = node.content.firstChild;
+          let nextChild;
+          while (childNode !== null) {
+              switch (childNode.nodeType) {
+                  case 3 /* Text */:
+                      childNode = this.bindText(childNode).nextSibling;
+                      break;
+                  case 1 /* Element */:
+                      nextChild = childNode.nextSibling;
+                      this.bindManifest(this.manifest, childNode);
+                      childNode = nextChild;
+              }
+          }
+          this.surrogate = surrogateSave;
+          this.parentManifestRoot = parentManifestRootSave;
+          this.manifestRoot = manifestRootSave;
+          this.manifest = manifestSave;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+          return manifest;
+      }
+      bindManifest(parentManifest, node) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.bindManifest', slice$h.call(arguments));
+          }
+          switch (node.nodeName) {
+              case 'LET':
+                  // let cannot have children and has some different processing rules, so return early
+                  this.bindLetElement(parentManifest, node);
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return;
+              case 'SLOT':
+                  // slot requires no compilation
+                  this.surrogate.hasSlots = true;
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return;
+          }
+          // nodes are processed bottom-up so we need to store the manifests before traversing down and
+          // restore them again afterwards
+          const parentManifestRootSave = this.parentManifestRoot;
+          const manifestRootSave = this.manifestRoot;
+          const manifestSave = this.manifest;
+          // get the part name to override the name of the compiled definition
+          this.partName = node.getAttribute('part');
+          let manifestRoot;
+          const elementInfo = this.resources.getElementInfo(node);
+          if (elementInfo === null) {
+              // there is no registered custom element with this name
+              this.manifest = new PlainElementSymbol(node);
+          }
+          else {
+              // it's a custom element so we set the manifestRoot as well (for storing replace-parts)
+              this.parentManifestRoot = this.manifestRoot;
+              manifestRoot = this.manifestRoot = this.manifest = new CustomElementSymbol(node, elementInfo);
+          }
+          // lifting operations done by template controllers and replace-parts effectively unlink the nodes, so start at the bottom
+          this.bindChildNodes(node);
+          // the parentManifest will receive either the direct child nodes, or the template controllers / replace-parts
+          // wrapping them
+          this.bindAttributes(node, parentManifest);
+          if (manifestRoot !== undefined && manifestRoot.isContainerless) {
+              node.parentNode.replaceChild(manifestRoot.marker, node);
+          }
+          else if (this.manifest.isTarget) {
+              node.classList.add('au');
+          }
+          // restore the stored manifests so the attributes are processed on the correct lavel
+          this.parentManifestRoot = parentManifestRootSave;
+          this.manifestRoot = manifestRootSave;
+          this.manifest = manifestSave;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      bindLetElement(parentManifest, node) {
+          const symbol = new LetElementSymbol(node);
+          parentManifest.childNodes.push(symbol);
+          const attributes = node.attributes;
+          let i = 0;
+          while (i < attributes.length) {
+              const attr = attributes[i];
+              if (attr.name === 'to-view-model') {
+                  node.removeAttribute('to-view-model');
+                  symbol.toViewModel = true;
+                  continue;
+              }
+              const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+              const command = this.resources.getBindingCommand(attrSyntax);
+              const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
+              const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+              const to = PLATFORM.camelCase(attrSyntax.target);
+              const info = new BindableInfo(to, BindingMode.toView);
+              symbol.bindings.push(new BindingSymbol(command, info, expr, attrSyntax.rawValue, to));
+              ++i;
+          }
+          node.parentNode.replaceChild(symbol.marker, node);
+      }
+      bindAttributes(node, parentManifest) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.bindAttributes', slice$h.call(arguments));
+          }
+          const { parentManifestRoot, manifestRoot, manifest } = this;
+          // This is the top-level symbol for the current depth.
+          // If there are no template controllers or replace-parts, it is always the manifest itself.
+          // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
+          let manifestProxy = manifest;
+          const replacePart = this.declareReplacePart(node);
+          let previousController;
+          let currentController;
+          const attributes = node.attributes;
+          let i = 0;
+          while (i < attributes.length) {
+              const attr = attributes[i];
+              ++i;
+              if (attributesToIgnore[attr.name] === true) {
+                  continue;
+              }
+              const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+              const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+              if (attrInfo === null) {
+                  // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+                  this.bindPlainAttribute(attrSyntax);
+              }
+              else if (attrInfo.isTemplateController) {
+                  // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
+                  // so keep setting manifest.templateController to the latest template controller we find
+                  currentController = manifest.templateController = this.declareTemplateController(attrSyntax, attrInfo);
+                  // the proxy and the manifest are only identical when we're at the first template controller (since the controller
+                  // is assigned to the proxy), so this evaluates to true at most once per node
+                  if (manifestProxy === manifest) {
+                      currentController.template = manifest;
+                      manifestProxy = currentController;
+                  }
+                  else {
+                      currentController.templateController = previousController;
+                      currentController.template = previousController.template;
+                      previousController.template = currentController;
+                  }
+                  previousController = currentController;
+              }
+              else {
+                  // a regular custom attribute
+                  this.bindCustomAttribute(attrSyntax, attrInfo);
+              }
+          }
+          processTemplateControllers(manifestProxy, manifest);
+          if (replacePart === null) {
+              // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
+              parentManifest.childNodes.push(manifestProxy);
+          }
+          else {
+              // there is a replace-part attribute on this node, so add it to the parts collection of the manifestRoot
+              // instead of to the childNodes
+              replacePart.parent = parentManifest;
+              replacePart.template = manifestProxy;
+              // if the current manifest is also the manifestRoot, it means the replace-part sits on a custom
+              // element, so add the part to the parent wrapping custom element instead
+              const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
+              partOwner.parts.push(replacePart);
+              processReplacePart(replacePart, manifestProxy);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      bindChildNodes(node) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.bindChildNodes', slice$h.call(arguments));
+          }
+          let childNode;
+          if (node.nodeName === 'TEMPLATE') {
+              childNode = node.content.firstChild;
+          }
+          else {
+              childNode = node.firstChild;
+          }
+          let nextChild;
+          while (childNode !== null) {
+              switch (childNode.nodeType) {
+                  case 3 /* Text */:
+                      childNode = this.bindText(childNode).nextSibling;
+                      break;
+                  case 1 /* Element */:
+                      nextChild = childNode.nextSibling;
+                      this.bindManifest(this.manifest, childNode);
+                      childNode = nextChild;
+              }
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      bindText(node) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.bindText', slice$h.call(arguments));
+          }
+          const interpolation = this.exprParser.parse(node.wholeText, 2048 /* Interpolation */);
+          if (interpolation !== null) {
+              const symbol = new TextSymbol(node, interpolation);
+              this.manifest.childNodes.push(symbol);
+              processInterpolationText(symbol);
+          }
+          while (node.nextSibling !== null && node.nextSibling.nodeType === 3 /* Text */) {
+              node = node.nextSibling;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+          return node;
+      }
+      declareTemplateController(attrSyntax, attrInfo) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.declareTemplateController', slice$h.call(arguments));
+          }
+          let symbol;
+          // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
+          const command = this.resources.getBindingCommand(attrSyntax);
+          if (command === null && attrInfo.hasDynamicOptions) {
+              symbol = new TemplateControllerSymbol(attrSyntax, attrInfo, this.partName);
+              this.partName = null;
+              this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
+          }
+          else {
+              symbol = new TemplateControllerSymbol(attrSyntax, attrInfo, this.partName);
+              const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
+              const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+              symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
+              this.partName = null;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+          return symbol;
+      }
+      bindCustomAttribute(attrSyntax, attrInfo) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.bindCustomAttribute', slice$h.call(arguments));
+          }
+          const command = this.resources.getBindingCommand(attrSyntax);
+          let symbol;
+          if (command === null && attrInfo.hasDynamicOptions) {
+              // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
+              // the binding commands must be declared in the dynamicOptions expression itself
+              symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
+              this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
+          }
+          else {
+              // we've either got a command (with or without dynamicOptions, the latter maps to the first bindable),
+              // or a null command but without dynamicOptions (which may be an interpolation or a normal string)
+              symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
+              const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
+              const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+              symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
+          }
+          this.manifest.attributes.push(symbol);
+          this.manifest.isTarget = true;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      bindMultiAttribute(symbol, attrInfo, value) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.bindMultiAttribute', slice$h.call(arguments));
+          }
+          const attributes = parseMultiAttributeBinding(value);
+          let attr;
+          for (let i = 0, ii = attributes.length; i < ii; ++i) {
+              attr = attributes[i];
+              const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+              const command = this.resources.getBindingCommand(attrSyntax);
+              const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
+              const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+              let bindable$$1 = attrInfo.bindables[attrSyntax.target];
+              if (bindable$$1 === undefined) {
+                  // everything in a dynamicOptions expression must be used, so if it's not a bindable then we create one on the spot
+                  bindable$$1 = attrInfo.bindables[attrSyntax.target] = new BindableInfo(attrSyntax.target, BindingMode.toView);
+              }
+              symbol.bindings.push(new BindingSymbol(command, bindable$$1, expr, attrSyntax.rawValue, attrSyntax.target));
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      bindPlainAttribute(attrSyntax) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.bindPlainAttribute', slice$h.call(arguments));
+          }
+          if (attrSyntax.rawValue.length === 0) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return;
+          }
+          const command = this.resources.getBindingCommand(attrSyntax);
+          const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
+          const manifest = this.manifest;
+          const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+          if (manifest.flags & 16 /* isCustomElement */) {
+              const bindable$$1 = manifest.bindables[attrSyntax.target];
+              if (bindable$$1 !== undefined) {
+                  // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
+                  // the template compiler will translate it to the correct instruction
+                  manifest.bindings.push(new BindingSymbol(command, bindable$$1, expr, attrSyntax.rawValue, attrSyntax.target));
+                  manifest.isTarget = true;
+              }
+              else if (expr !== null) {
+                  // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
+                  manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+                  manifest.isTarget = true;
+              }
+          }
+          else if (expr !== null || attrSyntax.target === 'ref') {
+              // either a binding command, an interpolation, or a ref
+              manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+              manifest.isTarget = true;
+          }
+          else if (manifest === this.surrogate) {
+              // any attributes, even if they are plain (no command/interpolation etc), should be added if they
+              // are on the surrogate element
+              manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      declareReplacePart(node) {
+          if (Tracer.enabled) {
+              Tracer.enter('TemplateBinder.declareReplacePart', slice$h.call(arguments));
+          }
+          const name = node.getAttribute('replace-part');
+          if (name === null) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return null;
+          }
+          node.removeAttribute('replace-part');
+          const symbol = new ReplacePartSymbol(name);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+          return symbol;
+      }
+  }
+  function processInterpolationText(symbol) {
+      const node = symbol.physicalNode;
+      const parentNode = node.parentNode;
+      while (node.nextSibling !== null && node.nextSibling.nodeType === 3 /* Text */) {
+          parentNode.removeChild(node.nextSibling);
+      }
+      node.textContent = '';
+      parentNode.insertBefore(symbol.marker, node);
+  }
+  /**
+   * A (temporary) standalone function that purely does the DOM processing (lifting) related to template controllers.
+   * It's a first refactoring step towards separating DOM parsing/binding from mutations.
+   */
+  function processTemplateControllers(manifestProxy, manifest) {
+      const manifestNode = manifest.physicalNode;
+      let current = manifestProxy;
+      while (current !== manifest) {
+          if (current.template === manifest) {
+              // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
+              manifestNode.parentNode.replaceChild(current.marker, manifestNode);
+              // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
+              // and simply use the template directly, saving a bit of work
+              if (manifestNode.nodeName === 'TEMPLATE') {
+                  current.physicalNode = manifestNode;
+                  // the template could safely stay without affecting anything visible, but let's keep the DOM tidy
+                  manifestNode.remove();
+              }
+              else {
+                  // the manifest is not a template element so we need to wrap it in one
+                  current.physicalNode = DOM.createTemplate();
+                  current.physicalNode.content.appendChild(manifestNode);
+              }
+          }
+          else {
+              current.physicalNode = DOM.createTemplate();
+              current.physicalNode.content.appendChild(current.marker);
+          }
+          manifestNode.removeAttribute(current.syntax.rawName);
+          current = current.template;
+      }
+  }
+  function processReplacePart(replacePart, manifestProxy) {
+      let proxyNode;
+      if (manifestProxy.flags & 512 /* hasMarker */) {
+          proxyNode = manifestProxy.marker;
+      }
+      else {
+          proxyNode = manifestProxy.physicalNode;
+      }
+      if (proxyNode.nodeName === 'TEMPLATE') {
+          // if it's a template element, no need to do anything special, just assign it to the replacePart
+          replacePart.physicalNode = proxyNode;
+      }
+      else {
+          // otherwise wrap the replace-part in a template
+          replacePart.physicalNode = DOM.createTemplate();
+          replacePart.physicalNode.content.appendChild(proxyNode);
+      }
+  }
+  class ParserState$1 {
+      constructor(input) {
+          this.input = input;
+          this.index = 0;
+          this.length = input.length;
+      }
+  }
+  const fromCharCode = String.fromCharCode;
+  // TODO: move to expression parser
+  function parseMultiAttributeBinding(input) {
+      const attributes = [];
+      const state = new ParserState$1(input);
+      const length = state.length;
+      let name;
+      let value;
+      while (state.index < length) {
+          name = scanAttributeName(state);
+          if (name.length === 0) {
+              return attributes;
+          }
+          value = scanAttributeValue(state);
+          attributes.push({ name, value });
+      }
+      return attributes;
+  }
+  function scanAttributeName(state) {
+      const start = state.index;
+      const { length, input } = state;
+      while (state.index < length && input.charCodeAt(++state.index) !== 58 /* Colon */)
+          ;
+      return input.slice(start, state.index).trim();
+  }
+  function scanAttributeValue(state) {
+      ++state.index;
+      const { length, input } = state;
+      let token = '';
+      let ch = 0;
+      while (state.index < length) {
+          ch = input.charCodeAt(state.index);
+          switch (ch) {
+              case 59 /* Semicolon */:
+                  ++state.index;
+                  return token.trim();
+              case 47 /* Slash */:
+                  ch = input.charCodeAt(++state.index);
+                  token += `\\${fromCharCode(ch)}`;
+                  break;
+              case 39 /* SingleQuote */:
+                  token += '\'';
+                  break;
+              default:
+                  token += fromCharCode(ch);
+          }
+          ++state.index;
+      }
+      return token.trim();
+  }
+
+  const ITemplateFactory = DI.createInterface()
+      .withDefault(x => x.singleton(TemplateFactory));
+  /**
+   * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
+   *
+   * @internal
+   */
+  class TemplateFactory {
+      constructor() {
+          this.template = DOM.createTemplate();
+      }
+      createTemplate(input) {
+          if (typeof input === 'string') {
+              const template = this.template;
+              template.innerHTML = input;
+              const node = template.content.firstElementChild;
+              // if the input is either not wrapped in a template or there is more than one node,
+              // return the whole template that wraps it/them (and create a new one for the next input)
+              if (node === null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling !== null) {
+                  this.template = DOM.createTemplate();
+                  return template;
+              }
+              // the node to return is both a template and the only node, so return just the node
+              // and clean up the template for the next input
+              template.content.removeChild(node);
+              return node;
+          }
+          if (input.nodeName !== 'TEMPLATE') {
+              // if we get one node that is not a template, wrap it in one
+              const template = DOM.createTemplate();
+              template.content.appendChild(input);
+              return template;
+          }
+          // we got a template element, remove it from the DOM if it's present there and don't
+          // do any other processing
+          if (input.parentNode !== null) {
+              input.parentNode.removeChild(input);
+          }
+          return input;
+      }
+  }
+
+  const buildNotRequired$1 = Object.freeze({
+      required: false,
+      compiler: 'default'
+  });
+  /**
+   * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
+   *
+   * @internal
+   */
+  let TemplateCompiler = class TemplateCompiler {
+      constructor(factory, attrParser, exprParser) {
+          this.factory = factory;
+          this.attrParser = attrParser;
+          this.exprParser = exprParser;
+          this.instructionRows = null;
       }
       get name() {
           return 'default';
       }
-      compile(definition, resources, flags) {
-          const model = SemanticModel.create(definition, resources, this.attrParser, this.elParser, this.exprParser);
-          const root = model.root;
-          let $el = root.isTemplate ? root.$content : root;
-          while ($el = this.compileNode($el))
-              ;
-          // the flag should be passed correctly from rendering engine
-          if (root.isTemplate && (flags & ViewCompileFlags.surrogate)) {
-              this.compileSurrogate(root);
+      compile(definition, descriptions) {
+          const resources = new ResourceModel(descriptions);
+          const binder = new TemplateBinder(resources, this.attrParser, this.exprParser);
+          const template = definition.template = this.factory.createTemplate(definition.template);
+          const surrogate = binder.bind(template);
+          if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
+              definition.instructions = [];
           }
+          if (surrogate.hasSlots === true) {
+              definition.hasSlots = true;
+          }
+          this.instructionRows = definition.instructions;
+          const attributes = surrogate.attributes;
+          const len = attributes.length;
+          if (len > 0) {
+              let surrogates;
+              if (definition.surrogates === undefined || definition.surrogates === PLATFORM.emptyArray) {
+                  definition.surrogates = Array(len);
+              }
+              surrogates = definition.surrogates;
+              for (let i = 0; i < len; ++i) {
+                  surrogates[i] = this.compileAttribute(attributes[i]);
+              }
+          }
+          this.compileChildNodes(surrogate);
+          this.instructionRows = null;
           return definition;
       }
-      compileNode($el) {
-          const node = $el.node;
-          const nextSibling = $el.nextSibling;
-          switch (node.nodeType) {
-              case 1 /* Element */:
-                  if ($el.isSlot) {
-                      $el.$root.definition.hasSlots = true;
+      compileChildNodes(parent) {
+          if (parent.flags & 8192 /* hasChildNodes */) {
+              const { childNodes } = parent;
+              let childNode;
+              const ii = childNodes.length;
+              for (let i = 0; i < ii; ++i) {
+                  childNode = childNodes[i];
+                  if (childNode.flags & 128 /* isText */) {
+                      this.instructionRows.push([new TextBindingInstruction(childNode.interpolation)]);
                   }
-                  else if ($el.isLet) {
-                      this.compileLetElement($el);
-                  }
-                  else if ($el.isCustomElement) {
-                      this.compileCustomElement($el);
+                  else if (childNode.flags & 32 /* isLetElement */) {
+                      const bindings = childNode.bindings;
+                      const instructions = [];
+                      let binding;
+                      const jj = bindings.length;
+                      for (let j = 0; j < jj; ++j) {
+                          binding = bindings[j];
+                          instructions[j] = new LetBindingInstruction(binding.expression, binding.target);
+                      }
+                      this.instructionRows.push([new LetElementInstruction(instructions, childNode.toViewModel)]);
                   }
                   else {
-                      this.compileElementNode($el);
-                  }
-                  if (!$el.isLifted) {
-                      let $child = $el.firstChild || $el.$content;
-                      while ($child) {
-                          $child = this.compileNode($child);
-                      }
-                  }
-                  return nextSibling;
-              case 3 /* Text */:
-                  const expression = this.exprParser.parse($el.node.wholeText, 2048 /* Interpolation */);
-                  if (expression === null) {
-                      while (($el = $el.nextSibling) && $el.node.nodeType === 3 /* Text */)
-                          ;
-                      return $el;
-                  }
-                  $el.replaceTextNodeWithMarker();
-                  $el.addInstructions([new TextBindingInstruction(expression)]);
-                  return nextSibling;
-              case 8 /* Comment */:
-                  return nextSibling;
-              case 9 /* Document */:
-                  return $el.firstChild;
-              case 10 /* DocumentType */:
-                  return nextSibling;
-              case 11 /* DocumentFragment */:
-                  return $el.firstChild;
-          }
-      }
-      compileSurrogate($el) {
-          const attributes = $el.$attributes;
-          for (let i = 0, ii = attributes.length; i < ii; ++i) {
-              const $attr = attributes[i];
-              if ($attr.isTemplateController) {
-                  throw new Error('Cannot have template controller on surrogate element.');
-              }
-              const instruction = this.compileAttribute($attr);
-              if (instruction !== null) {
-                  $el.definition.surrogates.push(instruction);
-              }
-              else {
-                  let attrInst;
-                  // Doesn't make sense for these properties as they need to be unique
-                  const name = $attr.target;
-                  if (name !== 'id' && name !== 'part' && name !== 'replace-part') {
-                      // tslint:disable-next-line:no-small-switch
-                      switch (name) {
-                          // TODO: handle simple surrogate style attribute
-                          case 'style':
-                          default:
-                              attrInst = new SetAttributeInstruction($attr.rawValue, name);
-                      }
-                      $el.definition.surrogates.push(attrInst);
-                  }
-                  else {
-                      throw new Error(`Invalid surrogate attribute: ${name}`);
+                      this.compileParentNode(childNode);
                   }
               }
           }
       }
-      compileElementNode($el) {
-          if ($el.$attributes.length === 0) {
-              return;
+      compileCustomElement(symbol) {
+          // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
+          const instructionRow = this.compileAttributes(symbol, 1);
+          instructionRow[0] = new HydrateElementInstruction(symbol.res, this.compileBindings(symbol), this.compileParts(symbol));
+          this.instructionRows.push(instructionRow);
+      }
+      compilePlainElement(symbol) {
+          const attributes = this.compileAttributes(symbol, 0);
+          if (attributes.length > 0) {
+              this.instructionRows.push(attributes);
           }
-          const attributes = $el.$attributes;
-          const attributeInstructions = [];
-          for (let i = 0, ii = attributes.length; i < ii; ++i) {
-              const $attr = attributes[i];
-              if ($attr.isProcessed)
-                  continue;
-              $attr.markAsProcessed();
-              if ($attr.isTemplateController) {
-                  let instruction = this.compileAttribute($attr);
-                  // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
-                  if (instruction.type !== "m" /* hydrateTemplateController */) {
-                      const name = $attr.res;
-                      instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
-                  }
-                  // all attribute instructions preceding the template controller become children of the hydrate instruction
-                  instruction.instructions.push(...attributeInstructions);
-                  this.compileNode($el.lift(instruction));
-                  return;
-              }
-              else if ($attr.isCustomAttribute) {
-                  attributeInstructions.push(this.compileCustomAttribute($attr));
-              }
-              else {
-                  const instruction = this.compileAttribute($attr);
-                  if (instruction !== null) {
-                      attributeInstructions.push(instruction);
-                  }
-              }
-          }
-          if (attributeInstructions.length) {
-              $el.addInstructions(attributeInstructions);
-              $el.makeTarget();
+          this.compileChildNodes(symbol);
+      }
+      compileParentNode(symbol) {
+          switch (symbol.flags & 511 /* type */) {
+              case 16 /* isCustomElement */:
+                  this.compileCustomElement(symbol);
+                  break;
+              case 64 /* isPlainElement */:
+                  this.compilePlainElement(symbol);
+                  break;
+              case 1 /* isTemplateController */:
+                  this.compileTemplateController(symbol);
           }
       }
-      compileCustomElement($el) {
-          if ($el.$attributes.length === 0) {
-              $el.addInstructions([new HydrateElementInstruction($el.definition.name, PLATFORM.emptyArray)]);
-              if ($el.definition.containerless) {
-                  $el.replaceNodeWithMarker();
-              }
-              else {
-                  $el.makeTarget();
-              }
-              return;
-          }
-          const attributeInstructions = [];
-          // if there is a custom element, then only the attributes that map to bindables become children of the hydrate instruction,
-          // otherwise they become sibling instructions; if there is no custom element, then sibling instructions are never appended to
-          const siblingInstructions = [];
-          const attributes = $el.$attributes;
-          for (let i = 0, ii = attributes.length; i < ii; ++i) {
-              const $attr = attributes[i];
-              if ($attr.isProcessed)
-                  continue;
-              $attr.markAsProcessed();
-              if ($attr.isTemplateController) {
-                  let instruction = this.compileAttribute($attr);
-                  // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
-                  if (instruction.type !== "m" /* hydrateTemplateController */) {
-                      const name = $attr.res;
-                      instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
-                  }
-                  // all attribute instructions preceding the template controller become children of the hydrate instruction
-                  instruction.instructions.push(...attributeInstructions);
-                  this.compileNode($el.lift(instruction));
-                  return;
-              }
-              else if ($attr.isCustomAttribute) {
-                  if ($attr.isAttributeBindable) {
-                      siblingInstructions.push(this.compileCustomAttribute($attr));
-                  }
-                  else {
-                      attributeInstructions.push(this.compileCustomAttribute($attr));
-                  }
-              }
-              else {
-                  const instruction = this.compileAttribute($attr);
-                  if (instruction !== null) {
-                      if (!$attr.isElementBindable) {
-                          siblingInstructions.push(instruction);
-                      }
-                      else {
-                          attributeInstructions.push(instruction);
-                      }
-                  }
-              }
-          }
-          $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
-          if ($el.definition.containerless) {
-              $el.replaceNodeWithMarker();
-          }
-          else {
-              $el.makeTarget();
-          }
+      compileTemplateController(symbol) {
+          const bindings = this.compileBindings(symbol);
+          const instructionRowsSave = this.instructionRows;
+          const controllerInstructions = this.instructionRows = [];
+          this.compileParentNode(symbol.template);
+          this.instructionRows = instructionRowsSave;
+          const def = {
+              name: symbol.partName === null ? symbol.res : symbol.partName,
+              template: symbol.physicalNode,
+              instructions: controllerInstructions,
+              build: buildNotRequired$1
+          };
+          this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
       }
-      compileCustomAttribute($attr) {
-          const childInstructions = [];
-          if ($attr.isMultiAttrBinding) {
-              const mBindings = $attr.$multiAttrBindings;
-              for (let j = 0, jj = mBindings.length; j < jj; ++j) {
-                  childInstructions.push(this.compileAttribute(mBindings[j]));
+      compileBindings(symbol) {
+          let bindingInstructions;
+          if (symbol.flags & 4096 /* hasBindings */) {
+              // either a custom element with bindings, a custom attribute / template controller with dynamic options,
+              // or a single value custom attribute binding
+              const { bindings } = symbol;
+              const len = bindings.length;
+              bindingInstructions = Array(len);
+              let i = 0;
+              for (; i < len; ++i) {
+                  bindingInstructions[i] = this.compileBinding(bindings[i]);
               }
           }
           else {
-              childInstructions.push(this.compileAttribute($attr));
+              bindingInstructions = PLATFORM.emptyArray;
           }
-          return new HydrateAttributeInstruction($attr.res, childInstructions);
+          return bindingInstructions;
       }
-      compileLetElement($el) {
-          const letInstructions = [];
-          const attributes = $el.$attributes;
-          let toViewModel = false;
-          for (let i = 0, ii = attributes.length; ii > i; ++i) {
-              const $attr = attributes[i];
-              const to = PLATFORM.camelCase($attr.to);
-              if ($attr.hasBindingCommand) {
-                  const expr = this.exprParser.parse($attr.rawValue, 53 /* BindCommand */);
-                  letInstructions.push(new LetBindingInstruction(expr, to));
-              }
-              else if ($attr.rawName === 'to-view-model') {
-                  toViewModel = true;
-                  $el.node.removeAttribute('to-view-model');
+      compileBinding(symbol) {
+          if (symbol.command === null) {
+              // either an interpolation or a normal string value assigned to an element or attribute binding
+              if (symbol.expression === null) {
+                  // the template binder already filtered out non-bindables, so we know we need a setProperty here
+                  return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
               }
               else {
-                  const expr = this.exprParser.parse($attr.rawValue, 2048 /* Interpolation */);
-                  if (expr === null) {
-                      // Should just be a warning, but throw for now
-                      throw new Error(`Invalid let binding. String liternal given for attribute: ${$attr.to}`);
-                  }
-                  letInstructions.push(new LetBindingInstruction(expr, to));
+                  // either an element binding interpolation or a dynamic options attribute binding interpolation
+                  return new InterpolationInstruction(symbol.expression, symbol.bindable.propName);
               }
           }
-          $el.addInstructions([new LetElementInstruction(letInstructions, toViewModel)]);
-          // theoretically there's no need to replace, but to keep it consistent
-          $el.replaceNodeWithMarker();
+          else {
+              // either an element binding command, dynamic options attribute binding command,
+              // or custom attribute / template controller (single value) binding command
+              return symbol.command.compile(symbol);
+          }
       }
-      compileAttribute($attr) {
-          // binding commands get priority over all; they may override default behaviors
-          // it is the responsibility of the implementor to ensure they filter out stuff they shouldn't override
-          if ($attr.isHandledByBindingCommand) {
-              return $attr.command.compile($attr);
-          }
-          // simple path for ref binding
-          const parser = this.exprParser;
-          if ($attr.target === 'ref') {
-              return new RefBindingInstruction(parser.parse($attr.rawValue, 1280 /* IsRef */));
-          }
-          // simple path for style bindings (TODO: this doesnt work, but we need to use StylePropertyBindingInstruction right?)
-          // if (target === 'style' || target === 'css') {
-          //   const expression = parser.parse(value, BindingType.Interpolation);
-          //   if (expression === null) {
-          //     return null;
-          //   }
-          //   return new StylePropertyBindingInstruction(expression, target);
-          // }
-          // plain custom attribute on any kind of element
-          if ($attr.isCustomAttribute) {
-              if (!$attr.hasBindingCommand) {
-                  const expression = parser.parse($attr.rawValue, 2048 /* Interpolation */);
-                  if (expression !== null) {
-                      return new InterpolationInstruction(expression, $attr.to);
-                  }
-                  if ($attr.isMultiAttrBinding) {
-                      return new SetPropertyInstruction($attr.rawValue, $attr.to);
-                  }
-              }
-              // intentional nested block without a statement to ensure the expression variable isn't shadowed
-              // (we're not declaring it at the outer block for better typing without explicit casting)
-              {
-                  const expression = parser.parse($attr.rawValue, 50 /* ToViewCommand */);
-                  switch ($attr.mode) {
-                      case BindingMode.oneTime:
-                          return new OneTimeBindingInstruction(expression, $attr.to);
-                      case BindingMode.fromView:
-                          return new FromViewBindingInstruction(expression, $attr.to);
-                      case BindingMode.twoWay:
-                          return new TwoWayBindingInstruction(expression, $attr.to);
-                      case BindingMode.toView:
-                      default:
-                          return new ToViewBindingInstruction(expression, $attr.to);
-                  }
+      compileAttributes(symbol, offset) {
+          let attributeInstructions;
+          if (symbol.flags & 2048 /* hasAttributes */) {
+              // any attributes on a custom element (which are not bindables) or a plain element
+              const { attributes } = symbol;
+              const len = attributes.length;
+              attributeInstructions = Array(offset + len);
+              for (let i = 0; i < len; ++i) {
+                  attributeInstructions[i + offset] = this.compileAttribute(attributes[i]);
               }
           }
-          // plain bindable attribute on a custom element
-          if ($attr.onCustomElement && $attr.isElementBindable) {
-              const expression = parser.parse($attr.rawValue, 2048 /* Interpolation */);
-              if (expression === null) {
-                  // no interpolation -> make it a setProperty on the component
-                  return new SetPropertyInstruction($attr.rawValue, $attr.to);
-              }
-              // interpolation -> behave like toView (e.g. foo="${someProp}")
-              return new InterpolationInstruction(expression, $attr.to);
+          else if (offset > 0) {
+              attributeInstructions = Array(offset);
           }
-          {
-              // plain attribute on a normal element
-              const expression = parser.parse($attr.rawValue, 2048 /* Interpolation */);
-              if (expression === null) {
-                  // no interpolation -> do not return an instruction
-                  return null;
-              }
-              // interpolation -> behave like toView (e.g. id="${someId}")
-              return new InterpolationInstruction(expression, $attr.to);
+          else {
+              attributeInstructions = PLATFORM.emptyArray;
           }
+          return attributeInstructions;
+      }
+      compileAttribute(symbol) {
+          if (symbol.syntax.target === 'ref') {
+              return new RefBindingInstruction(symbol.syntax.rawValue);
+          }
+          // any attribute on a custom element (which is not a bindable) or a plain element
+          if (symbol.flags & 4 /* isCustomAttribute */) {
+              // a normal custom attribute (not template controller)
+              const bindings = this.compileBindings(symbol);
+              return new HydrateAttributeInstruction(symbol.res, bindings);
+          }
+          else if (symbol.command === null) {
+              if (symbol.expression === null) {
+                  // a plain attribute on a surrogate
+                  return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
+              }
+              else {
+                  // a plain attribute with an interpolation
+                  return new InterpolationInstruction(symbol.expression, symbol.syntax.target);
+              }
+          }
+          else {
+              // a plain attribute with a binding command
+              return symbol.command.compile(symbol);
+          }
+      }
+      compileParts(symbol) {
+          let parts;
+          if (symbol.flags & 16384 /* hasParts */) {
+              parts = {};
+              const replaceParts = symbol.parts;
+              const ii = replaceParts.length;
+              let instructionRowsSave;
+              let partInstructions;
+              let replacePart;
+              for (let i = 0; i < ii; ++i) {
+                  replacePart = replaceParts[i];
+                  instructionRowsSave = this.instructionRows;
+                  partInstructions = this.instructionRows = [];
+                  this.compileParentNode(replacePart.template);
+                  parts[replacePart.name] = {
+                      name: replacePart.name,
+                      template: replacePart.physicalNode,
+                      instructions: partInstructions,
+                      build: buildNotRequired$1
+                  };
+                  this.instructionRows = instructionRowsSave;
+              }
+          }
+          else {
+              parts = PLATFORM.emptyObject;
+          }
+          return parts;
       }
   };
   TemplateCompiler = __decorate$1([
-      inject(IExpressionParser, IElementParser, IAttributeParser)
+      inject(ITemplateFactory, IAttributeParser, IExpressionParser)
   ], TemplateCompiler);
 
-  const globalResources = [
+  const GlobalResources = [
       Compose,
       If,
       Else,
@@ -11728,7 +13018,7 @@ var au = (function (exports) {
       TwoWayBindingBehavior,
       UpdateTriggerBindingBehavior
   ];
-  const defaultBindingLanguage = [
+  const DefaultBindingLanguage = [
       DefaultBindingCommand,
       OneTimeBindingCommand,
       ToViewBindingCommand,
@@ -11739,19 +13029,131 @@ var au = (function (exports) {
       CaptureBindingCommand,
       CallBindingCommand,
       ForBindingCommand,
-      DotSeparatedAttributePattern
+      DotSeparatedAttributePattern,
+      RefAttributePattern
   ];
   const BasicConfiguration = {
       register(container) {
-          container.register(ParserRegistration, HtmlRenderer, Registration.singleton(ITemplateCompiler, TemplateCompiler), ...globalResources, ...defaultBindingLanguage);
+          container.register(ParserRegistration, HtmlRenderer, Registration.singleton(ITemplateCompiler, TemplateCompiler), ...GlobalResources, ...DefaultBindingLanguage);
       }
   };
+
+  function stringifyDOM(node, depth) {
+      const indent = ' '.repeat(depth);
+      let output = indent;
+      output += `Node: ${node.nodeName}`;
+      if (node.nodeType === 3 /* Text */) {
+          output += ` "${node.textContent}"`;
+      }
+      if (node.nodeType === 1 /* Element */) {
+          let i = 0;
+          let attr;
+          const attributes = node.attributes;
+          const len = attributes.length;
+          for (; i < len; ++i) {
+              attr = attributes[i];
+              output += ` ${attr.name}=${attr.value}`;
+          }
+      }
+      output += '\n';
+      if (node.nodeType === 1 /* Element */) {
+          let i = 0;
+          let childNodes = node.childNodes;
+          let len = childNodes.length;
+          for (; i < len; ++i) {
+              output += stringifyDOM(childNodes[i], depth + 1);
+          }
+          if (node.nodeName === 'TEMPLATE') {
+              i = 0;
+              childNodes = node.content.childNodes;
+              len = childNodes.length;
+              for (; i < len; ++i) {
+                  output += stringifyDOM(childNodes[i], depth + 1);
+              }
+          }
+      }
+      return output;
+  }
+  function stringifyInstructions(instruction, depth) {
+      const indent = ' '.repeat(depth);
+      let output = indent;
+      switch (instruction.type) {
+          case "a" /* textBinding */:
+              output += 'textBinding\n';
+              break;
+          case "f" /* callBinding */:
+              output += 'callBinding\n';
+              break;
+          case "d" /* iteratorBinding */:
+              output += 'iteratorBinding\n';
+              break;
+          case "e" /* listenerBinding */:
+              output += 'listenerBinding\n';
+              break;
+          case "c" /* propertyBinding */:
+              output += 'propertyBinding\n';
+              break;
+          case "g" /* refBinding */:
+              output += 'refBinding\n';
+              break;
+          case "h" /* stylePropertyBinding */:
+              output += 'stylePropertyBinding\n';
+              break;
+          case "i" /* setProperty */:
+              output += 'setProperty\n';
+              break;
+          case "j" /* setAttribute */:
+              output += 'setAttribute\n';
+              break;
+          case "b" /* interpolation */:
+              output += 'interpolation\n';
+              break;
+          case "n" /* hydrateLetElement */:
+              output += 'hydrateLetElement\n';
+              instruction.instructions.forEach(i => {
+                  output += stringifyInstructions(i, depth + 1);
+              });
+              break;
+          case "l" /* hydrateAttribute */:
+              output += `hydrateAttribute: ${instruction.res}\n`;
+              instruction.instructions.forEach(i => {
+                  output += stringifyInstructions(i, depth + 1);
+              });
+              break;
+          case "k" /* hydrateElement */:
+              output += `hydrateElement: ${instruction.res}\n`;
+              instruction.instructions.forEach(i => {
+                  output += stringifyInstructions(i, depth + 1);
+              });
+              break;
+          case "m" /* hydrateTemplateController */:
+              output += `hydrateTemplateController: ${instruction.res}\n`;
+              output += stringifyTemplateDefinition(instruction.def, depth + 1);
+              instruction.instructions.forEach(i => {
+                  output += stringifyInstructions(i, depth + 1);
+              });
+      }
+      return output;
+  }
+  function stringifyTemplateDefinition(def, depth) {
+      const indent = ' '.repeat(depth);
+      let output = indent;
+      output += `TemplateDefinition: ${def.name}\n`;
+      output += stringifyDOM(def.template, depth + 1);
+      output += `${indent} Instructions:\n`;
+      def.instructions.forEach(row => {
+          output += `${indent}  Row:\n`;
+          row.forEach(i => {
+              output += stringifyInstructions(i, depth + 3);
+          });
+      });
+      return output;
+  }
 
 
 
   var index = /*#__PURE__*/Object.freeze({
     AttrSyntax: AttrSyntax,
-    ElementSyntax: ElementSyntax,
     IAttributeParser: IAttributeParser,
     get AttributeParser () { return AttributeParser; },
     CharSpec: CharSpec,
@@ -11766,6 +13168,7 @@ var au = (function (exports) {
     IAttributePattern: IAttributePattern,
     attributePattern: attributePattern,
     get DotSeparatedAttributePattern () { return DotSeparatedAttributePattern; },
+    get RefAttributePattern () { return RefAttributePattern; },
     get ColonPrefixedBindAttributePattern () { return ColonPrefixedBindAttributePattern; },
     get AtPrefixedTriggerAttributePattern () { return AtPrefixedTriggerAttributePattern; },
     bindingCommand: bindingCommand,
@@ -11781,18 +13184,33 @@ var au = (function (exports) {
     get CallBindingCommand () { return CallBindingCommand; },
     get ForBindingCommand () { return ForBindingCommand; },
     unescapeCode: unescapeCode,
+    GlobalResources: GlobalResources,
+    DefaultBindingLanguage: DefaultBindingLanguage,
     BasicConfiguration: BasicConfiguration,
-    IElementParser: IElementParser,
-    get ElementParser () { return ElementParser; },
+    stringifyDOM: stringifyDOM,
+    stringifyInstructions: stringifyInstructions,
+    stringifyTemplateDefinition: stringifyTemplateDefinition,
     ParserRegistration: ParserRegistration,
     ParserState: ParserState,
     parseCore: parseCore,
     parse: parse,
-    SemanticModel: SemanticModel,
-    MultiAttributeBindingSymbol: MultiAttributeBindingSymbol,
-    AttributeSymbol: AttributeSymbol,
-    ElementSymbol: ElementSymbol,
-    get TemplateCompiler () { return TemplateCompiler; }
+    ResourceModel: ResourceModel,
+    BindableInfo: BindableInfo,
+    ElementInfo: ElementInfo,
+    AttrInfo: AttrInfo,
+    TemplateControllerSymbol: TemplateControllerSymbol,
+    ReplacePartSymbol: ReplacePartSymbol,
+    CustomAttributeSymbol: CustomAttributeSymbol,
+    PlainAttributeSymbol: PlainAttributeSymbol,
+    BindingSymbol: BindingSymbol,
+    CustomElementSymbol: CustomElementSymbol,
+    LetElementSymbol: LetElementSymbol,
+    PlainElementSymbol: PlainElementSymbol,
+    TextSymbol: TextSymbol,
+    TemplateBinder: TemplateBinder,
+    get TemplateCompiler () { return TemplateCompiler; },
+    ITemplateFactory: ITemplateFactory,
+    TemplateFactory: TemplateFactory
   });
 
   exports.kernel = index_es6;

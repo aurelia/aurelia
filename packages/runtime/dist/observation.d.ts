@@ -26,8 +26,12 @@ export declare enum LifecycleFlags {
     fromBindableHandler = 131072,
     fromLifecycleTask = 262144,
     parentUnmountQueued = 1048576,
-    doNotUpdateDOM = 2097152
+    doNotUpdateDOM = 2097152,
+    isTraversingParentScope = 4194304,
+    persistentBindingFlags = 8388608,
+    allowParentScopeTraversal = 8388608
 }
+export declare function stringifyLifecycleFlags(flags: LifecycleFlags): string;
 /**
  * Describes a type that tracks changes and can flush those changes in some way
  */
@@ -230,6 +234,9 @@ export declare type LengthPropertyName<T> = T extends unknown[] ? 'length' : T e
 export declare type CollectionTypeToKind<T> = T extends unknown[] ? CollectionKind.array | CollectionKind.indexed : T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed : T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed : never;
 export declare type CollectionKindToType<T> = T extends CollectionKind.array ? unknown[] : T extends CollectionKind.indexed ? unknown[] : T extends CollectionKind.map ? Map<unknown, unknown> : T extends CollectionKind.set ? Set<unknown> : T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> : never;
 export declare type ObservedCollectionKindToType<T> = T extends CollectionKind.array ? IObservedArray : T extends CollectionKind.indexed ? IObservedArray : T extends CollectionKind.map ? IObservedMap : T extends CollectionKind.set ? IObservedSet : T extends CollectionKind.keyed ? IObservedSet | IObservedMap : never;
+export interface IPatch {
+    patch(flags: LifecycleFlags): void;
+}
 /**
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
@@ -237,7 +244,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends IDisposab
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
-    lengthObserver: IBindingTargetObserver;
+    lengthObserver: IBindingTargetObserver & IPatch;
     getLengthObserver(): IBindingTargetObserver;
 }
 export declare type CollectionObserver = ICollectionObserver<CollectionKind>;

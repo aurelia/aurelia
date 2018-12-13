@@ -1,7 +1,7 @@
 import { IContainer, IDisposable, Immutable, InterfaceSymbol, IResolver, IServiceLocator, Omit } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
-import { IEncapsulationSource, INode, INodeSequence, IRenderLocation } from './dom';
+import { INode, INodeSequence, IRenderLocation } from './dom.interfaces';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
 export declare const enum State {
     none = 0,
@@ -215,7 +215,7 @@ export interface ILifecycleAttaching extends IHooks, IState {
      * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
      * the nodes are added to the DOM.
      */
-    attaching?(flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void;
+    attaching?(flags: LifecycleFlags, encapsulationSource?: INode): void;
 }
 export interface ILifecycleAttached extends IHooks, IState {
     /**
@@ -290,7 +290,7 @@ export interface ILifecycleCache {
 export interface ICachable extends ILifecycleCache {
 }
 export interface ILifecycleAttach {
-    $attach(flags: LifecycleFlags, encapsulationSource?: IEncapsulationSource): void;
+    $attach(flags: LifecycleFlags, encapsulationSource?: INode): void;
 }
 export interface ILifecycleDetach {
     $detach(flags: LifecycleFlags): void;
@@ -326,10 +326,6 @@ export interface ILifecycleBind {
     $state?: State;
     $bind(flags: LifecycleFlags, scope?: IScope): void;
 }
-export interface ILifecycleBindSelf {
-    $state?: State;
-    $bind(flags: LifecycleFlags): void;
-}
 export interface ILifecycleBindScope {
     $state?: State;
     $bind(flags: LifecycleFlags, scope: IScope): void;
@@ -337,8 +333,6 @@ export interface ILifecycleBindScope {
 export interface IBind extends ILifecycleBind, ILifecycleUnbind {
 }
 export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope {
-}
-export interface IBindSelf extends Omit<IBind, '$bind'>, ILifecycleBindSelf {
 }
 export interface IFlushLifecycle {
     processFlushQueue(flags: LifecycleFlags): void;

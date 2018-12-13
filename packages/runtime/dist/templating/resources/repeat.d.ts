@@ -1,7 +1,7 @@
 import { IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { SetterObserver } from '../../binding/property-observation';
-import { IRenderLocation } from '../../dom';
+import { IRenderLocation } from '../../dom.interfaces';
 import { IRenderable, IView, IViewFactory } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { ICustomAttribute } from '../custom-attribute';

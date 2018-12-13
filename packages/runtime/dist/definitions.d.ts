@@ -2,8 +2,8 @@ import { Immutable, IRegistry, Omit } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
-import { INode } from './dom';
-import { IResourceDefinition, ResourceDescription } from './resource';
+import { IShadowRootInit } from './dom.interfaces';
+import { IResourceDefinition, ResourceDescription, ResourcePartDescription } from './resource';
 import { CustomElementConstructor } from './templating/custom-element';
 export declare type BindableSource = Omit<IBindableDescription, 'property'>;
 export interface IBindableDescription {
@@ -26,7 +26,7 @@ export declare const enum TargetedInstructionType {
     hydrateElement = "k",
     hydrateAttribute = "l",
     hydrateTemplateController = "m",
-    letElement = "n",
+    hydrateLetElement = "n",
     letBinding = "o"
 }
 export interface IBuildInstruction {
@@ -35,23 +35,24 @@ export interface IBuildInstruction {
 }
 export interface ITemplateDefinition extends IResourceDefinition {
     cache?: '*' | number;
-    template?: string | INode;
+    template?: unknown;
     instructions?: TargetedInstruction[][];
     dependencies?: IRegistry[];
     build?: IBuildInstruction;
     surrogates?: TargetedInstruction[];
     bindables?: Record<string, IBindableDescription>;
     containerless?: boolean;
-    shadowOptions?: ShadowRootInit;
+    shadowOptions?: IShadowRootInit;
     hasSlots?: boolean;
 }
 export declare type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
-export declare type TemplatePartDefinitions = Record<string, Immutable<ITemplateDefinition>>;
+export declare type TemplatePartDefinitions = Record<string, ResourcePartDescription<ITemplateDefinition>>;
 export declare type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
 export interface IAttributeDefinition extends IResourceDefinition {
     defaultBindingMode?: BindingMode;
     aliases?: string[];
     isTemplateController?: boolean;
+    hasDynamicOptions?: boolean;
     bindables?: Record<string, IBindableDescription>;
 }
 export declare type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
@@ -59,10 +60,11 @@ export declare const ITargetedInstruction: import("@aurelia/kernel/dist/di").IDe
 export interface ITargetedInstruction {
     type: TargetedInstructionType;
 }
-export declare type TargetedInstruction = ITextBindingInstruction | IInterpolationInstruction | IPropertyBindingInstruction | IIteratorBindingInstruction | IListenerBindingInstruction | ICallBindingInstruction | IRefBindingInstruction | IStylePropertyBindingInstruction | ISetPropertyInstruction | ISetAttributeInstruction | IHydrateElementInstruction | IHydrateAttributeInstruction | IHydrateTemplateController | ILetElementInstruction;
-export declare function isTargetedInstruction(value: {
-    type?: string;
-}): value is TargetedInstruction;
+export declare type NodeInstruction = ITextBindingInstruction | IHydrateElementInstruction | IHydrateTemplateController | IHydrateLetElementInstruction;
+export declare type AttributeInstruction = IInterpolationInstruction | IPropertyBindingInstruction | IIteratorBindingInstruction | IListenerBindingInstruction | ICallBindingInstruction | IRefBindingInstruction | IStylePropertyBindingInstruction | ISetPropertyInstruction | ISetAttributeInstruction | ILetBindingInstruction | IHydrateAttributeInstruction;
+export declare type TargetedInstruction = NodeInstruction | AttributeInstruction;
+export declare type InstructionRow = [TargetedInstruction, ...AttributeInstruction[]];
+export declare function isTargetedInstruction(value: unknown): value is TargetedInstruction;
 export interface ITextBindingInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.textBinding;
     from: string | Interpolation;
@@ -117,7 +119,7 @@ export interface ISetPropertyInstruction extends ITargetedInstruction {
 }
 export interface ISetAttributeInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.setAttribute;
-    value: unknown;
+    value: string;
     to: string;
 }
 export interface IHydrateElementInstruction extends ITargetedInstruction {
@@ -138,8 +140,8 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
     def: ITemplateDefinition;
     link?: boolean;
 }
-export interface ILetElementInstruction extends ITargetedInstruction {
-    type: TargetedInstructionType.letElement;
+export interface IHydrateLetElementInstruction extends ITargetedInstruction {
+    type: TargetedInstructionType.hydrateLetElement;
     instructions: ILetBindingInstruction[];
     toViewModel: boolean;
 }
@@ -151,7 +153,7 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor, name: string): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: null, def: Immutable<ITemplateDefinition>): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, nameOrDef: string | Immutable<ITemplateDefinition>): TemplateDefinition;
-export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: string | INode, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: ReadonlyArray<ReadonlyArray<TargetedInstruction>> | null, dependencies?: ReadonlyArray<unknown> | null, surrogates?: ReadonlyArray<TargetedInstruction> | null, containerless?: boolean | null, shadowOptions?: {
+export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: unknown, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: ReadonlyArray<ReadonlyArray<TargetedInstruction>> | null, dependencies?: ReadonlyArray<unknown> | null, surrogates?: ReadonlyArray<TargetedInstruction> | null, containerless?: boolean | null, shadowOptions?: {
     mode: 'open' | 'closed';
 } | null, hasSlots?: boolean | null): TemplateDefinition;
 //# sourceMappingURL=definitions.d.ts.map

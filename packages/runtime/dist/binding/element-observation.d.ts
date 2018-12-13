@@ -1,4 +1,4 @@
-import { IElement, IInputElement, INode } from '../dom';
+import { IHTMLInputElement, IHTMLOptionElement, IHTMLSelectElement, INode } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import { IBatchedCollectionSubscriber, IBindingTargetObserver, IndexMap, IPropertySubscriber, LifecycleFlags, ObserversLookup } from '../observation';
 import { IEventSubscriber } from './event-manager';
@@ -24,7 +24,7 @@ export declare class ValueAttributeObserver implements ValueAttributeObserver {
     unsubscribe(subscriber: IPropertySubscriber): void;
     private flushFileChanges;
 }
-interface IInternalInputElement extends IInputElement {
+export interface IInputElement extends IHTMLInputElement {
     matcher?: typeof defaultMatcher;
     model?: unknown;
     $observers?: ObserversLookup & {
@@ -32,7 +32,7 @@ interface IInternalInputElement extends IInputElement {
         value?: ValueAttributeObserver;
     };
 }
-export interface CheckedObserver extends IBindingTargetObserver<IInternalInputElement, string>, IBatchedCollectionSubscriber, IPropertySubscriber {
+export interface CheckedObserver extends IBindingTargetObserver<IInputElement, string>, IBatchedCollectionSubscriber, IPropertySubscriber {
 }
 export declare class CheckedObserver implements CheckedObserver {
     currentFlags: LifecycleFlags;
@@ -41,12 +41,12 @@ export declare class CheckedObserver implements CheckedObserver {
     flush: () => void;
     handler: IEventSubscriber;
     lifecycle: ILifecycle;
-    obj: IInternalInputElement;
+    obj: IInputElement;
     observerLocator: IObserverLocator;
     oldValue: unknown;
     private arrayObserver;
     private valueObserver;
-    constructor(lifecycle: ILifecycle, obj: IInternalInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
+    constructor(lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleBatchedChange(): void;
@@ -59,16 +59,12 @@ export declare class CheckedObserver implements CheckedObserver {
     unbind(): void;
 }
 declare function defaultMatcher(a: unknown, b: unknown): boolean;
-export interface ISelectElement extends IElement {
-    multiple: boolean;
-    value: string;
+export interface ISelectElement extends IHTMLSelectElement {
     options: ArrayLike<IOptionElement>;
     matcher?: typeof defaultMatcher;
 }
-export interface IOptionElement extends IElement {
+export interface IOptionElement extends IHTMLOptionElement {
     model?: unknown;
-    selected: boolean;
-    value: string;
 }
 export interface SelectValueObserver extends IBindingTargetObserver<ISelectElement, string>, IBatchedCollectionSubscriber, IPropertySubscriber {
 }

@@ -1,6 +1,6 @@
 import { IIndexable, StrictPrimitive } from '@aurelia/kernel';
 import { IBindScope } from '../lifecycle';
-import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup } from '../observation';
+import { IBindingContext, IOverrideContext, IScope, LifecycleFlags, ObservedCollection, ObserversLookup } from '../observation';
 declare type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 export declare class BindingContext implements IBindingContext {
     [key: string]: BindingContextValue;
@@ -9,7 +9,7 @@ export declare class BindingContext implements IBindingContext {
     private constructor();
     static create(obj?: IIndexable): BindingContext;
     static create(key: string, value: BindingContextValue): BindingContext;
-    static get(scope: IScope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBindScope;
+    static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBindScope;
     getObservers(): ObserversLookup<IOverrideContext>;
 }
 export declare class Scope implements IScope {

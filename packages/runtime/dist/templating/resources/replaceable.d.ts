@@ -1,5 +1,5 @@
 import { IRegistry } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
+import { IRenderLocation } from '../../dom.interfaces';
 import { IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { ICustomAttribute } from '../custom-attribute';

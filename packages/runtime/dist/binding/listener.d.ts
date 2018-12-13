@@ -1,5 +1,5 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { INode } from '../dom';
+import { IEvent, INode } from '../dom.interfaces';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { IsBindingBehavior } from './ast';
@@ -22,8 +22,8 @@ export declare class Listener implements IBinding {
     private eventManager;
     private handler;
     constructor(targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: INode, preventDefault: boolean, eventManager: IEventManager, locator: IServiceLocator);
-    callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']>;
-    handleEvent(event: Event): void;
+    callSource(event: IEvent): ReturnType<IsBindingBehavior['evaluate']>;
+    handleEvent(event: IEvent): void;
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(obj: IIndexable, propertyName: string): void;

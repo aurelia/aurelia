@@ -20,7 +20,10 @@ import {
   UpdateTriggerBindingBehavior,
   With
 } from '@aurelia/runtime';
-import { DotSeparatedAttributePattern } from './attribute-pattern';
+import {
+  DotSeparatedAttributePattern,
+  RefAttributePattern
+} from './attribute-pattern';
 import {
   CallBindingCommand,
   CaptureBindingCommand,
@@ -36,7 +39,7 @@ import {
 import { ParserRegistration } from './expression-parser';
 import { TemplateCompiler } from './template-compiler';
 
-const globalResources: IRegistry[] = [
+export const GlobalResources: IRegistry[] = [
   Compose,
   If,
   Else,
@@ -56,7 +59,7 @@ const globalResources: IRegistry[] = [
   UpdateTriggerBindingBehavior
 ];
 
-const defaultBindingLanguage: IRegistry[] = [
+export const DefaultBindingLanguage: IRegistry[] = [
   DefaultBindingCommand,
   OneTimeBindingCommand,
   ToViewBindingCommand,
@@ -67,7 +70,8 @@ const defaultBindingLanguage: IRegistry[] = [
   CaptureBindingCommand,
   CallBindingCommand,
   ForBindingCommand,
-  DotSeparatedAttributePattern
+  DotSeparatedAttributePattern,
+  RefAttributePattern
 ];
 
 export const BasicConfiguration = {
@@ -76,8 +80,8 @@ export const BasicConfiguration = {
       ParserRegistration,
       HtmlRenderer,
       Registration.singleton(ITemplateCompiler, TemplateCompiler),
-      ...globalResources,
-      ...defaultBindingLanguage
+      ...GlobalResources,
+      ...DefaultBindingLanguage
     );
   }
 };

@@ -1,29 +1,28 @@
-import { Class, Constructable, IContainer, IRegistry, Registration, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, IRegistry, PLATFORM, Registration, Writable } from '@aurelia/kernel';
 import {
+  AttributeInstruction,
+  BindingMode,
   BindingType,
   CallBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
+  ForOfStatement,
   FromViewBindingInstruction,
-  HydrateTemplateController,
-  IExpressionParser,
   IResourceDefinition,
   IResourceKind,
   IResourceType,
-  ITemplateDefinition,
+  IsBindingBehavior,
   IteratorBindingInstruction,
   OneTimeBindingInstruction,
-  SetPropertyInstruction,
-  TargetedInstruction,
   ToViewBindingInstruction,
   TriggerBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
-import { IAttributeSymbol } from './semantic-model';
+import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from './template-binder';
 
 export interface IBindingCommand {
-  compile($symbol: IAttributeSymbol): TargetedInstruction;
-  handles?($symbol: IAttributeSymbol): boolean;
+  bindingType: BindingType;
+  compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 
 export interface IBindingCommandDefinition extends IResourceDefinition { }
@@ -64,10 +63,6 @@ function define<T extends Constructable>(this: IBindingCommandResource, nameOrDe
   Type.description = description;
   Type.register = register;
 
-  const proto = Type.prototype;
-
-  proto.handles = proto.handles || defaultHandles;
-
   return Type;
 }
 
@@ -78,24 +73,37 @@ export const BindingCommandResource: IBindingCommandResource = {
   define
 };
 
-function defaultHandles(this: IBindingCommand, $symbol: IAttributeSymbol): boolean {
-  return !$symbol.isTemplateController;
+function getTarget(binding: PlainAttributeSymbol | BindingSymbol, camelCase: boolean): string {
+  if (binding.flags & SymbolFlags.isBinding) {
+    return (binding as BindingSymbol).bindable.propName;
+  } else if (camelCase) {
+    return PLATFORM.camelCase((binding as PlainAttributeSymbol).syntax.target);
+  } else {
+    return (binding as PlainAttributeSymbol).syntax.target;
+  }
+}
+
+function getMode(binding: PlainAttributeSymbol | BindingSymbol): BindingMode {
+  if (binding.flags & SymbolFlags.isBinding) {
+    return (binding as BindingSymbol).bindable.mode;
+  } else {
+    return commandToMode[(binding as PlainAttributeSymbol).syntax.command];
+  }
 }
 
 export interface OneTimeBindingCommand extends IBindingCommand {}
 
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.OneTimeCommand;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.OneTimeCommand;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new OneTimeBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.OneTimeCommand), $symbol.to);
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return new OneTimeBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
 
@@ -103,16 +111,15 @@ export interface ToViewBindingCommand extends IBindingCommand {}
 
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.ToViewCommand;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.ToViewCommand;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new ToViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ToViewCommand), $symbol.to);
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return new ToViewBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
 
@@ -120,16 +127,15 @@ export interface FromViewBindingCommand extends IBindingCommand {}
 
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.FromViewCommand;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.FromViewCommand;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new FromViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.FromViewCommand), $symbol.to);
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return new FromViewBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
 
@@ -137,45 +143,50 @@ export interface TwoWayBindingCommand extends IBindingCommand {}
 
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.TwoWayCommand;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.TwoWayCommand;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new TwoWayBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TwoWayCommand), $symbol.to);
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return new TwoWayBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
 
 // Not bothering to throw on non-existing modes, should never happen anyway.
 // Keeping all array elements of the same type for better optimizeability.
-const compileMode = ['', '$1', '$2', '', '$4', '', '$6'];
+const modeToProperty = ['', '$1', '$2', '', '$4', '', '$6'];
+const commandToMode = {
+  'bind': BindingMode.toView,
+  'one-time': BindingMode.oneTime,
+  'to-view': BindingMode.toView,
+  'from-view': BindingMode.fromView,
+  'two-way': BindingMode.twoWay,
+};
 
 export interface DefaultBindingCommand extends IBindingCommand {}
 
 @bindingCommand('bind')
 export class DefaultBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.BindCommand;
   public $1: typeof OneTimeBindingCommand.prototype.compile;
   public $2: typeof ToViewBindingCommand.prototype.compile;
   public $4: typeof FromViewBindingCommand.prototype.compile;
   public $6: typeof TwoWayBindingCommand.prototype.compile;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.BindCommand;
     this.$1 = OneTimeBindingCommand.prototype.compile;
     this.$2 = ToViewBindingCommand.prototype.compile;
     this.$4 = FromViewBindingCommand.prototype.compile;
     this.$6 = TwoWayBindingCommand.prototype.compile;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return this[compileMode[$symbol.mode]]($symbol);
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return this[modeToProperty[getMode(binding)]](binding);
   }
 }
 
@@ -183,16 +194,15 @@ export interface TriggerBindingCommand extends IBindingCommand {}
 
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.TriggerCommand;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.TriggerCommand;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new TriggerBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TriggerCommand), $symbol.to);
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return new TriggerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
 
@@ -200,16 +210,15 @@ export interface DelegateBindingCommand extends IBindingCommand {}
 
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.DelegateCommand;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.DelegateCommand;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new DelegateBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.DelegateCommand), $symbol.to);
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return new DelegateBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
 
@@ -217,16 +226,15 @@ export interface CaptureBindingCommand extends IBindingCommand {}
 
 @bindingCommand('capture')
 export class CaptureBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.CaptureCommand;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.CaptureCommand;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new CaptureBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CaptureCommand), $symbol.to);
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return new CaptureBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
 
@@ -234,43 +242,28 @@ export interface CallBindingCommand extends IBindingCommand {}
 
 @bindingCommand('call')
 export class CallBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.CallCommand;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.CallCommand;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new CallBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CallCommand), $symbol.to);
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return new CallBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, true));
   }
 }
 
 @bindingCommand('for')
 export class ForBindingCommand implements IBindingCommand {
-  public static inject: Function[] = [IExpressionParser];
   public static register: IRegistry['register'];
+  public bindingType: BindingType.ForCommand;
 
-  private parser: IExpressionParser;
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
+  constructor() {
+    this.bindingType = BindingType.ForCommand;
   }
 
-  public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    const def: ITemplateDefinition = {
-      name: 'repeat',
-      template: $symbol.$element.node,
-      instructions: []
-    };
-    const instructions = [
-      new IteratorBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ForCommand), 'items'),
-      new SetPropertyInstruction('item', 'local')
-    ];
-    return new HydrateTemplateController(def, 'repeat', instructions, false);
-  }
-
-  public handles($symbol: IAttributeSymbol): boolean {
-    return $symbol.target === 'repeat';
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    return new IteratorBindingInstruction(binding.expression as ForOfStatement, getTarget(binding, false));
   }
 }

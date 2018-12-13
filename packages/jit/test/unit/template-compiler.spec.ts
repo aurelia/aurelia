@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry, PLATFORM, Constructable } from '../../../kernel/src';
+import { DI, IContainer, IRegistry, PLATFORM, Constructable, Tracer } from '../../../kernel/src';
 import {
   IExpressionParser,
   IResourceDescriptions,
@@ -30,19 +30,20 @@ import {
   BasicConfiguration,
   parseCore,
   AttributeParser,
-  ElementParser,
   SyntaxInterpreter,
   DotSeparatedAttributePattern,
   IAttributeParser
 } from '../../src/index';
 import { expect } from 'chai';
-import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from './util';
+import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual, enableTracing, disableTracing, SymbolTraceWriter } from './util';
+import { stringifyTemplateDefinition } from '../../src/debugging';
+import { ITemplateFactory, TemplateFactory } from '../../src/template-factory';
 
 const c = DI.createContainer();
 c.register(<any>DotSeparatedAttributePattern);
 
 const attrParser = c.get(IAttributeParser);
-const elParser = new ElementParser(<any>attrParser);
+const tplFactory = new TemplateFactory();
 
 
 export function createAttribute(name: string, value: string): Attr {
@@ -60,8 +61,8 @@ describe('TemplateCompiler', () => {
   beforeEach(() => {
     container = DI.createContainer();
     container.register(<any>BasicConfiguration);
-    expressionParser = container.get(IExpressionParser);
-    sut = new TemplateCompiler(expressionParser as any, elParser, attrParser);
+    expressionParser = container.get<IExpressionParser>(IExpressionParser);
+    sut = new TemplateCompiler(tplFactory, <any>attrParser, <any>expressionParser);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ Type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
@@ -259,7 +260,7 @@ describe('TemplateCompiler', () => {
             [Prop]
           );
           expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>')
-          const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
+          const [hydratePropAttrInstruction] = <[HydrateTemplateController]><unknown>instructions[0];
           expect((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
         });
 
@@ -276,10 +277,12 @@ describe('TemplateCompiler', () => {
             [Prop]
           );
           expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>')
-          const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
+          const [hydratePropAttrInstruction] = <[HydrateTemplateController]><unknown>instructions[0];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
             { toVerify: ['type', 'to', 'from'],
-              type: TT.propertyBinding, to: 'value', from: new AccessScope('p') },
+              type: TT.propertyBinding, to: 'value', from: new AccessScope('p') }
+          ]);
+          verifyInstructions(hydratePropAttrInstruction.def.instructions[0] as any, [
             { toVerify: ['type', 'to', 'from'],
               type: TT.propertyBinding, to: 'name', from: new AccessScope('name') },
             { toVerify: ['type', 'to', 'from'],
@@ -353,7 +356,7 @@ describe('TemplateCompiler', () => {
             [Let]
           );
           verifyInstructions(instructions[0] as any, [
-            { toVerify: ['type'], type: TT.letElement }
+            { toVerify: ['type'], type: TT.hydrateLetElement }
           ]);
         });
 
@@ -376,11 +379,11 @@ describe('TemplateCompiler', () => {
           it('ignores [to-view-model] order', () => {
             let instructions = compileWith(`<template><let a.bind="a" to-view-model></let></template>`).instructions[0] as any;
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toViewModel'], type: TT.letElement, toViewModel: true }
+              { toVerify: ['type', 'toViewModel'], type: TT.hydrateLetElement, toViewModel: true }
             ]);
             instructions = compileWith(`<template><let to-view-model a.bind="a"></let></template>`).instructions[0] as any;
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toViewModel'], type: TT.letElement, toViewModel: true }
+              { toVerify: ['type', 'toViewModel'], type: TT.hydrateLetElement, toViewModel: true }
             ]);
           });
         });
@@ -394,7 +397,7 @@ describe('TemplateCompiler', () => {
 
     function compileWith(markup: string | Element, extraResources: any[] = [], viewCompileFlags?: ViewCompileFlags) {
       extraResources.forEach(e => e.register(container));
-      return sut.compile(<any>{ template: markup, instructions: [], surrogates: [] }, resources, viewCompileFlags);
+      return sut.compile(<any>{ template: markup, instructions: [], surrogates: [] }, <any>resources);
     }
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
@@ -430,18 +433,20 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
         new BindingIdentifier(value.split(' of ')[0]),
         new AccessScope(value.split(' of ')[1])),
       to: 'items'
-    }, {
-      type: TT.setProperty,
-      value: 'item',
-      to: 'local'
     }];
-  } else {
+  } else if (attr.indexOf('.') !== -1) {
     return [{
       type: TT.propertyBinding,
       from: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
       to: 'value',
       mode: BindingMode.toView,
       oneTime: false
+    }];
+  } else {
+    return [{
+      type: TT.setProperty,
+      to: 'value',
+      value
     }];
   }
 }
@@ -468,7 +473,8 @@ function createTemplateController(attr: string, target: string, value: string, t
       def: {
         name: target,
         template: createElement(`<template><au-m class="au"></au-m></template>`),
-        instructions: [[childInstr]]
+        instructions: [[childInstr]],
+        build: { required: false, compiler: 'default' }
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -478,7 +484,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       instructions: []
     }
     const output = {
-      template: createElement(`<div><au-m class="au"></au-m></div>`),
+      template: createElement(`<template><div><au-m class="au"></au-m></div></template>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];
@@ -498,7 +504,8 @@ function createTemplateController(attr: string, target: string, value: string, t
       def: {
         name: target,
         template: createElement(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
-        instructions
+        instructions,
+        build: { required: false, compiler: 'default' }
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -509,7 +516,7 @@ function createTemplateController(attr: string, target: string, value: string, t
       instructions: []
     }
     const output = {
-      template: createElement(finalize ? `<div><au-m class="au"></au-m></div>` : `<au-m class="au"></au-m>`),
+      template: createElement(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];
@@ -520,7 +527,8 @@ function createCustomElement(tagName: string, finalize: boolean, attributes: [st
   const instruction = {
     type: TT.hydrateElement,
     res: tagName,
-    instructions: childInstructions
+    instructions: childInstructions,
+    parts: PLATFORM.emptyObject
   };
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput&&childInput.template)||''}</${tagName}>`;
@@ -531,7 +539,7 @@ function createCustomElement(tagName: string, finalize: boolean, attributes: [st
   const outputMarkup = <HTMLElement>createElement(`<${tagName} ${attributeMarkup}>${(childOutput&&childOutput.template.outerHTML)||''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
-    template: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
+    template: finalize ? createElement(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
   }
   return [input, output];
@@ -552,7 +560,7 @@ function createCustomAttribute(resName: string, finalize: boolean, attributes: [
   const outputMarkup = <HTMLElement>createElement(`<div ${resName}="${attributeMarkup}">${(childOutput&&childOutput.template.outerHTML)||''}</div>`);
   outputMarkup.classList.add('au');
   const output = {
-    template: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
+    template: finalize ? createElement(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
   }
   return [input, output];
@@ -626,7 +634,8 @@ describe(`TemplateCompiler - combinations`, () => {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
     const expressionParser = container.get(IExpressionParser);
-    const sut = new TemplateCompiler(expressionParser as any, elParser, attrParser);
+    const factory = container.get(ITemplateFactory);
+    const sut = new TemplateCompiler(factory, attrParser, expressionParser as any);
     const resources = new RuntimeCompilationResources(<any>container);
     return { container, expressionParser, sut, resources }
   }
@@ -636,30 +645,30 @@ describe(`TemplateCompiler - combinations`, () => {
       <(() => [string])[]>[
         () => ['div']
       ],
-      <(($1: [string]) => [string, string, string, IExpression])[]>[
-        () => ['foo', 'foo', 'bar', new AccessScope('bar')],
-        () => ['foo.bar', 'foo', 'bar', new AccessScope('bar')],
-        () => ['foo.bind', 'foo', 'bar', new AccessScope('bar')],
-        () => ['value', 'value', 'value', new AccessScope('value')]
+      <(($1: [string]) => [string, string, string])[]>[
+        () => ['foo', 'foo', 'bar'],
+        () => ['foo.bar', 'foo', 'bar'],
+        () => ['foo.bind', 'foo', 'bar'],
+        () => ['value', 'value', 'value']
       ],
-      <(($1: [string], $2: [string, string, string, IExpression]) => [string, string, any])[]>[
-        ($1, [,, value, from]) => [`ref`,               value, { type: TT.refBinding,      from }],
-        ($1, [attr, to, value, from]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from, to, mode: BindingMode.toView,   oneTime: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from, to, mode: BindingMode.toView,   oneTime: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from, to, mode: BindingMode.oneTime,  oneTime: true  }],
-        ($1, [attr, to, value, from]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from, to, mode: BindingMode.fromView, oneTime: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from, to, mode: BindingMode.twoWay,   oneTime: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.none,      preventDefault: true }],
-        ($1, [attr, to, value, from]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.capturing, preventDefault: false }],
-        ($1, [attr, to, value, from]) => [`${attr}.call`,      value, { type: TT.callBinding,     from, to }]
+      <(($1: [string], $2: [string, string, string]) => [string, string, any])[]>[
+        ($1, [,, value]) => [`ref`,               value, { type: TT.refBinding,      from: value }],
+        ($1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
+        ($1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.fromView, oneTime: false }],
+        ($1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.twoWay,   oneTime: false }],
+        ($1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.none,      preventDefault: true }],
+        ($1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
+        ($1, [attr, to, value]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
+        ($1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,     from: new AccessScope(value), to }]
       ]
     ], ([el], $2, [n1, v1, i1]) => {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
 
       it(markup, () => {
         const input = { template: markup, instructions: [], surrogates: [] };
-        const expected = { template: createElement(`<${el} ${n1}="${v1}" class="au"></${el}>`), instructions: [[i1]], surrogates: [] };
+        const expected = { template: createElement(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`), instructions: [[i1]], surrogates: [] };
 
         const { sut, resources } = setup();
 
@@ -681,10 +690,11 @@ describe(`TemplateCompiler - combinations`, () => {
         () => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay } }, BindingMode.twoWay, 'bazBaz'],
         () => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
       ],
-      <(() => [string, string, IExpression, Constructable])[]>[
-        () => ['foo',     '', PrimitiveLiteral.$empty, class Foo{}],
-        () => ['foo-foo', '', PrimitiveLiteral.$empty, class FooFoo{}],
-        () => ['foo',     'bar', new AccessScope('bar'), class Foo{}]
+      <(() => [string, string, Constructable])[]>[
+        () => ['foo',     '', class Foo{}],
+        () => ['foo-foo', '', class FooFoo{}],
+        () => ['foo',     'bar', class Foo{}],
+        () => ['foo-foo', 'bar', class Foo{}]
       ],
       // IAttributeDefinition.defaultBindingMode
       <(() => BindingMode | undefined)[]>[
@@ -694,23 +704,25 @@ describe(`TemplateCompiler - combinations`, () => {
         () => BindingMode.fromView,
         () => BindingMode.twoWay
       ],
-      <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, IExpression, Constructable], $3: BindingMode) => [string, any])[]>[
-        ([, mode, to], [attr,, from], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, from, to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([, mode, to], [attr,, from], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from, to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([,, to], [attr,, from]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from, to, mode: BindingMode.toView }],
-        ([,, to], [attr,, from]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from, to, mode: BindingMode.oneTime }],
-        ([,, to], [attr,, from]) => [`${attr}.from-view`, { type: TT.propertyBinding, from, to, mode: BindingMode.fromView }],
-        ([,, to], [attr,, from]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from, to, mode: BindingMode.twoWay }]
+      <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]>[
+        ([, mode, to], [attr, value], defaultMode) => [`${attr}`,           { type: TT.setProperty, to, value }],
+        ([, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([,, to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.toView }],
+        ([,, to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.oneTime }],
+        ([,, to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.fromView }],
+        ([,, to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from:value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.twoWay }]
       ]
-    ], ([bindables], [attr, value,, ctor], defaultBindingMode, [name, childInstruction]) => {
-      childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
+    ], ([bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
+      if (childInstruction.mode !== undefined) {
+        childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
+      }
       const def = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, () => {
         const input = { template: markup, instructions: [], surrogates: [] };
         const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: [childInstruction] };
-        const expected = { template: createElement(`<div ${name}="${value}" class="au"></div>`), instructions: [[instruction]], surrogates: [] };
+        const expected = { template: createElement(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [] };
 
         const $def = CustomAttributeResource.define(def, ctor);
         const { sut, resources } = setup($def);
@@ -759,20 +771,36 @@ describe(`TemplateCompiler - combinations`, () => {
       it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
 
         const { sut, resources } = setup(
-          <any>CustomAttributeResource.define({ name: 'asdf', bindables }, class FooBar{})
+          <any>CustomAttributeResource.define({ name: 'asdf', bindables, hasDynamicOptions: true }, class FooBar{})
         );
 
         const instruction = createAttributeInstruction(bindable, attrName, attrValue, true);
 
         const [input, output] = createCustomAttribute('asdf', true, [[attrName, attrValue]], [instruction], [], []);
 
-        const actual = sut.compile(<any>input, resources);
-        try {
-          verifyBindingInstructionsEqual(actual, output);
-        } catch(err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-          throw err;
+        if (attrName.endsWith('.qux')) {
+          let e;
+          try {
+            sut.compile(<any>input, resources);
+          } catch(err) {
+            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            e = err;
+          }
+          expect(e).to.be.an('Error');
+        } else {
+          // enableTracing();
+          // Tracer.enableLiveLogging(SymbolTraceWriter);
+          const actual = sut.compile(<any>input, resources);
+          // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+          // disableTracing();
+          try {
+            verifyBindingInstructionsEqual(actual, output);
+          } catch(err) {
+            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            throw err;
+          }
         }
       });
     });
@@ -938,15 +966,19 @@ describe(`TemplateCompiler - combinations`, () => {
         );
 
         const output = {
-          template: createElement(`<div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div>`),
+          template: createElement(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]]
         };
+        //enableTracing();
+        //Tracer.enableLiveLogging(SymbolTraceWriter);
         const actual = sut.compile(<any>input, resources);
+        //console.log('\n'+stringifyTemplateDefinition(actual, 0));
+        //disableTracing();
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          //console.log('EXPECTED: ', JSON.stringify(output.instructions, null, 2));
+          //console.log('ACTUAL: ', JSON.stringify(actual.instructions, null, 2));
           throw err;
         }
       });
@@ -1005,13 +1037,29 @@ describe(`TemplateCompiler - combinations`, () => {
 
         const [input, output] = createCustomElement('foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []);
 
-        const actual = sut.compile(<any>input, resources);
-        try {
-          verifyBindingInstructionsEqual(actual, output);
-        } catch(err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-          throw err;
+        if (attrName.endsWith('.qux')) {
+          let e;
+          try {
+            sut.compile(<any>input, resources);
+          } catch(err) {
+            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            e = err;
+          }
+          expect(e).to.be.an('Error');
+        } else {
+          // enableTracing();
+          // Tracer.enableLiveLogging(SymbolTraceWriter);
+          const actual = sut.compile(<any>input, resources);
+          // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+          // disableTracing();
+          try {
+            verifyBindingInstructionsEqual(actual, output);
+          } catch(err) {
+            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            throw err;
+          }
         }
       });
     });
@@ -1020,21 +1068,22 @@ describe(`TemplateCompiler - combinations`, () => {
   describe('custom elements', () => {
     eachCartesianJoinFactory([
       <(() => CTCResult)[]>[
-        () => createCustomElement(`foo`, false, [], [], [], []),
-        () => createCustomElement(`bar`, false, [], [], [], []),
-        () => createCustomElement(`baz`, false, [], [], [], [])
-      ],
-      <(($1: CTCResult) => CTCResult)[]>[
-        ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),
-        ([input, output]) => createCustomElement(`bar`, false, [], [], [], output.instructions, output, input),
-        ([input, output]) => createCustomElement(`baz`, false, [], [], [], output.instructions, output, input)
-      ],
-      <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
-        ($1, [input, output]) => createCustomElement(`foo`, true, [], [], [], output.instructions, output, input),
-        ($1, [input, output]) => createCustomElement(`bar`, true, [], [], [], output.instructions, output, input),
-        ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
+        () => createCustomElement(`foo`, true, [], [], [], []),
+        () => createCustomElement(`bar`, true, [], [], [], []),
+        () => createCustomElement(`baz`, true, [], [], [], [])
       ]
-    ], ($1, $2, [input, output]) => {
+      // <(($1: CTCResult) => CTCResult)[]>[
+      //   ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),
+      //   ([input, output]) => createCustomElement(`bar`, false, [], [], [], output.instructions, output, input),
+      //   ([input, output]) => createCustomElement(`baz`, false, [], [], [], output.instructions, output, input)
+      // ],
+      // <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
+      //   ($1, [input, output]) => createCustomElement(`foo`, true, [], [], [], output.instructions, output, input),
+      //   ($1, [input, output]) => createCustomElement(`bar`, true, [], [], [], output.instructions, output, input),
+      //   ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
+      // ]
+    //], ($1, $2, [input, output]) => {
+    ], ([input, output]) => {
       it(`${input.template}`, () => {
 
         const { sut, resources } = setup(
@@ -1043,12 +1092,16 @@ describe(`TemplateCompiler - combinations`, () => {
           <any>CustomElementResource.define({ name: 'baz' }, class Baz{})
         );
 
-        const actual = sut.compile(<any>input, resources);
+          // enableTracing();
+          // Tracer.enableLiveLogging(SymbolTraceWriter);
+          const actual = sut.compile(<any>input, resources);
+          // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+          // disableTracing();
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          console.log('EXPECTED: ', JSON.stringify(output.instructions, null, 2));
+          console.log('ACTUAL: ', JSON.stringify(actual.instructions, null, 2));
           throw err;
         }
       });

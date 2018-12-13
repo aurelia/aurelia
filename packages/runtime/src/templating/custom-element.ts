@@ -1,7 +1,7 @@
 import { Class, Constructable, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
-import { INode } from '../dom';
-import { Hooks, IAttach, IBindSelf, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IState, State } from '../lifecycle';
+import { INode } from '../dom.interfaces';
+import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IResourceKind, IResourceType } from '../resource';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
@@ -14,15 +14,15 @@ export type CustomElementConstructor = Constructable & CustomElementStaticProper
 
 export interface ICustomElementType extends
   IResourceType<ITemplateDefinition, ICustomElement>,
-  CustomElementStaticProperties { }
-
-type PartialCustomElementType<T> = T & Partial<IResourceType<ITemplateDefinition, unknown, Constructable>>;
+  CustomElementStaticProperties {
+  description: TemplateDefinition;
+}
 
 export interface ICustomElement extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
   ILifecycleRender,
-  IBindSelf,
+  IBindScope,
   ILifecycleUnbindAfterDetach,
   IAttach,
   IMountable,
@@ -35,11 +35,10 @@ export interface ICustomElement extends
 
 export interface ICustomElementResource extends
   IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
-
   behaviorFor(node: INode): ICustomElement | null;
 }
 
-type CustomElementDecorator = <T>(target: PartialCustomElementType<T>) => T & ICustomElementType;
+type CustomElementDecorator = <T extends Constructable>(target: T) => T & ICustomElementType;
 
 /** @internal */
 export function registerElement(this: ICustomElementType, container: IContainer): void {
@@ -53,7 +52,7 @@ export function registerElement(this: ICustomElementType, container: IContainer)
 export function customElement(name: string): CustomElementDecorator;
 export function customElement(definition: ITemplateDefinition): CustomElementDecorator;
 export function customElement(nameOrDefinition: string | ITemplateDefinition): CustomElementDecorator {
-  return target => CustomElementResource.define(nameOrDefinition, target);
+  return (target => CustomElementResource.define(nameOrDefinition, target)) as CustomElementDecorator;
 }
 
 type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
@@ -102,9 +101,9 @@ function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElemen
   return Type.kind === this;
 }
 
-function define<T>(this: ICustomElementResource, name: string, ctor: PartialCustomElementType<T> | null): T & ICustomElementType;
-function define<T>(this: ICustomElementResource, definition: ITemplateDefinition, ctor: PartialCustomElementType<T> | null): T & ICustomElementType;
-function define<T>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: PartialCustomElementType<T> | null = null): T & ICustomElementType {
+function define<T extends Constructable>(this: ICustomElementResource, name: string, ctor: T | null): T & ICustomElementType;
+function define<T extends Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor: T | null): T & ICustomElementType;
+function define<T extends Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null = null): T & ICustomElementType {
   if (!nameOrDefinition) {
     throw Reporter.error(70);
   }

@@ -1,7 +1,10 @@
+import { Tracer } from '@aurelia/kernel';
 import { DOM } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor, LifecycleFlags, MutationKind } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
+
+const slice = Array.prototype.slice;
 
 type BindingTargetAccessor = IBindingTargetAccessor & {
   lifecycle: ILifecycle;
@@ -14,6 +17,7 @@ type BindingTargetAccessor = IBindingTargetAccessor & {
 };
 
 function setValue(this: BindingTargetAccessor, newValue: unknown, flags: LifecycleFlags): Promise<void> {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.setValue`, slice.call(arguments)); }
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
@@ -23,16 +27,20 @@ function setValue(this: BindingTargetAccessor, newValue: unknown, flags: Lifecyc
       this.setValueCore(newValue, flags);
     } else {
       this.currentFlags = flags;
+      if (Tracer.enabled) { Tracer.leave(); }
       return this.lifecycle.enqueueFlush(this);
     }
   }
+  if (Tracer.enabled) { Tracer.leave(); }
   return Promise.resolve();
 }
 
 function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.flush`, slice.call(arguments)); }
   if ((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj)) {
     // re-queue the change so it will still propagate on flush when it's attached again
     this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
+    if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
   const currentValue = this.currentValue;
@@ -42,6 +50,7 @@ function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
     this.setValueCore(currentValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
     this.oldValue = this.currentValue;
   }
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 function dispose(this: BindingTargetAccessor): void {

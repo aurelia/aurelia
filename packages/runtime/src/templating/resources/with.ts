@@ -1,27 +1,23 @@
-import { inject, IRegistry } from '@aurelia/kernel';
+import { inject, IRegistry } from '../../../kernel';
 import { Scope } from '../../binding/binding-context';
-import { IRenderLocation } from '../../dom';
-import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
-import { IBindingContext, LifecycleFlags } from '../../observation';
+// import { IRenderLocation } from '../../dom';
+import { IView, IViewFactory, State } from '../../lifecycle';
+import { LifecycleFlags } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IFabricRenderLocation } from '../../three-dom';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')
-@inject(IViewFactory, IRenderLocation)
+@inject(IViewFactory, IFabricRenderLocation)
 export class With {
   public static register: IRegistry['register'];
 
-  // TODO: this type is incorrect (it can be any user-provided object), need to fix and double check Scope.
-  @bindable public value: IBindScope | IBindingContext;
+  @bindable public value: any = null;
 
   private currentView: IView = null;
-  private factory: IViewFactory;
 
-  constructor(factory: IViewFactory, location: IRenderLocation) {
-    this.value = null;
-
-    this.factory = factory;
+  constructor(private factory: IViewFactory, location: IFabricRenderLocation) {
     this.currentView = this.factory.create();
     this.currentView.hold(location, LifecycleFlags.fromCreate);
   }

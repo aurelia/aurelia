@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { DI } from '../../kernel';
 import { INode } from '../dom';
 
 export interface ISVGAnalyzer {

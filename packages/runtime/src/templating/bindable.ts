@@ -1,4 +1,4 @@
-import { Constructable, PLATFORM } from '@aurelia/kernel';
+import { Constructable, PLATFORM } from '../../kernel';
 import { BindingMode } from '../binding/binding-mode';
 import { BindableSource, IBindableDescription } from '../definitions';
 

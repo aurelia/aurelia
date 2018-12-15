@@ -1,8 +1,11 @@
-import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, PLATFORM, Registration } from '../kernel';
 import { INode } from './dom';
 import { LifecycleFlags } from './observation';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './templating/custom-element';
 import { IRenderingEngine } from './templating/lifecycle-render';
+import { IFabricNode } from './three-dom';
+import { ILifecycle } from './lifecycle';
+import { VNode } from 'dom/node';
 
 export interface ISinglePageApp {
   host: INode;
@@ -36,14 +39,18 @@ export class Aurelia {
   }
 
   public app(config: ISinglePageApp): this {
-    const host = config.host as INode & {$au?: Aurelia | null};
+    const host = config.host as HTMLElement & { $au: Aurelia };
+
+    // const hostVNode = new VNode('$root', false);
+    // hostVNode.nativeObject = host;
+
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
-    if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
-      this.container.register(componentOrType as ICustomElementType);
-      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
+    if (CustomElementResource.isType(<ICustomElementType>componentOrType)) {
+      this.container.register(<ICustomElementType>componentOrType);
+      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((<ICustomElementType>componentOrType).description.name));
     } else {
-      component = componentOrType as ICustomElement;
+      component = <ICustomElement>componentOrType;
     }
 
     const startTask = () => {
@@ -56,7 +63,7 @@ export class Aurelia {
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-      component.$attach(LifecycleFlags.fromStartTask, host);
+      component.$attach(LifecycleFlags.fromStartTask, host as any);
     };
 
     this.startTasks.push(startTask);
@@ -93,6 +100,13 @@ export class Aurelia {
     }
     return this;
   }
+
+  public createContainer(config: ISinglePageApp): HTMLElement {
+    if (config.host) {
+      return config.host as HTMLElement;
+    }
+    return document.createElement('div');
+  }
 }
 
-(PLATFORM.global as {Aurelia: unknown}).Aurelia = Aurelia;
+(<{Aurelia: unknown}>PLATFORM.global).Aurelia = Aurelia;

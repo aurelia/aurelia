@@ -1,3 +1,4 @@
+import { IIndexable, Primitive } from '../../kernel';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
@@ -24,8 +25,7 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
   this.length = o.indexMap.length = len + argCount;
   let i = len;
   while (i < this.length) {
-    this[i] = arguments[i - len];
-    o.indexMap[i] = - 2;
+    this[i] = arguments[i - len]; o.indexMap[i] = - 2;
     i++;
   }
   o.callSubscribers('push', arguments, LifecycleFlags.isCollectionMutation);
@@ -128,23 +128,21 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
   const len = this.length;
   const middle = (len / 2) | 0;
   let lower = 0;
-  // tslint:disable:no-statements-same-line
   while (lower !== middle) {
     const upper = len - lower - 1;
-    const lowerValue = this[lower];  const lowerIndex = o.indexMap[lower];
-    const upperValue = this[upper];  const upperIndex = o.indexMap[upper];
-    this[lower] = upperValue;        o.indexMap[lower] = upperIndex;
-    this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
+    const lowerValue = this[lower]; const lowerIndex = o.indexMap[lower];
+    const upperValue = this[upper]; const upperIndex = o.indexMap[upper];
+    this[lower] = upperValue; o.indexMap[lower] = upperIndex;
+    this[upper] = lowerValue; o.indexMap[upper] = lowerIndex;
     lower++;
   }
-  // tslint:enable:no-statements-same-line
   o.callSubscribers('reverse', arguments, LifecycleFlags.isCollectionMutation);
   return this;
 }
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.sort
 // https://github.com/v8/v8/blob/master/src/js/array.js
-function observeSort(this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
+function observeSort(this: IObservedArray, compareFn?: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): IObservedArray {
   const o = this.$observer;
   if (o === undefined) {
     return nativeSort.call(this, compareFn);
@@ -170,16 +168,16 @@ function observeSort(this: IObservedArray, compareFn?: (a: unknown, b: unknown) 
 }
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
-function sortCompare(x: unknown, y: unknown): number {
+function sortCompare(x: IIndexable | Primitive, y: IIndexable | Primitive): number {
   if (x === y) {
     return 0;
   }
-  x = x === null ? 'null' : (x as {}).toString();
-  y = y === null ? 'null' : (y as {}).toString();
-  return (x as {}) < (y as {}) ? -1 : 1;
+  x = x === null ? 'null' : x.toString();
+  y = y === null ? 'null' : y.toString();
+  return x < y ? -1 : 1;
 }
 
-function preSortCompare(x: unknown, y: unknown): number {
+function preSortCompare(x: IIndexable | Primitive, y: IIndexable | Primitive): number {
   if (x === undefined) {
     if (y === undefined) {
       return 0;
@@ -193,30 +191,25 @@ function preSortCompare(x: unknown, y: unknown): number {
   return 0;
 }
 
-function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: unknown, b: unknown) => number): void {
+function insertionSort(arr: IObservedArray, indexMap: IndexMap, fromIndex: number, toIndex: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
   let velement, ielement, vtmp, itmp, order;
   let i, j;
-  for (i = from + 1; i < to; i++) {
-    velement = arr[i];
-    ielement = indexMap[i];
-    for (j = i - 1; j >= from; j--) {
-      vtmp = arr[j];
-      itmp = indexMap[j];
+  for (i = fromIndex + 1; i < toIndex; i++) {
+    velement = arr[i]; ielement = indexMap[i];
+    for (j = i - 1; j >= fromIndex; j--) {
+      vtmp = arr[j]; itmp = indexMap[j];
       order = compareFn(vtmp, velement);
       if (order > 0) {
-        arr[j + 1] = vtmp;
-        indexMap[j + 1] = itmp;
+        arr[j + 1] = vtmp; indexMap[j + 1] = itmp;
       } else {
         break;
       }
     }
-    arr[j + 1] = velement;
-    indexMap[j + 1] = ielement;
+    arr[j + 1] = velement; indexMap[j + 1] = ielement;
   }
 }
 
-// tslint:disable-next-line:cognitive-complexity
-function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: unknown, b: unknown) => number): void {
+function quickSort(arr: IObservedArray, indexMap: IndexMap, fromIndex: number, toIndex: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
   let thirdIndex = 0, i = 0;
   let v0, v1, v2;
   let i0, i1, i2;
@@ -227,50 +220,49 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
 
   // tslint:disable-next-line:no-constant-condition
   while (true) {
-    if (to - from <= 10) {
-      insertionSort(arr, indexMap, from, to, compareFn);
+    if (toIndex - fromIndex <= 10) {
+      insertionSort(arr, indexMap, fromIndex, toIndex, compareFn);
       return;
     }
 
-    // tslint:disable:no-statements-same-line
-    thirdIndex = from + ((to - from) >> 1);
-    v0 = arr[from];                i0 = indexMap[from];
-    v1 = arr[to - 1];              i1 = indexMap[to - 1];
-    v2 = arr[thirdIndex];          i2 = indexMap[thirdIndex];
+    thirdIndex = fromIndex + ((toIndex - fromIndex) >> 1);
+    v0 = arr[fromIndex];       i0 = indexMap[fromIndex];
+    v1 = arr[toIndex - 1];     i1 = indexMap[toIndex - 1];
+    v2 = arr[thirdIndex]; i2 = indexMap[thirdIndex];
     c01 = compareFn(v0, v1);
     if (c01 > 0) {
-      vtmp = v0;                   itmp = i0;
-      v0 = v1;                     i0 = i1;
-      v1 = vtmp;                   i1 = itmp;
+      vtmp = v0; itmp = i0;
+      v0 = v1;   i0 = i1;
+      v1 = vtmp; i1 = itmp;
     }
     c02 = compareFn(v0, v2);
     if (c02 >= 0) {
-      vtmp = v0;                   itmp = i0;
-      v0 = v2;                     i0 = i2;
-      v2 = v1;                     i2 = i1;
-      v1 = vtmp;                   i1 = itmp;
+      vtmp = v0; itmp = i0;
+      v0 = v2;   i0 = i2;
+      v2 = v1;   i2 = i1;
+      v1 = vtmp; i1 = itmp;
     } else {
       c12 = compareFn(v1, v2);
       if (c12 > 0) {
-        vtmp = v1;                 itmp = i1;
-        v1 = v2;                   i1 = i2;
-        v2 = vtmp;                 i2 = itmp;
+        vtmp = v1; itmp = i1;
+        v1 = v2;   i1 = i2;
+        v2 = vtmp; i2 = itmp;
       }
     }
-    arr[from] = v0;                indexMap[from] = i0;
-    arr[to - 1] = v2;              indexMap[to - 1] = i2;
-    vpivot = v1;                   ipivot = i1;
-    lowEnd = from + 1;
-    highStart = to - 1;
+    arr[fromIndex] = v0;   indexMap[fromIndex] = i0;
+    arr[toIndex - 1] = v2; indexMap[toIndex - 1] = i2;
+    vpivot = v1;      ipivot = i1;
+    lowEnd = fromIndex + 1;
+    highStart = toIndex - 1;
     arr[thirdIndex] = arr[lowEnd]; indexMap[thirdIndex] = indexMap[lowEnd];
     arr[lowEnd] = vpivot;          indexMap[lowEnd] = ipivot;
 
     partition: for (i = lowEnd + 1; i < highStart; i++) {
-      velement = arr[i];           ielement = indexMap[i];
+      velement = arr[i]; ielement = indexMap[i];
       order = compareFn(velement, vpivot);
       if (order < 0) {
-        arr[i] = arr[lowEnd];      indexMap[i] = indexMap[lowEnd];
-        arr[lowEnd] = velement;    indexMap[lowEnd] = ielement;
+        arr[i] = arr[lowEnd];   indexMap[i] = indexMap[lowEnd];
+        arr[lowEnd] = velement; indexMap[lowEnd] = ielement;
         lowEnd++;
       } else if (order > 0) {
         do {
@@ -279,26 +271,24 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
           if (highStart == i) {
             break partition;
           }
-          vtopElement = arr[highStart]; order = compareFn(vtopElement, vpivot);
+          vtopElement = arr[highStart];          order = compareFn(vtopElement, vpivot);
         } while (order > 0);
         arr[i] = arr[highStart];   indexMap[i] = indexMap[highStart];
         arr[highStart] = velement; indexMap[highStart] = ielement;
         if (order < 0) {
-          velement = arr[i];       ielement = indexMap[i];
-          arr[i] = arr[lowEnd];    indexMap[i] = indexMap[lowEnd];
-          arr[lowEnd] = velement;  indexMap[lowEnd] = ielement;
+          velement = arr[i];      ielement = indexMap[i];
+          arr[i] = arr[lowEnd];   indexMap[i] = indexMap[lowEnd];
+          arr[lowEnd] = velement; indexMap[lowEnd] = ielement;
           lowEnd++;
         }
       }
     }
-    // tslint:enable:no-statements-same-line
-
-    if (to - highStart < lowEnd - from) {
-      quickSort(arr, indexMap, highStart, to, compareFn);
-      to = lowEnd;
+    if (toIndex - highStart < lowEnd - fromIndex) {
+      quickSort(arr, indexMap, highStart, toIndex, compareFn);
+      toIndex = lowEnd;
     } else {
-      quickSort(arr, indexMap, from, lowEnd, compareFn);
-      from = highStart;
+      quickSort(arr, indexMap, fromIndex, lowEnd, compareFn);
+      fromIndex = highStart;
     }
   }
 }

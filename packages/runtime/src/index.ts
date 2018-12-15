@@ -58,3 +58,4 @@ export * from './instructions';
 export * from './lifecycle';
 export * from './observation';
 export * from './resource';
+import './three-dom-map';

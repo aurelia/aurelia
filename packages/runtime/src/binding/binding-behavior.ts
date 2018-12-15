@@ -1,4 +1,4 @@
-import { Class, Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, Registration, Writable } from '../../kernel';
 import { IScope, LifecycleFlags } from '../observation';
 import { IResourceDefinition, IResourceKind, IResourceType } from '../resource';
 import { IBinding } from './binding';

@@ -1,30 +1,24 @@
-import { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { IServiceLocator } from '../../kernel';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
-import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
+import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { IConnectableBinding } from './connectable';
+import { I3VNode } from 'runtime/three-vnode';
 
 export interface Ref extends IConnectableBinding {}
 export class Ref implements IBinding {
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
-  public $state: State;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
+
+  public $state: State = State.none;
+
   public $scope: IScope;
 
-  public locator: IServiceLocator;
-  public sourceExpression: IsBindingBehavior;
-  public target: IBindingTarget;
-
-  constructor(sourceExpression: IsBindingBehavior, target: IBindingTarget, locator: IServiceLocator) {
-    this.$nextBind = null;
-    this.$prevBind = null;
-    this.$state = State.none;
-
-    this.locator = locator;
-    this.sourceExpression = sourceExpression;
-    this.target = target;
-  }
+  constructor(
+    public sourceExpression: IsBindingBehavior,
+    public target: I3VNode,
+    public locator: IServiceLocator) { }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
     if (this.$state & State.isBound) {
@@ -44,7 +38,7 @@ export class Ref implements IBinding {
       sourceExpression.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
+    this.sourceExpression.assign(flags, this.$scope, this.locator, this.target.nativeObject);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -72,12 +66,8 @@ export class Ref implements IBinding {
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
   }
-
-  public observeProperty(obj: IIndexable, propertyName: string): void {
-    return;
-  }
-
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    return;
-  }
+  // tslint:disable:no-empty no-any
+  public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }
+  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void { }
+  // tslint:enable:no-empty no-any
 }

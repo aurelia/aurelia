@@ -1,8 +1,7 @@
-import { IServiceLocator, Reporter } from '@aurelia/kernel';
-import { INode } from '../dom';
+import { IServiceLocator, Reporter } from '../../kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
-import { AccessorOrObserver, IBindingTargetObserver, IObservable, IScope, LifecycleFlags } from '../observation';
-import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
+import { AccessorOrObserver, IBindingTargetObserver, IScope, LifecycleFlags } from '../observation';
+import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { BindingMode } from './binding-mode';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
@@ -12,7 +11,7 @@ export interface IBinding extends IBindScope {
   readonly $scope: IScope;
 }
 
-export type IBindingTarget = INode | IObservable; // Can be: Node | CSSStyleDeclaration | IObservable;
+export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -24,49 +23,36 @@ export interface Binding extends IConnectableBinding {}
 
 @connectable()
 export class Binding implements IPartialConnectableBinding {
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
-  public $state: State;
-  public $lifecycle: ILifecycle;
-  public $nextConnect: IConnectableBinding;
-  public $nextPatch: IConnectableBinding;
-  public $scope: IScope;
+  public $nextConnect: IConnectableBinding = null;
+  public $nextPatch: IConnectableBinding = null;
+  public $nextBind: IBindScope = null;
+  public $prevBind: IBindScope = null;
 
-  public locator: IServiceLocator;
-  public mode: BindingMode;
-  public observerLocator: IObserverLocator;
-  public sourceExpression: IsBindingBehavior | ForOfStatement;
-  public target: IBindingTarget;
-  public targetProperty: string;
+  public $state: State = State.none;
+  public $scope: IScope = null;
+  public $lifecycle: ILifecycle;
 
   public targetObserver: AccessorOrObserver;
 
-  constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
-    this.$nextBind = null;
-    this.$prevBind = null;
-    this.$state = State.none;
+  constructor(
+    public sourceExpression: IsBindingBehavior | ForOfStatement,
+    public target: IBindingTarget,
+    public targetProperty: string,
+    public mode: BindingMode,
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator) {
     this.$lifecycle = locator.get(ILifecycle);
-    this.$nextConnect = null;
-    this.$nextPatch = null;
-    this.$scope = null;
-
-    this.locator = locator;
-    this.mode = mode;
-    this.observerLocator = observerLocator;
-    this.sourceExpression = sourceExpression;
-    this.target = target;
-    this.targetProperty = targetProperty;
   }
 
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+  public updateTarget(value: StrictAny, flags: LifecycleFlags): void {
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
-  public updateSource(value: unknown, flags: LifecycleFlags): void {
+  public updateSource(value: StrictAny, flags: LifecycleFlags): void {
     this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: StrictAny, previousValue: StrictAny, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
@@ -79,7 +65,7 @@ export class Binding implements IPartialConnectableBinding {
       const targetObserver = this.targetObserver;
       const mode = this.mode;
 
-      const previousValue = targetObserver.getValue();
+      previousValue = targetObserver.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = sourceExpression.evaluate(flags, $scope, locator);

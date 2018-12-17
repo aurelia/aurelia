@@ -1,5 +1,4 @@
 import { customElement } from '@aurelia/runtime';
-import * as template from './contacts.html';
 
-@customElement({ name: 'contacts', template })
+@customElement({ name: 'contacts', template: `<template>CONTACTS <input></template>` })
 export class Contacts { }

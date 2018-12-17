@@ -1,10 +1,10 @@
 <template>
   <div style="padding: 10px;">
-    <a href="email@application">Email</a>
-    <a href="calendar@application">Calendar</a>
-    <a href="email@application+contacts@email">Contacts</a>
+    <a href="email">Email</a>
+    <a href="calendar">Calendar</a>
+    <a href="email+contacts@email-content">Contacts</a>
   </div>
   <div style="padding: 10px;">
-    <au-viewport name="application"></au-viewport>
+    <au-viewport name="application" used-by="email,calendar"></au-viewport>
   </div>
 </template>

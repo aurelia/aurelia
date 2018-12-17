@@ -164,9 +164,13 @@ export class Router {
     const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
 
     // TODO: Take care of cancellations down in subsets/iterations
-    let { componentViewports, viewports } = this.rootScope.findViewports(views);
+    let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
     let guard = 100;
-    while ((componentViewports.length || Object.keys(viewports).length) && guard--) {
+    while (componentViewports.length || viewportsRemaining) {
+      // Guard against endless loop
+      if (!guard--) {
+        break;
+      }
       const changedViewports: Viewport[] = [];
       for (const componentViewport of componentViewports) {
         const { component, viewport } = componentViewport;
@@ -203,14 +207,16 @@ export class Router {
         return Promise.resolve();
       }
       results = await Promise.all(changedViewports.map((value) => value.loadContent()));
-      if (results.findIndex((value) => value === false) >= 0) {
-        this.historyBrowser.cancel();
-        return Promise.resolve();
-      }
+      // TODO: Remove this once multi level recursiveness has been fixed
+      // if (results.findIndex((value) => value === false) >= 0) {
+      //   this.historyBrowser.cancel();
+      //   return Promise.resolve();
+      // }
 
-      const remaining = this.rootScope.findViewports(viewports, true);
+      // TODO: Fix multi level recursiveness!
+      const remaining = this.rootScope.findViewports();
       componentViewports = remaining.componentViewports;
-      viewports = remaining.viewports;
+      viewportsRemaining = remaining.viewportsRemaining;
     }
     this.replacePaths();
   }
@@ -296,16 +302,17 @@ export class Router {
     }
     let sections: string[] = path.split(this.separators.sibling);
 
+    // TODO: Remove this once multi level recursiveness is fixed
     // Expand with instances for all containing views
-    const expandedSections: string[] = [];
-    while (sections.length) {
-      const part = sections.shift();
-      const parts = part.split(this.separators.scope);
-      for (let i = 1; i <= parts.length; i++) {
-        expandedSections.push(parts.slice(0, i).join(this.separators.scope));
-      }
-    }
-    sections = expandedSections;
+    // const expandedSections: string[] = [];
+    // while (sections.length) {
+    //   const part = sections.shift();
+    //   const parts = part.split(this.separators.scope);
+    //   for (let i = 1; i <= parts.length; i++) {
+    //     expandedSections.push(parts.slice(0, i).join(this.separators.scope));
+    //   }
+    // }
+    // sections = expandedSections;
 
     let index = 0;
     while (sections.length) {
@@ -341,6 +348,8 @@ export class Router {
 
   // Called from the viewport custom element in attached()
   public addViewport(name: string, element: Element, options?: IViewportOptions): Viewport {
+    // tslint:disable-next-line:no-console
+    console.log('Viewport added', name, element);
     const parentScope = this.findScope(element);
     return parentScope.addViewport(name, element, options);
   }

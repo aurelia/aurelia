@@ -21,6 +21,10 @@ import { One } from './components/one';
 import { Two } from './components/two';
 import { Three } from './components/three';
 
+import { Sub } from './components/sub';
+import { Alpha } from './components/alpha';
+import { Beta } from './components/beta';
+
 const container = DI.createContainer();
 container.register(BasicConfiguration,
   <any>ViewportCustomElement,
@@ -42,6 +46,10 @@ container.register(BasicConfiguration,
   <any>One,
   <any>Two,
   <any>Three,
+
+  <any>Sub,
+  <any>Alpha,
+  <any>Beta,
 );
 const component = container.get(CustomElementResource.keyFrom('app'));
 

@@ -44,6 +44,30 @@
       padding-bottom: 5px;
       margin-bottom: 10px;
     }
+
+    .dialog {
+      position: fixed;
+      background-color: red;
+      margin: auto;
+      left: 50%;
+      top: 50%;
+      -webkit-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      box-shadow: 10px 10px 5px grey;
+      border-radius: 5px;
+    }
+    .dialog::before {
+      content: '';
+      display: block;
+      background-color: blue;
+      position: fixed;
+      z-index: -1;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
   </style>
 </head>
 

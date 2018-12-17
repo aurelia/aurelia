@@ -105,12 +105,16 @@ export class Viewport {
     return result;
   }
 
-  public loadContent(): Promise<boolean> {
+  public async loadContent(guard?: number): Promise<boolean> {
     // tslint:disable-next-line:no-console
     console.log('Viewport loadContent', this.name);
 
     if (!this.element) {
-      return Promise.resolve(false);
+      // TODO: Refactor this once multi level recursiveness is fixed
+      await this.waitForElement(50);
+      if (!this.element) {
+        return Promise.resolve(false);
+      }
     }
 
     const host: INode = this.element;
@@ -165,7 +169,7 @@ export class Viewport {
   }
 
   public scopedDescription(full: boolean = false): string {
-    const descriptions = [this.owningScope.context(), this.description(full)];
+    const descriptions = [this.owningScope.context(full), this.description(full)];
     return descriptions.filter((value) => value && value.length).join(this.router.separators.scope);
   }
 
@@ -200,5 +204,22 @@ export class Viewport {
 
   private loadComponent(component: ICustomElementType): void {
     this.nextComponent = this.router.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
+  }
+
+  private async waitForElement(guard: number): Promise<void> {
+    if (this.element) {
+      return Promise.resolve();
+    }
+    if (!guard) {
+      return Promise.resolve();
+    }
+    await this.wait(100);
+    return this.waitForElement(--guard);
+  }
+
+  private async wait(time: number = 0): Promise<void> {
+    await new Promise((resolve) => {
+      setTimeout(resolve, time);
+    });
   }
 }

@@ -35,7 +35,11 @@
     <au-viewport name="right" class="split"></au-viewport> -->
 
     <div style="padding: 10px;">
-      <au-viewport name="header" used-by="header"></au-viewport>
+      <au-viewport class="dialog" name="header" used-by="header"></au-viewport>
+    </div>
+    <div style="padding: 10px;">
+      <a href="header">Add the header</a>
+      <a href="-@header">Remove the header</a>
     </div>
     <div style="padding: 10px;">
       <au-viewport name="steps" used-by="one,two,three"></au-viewport>
@@ -45,14 +49,17 @@
       <a href="two">Two</a>
       <a href="three">Three</a>
     </div>
+    <div repeat.for="i of [1,2,3]" style="padding: 10px;">
+      <au-viewport name="view${i}" scope></au-viewport>
+      <a href="sub@view${i}!+sub@view${i}!/alpha@sub">Alpha ${i}</a>
+      <a href="sub@view${i}!/beta">Beta ${i}</a>
+    </div>
     <div style="padding: 10px;">
       <a href="email">Email</a>
       <a href="calendar">Calendar</a>
       <a href="email+contacts@email-content">Email Contacts</a>
       <a href="contacts@email-content">Only Contacts</a>
       <a href="calendar/recursive@calendar-content!/email">Recursive > Email</a>
-      <a href="header">Add the header</a>
-      <a href="-@header">Remove the header</a>
     </div>
     <div style="padding: 10px;">
       <au-viewport name="application" used-by="email,calendar"></au-viewport>

@@ -9,12 +9,14 @@ export interface IResourceKind<TDef, TProto, TClass extends Class<TProto, unknow
   keyFrom(name: string): string;
   isType<T>(Type: T & Partial<IResourceType<TDef, TProto>>): Type is T & TClass & IResourceType<TDef, TProto>;
 
-  define<T>(name: string, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
-  define<T>(definition: TDef, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
-  define<T>(nameOrDefinition: string | TDef, ctor: T & Partial<IResourceType<TDef, Partial<TProto>>>): T & TClass & IResourceType<TDef, TProto>;
+  define<T extends Constructable>(name: string, ctor: T): T & TClass & IResourceType<TDef, TProto>;
+  define<T extends Constructable>(definition: TDef, ctor: T): T & TClass & IResourceType<TDef, TProto>;
+  define<T extends Constructable>(nameOrDefinition: string | TDef, ctor: T): T & TClass & IResourceType<TDef, TProto>;
 }
 
 export type ResourceDescription<TDef> = Immutable<Required<TDef>>;
+
+export type ResourcePartDescription<TDef> = Immutable<TDef>;
 
 export interface IResourceType<TDef, TProto, TClass extends Class<TProto, unknown> = Class<TProto>> extends Class<TProto, unknown>, IRegistry {
   readonly kind: IResourceKind<TDef, TProto, TClass>;
@@ -23,7 +25,7 @@ export interface IResourceType<TDef, TProto, TClass extends Class<TProto, unknow
 
 export interface IResourceDescriptions {
   find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null;
-  create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto;
+  create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null;
 }
 
 export class RuntimeCompilationResources implements IResourceDescriptions {
@@ -49,7 +51,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
     return null;
   }
 
-  public create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto {
+  public create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null {
     const key = kind.keyFrom(name);
     if (this.context.has(key, false)) {
       const instance = this.context.get<Constructable>(key);

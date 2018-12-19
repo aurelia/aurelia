@@ -1,10 +1,12 @@
-import { IServiceLocator } from '@aurelia/kernel';
-import { INode } from '../dom';
+import { IServiceLocator, Tracer } from '@aurelia/kernel';
+import { INode } from '../dom.interfaces';
 import { IBindScope, State } from '../lifecycle';
 import { IAccessor, IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { IConnectableBinding } from './connectable';
 import { IObserverLocator } from './observer-locator';
+
+const slice = Array.prototype.slice;
 
 export interface Call extends IConnectableBinding {}
 export class Call {
@@ -28,6 +30,7 @@ export class Call {
   }
 
   public callSource(args: object): unknown {
+    if (Tracer.enabled) { Tracer.enter('Call.callSource', slice.call(arguments)); }
     const overrideContext = this.$scope.overrideContext;
     Object.assign(overrideContext, args);
     const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
@@ -36,12 +39,15 @@ export class Call {
       delete overrideContext[prop];
     }
 
+    if (Tracer.enabled) { Tracer.leave(); }
     return result;
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
+    if (Tracer.enabled) { Tracer.enter('Call.$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
+        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
 
@@ -62,10 +68,13 @@ export class Call {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Call.$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -81,6 +90,7 @@ export class Call {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public observeProperty(obj: object, propertyName: string): void {

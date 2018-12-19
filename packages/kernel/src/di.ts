@@ -125,7 +125,7 @@ export const DI = {
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
-          dependencies.push(...ctor.inject);
+          dependencies.push(...ctor.inject as Function[]);
         }
 
         ctor = Object.getPrototypeOf(ctor);
@@ -190,11 +190,11 @@ export const DI = {
         }
 
         if (dependencies.length === 1) {
-          target.inject[descriptor] = dependencies[0];
+          (target.inject as Function[])[descriptor] = dependencies[0];
         }
       } else if (key) { // It's a property decorator. Not supported by the container without plugins.
         const actualTarget = target.constructor as Injectable;
-        (actualTarget.inject || ((actualTarget.inject as {}) = {}))[key] = dependencies[0];
+        (actualTarget.inject || ((actualTarget.inject as unknown) = {}))[key] = dependencies[0];
       } else if (descriptor) { // It's a function decorator (not a Class constructor)
         const fn = descriptor.value;
         fn.inject = dependencies;
@@ -379,7 +379,7 @@ export const optional = createResolver((key: any, handler: IContainer, requestor
   }
 });
 
-/*@internal*/
+/** @internal */
 export const enum ResolverStrategy {
   instance = 0,
   singleton = 1,
@@ -389,7 +389,7 @@ export const enum ResolverStrategy {
   alias = 5
 }
 
-/*@internal*/
+/** @internal */
 export class Resolver implements IResolver, IRegistration {
   public key: any;
   public strategy: ResolverStrategy;
@@ -442,7 +442,7 @@ export class Resolver implements IResolver, IRegistration {
   }
 }
 
-/*@internal*/
+/** @internal */
 export interface IInvoker {
   invoke(container: IContainer, fn: Function, dependencies: Function[]): any;
   invokeWithDynamicDependencies(
@@ -453,7 +453,7 @@ export interface IInvoker {
   ): any;
 }
 
-/*@internal*/
+/** @internal */
 export class Factory implements IFactory {
   public Type: Function;
   private invoker: IInvoker;
@@ -500,7 +500,7 @@ export class Factory implements IFactory {
   }
 }
 
-/*@internal*/
+/** @internal */
 export interface IContainerConfiguration {
   factories?: Map<Function, IFactory>;
 }
@@ -515,7 +515,7 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
   return typeof obj.register === 'function';
 }
 
-/*@internal*/
+/** @internal */
 export class Container implements IContainer {
   private parent: Container | null;
   private resolvers: Map<any, IResolver>;
@@ -750,7 +750,7 @@ export const Registration = {
   }
 };
 
-/*@internal*/
+/** @internal */
 export function validateKey(key: unknown): void {
   // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
   // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
@@ -775,7 +775,7 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
   return [resolver.resolve(handler, requestor)];
 }
 
-/*@internal*/
+/** @internal */
 export const classInvokers: IInvoker[] = [
   {
     invoke<T extends Constructable, K>(container: IContainer, Type: T): K {
@@ -826,13 +826,13 @@ export const classInvokers: IInvoker[] = [
   }
 ];
 
-/*@internal*/
+/** @internal */
 export const fallbackInvoker: IInvoker = {
   invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Function, dependencies: Function[]) => any,
   invokeWithDynamicDependencies
 };
 
-/*@internal*/
+/** @internal */
 export function invokeWithDynamicDependencies<T extends Constructable, K>(
   container: IContainer,
   Type: T,

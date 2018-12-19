@@ -28,11 +28,11 @@ export interface Compose extends ICustomElement {}
 export class Compose {
   public static register: IRegistry['register'];
 
-  @bindable public subject: Subject | Promise<Subject>;
+  @bindable public subject: Subject | Promise<Subject> | null;
   @bindable public composing: boolean;
 
   private coordinator: CompositionCoordinator;
-  private lastSubject: Subject | Promise<Subject>;
+  private lastSubject: Subject | Promise<Subject> | null;
   private properties: Record<string, TargetedInstruction>;
   private renderable: IRenderable;
   private renderingEngine: IRenderingEngine;
@@ -43,7 +43,6 @@ export class Compose {
 
     this.coordinator = coordinator;
     this.lastSubject = null;
-    this.properties = null;
     this.renderable = renderable;
     this.renderingEngine = renderingEngine;
 
@@ -52,7 +51,7 @@ export class Compose {
     };
 
     this.properties = instruction.instructions
-      .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to))
+      .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to as string))
       .reduce(
         (acc, item: ITargetedInstruction & {to?: string}) => {
           if (item.to) {
@@ -66,7 +65,7 @@ export class Compose {
   }
 
   public binding(flags: LifecycleFlags): void {
-    this.startComposition(this.subject, undefined, flags);
+    this.startComposition(this.subject, null, flags);
     this.coordinator.binding(flags, this.$scope);
   }
 
@@ -91,7 +90,7 @@ export class Compose {
     this.startComposition(newValue, previousValue, flags);
   }
 
-  private startComposition(subject: Subject | Promise<Subject>, _previousSubject: Subject | Promise<Subject>, flags: LifecycleFlags): void {
+  private startComposition(subject: Subject | Promise<Subject> | null, _previousSubject: Subject | Promise<Subject> | null, flags: LifecycleFlags): void {
     if (this.lastSubject === subject) {
       return;
     }
@@ -99,7 +98,7 @@ export class Compose {
     this.lastSubject = subject;
 
     if (subject instanceof Promise) {
-      subject = subject.then(x => this.resolveView(x, flags));
+      subject = subject.then(x => this.resolveView(x, flags)) as Promise<IView> | null;
     } else {
       subject = this.resolveView(subject, flags);
     }
@@ -108,7 +107,7 @@ export class Compose {
     this.coordinator.compose(subject as IView | Promise<IView>, flags);
   }
 
-  private resolveView(subject: Subject, flags: LifecycleFlags): IView {
+  private resolveView(subject: Subject | null, flags: LifecycleFlags): IView | null {
     const view = this.provideViewFor(subject);
 
     if (view) {
@@ -120,7 +119,7 @@ export class Compose {
     return null;
   }
 
-  private provideViewFor(subject: Subject): IView | null {
+  private provideViewFor(subject: Subject | null): IView | null {
     if (!subject) {
       return null;
     }

@@ -467,18 +467,18 @@ export class AccessScope implements IExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | IBindScope | IOverrideContext {
     const name = this.name;
-    return BindingContext.get(scope, name, this.ancestor)[name];
+    return BindingContext.get(scope, name, this.ancestor, flags)[name];
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
     const name = this.name;
-    const context = BindingContext.get(scope, name, this.ancestor);
+    const context = BindingContext.get(scope, name, this.ancestor, flags);
     return context ? (context[name] = value) : undefined;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     const name = this.name;
-    const context = BindingContext.get(scope, name, this.ancestor);
+    const context = BindingContext.get(scope, name, this.ancestor, flags);
     binding.observeProperty(context, name);
   }
 
@@ -590,7 +590,7 @@ export class CallScope implements IExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): unknown {
     const args = evalList(flags, scope, locator, this.args);
-    const context = BindingContext.get(scope, this.name, this.ancestor);
+    const context = BindingContext.get(scope, this.name, this.ancestor, flags);
     const func = getFunction(flags, context, this.name);
     if (func) {
       return func.apply(context, args);
@@ -1127,7 +1127,7 @@ export class BindingIdentifier implements IExpression {
     this.name = name;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): string {
     return this.name;
   }
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -1197,8 +1197,8 @@ export class Interpolation implements IExpression {
     this.assign = PLATFORM.noop as () => unknown;
     this.parts = parts;
     this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
-    this.isMulti = expressions.length > 1;
-    this.firstExpression = expressions[0];
+    this.isMulti = this.expressions.length > 1;
+    this.firstExpression = this.expressions[0];
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string {
@@ -1292,7 +1292,7 @@ function isNumeric(value: unknown): value is number {
   return true;
 }
 
-/*@internal*/
+/** @internal */
 export const IterateForOfStatement = {
   ['[object Array]'](result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
     for (let i = 0, ii = result.length; i < ii; ++i) {
@@ -1330,7 +1330,7 @@ export const IterateForOfStatement = {
   }
 };
 
-/*@internal*/
+/** @internal */
 export const CountForOfStatement = {
   ['[object Array]'](result: unknown[]): number { return result.length; },
   ['[object Map]'](result: Map<unknown, unknown>): number { return result.size; },

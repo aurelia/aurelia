@@ -1,7 +1,7 @@
 
 import { BasicConfiguration } from "../../src";
 import { expect } from "chai";
-import { valueConverter, customElement, bindable, CustomElementResource, IObserverLocator, Aurelia, Lifecycle, ILifecycle } from "../../../runtime/src/index";
+import { valueConverter, customElement, bindable, CustomElementResource, IObserverLocator, Aurelia, Lifecycle, ILifecycle, INode, IElement } from "../../../runtime/src/index";
 import { IContainer, DI, Constructable, PLATFORM } from "../../../kernel/src/index";
 
 export function cleanup(): void {
@@ -70,7 +70,7 @@ export const TestConfiguration = {
 
 const buildRequired = { required: true, compiler: 'default' };
 
-export function defineCustomElement<T>(name: string, markupOrNode: string | Node, $class: Constructable<T>, dependencies: ReadonlyArray<any> = PLATFORM.emptyArray) {
+export function defineCustomElement<T>(name: string, markupOrNode: string | INode, $class: Constructable<T>, dependencies: ReadonlyArray<any> = PLATFORM.emptyArray) {
   return CustomElementResource.define({
     name,
     template: markupOrNode,
@@ -80,7 +80,7 @@ export function defineCustomElement<T>(name: string, markupOrNode: string | Node
   }, $class);
 }
 
-export function createCustomElement(markup: string | Element, $class: Constructable | null, ...dependencies: Function[]): { [key: string]: any } {
+export function createCustomElement(markup: string | IElement, $class: Constructable | null, ...dependencies: Function[]): { [key: string]: any } {
   return new (CustomElementResource.define({
     name: 'app',
     dependencies: [...dependencies],

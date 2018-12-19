@@ -1,5 +1,5 @@
-import { IContainer, inject, IRegistry } from '@aurelia/kernel';
-import { Binding, IBindingTarget } from './binding/binding';
+import { IContainer, IIndexable, inject, IRegistry, Tracer } from '@aurelia/kernel';
+import { Binding } from './binding/binding';
 import { BindingMode } from './binding/binding-mode';
 import { Call } from './binding/call';
 import { IEventManager } from './binding/event-manager';
@@ -9,12 +9,15 @@ import { LetBinding } from './binding/let-binding';
 import { Listener } from './binding/listener';
 import { IObserverLocator } from './binding/observer-locator';
 import { Ref } from './binding/ref';
-import { customAttributeKey, customElementKey, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetElementInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TargetedInstructionType, TemplatePartDefinitions } from './definitions';
-import { DOM, INode, IRemovableNode } from './dom';
+import { customAttributeKey, customElementKey, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TargetedInstructionType, TemplatePartDefinitions } from './definitions';
+import { DOM } from './dom';
+import { IElement, IHTMLElement, INode, IRenderLocation } from './dom.interfaces';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';
 import { ICustomAttribute } from './templating/custom-attribute';
 import { ICustomElement } from './templating/custom-element';
-import { IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
+import { IElementHydrationOptions, IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
+
+const slice = Array.prototype.slice;
 
 export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
   if (typeof srcOrExpr === 'string') {
@@ -24,6 +27,7 @@ export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TF
 }
 
 export function addBindable(renderable: IBindables, bindable: IBindScope): void {
+  if (Tracer.enabled) { Tracer.enter('addBindable', slice.call(arguments)); }
   bindable.$prevBind = renderable.$bindableTail;
   bindable.$nextBind = null;
   if (renderable.$bindableTail === null) {
@@ -32,9 +36,11 @@ export function addBindable(renderable: IBindables, bindable: IBindScope): void 
     renderable.$bindableTail.$nextBind = bindable;
   }
   renderable.$bindableTail = bindable;
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 export function addAttachable(renderable: IAttachables, attachable: IAttach): void {
+  if (Tracer.enabled) { Tracer.enter('addAttachable', slice.call(arguments)); }
   attachable.$prevAttach = renderable.$attachableTail;
   attachable.$nextAttach = null;
   if (renderable.$attachableTail === null) {
@@ -43,11 +49,12 @@ export function addAttachable(renderable: IAttachables, attachable: IAttach): vo
     renderable.$attachableTail.$nextAttach = attachable;
   }
   renderable.$attachableTail = attachable;
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.textBinding)
-/*@internal*/
+/** @internal */
 export class TextBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -58,9 +65,11 @@ export class TextBindingRenderer implements IInstructionRenderer {
   }
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ITextBindingInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('TextBindingRenderer.render', slice.call(arguments)); }
     const next = target.nextSibling;
-    DOM.treatAsNonWhitespace(next);
-    DOM.remove(target);
+    if (DOM.isMarker(target)) {
+      DOM.remove(target);
+    }
     let bindable: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
@@ -69,12 +78,13 @@ export class TextBindingRenderer implements IInstructionRenderer {
       bindable = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
     }
     addBindable(renderable, bindable);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.interpolation)
-/*@internal*/
+/** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -85,6 +95,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
   }
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IInterpolationInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('InterpolationBindingRenderer.render', slice.call(arguments)); }
     let bindable: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
@@ -93,12 +104,13 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
       bindable = new InterpolationBinding(expr.firstExpression, expr, target, instruction.to, BindingMode.toView, this.observerLocator, context, true);
     }
     addBindable(renderable, bindable);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.propertyBinding)
-/*@internal*/
+/** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -109,15 +121,17 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
   }
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IPropertyBindingInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('PropertyBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
     const bindable = new Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
     addBindable(renderable, bindable);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.iteratorBinding)
-/*@internal*/
+/** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -128,15 +142,17 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
   }
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IIteratorBindingInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('IteratorBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
     const bindable = new Binding(expr, target, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBindable(renderable, bindable);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IExpressionParser, IEventManager)
 @instructionRenderer(TargetedInstructionType.listenerBinding)
-/*@internal*/
+/** @internal */
 export class ListenerBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private eventManager: IEventManager;
@@ -147,15 +163,17 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
   }
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IListenerBindingInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('ListenerBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const bindable = new Listener(instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
     addBindable(renderable, bindable);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.callBinding)
-/*@internal*/
+/** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -166,15 +184,17 @@ export class CallBindingRenderer implements IInstructionRenderer {
   }
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ICallBindingInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('CallBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
     const bindable = new Call(expr, target, instruction.to, this.observerLocator, context);
     addBindable(renderable, bindable);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IExpressionParser)
 @instructionRenderer(TargetedInstructionType.refBinding)
-/*@internal*/
+/** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
 
@@ -183,15 +203,17 @@ export class RefBindingRenderer implements IInstructionRenderer {
   }
 
   public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IRefBindingInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('RefBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
     const bindable = new Ref(expr, target, context);
     addBindable(renderable, bindable);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.stylePropertyBinding)
-/*@internal*/
+/** @internal */
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -201,32 +223,38 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IStylePropertyBindingInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IHTMLElement, instruction: IStylePropertyBindingInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
-    const bindable = new Binding(expr, (target as INode & {style: IBindingTarget}).style, instruction.to, BindingMode.toView, this.observerLocator, context);
+    const bindable = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBindable(renderable, bindable);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @instructionRenderer(TargetedInstructionType.setProperty)
-/*@internal*/
+/** @internal */
 export class SetPropertyRenderer implements IInstructionRenderer {
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ISetPropertyInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IIndexable, instruction: ISetPropertyInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('SetPropertyRenderer.render', slice.call(arguments)); }
     target[instruction.to] = instruction.value;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @instructionRenderer(TargetedInstructionType.setAttribute)
-/*@internal*/
+/** @internal */
 export class SetAttributeRenderer implements IInstructionRenderer {
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: ISetAttributeInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: ISetAttributeInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('SetAttributeRenderer.render', slice.call(arguments)); }
     DOM.setAttribute(target, instruction.to, instruction.value);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IRenderingEngine)
 @instructionRenderer(TargetedInstructionType.hydrateElement)
-/*@internal*/
+/** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
   private renderingEngine: IRenderingEngine;
 
@@ -234,13 +262,14 @@ export class CustomElementRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IRenderLocation, instruction: IHydrateElementInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('CustomElementRenderer.render', slice.call(arguments)); }
     const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
     const component = context.get<ICustomElement>(customElementKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    component.$hydrate(this.renderingEngine, target, instruction);
+    component.$hydrate(this.renderingEngine, target, instruction as IElementHydrationOptions);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
@@ -251,12 +280,13 @@ export class CustomElementRenderer implements IInstructionRenderer {
     addAttachable(renderable, component);
 
     operation.dispose();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IRenderingEngine)
 @instructionRenderer(TargetedInstructionType.hydrateAttribute)
-/*@internal*/
+/** @internal */
 export class CustomAttributeRenderer implements IInstructionRenderer {
   private renderingEngine: IRenderingEngine;
 
@@ -264,7 +294,8 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: IHydrateAttributeInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('CustomAttributeRenderer.render', slice.call(arguments)); }
     const operation = context.beginComponentOperation(renderable, target, instruction);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -281,12 +312,13 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     addAttachable(renderable, component);
 
     operation.dispose();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IRenderingEngine)
 @instructionRenderer(TargetedInstructionType.hydrateTemplateController)
-/*@internal*/
+/** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
   private renderingEngine: IRenderingEngine;
 
@@ -294,7 +326,8 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     this.renderingEngine = renderingEngine;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
+    if (Tracer.enabled) { Tracer.enter('TemplateControllerRenderer.render', slice.call(arguments)); }
     const factory = this.renderingEngine.getViewFactory(instruction.def, context);
     const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
@@ -316,12 +349,13 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     addAttachable(renderable, component);
 
     operation.dispose();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
 @inject(IExpressionParser, IObserverLocator)
-@instructionRenderer(TargetedInstructionType.letElement)
-/*@internal*/
+@instructionRenderer(TargetedInstructionType.hydrateLetElement)
+/** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -331,7 +365,8 @@ export class LetElementRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, target: IRemovableNode, instruction: ILetElementInstruction): void {
+  public render(context: IRenderContext, renderable: IRenderable, target: IElement, instruction: IHydrateLetElementInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('LetElementRenderer.render', slice.call(arguments)); }
     target.remove();
     const childInstructions = instruction.instructions;
     const toViewModel = instruction.toViewModel;
@@ -341,6 +376,7 @@ export class LetElementRenderer implements IInstructionRenderer {
       const bindable = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
       addBindable(renderable, bindable);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 

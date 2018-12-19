@@ -1,8 +1,12 @@
-import { IRegistry } from '@aurelia/kernel';
+import { IRegistry, IWindow } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '../../observation';
 import { Binding, IBinding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingMode } from '../binding-mode';
+
+// defaults to nodejs setTimeout/clearTimeout type otherwise
+declare var setTimeout: IWindow['setTimeout'];
+declare var clearTimeout: IWindow['clearTimeout'];
 
 export type ThrottleableBinding = IBinding & {
   throttledMethod: ((value: unknown) => unknown) & { originalName: string };
@@ -14,7 +18,7 @@ export type ThrottleableBinding = IBinding & {
   };
 };
 
-/*@internal*/
+/** @internal */
 export function throttle(this: ThrottleableBinding, newValue: unknown): void {
   const state = this.throttleState;
   const elapsed = +new Date() - state.last;

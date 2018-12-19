@@ -1,15 +1,16 @@
-import { Constructable, IRegistry } from '@aurelia/kernel';
-import { buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
-import { DOM, INode } from '../dom';
+import { Constructable, IRegistry, Tracer } from '@aurelia/kernel';
+import { buildTemplateDefinition, isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
+import { DOM } from '../dom';
+import { INode } from '../dom.interfaces';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
 import { ICustomElementType } from './custom-element';
 import { IRenderingEngine, ITemplate } from './lifecycle-render';
 
-type ChildType = RenderPlan | string | INode;
+const slice = Array.prototype.slice;
 
-export function createElement(tagOrType: string | Constructable, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
+export function createElement(tagOrType: string | Constructable, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
   if (typeof tagOrType === 'string') {
-    return createElementForTag(tagOrType, props as Record<string, string | ITargetedInstruction>, children);
+    return createElementForTag(tagOrType, props, children);
   } else {
     return createElementForType(tagOrType as ICustomElementType, props, children);
   }
@@ -45,7 +46,7 @@ export class RenderPlan {
     return engine.getViewFactory(this.definition, parentContext);
   }
 
-  /*@internal*/
+  /** @internal */
   public mergeInto(parent: INode, instructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
     DOM.appendChild(parent, this.node);
     instructions.push(...this.instructions);
@@ -53,7 +54,8 @@ export class RenderPlan {
   }
 }
 
-function createElementForTag(tagName: string, props?: Record<string, string | ITargetedInstruction>, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForTag(tagName: string, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
+  if (Tracer.enabled) { Tracer.enter('createElementForTag', slice.call(arguments)); }
   const instructions: TargetedInstruction[] = [];
   const allInstructions: TargetedInstruction[][] = [];
   const dependencies: IRegistry[] = [];
@@ -65,9 +67,9 @@ function createElementForTag(tagName: string, props?: Record<string, string | IT
       .forEach(to => {
         const value = props[to];
 
-        if (isTargetedInstruction(value as ITargetedInstruction)) {
+        if (isTargetedInstruction(value)) {
           hasInstructions = true;
-          instructions.push(value as TargetedInstruction);
+          instructions.push(value);
         } else {
           DOM.setAttribute(element, to, value);
         }
@@ -83,10 +85,12 @@ function createElementForTag(tagName: string, props?: Record<string, string | IT
     addChildren(element, children, allInstructions, dependencies);
   }
 
+  if (Tracer.enabled) { Tracer.leave(); }
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function createElementForType(Type: ICustomElementType, props?: object, children?: ArrayLike<ChildType>): RenderPlan {
+function createElementForType(Type: ICustomElementType, props?: object, children?: ArrayLike<unknown>): RenderPlan {
+  if (Tracer.enabled) { Tracer.enter('createElementForType', slice.call(arguments)); }
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
@@ -110,10 +114,10 @@ function createElementForType(Type: ICustomElementType, props?: object, children
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value: unknown = props[to];
+        const value: TargetedInstruction | string = props[to];
 
-        if (isTargetedInstruction(value as ITargetedInstruction)) {
-          childInstructions.push(value as TargetedInstruction);
+        if (isTargetedInstruction(value)) {
+          childInstructions.push(value);
         } else {
           const bindable = bindables[to];
 
@@ -138,19 +142,24 @@ function createElementForType(Type: ICustomElementType, props?: object, children
     addChildren(element, children, allInstructions, dependencies);
   }
 
+  if (Tracer.enabled) { Tracer.leave(); }
   return new RenderPlan(element, allInstructions, dependencies);
 }
 
-function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
+function addChildren(parent: INode, children: ArrayLike<unknown>, allInstructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {
     const current = children[i];
 
-    if (typeof current === 'string') {
-      DOM.appendChild(parent, DOM.createTextNode(current));
-    } else if (DOM.isNodeInstance(current)) {
-      DOM.appendChild(parent, current);
-    } else {
-      current.mergeInto(parent, allInstructions, dependencies);
+    switch (typeof current) {
+      case 'string':
+        DOM.appendChild(parent, DOM.createTextNode(current));
+        break;
+      case 'object':
+        if (DOM.isNodeInstance(current)) {
+          DOM.appendChild(parent, current);
+        } else if ('mergeInto' in (current as RenderPlan)) {
+          (current as RenderPlan).mergeInto(parent, allInstructions, dependencies);
+        }
     }
   }
 }

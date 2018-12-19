@@ -9,7 +9,7 @@ import { createCustomAttribute } from './custom-attribute._builder';
 // because this allows us to add a message to the assertion describing which property was checked, making it
 // easier to pin down the source of the error when a test fail.
 describe('@customAttribute', () => {
-  const descriptionKeys = ['name', 'aliases', 'defaultBindingMode', 'isTemplateController', 'bindables'];
+  const descriptionKeys = ['name', 'aliases', 'defaultBindingMode', 'hasDynamicOptions', 'isTemplateController', 'bindables'];
 
   it('creates the default attribute description', () => {
     const { Type } = createCustomAttribute('foo');
@@ -17,6 +17,7 @@ describe('@customAttribute', () => {
     expect(Type.description.name).to.equal('foo', 'name');
     expect(Type.description.aliases).to.equal(PLATFORM.emptyArray, 'aliases');
     expect(Type.description.defaultBindingMode).to.equal(BindingMode.toView, 'defaultBindingMode');
+    expect(Type.description.hasDynamicOptions).to.equal(false, 'hasDynamicOptions');
     expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
     expect(Type.description.bindables).to.deep.equal({}, 'bindables');
     expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
@@ -82,6 +83,7 @@ describe('@customAttribute', () => {
       expect(description.name).to.equal('foo', 'name');
       expect(description.aliases).to.deep.equal(expectedAliases, 'aliases');
       expect(Type.description.defaultBindingMode).to.equal(BindingMode.toView, 'defaultBindingMode');
+      expect(Type.description.hasDynamicOptions).to.equal(false, 'hasDynamicOptions');
       expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
@@ -164,6 +166,7 @@ describe('@customAttribute', () => {
       expect(Type.description.aliases).to.equal(PLATFORM.emptyArray, 'aliases');
       expect(description.name).to.equal('foo', 'name');
       expect(description.defaultBindingMode).to.equal(expectedBindingMode, 'defaultBindingMode');
+      expect(Type.description.hasDynamicOptions).to.equal(false, 'hasDynamicOptions');
       expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
@@ -242,6 +245,7 @@ describe('@customAttribute', () => {
       expect(Type.description.name).to.equal('foo', 'name');
       expect(Type.description.aliases).to.equal(PLATFORM.emptyArray, 'aliases');
       expect(Type.description.defaultBindingMode).to.equal(BindingMode.toView, 'defaultBindingMode');
+      expect(Type.description.hasDynamicOptions).to.equal(false, 'hasDynamicOptions');
       expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
       expect(description.bindables).to.deep.equal(expectedBindables, 'bindables');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);

@@ -1,7 +1,9 @@
-import { IIndexable, Reporter, StrictPrimitive } from '@aurelia/kernel';
+import { IIndexable, Reporter, StrictPrimitive, Tracer } from '@aurelia/kernel';
 import { IBindScope } from '../lifecycle';
-import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup, PropertyObserver } from '../observation';
+import { IBindingContext, IOverrideContext, IScope, LifecycleFlags, ObservedCollection, ObserversLookup, PropertyObserver } from '../observation';
 import { SetterObserver } from './property-observation';
+
+const slice = Array.prototype.slice;
 
 const enum RuntimeError {
   UndefinedScope = 250, // trying to evaluate on something that's not a valid binding
@@ -10,13 +12,15 @@ const enum RuntimeError {
   NilParentScope = 253
 }
 
-/*@internal*/
+/** @internal */
 export class InternalObserversLookup {
   public getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver {
+    if (Tracer.enabled) { Tracer.enter('InternalObserversLookup.getOrCreate', slice.call(arguments)); }
     let observer = this[key];
     if (observer === undefined) {
       observer = this[key] = new SetterObserver(obj, key);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
     return observer;
   }
 }
@@ -54,7 +58,8 @@ export class BindingContext implements IBindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
-  public static get(scope: IScope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBindScope {
+  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBindScope {
+    if (Tracer.enabled) { Tracer.enter('BindingContext.get', slice.call(arguments)); }
     if (scope === undefined) {
       throw Reporter.error(RuntimeError.UndefinedScope);
     }
@@ -67,12 +72,14 @@ export class BindingContext implements IBindingContext {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
       while (ancestor > 0) {
         if (overrideContext.parentOverrideContext === null) {
+          if (Tracer.enabled) { Tracer.leave(); }
           return undefined;
         }
         ancestor--;
         overrideContext = overrideContext.parentOverrideContext;
       }
 
+      if (Tracer.enabled) { Tracer.leave(); }
       return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
 
@@ -82,19 +89,42 @@ export class BindingContext implements IBindingContext {
     }
 
     if (overrideContext) {
+      if (Tracer.enabled) { Tracer.leave(); }
       // we located a context with the property.  return it.
       return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
 
-    // the name wasn't found.  return the root binding context.
+    // the name wasn't found. see if parent scope traversal is allowed and if so, try that
+    if ((flags & LifecycleFlags.allowParentScopeTraversal) && scope.parentScope !== null) {
+      const result = this.get(scope.parentScope, name, ancestor, flags
+        // unset the flag; only allow one level of scope boundary traversal
+        & ~LifecycleFlags.allowParentScopeTraversal
+        // tell the scope to return null if the name could not be found
+        | LifecycleFlags.isTraversingParentScope);
+      if (result !== null) {
+        if (Tracer.enabled) { Tracer.leave(); }
+        return result;
+      }
+    }
+
+    // still nothing found. return the root binding context (or null
+    // if this is a parent scope traversal, to ensure we fall back to the
+    // correct level)
+    if (flags & LifecycleFlags.isTraversingParentScope) {
+      if (Tracer.enabled) { Tracer.leave(); }
+      return null;
+    }
+    if (Tracer.enabled) { Tracer.leave(); }
     return scope.bindingContext || scope.overrideContext;
   }
 
   public getObservers(): ObserversLookup<IOverrideContext> {
+    if (Tracer.enabled) { Tracer.enter('BindingContext.getObservers', slice.call(arguments)); }
     let observers = this.$observers;
     if (observers === undefined) {
       this.$observers = observers = new InternalObserversLookup() as ObserversLookup<this>;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
     return observers;
   }
 }
@@ -102,27 +132,37 @@ export class BindingContext implements IBindingContext {
 export class Scope implements IScope {
   public readonly bindingContext: IBindingContext | IBindScope;
   public readonly overrideContext: IOverrideContext;
+  // parentScope is strictly internal API and mainly for replaceable template controller.
+  // NOT intended for regular scope traversal!
+  /** @internal */public readonly parentScope: IScope | null;
 
   private constructor(bindingContext: IBindingContext | IBindScope, overrideContext: IOverrideContext) {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
+    this.parentScope = null;
   }
 
   public static create(bc: IBindingContext | IBindScope, oc: IOverrideContext | null): Scope {
+    if (Tracer.enabled) { Tracer.enter('Scope.create', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.leave(); }
     return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc) : oc);
   }
 
   public static fromOverride(oc: IOverrideContext): Scope {
+    if (Tracer.enabled) { Tracer.enter('Scope.fromOverride', slice.call(arguments)); }
     if (oc === null || oc === undefined) {
       throw Reporter.error(RuntimeError.NilOverrideContext);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
     return new Scope(oc.bindingContext, oc);
   }
 
-  public static fromParent(ps: IScope, bc: IBindingContext | IBindScope): Scope {
+  public static fromParent(ps: IScope | null, bc: IBindingContext | IBindScope): Scope {
+    if (Tracer.enabled) { Tracer.enter('Scope.fromParent', slice.call(arguments)); }
     if (ps === null || ps === undefined) {
       throw Reporter.error(RuntimeError.NilParentScope);
     }
+    if (Tracer.enabled) { Tracer.leave(); }
     return new Scope(bc, OverrideContext.create(bc, ps.overrideContext));
   }
 }
@@ -141,14 +181,18 @@ export class OverrideContext implements IOverrideContext {
   }
 
   public static create(bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext {
+    if (Tracer.enabled) { Tracer.enter('OverrideContext.create', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.leave(); }
     return new OverrideContext(bc, poc === undefined ? null : poc);
   }
 
   public getObservers(): ObserversLookup<IOverrideContext> {
+    if (Tracer.enabled) { Tracer.enter('OverrideContext.getObservers', slice.call(arguments)); }
     let observers = this.$observers;
     if (observers === undefined) {
       this.$observers = observers = new InternalObserversLookup();
     }
+    if (Tracer.enabled) { Tracer.leave(); }
     return observers as ObserversLookup<IOverrideContext>;
   }
 }

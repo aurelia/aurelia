@@ -1,5 +1,6 @@
 import { DI, inject, Reporter } from '@aurelia/kernel';
-import { DOM, IHTMLElement, IInputElement } from '../dom';
+import { DOM } from '../dom';
+import { IElement, IHTMLElement } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext,
@@ -9,7 +10,7 @@ import {
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
-import { CheckedObserver, ISelectElement, SelectValueObserver, ValueAttributeObserver } from './element-observation';
+import { CheckedObserver, IInputElement, ISelectElement, SelectValueObserver, ValueAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
 import { getMapObserver } from './map-observer';
 import { PrimitiveObserver, SetterObserver } from './property-observation';
@@ -48,7 +49,7 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 }
 
 @inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
-/*@internal*/
+/** @internal */
 export class ObserverLocator implements IObserverLocator {
   private adapters: IObjectObservationAdapter[];
   private dirtyChecker: IDirtyChecker;
@@ -114,7 +115,7 @@ export class ObserverLocator implements IObserverLocator {
         || tagName === 'IMG' && propertyName === 'src'
         || tagName === 'A' && propertyName === 'href'
       ) {
-        return new DataAttributeAccessor(this.lifecycle, obj, propertyName);
+        return new DataAttributeAccessor(this.lifecycle, obj as IElement, propertyName);
       }
       return new ElementPropertyAccessor(this.lifecycle, obj, propertyName);
     }
@@ -171,7 +172,7 @@ export class ObserverLocator implements IObserverLocator {
     let isNode: boolean;
     if (DOM.isNodeInstance(obj)) {
       if (propertyName === 'class') {
-        return new ClassAttributeAccessor(this.lifecycle, obj);
+        return new ClassAttributeAccessor(this.lifecycle, obj as IElement);
       }
 
       if (propertyName === 'style' || propertyName === 'css') {
@@ -200,7 +201,7 @@ export class ObserverLocator implements IObserverLocator {
       if (propertyName === 'role'
         || /^\w+:|^data-|^aria-/.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
-        return new DataAttributeAccessor(this.lifecycle, obj, propertyName);
+        return new DataAttributeAccessor(this.lifecycle, obj as IElement, propertyName);
       }
       isNode = true;
     }

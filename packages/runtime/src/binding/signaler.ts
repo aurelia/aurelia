@@ -12,7 +12,7 @@ export interface ISignaler {
 
 export const ISignaler = DI.createInterface<ISignaler>().withDefault(x => x.singleton(Signaler));
 
-/*@internal*/
+/** @internal */
 export class Signaler implements ISignaler {
   public signals: Record<string, Set<IPropertySubscriber>>;
 

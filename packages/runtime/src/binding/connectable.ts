@@ -1,9 +1,11 @@
-import { Class, IIndexable } from '@aurelia/kernel';
+import { Class, IIndexable, Tracer } from '@aurelia/kernel';
 import { IBindingTargetObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { IBinding } from './binding';
 import { IObserverLocator } from './observer-locator';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
+
+const slice = Array.prototype.slice;
 
 const slotNames: string[] = [];
 const versionSlotNames: string[] = [];
@@ -36,7 +38,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding {
   patch(flags: LifecycleFlags): void;
 }
 
-/*@internal*/
+/** @internal */
 export function addObserver(this: IConnectableBinding, observer: IBindingTargetObserver): void {
   // find the observer.
   const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
@@ -65,8 +67,9 @@ export function addObserver(this: IConnectableBinding, observer: IBindingTargetO
   ensureEnoughSlotNames(i);
 }
 
-/*@internal*/
+/** @internal */
 export function observeProperty(this: IConnectableBinding, obj: IIndexable, propertyName: string): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.observeProperty`, slice.call(arguments)); }
   const observer = this.observerLocator.getObserver(obj, propertyName) as IBindingTargetObserver;
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
    *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -76,9 +79,10 @@ export function observeProperty(this: IConnectableBinding, obj: IIndexable, prop
    * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
    */
   this.addObserver(observer);
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export function unobserve(this: IConnectableBinding, all?: boolean): void {
   const slots = this.observerSlots;
   let slotName: string;

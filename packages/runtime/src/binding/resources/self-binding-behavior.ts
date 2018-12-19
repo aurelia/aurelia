@@ -1,12 +1,12 @@
 import { IRegistry, Reporter } from '@aurelia/kernel';
-import { INode } from '../../dom';
+import { IEvent, INode } from '../../dom.interfaces';
 import { IScope, LifecycleFlags } from '../../observation';
 import { bindingBehavior } from '../binding-behavior';
 import { findOriginalEventTarget } from '../event-manager';
 import { Listener } from '../listener';
 
-/*@internal*/
-export function handleSelfEvent(this: SelfableBinding, event: Event): ReturnType<Listener['callSource']> {
+/** @internal */
+export function handleSelfEvent(this: SelfableBinding, event: IEvent): ReturnType<Listener['callSource']> {
   const target = findOriginalEventTarget(event) as unknown as INode;
 
   if (this.target !== target) {

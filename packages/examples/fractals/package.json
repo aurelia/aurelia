@@ -14,7 +14,7 @@
     "@aurelia/runtime": "dev"
   },
   "devDependencies": {
-    "@types/node": "^8.10.37",
+    "@types/node": "^10.12.10",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
     "http-server": "latest",
@@ -22,7 +22,7 @@
     "ts-loader": "latest",
     "typescript": "latest",
     "webpack": "latest",
-    "webpack-bundle-analyzer": "^3.0.2",
+    "webpack-bundle-analyzer": "^3.0.3",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest"
   }

@@ -23,7 +23,7 @@ export function processImports(toProcess: ITemplateImport[], relativeTo: string)
 
 const capitalMatcher = /([A-Z])/g;
 
-/*@internal*/
+/** @internal */
 export function addHyphenAndLower(char: string): string {
   return `-${char.toLowerCase()}`;
 }
@@ -44,7 +44,7 @@ export function escape(content: string): string {
 }
 
 export function createTemplateDescription(template: string): ITemplateDescription {
-  const imports = [];
+  const imports: ITemplateImport[] = [];
   const cleanedTemplate = template.replace(/^@import\s+\'([a-zA-z\/.\-_!%&\?=0-9]*)\'\s*;/gm, (match: string, url: string) => {
     imports.push(parseImport(url));
     return '';
@@ -57,7 +57,7 @@ export function createTemplateDescription(template: string): ITemplateDescriptio
 }
 
 export function parseImport(value: string): ITemplateImport {
-  const result: Partial<ITemplateImport> = {
+  const result: Partial<ITemplateImport> & Pick<ITemplateImport, 'path'> = {
     path: value
   };
 
@@ -131,7 +131,7 @@ export function loadFromFile(url: string, callback: (content: string) => void, e
   }
 }
 
-/*@internal*/
+/** @internal */
 export function trimDots(ary: string[]): void {
   for (let i = 0; i < ary.length; ++i) {
     const part = ary[i];

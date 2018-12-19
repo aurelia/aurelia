@@ -6,7 +6,7 @@ export interface AttributePatternDefinition {
   symbols: string;
 }
 
-/*@internal*/
+/** @internal */
 export interface ICharSpec {
   chars: string;
   repeat: boolean;
@@ -16,7 +16,7 @@ export interface ICharSpec {
   equals(other: ICharSpec): boolean;
 }
 
-/*@internal*/
+/** @internal */
 export class CharSpec implements ICharSpec {
   public chars: string;
   public repeat: boolean;
@@ -140,7 +140,7 @@ export class Interpretation {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class State {
   public charSpec: ICharSpec;
   public nextStates: State[];
@@ -217,13 +217,13 @@ export class State {
   }
 }
 
-/*@internal*/
+/** @internal */
 export interface ISegment {
   text: string;
   eachChar(callback: (spec: CharSpec) => void): void;
 }
 
-/*@internal*/
+/** @internal */
 export class StaticSegment implements ISegment {
   public text: string;
   private len: number;
@@ -246,7 +246,7 @@ export class StaticSegment implements ISegment {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class DynamicSegment implements ISegment {
   public text: string;
   private spec: CharSpec;
@@ -261,7 +261,7 @@ export class DynamicSegment implements ISegment {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class SymbolSegment implements ISegment {
   public text: string;
   private spec: CharSpec;
@@ -276,7 +276,7 @@ export class SymbolSegment implements ISegment {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class SegmentTypes {
   public statics: number;
   public dynamics: number;
@@ -298,7 +298,7 @@ export interface ISyntaxInterpreter {
 
 export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>().withDefault(x => x.singleton(SyntaxInterpreter));
 
-/*@internal*/
+/** @internal */
 export class SyntaxInterpreter {
   public rootState: State;
   private initialStates: State[];
@@ -491,6 +491,24 @@ export class DotSeparatedAttributePattern implements DotSeparatedAttributePatter
 
   public ['PART.PART.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
+  }
+}
+
+export interface RefAttributePattern extends IAttributePattern {}
+
+@attributePattern(
+  { pattern: 'ref', symbols: '' },
+  { pattern: 'ref.PART', symbols: '.' }
+)
+export class RefAttributePattern implements RefAttributePattern {
+  public static register: IRegistry['register'];
+
+  public ['ref'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, 'ref', null);
+  }
+
+  public ['ref.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, 'ref', parts[1]);
   }
 }
 

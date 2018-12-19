@@ -4,8 +4,8 @@ import { Binding } from '../../binding/binding';
 import { BindingContext, Scope } from '../../binding/binding-context';
 import { getCollectionObserver } from '../../binding/observer-locator';
 import { SetterObserver } from '../../binding/property-observation';
-import { INode, IRenderLocation } from '../../dom';
-import { IRenderable, IView, IViewFactory, State } from '../../lifecycle';
+import { IRenderLocation } from '../../dom.interfaces';
+import { IBindScope, IRenderable, IView, IViewFactory, State } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
@@ -22,18 +22,16 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public $scope: IScope;
   public $observers: { items: SetterObserver };
 
-  public encapsulationSource: INode;
   public forOf: ForOfStatement;
   public hasPendingInstanceMutation: boolean;
   public local: string;
   public location: IRenderLocation;
-  public observer: CollectionObserver;
+  public observer: CollectionObserver | null;
   public renderable: IRenderable;
   public factory: IViewFactory;
   public views: IView[];
 
   constructor(location: IRenderLocation, renderable: IRenderable, factory: IViewFactory) {
-    this.encapsulationSource = null;
     this.factory = factory;
     this.hasPendingInstanceMutation = false;
     this.location = location;
@@ -53,7 +51,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
         this.forOf = (current as Binding).sourceExpression as ForOfStatement;
         break;
       }
-      current = current.$nextBind;
+      current = (current as IBindScope).$nextBind;
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
 

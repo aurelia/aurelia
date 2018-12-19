@@ -1,15 +1,18 @@
-import { all, Class, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { all, Class, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, PLATFORM, Registration, Reporter, Tracer, Writable } from '@aurelia/kernel';
 import { Scope } from '../binding/binding-context';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
 import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
-import { DOM, INode, INodeSequence, INodeSequenceFactory, IRenderLocation, NodeSequence, NodeSequenceFactory } from '../dom';
-import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory, State } from '../lifecycle';
+import { DOM, INodeSequenceFactory, NodeSequence, NodeSequenceFactory } from '../dom';
+import { IElement, INode, INodeSequence, IRenderLocation } from '../dom.interfaces';
+import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory } from '../lifecycle';
 import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { IResourceDescriptions, RuntimeCompilationResources } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { ViewFactory } from './view';
+
+const slice = Array.prototype.slice;
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -24,13 +27,11 @@ export enum ViewCompileFlags {
   shadowDOM   = 0b0_100,
 }
 
-export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
+export type IElementHydrationOptions = { parts?: Record<string, TemplateDefinition> };
 
 export interface ICustomElementHost extends IRenderLocation {
   $customElement?: ICustomElement;
 }
-
-export type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
 
 export interface IElementProjector {
   readonly host: ICustomElementHost;
@@ -71,11 +72,12 @@ export interface ILifecycleRender {
    * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
-  render?(host: INode, parts: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): IElementTemplateProvider | void;
+  render?(host: INode, parts: Record<string, TemplateDefinition>): IElementTemplateProvider | void;
 }
 
-/*@internal*/
+/** @internal */
 export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEngine: IRenderingEngine): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice.call(arguments)); }
   const Type = this.constructor as ICustomAttributeType;
 
   renderingEngine.applyRuntimeBehavior(Type, this);
@@ -83,10 +85,12 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEng
   if (this.$hooks & Hooks.hasCreated) {
     this.created();
   }
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice.call(arguments)); }
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
@@ -111,9 +115,10 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
   if (this.$hooks & Hooks.hasCreated) {
     this.created();
   }
+  if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/*@internal*/
+/** @internal */
 export const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
@@ -152,7 +157,7 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>()
 const defaultCompilerName = 'default';
 
 @inject(IContainer, ILifecycle, all(ITemplateCompiler))
-/*@internal*/
+/** @internal */
 export class RenderingEngine implements IRenderingEngine {
   private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
   private compilers: Record<string, ITemplateCompiler>;
@@ -250,7 +255,7 @@ export class RenderingEngine implements IRenderingEngine {
 }
 const childObserverOptions = { childList: true };
 
-/*@internal*/
+/** @internal */
 export class ShadowDOMProjector implements IElementProjector {
   public host: ICustomElementHost;
   public shadowRoot: ICustomElementHost;
@@ -258,7 +263,7 @@ export class ShadowDOMProjector implements IElementProjector {
   constructor($customElement: ICustomElement, host: ICustomElementHost, definition: TemplateDefinition) {
     this.host = host;
 
-    this.shadowRoot = DOM.attachShadow(this.host, definition.shadowOptions || defaultShadowOptions);
+    this.shadowRoot = DOM.attachShadow(this.host as IElement, definition.shadowOptions || defaultShadowOptions);
     this.host.$customElement = $customElement;
     this.shadowRoot.$customElement = $customElement;
   }
@@ -276,15 +281,19 @@ export class ShadowDOMProjector implements IElementProjector {
   }
 
   public project(nodes: INodeSequence): void {
+    if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector.project', slice.call(arguments)); }
     nodes.appendTo(this.host);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public take(nodes: INodeSequence): void {
+    if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector.take', slice.call(arguments)); }
     nodes.remove();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
-/*@internal*/
+/** @internal */
 export class ContainerlessProjector implements IElementProjector {
   public host: ICustomElementHost;
 
@@ -318,15 +327,19 @@ export class ContainerlessProjector implements IElementProjector {
   }
 
   public project(nodes: INodeSequence): void {
+    if (Tracer.enabled) { Tracer.enter('ContainerlessProjector.project', slice.call(arguments)); }
     nodes.insertBefore(this.host);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public take(nodes: INodeSequence): void {
+    if (Tracer.enabled) { Tracer.enter('ContainerlessProjector.take', slice.call(arguments)); }
     nodes.remove();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
-/*@internal*/
+/** @internal */
 export class HostProjector implements IElementProjector {
   public host: ICustomElementHost;
 
@@ -349,11 +362,15 @@ export class HostProjector implements IElementProjector {
   }
 
   public project(nodes: INodeSequence): void {
+    if (Tracer.enabled) { Tracer.enter('HostProjector.project', slice.call(arguments)); }
     nodes.appendTo(this.host);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public take(nodes: INodeSequence): void {
+    if (Tracer.enabled) { Tracer.enter('HostProjector.take', slice.call(arguments)); }
     nodes.remove();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -432,7 +449,7 @@ export interface IChildrenObserver extends
   ISubscribable<MutationKind.instance>,
   ISubscriberCollection<MutationKind.instance> { }
 
-/*@internal*/
+/** @internal */
 @subscriberCollection(MutationKind.instance)
 export class ChildrenObserver implements Partial<IChildrenObserver> {
   public hasChanges: boolean;
@@ -488,7 +505,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   }
 }
 
-/*@internal*/
+/** @internal */
 export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
   const components: ICustomElement[] = [];
 
@@ -511,7 +528,7 @@ export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
 // context for the template.
 export interface ITemplate {
   readonly renderContext: IRenderContext;
-  render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(renderable: IRenderable, host?: INode, parts?: Immutable<Pick<IHydrateElementInstruction, 'parts'>>): void;
 }
 
 // This is the main implementation of ITemplate.
@@ -520,7 +537,7 @@ export interface ITemplate {
 // TemplateCompiler either through a JIT or AOT process.
 // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
 // and create instances of it on demand.
-/*@internal*/
+/** @internal */
 export class CompiledTemplate implements ITemplate {
   public readonly factory: INodeSequenceFactory;
   public readonly renderContext: IRenderContext;
@@ -542,7 +559,7 @@ export class CompiledTemplate implements ITemplate {
 }
 
 // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
-/*@internal*/
+/** @internal */
 export const noViewTemplate: ITemplate = {
   renderContext: null,
   render(renderable: IRenderable): void {
@@ -551,7 +568,7 @@ export const noViewTemplate: ITemplate = {
   }
 };
 
-/*@internal*/
+/** @internal */
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
 export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext {
@@ -605,9 +622,9 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   return context;
 }
 
-/*@internal*/
+/** @internal */
 export class InstanceProvider<T> implements IResolver {
-  private instance: T;
+  private instance: T | null;
 
   constructor() {
     this.instance = null;
@@ -617,7 +634,7 @@ export class InstanceProvider<T> implements IResolver {
     this.instance = instance;
   }
 
-  public resolve(handler: IContainer, requestor: IContainer): T {
+  public resolve(handler: IContainer, requestor: IContainer): T | null {
     if (this.instance === undefined) { // unmet precondition: call prepare
       throw Reporter.error(50); // TODO: organize error codes
     }
@@ -629,9 +646,9 @@ export class InstanceProvider<T> implements IResolver {
   }
 }
 
-/*@internal*/
+/** @internal */
 export class ViewFactoryProvider implements IResolver {
-  private factory: IViewFactory;
+  private factory: IViewFactory | null;
   private renderingEngine: IRenderingEngine;
   private replacements: TemplatePartDefinitions;
 
@@ -646,7 +663,7 @@ export class ViewFactoryProvider implements IResolver {
 
   public resolve(handler: IContainer, requestor: ExposedContext): IViewFactory {
     const factory = this.factory;
-    if (factory === undefined) { // unmet precondition: call prepare
+    if (factory === undefined || factory === null) { // unmet precondition: call prepare
       throw Reporter.error(50); // TODO: organize error codes
     }
     if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name
@@ -657,12 +674,12 @@ export class ViewFactoryProvider implements IResolver {
       return this.renderingEngine.getViewFactory(found, requestor);
     }
 
-    return this.factory;
+    return factory;
   }
 
   public dispose(): void {
     this.factory = null;
-    this.replacements = null;
+    this.replacements = PLATFORM.emptyObject;
   }
 }
 
@@ -724,6 +741,7 @@ export class Renderer implements IRenderer {
   }
 
   public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+    if (Tracer.enabled) { Tracer.enter('Renderer.render', slice.call(arguments)); }
     const targetInstructions = definition.instructions;
     const instructionRenderers = this.instructionRenderers;
 
@@ -752,5 +770,6 @@ export class Renderer implements IRenderer {
         instructionRenderers[current.type].render(context, renderable, host, current, parts);
       }
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }

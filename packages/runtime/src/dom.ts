@@ -1,160 +1,61 @@
-import { Constructable, DI, IContainer, IResolver, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, IResolver, PLATFORM, Reporter, Tracer, Writable } from '@aurelia/kernel';
+import { IAddEventListenerOptions, IChildNode, IComment, IDocument, IDocumentFragment, IElement, IEventListenerOptions, IEventListenerOrEventListenerObject, IEventTarget, IHTMLElement, IHTMLTemplateElement, IMutationCallback, IMutationObserver, IMutationObserverInit, INode, INodeSequence, IParentNode, IRenderLocation, IShadowRootInit, ISVGElement, IText, NodeType } from './dom.interfaces';
 
-export const ELEMENT_NODE = 1;
-export const ATTRIBUTE_NODE = 2;
-export const TEXT_NODE = 3;
-export const COMMENT_NODE = 8;
-export const DOCUMENT_FRAGMENT_NODE = 11;
+const slice = Array.prototype.slice;
 
 function isRenderLocation(node: INode): node is IRenderLocation {
   return node.textContent === 'au-end';
 }
 
-export interface INodeLike {
-  readonly firstChild: INode | null;
-  readonly lastChild: INode | null;
-  readonly childNodes: ArrayLike<INode>;
-}
-export const INode = DI.createInterface<INode>().noDefault();
-export interface INode extends INodeLike {
-  textContent: string;
-  readonly parentNode: INode | null;
-  readonly nextSibling: INode | null;
-  readonly previousSibling: INode | null;
-  readonly nodeName: string;
-  readonly nodeType: number;
-}
-export interface IRemovableNode extends INode {
-  remove(): void;
-}
-export const IEncapsulationSource = DI.createInterface<IEncapsulationSource>().noDefault();
-export interface IEncapsulationSource extends INode {}
+declare var document: IDocument;
+declare var MutationObserver: Constructable & IMutationObserver;
+declare var Element: IElement;
+declare var HTMLElement: IHTMLElement;
+declare var SVGElement: ISVGElement;
 
-export interface IAttr extends Partial<INode> {
-  readonly name: string;
-  value: string;
-}
-
-export interface IElement extends INode {
-  readonly content?: IDocumentFragment;
-}
-
-export interface IStyleDeclaration {
-  cssText: string;
-  setProperty(propertyName: string, value: string, priority?: string): void;
-  removeProperty(propertyName: string): void;
-}
-export interface IHTMLElement extends IElement {
-  readonly style: IStyleDeclaration;
-  setAttributeNS(namespace: string, qualifiedName: string, value: string): void;
-  getAttributeNS(namespace: string, qualifiedName: string): string;
-}
-
-export interface IInputElement extends IElement {
-  readonly type: string;
-  value: string;
-  checked: boolean;
-}
-
-export interface IText extends INode {
-  readonly nodeName: '#text';
-  readonly nodeType: typeof TEXT_NODE;
-}
-
-export interface IComment extends INode {
-  readonly nodeName: '#comment';
-  readonly nodeType: typeof COMMENT_NODE;
-}
-
-export interface IDocumentFragment extends INode {
-  readonly nodeName: '#document-fragment';
-  readonly nodeType: typeof DOCUMENT_FRAGMENT_NODE;
-}
-
-export const IRenderLocation = DI.createInterface<IRenderLocation>().noDefault();
-export interface IRenderLocation extends INode {
-  $start?: IRenderLocation;
-  $nodes?: INodeSequence | typeof PLATFORM['emptyObject'];
-}
-
-/**
- * Represents a DocumentFragment
- */
-export interface INodeSequence extends INodeLike {
-  /**
-   * The nodes of this sequence.
-   */
-  childNodes: ReadonlyArray<INode>;
-
-  /**
-   * Find all instruction targets in this sequence.
-   */
-  findTargets(): ArrayLike<INode> | ReadonlyArray<INode>;
-
-  /**
-   * Insert this sequence as a sibling before refNode
-   */
-  insertBefore(refNode: INode): void;
-
-  /**
-   * Append this sequence as a child to parent
-   */
-  appendTo(parent: INode): void;
-
-  /**
-   * Remove this sequence from its parent.
-   */
-  remove(): void;
-}
-
-export interface INodeObserver {
-  disconnect(): void;
-}
-
-// tslint:disable:no-any
 export const DOM = {
-  createDocumentFragment(markupOrNode?: string | IElement): IDocumentFragment {
+  createDocumentFragment(markupOrNode?: unknown): IDocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {
-      return document.createDocumentFragment() as IDocumentFragment;
+      return document.createDocumentFragment();
     }
-    if ((markupOrNode as IElement).nodeType > 0) {
-      if ((markupOrNode as IElement).content !== undefined) {
-        return (markupOrNode as IElement).content;
+    if (DOM.isNodeInstance(markupOrNode)) {
+      if ((markupOrNode as IHTMLTemplateElement).content !== undefined) {
+        return (markupOrNode as IHTMLTemplateElement).content;
       }
       const fragment = document.createDocumentFragment();
-      fragment.appendChild(markupOrNode as any);
-      return fragment as IDocumentFragment;
+      fragment.appendChild(markupOrNode);
+      return fragment;
     }
-    return DOM.createTemplate(markupOrNode as string).content;
+    return DOM.createTemplate(markupOrNode).content;
   },
-  createTemplate(markup?: string): IElement {
-    if (markup === undefined) {
-      return document.createElement('template') as IElement;
+  createTemplate(markup?: unknown): IHTMLTemplateElement {
+    if (markup === undefined || markup === null) {
+      return document.createElement('template');
     }
     const template = document.createElement('template');
-    template.innerHTML = markup;
-    return template as IElement;
+    template.innerHTML = (markup as string | object).toString();
+    return template;
   },
-  addClass(node: INode, className: string): void {
-    (node as any).classList.add(className);
+  addClass(node: IElement, className: string): void {
+    node.classList.add(className);
   },
-  addEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any): void {
-    ((publisher as any) || document).addEventListener(eventName, subscriber, options);
+  addEventListener(eventName: string, subscriber: IEventListenerOrEventListenerObject, publisher?: IEventTarget, options?: boolean | IAddEventListenerOptions): void {
+    (publisher || document).addEventListener(eventName, subscriber, options);
   },
   appendChild(parent: INode, child: INode): void {
-    (parent as any).appendChild(child);
+    parent.appendChild(child);
   },
-  attachShadow(host: IElement, options: ShadowRootInit): IDocumentFragment {
-    return (host as any).attachShadow(options);
+  attachShadow(host: IElement, options: IShadowRootInit): IDocumentFragment {
+    return host.attachShadow(options);
   },
   cloneNode<T extends INode = INode>(node: T, deep?: boolean): T {
-    return (node as any).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
+    return node.cloneNode(deep !== false) as T; // use true unless the caller explicitly passes in false
   },
   convertToRenderLocation(node: INode): IRenderLocation {
     if (isRenderLocation(node)) {
       return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
     }
-    if ((node as any).parentNode === null) {
+    if (node.parentNode === null) {
       throw Reporter.error(52);
     }
     const locationEnd = document.createComment('au-end') as IRenderLocation;
@@ -166,59 +67,45 @@ export const DOM = {
     return locationEnd;
   },
   createComment(text: string): IComment {
-    return document.createComment(text) as IComment;
+    return document.createComment(text);
   },
-  createElement(name: string): IElement {
+  createElement: ((name: string): IElement => {
     return document.createElement(name);
-  },
-  createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit): MutationObserver {
+  }) as IDocument['createElement'],
+  createNodeObserver(target: INode, callback: IMutationCallback, options: IMutationObserverInit): IMutationObserver {
     const observer = new MutationObserver(callback);
-    observer.observe(target as any, options);
+    observer.observe(target, options);
     return observer;
   },
   createTextNode(text: string): IText {
-    return document.createTextNode(text) as IText;
+    return document.createTextNode(text);
   },
-  getAttribute(node: INode, name: string): any {
-    return (node as any).getAttribute(name);
+  getAttribute(node: IElement, name: string): string {
+    return node.getAttribute(name);
   },
-  hasClass(node: INode, className: string): boolean {
-    return (node as any).classList.contains(className);
+  hasClass(node: IElement, className: string): boolean {
+    return node.classList.contains(className);
   },
   insertBefore(nodeToInsert: INode, referenceNode: INode): void {
-    (referenceNode as any).parentNode.insertBefore(nodeToInsert, referenceNode);
+    referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
   },
-  isAllWhitespace(node: INode): boolean {
-    if ((node as any).auInterpolationTarget === true) {
-      return false;
-    }
-    const text = node.textContent;
-    const len = text.length;
-    let i = 0;
-    // for perf benchmark of this compared to the regex method: http://jsben.ch/p70q2 (also a general case against using regex)
-    while (i < len) {
-      // charCodes 0-0x20(32) can all be considered whitespace (non-whitespace chars in this range don't have a visual representation anyway)
-      if (text.charCodeAt(i) > 0x20) {
-        return false;
-      }
-      i++;
-    }
-    return true;
+  isMarker(node: INode): node is IElement {
+    return node.nodeName === 'AU-M';
   },
   isCommentNodeType(node: INode): node is IComment {
-    return node.nodeType === COMMENT_NODE;
+    return node.nodeType === NodeType.Comment;
   },
   isDocumentFragmentType(node: INode): node is IDocumentFragment {
-    return node.nodeType === DOCUMENT_FRAGMENT_NODE;
+    return node.nodeType === NodeType.DocumentFragment;
   },
   isElementNodeType(node: INode): node is IElement {
-    return node.nodeType === ELEMENT_NODE;
+    return node.nodeType === NodeType.Element;
   },
-  isNodeInstance(potentialNode: any): potentialNode is INode {
-    return potentialNode.nodeType > 0;
+  isNodeInstance(potentialNode: unknown): potentialNode is INode {
+    return (potentialNode as { nodeType?: number }).nodeType > 0;
   },
   isTextNodeType(node: INode): node is IText {
-    return node.nodeType === TEXT_NODE;
+    return node.nodeType === NodeType.Text;
   },
   migrateChildNodes(currentParent: INode, newParent: INode): void {
     while (currentParent.firstChild) {
@@ -231,33 +118,29 @@ export const DOM = {
     container.registerResolver(HTMLElement, resolver);
     container.registerResolver(SVGElement, resolver);
   },
-  remove(node: INodeLike): void {
-    if ((node as any).remove) {
-      (node as any).remove();
+  remove(node: INode | IChildNode): void {
+    if ((node as IChildNode).remove) {
+      (node as IChildNode).remove();
     } else {
-      (node as any).parentNode.removeChild(node);
+      node.parentNode.removeChild(node);
     }
   },
-  removeAttribute(node: INode, name: string): void {
-    (node as any).removeAttribute(name);
+  removeAttribute(node: IElement, name: string): void {
+    node.removeAttribute(name);
   },
-  removeClass(node: INode, className: string): void {
-    (node as any).classList.remove(className);
+  removeClass(node: IElement, className: string): void {
+    node.classList.remove(className);
   },
-  removeEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any): void {
-    ((publisher as any) || document).removeEventListener(eventName, subscriber, options);
+  removeEventListener(eventName: string, subscriber: IEventListenerOrEventListenerObject, publisher?: IEventTarget, options?: boolean | IEventListenerOptions): void {
+    (publisher || document).removeEventListener(eventName, subscriber, options);
   },
   replaceNode(newChild: INode, oldChild: INode): void {
     if (oldChild.parentNode) {
-      (oldChild as any).parentNode.replaceChild(newChild, oldChild);
+      oldChild.parentNode.replaceChild(newChild, oldChild);
     }
   },
-  setAttribute(node: INode, name: string, value: any): void {
-    (node as any).setAttribute(name, value);
-  },
-  treatAsNonWhitespace(node: INode): void {
-    // see isAllWhitespace above
-    (node as any).auInterpolationTarget = true;
+  setAttribute(node: IElement, name: string, value: string): void {
+    node.setAttribute(name, value);
   }
 };
 
@@ -303,15 +186,15 @@ export class TextNodeSequence implements INodeSequence {
   }
 
   public insertBefore(refNode: INode): void {
-    (refNode as any).parentNode.insertBefore(this.firstChild, refNode);
+    refNode.parentNode.insertBefore(this.firstChild, refNode);
   }
 
   public appendTo(parent: INode): void {
-    (parent as any).appendChild(this.firstChild);
+    parent.appendChild(this.firstChild);
   }
 
   public remove(): void {
-    (this.firstChild as any).remove();
+    this.firstChild.remove();
   }
 }
 // tslint:enable:no-any
@@ -321,7 +204,7 @@ export class TextNodeSequence implements INodeSequence {
 // has an instance of this under the hood. Anyone who wants to create a node sequence from
 // a string of markup would also receive an instance of this.
 // CompiledTemplates create instances of FragmentNodeSequence.
-/*@internal*/
+/** @internal */
 export class FragmentNodeSequence implements INodeSequence {
   public firstChild: INode;
   public lastChild: INode;
@@ -335,7 +218,7 @@ export class FragmentNodeSequence implements INodeSequence {
   constructor(fragment: IDocumentFragment) {
     this.fragment = fragment;
     // tslint:disable-next-line:no-any
-    const targetNodeList = (fragment as any).querySelectorAll('.au');
+    const targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
     const targets = this.targets = Array(ii);
@@ -375,7 +258,7 @@ export class FragmentNodeSequence implements INodeSequence {
 
   public insertBefore(refNode: IRenderLocation): void {
     // tslint:disable-next-line:no-any
-    (refNode as any).parentNode.insertBefore(this.fragment, refNode);
+    refNode.parentNode.insertBefore(this.fragment, refNode);
     // internally we could generally assume that this is an IRenderLocation,
     // but since this is also public API we still need to double check
     // (or horrible things might happen)
@@ -399,7 +282,7 @@ export class FragmentNodeSequence implements INodeSequence {
 
   public appendTo(parent: INode): void {
     // tslint:disable-next-line:no-any
-    (parent as any).appendChild(this.fragment);
+    parent.appendChild(this.fragment);
     // this can never be a RenderLocation, and if for whatever reason we moved
     // from a RenderLocation to a host, make sure "start" and "end" are null
     this.start = this.end = null;
@@ -417,7 +300,7 @@ export class FragmentNodeSequence implements INodeSequence {
       while (current !== end) {
         next = current.nextSibling;
         // tslint:disable-next-line:no-any
-        (fragment as any).appendChild(current);
+        fragment.appendChild(current);
         current = next;
       }
       this.start.$nodes = null;
@@ -433,7 +316,7 @@ export class FragmentNodeSequence implements INodeSequence {
         while (current !== null) {
           next = current.nextSibling;
           // tslint:disable-next-line:no-any
-          (fragment as any).appendChild(current);
+          fragment.appendChild(current);
 
           if (current === end) {
             break;
@@ -446,17 +329,13 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
-interface ICloneableNode extends INode {
-  cloneNode(deep?: boolean): ICloneableNode;
-}
-
 export interface INodeSequenceFactory {
   createNodeSequence(): INodeSequence;
 }
 
 export class NodeSequenceFactory {
   private readonly deepClone: boolean;
-  private readonly node: ICloneableNode;
+  private readonly node: INode;
   private readonly Type: Constructable;
 
   constructor(fragment: IDocumentFragment) {
@@ -469,10 +348,9 @@ export class NodeSequenceFactory {
         const target = childNodes[0];
         if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
           const text = childNodes[1];
-          if (text.nodeType === TEXT_NODE && text.textContent === ' ') {
-            text.textContent = '';
+          if (text.nodeType === NodeType.Text && text.textContent.length === 0) {
             this.deepClone = false;
-            this.node = text as ICloneableNode;
+            this.node = text;
             this.Type = TextNodeSequence;
             return;
           }
@@ -480,13 +358,15 @@ export class NodeSequenceFactory {
       // falls through if not returned
       default:
         this.deepClone = true;
-        this.node = fragment as ICloneableNode;
+        this.node = fragment;
         this.Type = FragmentNodeSequence;
     }
   }
 
-  public static createFor(markupOrNode: string | INode): NodeSequenceFactory {
+  public static createFor(markupOrNode: unknown): NodeSequenceFactory {
+    if (Tracer.enabled) { Tracer.enter('NodeSequenceFactory.createFor', slice.call(arguments)); }
     const fragment = DOM.createDocumentFragment(markupOrNode);
+    if (Tracer.enabled) { Tracer.leave(); }
     return new NodeSequenceFactory(fragment);
   }
 
@@ -495,19 +375,21 @@ export class NodeSequenceFactory {
   }
 }
 
-/*@internal*/
+export interface AuMarker extends INode { }
+
+/** @internal */
 export class AuMarker implements INode {
-  public get parentNode(): INode {
+  public get parentNode(): INode & IParentNode {
     return this.nextSibling.parentNode;
   }
   public readonly nextSibling: INode;
   public readonly previousSibling: INode;
   public readonly content?: INode;
-  public readonly firstChild: INode;
-  public readonly lastChild: INode;
-  public readonly childNodes: ArrayLike<INode>;
+  public readonly firstChild: IChildNode;
+  public readonly lastChild: IChildNode;
+  public readonly childNodes: ArrayLike<IChildNode>;
   public readonly nodeName: 'AU-M';
-  public readonly nodeType: typeof ELEMENT_NODE;
+  public readonly nodeType: NodeType.Element;
 
   public textContent: string;
 
@@ -524,5 +406,5 @@ export class AuMarker implements INode {
   proto.lastChild = null;
   proto.childNodes = PLATFORM.emptyArray;
   proto.nodeName = 'AU-M';
-  proto.nodeType = ELEMENT_NODE;
+  proto.nodeType = NodeType.Element;
 })(AuMarker.prototype as Writable<AuMarker>);

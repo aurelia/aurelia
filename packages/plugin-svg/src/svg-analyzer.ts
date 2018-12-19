@@ -207,10 +207,10 @@ function createElement(html: string): Element {
   // and dealing with browser inconsistencies.
   const div = DOM.createElement('div') as HTMLElement;
   div.innerHTML = html;
-  return div.firstElementChild;
+  return div.firstElementChild as Element;
 }
 
-if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
+if ((createElement('<svg><altGlyph /></svg>').firstElementChild as Element).nodeName === 'altglyph' && svgElements.altGlyph) {
   // handle chrome casing inconsistencies.
   (svgElements as {altglyph?: string[]}).altglyph = svgElements.altGlyph;
   delete svgElements.altGlyph;

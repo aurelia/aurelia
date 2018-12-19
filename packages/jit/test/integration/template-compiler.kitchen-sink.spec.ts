@@ -1,11 +1,13 @@
 import { expect } from 'chai';
 import { tearDown, setupAndStart, cleanup, defineCustomElement } from './prepare';
 import { baseSuite } from './template-compiler.base';
-import { IContainer, Constructable, DI, IRegistry } from '../../../kernel/src/index';;
+import { IContainer, Constructable, DI, IRegistry, Tracer } from '../../../kernel/src/index';;
 import { Aurelia, ICustomElementType, ILifecycle, CustomElementResource, DOM, ISignaler, Lifecycle, TextNodeSequence } from '../../../runtime/src/index';
 import { LifecycleFlags } from '../../../runtime/src/index';
 import { BasicConfiguration } from '../../src/index';
 import { INodeSequence, NodeSequenceFactory } from '@aurelia/runtime';
+import { enableTracing, SymbolTraceWriter, disableTracing } from '../unit/util';
+import { stringifyTemplateDefinition } from '../../src/debugging';
 
 const spec = 'template-compiler.kitchen-sink';
 
@@ -910,5 +912,463 @@ describe(spec, () => {
 
     expect(host.textContent).to.equal('foo');
 
+  });
+
+  for (const [title, appMarkup, ceMarkup, appProp, ceProp, appValue, ceValue, target, expected] of [
+    [
+      `single, static`,
+      `<div replace-part="bar">43</div>`,
+      `<div replaceable part="bar">42</div>`,
+      null,
+      null,
+      null,
+      null,
+      '',
+      `43`
+    ],
+    [
+      `multiple, static`,
+      `<div replace-part="bar">43</div>`.repeat(2),
+      `<div replaceable part="bar">42</div>`.repeat(2),
+      null,
+      null,
+      null,
+      null,
+      '',
+      `43`.repeat(2)
+    ]
+  ]) {
+    it(`replaceable - ${title}`, () => {
+
+      const App = defineCustomElement('app', `<template><foo>${appMarkup}</foo></template>`, class {});
+      const Foo = defineCustomElement('foo', `<template>${ceMarkup}</template>`, class {});
+
+      const container = DI.createContainer();
+      container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+      const au = new Aurelia(<any>container);
+
+      const host = DOM.createElement('div');
+      const component = new App();
+
+      au.app({ host, component });
+
+      au.start();
+
+      expect(host.textContent).to.equal(expected);
+
+    });
+  }
+
+  it(`replaceable - bind to target scope`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><div replace-part="bar">\${baz}</div></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><div replaceable part="bar"></div></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable - bind to parent scope`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><div replace-part="bar">\${baz}</div></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><div replaceable part="bar"></div></template>`, <any>class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('def');
+
+  });
+
+  it(`replaceable/template - bind to target scope`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable/template - bind to parent scope`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('def');
+
+  });
+
+  it(`replaceable/template - uses last on name conflict`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${qux}</template><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class {});
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('def');
+
+  });
+
+  it(`replaceable/template - same part multiple times`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abcabc');
+
+  });
+
+  // TODO: fix this scenario
+  xit(`replaceable/template - parent template controller`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template if.bind="true"><template replace-part="bar">\${baz}</template></template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable/template - sibling lefthand side template controller`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template if.bind="true" replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable/template - sibling righthand side template controller`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+
+  it(`replaceable/template - sibling if/else with conflicting part names`, () => {
+
+    const App = defineCustomElement('app', `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo><foo><template replace-part="bar" if.bind="false">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
+    const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc'; });
+
+    const container = DI.createContainer();
+    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+
+    const au = new Aurelia(<any>container);
+
+    const host = DOM.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('abc');
+
+  });
+});
+
+
+
+describe("generated.template-compiler.static (with tracing)", function () {
+  function setup() {
+      enableTracing();
+      Tracer.enableLiveLogging(SymbolTraceWriter);
+      const container = DI.createContainer();
+      container.register(BasicConfiguration);
+      const au = new Aurelia(container);
+      const host = DOM.createElement("div");
+      return { au, host };
+  }
+  function verify(au, host, expected, description) {
+      au.start();
+      const outerHtmlAfterStart1 = host.outerHTML;
+      expect(host.textContent).to.equal(expected, "after start #1");
+      au.stop();
+      const outerHtmlAfterStop1 = host.outerHTML;
+      expect(host.textContent).to.equal("", "after stop #1");
+      au.start();
+      const outerHtmlAfterStart2 = host.outerHTML;
+      expect(host.textContent).to.equal(expected, "after start #2");
+      au.stop();
+      const outerHtmlAfterStop2 = host.outerHTML;
+      expect(host.textContent).to.equal("", "after stop #2");
+      expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+      expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+
+      console.log('\n'+stringifyTemplateDefinition(description, 0));
+      disableTracing();
+  }
+  it("tag$01 text$01 _", function () {
+      const { au, host } = setup();
+      const App = CustomElementResource.define({ name: "app", template: "<template><div>a</div></template>" }, class {
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$01 text$03 _", function () {
+      const { au, host } = setup();
+      const App = CustomElementResource.define({ name: "app", template: "<template><div>${msg}</div></template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$02 text$01 _", function () {
+      const { au, host } = setup();
+      const App = CustomElementResource.define({ name: "app", template: "<template>a</template>" }, class {
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$02 text$03 _", function () {
+      const { au, host } = setup();
+      const App = CustomElementResource.define({ name: "app", template: "<template>${msg}</template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$03 text$03 _", function () {
+      const { au, host } = setup();
+      const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
+          static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+          msg = "";
+          not = "";
+          item = "";
+      });
+      au.register(MyFoo);
+      const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"></my-foo></template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$04 text$03 _", function () {
+      const { au, host } = setup();
+      const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
+          static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+          msg = "";
+          not = "";
+          item = "";
+      });
+      au.register(MyFoo);
+      const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$05 text$03 _", function () {
+      const { au, host } = setup();
+      const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
+          static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+          static containerless = true;
+          msg = "";
+          not = "";
+          item = "";
+      });
+      au.register(MyFoo);
+      const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"></my-foo></template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$06 text$03 _", function () {
+      const { au, host } = setup();
+      const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
+          static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+          static containerless = true;
+          msg = "";
+          not = "";
+          item = "";
+      });
+      au.register(MyFoo);
+      const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$07 text$03 _", function () {
+      const { au, host } = setup();
+      const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
+          static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+          static shadowOptions = { mode: "open" };
+          msg = "";
+          not = "";
+          item = "";
+      });
+      au.register(MyFoo);
+      const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"></my-foo></template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$08 text$03 _", function () {
+      const { au, host } = setup();
+      const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
+          static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+          static shadowOptions = { mode: "open" };
+          msg = "";
+          not = "";
+          item = "";
+      });
+      au.register(MyFoo);
+      const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$09 text$03 _", function () {
+      const { au, host } = setup();
+      const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
+          static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+          static shadowOptions = { mode: "closed" };
+          msg = "";
+          not = "";
+          item = "";
+      });
+      au.register(MyFoo);
+      const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"></my-foo></template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
+  });
+  it("tag$10 text$03 _", function () {
+      const { au, host } = setup();
+      const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
+          static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+          static shadowOptions = { mode: "closed" };
+          msg = "";
+          not = "";
+          item = "";
+      });
+      au.register(MyFoo);
+      const App = CustomElementResource.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
+          msg = "a";
+      });
+      const component = new App();
+      au.app({ host, component });
+      verify(au, host, "a", App.description);
   });
 });

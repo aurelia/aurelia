@@ -1,5 +1,11 @@
+import { IWindow, IWindowOrWorkerGlobalScope } from './interfaces';
+
 const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};
+
+declare var self: IWindowOrWorkerGlobalScope;
+declare var performance: IWindowOrWorkerGlobalScope['performance'];
+declare var requestAnimationFrame: IWindow['requestAnimationFrame'];
 
 export const PLATFORM = {
   global: (function(): unknown {

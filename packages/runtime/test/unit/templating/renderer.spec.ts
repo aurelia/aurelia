@@ -95,7 +95,6 @@ describe('Renderer', () => {
 
         sut.instructionRenderers[instruction.type].render(renderContext, renderable, target, instruction);
 
-        expect(placeholder['auInterpolationTarget']).to.be.true;
         expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
         expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
         const bindable = <InterpolationBinding>renderable.$bindableHead;
@@ -104,7 +103,7 @@ describe('Renderer', () => {
         expect(bindable.interpolation['parts'][0]).to.equal('');
         expect(bindable.interpolation['parts'][1]).to.equal('');
         expect(bindable.mode).to.equal(BindingMode.toView);
-        expect(target.isConnected).to.be.false;
+        //expect(target.isConnected).to.be.false;
 
         tearDown({ wrapper });
       });

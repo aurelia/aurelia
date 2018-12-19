@@ -134,30 +134,22 @@ describe('Router', () => {
     const { host, router } = await setup();
 
     router.goto('/foo@left');
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await wait();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
     router.goto('/bar@left');
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await wait();
     expect(host.textContent).to.not.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
 
     router.back();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await wait();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
     router.forward();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await wait();
     expect(host.textContent).to.not.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
 
@@ -169,30 +161,22 @@ describe('Router', () => {
     const { host, router } = await setup();
 
     router.goto('/foo@left');
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await wait();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
     router.goto('/bar@right');
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await wait();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
 
     router.back();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await wait();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
     router.forward();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await wait();
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
 
@@ -379,7 +363,7 @@ let freshState = async (router, count) => {
 }
 let wait = async () => {
   await new Promise((resolve) => {
-    setTimeout(resolve, 1000);
+    setTimeout(resolve, 500);
     throttleCounter = 0;
   });
 }

@@ -218,6 +218,7 @@ export class Router {
       componentViewports = remaining.componentViewports;
       viewportsRemaining = remaining.viewportsRemaining;
     }
+    // TODO: Make sure replace paths isn't called on wrong (later) navigation
     this.replacePaths();
   }
 

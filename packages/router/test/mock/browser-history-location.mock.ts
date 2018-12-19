@@ -88,7 +88,7 @@ export class MockBrowserHistoryLocation {
   }
 
   public go(movement: number) {
-    const newIndex = this.index += movement;
+    const newIndex = this.index + movement;
     if (newIndex >= 0 && newIndex < this.states.length) {
       this.index = newIndex;
       this.notifyChange();

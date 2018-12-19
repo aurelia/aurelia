@@ -133,7 +133,7 @@ export class Viewport {
         this.nextComponent.enter(this.nextInstruction, this.instruction);
       }
       this.nextComponent.$hydrate(renderingEngine, host);
-      this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+      this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
       this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);
 
       this.content = this.nextContent;

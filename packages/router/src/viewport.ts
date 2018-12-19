@@ -117,7 +117,7 @@ export class Viewport {
       }
     }
 
-    const host: INode = this.element;
+    const host: INode = this.element as INode;
     const renderingEngine = this.router.container.get(IRenderingEngine);
 
     if (this.component) {

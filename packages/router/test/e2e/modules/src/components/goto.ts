@@ -1,8 +1,8 @@
-import { inject } from '@aurelia/kernel';
-import { bindable } from "@aurelia/runtime";
-import { customElement } from '@aurelia/runtime';
+import { inject } from '../../../../../../kernel';
+import { bindable } from "../../../../../../runtime";
+import { customElement } from '../../../../../../runtime';
 import * as template from './goto.html';
-import { Router } from '../../../../../src/router';
+import { Router } from '../../../../../../router';
 
 @inject(Router, Element)
 @customElement({ name: 'goto', template })

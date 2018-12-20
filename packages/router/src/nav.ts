@@ -14,7 +14,7 @@ export class Nav {
   }
 
   // TODO: Deal with non-string components
-  public addNav(routes: NavRoute[]): void {
+  public addRoutes(routes: NavRoute[]): void {
     this.routes.push(...routes);
   }
 }

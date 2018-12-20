@@ -1,9 +1,9 @@
-import { DI } from '@aurelia/kernel';
-import { BasicConfiguration } from '@aurelia/jit';
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { DI } from '../../../../../kernel';
+import { BasicConfiguration } from '../../../../../jit';
+import { Aurelia, CustomElementResource } from '../../../../../runtime';
 import { App } from './app';
-import { ViewportCustomElement } from '../../../../src/resources/viewport';
-import { NavCustomElement } from '../../../../src/resources/nav';
+import { ViewportCustomElement } from '../../../../../router';
+import { NavCustomElement } from '../../../../../router';
 import { GotoCustomElement } from './components/goto';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';

@@ -1,7 +1,7 @@
-import { inject } from '@aurelia/kernel';
-import { customElement } from '@aurelia/runtime';
+import { inject } from '../../../../../kernel';
+import { customElement } from '../../../../../runtime';
 import * as template from './app.html';
-import { Router } from '../../../../src/index';
+import { Router } from '../../../../../router';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';
 import { AppState } from './app-state';

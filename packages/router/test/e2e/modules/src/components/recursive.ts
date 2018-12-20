@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '../../../../../../runtime';
 import * as template from './recursive.html';
 
 @customElement({ name: 'recursive', template })

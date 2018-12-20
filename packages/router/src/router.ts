@@ -2,9 +2,9 @@ import { IContainer } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
+import { Nav, NavRoute } from './nav';
 import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
-import { Nav, NavRoute } from './nav';
 
 export interface IRouterOptions extends IHistoryOptions {
   reportCallback?: Function;

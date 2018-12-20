@@ -4,6 +4,7 @@ import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction 
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
+import { Nav, NavRoute } from './nav';
 
 export interface IRouterOptions extends IHistoryOptions {
   reportCallback?: Function;
@@ -48,6 +49,8 @@ export class Router {
 
   public historyBrowser: HistoryBrowser;
   public linkHandler: LinkHandler;
+
+  public navs: Object = {};
 
   private options: IRouterOptions;
   private isActive: boolean = false;
@@ -403,6 +406,17 @@ export class Router {
 
   public forward(): void {
     this.historyBrowser.forward();
+  }
+
+  public addNav(name: string, routes: NavRoute[]): void {
+    let nav = this.navs[name];
+    if (!nav) {
+      nav = this.navs[name] = new Nav(name);
+    }
+    nav.addRoutes(routes);
+  }
+  public findNav(name: string): Nav {
+    return this.navs[name];
   }
 
   private closestScope(element: Element): Scope {

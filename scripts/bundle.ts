@@ -9,25 +9,31 @@ import project from './project';
 const log = createLogger('bundle');
 
 async function createBundle(): Promise<void> {
-  const outputs = process.argv.slice(2)[0].split(',');
+  const args = process.argv.slice(2);
+
+  const outputs = args[0].split(',');
+  const filtered = args.length > 1 ? args[1].split(',') : null;
 
   // ensure the bundles are created in the correct order of dependency
-  const packages = project.packages.slice().sort((a, b) => {
-    switch (a.name) {
-      case 'kernel':
-        return 0;
-      case 'runtime':
-        return 1;
-      case 'debug':
-      case 'jit':
-      case 'plugin-requirejs':
-      case 'plugin-svg':
-      case 'router':
-        return 2;
-      case 'aot':
-        return 3;
+  const packages = project.packages.slice()
+    .filter(p => filtered === null || filtered.indexOf(p.name) !== -1)
+    .sort((a, b) => {
+      switch (a.name) {
+        case 'kernel':
+          return 0;
+        case 'runtime':
+          return 1;
+        case 'debug':
+        case 'jit':
+        case 'plugin-requirejs':
+        case 'plugin-svg':
+        case 'router':
+          return 2;
+        case 'aot':
+          return 3;
+      }
     }
-  });
+  );
   const count = packages.length;
   let cur = 0;
   for (const pkg of packages) {

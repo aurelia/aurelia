@@ -3,6 +3,7 @@ import { BasicConfiguration } from '@aurelia/jit';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { App } from './app';
 import { ViewportCustomElement } from '../../../../src/resources/viewport';
+import { NavCustomElement } from '../../../../src/resources/nav';
 import { GotoCustomElement } from './components/goto';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';
@@ -28,6 +29,7 @@ import { Beta } from './components/beta';
 const container = DI.createContainer();
 container.register(BasicConfiguration,
   <any>ViewportCustomElement,
+  <any>NavCustomElement,
   <any>GotoCustomElement,
   <any>App,
   <any>AbcComponent,

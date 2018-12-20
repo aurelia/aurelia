@@ -5,6 +5,8 @@ import { Router } from '../../../../src/index';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';
 import { AppState } from './app-state';
+import { Inbox } from './components/inbox';
+import { About } from './components/about';
 
 @inject(Router, AppState)
 @customElement({ name: 'app', template })
@@ -42,6 +44,25 @@ export class App {
 
     this.updateTitle();
     console.log('ROUTER', this.router);
+
+    this.router.addNav('top', [
+      {
+        components: 'email',
+        title: 'Email',
+        children: [
+          {
+            components: Inbox,
+            title: 'Inbox',
+          },
+          {
+            components: About,
+            title: 'About',
+          },
+        ],
+        meta: {},
+      },
+
+    ]);
   }
 
   pathCallback(instruction) {

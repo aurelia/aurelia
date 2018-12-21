@@ -36,6 +36,7 @@
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeDebugging",
     "test:debugger:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeDebugging --reporter=mocha",
     "build": "tsc -b",
+    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm router",
     "dev": "tsc -b -w",
     "publish:local": "npm pack"
   },

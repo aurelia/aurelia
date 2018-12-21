@@ -7,16 +7,7 @@ import { Router } from '../router';
 @customElement({
   name: 'au-nav', template:
     `<template>
-  <nav if.bind="name">
-    <au-nav routes.bind="navRoutes"></au-nav>
-  </nav>
-  <ul if.bind="routes">
-    <li repeat.for="route of routes">
-      <a href.bind="route.component">\${route.title}</a>
-      <au-nav if.bind="route.children" routes.bind="route.children"></au-nav>
-    </li>
-  </ul>
-</template>` })
+NAV</template>` })
 export class NavCustomElement {
   @bindable public name: string = 'default';
   @bindable public routes: NavRoute[];

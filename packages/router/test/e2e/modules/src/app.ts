@@ -22,6 +22,7 @@ export class App {
 
   constructor(private router: Router, private appState: AppState) {
     this.abcComponent;
+    debugger;
     this.configureRouter();
   }
 
@@ -45,24 +46,24 @@ export class App {
     this.updateTitle();
     console.log('ROUTER', this.router);
 
-    this.router.addNav('top', [
-      {
-        components: 'email',
-        title: 'Email',
-        children: [
-          {
-            components: Inbox,
-            title: 'Inbox',
-          },
-          {
-            components: About,
-            title: 'About',
-          },
-        ],
-        meta: {},
-      },
+    // this.router.addNav('top', [
+    //   {
+    //     components: 'email',
+    //     title: 'Email',
+    //     children: [
+    //       {
+    //         components: Inbox,
+    //         title: 'Inbox',
+    //       },
+    //       {
+    //         components: About,
+    //         title: 'About',
+    //       },
+    //     ],
+    //     meta: {},
+    //   },
 
-    ]);
+    // ]);
   }
 
   pathCallback(instruction) {

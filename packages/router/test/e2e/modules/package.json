@@ -9,7 +9,6 @@
   "dependencies": {
     "@aurelia/jit": "file:../../../../jit",
     "@aurelia/kernel": "file:../../../../kernel",
-    "@aurelia/router": "file:../../../../router",
     "@aurelia/runtime": "file:../../../../runtime"
   },
   "devDependencies": {

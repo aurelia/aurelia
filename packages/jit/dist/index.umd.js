@@ -2056,19 +2056,7 @@
               }
               ++i;
           }
-          let childNode = node.content.firstChild;
-          let nextChild;
-          while (childNode !== null) {
-              switch (childNode.nodeType) {
-                  case 3 /* Text */:
-                      childNode = this.bindText(childNode).nextSibling;
-                      break;
-                  case 1 /* Element */:
-                      nextChild = childNode.nextSibling;
-                      this.bindManifest(this.manifest, childNode);
-                      childNode = nextChild;
-              }
-          }
+          this.bindChildNodes(node);
           this.surrogate = surrogateSave;
           this.parentManifestRoot = parentManifestRootSave;
           this.manifestRoot = manifestRootSave;
@@ -2240,13 +2228,23 @@
           let nextChild;
           while (childNode !== null) {
               switch (childNode.nodeType) {
-                  case 3 /* Text */:
-                      childNode = this.bindText(childNode).nextSibling;
-                      break;
                   case 1 /* Element */:
                       nextChild = childNode.nextSibling;
                       this.bindManifest(this.manifest, childNode);
                       childNode = nextChild;
+                      break;
+                  case 3 /* Text */:
+                      childNode = this.bindText(childNode).nextSibling;
+                      break;
+                  case 4 /* CDATASection */:
+                  case 7 /* ProcessingInstruction */:
+                  case 8 /* Comment */:
+                  case 10 /* DocumentType */:
+                      childNode = childNode.nextSibling;
+                      break;
+                  case 9 /* Document */:
+                  case 11 /* DocumentFragment */:
+                      childNode = childNode.firstChild;
               }
           }
           if (kernel.Tracer.enabled) {

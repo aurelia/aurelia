@@ -416,19 +416,7 @@ export class TemplateBinder {
       ++i;
     }
 
-    let childNode: INode = node.content.firstChild;
-    let nextChild: INode;
-    while (childNode !== null) {
-      switch (childNode.nodeType) {
-        case NodeType.Text:
-          childNode = this.bindText(childNode as IText).nextSibling;
-          break;
-        case NodeType.Element:
-          nextChild = childNode.nextSibling;
-          this.bindManifest(this.manifest, childNode as IHTMLElement);
-          childNode = nextChild;
-      }
-    }
+    this.bindChildNodes(node);
 
     this.surrogate = surrogateSave;
     this.parentManifestRoot = parentManifestRootSave;
@@ -607,13 +595,23 @@ export class TemplateBinder {
     let nextChild: INode;
     while (childNode !== null) {
       switch (childNode.nodeType) {
-        case NodeType.Text:
-          childNode = this.bindText(childNode as IText).nextSibling;
-          break;
         case NodeType.Element:
           nextChild = childNode.nextSibling;
           this.bindManifest(this.manifest, childNode as IHTMLElement);
           childNode = nextChild;
+          break;
+        case NodeType.Text:
+          childNode = this.bindText(childNode as IText).nextSibling;
+          break;
+        case NodeType.CDATASection:
+        case NodeType.ProcessingInstruction:
+        case NodeType.Comment:
+        case NodeType.DocumentType:
+          childNode = childNode.nextSibling;
+          break;
+        case NodeType.Document:
+        case NodeType.DocumentFragment:
+          childNode = childNode.firstChild;
       }
     }
 

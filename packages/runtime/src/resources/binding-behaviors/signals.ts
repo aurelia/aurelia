@@ -1,7 +1,7 @@
 import { inject, IRegistry, Reporter } from '@aurelia/kernel';
 import { Binding } from '../../binding/binding';
-import { ISignaler } from '../../binding/signaler';
 import { IScope, LifecycleFlags } from '../../observation';
+import { ISignaler } from '../../observation/signaler';
 import { bindingBehavior } from '../binding-behavior';
 
 export type SignalableBinding = Binding & {

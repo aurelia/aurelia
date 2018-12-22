@@ -10,7 +10,6 @@ export * from './binding/interpolation-binding';
 export * from './binding/let-binding';
 export * from './binding/listener';
 export * from './binding/ref';
-export * from './binding/signaler';
 
 export { ArrayObserver, enableArrayObservation, disableArrayObservation, nativePush, nativePop, nativeShift, nativeUnshift, nativeSplice, nativeReverse, nativeSort } from './observation/array-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export { MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear } from './observation/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
@@ -23,6 +22,7 @@ export * from './observation/element-observation';
 export * from './observation/event-manager';
 export * from './observation/observer-locator';
 export * from './observation/property-observation';
+export * from './observation/signaler';
 export * from './observation/subscriber-collection';
 export * from './observation/svg-analyzer';
 export * from './observation/target-accessors';

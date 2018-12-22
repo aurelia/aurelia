@@ -30,8 +30,6 @@ export interface ICustomAttributeResource extends
   IResourceKind<IAttributeDefinition, ICustomAttribute, Class<ICustomAttribute> & CustomAttributeStaticProperties> {
 }
 
-type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType;
-
 /** @internal */
 export function registerAttribute(this: ICustomAttributeType, container: IContainer): void {
   const description = this.description;
@@ -174,3 +172,5 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     bindables: {...Type.bindables, ...def.bindables}
   };
 }
+
+export type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType;

@@ -1,4 +1,4 @@
-import { inject, PLATFORM } from '@aurelia/kernel';
+import { inject, IResourceDescriptions, PLATFORM } from '@aurelia/kernel';
 import {
   AttributeInstruction,
   HydrateAttributeInstruction,
@@ -10,7 +10,6 @@ import {
   InstructionRow,
   Interpolation,
   InterpolationInstruction,
-  IResourceDescriptions,
   IsBindingBehavior,
   ITemplateCompiler,
   ITemplateDefinition,

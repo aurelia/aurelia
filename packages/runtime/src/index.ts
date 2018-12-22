@@ -29,13 +29,13 @@ export * from './binding/target-accessors';
 export * from './binding/target-observer';
 
 export * from './resources/binding-behavior';
-export * from './resources/binding-behaviors/attr-binding-behavior';
-export * from './resources/binding-behaviors/binding-mode-behaviors';
-export * from './resources/binding-behaviors/debounce-binding-behavior';
-export * from './resources/binding-behaviors/self-binding-behavior';
+export * from './resources/binding-behaviors/attr';
+export * from './resources/binding-behaviors/binding-mode';
+export * from './resources/binding-behaviors/debounce';
+export * from './resources/binding-behaviors/self';
 export * from './resources/binding-behaviors/signals';
-export * from './resources/binding-behaviors/throttle-binding-behavior';
-export * from './resources/binding-behaviors/update-trigger-binding-behavior';
+export * from './resources/binding-behaviors/throttle';
+export * from './resources/binding-behaviors/update-trigger';
 
 export * from './resources/custom-attribute';
 export * from './resources/custom-attributes/if';

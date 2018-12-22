@@ -1,6 +1,6 @@
 import { Class, Constructable, IContainer, IResourceDefinition, IResourceKind, IResourceType, Registration, Writable } from '@aurelia/kernel';
+import { IBinding } from '../binding/binding';
 import { IScope, LifecycleFlags } from '../observation';
-import { IBinding } from './binding';
 
 export interface IBindingBehavior {
   bind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;

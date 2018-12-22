@@ -7,8 +7,8 @@ import { DOM, INodeSequenceFactory, NodeSequence, NodeSequenceFactory } from '..
 import { IElement, INode, INodeSequence, IRenderLocation } from '../dom.interfaces';
 import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory } from '../lifecycle';
 import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
-import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
-import { ICustomElement, ICustomElementType } from './custom-element';
+import { ICustomAttribute, ICustomAttributeType } from '../resources/custom-attribute';
+import { ICustomElement, ICustomElementType } from '../resources/custom-element';
 import { ViewFactory } from './view';
 
 const slice = Array.prototype.slice;

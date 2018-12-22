@@ -7,7 +7,7 @@ import { SetterObserver } from '../../binding/property-observation';
 import { IRenderLocation } from '../../dom.interfaces';
 import { IBindScope, IRenderable, IView, IViewFactory, State } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
-import { bindable } from '../bindable';
+import { bindable } from '../../templating/bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}

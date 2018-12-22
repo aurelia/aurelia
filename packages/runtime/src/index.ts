@@ -1,15 +1,11 @@
-export * from './binding/resources/attr-binding-behavior';
-export * from './binding/resources/binding-mode-behaviors';
-export * from './binding/resources/debounce-binding-behavior';
-export * from './binding/resources/sanitize';
-export * from './binding/resources/self-binding-behavior';
-export * from './binding/resources/signals';
-export * from './binding/resources/throttle-binding-behavior';
-export * from './binding/resources/update-trigger-binding-behavior';
+
+
+
 
 export { ArrayObserver, enableArrayObservation, disableArrayObservation, nativePush, nativePop, nativeShift, nativeUnshift, nativeSplice, nativeReverse, nativeSort } from './binding/array-observer'; // TODO: do this differently, not let this be ugly, etc, etc
+export { MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear } from './binding/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
+export { SetObserver, enableSetObservation, disableSetObservation, nativeAdd, nativeDelete as nativeSetDelete, nativeClear as nativeSetClear } from './binding/set-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export * from './binding/ast';
-export * from './binding/binding-behavior';
 export * from './binding/binding-context';
 export * from './binding/binding-mode';
 export * from './binding/binding';
@@ -23,28 +19,38 @@ export * from './binding/expression-parser';
 export * from './binding/interpolation-binding';
 export * from './binding/let-binding';
 export * from './binding/listener';
-export { MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear } from './binding/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export * from './binding/observer-locator';
 export * from './binding/property-observation';
 export * from './binding/ref';
-export { SetObserver, enableSetObservation, disableSetObservation, nativeAdd, nativeDelete as nativeSetDelete, nativeClear as nativeSetClear } from './binding/set-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export * from './binding/signaler';
 export * from './binding/subscriber-collection';
 export * from './binding/svg-analyzer';
 export * from './binding/target-accessors';
 export * from './binding/target-observer';
-export * from './binding/value-converter';
 
-export * from './templating/resources/compose';
-export * from './templating/resources/if';
-export * from './templating/resources/repeat';
-export * from './templating/resources/replaceable';
-export * from './templating/resources/with';
+export * from './resources/binding-behavior';
+export * from './resources/binding-behaviors/attr-binding-behavior';
+export * from './resources/binding-behaviors/binding-mode-behaviors';
+export * from './resources/binding-behaviors/debounce-binding-behavior';
+export * from './resources/binding-behaviors/self-binding-behavior';
+export * from './resources/binding-behaviors/signals';
+export * from './resources/binding-behaviors/throttle-binding-behavior';
+export * from './resources/binding-behaviors/update-trigger-binding-behavior';
+
+export * from './resources/custom-attribute';
+export * from './resources/custom-attributes/if';
+export * from './resources/custom-attributes/repeat';
+export * from './resources/custom-attributes/replaceable';
+export * from './resources/custom-attributes/with';
+
+export * from './resources/custom-element';
+export * from './resources/custom-elements/compose';
+
+export * from './resources/value-converter';
+export * from './resources/value-converters/sanitize';
 
 export * from './templating/bindable';
 export * from './templating/create-element';
-export * from './templating/custom-attribute';
-export * from './templating/custom-element';
 export * from './templating/lifecycle-attach';
 export * from './templating/lifecycle-bind';
 export * from './templating/lifecycle-render';

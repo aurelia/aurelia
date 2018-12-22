@@ -1,8 +1,8 @@
 import { Tracer, Writable } from '@aurelia/kernel';
 import { Hooks, IView, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
-import { ICustomAttribute } from './custom-attribute';
-import { ICustomElement } from './custom-element';
+import { ICustomAttribute } from '../resources/custom-attribute';
+import { ICustomElement } from '../resources/custom-element';
 
 const slice = Array.prototype.slice;
 

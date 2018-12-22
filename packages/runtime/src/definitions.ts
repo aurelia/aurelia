@@ -3,7 +3,7 @@ import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast'
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
 import { IShadowRootInit } from './dom.interfaces';
-import { CustomElementConstructor, ICustomElement } from './templating/custom-element';
+import { CustomElementConstructor, ICustomElement } from './resources/custom-element';
 import { ICustomElementHost } from './templating/lifecycle-render';
 
 /** @internal */

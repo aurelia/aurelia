@@ -3,9 +3,9 @@ import { buildTemplateDefinition, customElementBehavior, customElementKey, custo
 import { INode } from '../dom.interfaces';
 import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable } from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
-import { $bindElement, $unbindElement } from './lifecycle-bind';
-import { $hydrateElement, defaultShadowOptions, ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
+import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from '../templating/lifecycle-attach';
+import { $bindElement, $unbindElement } from '../templating/lifecycle-bind';
+import { $hydrateElement, defaultShadowOptions, ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from '../templating/lifecycle-render';
 
 type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
 

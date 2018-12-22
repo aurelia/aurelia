@@ -1,7 +1,7 @@
 import { IIndexable, Reporter, StrictPrimitive, Tracer } from '@aurelia/kernel';
 import { IBindScope } from '../lifecycle';
 import { IBindingContext, IOverrideContext, IScope, LifecycleFlags, ObservedCollection, ObserversLookup, PropertyObserver } from '../observation';
-import { SetterObserver } from './property-observation';
+import { SetterObserver } from '../observation//property-observation';
 
 const slice = Array.prototype.slice;
 

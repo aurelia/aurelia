@@ -2,10 +2,10 @@ import { IDisposable, IIndexable, IServiceLocator, Tracer } from '@aurelia/kerne
 import { IEvent, INode } from '../dom.interfaces';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
+import { DelegationStrategy, IEventManager } from '../observation//event-manager';
 import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
-import { DelegationStrategy, IEventManager } from './event-manager';
 
 const slice = Array.prototype.slice;
 

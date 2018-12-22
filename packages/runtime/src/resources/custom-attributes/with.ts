@@ -1,8 +1,8 @@
 import { inject, IRegistry } from '@aurelia/kernel';
-import { Scope } from '../../binding/binding-context';
 import { IRenderLocation } from '../../dom.interfaces';
 import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
 import { IBindingContext, LifecycleFlags } from '../../observation';
+import { Scope } from '../../observation/binding-context';
 import { bindable } from '../../templating/bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 

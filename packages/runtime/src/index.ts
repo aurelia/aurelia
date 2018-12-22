@@ -2,7 +2,6 @@
 
 
 export * from './binding/ast';
-export * from './binding/binding-context';
 export * from './binding/binding-mode';
 export * from './binding/binding';
 export * from './binding/call';
@@ -16,6 +15,7 @@ export * from './binding/signaler';
 export { ArrayObserver, enableArrayObservation, disableArrayObservation, nativePush, nativePop, nativeShift, nativeUnshift, nativeSplice, nativeReverse, nativeSort } from './observation/array-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export { MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear } from './observation/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export { SetObserver, enableSetObservation, disableSetObservation, nativeAdd, nativeDelete as nativeSetDelete, nativeClear as nativeSetClear } from './observation/set-observer'; // TODO: do this differently, not let this be ugly, etc, etc
+export * from './observation/binding-context';
 export * from './observation/collection-observer';
 export * from './observation/computed-observer';
 export * from './observation/dirty-checker';

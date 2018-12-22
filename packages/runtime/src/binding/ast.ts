@@ -1,10 +1,10 @@
 import { IIndexable, IServiceLocator, PLATFORM, Reporter, StrictPrimitive } from '@aurelia/kernel';
 import { IBindScope } from '../lifecycle';
 import { Collection, IBindingContext, IOverrideContext, IScope, LifecycleFlags, ObservedCollection } from '../observation';
+import { BindingContext } from '../observation/binding-context';
 import { BindingBehaviorResource } from '../resources/binding-behavior';
 import { IValueConverter, ValueConverterResource } from '../resources/value-converter';
 import { IBinding } from './binding';
-import { BindingContext } from './binding-context';
 import { IConnectableBinding } from './connectable';
 import { ISignaler } from './signaler';
 

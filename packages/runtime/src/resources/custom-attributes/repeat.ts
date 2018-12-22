@@ -1,10 +1,10 @@
 import { IIndexable, inject, IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
-import { BindingContext, Scope } from '../../binding/binding-context';
 import { IRenderLocation } from '../../dom.interfaces';
 import { IBindScope, IRenderable, IView, IViewFactory, State } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
+import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { SetterObserver } from '../../observation/property-observation';
 import { bindable } from '../../templating/bindable';

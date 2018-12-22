@@ -1,7 +1,7 @@
 import { IIndexable, IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
-import { IObserverLocator } from '../observation//observer-locator';
+import { IObserverLocator } from '../observation/observer-locator';
 import { IExpression } from './ast';
 import { IBindingTarget } from './binding';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';

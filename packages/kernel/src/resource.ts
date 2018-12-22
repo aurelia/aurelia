@@ -1,4 +1,5 @@
-import { Class, Constructable, IContainer, Immutable, IRegistry } from '@aurelia/kernel';
+import { IContainer, IRegistry } from './di';
+import { Class, Constructable, Immutable } from './interfaces';
 
 export interface IResourceDefinition {
   name: string;

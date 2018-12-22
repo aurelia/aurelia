@@ -1,4 +1,4 @@
-import { all, Class, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, PLATFORM, Registration, Reporter, Tracer, Writable } from '@aurelia/kernel';
+import { all, Class, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, IResourceDescriptions, PLATFORM, Registration, Reporter, RuntimeCompilationResources, Tracer, Writable } from '@aurelia/kernel';
 import { Scope } from '../binding/binding-context';
 import { Observer } from '../binding/property-observation';
 import { subscriberCollection } from '../binding/subscriber-collection';
@@ -7,7 +7,6 @@ import { DOM, INodeSequenceFactory, NodeSequence, NodeSequenceFactory } from '..
 import { IElement, INode, INodeSequence, IRenderLocation } from '../dom.interfaces';
 import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory } from '../lifecycle';
 import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
-import { IResourceDescriptions, RuntimeCompilationResources } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { ViewFactory } from './view';

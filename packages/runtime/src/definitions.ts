@@ -1,9 +1,8 @@
-import { DI, Immutable, IRegistry, Omit, PLATFORM } from '@aurelia/kernel';
+import { DI, Immutable, IRegistry, IResourceDefinition, Omit, PLATFORM, ResourceDescription, ResourcePartDescription } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { DelegationStrategy } from './binding/event-manager';
-import { INode, IShadowRootInit } from './dom.interfaces';
-import { IResourceDefinition, ResourceDescription, ResourcePartDescription } from './resource';
+import { IShadowRootInit } from './dom.interfaces';
 import { CustomElementConstructor, ICustomElement } from './templating/custom-element';
 import { ICustomElementHost } from './templating/lifecycle-render';
 

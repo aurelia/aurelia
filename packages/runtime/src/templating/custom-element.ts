@@ -1,9 +1,8 @@
-import { Class, Constructable, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, IResourceKind, IResourceType, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { INode } from '../dom.interfaces';
 import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable } from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { IResourceKind, IResourceType } from '../resource';
 import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
 import { $bindElement, $unbindElement } from './lifecycle-bind';
 import { $hydrateElement, defaultShadowOptions, ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';

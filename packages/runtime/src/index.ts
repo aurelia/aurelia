@@ -58,4 +58,3 @@ export * from './html-renderer';
 export * from './instructions';
 export * from './lifecycle';
 export * from './observation';
-export * from './resource';

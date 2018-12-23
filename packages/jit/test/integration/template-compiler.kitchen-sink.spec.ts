@@ -1,11 +1,9 @@
 import { expect } from 'chai';
 import { tearDown, setupAndStart, cleanup, defineCustomElement } from './prepare';
 import { baseSuite } from './template-compiler.base';
-import { IContainer, Constructable, DI, IRegistry, Tracer } from '../../../kernel/src/index';;
-import { Aurelia, ICustomElementType, ILifecycle, CustomElementResource, DOM, ISignaler, Lifecycle, TextNodeSequence, IExpressionParser } from '../../../runtime/src/index';
-import { LifecycleFlags } from '../../../runtime/src/index';
+import { IContainer, Constructable, DI, IRegistry, Tracer, RuntimeCompilationResources } from '../../../kernel/src/index';;
+import { Aurelia, ICustomElementType, ILifecycle, CustomElementResource, DOM, ISignaler, Lifecycle, TextNodeSequence, IExpressionParser, LifecycleFlags, INodeSequence, NodeSequenceFactory, ITemplateCompiler } from '../../../runtime/src/index';
 import { BasicConfiguration, TemplateBinder, ResourceModel, IAttributeParser } from '../../src/index';
-import { INodeSequence, NodeSequenceFactory, ITemplateCompiler, RuntimeCompilationResources } from '@aurelia/runtime';
 import { enableTracing, SymbolTraceWriter, disableTracing } from '../unit/util';
 import { stringifyTemplateDefinition } from '../../src/debugging';
 

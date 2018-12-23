@@ -1,9 +1,15 @@
 import { Constructable, IRegistry, Tracer } from '@aurelia/kernel';
-import { buildTemplateDefinition, isTargetedInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '../definitions';
+import {
+  buildTemplateDefinition,
+  isTargetedInstruction,
+  TargetedInstruction,
+  TargetedInstructionType,
+  TemplateDefinition
+} from '../definitions';
 import { DOM } from '../dom';
 import { INode } from '../dom.interfaces';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
-import { ICustomElementType } from './custom-element';
+import { ICustomElementType } from '../resources/custom-element';
 import { IRenderingEngine, ITemplate } from './lifecycle-render';
 
 const slice = Array.prototype.slice;

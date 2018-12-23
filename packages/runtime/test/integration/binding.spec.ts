@@ -1,6 +1,5 @@
-import { BindingContext, Scope } from '../../src/binding/binding-context';
 import { spy, SinonSpy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, LifecycleFlags, IScope, ILifecycle, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType, State, Lifecycle } from '../../src/index';
+import { BindingContext, Scope, AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, LifecycleFlags, IScope, ILifecycle, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType, State, Lifecycle } from '../../src/index';
 import { DI } from '../../../kernel/src/index';
 import { createScopeForTest } from '../unit/binding/shared';
 import { expect } from 'chai';

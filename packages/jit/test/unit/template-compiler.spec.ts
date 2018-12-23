@@ -1,11 +1,9 @@
-import { DI, IContainer, IRegistry, PLATFORM, Constructable, Tracer } from '../../../kernel/src';
+import { DI, IContainer, IRegistry, PLATFORM, Constructable, IResourceDescriptions, RuntimeCompilationResources } from '../../../kernel/src';
 import {
   IExpressionParser,
-  IResourceDescriptions,
   BindingType,
   AccessScope,
   CustomAttributeResource,
-  RuntimeCompilationResources,
   BindingMode,
   customElement,
   TargetedInstructionType as TT,

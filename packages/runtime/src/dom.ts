@@ -1,5 +1,36 @@
-import { Constructable, IContainer, IResolver, PLATFORM, Reporter, Tracer, Writable } from '@aurelia/kernel';
-import { IAddEventListenerOptions, IChildNode, IComment, IDocument, IDocumentFragment, IElement, IEventListenerOptions, IEventListenerOrEventListenerObject, IEventTarget, IHTMLElement, IHTMLTemplateElement, IMutationCallback, IMutationObserver, IMutationObserverInit, INode, INodeSequence, IParentNode, IRenderLocation, IShadowRootInit, ISVGElement, IText, NodeType } from './dom.interfaces';
+import {
+  Constructable,
+  IContainer,
+  IResolver,
+  PLATFORM,
+  Reporter,
+  Tracer,
+  Writable
+} from '@aurelia/kernel';
+import {
+  IAddEventListenerOptions,
+  IChildNode,
+  IComment,
+  IDocument,
+  IDocumentFragment,
+  IElement,
+  IEventListenerOptions,
+  IEventListenerOrEventListenerObject,
+  IEventTarget,
+  IHTMLElement,
+  IHTMLTemplateElement,
+  IMutationCallback,
+  IMutationObserver,
+  IMutationObserverInit,
+  INode,
+  INodeSequence,
+  IParentNode,
+  IRenderLocation,
+  IShadowRootInit,
+  ISVGElement,
+  IText,
+  NodeType
+} from './dom.interfaces';
 
 const slice = Array.prototype.slice;
 

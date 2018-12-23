@@ -1,8 +1,8 @@
 import { IRegistry } from '@aurelia/kernel';
+import { Binding } from '../../binding/binding';
+import { BindingMode } from '../../binding/binding-mode';
 import { IScope, LifecycleFlags } from '../../observation';
-import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
-import { BindingMode } from '../binding-mode';
 
 const { oneTime, toView, fromView, twoWay } = BindingMode;
 

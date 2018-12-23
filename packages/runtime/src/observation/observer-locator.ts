@@ -3,9 +3,18 @@ import { DOM } from '../dom';
 import { IElement, IHTMLElement } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import {
-  AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext,
-  IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver,
-  IObservable,  IObservedArray, IObservedMap, IObservedSet, IOverrideContext
+  AccessorOrObserver,
+  CollectionKind,
+  CollectionObserver,
+  IBindingContext,
+  IBindingTargetAccessor,
+  IBindingTargetObserver,
+  ICollectionObserver,
+  IObservable,
+  IObservedArray,
+  IObservedMap,
+  IObservedSet,
+  IOverrideContext
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
@@ -16,7 +25,14 @@ import { getMapObserver } from './map-observer';
 import { PrimitiveObserver, SetterObserver } from './property-observation';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
-import { ClassAttributeAccessor, DataAttributeAccessor, ElementPropertyAccessor, PropertyAccessor, StyleAttributeAccessor, XLinkAttributeAccessor } from './target-accessors';
+import {
+  ClassAttributeAccessor,
+  DataAttributeAccessor,
+  ElementPropertyAccessor,
+  PropertyAccessor,
+  StyleAttributeAccessor,
+  XLinkAttributeAccessor
+} from './target-accessors';
 
 const toStringTag = Object.prototype.toString;
 

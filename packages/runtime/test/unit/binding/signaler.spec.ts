@@ -1,5 +1,4 @@
-import { Signaler } from './../../../src/binding/signaler';
-import { ISignaler, LifecycleFlags } from '../../../src/index';
+import { ISignaler, LifecycleFlags, Signaler } from '../../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
 import { MockPropertySubscriber } from '../mock';

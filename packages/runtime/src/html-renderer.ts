@@ -2,19 +2,38 @@ import { IContainer, IIndexable, inject, IRegistry, Tracer } from '@aurelia/kern
 import { Binding } from './binding/binding';
 import { BindingMode } from './binding/binding-mode';
 import { Call } from './binding/call';
-import { IEventManager } from './binding/event-manager';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
 import { Listener } from './binding/listener';
-import { IObserverLocator } from './binding/observer-locator';
 import { Ref } from './binding/ref';
-import { customAttributeKey, customElementKey, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TargetedInstructionType, TemplatePartDefinitions } from './definitions';
+import {
+  customAttributeKey,
+  customElementKey,
+  ICallBindingInstruction,
+  IHydrateAttributeInstruction,
+  IHydrateElementInstruction,
+  IHydrateLetElementInstruction,
+  IHydrateTemplateController,
+  IInterpolationInstruction,
+  IIteratorBindingInstruction,
+  IListenerBindingInstruction,
+  IPropertyBindingInstruction,
+  IRefBindingInstruction,
+  ISetAttributeInstruction,
+  ISetPropertyInstruction,
+  IStylePropertyBindingInstruction,
+  ITextBindingInstruction,
+  TargetedInstructionType,
+  TemplatePartDefinitions
+} from './definitions';
 import { DOM } from './dom';
 import { IElement, IHTMLElement, INode, IRenderLocation } from './dom.interfaces';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';
-import { ICustomAttribute } from './templating/custom-attribute';
-import { ICustomElement } from './templating/custom-element';
+import { IEventManager } from './observation/event-manager';
+import { IObserverLocator } from './observation/observer-locator';
+import { ICustomAttribute } from './resources/custom-attribute';
+import { ICustomElement } from './resources/custom-element';
 import { IElementHydrationOptions, IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
 
 const slice = Array.prototype.slice;

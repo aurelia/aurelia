@@ -1,10 +1,10 @@
 import { IRegistry } from '@aurelia/kernel';
+import { Binding } from '../../binding/binding';
 import { IElement } from '../../dom.interfaces';
 import { ILifecycle } from '../../lifecycle';
 import { IScope, LifecycleFlags } from '../../observation';
-import { Binding } from '../binding';
+import { DataAttributeAccessor } from '../../observation/target-accessors';
 import { bindingBehavior } from '../binding-behavior';
-import { DataAttributeAccessor } from '../target-accessors';
 
 @bindingBehavior('attr')
 export class AttrBindingBehavior {

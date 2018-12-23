@@ -1,12 +1,44 @@
-import { Class, Constructable, IContainer, Immutable, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
+import {
+  Class,
+  Constructable,
+  IContainer,
+  Immutable,
+  IResourceKind,
+  IResourceType,
+  Omit,
+  PLATFORM,
+  Registration,
+  ResourceDescription,
+  Writable
+} from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
-import { customAttributeKey, customAttributeName, IAttributeDefinition } from '../definitions';
-import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable } from '../lifecycle';
+import {
+  customAttributeKey,
+  customAttributeName,
+  IAttributeDefinition
+} from '../definitions';
+import {
+  Hooks,
+  IAttach,
+  IBindScope,
+  ILifecycleHooks,
+  ILifecycleUnbindAfterDetach,
+  IRenderable
+} from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
-import { $attachAttribute, $cacheAttribute, $detachAttribute } from './lifecycle-attach';
-import { $bindAttribute, $unbindAttribute } from './lifecycle-bind';
-import { $hydrateAttribute, IRenderingEngine } from './lifecycle-render';
+import {
+  $attachAttribute,
+  $cacheAttribute,
+  $detachAttribute
+} from '../templating/lifecycle-attach';
+import {
+  $bindAttribute,
+  $unbindAttribute
+} from '../templating/lifecycle-bind';
+import {
+  $hydrateAttribute,
+  IRenderingEngine
+} from '../templating/lifecycle-render';
 
 type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
 
@@ -30,8 +62,6 @@ export interface ICustomAttribute extends
 export interface ICustomAttributeResource extends
   IResourceKind<IAttributeDefinition, ICustomAttribute, Class<ICustomAttribute> & CustomAttributeStaticProperties> {
 }
-
-type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType;
 
 /** @internal */
 export function registerAttribute(this: ICustomAttributeType, container: IContainer): void {
@@ -175,3 +205,5 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     bindables: {...Type.bindables, ...def.bindables}
   };
 }
+
+export type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType;

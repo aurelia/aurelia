@@ -1,5 +1,5 @@
-import { PLATFORM, Reporter } from '@aurelia/kernel';
-import { AttributeDefinition, BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, IElement, IResourceDescriptions, TemplateDefinition } from '@aurelia/runtime';
+import { IResourceDescriptions, PLATFORM, Reporter } from '@aurelia/kernel';
+import { AttributeDefinition, BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, IElement, TemplateDefinition } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
 

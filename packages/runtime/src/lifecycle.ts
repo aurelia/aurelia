@@ -1,4 +1,17 @@
-import { DI, IContainer, IDisposable, Immutable, inject, InterfaceSymbol, IResolver, IServiceLocator, Omit, PLATFORM, Registration, Tracer } from '@aurelia/kernel';
+import {
+  DI,
+  IContainer,
+  IDisposable,
+  Immutable,
+  inject,
+  InterfaceSymbol,
+  IResolver,
+  IServiceLocator,
+  Omit,
+  PLATFORM,
+  Registration,
+  Tracer
+} from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom.interfaces';

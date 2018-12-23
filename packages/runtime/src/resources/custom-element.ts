@@ -1,12 +1,52 @@
-import { Class, Constructable, IContainer, Registration, Reporter, Writable } from '@aurelia/kernel';
-import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
+import {
+  Class,
+  Constructable,
+  IContainer,
+  IResourceKind,
+  IResourceType,
+  Registration,
+  Reporter,
+  Writable
+} from '@aurelia/kernel';
+import {
+  buildTemplateDefinition,
+  customElementBehavior,
+  customElementKey,
+  customElementName,
+  ITemplateDefinition,
+  TemplateDefinition
+} from '../definitions';
 import { INode } from '../dom.interfaces';
-import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable } from '../lifecycle';
+import {
+  Hooks,
+  IAttach,
+  IBind,
+  ILifecycleHooks,
+  ILifecycleUnbindAfterDetach,
+  IMountable,
+  IRenderable
+} from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { IResourceKind, IResourceType } from '../resource';
-import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from './lifecycle-attach';
-import { $bindElement, $unbindElement } from './lifecycle-bind';
-import { $hydrateElement, defaultShadowOptions, ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from './lifecycle-render';
+import {
+  $attachElement,
+  $cacheElement,
+  $detachElement,
+  $mountElement,
+  $unmountElement
+} from '../templating/lifecycle-attach';
+import {
+  $bindElement,
+  $unbindElement
+} from '../templating/lifecycle-bind';
+import {
+  $hydrateElement,
+  defaultShadowOptions,
+  ICustomElementHost,
+  IElementHydrationOptions,
+  IElementProjector,
+  ILifecycleRender,
+  IRenderingEngine
+} from '../templating/lifecycle-render';
 
 type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
 
@@ -22,7 +62,7 @@ export interface ICustomElement extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
   ILifecycleRender,
-  IBindScope,
+  IBind,
   ILifecycleUnbindAfterDetach,
   IAttach,
   IMountable,

@@ -1,9 +1,9 @@
 import { IRegistry, Reporter } from '@aurelia/kernel';
+import { Listener } from '../../binding/listener';
 import { IEvent, INode } from '../../dom.interfaces';
 import { IScope, LifecycleFlags } from '../../observation';
+import { findOriginalEventTarget } from '../../observation/event-manager';
 import { bindingBehavior } from '../binding-behavior';
-import { findOriginalEventTarget } from '../event-manager';
-import { Listener } from '../listener';
 
 /** @internal */
 export function handleSelfEvent(this: SelfableBinding, event: IEvent): ReturnType<Listener['callSource']> {

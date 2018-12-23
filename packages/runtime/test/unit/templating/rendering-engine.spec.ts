@@ -1,7 +1,6 @@
 import {
   RenderingEngine,
   CompiledTemplate,
-  RuntimeCompilationResources,
   View,
   ViewFactory,
   IRenderContext,
@@ -22,25 +21,6 @@ describe('RenderingEngine', () => {
 
 describe('CompiledTemplate', () => {
 
-});
-
-describe('RuntimeCompilationResources', () => {
-
-  it('does not register while finding resource', () => {
-    const container = new Container();
-    const resources = new RuntimeCompilationResources((container as any) as ExposedContext);
-
-    [
-      CustomElementResource,
-      CustomAttributeResource,
-      BindingBehaviorResource,
-      ValueConverterResource,
-      BindingCommandResource
-    ].forEach(r => {
-      resources.find(r, 'a');
-      expect(container.getResolver(r.keyFrom('a'), false)).to.be.null;
-    });
-  });
 });
 
 describe('View', () => {

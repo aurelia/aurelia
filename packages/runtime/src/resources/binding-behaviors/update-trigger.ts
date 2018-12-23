@@ -1,6 +1,7 @@
 import { inject, IRegistry, Reporter } from '@aurelia/kernel';
 import { Binding } from '../../binding/binding';
 import { BindingMode } from '../../binding/binding-mode';
+import { DOM } from '../../dom';
 import { IScope, LifecycleFlags } from '../../observation';
 import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from '../../observation/element-observation';
 import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
@@ -47,7 +48,7 @@ export class UpdateTriggerBindingBehavior {
     targetObserver.originalHandler = binding.targetObserver.handler;
 
     // replace the element subscribe function with one that uses the correct events.
-    targetObserver.handler = new EventSubscriber(events);
+    targetObserver.handler = new EventSubscriber(binding.locator.get(DOM), events);
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void {

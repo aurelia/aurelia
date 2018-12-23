@@ -67,13 +67,21 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 @inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
+  private dom: DOM;
   private adapters: IObjectObservationAdapter[];
   private dirtyChecker: IDirtyChecker;
   private eventManager: IEventManager;
   private lifecycle: ILifecycle;
   private svgAnalyzer: ISVGAnalyzer;
 
-  constructor(lifecycle: ILifecycle, eventManager: IEventManager, dirtyChecker: IDirtyChecker, svgAnalyzer: ISVGAnalyzer) {
+  constructor(
+    dom: DOM,
+    lifecycle: ILifecycle,
+    eventManager: IEventManager,
+    dirtyChecker: IDirtyChecker,
+    svgAnalyzer: ISVGAnalyzer
+  ) {
+    this.dom = dom;
     this.adapters = [];
     this.dirtyChecker = dirtyChecker;
     this.eventManager = eventManager;
@@ -110,11 +118,11 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   public getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor {
-    if (DOM.isNodeInstance(obj)) {
+    if (this.dom.isNodeInstance(obj)) {
       const tagName = obj['tagName'];
       // this check comes first for hot path optimization
       if (propertyName === 'textContent') {
-        return new ElementPropertyAccessor(this.lifecycle, obj, propertyName);
+        return new ElementPropertyAccessor(this.dom, this.lifecycle, obj, propertyName);
       }
 
       // TODO: optimize and make pluggable
@@ -131,9 +139,9 @@ export class ObserverLocator implements IObserverLocator {
         || tagName === 'IMG' && propertyName === 'src'
         || tagName === 'A' && propertyName === 'href'
       ) {
-        return new DataAttributeAccessor(this.lifecycle, obj as IElement, propertyName);
+        return new DataAttributeAccessor(this.dom, this.lifecycle, obj as IHTMLElement, propertyName);
       }
-      return new ElementPropertyAccessor(this.lifecycle, obj, propertyName);
+      return new ElementPropertyAccessor(this.dom, this.lifecycle, obj, propertyName);
     }
 
     return new PropertyAccessor(obj, propertyName);
@@ -186,38 +194,38 @@ export class ObserverLocator implements IObserverLocator {
     }
 
     let isNode: boolean;
-    if (DOM.isNodeInstance(obj)) {
+    if (this.dom.isNodeInstance(obj)) {
       if (propertyName === 'class') {
-        return new ClassAttributeAccessor(this.lifecycle, obj as IElement);
+        return new ClassAttributeAccessor(this.dom, this.lifecycle, obj as IHTMLElement);
       }
 
       if (propertyName === 'style' || propertyName === 'css') {
-        return new StyleAttributeAccessor(this.lifecycle, obj as IHTMLElement);
+        return new StyleAttributeAccessor(this.dom, this.lifecycle, obj as IHTMLElement);
       }
 
       const tagName = obj['tagName'];
-      const handler = this.eventManager.getElementHandler(obj, propertyName);
+      const handler = this.eventManager.getElementHandler(this.dom, obj, propertyName);
       if (propertyName === 'value' && tagName === 'SELECT') {
-        return new SelectValueObserver(this.lifecycle, obj as ISelectElement, handler, this);
+        return new SelectValueObserver(this.dom, this.lifecycle, obj as ISelectElement, handler, this);
       }
 
       if (propertyName === 'checked' && tagName === 'INPUT') {
-        return new CheckedObserver(this.lifecycle, obj as IInputElement, handler, this);
+        return new CheckedObserver(this.dom, this.lifecycle, obj as IInputElement, handler, this);
       }
 
       if (handler) {
-        return new ValueAttributeObserver(this.lifecycle, obj, propertyName, handler);
+        return new ValueAttributeObserver(this.dom, this.lifecycle, obj, propertyName, handler);
       }
 
       const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
       if (xlinkResult) {
-        return new XLinkAttributeAccessor(this.lifecycle, obj as IHTMLElement, propertyName, xlinkResult[1]);
+        return new XLinkAttributeAccessor(this.dom, this.lifecycle, obj as IHTMLElement, propertyName, xlinkResult[1]);
       }
 
       if (propertyName === 'role'
         || /^\w+:|^data-|^aria-/.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
-        return new DataAttributeAccessor(this.lifecycle, obj as IElement, propertyName);
+        return new DataAttributeAccessor(this.dom, this.lifecycle, obj as IHTMLElement, propertyName);
       }
       isNode = true;
     }

@@ -84,8 +84,15 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
 
 export interface CollectionLengthObserver extends IBindingTargetObserver<Collection, string> {}
 
+const domStub = {
+  isNodeInstance(value: unknown): false {
+    return false;
+  }
+};
+
 @targetObserver()
 export class CollectionLengthObserver implements CollectionLengthObserver, IPatch {
+  public dom: typeof domStub;
   public currentValue: number;
   public currentFlags: LifecycleFlags;
 
@@ -93,6 +100,7 @@ export class CollectionLengthObserver implements CollectionLengthObserver, IPatc
   public propertyKey: 'length' | 'size';
 
   constructor(obj: Collection, propertyKey: 'length' | 'size') {
+    this.dom = domStub;
     this.obj = obj;
     this.propertyKey = propertyKey;
 

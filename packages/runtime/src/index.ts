@@ -1,6 +1,3 @@
-
-
-
 export * from './binding/ast';
 export * from './binding/binding-mode';
 export * from './binding/binding';

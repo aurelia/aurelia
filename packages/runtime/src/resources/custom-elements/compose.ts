@@ -6,6 +6,7 @@ import {
   TargetedInstruction,
   TemplateDefinition
 } from '../../definitions';
+import { DOM } from '../../dom';
 import { CompositionCoordinator, IRenderable, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../../templating/bindable';
@@ -31,13 +32,15 @@ export class Compose {
   @bindable public subject: Subject | Promise<Subject> | null;
   @bindable public composing: boolean;
 
+  private dom: DOM;
   private coordinator: CompositionCoordinator;
   private lastSubject: Subject | Promise<Subject> | null;
   private properties: Record<string, TargetedInstruction>;
   private renderable: IRenderable;
   private renderingEngine: IRenderingEngine;
 
-  constructor(renderable: IRenderable, instruction: Immutable<IHydrateElementInstruction>, renderingEngine: IRenderingEngine, coordinator: CompositionCoordinator) {
+  constructor(dom: DOM, renderable: IRenderable, instruction: Immutable<IHydrateElementInstruction>, renderingEngine: IRenderingEngine, coordinator: CompositionCoordinator) {
+    this.dom = dom;
     this.subject = null;
     this.composing = false;
 
@@ -141,6 +144,7 @@ export class Compose {
 
     if ('template' in subject) { // Raw Template Definition
       return this.renderingEngine.getViewFactory(
+        this.dom,
         subject,
         this.renderable.$context
       ).create();
@@ -148,6 +152,7 @@ export class Compose {
 
     // Constructable (Custom Element Constructor)
     return createElement(
+      this.dom,
       subject,
       this.properties,
       this.$projector.children

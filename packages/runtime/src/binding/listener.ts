@@ -1,4 +1,5 @@
 import { IDisposable, IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
+import { DOM } from '../dom';
 import { IEvent, INode } from '../dom.interfaces';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
@@ -11,6 +12,8 @@ const slice = Array.prototype.slice;
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
+  public dom: DOM;
+
   public $nextBind: IBindScope;
   public $prevBind: IBindScope;
   public $state: State;
@@ -26,7 +29,17 @@ export class Listener implements IBinding {
   private eventManager: IEventManager;
   private handler: IDisposable;
 
-  constructor(targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: INode, preventDefault: boolean, eventManager: IEventManager, locator: IServiceLocator) {
+  constructor(
+    dom: DOM,
+    targetEvent: string,
+    delegationStrategy: DelegationStrategy,
+    sourceExpression: IsBindingBehavior,
+    target: INode,
+    preventDefault: boolean,
+    eventManager: IEventManager,
+    locator: IServiceLocator
+  ) {
+    this.dom = dom;
     this.$nextBind = null;
     this.$prevBind = null;
     this.$state = State.none;
@@ -83,6 +96,7 @@ export class Listener implements IBinding {
     }
 
     this.handler = this.eventManager.addEventListener(
+      this.dom,
       this.target,
       this.targetEvent,
       this,

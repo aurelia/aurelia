@@ -1,8 +1,11 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
-import { INode } from './dom.interfaces';
+import { DOM } from './dom';
+import { IDocument, INode } from './dom.interfaces';
 import { LifecycleFlags } from './observation';
-import { CustomElementResource, ICustomElement, ICustomElementType } from './resources/custom-element';
+import { CustomElementResource, ICustomElement, ICustomElementType, containerless } from './resources/custom-element';
 import { IRenderingEngine } from './templating/lifecycle-render';
+
+declare var document: IDocument;
 
 export interface ISinglePageApp {
   host: unknown;
@@ -45,6 +48,8 @@ export class Aurelia {
     } else {
       component = componentOrType as ICustomElement;
     }
+    const dom = new DOM(document);
+    this.container.register(Registration.instance(DOM, dom));
 
     const startTask = () => {
       host.$au = this;
@@ -52,7 +57,7 @@ export class Aurelia {
         this._root = component;
         this.components.push(component);
         const re = this.container.get(IRenderingEngine);
-        component.$hydrate(re, host);
+        component.$hydrate(dom, re, host);
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);

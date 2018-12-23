@@ -48,6 +48,7 @@ export interface ValueAttributeObserver extends
 
 @targetObserver('')
 export class ValueAttributeObserver implements ValueAttributeObserver {
+  public dom: DOM;
   public currentFlags: LifecycleFlags;
   public currentValue: unknown;
   public defaultValue: unknown;
@@ -58,7 +59,8 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
   public obj: INode;
   public propertyKey: string;
 
-  constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber) {
+  constructor(dom: DOM, lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber) {
+    this.dom = dom;
     this.handler = handler;
     this.lifecycle = lifecycle;
     this.obj = obj;
@@ -145,6 +147,7 @@ export interface CheckedObserver extends
 
 @targetObserver()
 export class CheckedObserver implements CheckedObserver {
+  public dom: DOM;
   public currentFlags: LifecycleFlags;
   public currentValue: unknown;
   public defaultValue: unknown;
@@ -158,7 +161,8 @@ export class CheckedObserver implements CheckedObserver {
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver | SetterObserver;
 
-  constructor(lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
+  constructor(dom: DOM, lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
+    this.dom = dom;
     this.handler = handler;
     this.lifecycle = lifecycle;
     this.obj = obj;
@@ -233,7 +237,7 @@ export class CheckedObserver implements CheckedObserver {
     let value = this.currentValue;
     const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
-    let index;
+    let index: number;
     const matcher = element['matcher'] || defaultMatcher;
 
     if (element.type === 'checkbox') {
@@ -310,10 +314,16 @@ export interface SelectValueObserver extends
 
 @targetObserver()
 export class SelectValueObserver implements SelectValueObserver {
+  public dom: DOM;
   public currentValue: unknown;
   public currentFlags: LifecycleFlags;
   public oldValue: unknown;
   public defaultValue: unknown;
+
+  public lifecycle: ILifecycle;
+  public obj: ISelectElement;
+  public handler: IEventSubscriber;
+  public observerLocator: IObserverLocator;
 
   public flush: () => void;
 
@@ -321,11 +331,18 @@ export class SelectValueObserver implements SelectValueObserver {
   private nodeObserver: IMutationObserver;
 
   constructor(
-    public lifecycle: ILifecycle,
-    public obj: ISelectElement,
-    public handler: IEventSubscriber,
-    public observerLocator: IObserverLocator
-  ) { }
+    dom: DOM,
+    lifecycle: ILifecycle,
+    obj: ISelectElement,
+    handler: IEventSubscriber,
+    observerLocator: IObserverLocator
+  ) {
+    this.dom = dom;
+    this.lifecycle = lifecycle;
+    this.obj = obj;
+    this.handler = handler;
+    this.observerLocator = observerLocator;
+  }
 
   public getValue(): unknown {
     return this.currentValue;
@@ -502,7 +519,7 @@ export class SelectValueObserver implements SelectValueObserver {
   }
 
   public bind(): void {
-    this.nodeObserver = DOM.createNodeObserver(
+    this.nodeObserver = this.dom.createNodeObserver(
       this.obj,
       this.handleNodeChange.bind(this),
       childObserverOptions

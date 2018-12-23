@@ -698,6 +698,32 @@ this.au.kernel = (function (exports) {
       return Reflect.construct(Type, args);
   }
 
+  class RuntimeCompilationResources {
+      constructor(context) {
+          this.context = context;
+      }
+      find(kind, name) {
+          const key = kind.keyFrom(name);
+          const resolver = this.context.getResolver(key, false);
+          if (resolver !== null && resolver.getFactory) {
+              const factory = resolver.getFactory(this.context);
+              if (factory !== null) {
+                  const description = factory.Type.description;
+                  return description === undefined ? null : description;
+              }
+          }
+          return null;
+      }
+      create(kind, name) {
+          const key = kind.keyFrom(name);
+          if (this.context.has(key, false)) {
+              const instance = this.context.get(key);
+              return instance === undefined ? null : instance;
+          }
+          return null;
+      }
+  }
+
   exports.DI = DI;
   exports.IContainer = IContainer;
   exports.IServiceLocator = IServiceLocator;
@@ -718,6 +744,7 @@ this.au.kernel = (function (exports) {
   exports.PLATFORM = PLATFORM;
   exports.Reporter = Reporter;
   exports.Tracer = Tracer;
+  exports.RuntimeCompilationResources = RuntimeCompilationResources;
 
   return exports;
 

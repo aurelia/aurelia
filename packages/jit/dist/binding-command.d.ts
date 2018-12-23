@@ -1,5 +1,5 @@
-import { Class, IRegistry } from '@aurelia/kernel';
-import { AttributeInstruction, BindingType, IResourceDefinition, IResourceKind, IResourceType } from '@aurelia/runtime';
+import { Class, IRegistry, IResourceDefinition, IResourceKind, IResourceType } from '@aurelia/kernel';
+import { AttributeInstruction, BindingType } from '@aurelia/runtime';
 import { BindingSymbol, PlainAttributeSymbol } from './template-binder';
 export interface IBindingCommand {
     bindingType: BindingType;

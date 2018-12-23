@@ -1,10 +1,10 @@
 import { IContainer, IIndexable } from '@aurelia/kernel';
-import { IEventManager } from './binding/event-manager';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
-import { IObserverLocator } from './binding/observer-locator';
 import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TemplatePartDefinitions } from './definitions';
 import { IElement, IHTMLElement, INode, IRenderLocation } from './dom.interfaces';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';
+import { IEventManager } from './observation/event-manager';
+import { IObserverLocator } from './observation/observer-locator';
 import { IInstructionRenderer, IRenderingEngine } from './templating/lifecycle-render';
 export declare function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string>;
 export declare function addBindable(renderable: IBindables, bindable: IBindScope): void;

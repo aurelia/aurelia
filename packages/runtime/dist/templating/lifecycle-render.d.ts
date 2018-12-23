@@ -1,11 +1,10 @@
-import { Class, IContainer, Immutable, ImmutableArray, IRegistry } from '@aurelia/kernel';
+import { Class, IContainer, Immutable, ImmutableArray, IRegistry, IResourceDescriptions } from '@aurelia/kernel';
 import { IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode, INodeSequence, IRenderLocation } from '../dom.interfaces';
 import { ILifecycle, IRenderable, IRenderContext, IViewFactory } from '../lifecycle';
 import { IAccessor, ISubscribable, ISubscriberCollection, MutationKind } from '../observation';
-import { IResourceDescriptions } from '../resource';
-import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
-import { ICustomElement, ICustomElementType } from './custom-element';
+import { ICustomAttribute, ICustomAttributeType } from '../resources/custom-attribute';
+import { ICustomElement, ICustomElementType } from '../resources/custom-element';
 export interface ITemplateCompiler {
     readonly name: string;
     compile(definition: ITemplateDefinition, resources: IResourceDescriptions, viewCompileFlags?: ViewCompileFlags): TemplateDefinition;

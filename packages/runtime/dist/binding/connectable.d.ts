@@ -1,7 +1,7 @@
 import { Class, IIndexable } from '@aurelia/kernel';
 import { IBindingTargetObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
+import { IObserverLocator } from '../observation/observer-locator';
 import { IBinding } from './binding';
-import { IObserverLocator } from './observer-locator';
 export interface IPartialConnectableBinding extends IBinding, IPropertySubscriber {
     observerLocator: IObserverLocator;
 }

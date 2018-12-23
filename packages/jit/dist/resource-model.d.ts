@@ -1,4 +1,5 @@
-import { BindingMode, IElement, IResourceDescriptions } from '@aurelia/runtime';
+import { IResourceDescriptions } from '@aurelia/kernel';
+import { BindingMode, IElement } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IBindingCommand } from './binding-command';
 /**

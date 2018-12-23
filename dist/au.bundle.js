@@ -697,6 +697,32 @@ var au = (function (exports) {
       return Reflect.construct(Type, args);
   }
 
+  class RuntimeCompilationResources {
+      constructor(context) {
+          this.context = context;
+      }
+      find(kind, name) {
+          const key = kind.keyFrom(name);
+          const resolver = this.context.getResolver(key, false);
+          if (resolver !== null && resolver.getFactory) {
+              const factory = resolver.getFactory(this.context);
+              if (factory !== null) {
+                  const description = factory.Type.description;
+                  return description === undefined ? null : description;
+              }
+          }
+          return null;
+      }
+      create(kind, name) {
+          const key = kind.keyFrom(name);
+          if (this.context.has(key, false)) {
+              const instance = this.context.get(key);
+              return instance === undefined ? null : instance;
+          }
+          return null;
+      }
+  }
+
   var index_es6 = /*#__PURE__*/Object.freeze({
     DI: DI,
     IContainer: IContainer,
@@ -717,30 +743,9 @@ var au = (function (exports) {
     invokeWithDynamicDependencies: invokeWithDynamicDependencies,
     PLATFORM: PLATFORM,
     Reporter: Reporter,
-    Tracer: Tracer
+    Tracer: Tracer,
+    RuntimeCompilationResources: RuntimeCompilationResources
   });
-
-  /*! *****************************************************************************
-  Copyright (c) Microsoft Corporation. All rights reserved.
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-  this file except in compliance with the License. You may obtain a copy of the
-  License at http://www.apache.org/licenses/LICENSE-2.0
-
-  THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-  WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-  MERCHANTABLITY OR NON-INFRINGEMENT.
-
-  See the Apache Version 2.0 License for specific language governing permissions
-  and limitations under the License.
-  ***************************************************************************** */
-
-  function __decorate(decorators, target, key, desc) {
-      var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-      if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-      else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-      return c > 3 && r && Object.defineProperty(target, key, r), r;
-  }
 
   var LifecycleFlags;
   (function (LifecycleFlags) {
@@ -864,1311 +869,27 @@ var au = (function (exports) {
       MutationKind[MutationKind["collection"] = 2] = "collection";
   })(MutationKind || (MutationKind = {}));
 
-  const slice = Array.prototype.slice;
-  const IRenderable = DI.createInterface().noDefault();
-  const IViewFactory = DI.createInterface().noDefault();
-  const marker = Object.freeze(Object.create(null));
-  const ILifecycle = DI.createInterface().withDefault(x => x.singleton(Lifecycle));
-  const IFlushLifecycle = ILifecycle;
-  const IBindLifecycle = ILifecycle;
-  const IAttachLifecycle = ILifecycle;
-  /** @internal */
-  class Lifecycle {
-      constructor() {
-          this.bindDepth = 0;
-          this.attachDepth = 0;
-          this.detachDepth = 0;
-          this.unbindDepth = 0;
-          this.flushHead = this;
-          this.flushTail = this;
-          this.connectHead = this; // this cast is safe because we know exactly which properties we'll use
-          this.connectTail = this;
-          this.patchHead = this;
-          this.patchTail = this;
-          this.boundHead = this;
-          this.boundTail = this;
-          this.mountHead = this;
-          this.mountTail = this;
-          this.attachedHead = this;
-          this.attachedTail = this;
-          this.unmountHead = this;
-          this.unmountTail = this;
-          this.detachedHead = this; //LOL
-          this.detachedTail = this;
-          this.unbindAfterDetachHead = this;
-          this.unbindAfterDetachTail = this;
-          this.unboundHead = this;
-          this.unboundTail = this;
-          this.flushed = null;
-          this.promise = Promise.resolve();
-          this.flushCount = 0;
-          this.connectCount = 0;
-          this.patchCount = 0;
-          this.boundCount = 0;
-          this.mountCount = 0;
-          this.attachedCount = 0;
-          this.unmountCount = 0;
-          this.detachedCount = 0;
-          this.unbindAfterDetachCount = 0;
-          this.unboundCount = 0;
-          this.$nextFlush = marker;
-          this.flush = PLATFORM.noop;
-          this.$nextConnect = marker;
-          this.connect = PLATFORM.noop;
-          this.$nextPatch = marker;
-          this.patch = PLATFORM.noop;
-          this.$nextBound = marker;
-          this.bound = PLATFORM.noop;
-          this.$nextMount = marker;
-          this.$mount = PLATFORM.noop;
-          this.$nextAttached = marker;
-          this.attached = PLATFORM.noop;
-          this.$nextUnmount = marker;
-          this.$unmount = PLATFORM.noop;
-          this.$nextDetached = marker;
-          this.detached = PLATFORM.noop;
-          this.$nextUnbindAfterDetach = marker;
-          this.$unbind = PLATFORM.noop;
-          this.$nextUnbound = marker;
-          this.unbound = PLATFORM.noop;
-          this.task = null;
-      }
-      registerTask(task) {
-          if (this.task === null) {
-              this.task = new AggregateLifecycleTask();
-          }
-          this.task.addTask(task);
-      }
-      finishTask(task) {
-          if (this.task !== null) {
-              if (this.task === task) {
-                  this.task = null;
-              }
-              else {
-                  this.task.removeTask(task);
-              }
-          }
-      }
-      enqueueFlush(requestor) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.enqueueFlush', slice.call(arguments));
-          }
-          // Queue a flush() callback; the depth is just for debugging / testing purposes and has
-          // no effect on execution. flush() will automatically be invoked when the promise resolves,
-          // or it can be manually invoked synchronously.
-          if (this.flushHead === this) {
-              this.flushed = this.promise.then(() => { this.processFlushQueue(LifecycleFlags.fromAsyncFlush); });
-          }
-          if (requestor.$nextFlush === null) {
-              requestor.$nextFlush = marker;
-              this.flushTail.$nextFlush = requestor;
-              this.flushTail = requestor;
-              ++this.flushCount;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-          return this.flushed;
-      }
-      processFlushQueue(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.processFlushQueue', slice.call(arguments));
-          }
-          flags |= LifecycleFlags.fromSyncFlush;
-          // flush callbacks may lead to additional flush operations, so keep looping until
-          // the flush head is back to `this` (though this will typically happen in the first iteration)
-          while (this.flushCount > 0) {
-              let current = this.flushHead.$nextFlush;
-              this.flushHead = this.flushTail = this;
-              this.flushCount = 0;
-              let next;
-              do {
-                  next = current.$nextFlush;
-                  current.$nextFlush = null;
-                  current.flush(flags);
-                  current = next;
-              } while (current !== marker);
-              // doNotUpdateDOM will cause DOM updates to be re-queued which results in an infinite loop
-              // unless we break here
-              // Note that breaking on this flag is still not the ideal solution; future improvement would
-              // be something like a separate DOM queue and a non-DOM queue, but for now this fixes the infinite
-              // loop without breaking anything (apart from the edgiest of edge cases which are not yet tested)
-              if (flags & LifecycleFlags.doNotUpdateDOM) {
-                  break;
-              }
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      beginBind() {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.beginBind', slice.call(arguments));
-          }
-          ++this.bindDepth;
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      enqueueBound(requestor) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.enqueueBound', slice.call(arguments));
-          }
-          // build a standard singly linked list for bound callbacks
-          if (requestor.$nextBound === null) {
-              requestor.$nextBound = marker;
-              this.boundTail.$nextBound = requestor;
-              this.boundTail = requestor;
-              ++this.boundCount;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      enqueueConnect(requestor) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.enqueueConnect', slice.call(arguments));
-          }
-          // enqueue connect and patch calls in separate lists so that they can be invoked
-          // independently from eachother
-          // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path
-          // (first get all the necessary integration tests working, then look for optimizations)
-          // build a standard singly linked list for connect callbacks
-          if (requestor.$nextConnect === null) {
-              requestor.$nextConnect = marker;
-              this.connectTail.$nextConnect = requestor;
-              this.connectTail = requestor;
-              ++this.connectCount;
-          }
-          // build a standard singly linked list for patch callbacks
-          if (requestor.$nextPatch === null) {
-              requestor.$nextPatch = marker;
-              this.patchTail.$nextPatch = requestor;
-              this.patchTail = requestor;
-              ++this.patchCount;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      processConnectQueue(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.processConnectQueue', slice.call(arguments));
-          }
-          // connects cannot lead to additional connects, so we don't need to loop here
-          if (this.connectCount > 0) {
-              this.connectCount = 0;
-              let current = this.connectHead.$nextConnect;
-              this.connectHead = this.connectTail = this;
-              let next;
-              do {
-                  current.connect(flags);
-                  next = current.$nextConnect;
-                  current.$nextConnect = null;
-                  current = next;
-              } while (current !== marker);
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      processPatchQueue(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.processPatchQueue', slice.call(arguments));
-          }
-          // flush before patching, but only if this is the initial bind;
-          // no DOM is attached yet so we can safely let everything propagate
-          if (flags & LifecycleFlags.fromStartTask) {
-              this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
-          }
-          // patch callbacks may lead to additional bind operations, so keep looping until
-          // the patch head is back to `this` (though this will typically happen in the first iteration)
-          while (this.patchCount > 0) {
-              this.patchCount = 0;
-              let current = this.patchHead.$nextPatch;
-              this.patchHead = this.patchTail = this;
-              let next;
-              do {
-                  current.patch(flags);
-                  next = current.$nextPatch;
-                  current.$nextPatch = null;
-                  current = next;
-              } while (current !== marker);
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      endBind(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.endBind', slice.call(arguments));
-          }
-          // close / shrink a bind batch
-          if (--this.bindDepth === 0) {
-              if (this.task !== null && !this.task.done) {
-                  this.task.owner = this;
-                  if (Tracer.enabled) {
-                      Tracer.leave();
-                  }
-                  return this.task;
-              }
-              this.processBindQueue(flags);
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return LifecycleTask.done;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      processBindQueue(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.processBindQueue', slice.call(arguments));
-          }
-          // flush before processing bound callbacks, but only if this is the initial bind;
-          // no DOM is attached yet so we can safely let everything propagate
-          if (flags & LifecycleFlags.fromStartTask) {
-              this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
-          }
-          // bound callbacks may lead to additional bind operations, so keep looping until
-          // the bound head is back to `this` (though this will typically happen in the first iteration)
-          while (this.boundCount > 0) {
-              this.boundCount = 0;
-              let current = this.boundHead.$nextBound;
-              let next;
-              this.boundHead = this.boundTail = this;
-              do {
-                  current.bound(flags);
-                  next = current.$nextBound;
-                  current.$nextBound = null;
-                  current = next;
-              } while (current !== marker);
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      beginUnbind() {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.beginUnbind', slice.call(arguments));
-          }
-          // open up / expand an unbind batch; the very first caller will close it again with endUnbind
-          ++this.unbindDepth;
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      enqueueUnbound(requestor) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.enqueueUnbound', slice.call(arguments));
-          }
-          // This method is idempotent; adding the same item more than once has the same effect as
-          // adding it once.
-          // build a standard singly linked list for unbound callbacks
-          if (requestor.$nextUnbound === null) {
-              requestor.$nextUnbound = marker;
-              this.unboundTail.$nextUnbound = requestor;
-              this.unboundTail = requestor;
-              ++this.unboundCount;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      endUnbind(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.endUnbind', slice.call(arguments));
-          }
-          // close / shrink an unbind batch
-          if (--this.unbindDepth === 0) {
-              if (this.task !== null && !this.task.done) {
-                  this.task.owner = this;
-                  if (Tracer.enabled) {
-                      Tracer.leave();
-                  }
-                  return this.task;
-              }
-              this.processUnbindQueue(flags);
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return LifecycleTask.done;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      processUnbindQueue(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.processUnbindQueue', slice.call(arguments));
-          }
-          // unbound callbacks may lead to additional unbind operations, so keep looping until
-          // the unbound head is back to `this` (though this will typically happen in the first iteration)
-          while (this.unboundCount > 0) {
-              this.unboundCount = 0;
-              let current = this.unboundHead.$nextUnbound;
-              let next;
-              this.unboundHead = this.unboundTail = this;
-              do {
-                  current.unbound(flags);
-                  next = current.$nextUnbound;
-                  current.$nextUnbound = null;
-                  current = next;
-              } while (current !== marker);
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      beginAttach() {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.beginAttach', slice.call(arguments));
-          }
-          // open up / expand an attach batch; the very first caller will close it again with endAttach
-          ++this.attachDepth;
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      enqueueMount(requestor) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.enqueueMount', slice.call(arguments));
-          }
-          // This method is idempotent; adding the same item more than once has the same effect as
-          // adding it once.
-          // build a standard singly linked list for mount callbacks
-          if (requestor.$nextMount === null) {
-              requestor.$nextMount = marker;
-              this.mountTail.$nextMount = requestor;
-              this.mountTail = requestor;
-              ++this.mountCount;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      enqueueAttached(requestor) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.enqueueAttached', slice.call(arguments));
-          }
-          // This method is idempotent; adding the same item more than once has the same effect as
-          // adding it once.
-          // build a standard singly linked list for attached callbacks
-          if (requestor.$nextAttached === null) {
-              requestor.$nextAttached = marker;
-              this.attachedTail.$nextAttached = requestor;
-              this.attachedTail = requestor;
-              ++this.attachedCount;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      endAttach(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.endAttach', slice.call(arguments));
-          }
-          // close / shrink an attach batch
-          if (--this.attachDepth === 0) {
-              if (this.task !== null && !this.task.done) {
-                  this.task.owner = this;
-                  if (Tracer.enabled) {
-                      Tracer.leave();
-                  }
-                  return this.task;
-              }
-              this.processAttachQueue(flags);
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return LifecycleTask.done;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      processAttachQueue(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.processAttachQueue', slice.call(arguments));
-          }
-          // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
-          // and the DOM is updated
-          this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
-          // TODO: prevent duplicate updates coming from the patch queue (or perhaps it's just not needed in its entirety?)
-          //this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
-          if (this.mountCount > 0) {
-              this.mountCount = 0;
-              let currentMount = this.mountHead.$nextMount;
-              this.mountHead = this.mountTail = this;
-              let nextMount;
-              do {
-                  currentMount.$mount(flags);
-                  nextMount = currentMount.$nextMount;
-                  currentMount.$nextMount = null;
-                  currentMount = nextMount;
-              } while (currentMount !== marker);
-          }
-          // Connect all connect-queued bindings AFTER mounting is done, so that the DOM is visible asap,
-          // but connect BEFORE running the attached callbacks to ensure any changes made during those callbacks
-          // are still accounted for.
-          // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
-          // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
-          // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
-          this.processConnectQueue(LifecycleFlags.mustEvaluate);
-          if (this.attachedCount > 0) {
-              this.attachedCount = 0;
-              let currentAttached = this.attachedHead.$nextAttached;
-              this.attachedHead = this.attachedTail = this;
-              let nextAttached;
-              do {
-                  currentAttached.attached(flags);
-                  nextAttached = currentAttached.$nextAttached;
-                  currentAttached.$nextAttached = null;
-                  currentAttached = nextAttached;
-              } while (currentAttached !== marker);
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      beginDetach() {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.beginDetach', slice.call(arguments));
-          }
-          // open up / expand a detach batch; the very first caller will close it again with endDetach
-          ++this.detachDepth;
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      enqueueUnmount(requestor) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.enqueueUnmount', slice.call(arguments));
-          }
-          // This method is idempotent; adding the same item more than once has the same effect as
-          // adding it once.
-          // build a standard singly linked list for unmount callbacks
-          if (requestor.$nextUnmount === null) {
-              requestor.$nextUnmount = marker;
-              this.unmountTail.$nextUnmount = requestor;
-              this.unmountTail = requestor;
-              ++this.unmountCount;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      enqueueDetached(requestor) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.enqueueDetached', slice.call(arguments));
-          }
-          // This method is idempotent; adding the same item more than once has the same effect as
-          // adding it once.
-          // build a standard singly linked list for detached callbacks
-          if (requestor.$nextDetached === null) {
-              requestor.$nextDetached = marker;
-              this.detachedTail.$nextDetached = requestor;
-              this.detachedTail = requestor;
-              ++this.detachedCount;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      enqueueUnbindAfterDetach(requestor) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.enqueueUnbindAfterDetach', slice.call(arguments));
-          }
-          // This method is idempotent; adding the same item more than once has the same effect as
-          // adding it once.
-          // build a standard singly linked list for unbindAfterDetach callbacks
-          if (requestor.$nextUnbindAfterDetach === null) {
-              requestor.$nextUnbindAfterDetach = marker;
-              this.unbindAfterDetachTail.$nextUnbindAfterDetach = requestor;
-              this.unbindAfterDetachTail = requestor;
-              ++this.unbindAfterDetachCount;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      endDetach(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.endDetach', slice.call(arguments));
-          }
-          // close / shrink a detach batch
-          if (--this.detachDepth === 0) {
-              if (this.task !== null && !this.task.done) {
-                  this.task.owner = this;
-                  return this.task;
-              }
-              this.processDetachQueue(flags);
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return LifecycleTask.done;
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      processDetachQueue(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Lifecycle.processDetachQueue', slice.call(arguments));
-          }
-          // flush before unmounting to ensure batched collection changes propagate to the repeaters,
-          // which may lead to additional unmount operations
-          this.processFlushQueue(flags | LifecycleFlags.fromFlush | LifecycleFlags.doNotUpdateDOM);
-          if (this.unmountCount > 0) {
-              this.unmountCount = 0;
-              let currentUnmount = this.unmountHead.$nextUnmount;
-              this.unmountHead = this.unmountTail = this;
-              let nextUnmount;
-              do {
-                  currentUnmount.$unmount(flags);
-                  nextUnmount = currentUnmount.$nextUnmount;
-                  currentUnmount.$nextUnmount = null;
-                  currentUnmount = nextUnmount;
-              } while (currentUnmount !== marker);
-          }
-          if (this.detachedCount > 0) {
-              this.detachedCount = 0;
-              let currentDetached = this.detachedHead.$nextDetached;
-              this.detachedHead = this.detachedTail = this;
-              let nextDetached;
-              do {
-                  currentDetached.detached(flags);
-                  nextDetached = currentDetached.$nextDetached;
-                  currentDetached.$nextDetached = null;
-                  currentDetached = nextDetached;
-              } while (currentDetached !== marker);
-          }
-          if (this.unbindAfterDetachCount > 0) {
-              this.beginUnbind();
-              this.unbindAfterDetachCount = 0;
-              let currentUnbind = this.unbindAfterDetachHead.$nextUnbindAfterDetach;
-              this.unbindAfterDetachHead = this.unbindAfterDetachTail = this;
-              let nextUnbind;
-              do {
-                  currentUnbind.$unbind(flags);
-                  nextUnbind = currentUnbind.$nextUnbindAfterDetach;
-                  currentUnbind.$nextUnbindAfterDetach = null;
-                  currentUnbind = nextUnbind;
-              } while (currentUnbind !== marker);
-              this.endUnbind(flags);
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-  }
-  let CompositionCoordinator = class CompositionCoordinator {
-      constructor($lifecycle) {
-          this.$lifecycle = $lifecycle;
-          this.onSwapComplete = PLATFORM.noop;
-          this.currentView = null;
-          this.isAttached = false;
-          this.isBound = false;
-          this.queue = null;
-          this.swapTask = LifecycleTask.done;
-      }
-      static register(container) {
-          return Registration.transient(this, this).register(container, this);
-      }
-      compose(value, flags) {
-          if (this.swapTask.done) {
-              if (value instanceof Promise) {
-                  this.enqueue(new PromiseSwap(this, value));
-                  this.processNext();
-              }
-              else {
-                  this.swap(value, flags);
-              }
-          }
-          else {
-              if (value instanceof Promise) {
-                  this.enqueue(new PromiseSwap(this, value));
-              }
-              else {
-                  this.enqueue(value);
-              }
-              if (this.swapTask.canCancel()) {
-                  this.swapTask.cancel();
-              }
-          }
-      }
-      binding(flags, scope) {
-          this.scope = scope;
-          this.isBound = true;
-          if (this.currentView !== null) {
-              this.currentView.$bind(flags, scope);
-          }
-      }
-      attaching(flags) {
-          this.isAttached = true;
-          if (this.currentView !== null) {
-              this.currentView.$attach(flags);
-          }
-      }
-      detaching(flags) {
-          this.isAttached = false;
-          if (this.currentView !== null) {
-              this.currentView.$detach(flags);
-          }
-      }
-      unbinding(flags) {
-          this.isBound = false;
-          if (this.currentView !== null) {
-              this.currentView.$unbind(flags);
-          }
-      }
-      caching(flags) {
-          this.currentView = null;
-      }
-      enqueue(view) {
-          if (this.queue === null) {
-              this.queue = [];
-          }
-          this.queue.push(view);
-      }
-      swap(view, flags) {
-          if (this.currentView === view) {
-              return;
-          }
-          const $lifecycle = this.$lifecycle;
-          const swapTask = new AggregateLifecycleTask();
-          let lifecycleTask;
-          let currentView = this.currentView;
-          if (currentView === null) {
-              lifecycleTask = LifecycleTask.done;
-          }
-          else {
-              $lifecycle.enqueueUnbindAfterDetach(currentView);
-              $lifecycle.beginDetach();
-              currentView.$detach(flags);
-              lifecycleTask = $lifecycle.endDetach(flags);
-          }
-          swapTask.addTask(lifecycleTask);
-          currentView = this.currentView = view;
-          if (currentView === null) {
-              lifecycleTask = LifecycleTask.done;
-          }
-          else {
-              if (this.isBound) {
-                  $lifecycle.beginBind();
-                  currentView.$bind(flags, this.scope);
-                  $lifecycle.endBind(flags);
-              }
-              if (this.isAttached) {
-                  $lifecycle.beginAttach();
-                  currentView.$attach(flags);
-                  lifecycleTask = $lifecycle.endAttach(flags);
-              }
-              else {
-                  lifecycleTask = LifecycleTask.done;
-              }
-          }
-          swapTask.addTask(lifecycleTask);
-          if (swapTask.done) {
-              this.swapTask = LifecycleTask.done;
-              this.onSwapComplete();
-          }
-          else {
-              this.swapTask = swapTask;
-              this.swapTask.wait().then(() => {
-                  this.onSwapComplete();
-                  this.processNext();
-              }).catch(error => { throw error; });
-          }
-      }
-      processNext() {
-          if (this.queue !== null && this.queue.length > 0) {
-              const next = this.queue.pop();
-              this.queue.length = 0;
-              if (PromiseSwap.is(next)) {
-                  this.swapTask = next.start();
-              }
-              else {
-                  this.swap(next, LifecycleFlags.fromLifecycleTask);
-              }
-          }
-          else {
-              this.swapTask = LifecycleTask.done;
-          }
-      }
-  };
-  CompositionCoordinator = __decorate([
-      inject(ILifecycle)
-  ], CompositionCoordinator);
-  const LifecycleTask = {
-      done: {
-          done: true,
-          canCancel() { return false; },
-          cancel() { return; },
-          wait() { return Promise.resolve(); }
-      }
-  };
-  class AggregateLifecycleTask {
-      constructor() {
-          this.done = true;
-          this.owner = null;
-          this.resolve = null;
-          this.tasks = [];
-          this.waiter = null;
-      }
-      addTask(task) {
-          if (!task.done) {
-              this.done = false;
-              this.tasks.push(task);
-              task.wait().then(() => { this.tryComplete(); }).catch(error => { throw error; });
-          }
-      }
-      removeTask(task) {
-          if (task.done) {
-              const idx = this.tasks.indexOf(task);
-              if (idx !== -1) {
-                  this.tasks.splice(idx, 1);
-              }
-          }
-          if (this.tasks.length === 0 && this.owner !== null) {
-              this.owner.finishTask(this);
-              this.owner = null;
-          }
-      }
-      canCancel() {
-          if (this.done) {
-              return false;
-          }
-          return this.tasks.every(x => x.canCancel());
-      }
-      cancel() {
-          if (this.canCancel()) {
-              this.tasks.forEach(x => { x.cancel(); });
-              this.done = false;
-          }
-      }
-      wait() {
-          if (this.waiter === null) {
-              if (this.done) {
-                  this.waiter = Promise.resolve();
-              }
-              else {
-                  // tslint:disable-next-line:promise-must-complete
-                  this.waiter = new Promise((resolve) => this.resolve = resolve);
-              }
-          }
-          return this.waiter;
-      }
-      tryComplete() {
-          if (this.done) {
-              return;
-          }
-          if (this.tasks.every(x => x.done)) {
-              this.complete(true);
-          }
-      }
-      complete(notCancelled) {
-          this.done = true;
-          if (notCancelled && this.owner !== null) {
-              this.owner.processDetachQueue(LifecycleFlags.fromLifecycleTask);
-              this.owner.processUnbindQueue(LifecycleFlags.fromLifecycleTask);
-              this.owner.processBindQueue(LifecycleFlags.fromLifecycleTask);
-              this.owner.processAttachQueue(LifecycleFlags.fromLifecycleTask);
-          }
-          this.owner.finishTask(this);
-          if (this.resolve !== null) {
-              this.resolve();
-          }
-      }
-  }
-  /** @internal */
-  class PromiseSwap {
-      constructor(coordinator, promise) {
-          this.coordinator = coordinator;
-          this.done = false;
-          this.isCancelled = false;
-          this.promise = promise;
-      }
-      static is(object) {
-          return 'start' in object;
-      }
-      start() {
-          if (this.isCancelled) {
-              return LifecycleTask.done;
-          }
-          this.promise = this.promise.then(x => {
-              this.onResolve(x);
-              return x;
-          });
-          return this;
-      }
-      canCancel() {
-          return !this.done;
-      }
-      cancel() {
-          if (this.canCancel()) {
-              this.isCancelled = true;
-          }
-      }
-      wait() {
-          return this.promise;
-      }
-      onResolve(value) {
-          if (this.isCancelled) {
-              return;
-          }
-          this.done = true;
-          this.coordinator.compose(value, LifecycleFlags.fromLifecycleTask);
-      }
-  }
-  // tslint:disable:jsdoc-format
-  /**
-   * A general-purpose ILifecycleTask implementation that can be placed
-   * before an attached, detached, bound or unbound hook during attaching,
-   * detaching, binding or unbinding, respectively.
-   *
-   * The provided promise will be awaited before the corresponding lifecycle
-   * hook (and any hooks following it) is invoked.
-   *
-   * The provided callback will be invoked after the promise is resolved
-   * and before the next lifecycle hook.
-   *
-   * Example:
-  ```ts
-  export class MyViewModel {
-    private $lifecycle: ILifecycle; // set before created() hook
-    private answer: number;
+  /*! *****************************************************************************
+  Copyright (c) Microsoft Corporation. All rights reserved.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+  this file except in compliance with the License. You may obtain a copy of the
+  License at http://www.apache.org/licenses/LICENSE-2.0
 
-    public binding(flags: LifecycleFlags): void {
-      // this.answer === undefined
-      this.$lifecycle.registerTask(new PromiseTask(
-        this.getAnswerAsync,
-        answer => {
-          this.answer = answer;
-        }
-      ));
-    }
+  THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+  WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+  MERCHANTABLITY OR NON-INFRINGEMENT.
 
-    public bound(flags: LifecycleFlags): void {
-      // this.answer === 42
-    }
+  See the Apache Version 2.0 License for specific language governing permissions
+  and limitations under the License.
+  ***************************************************************************** */
 
-    private getAnswerAsync(): Promise<number> {
-      return Promise.resolve().then(() => 42);
-    }
+  function __decorate(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+      else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
   }
-  ```
-   */
-  // tslint:enable:jsdoc-format
-  class PromiseTask {
-      constructor(promise, callback) {
-          this.done = false;
-          this.isCancelled = false;
-          this.callback = callback;
-          this.promise = promise.then(value => {
-              if (this.isCancelled === true) {
-                  return;
-              }
-              this.done = true;
-              this.callback(value);
-              return value;
-          });
-      }
-      canCancel() {
-          return !this.done;
-      }
-      cancel() {
-          if (this.canCancel()) {
-              this.isCancelled = true;
-          }
-      }
-      wait() {
-          return this.promise;
-      }
-  }
-
-  function register(container) {
-      const resourceKey = BindingBehaviorResource.keyFrom(this.description.name);
-      container.register(Registration.singleton(resourceKey, this));
-  }
-  function bindingBehavior(nameOrDefinition) {
-      return target => BindingBehaviorResource.define(nameOrDefinition, target);
-  }
-  function keyFrom(name) {
-      return `${this.name}:${name}`;
-  }
-  function isType(Type) {
-      return Type.kind === this;
-  }
-  function define(nameOrDefinition, ctor) {
-      const Type = ctor;
-      const description = typeof nameOrDefinition === 'string'
-          ? { name: nameOrDefinition }
-          : nameOrDefinition;
-      Type.kind = BindingBehaviorResource;
-      Type.description = description;
-      Type.register = register;
-      return Type;
-  }
-  const BindingBehaviorResource = {
-      name: 'binding-behavior',
-      keyFrom,
-      isType,
-      define
-  };
-
-  const INode = DI.createInterface().noDefault();
-  const IRenderLocation = DI.createInterface().noDefault();
-
-  const slice$1 = Array.prototype.slice;
-  function isRenderLocation(node) {
-      return node.textContent === 'au-end';
-  }
-  const DOM = {
-      createDocumentFragment(markupOrNode) {
-          if (markupOrNode === undefined || markupOrNode === null) {
-              return document.createDocumentFragment();
-          }
-          if (DOM.isNodeInstance(markupOrNode)) {
-              if (markupOrNode.content !== undefined) {
-                  return markupOrNode.content;
-              }
-              const fragment = document.createDocumentFragment();
-              fragment.appendChild(markupOrNode);
-              return fragment;
-          }
-          return DOM.createTemplate(markupOrNode).content;
-      },
-      createTemplate(markup) {
-          if (markup === undefined || markup === null) {
-              return document.createElement('template');
-          }
-          const template = document.createElement('template');
-          template.innerHTML = markup.toString();
-          return template;
-      },
-      addClass(node, className) {
-          node.classList.add(className);
-      },
-      addEventListener(eventName, subscriber, publisher, options) {
-          (publisher || document).addEventListener(eventName, subscriber, options);
-      },
-      appendChild(parent, child) {
-          parent.appendChild(child);
-      },
-      attachShadow(host, options) {
-          return host.attachShadow(options);
-      },
-      cloneNode(node, deep) {
-          return node.cloneNode(deep !== false); // use true unless the caller explicitly passes in false
-      },
-      convertToRenderLocation(node) {
-          if (isRenderLocation(node)) {
-              return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
-          }
-          if (node.parentNode === null) {
-              throw Reporter.error(52);
-          }
-          const locationEnd = document.createComment('au-end');
-          const locationStart = document.createComment('au-start');
-          DOM.replaceNode(locationEnd, node);
-          DOM.insertBefore(locationStart, locationEnd);
-          locationEnd.$start = locationStart;
-          locationStart.$nodes = null;
-          return locationEnd;
-      },
-      createComment(text) {
-          return document.createComment(text);
-      },
-      createElement: ((name) => {
-          return document.createElement(name);
-      }),
-      createNodeObserver(target, callback, options) {
-          const observer = new MutationObserver(callback);
-          observer.observe(target, options);
-          return observer;
-      },
-      createTextNode(text) {
-          return document.createTextNode(text);
-      },
-      getAttribute(node, name) {
-          return node.getAttribute(name);
-      },
-      hasClass(node, className) {
-          return node.classList.contains(className);
-      },
-      insertBefore(nodeToInsert, referenceNode) {
-          referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
-      },
-      isMarker(node) {
-          return node.nodeName === 'AU-M';
-      },
-      isCommentNodeType(node) {
-          return node.nodeType === 8 /* Comment */;
-      },
-      isDocumentFragmentType(node) {
-          return node.nodeType === 11 /* DocumentFragment */;
-      },
-      isElementNodeType(node) {
-          return node.nodeType === 1 /* Element */;
-      },
-      isNodeInstance(potentialNode) {
-          return potentialNode.nodeType > 0;
-      },
-      isTextNodeType(node) {
-          return node.nodeType === 3 /* Text */;
-      },
-      migrateChildNodes(currentParent, newParent) {
-          while (currentParent.firstChild) {
-              DOM.appendChild(newParent, currentParent.firstChild);
-          }
-      },
-      registerElementResolver(container, resolver) {
-          container.registerResolver(INode, resolver);
-          container.registerResolver(Element, resolver);
-          container.registerResolver(HTMLElement, resolver);
-          container.registerResolver(SVGElement, resolver);
-      },
-      remove(node) {
-          if (node.remove) {
-              node.remove();
-          }
-          else {
-              node.parentNode.removeChild(node);
-          }
-      },
-      removeAttribute(node, name) {
-          node.removeAttribute(name);
-      },
-      removeClass(node, className) {
-          node.classList.remove(className);
-      },
-      removeEventListener(eventName, subscriber, publisher, options) {
-          (publisher || document).removeEventListener(eventName, subscriber, options);
-      },
-      replaceNode(newChild, oldChild) {
-          if (oldChild.parentNode) {
-              oldChild.parentNode.replaceChild(newChild, oldChild);
-          }
-      },
-      setAttribute(node, name, value) {
-          node.setAttribute(name, value);
-      }
-  };
-  // This is an implementation of INodeSequence that represents "no DOM" to render.
-  // It's used in various places to avoid null and to encode
-  // the explicit idea of "no view".
-  const emptySequence = {
-      firstChild: null,
-      lastChild: null,
-      childNodes: PLATFORM.emptyArray,
-      findTargets() { return PLATFORM.emptyArray; },
-      insertBefore(refNode) { },
-      appendTo(parent) { },
-      remove() { }
-  };
-  const NodeSequence = {
-      empty: emptySequence
-  };
-  /**
-   * An specialized INodeSequence with optimizations for text (interpolation) bindings
-   * The contract of this INodeSequence is:
-   * - the previous element is an `au-m` node
-   * - text is the actual text node
-   */
-  class TextNodeSequence {
-      constructor(text) {
-          this.firstChild = text;
-          this.lastChild = text;
-          this.childNodes = [text];
-          this.targets = [new AuMarker(text)];
-      }
-      findTargets() {
-          return this.targets;
-      }
-      insertBefore(refNode) {
-          refNode.parentNode.insertBefore(this.firstChild, refNode);
-      }
-      appendTo(parent) {
-          parent.appendChild(this.firstChild);
-      }
-      remove() {
-          this.firstChild.remove();
-      }
-  }
-  // tslint:enable:no-any
-  // This is the most common form of INodeSequence.
-  // Every custom element or template controller whose node sequence is based on an HTML template
-  // has an instance of this under the hood. Anyone who wants to create a node sequence from
-  // a string of markup would also receive an instance of this.
-  // CompiledTemplates create instances of FragmentNodeSequence.
-  /** @internal */
-  class FragmentNodeSequence {
-      constructor(fragment) {
-          this.fragment = fragment;
-          // tslint:disable-next-line:no-any
-          const targetNodeList = fragment.querySelectorAll('.au');
-          let i = 0;
-          let ii = targetNodeList.length;
-          const targets = this.targets = Array(ii);
-          while (i < ii) {
-              // eagerly convert all markers to IRenderLocations (otherwise the renderer
-              // will do it anyway) and store them in the target list (since the comments
-              // can't be queried)
-              const target = targetNodeList[i];
-              if (target.nodeName === 'AU-M') {
-                  // note the renderer will still call this method, but it will just return the
-                  // location if it sees it's already a location
-                  targets[i] = DOM.convertToRenderLocation(target);
-              }
-              else {
-                  // also store non-markers for consistent ordering
-                  targets[i] = target;
-              }
-              ++i;
-          }
-          const childNodeList = fragment.childNodes;
-          i = 0;
-          ii = childNodeList.length;
-          const childNodes = this.childNodes = Array(ii);
-          while (i < ii) {
-              childNodes[i] = childNodeList[i];
-              ++i;
-          }
-          this.firstChild = fragment.firstChild;
-          this.lastChild = fragment.lastChild;
-          this.start = this.end = null;
-      }
-      findTargets() {
-          return this.targets;
-      }
-      insertBefore(refNode) {
-          // tslint:disable-next-line:no-any
-          refNode.parentNode.insertBefore(this.fragment, refNode);
-          // internally we could generally assume that this is an IRenderLocation,
-          // but since this is also public API we still need to double check
-          // (or horrible things might happen)
-          if (isRenderLocation(refNode)) {
-              this.end = refNode;
-              const start = this.start = refNode.$start;
-              if (start.$nodes === null) {
-                  start.$nodes = this;
-              }
-              else {
-                  // if more than one NodeSequence uses the same RenderLocation, it's an child
-                  // of a repeater (or something similar) and we shouldn't remove all nodes between
-                  // start - end since that would always remove all items from a repeater, even
-                  // when only one is removed
-                  // so we set $nodes to PLATFORM.emptyObject to 1) tell other sequences that it's
-                  // occupied and 2) prevent start.$nodes === this from ever evaluating to true
-                  // during remove()
-                  start.$nodes = PLATFORM.emptyObject;
-              }
-          }
-      }
-      appendTo(parent) {
-          // tslint:disable-next-line:no-any
-          parent.appendChild(this.fragment);
-          // this can never be a RenderLocation, and if for whatever reason we moved
-          // from a RenderLocation to a host, make sure "start" and "end" are null
-          this.start = this.end = null;
-      }
-      remove() {
-          const fragment = this.fragment;
-          if (this.start !== null && this.start.$nodes === this) {
-              // if we're between a valid "start" and "end" (e.g. if/else, containerless, or a
-              // repeater with a single item) then simply remove everything in-between (but not
-              // the comments themselves as they belong to the parent)
-              const end = this.end;
-              let next;
-              let current = this.start.nextSibling;
-              while (current !== end) {
-                  next = current.nextSibling;
-                  // tslint:disable-next-line:no-any
-                  fragment.appendChild(current);
-                  current = next;
-              }
-              this.start.$nodes = null;
-              this.start = this.end = null;
-          }
-          else {
-              // otherwise just remove from first to last child in the regular way
-              let current = this.firstChild;
-              if (current.parentNode !== fragment) {
-                  const end = this.lastChild;
-                  let next;
-                  while (current !== null) {
-                      next = current.nextSibling;
-                      // tslint:disable-next-line:no-any
-                      fragment.appendChild(current);
-                      if (current === end) {
-                          break;
-                      }
-                      current = next;
-                  }
-              }
-          }
-      }
-  }
-  class NodeSequenceFactory {
-      constructor(fragment) {
-          const childNodes = fragment.childNodes;
-          switch (childNodes.length) {
-              case 0:
-                  this.createNodeSequence = () => NodeSequence.empty;
-                  return;
-              case 2:
-                  const target = childNodes[0];
-                  if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
-                      const text = childNodes[1];
-                      if (text.nodeType === 3 /* Text */ && text.textContent.length === 0) {
-                          this.deepClone = false;
-                          this.node = text;
-                          this.Type = TextNodeSequence;
-                          return;
-                      }
-                  }
-              // falls through if not returned
-              default:
-                  this.deepClone = true;
-                  this.node = fragment;
-                  this.Type = FragmentNodeSequence;
-          }
-      }
-      static createFor(markupOrNode) {
-          if (Tracer.enabled) {
-              Tracer.enter('NodeSequenceFactory.createFor', slice$1.call(arguments));
-          }
-          const fragment = DOM.createDocumentFragment(markupOrNode);
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-          return new NodeSequenceFactory(fragment);
-      }
-      createNodeSequence() {
-          return new this.Type(this.node.cloneNode(this.deepClone));
-      }
-  }
-  /** @internal */
-  class AuMarker {
-      get parentNode() {
-          return this.nextSibling.parentNode;
-      }
-      constructor(next) {
-          this.nextSibling = next;
-          this.textContent = '';
-      }
-      remove() { }
-  }
-  (proto => {
-      proto.previousSibling = null;
-      proto.firstChild = null;
-      proto.lastChild = null;
-      proto.childNodes = PLATFORM.emptyArray;
-      proto.nodeName = 'AU-M';
-      proto.nodeType = 1 /* Element */;
-  })(AuMarker.prototype);
 
   function subscriberCollection(mutationKind) {
       return function (target) {
@@ -2464,349 +1185,6 @@ var au = (function (exports) {
       return false;
   }
 
-  const slice$2 = Array.prototype.slice;
-  function setValue(newValue, flags) {
-      if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.setValue`, slice$2.call(arguments));
-      }
-      const currentValue = this.currentValue;
-      newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
-      if (currentValue !== newValue) {
-          this.currentValue = newValue;
-          if ((flags & (LifecycleFlags.fromFlush | LifecycleFlags.fromBind)) &&
-              !((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj))) {
-              this.setValueCore(newValue, flags);
-          }
-          else {
-              this.currentFlags = flags;
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return this.lifecycle.enqueueFlush(this);
-          }
-      }
-      if (Tracer.enabled) {
-          Tracer.leave();
-      }
-      return Promise.resolve();
-  }
-  function flush(flags) {
-      if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.flush`, slice$2.call(arguments));
-      }
-      if ((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj)) {
-          // re-queue the change so it will still propagate on flush when it's attached again
-          this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-          return;
-      }
-      const currentValue = this.currentValue;
-      // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
-      // in which case the target doesn't need to be updated
-      if (this.oldValue !== currentValue) {
-          this.setValueCore(currentValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
-          this.oldValue = this.currentValue;
-      }
-      if (Tracer.enabled) {
-          Tracer.leave();
-      }
-  }
-  function dispose() {
-      this.currentValue = null;
-      this.oldValue = null;
-      this.defaultValue = null;
-      this.obj = null;
-      this.propertyKey = '';
-  }
-  function targetObserver(defaultValue = null) {
-      return function (target) {
-          subscriberCollection(MutationKind.instance)(target);
-          const proto = target.prototype;
-          proto.$nextFlush = null;
-          proto.currentValue = defaultValue;
-          proto.oldValue = defaultValue;
-          proto.defaultValue = defaultValue;
-          proto.obj = null;
-          proto.propertyKey = '';
-          proto.setValue = proto.setValue || setValue;
-          proto.flush = proto.flush || flush;
-          proto.dispose = proto.dispose || dispose;
-      };
-  }
-
-  const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
-  let XLinkAttributeAccessor = class XLinkAttributeAccessor {
-      // xlink namespaced attributes require getAttributeNS/setAttributeNS
-      // (even though the NS version doesn't work for other namespaces
-      // in html5 documents)
-      // Using very HTML-specific code here since this isn't likely to get
-      // called unless operating against a real HTML element.
-      constructor(lifecycle, obj, propertyKey, attributeName) {
-          this.attributeName = attributeName;
-          this.lifecycle = lifecycle;
-          this.obj = obj;
-          this.oldValue = this.currentValue = this.getValue();
-          this.propertyKey = propertyKey;
-      }
-      getValue() {
-          return this.obj.getAttributeNS(xlinkAttributeNS, this.attributeName);
-      }
-      setValueCore(newValue) {
-          this.obj.setAttributeNS(xlinkAttributeNS, this.attributeName, newValue);
-      }
-  };
-  XLinkAttributeAccessor = __decorate([
-      targetObserver('')
-  ], XLinkAttributeAccessor);
-  XLinkAttributeAccessor.prototype.attributeName = '';
-  let DataAttributeAccessor = class DataAttributeAccessor {
-      constructor(lifecycle, obj, propertyKey) {
-          this.lifecycle = lifecycle;
-          this.obj = obj;
-          this.oldValue = this.currentValue = this.getValue();
-          this.propertyKey = propertyKey;
-      }
-      getValue() {
-          return DOM.getAttribute(this.obj, this.propertyKey);
-      }
-      setValueCore(newValue) {
-          if (newValue === null) {
-              DOM.removeAttribute(this.obj, this.propertyKey);
-          }
-          else {
-              DOM.setAttribute(this.obj, this.propertyKey, newValue);
-          }
-      }
-  };
-  DataAttributeAccessor = __decorate([
-      targetObserver()
-  ], DataAttributeAccessor);
-  let StyleAttributeAccessor = class StyleAttributeAccessor {
-      constructor(lifecycle, obj) {
-          this.lifecycle = lifecycle;
-          this.obj = obj;
-          this.oldValue = this.currentValue = obj.style.cssText;
-      }
-      getValue() {
-          return this.obj.style.cssText;
-      }
-      _setProperty(style, value) {
-          let priority = '';
-          if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
-              priority = 'important';
-              value = value.replace('!important', '');
-          }
-          this.obj.style.setProperty(style, value, priority);
-      }
-      setValueCore(newValue) {
-          const styles = this.styles || {};
-          let style;
-          let version = this.version;
-          if (newValue !== null) {
-              if (newValue instanceof Object) {
-                  let value;
-                  for (style in newValue) {
-                      if (newValue.hasOwnProperty(style)) {
-                          value = newValue[style];
-                          style = style.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);
-                          styles[style] = version;
-                          this._setProperty(style, value);
-                      }
-                  }
-              }
-              else if (newValue.length) {
-                  const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
-                  let pair;
-                  while ((pair = rx.exec(newValue)) !== null) {
-                      style = pair[1];
-                      if (!style) {
-                          continue;
-                      }
-                      styles[style] = version;
-                      this._setProperty(style, pair[2]);
-                  }
-              }
-          }
-          this.styles = styles;
-          this.version += 1;
-          if (version === 0) {
-              return;
-          }
-          version -= 1;
-          for (style in styles) {
-              if (!styles.hasOwnProperty(style) || styles[style] !== version) {
-                  continue;
-              }
-              this.obj.style.removeProperty(style);
-          }
-      }
-  };
-  StyleAttributeAccessor = __decorate([
-      targetObserver()
-  ], StyleAttributeAccessor);
-  StyleAttributeAccessor.prototype.styles = null;
-  StyleAttributeAccessor.prototype.version = 0;
-  StyleAttributeAccessor.prototype.propertyKey = 'style';
-  let ClassAttributeAccessor = class ClassAttributeAccessor {
-      constructor(lifecycle, obj) {
-          this.lifecycle = lifecycle;
-          this.obj = obj;
-      }
-      getValue() {
-          return this.currentValue;
-      }
-      setValueCore(newValue) {
-          const nameIndex = this.nameIndex || {};
-          let version = this.version;
-          let names;
-          let name;
-          // Add the classes, tracking the version at which they were added.
-          if (newValue.length) {
-              const node = this.obj;
-              names = newValue.split(/\s+/);
-              for (let i = 0, length = names.length; i < length; i++) {
-                  name = names[i];
-                  if (!name.length) {
-                      continue;
-                  }
-                  nameIndex[name] = version;
-                  DOM.addClass(node, name);
-              }
-          }
-          // Update state variables.
-          this.nameIndex = nameIndex;
-          this.version += 1;
-          // First call to setValue?  We're done.
-          if (version === 0) {
-              return;
-          }
-          // Remove classes from previous version.
-          version -= 1;
-          for (name in nameIndex) {
-              if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
-                  continue;
-              }
-              // TODO: this has the side-effect that classes already present which are added again,
-              // will be removed if they're not present in the next update.
-              // Better would be do have some configurability for this behavior, allowing the user to
-              // decide whether initial classes always need to be kept, always removed, or something in between
-              DOM.removeClass(this.obj, name);
-          }
-      }
-  };
-  ClassAttributeAccessor = __decorate([
-      targetObserver('')
-  ], ClassAttributeAccessor);
-  ClassAttributeAccessor.prototype.doNotCache = true;
-  ClassAttributeAccessor.prototype.version = 0;
-  ClassAttributeAccessor.prototype.nameIndex = null;
-  let ElementPropertyAccessor = class ElementPropertyAccessor {
-      constructor(lifecycle, obj, propertyKey) {
-          this.lifecycle = lifecycle;
-          this.obj = obj;
-          this.propertyKey = propertyKey;
-      }
-      getValue() {
-          return this.obj[this.propertyKey];
-      }
-      setValueCore(value) {
-          this.obj[this.propertyKey] = value;
-      }
-  };
-  ElementPropertyAccessor = __decorate([
-      targetObserver('')
-  ], ElementPropertyAccessor);
-  class PropertyAccessor {
-      constructor(obj, propertyKey) {
-          this.obj = obj;
-          this.propertyKey = propertyKey;
-      }
-      getValue() {
-          return this.obj[this.propertyKey];
-      }
-      setValue(value) {
-          this.obj[this.propertyKey] = value;
-      }
-  }
-
-  let AttrBindingBehavior = class AttrBindingBehavior {
-      bind(flags, scope, binding) {
-          binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), binding.target, binding.targetProperty);
-      }
-      unbind(flags, scope, binding) {
-          return;
-      }
-  };
-  AttrBindingBehavior = __decorate([
-      bindingBehavior('attr')
-  ], AttrBindingBehavior);
-
-  /*
-  * Note: the oneTime binding now has a non-zero value for 2 reasons:
-  *  - plays nicer with bitwise operations (more consistent code, more explicit settings)
-  *  - allows for potentially having something like BindingMode.oneTime | BindingMode.fromView, where an initial value is set once to the view but updates from the view also propagate back to the view model
-  *
-  * Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
-  * This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
-  */
-  var BindingMode;
-  (function (BindingMode) {
-      BindingMode[BindingMode["oneTime"] = 1] = "oneTime";
-      BindingMode[BindingMode["toView"] = 2] = "toView";
-      BindingMode[BindingMode["fromView"] = 4] = "fromView";
-      BindingMode[BindingMode["twoWay"] = 6] = "twoWay";
-      BindingMode[BindingMode["default"] = 8] = "default";
-  })(BindingMode || (BindingMode = {}));
-
-  const { oneTime, toView, fromView, twoWay } = BindingMode;
-  class BindingModeBehavior {
-      constructor(mode) {
-          this.mode = mode;
-      }
-      bind(flags, scope, binding) {
-          binding.originalMode = binding.mode;
-          binding.mode = this.mode;
-      }
-      unbind(flags, scope, binding) {
-          binding.mode = binding.originalMode;
-          binding.originalMode = null;
-      }
-  }
-  let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBehavior {
-      constructor() {
-          super(oneTime);
-      }
-  };
-  OneTimeBindingBehavior = __decorate([
-      bindingBehavior('oneTime')
-  ], OneTimeBindingBehavior);
-  let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
-      constructor() {
-          super(toView);
-      }
-  };
-  ToViewBindingBehavior = __decorate([
-      bindingBehavior('toView')
-  ], ToViewBindingBehavior);
-  let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
-      constructor() {
-          super(fromView);
-      }
-  };
-  FromViewBindingBehavior = __decorate([
-      bindingBehavior('fromView')
-  ], FromViewBindingBehavior);
-  let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
-      constructor() {
-          super(twoWay);
-      }
-  };
-  TwoWayBindingBehavior = __decorate([
-      bindingBehavior('twoWay')
-  ], TwoWayBindingBehavior);
-
   const defineProperty = Reflect.defineProperty;
   // note: we're reusing the same object for setting all descriptors, just changing some properties as needed
   //   this works, because the properties are copied by defineProperty (so changing them afterwards doesn't affect existing descriptors)
@@ -2830,7 +1208,7 @@ var au = (function (exports) {
       }
       this.addSubscriber(subscriber);
   }
-  function dispose$1() {
+  function dispose() {
       delete this.obj[this.propertyKey];
       this.obj = null;
       this.propertyKey = null;
@@ -2851,7 +1229,7 @@ var au = (function (exports) {
           proto.currentValue = Symbol();
           proto.subscribe = proto.subscribe || subscribe;
           proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;
-          proto.dispose = proto.dispose || dispose$1;
+          proto.dispose = proto.dispose || dispose;
       };
   }
 
@@ -2943,12 +1321,12 @@ var au = (function (exports) {
       propertyObserver()
   ], Observer);
 
-  const slice$3 = Array.prototype.slice;
+  const slice = Array.prototype.slice;
   /** @internal */
   class InternalObserversLookup {
       getOrCreate(obj, key) {
           if (Tracer.enabled) {
-              Tracer.enter('InternalObserversLookup.getOrCreate', slice$3.call(arguments));
+              Tracer.enter('InternalObserversLookup.getOrCreate', slice.call(arguments));
           }
           let observer = this[key];
           if (observer === undefined) {
@@ -2983,7 +1361,7 @@ var au = (function (exports) {
       }
       static get(scope, name, ancestor, flags) {
           if (Tracer.enabled) {
-              Tracer.enter('BindingContext.get', slice$3.call(arguments));
+              Tracer.enter('BindingContext.get', slice.call(arguments));
           }
           if (scope === undefined) {
               throw Reporter.error(250 /* UndefinedScope */);
@@ -3050,7 +1428,7 @@ var au = (function (exports) {
       }
       getObservers() {
           if (Tracer.enabled) {
-              Tracer.enter('BindingContext.getObservers', slice$3.call(arguments));
+              Tracer.enter('BindingContext.getObservers', slice.call(arguments));
           }
           let observers = this.$observers;
           if (observers === undefined) {
@@ -3070,7 +1448,7 @@ var au = (function (exports) {
       }
       static create(bc, oc) {
           if (Tracer.enabled) {
-              Tracer.enter('Scope.create', slice$3.call(arguments));
+              Tracer.enter('Scope.create', slice.call(arguments));
           }
           if (Tracer.enabled) {
               Tracer.leave();
@@ -3079,7 +1457,7 @@ var au = (function (exports) {
       }
       static fromOverride(oc) {
           if (Tracer.enabled) {
-              Tracer.enter('Scope.fromOverride', slice$3.call(arguments));
+              Tracer.enter('Scope.fromOverride', slice.call(arguments));
           }
           if (oc === null || oc === undefined) {
               throw Reporter.error(252 /* NilOverrideContext */);
@@ -3091,7 +1469,7 @@ var au = (function (exports) {
       }
       static fromParent(ps, bc) {
           if (Tracer.enabled) {
-              Tracer.enter('Scope.fromParent', slice$3.call(arguments));
+              Tracer.enter('Scope.fromParent', slice.call(arguments));
           }
           if (ps === null || ps === undefined) {
               throw Reporter.error(253 /* NilParentScope */);
@@ -3110,7 +1488,7 @@ var au = (function (exports) {
       }
       static create(bc, poc) {
           if (Tracer.enabled) {
-              Tracer.enter('OverrideContext.create', slice$3.call(arguments));
+              Tracer.enter('OverrideContext.create', slice.call(arguments));
           }
           if (Tracer.enabled) {
               Tracer.leave();
@@ -3119,7 +1497,7 @@ var au = (function (exports) {
       }
       getObservers() {
           if (Tracer.enabled) {
-              Tracer.enter('OverrideContext.getObservers', slice$3.call(arguments));
+              Tracer.enter('OverrideContext.getObservers', slice.call(arguments));
           }
           let observers = this.$observers;
           if (observers === undefined) {
@@ -3164,6 +1542,36 @@ var au = (function (exports) {
           }
       }
   }
+
+  function register(container) {
+      const resourceKey = BindingBehaviorResource.keyFrom(this.description.name);
+      container.register(Registration.singleton(resourceKey, this));
+  }
+  function bindingBehavior(nameOrDefinition) {
+      return target => BindingBehaviorResource.define(nameOrDefinition, target);
+  }
+  function keyFrom(name) {
+      return `${this.name}:${name}`;
+  }
+  function isType(Type) {
+      return Type.kind === this;
+  }
+  function define(nameOrDefinition, ctor) {
+      const Type = ctor;
+      const description = typeof nameOrDefinition === 'string'
+          ? { name: nameOrDefinition }
+          : nameOrDefinition;
+      Type.kind = BindingBehaviorResource;
+      Type.description = description;
+      Type.register = register;
+      return Type;
+  }
+  const BindingBehaviorResource = {
+      name: 'binding-behavior',
+      keyFrom,
+      isType,
+      define
+  };
 
   function register$1(container) {
       const resourceKey = this.kind.keyFrom(this.description.name);
@@ -4182,8 +2590,949 @@ var au = (function (exports) {
       ['[object Undefined]'](result) { return 0; }
   };
 
+  /*
+  * Note: the oneTime binding now has a non-zero value for 2 reasons:
+  *  - plays nicer with bitwise operations (more consistent code, more explicit settings)
+  *  - allows for potentially having something like BindingMode.oneTime | BindingMode.fromView, where an initial value is set once to the view but updates from the view also propagate back to the view model
+  *
+  * Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
+  * This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
+  */
+  var BindingMode;
+  (function (BindingMode) {
+      BindingMode[BindingMode["oneTime"] = 1] = "oneTime";
+      BindingMode[BindingMode["toView"] = 2] = "toView";
+      BindingMode[BindingMode["fromView"] = 4] = "fromView";
+      BindingMode[BindingMode["twoWay"] = 6] = "twoWay";
+      BindingMode[BindingMode["default"] = 8] = "default";
+  })(BindingMode || (BindingMode = {}));
+
+  const slice$1 = Array.prototype.slice;
+  const IRenderable = DI.createInterface().noDefault();
+  const IViewFactory = DI.createInterface().noDefault();
+  const marker = Object.freeze(Object.create(null));
+  const ILifecycle = DI.createInterface().withDefault(x => x.singleton(Lifecycle));
+  const IFlushLifecycle = ILifecycle;
+  const IBindLifecycle = ILifecycle;
+  const IAttachLifecycle = ILifecycle;
+  /** @internal */
+  class Lifecycle {
+      constructor() {
+          this.bindDepth = 0;
+          this.attachDepth = 0;
+          this.detachDepth = 0;
+          this.unbindDepth = 0;
+          this.flushHead = this;
+          this.flushTail = this;
+          this.connectHead = this; // this cast is safe because we know exactly which properties we'll use
+          this.connectTail = this;
+          this.patchHead = this;
+          this.patchTail = this;
+          this.boundHead = this;
+          this.boundTail = this;
+          this.mountHead = this;
+          this.mountTail = this;
+          this.attachedHead = this;
+          this.attachedTail = this;
+          this.unmountHead = this;
+          this.unmountTail = this;
+          this.detachedHead = this; //LOL
+          this.detachedTail = this;
+          this.unbindAfterDetachHead = this;
+          this.unbindAfterDetachTail = this;
+          this.unboundHead = this;
+          this.unboundTail = this;
+          this.flushed = null;
+          this.promise = Promise.resolve();
+          this.flushCount = 0;
+          this.connectCount = 0;
+          this.patchCount = 0;
+          this.boundCount = 0;
+          this.mountCount = 0;
+          this.attachedCount = 0;
+          this.unmountCount = 0;
+          this.detachedCount = 0;
+          this.unbindAfterDetachCount = 0;
+          this.unboundCount = 0;
+          this.$nextFlush = marker;
+          this.flush = PLATFORM.noop;
+          this.$nextConnect = marker;
+          this.connect = PLATFORM.noop;
+          this.$nextPatch = marker;
+          this.patch = PLATFORM.noop;
+          this.$nextBound = marker;
+          this.bound = PLATFORM.noop;
+          this.$nextMount = marker;
+          this.$mount = PLATFORM.noop;
+          this.$nextAttached = marker;
+          this.attached = PLATFORM.noop;
+          this.$nextUnmount = marker;
+          this.$unmount = PLATFORM.noop;
+          this.$nextDetached = marker;
+          this.detached = PLATFORM.noop;
+          this.$nextUnbindAfterDetach = marker;
+          this.$unbind = PLATFORM.noop;
+          this.$nextUnbound = marker;
+          this.unbound = PLATFORM.noop;
+          this.task = null;
+      }
+      registerTask(task) {
+          if (this.task === null) {
+              this.task = new AggregateLifecycleTask();
+          }
+          this.task.addTask(task);
+      }
+      finishTask(task) {
+          if (this.task !== null) {
+              if (this.task === task) {
+                  this.task = null;
+              }
+              else {
+                  this.task.removeTask(task);
+              }
+          }
+      }
+      enqueueFlush(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueFlush', slice$1.call(arguments));
+          }
+          // Queue a flush() callback; the depth is just for debugging / testing purposes and has
+          // no effect on execution. flush() will automatically be invoked when the promise resolves,
+          // or it can be manually invoked synchronously.
+          if (this.flushHead === this) {
+              this.flushed = this.promise.then(() => { this.processFlushQueue(LifecycleFlags.fromAsyncFlush); });
+          }
+          if (requestor.$nextFlush === null) {
+              requestor.$nextFlush = marker;
+              this.flushTail.$nextFlush = requestor;
+              this.flushTail = requestor;
+              ++this.flushCount;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+          return this.flushed;
+      }
+      processFlushQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processFlushQueue', slice$1.call(arguments));
+          }
+          flags |= LifecycleFlags.fromSyncFlush;
+          // flush callbacks may lead to additional flush operations, so keep looping until
+          // the flush head is back to `this` (though this will typically happen in the first iteration)
+          while (this.flushCount > 0) {
+              let current = this.flushHead.$nextFlush;
+              this.flushHead = this.flushTail = this;
+              this.flushCount = 0;
+              let next;
+              do {
+                  next = current.$nextFlush;
+                  current.$nextFlush = null;
+                  current.flush(flags);
+                  current = next;
+              } while (current !== marker);
+              // doNotUpdateDOM will cause DOM updates to be re-queued which results in an infinite loop
+              // unless we break here
+              // Note that breaking on this flag is still not the ideal solution; future improvement would
+              // be something like a separate DOM queue and a non-DOM queue, but for now this fixes the infinite
+              // loop without breaking anything (apart from the edgiest of edge cases which are not yet tested)
+              if (flags & LifecycleFlags.doNotUpdateDOM) {
+                  break;
+              }
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      beginBind() {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.beginBind', slice$1.call(arguments));
+          }
+          ++this.bindDepth;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      enqueueBound(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueBound', slice$1.call(arguments));
+          }
+          // build a standard singly linked list for bound callbacks
+          if (requestor.$nextBound === null) {
+              requestor.$nextBound = marker;
+              this.boundTail.$nextBound = requestor;
+              this.boundTail = requestor;
+              ++this.boundCount;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      enqueueConnect(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueConnect', slice$1.call(arguments));
+          }
+          // enqueue connect and patch calls in separate lists so that they can be invoked
+          // independently from eachother
+          // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path
+          // (first get all the necessary integration tests working, then look for optimizations)
+          // build a standard singly linked list for connect callbacks
+          if (requestor.$nextConnect === null) {
+              requestor.$nextConnect = marker;
+              this.connectTail.$nextConnect = requestor;
+              this.connectTail = requestor;
+              ++this.connectCount;
+          }
+          // build a standard singly linked list for patch callbacks
+          if (requestor.$nextPatch === null) {
+              requestor.$nextPatch = marker;
+              this.patchTail.$nextPatch = requestor;
+              this.patchTail = requestor;
+              ++this.patchCount;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      processConnectQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processConnectQueue', slice$1.call(arguments));
+          }
+          // connects cannot lead to additional connects, so we don't need to loop here
+          if (this.connectCount > 0) {
+              this.connectCount = 0;
+              let current = this.connectHead.$nextConnect;
+              this.connectHead = this.connectTail = this;
+              let next;
+              do {
+                  current.connect(flags);
+                  next = current.$nextConnect;
+                  current.$nextConnect = null;
+                  current = next;
+              } while (current !== marker);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      processPatchQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processPatchQueue', slice$1.call(arguments));
+          }
+          // flush before patching, but only if this is the initial bind;
+          // no DOM is attached yet so we can safely let everything propagate
+          if (flags & LifecycleFlags.fromStartTask) {
+              this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+          }
+          // patch callbacks may lead to additional bind operations, so keep looping until
+          // the patch head is back to `this` (though this will typically happen in the first iteration)
+          while (this.patchCount > 0) {
+              this.patchCount = 0;
+              let current = this.patchHead.$nextPatch;
+              this.patchHead = this.patchTail = this;
+              let next;
+              do {
+                  current.patch(flags);
+                  next = current.$nextPatch;
+                  current.$nextPatch = null;
+                  current = next;
+              } while (current !== marker);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      endBind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.endBind', slice$1.call(arguments));
+          }
+          // close / shrink a bind batch
+          if (--this.bindDepth === 0) {
+              if (this.task !== null && !this.task.done) {
+                  this.task.owner = this;
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return this.task;
+              }
+              this.processBindQueue(flags);
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return LifecycleTask.done;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      processBindQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processBindQueue', slice$1.call(arguments));
+          }
+          // flush before processing bound callbacks, but only if this is the initial bind;
+          // no DOM is attached yet so we can safely let everything propagate
+          if (flags & LifecycleFlags.fromStartTask) {
+              this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+          }
+          // bound callbacks may lead to additional bind operations, so keep looping until
+          // the bound head is back to `this` (though this will typically happen in the first iteration)
+          while (this.boundCount > 0) {
+              this.boundCount = 0;
+              let current = this.boundHead.$nextBound;
+              let next;
+              this.boundHead = this.boundTail = this;
+              do {
+                  current.bound(flags);
+                  next = current.$nextBound;
+                  current.$nextBound = null;
+                  current = next;
+              } while (current !== marker);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      beginUnbind() {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.beginUnbind', slice$1.call(arguments));
+          }
+          // open up / expand an unbind batch; the very first caller will close it again with endUnbind
+          ++this.unbindDepth;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      enqueueUnbound(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueUnbound', slice$1.call(arguments));
+          }
+          // This method is idempotent; adding the same item more than once has the same effect as
+          // adding it once.
+          // build a standard singly linked list for unbound callbacks
+          if (requestor.$nextUnbound === null) {
+              requestor.$nextUnbound = marker;
+              this.unboundTail.$nextUnbound = requestor;
+              this.unboundTail = requestor;
+              ++this.unboundCount;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      endUnbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.endUnbind', slice$1.call(arguments));
+          }
+          // close / shrink an unbind batch
+          if (--this.unbindDepth === 0) {
+              if (this.task !== null && !this.task.done) {
+                  this.task.owner = this;
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return this.task;
+              }
+              this.processUnbindQueue(flags);
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return LifecycleTask.done;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      processUnbindQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processUnbindQueue', slice$1.call(arguments));
+          }
+          // unbound callbacks may lead to additional unbind operations, so keep looping until
+          // the unbound head is back to `this` (though this will typically happen in the first iteration)
+          while (this.unboundCount > 0) {
+              this.unboundCount = 0;
+              let current = this.unboundHead.$nextUnbound;
+              let next;
+              this.unboundHead = this.unboundTail = this;
+              do {
+                  current.unbound(flags);
+                  next = current.$nextUnbound;
+                  current.$nextUnbound = null;
+                  current = next;
+              } while (current !== marker);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      beginAttach() {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.beginAttach', slice$1.call(arguments));
+          }
+          // open up / expand an attach batch; the very first caller will close it again with endAttach
+          ++this.attachDepth;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      enqueueMount(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueMount', slice$1.call(arguments));
+          }
+          // This method is idempotent; adding the same item more than once has the same effect as
+          // adding it once.
+          // build a standard singly linked list for mount callbacks
+          if (requestor.$nextMount === null) {
+              requestor.$nextMount = marker;
+              this.mountTail.$nextMount = requestor;
+              this.mountTail = requestor;
+              ++this.mountCount;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      enqueueAttached(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueAttached', slice$1.call(arguments));
+          }
+          // This method is idempotent; adding the same item more than once has the same effect as
+          // adding it once.
+          // build a standard singly linked list for attached callbacks
+          if (requestor.$nextAttached === null) {
+              requestor.$nextAttached = marker;
+              this.attachedTail.$nextAttached = requestor;
+              this.attachedTail = requestor;
+              ++this.attachedCount;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      endAttach(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.endAttach', slice$1.call(arguments));
+          }
+          // close / shrink an attach batch
+          if (--this.attachDepth === 0) {
+              if (this.task !== null && !this.task.done) {
+                  this.task.owner = this;
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return this.task;
+              }
+              this.processAttachQueue(flags);
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return LifecycleTask.done;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      processAttachQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processAttachQueue', slice$1.call(arguments));
+          }
+          // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
+          // and the DOM is updated
+          this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+          // TODO: prevent duplicate updates coming from the patch queue (or perhaps it's just not needed in its entirety?)
+          //this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
+          if (this.mountCount > 0) {
+              this.mountCount = 0;
+              let currentMount = this.mountHead.$nextMount;
+              this.mountHead = this.mountTail = this;
+              let nextMount;
+              do {
+                  currentMount.$mount(flags);
+                  nextMount = currentMount.$nextMount;
+                  currentMount.$nextMount = null;
+                  currentMount = nextMount;
+              } while (currentMount !== marker);
+          }
+          // Connect all connect-queued bindings AFTER mounting is done, so that the DOM is visible asap,
+          // but connect BEFORE running the attached callbacks to ensure any changes made during those callbacks
+          // are still accounted for.
+          // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
+          // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
+          // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
+          this.processConnectQueue(LifecycleFlags.mustEvaluate);
+          if (this.attachedCount > 0) {
+              this.attachedCount = 0;
+              let currentAttached = this.attachedHead.$nextAttached;
+              this.attachedHead = this.attachedTail = this;
+              let nextAttached;
+              do {
+                  currentAttached.attached(flags);
+                  nextAttached = currentAttached.$nextAttached;
+                  currentAttached.$nextAttached = null;
+                  currentAttached = nextAttached;
+              } while (currentAttached !== marker);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      beginDetach() {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.beginDetach', slice$1.call(arguments));
+          }
+          // open up / expand a detach batch; the very first caller will close it again with endDetach
+          ++this.detachDepth;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      enqueueUnmount(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueUnmount', slice$1.call(arguments));
+          }
+          // This method is idempotent; adding the same item more than once has the same effect as
+          // adding it once.
+          // build a standard singly linked list for unmount callbacks
+          if (requestor.$nextUnmount === null) {
+              requestor.$nextUnmount = marker;
+              this.unmountTail.$nextUnmount = requestor;
+              this.unmountTail = requestor;
+              ++this.unmountCount;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      enqueueDetached(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueDetached', slice$1.call(arguments));
+          }
+          // This method is idempotent; adding the same item more than once has the same effect as
+          // adding it once.
+          // build a standard singly linked list for detached callbacks
+          if (requestor.$nextDetached === null) {
+              requestor.$nextDetached = marker;
+              this.detachedTail.$nextDetached = requestor;
+              this.detachedTail = requestor;
+              ++this.detachedCount;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      enqueueUnbindAfterDetach(requestor) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.enqueueUnbindAfterDetach', slice$1.call(arguments));
+          }
+          // This method is idempotent; adding the same item more than once has the same effect as
+          // adding it once.
+          // build a standard singly linked list for unbindAfterDetach callbacks
+          if (requestor.$nextUnbindAfterDetach === null) {
+              requestor.$nextUnbindAfterDetach = marker;
+              this.unbindAfterDetachTail.$nextUnbindAfterDetach = requestor;
+              this.unbindAfterDetachTail = requestor;
+              ++this.unbindAfterDetachCount;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      endDetach(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.endDetach', slice$1.call(arguments));
+          }
+          // close / shrink a detach batch
+          if (--this.detachDepth === 0) {
+              if (this.task !== null && !this.task.done) {
+                  this.task.owner = this;
+                  return this.task;
+              }
+              this.processDetachQueue(flags);
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return LifecycleTask.done;
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      processDetachQueue(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Lifecycle.processDetachQueue', slice$1.call(arguments));
+          }
+          // flush before unmounting to ensure batched collection changes propagate to the repeaters,
+          // which may lead to additional unmount operations
+          this.processFlushQueue(flags | LifecycleFlags.fromFlush | LifecycleFlags.doNotUpdateDOM);
+          if (this.unmountCount > 0) {
+              this.unmountCount = 0;
+              let currentUnmount = this.unmountHead.$nextUnmount;
+              this.unmountHead = this.unmountTail = this;
+              let nextUnmount;
+              do {
+                  currentUnmount.$unmount(flags);
+                  nextUnmount = currentUnmount.$nextUnmount;
+                  currentUnmount.$nextUnmount = null;
+                  currentUnmount = nextUnmount;
+              } while (currentUnmount !== marker);
+          }
+          if (this.detachedCount > 0) {
+              this.detachedCount = 0;
+              let currentDetached = this.detachedHead.$nextDetached;
+              this.detachedHead = this.detachedTail = this;
+              let nextDetached;
+              do {
+                  currentDetached.detached(flags);
+                  nextDetached = currentDetached.$nextDetached;
+                  currentDetached.$nextDetached = null;
+                  currentDetached = nextDetached;
+              } while (currentDetached !== marker);
+          }
+          if (this.unbindAfterDetachCount > 0) {
+              this.beginUnbind();
+              this.unbindAfterDetachCount = 0;
+              let currentUnbind = this.unbindAfterDetachHead.$nextUnbindAfterDetach;
+              this.unbindAfterDetachHead = this.unbindAfterDetachTail = this;
+              let nextUnbind;
+              do {
+                  currentUnbind.$unbind(flags);
+                  nextUnbind = currentUnbind.$nextUnbindAfterDetach;
+                  currentUnbind.$nextUnbindAfterDetach = null;
+                  currentUnbind = nextUnbind;
+              } while (currentUnbind !== marker);
+              this.endUnbind(flags);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+  }
+  let CompositionCoordinator = class CompositionCoordinator {
+      constructor($lifecycle) {
+          this.$lifecycle = $lifecycle;
+          this.onSwapComplete = PLATFORM.noop;
+          this.currentView = null;
+          this.isAttached = false;
+          this.isBound = false;
+          this.queue = null;
+          this.swapTask = LifecycleTask.done;
+      }
+      static register(container) {
+          return Registration.transient(this, this).register(container, this);
+      }
+      compose(value, flags) {
+          if (this.swapTask.done) {
+              if (value instanceof Promise) {
+                  this.enqueue(new PromiseSwap(this, value));
+                  this.processNext();
+              }
+              else {
+                  this.swap(value, flags);
+              }
+          }
+          else {
+              if (value instanceof Promise) {
+                  this.enqueue(new PromiseSwap(this, value));
+              }
+              else {
+                  this.enqueue(value);
+              }
+              if (this.swapTask.canCancel()) {
+                  this.swapTask.cancel();
+              }
+          }
+      }
+      binding(flags, scope) {
+          this.scope = scope;
+          this.isBound = true;
+          if (this.currentView !== null) {
+              this.currentView.$bind(flags, scope);
+          }
+      }
+      attaching(flags) {
+          this.isAttached = true;
+          if (this.currentView !== null) {
+              this.currentView.$attach(flags);
+          }
+      }
+      detaching(flags) {
+          this.isAttached = false;
+          if (this.currentView !== null) {
+              this.currentView.$detach(flags);
+          }
+      }
+      unbinding(flags) {
+          this.isBound = false;
+          if (this.currentView !== null) {
+              this.currentView.$unbind(flags);
+          }
+      }
+      caching(flags) {
+          this.currentView = null;
+      }
+      enqueue(view) {
+          if (this.queue === null) {
+              this.queue = [];
+          }
+          this.queue.push(view);
+      }
+      swap(view, flags) {
+          if (this.currentView === view) {
+              return;
+          }
+          const $lifecycle = this.$lifecycle;
+          const swapTask = new AggregateLifecycleTask();
+          let lifecycleTask;
+          let currentView = this.currentView;
+          if (currentView === null) {
+              lifecycleTask = LifecycleTask.done;
+          }
+          else {
+              $lifecycle.enqueueUnbindAfterDetach(currentView);
+              $lifecycle.beginDetach();
+              currentView.$detach(flags);
+              lifecycleTask = $lifecycle.endDetach(flags);
+          }
+          swapTask.addTask(lifecycleTask);
+          currentView = this.currentView = view;
+          if (currentView === null) {
+              lifecycleTask = LifecycleTask.done;
+          }
+          else {
+              if (this.isBound) {
+                  $lifecycle.beginBind();
+                  currentView.$bind(flags, this.scope);
+                  $lifecycle.endBind(flags);
+              }
+              if (this.isAttached) {
+                  $lifecycle.beginAttach();
+                  currentView.$attach(flags);
+                  lifecycleTask = $lifecycle.endAttach(flags);
+              }
+              else {
+                  lifecycleTask = LifecycleTask.done;
+              }
+          }
+          swapTask.addTask(lifecycleTask);
+          if (swapTask.done) {
+              this.swapTask = LifecycleTask.done;
+              this.onSwapComplete();
+          }
+          else {
+              this.swapTask = swapTask;
+              this.swapTask.wait().then(() => {
+                  this.onSwapComplete();
+                  this.processNext();
+              }).catch(error => { throw error; });
+          }
+      }
+      processNext() {
+          if (this.queue !== null && this.queue.length > 0) {
+              const next = this.queue.pop();
+              this.queue.length = 0;
+              if (PromiseSwap.is(next)) {
+                  this.swapTask = next.start();
+              }
+              else {
+                  this.swap(next, LifecycleFlags.fromLifecycleTask);
+              }
+          }
+          else {
+              this.swapTask = LifecycleTask.done;
+          }
+      }
+  };
+  CompositionCoordinator = __decorate([
+      inject(ILifecycle)
+  ], CompositionCoordinator);
+  const LifecycleTask = {
+      done: {
+          done: true,
+          canCancel() { return false; },
+          cancel() { return; },
+          wait() { return Promise.resolve(); }
+      }
+  };
+  class AggregateLifecycleTask {
+      constructor() {
+          this.done = true;
+          this.owner = null;
+          this.resolve = null;
+          this.tasks = [];
+          this.waiter = null;
+      }
+      addTask(task) {
+          if (!task.done) {
+              this.done = false;
+              this.tasks.push(task);
+              task.wait().then(() => { this.tryComplete(); }).catch(error => { throw error; });
+          }
+      }
+      removeTask(task) {
+          if (task.done) {
+              const idx = this.tasks.indexOf(task);
+              if (idx !== -1) {
+                  this.tasks.splice(idx, 1);
+              }
+          }
+          if (this.tasks.length === 0 && this.owner !== null) {
+              this.owner.finishTask(this);
+              this.owner = null;
+          }
+      }
+      canCancel() {
+          if (this.done) {
+              return false;
+          }
+          return this.tasks.every(x => x.canCancel());
+      }
+      cancel() {
+          if (this.canCancel()) {
+              this.tasks.forEach(x => { x.cancel(); });
+              this.done = false;
+          }
+      }
+      wait() {
+          if (this.waiter === null) {
+              if (this.done) {
+                  this.waiter = Promise.resolve();
+              }
+              else {
+                  // tslint:disable-next-line:promise-must-complete
+                  this.waiter = new Promise((resolve) => this.resolve = resolve);
+              }
+          }
+          return this.waiter;
+      }
+      tryComplete() {
+          if (this.done) {
+              return;
+          }
+          if (this.tasks.every(x => x.done)) {
+              this.complete(true);
+          }
+      }
+      complete(notCancelled) {
+          this.done = true;
+          if (notCancelled && this.owner !== null) {
+              this.owner.processDetachQueue(LifecycleFlags.fromLifecycleTask);
+              this.owner.processUnbindQueue(LifecycleFlags.fromLifecycleTask);
+              this.owner.processBindQueue(LifecycleFlags.fromLifecycleTask);
+              this.owner.processAttachQueue(LifecycleFlags.fromLifecycleTask);
+          }
+          this.owner.finishTask(this);
+          if (this.resolve !== null) {
+              this.resolve();
+          }
+      }
+  }
+  /** @internal */
+  class PromiseSwap {
+      constructor(coordinator, promise) {
+          this.coordinator = coordinator;
+          this.done = false;
+          this.isCancelled = false;
+          this.promise = promise;
+      }
+      static is(object) {
+          return 'start' in object;
+      }
+      start() {
+          if (this.isCancelled) {
+              return LifecycleTask.done;
+          }
+          this.promise = this.promise.then(x => {
+              this.onResolve(x);
+              return x;
+          });
+          return this;
+      }
+      canCancel() {
+          return !this.done;
+      }
+      cancel() {
+          if (this.canCancel()) {
+              this.isCancelled = true;
+          }
+      }
+      wait() {
+          return this.promise;
+      }
+      onResolve(value) {
+          if (this.isCancelled) {
+              return;
+          }
+          this.done = true;
+          this.coordinator.compose(value, LifecycleFlags.fromLifecycleTask);
+      }
+  }
+  // tslint:disable:jsdoc-format
+  /**
+   * A general-purpose ILifecycleTask implementation that can be placed
+   * before an attached, detached, bound or unbound hook during attaching,
+   * detaching, binding or unbinding, respectively.
+   *
+   * The provided promise will be awaited before the corresponding lifecycle
+   * hook (and any hooks following it) is invoked.
+   *
+   * The provided callback will be invoked after the promise is resolved
+   * and before the next lifecycle hook.
+   *
+   * Example:
+  ```ts
+  export class MyViewModel {
+    private $lifecycle: ILifecycle; // set before created() hook
+    private answer: number;
+
+    public binding(flags: LifecycleFlags): void {
+      // this.answer === undefined
+      this.$lifecycle.registerTask(new PromiseTask(
+        this.getAnswerAsync,
+        answer => {
+          this.answer = answer;
+        }
+      ));
+    }
+
+    public bound(flags: LifecycleFlags): void {
+      // this.answer === 42
+    }
+
+    private getAnswerAsync(): Promise<number> {
+      return Promise.resolve().then(() => 42);
+    }
+  }
+  ```
+   */
+  // tslint:enable:jsdoc-format
+  class PromiseTask {
+      constructor(promise, callback) {
+          this.done = false;
+          this.isCancelled = false;
+          this.callback = callback;
+          this.promise = promise.then(value => {
+              if (this.isCancelled === true) {
+                  return;
+              }
+              this.done = true;
+              this.callback(value);
+              return value;
+          });
+      }
+      canCancel() {
+          return !this.done;
+      }
+      cancel() {
+          if (this.canCancel()) {
+              this.isCancelled = true;
+          }
+      }
+      wait() {
+          return this.promise;
+      }
+  }
+
   // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
-  const slice$4 = Array.prototype.slice;
+  const slice$2 = Array.prototype.slice;
   const slotNames = [];
   const versionSlotNames = [];
   let lastSlot = -1;
@@ -4228,7 +3577,7 @@ var au = (function (exports) {
   /** @internal */
   function observeProperty(obj, propertyName) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.observeProperty`, slice$4.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.observeProperty`, slice$2.call(arguments));
       }
       const observer = this.observerLocator.getObserver(obj, propertyName);
       /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
@@ -4286,11 +3635,11 @@ var au = (function (exports) {
       return target === undefined ? connectableDecorator : connectableDecorator(target);
   }
 
-  const slice$5 = Array.prototype.slice;
+  const slice$3 = Array.prototype.slice;
   // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
-  const { oneTime: oneTime$1, toView: toView$1, fromView: fromView$1 } = BindingMode;
+  const { oneTime, toView, fromView } = BindingMode;
   // pre-combining flags for bitwise checks is a minor perf tweak
-  const toViewOrOneTime = toView$1 | oneTime$1;
+  const toViewOrOneTime = toView | oneTime;
   let Binding = class Binding {
       constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
           this.$nextBind = null;
@@ -4317,7 +3666,7 @@ var au = (function (exports) {
       }
       handleChange(newValue, _previousValue, flags) {
           if (Tracer.enabled) {
-              Tracer.enter('Binding.handleChange', slice$5.call(arguments));
+              Tracer.enter('Binding.handleChange', slice$3.call(arguments));
           }
           if (!(this.$state & 2 /* isBound */)) {
               if (Tracer.enabled) {
@@ -4340,7 +3689,7 @@ var au = (function (exports) {
               if (newValue !== previousValue) {
                   this.updateTarget(newValue, flags);
               }
-              if ((mode & oneTime$1) === 0) {
+              if ((mode & oneTime) === 0) {
                   this.version++;
                   sourceExpression.connect(flags, $scope, this);
                   this.unobserve(false);
@@ -4363,7 +3712,7 @@ var au = (function (exports) {
       }
       $bind(flags, scope) {
           if (Tracer.enabled) {
-              Tracer.enter('Binding.$bind', slice$5.call(arguments));
+              Tracer.enter('Binding.$bind', slice$3.call(arguments));
           }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
@@ -4387,7 +3736,7 @@ var au = (function (exports) {
           const mode = this.mode;
           let targetObserver = this.targetObserver;
           if (!targetObserver) {
-              if (mode & fromView$1) {
+              if (mode & fromView) {
                   targetObserver = this.targetObserver = this.observerLocator.getObserver(this.target, this.targetProperty);
               }
               else {
@@ -4402,10 +3751,10 @@ var au = (function (exports) {
           if (mode & toViewOrOneTime) {
               this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
           }
-          if (mode & toView$1) {
+          if (mode & toView) {
               this.$lifecycle.enqueueConnect(this);
           }
-          if (mode & fromView$1) {
+          if (mode & fromView) {
               targetObserver.subscribe(this);
           }
           // add isBound flag and remove isBinding flag
@@ -4417,7 +3766,7 @@ var au = (function (exports) {
       }
       $unbind(flags) {
           if (Tracer.enabled) {
-              Tracer.enter('Binding.$unbind', slice$5.call(arguments));
+              Tracer.enter('Binding.$unbind', slice$3.call(arguments));
           }
           if (!(this.$state & 2 /* isBound */)) {
               if (Tracer.enabled) {
@@ -4450,7 +3799,7 @@ var au = (function (exports) {
       }
       connect(flags) {
           if (Tracer.enabled) {
-              Tracer.enter('Binding.connect', slice$5.call(arguments));
+              Tracer.enter('Binding.connect', slice$3.call(arguments));
           }
           if (this.$state & 2 /* isBound */) {
               flags |= this.persistentFlags;
@@ -4462,7 +3811,7 @@ var au = (function (exports) {
       }
       patch(flags) {
           if (Tracer.enabled) {
-              Tracer.enter('Binding.patch', slice$5.call(arguments));
+              Tracer.enter('Binding.patch', slice$3.call(arguments));
           }
           if (this.$state & 2 /* isBound */) {
               flags |= this.persistentFlags;
@@ -4477,477 +3826,992 @@ var au = (function (exports) {
       connectable()
   ], Binding);
 
-  const unset = {};
-  /** @internal */
-  function debounceCallSource(newValue, oldValue, flags) {
-      const state = this.debounceState;
-      clearTimeout(state.timeoutId);
-      state.timeoutId = setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
-  }
-  /** @internal */
-  function debounceCall(newValue, oldValue, flags) {
-      const state = this.debounceState;
-      clearTimeout(state.timeoutId);
-      if (!(flags & state.callContextToDebounce)) {
-          state.oldValue = unset;
-          this.debouncedMethod(newValue, oldValue, flags);
+  const slice$4 = Array.prototype.slice;
+  class Call {
+      constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
+          this.$nextBind = null;
+          this.$prevBind = null;
+          this.$state = 0 /* none */;
+          this.locator = locator;
+          this.sourceExpression = sourceExpression;
+          this.targetObserver = observerLocator.getObserver(target, targetProperty);
+      }
+      callSource(args) {
+          if (Tracer.enabled) {
+              Tracer.enter('Call.callSource', slice$4.call(arguments));
+          }
+          const overrideContext = this.$scope.overrideContext;
+          Object.assign(overrideContext, args);
+          const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+          for (const prop in args) {
+              delete overrideContext[prop];
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+          return result;
+      }
+      $bind(flags, scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('Call.$bind', slice$4.call(arguments));
+          }
+          if (this.$state & 2 /* isBound */) {
+              if (this.$scope === scope) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return;
+              }
+              this.$unbind(flags | LifecycleFlags.fromBind);
+          }
+          // add isBinding flag
+          this.$state |= 1 /* isBinding */;
+          this.$scope = scope;
+          const sourceExpression = this.sourceExpression;
+          if (hasBind(sourceExpression)) {
+              sourceExpression.bind(flags, scope, this);
+          }
+          this.targetObserver.setValue($args => this.callSource($args), flags);
+          // add isBound flag and remove isBinding flag
+          this.$state |= 2 /* isBound */;
+          this.$state &= ~1 /* isBinding */;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      $unbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Call.$unbind', slice$4.call(arguments));
+          }
+          if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return;
+          }
+          // add isUnbinding flag
+          this.$state |= 64 /* isUnbinding */;
+          const sourceExpression = this.sourceExpression;
+          if (hasUnbind(sourceExpression)) {
+              sourceExpression.unbind(flags, this.$scope, this);
+          }
+          this.$scope = null;
+          this.targetObserver.setValue(null, flags);
+          // remove isBound and isUnbinding flags
+          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      observeProperty(obj, propertyName) {
           return;
       }
-      if (state.oldValue === unset) {
-          state.oldValue = oldValue;
+      handleChange(newValue, previousValue, flags) {
+          return;
       }
-      // To disambiguate between "number" and "NodeJS.Timer" we cast it to an unknown, so we can subsequently cast it to number.
-      const timeoutId = setTimeout(() => {
-          const ov = state.oldValue;
-          state.oldValue = unset;
-          this.debouncedMethod(newValue, ov, flags);
-      }, state.delay);
-      state.timeoutId = timeoutId;
   }
-  const fromView$2 = BindingMode.fromView;
-  let DebounceBindingBehavior = class DebounceBindingBehavior {
-      bind(flags, scope, binding, delay = 200) {
-          let methodToDebounce;
-          let callContextToDebounce;
-          let debouncer;
-          if (binding instanceof Binding) {
-              methodToDebounce = 'handleChange';
-              debouncer = debounceCall;
-              callContextToDebounce = binding.mode & fromView$2 ? LifecycleFlags.updateSourceExpression : LifecycleFlags.updateTargetInstance;
-          }
-          else {
-              methodToDebounce = 'callSource';
-              debouncer = debounceCallSource;
-              callContextToDebounce = LifecycleFlags.updateTargetInstance;
-          }
-          // stash the original method and it's name.
-          // note: a generic name like "originalMethod" is not used to avoid collisions
-          // with other binding behavior types.
-          binding.debouncedMethod = binding[methodToDebounce];
-          binding.debouncedMethod.originalName = methodToDebounce;
-          // replace the original method with the debouncing version.
-          binding[methodToDebounce] = debouncer;
-          // create the debounce state.
-          binding.debounceState = {
-              callContextToDebounce,
-              delay,
-              timeoutId: 0,
-              oldValue: unset
-          };
-      }
-      unbind(flags, scope, binding) {
-          // restore the state of the binding.
-          const methodToRestore = binding.debouncedMethod.originalName;
-          binding[methodToRestore] = binding.debouncedMethod;
-          binding.debouncedMethod = null;
-          clearTimeout(binding.debounceState.timeoutId);
-          binding.debounceState = null;
-      }
-  };
-  DebounceBindingBehavior = __decorate([
-      bindingBehavior('debounce')
-  ], DebounceBindingBehavior);
 
-  const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-  const ISanitizer = DI.createInterface()
-      .withDefault(x => x.singleton(class {
-      sanitize(input) {
-          return input.replace(SCRIPT_REGEX, '');
-      }
-  }));
-  /**
-   * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
-   */
-  let SanitizeValueConverter = class SanitizeValueConverter {
-      constructor(sanitizer) {
-          this.sanitizer = sanitizer;
-      }
-      /**
-       * Process the provided markup that flows to the view.
-       * @param untrustedMarkup The untrusted markup to be sanitized.
-       */
-      toView(untrustedMarkup) {
-          if (untrustedMarkup === null || untrustedMarkup === undefined) {
-              return null;
-          }
-          return this.sanitizer.sanitize(untrustedMarkup);
-      }
-  };
-  SanitizeValueConverter = __decorate([
-      valueConverter('sanitize'),
-      inject(ISanitizer)
-  ], SanitizeValueConverter);
-
-  //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
+  const IExpressionParser = DI.createInterface()
+      .withDefault(x => x.singleton(ExpressionParser));
   /** @internal */
-  function findOriginalEventTarget(event) {
-      return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
-  }
-  function stopPropagation() {
-      this.standardStopPropagation();
-      this.propagationStopped = true;
-  }
-  function handleCapturedEvent(event) {
-      event.propagationStopped = false;
-      let target = findOriginalEventTarget(event);
-      const orderedCallbacks = [];
-      /**
-       * During capturing phase, event 'bubbles' down from parent. Needs to reorder callback from root down to target
-       */
-      while (target) {
-          if (target.capturedCallbacks) {
-              const callback = target.capturedCallbacks[event.type];
-              if (callback) {
-                  if (event.stopPropagation !== stopPropagation) {
-                      event.standardStopPropagation = event.stopPropagation;
-                      event.stopPropagation = stopPropagation;
-                  }
-                  orderedCallbacks.push(callback);
-              }
-          }
-          target = target.parentNode;
-      }
-      for (let i = orderedCallbacks.length - 1; i >= 0 && !event.propagationStopped; i--) {
-          const orderedCallback = orderedCallbacks[i];
-          if ('handleEvent' in orderedCallback) {
-              orderedCallback.handleEvent(event);
-          }
-          else {
-              orderedCallback(event);
-          }
-      }
-  }
-  function handleDelegatedEvent(event) {
-      event.propagationStopped = false;
-      let target = findOriginalEventTarget(event);
-      while (target && !event.propagationStopped) {
-          if (target.delegatedCallbacks) {
-              const callback = target.delegatedCallbacks[event.type];
-              if (callback) {
-                  if (event.stopPropagation !== stopPropagation) {
-                      event.standardStopPropagation = event.stopPropagation;
-                      event.stopPropagation = stopPropagation;
-                  }
-                  if ('handleEvent' in callback) {
-                      callback.handleEvent(event);
-                  }
-                  else {
-                      callback(event);
-                  }
-              }
-          }
-          target = target.parentNode;
-      }
-  }
-  class ListenerTracker {
-      constructor(eventName, listener, capture) {
-          this.capture = capture;
-          this.count = 0;
-          this.eventName = eventName;
-          this.listener = listener;
-      }
-      increment() {
-          this.count++;
-          if (this.count === 1) {
-              DOM.addEventListener(this.eventName, this.listener, null, this.capture);
-          }
-      }
-      decrement() {
-          this.count--;
-          if (this.count === 0) {
-              DOM.removeEventListener(this.eventName, this.listener, null, this.capture);
-          }
-      }
-  }
-  /**
-   * Enable dispose() pattern for `delegate` & `capture` commands
-   */
-  class DelegateOrCaptureSubscription {
-      constructor(entry, lookup, targetEvent, callback) {
-          this.entry = entry;
-          this.lookup = lookup;
-          this.targetEvent = targetEvent;
-          lookup[targetEvent] = callback;
-      }
-      dispose() {
-          this.entry.decrement();
-          this.lookup[this.targetEvent] = null;
-      }
-  }
-  /**
-   * Enable dispose() pattern for addEventListener for `trigger`
-   */
-  class TriggerSubscription {
-      constructor(target, targetEvent, callback) {
-          this.target = target;
-          this.targetEvent = targetEvent;
-          this.callback = callback;
-          DOM.addEventListener(targetEvent, callback, target);
-      }
-      dispose() {
-          DOM.removeEventListener(this.targetEvent, this.callback, this.target);
-      }
-  }
-  var DelegationStrategy;
-  (function (DelegationStrategy) {
-      DelegationStrategy[DelegationStrategy["none"] = 0] = "none";
-      DelegationStrategy[DelegationStrategy["capturing"] = 1] = "capturing";
-      DelegationStrategy[DelegationStrategy["bubbling"] = 2] = "bubbling";
-  })(DelegationStrategy || (DelegationStrategy = {}));
-  class EventSubscriber {
-      constructor(events) {
-          this.events = events;
-          this.events = events;
-          this.target = null;
-          this.handler = null;
-      }
-      subscribe(node, callbackOrListener) {
-          this.target = node;
-          this.handler = callbackOrListener;
-          const add = DOM.addEventListener;
-          const events = this.events;
-          for (let i = 0, ii = events.length; ii > i; ++i) {
-              add(events[i], callbackOrListener, node);
-          }
-      }
-      dispose() {
-          const node = this.target;
-          const callbackOrListener = this.handler;
-          const events = this.events;
-          const remove = DOM.removeEventListener;
-          for (let i = 0, ii = events.length; ii > i; ++i) {
-              remove(events[i], callbackOrListener, node);
-          }
-          this.target = this.handler = null;
-      }
-  }
-  const IEventManager = DI.createInterface()
-      .withDefault(x => x.singleton(EventManager));
-  /** @internal */
-  class EventManager {
+  class ExpressionParser {
       constructor() {
-          this.elementHandlerLookup = {};
-          this.delegatedHandlers = {};
-          this.capturedHandlers = {};
-          this.registerElementConfiguration({
-              tagName: 'INPUT',
-              properties: {
-                  value: ['change', 'input'],
-                  checked: ['change', 'input'],
-                  files: ['change', 'input']
-              }
-          });
-          this.registerElementConfiguration({
-              tagName: 'TEXTAREA',
-              properties: {
-                  value: ['change', 'input']
-              }
-          });
-          this.registerElementConfiguration({
-              tagName: 'SELECT',
-              properties: {
-                  value: ['change']
-              }
-          });
-          this.registerElementConfiguration({
-              tagName: 'content editable',
-              properties: {
-                  value: ['change', 'input', 'blur', 'keyup', 'paste']
-              }
-          });
-          this.registerElementConfiguration({
-              tagName: 'scrollable element',
-              properties: {
-                  scrollTop: ['scroll'],
-                  scrollLeft: ['scroll']
-              }
-          });
+          this.expressionLookup = Object.create(null);
+          this.forOfLookup = Object.create(null);
+          this.interpolationLookup = Object.create(null);
       }
-      registerElementConfiguration(config) {
-          const properties = config.properties;
-          const lookup = this.elementHandlerLookup[config.tagName] = {};
-          for (const propertyName in properties) {
-              if (properties.hasOwnProperty(propertyName)) {
-                  lookup[propertyName] = properties[propertyName];
-              }
+      parse(expression, bindingType) {
+          switch (bindingType) {
+              case 2048 /* Interpolation */:
+                  {
+                      let found = this.interpolationLookup[expression];
+                      if (found === undefined) {
+                          found = this.interpolationLookup[expression] = this.parseCore(expression, bindingType);
+                      }
+                      return found;
+                  }
+              case 539 /* ForCommand */:
+                  {
+                      let found = this.forOfLookup[expression];
+                      if (found === undefined) {
+                          found = this.forOfLookup[expression] = this.parseCore(expression, bindingType);
+                      }
+                      return found;
+                  }
+              default:
+                  {
+                      // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
+                      // But don't cache it, because empty strings are always invalid for any other type of binding
+                      if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
+                          return PrimitiveLiteral.$empty;
+                      }
+                      let found = this.expressionLookup[expression];
+                      if (found === undefined) {
+                          found = this.expressionLookup[expression] = this.parseCore(expression, bindingType);
+                      }
+                      return found;
+                  }
           }
       }
-      getElementHandler(target, propertyName) {
-          const tagName = target['tagName'];
-          const lookup = this.elementHandlerLookup;
-          if (tagName) {
-              if (lookup[tagName] && lookup[tagName][propertyName]) {
-                  return new EventSubscriber(lookup[tagName][propertyName]);
-              }
-              if (propertyName === 'textContent' || propertyName === 'innerHTML') {
-                  return new EventSubscriber(lookup['content editable'].value);
-              }
-              if (propertyName === 'scrollTop' || propertyName === 'scrollLeft') {
-                  return new EventSubscriber(lookup['scrollable element'][propertyName]);
-              }
-          }
-          return null;
-      }
-      addEventListener(target, targetEvent, callbackOrListener, strategy) {
-          let delegatedHandlers;
-          let capturedHandlers;
-          let handlerEntry;
-          if (strategy === DelegationStrategy.bubbling) {
-              delegatedHandlers = this.delegatedHandlers;
-              handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleDelegatedEvent, false));
-              handlerEntry.increment();
-              const delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
-              return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
-          }
-          if (strategy === DelegationStrategy.capturing) {
-              capturedHandlers = this.capturedHandlers;
-              handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleCapturedEvent, true));
-              handlerEntry.increment();
-              const capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
-              return new DelegateOrCaptureSubscription(handlerEntry, capturedCallbacks, targetEvent, callbackOrListener);
-          }
-          return new TriggerSubscription(target, targetEvent, callbackOrListener);
-      }
-  }
-
-  /** @internal */
-  function handleSelfEvent(event) {
-      const target = findOriginalEventTarget(event);
-      if (this.target !== target) {
-          return;
-      }
-      return this.selfEventCallSource(event);
-  }
-  let SelfBindingBehavior = class SelfBindingBehavior {
-      bind(flags, scope, binding) {
-          if (!binding.callSource || !binding.targetEvent) {
-              throw Reporter.error(8);
-          }
-          binding.selfEventCallSource = binding.callSource;
-          binding.callSource = handleSelfEvent;
-      }
-      unbind(flags, scope, binding) {
-          binding.callSource = binding.selfEventCallSource;
-          binding.selfEventCallSource = null;
-      }
-  };
-  SelfBindingBehavior = __decorate([
-      bindingBehavior('self')
-  ], SelfBindingBehavior);
-
-  let SignalBindingBehavior = class SignalBindingBehavior {
-      constructor(signaler) {
-          this.signaler = signaler;
-      }
-      bind(flags, scope, binding, ...args) {
-          if (!binding.updateTarget) {
-              throw Reporter.error(11);
-          }
-          if (arguments.length === 4) {
-              const name = args[0];
-              this.signaler.addSignalListener(name, binding);
-              binding.signal = name;
-          }
-          else if (arguments.length > 4) {
-              const names = Array.prototype.slice.call(arguments, 3);
-              let i = names.length;
-              while (i--) {
-                  const name = names[i];
-                  this.signaler.addSignalListener(name, binding);
-              }
-              binding.signal = names;
-          }
-          else {
-              throw Reporter.error(12);
-          }
-      }
-      unbind(flags, scope, binding) {
-          const name = binding.signal;
-          binding.signal = null;
-          if (Array.isArray(name)) {
-              const names = name;
-              let i = names.length;
-              while (i--) {
-                  this.signaler.removeSignalListener(names[i], binding);
+      cache(expressions) {
+          const { forOfLookup, expressionLookup, interpolationLookup } = this;
+          for (const expression in expressions) {
+              const expr = expressions[expression];
+              switch (expr.$kind) {
+                  case 24 /* Interpolation */:
+                      interpolationLookup[expression] = expr;
+                      break;
+                  case 55 /* ForOfStatement */:
+                      forOfLookup[expression] = expr;
+                      break;
+                  default:
+                      expressionLookup[expression] = expr;
               }
           }
-          else {
-              this.signaler.removeSignalListener(name, binding);
-          }
       }
-  };
-  SignalBindingBehavior = __decorate([
-      bindingBehavior('signal'),
-      inject(ISignaler)
-  ], SignalBindingBehavior);
-
-  /** @internal */
-  function throttle(newValue) {
-      const state = this.throttleState;
-      const elapsed = +new Date() - state.last;
-      if (elapsed >= state.delay) {
-          clearTimeout(state.timeoutId);
-          state.timeoutId = -1;
-          state.last = +new Date();
-          this.throttledMethod(newValue);
-          return;
-      }
-      state.newValue = newValue;
-      if (state.timeoutId === -1) {
-          // To disambiguate between "number" and "NodeJS.Timer" we cast it to an unknown, so we can subsequently cast it to number.
-          const timeoutId = setTimeout(() => {
-              state.timeoutId = -1;
-              state.last = +new Date();
-              this.throttledMethod(state.newValue);
-          }, state.delay - elapsed);
-          state.timeoutId = timeoutId;
-      }
-  }
-  let ThrottleBindingBehavior = class ThrottleBindingBehavior {
-      bind(flags, scope, binding, delay = 200) {
-          let methodToThrottle;
-          if (binding instanceof Binding) {
-              if (binding.mode === BindingMode.twoWay) {
-                  methodToThrottle = 'updateSource';
+      parseCore(expression, bindingType) {
+          try {
+              const parts = expression.split('.');
+              const firstPart = parts[0];
+              let current;
+              if (firstPart.endsWith('()')) {
+                  current = new CallScope(firstPart.replace('()', ''), PLATFORM.emptyArray);
               }
               else {
-                  methodToThrottle = 'updateTarget';
+                  current = new AccessScope(parts[0]);
               }
+              let index = 1;
+              while (index < parts.length) {
+                  const currentPart = parts[index];
+                  if (currentPart.endsWith('()')) {
+                      current = new CallMember(current, currentPart.replace('()', ''), PLATFORM.emptyArray);
+                  }
+                  else {
+                      current = new AccessMember(current, parts[index]);
+                  }
+                  index++;
+              }
+              return current;
           }
-          else {
-              methodToThrottle = 'callSource';
+          catch (e) {
+              throw Reporter.error(3, e);
           }
-          // stash the original method and it's name.
-          // note: a generic name like "originalMethod" is not used to avoid collisions
-          // with other binding behavior types.
-          binding.throttledMethod = binding[methodToThrottle];
-          binding.throttledMethod.originalName = methodToThrottle;
-          // replace the original method with the throttling version.
-          binding[methodToThrottle] = throttle;
-          // create the throttle state.
-          binding.throttleState = {
-              delay: delay,
-              last: 0,
-              timeoutId: -1
-          };
       }
-      unbind(flags, scope, binding) {
-          // restore the state of the binding.
-          const methodToRestore = binding.throttledMethod.originalName;
-          binding[methodToRestore] = binding.throttledMethod;
-          binding.throttledMethod = null;
-          clearTimeout(binding.throttleState.timeoutId);
-          binding.throttleState = null;
+  }
+
+  const { toView: toView$1, oneTime: oneTime$1 } = BindingMode;
+  class MultiInterpolationBinding {
+      constructor(observerLocator, interpolation, target, targetProperty, mode, locator) {
+          this.$nextBind = null;
+          this.$prevBind = null;
+          this.$state = 0 /* none */;
+          this.$scope = null;
+          this.interpolation = interpolation;
+          this.locator = locator;
+          this.mode = mode;
+          this.observerLocator = observerLocator;
+          this.target = target;
+          this.targetProperty = targetProperty;
+          // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
+          // value converters and binding behaviors.
+          // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
+          // in which case the renderer will create the TextBinding directly
+          const expressions = interpolation.expressions;
+          const parts = this.parts = Array(expressions.length);
+          for (let i = 0, ii = expressions.length; i < ii; ++i) {
+              parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
+          }
+      }
+      $bind(flags, scope) {
+          if (this.$state & 2 /* isBound */) {
+              if (this.$scope === scope) {
+                  return;
+              }
+              this.$unbind(flags);
+          }
+          this.$state |= 2 /* isBound */;
+          this.$scope = scope;
+          const parts = this.parts;
+          for (let i = 0, ii = parts.length; i < ii; ++i) {
+              parts[i].$bind(flags, scope);
+          }
+      }
+      $unbind(flags) {
+          if (!(this.$state & 2 /* isBound */)) {
+              return;
+          }
+          this.$state &= ~2 /* isBound */;
+          this.$scope = null;
+          const parts = this.parts;
+          for (let i = 0, ii = parts.length; i < ii; ++i) {
+              parts[i].$unbind(flags);
+          }
+      }
+  }
+  let InterpolationBinding = class InterpolationBinding {
+      // tslint:disable-next-line:parameters-max-number
+      constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
+          this.$state = 0 /* none */;
+          this.interpolation = interpolation;
+          this.isFirst = isFirst;
+          this.mode = mode;
+          this.locator = locator;
+          this.observerLocator = observerLocator;
+          this.sourceExpression = sourceExpression;
+          this.target = target;
+          this.targetProperty = targetProperty;
+          this.targetObserver = observerLocator.getAccessor(target, targetProperty);
+      }
+      updateTarget(value, flags) {
+          this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
+      }
+      handleChange(_newValue, _previousValue, flags) {
+          if (!(this.$state & 2 /* isBound */)) {
+              return;
+          }
+          const previousValue = this.targetObserver.getValue();
+          const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
+          if (newValue !== previousValue) {
+              this.updateTarget(newValue, flags);
+          }
+          if ((this.mode & oneTime$1) === 0) {
+              this.version++;
+              this.sourceExpression.connect(flags, this.$scope, this);
+              this.unobserve(false);
+          }
+      }
+      $bind(flags, scope) {
+          if (this.$state & 2 /* isBound */) {
+              if (this.$scope === scope) {
+                  return;
+              }
+              this.$unbind(flags);
+          }
+          this.$state |= 2 /* isBound */;
+          this.$scope = scope;
+          const sourceExpression = this.sourceExpression;
+          if (sourceExpression.bind) {
+              sourceExpression.bind(flags, scope, this);
+          }
+          // since the interpolation already gets the whole value, we only need to let the first
+          // text binding do the update if there are multiple
+          if (this.isFirst) {
+              this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator), flags);
+          }
+          if (this.mode & toView$1) {
+              sourceExpression.connect(flags, scope, this);
+          }
+      }
+      $unbind(flags) {
+          if (!(this.$state & 2 /* isBound */)) {
+              return;
+          }
+          this.$state &= ~2 /* isBound */;
+          const sourceExpression = this.sourceExpression;
+          if (sourceExpression.unbind) {
+              sourceExpression.unbind(flags, this.$scope, this);
+          }
+          this.$scope = null;
+          this.unobserve(true);
       }
   };
-  ThrottleBindingBehavior = __decorate([
-      bindingBehavior('throttle')
-  ], ThrottleBindingBehavior);
+  InterpolationBinding = __decorate([
+      connectable()
+  ], InterpolationBinding);
+
+  const slice$5 = Array.prototype.slice;
+  let LetBinding = class LetBinding {
+      constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
+          this.$nextBind = null;
+          this.$prevBind = null;
+          this.$state = 0 /* none */;
+          this.$lifecycle = locator.get(ILifecycle);
+          this.$scope = null;
+          this.locator = locator;
+          this.observerLocator = observerLocator;
+          this.sourceExpression = sourceExpression;
+          this.target = null;
+          this.targetProperty = targetProperty;
+          this.toViewModel = toViewModel;
+      }
+      handleChange(_newValue, _previousValue, flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('LetBinding.handleChange', slice$5.call(arguments));
+          }
+          if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return;
+          }
+          if (flags & LifecycleFlags.updateTargetInstance) {
+              const { target, targetProperty } = this;
+              const previousValue = target[targetProperty];
+              const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+              if (newValue !== previousValue) {
+                  target[targetProperty] = newValue;
+              }
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return;
+          }
+          throw Reporter.error(15, flags);
+      }
+      $bind(flags, scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('LetBinding.$bind', slice$5.call(arguments));
+          }
+          if (this.$state & 2 /* isBound */) {
+              if (this.$scope === scope) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return;
+              }
+              this.$unbind(flags | LifecycleFlags.fromBind);
+          }
+          // add isBinding flag
+          this.$state |= 1 /* isBinding */;
+          this.$scope = scope;
+          this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext);
+          const sourceExpression = this.sourceExpression;
+          if (sourceExpression.bind) {
+              sourceExpression.bind(flags, scope, this);
+          }
+          // sourceExpression might have been changed during bind
+          this.target[this.targetProperty] = this.sourceExpression.evaluate(LifecycleFlags.fromBind, scope, this.locator);
+          this.sourceExpression.connect(flags, scope, this);
+          // add isBound flag and remove isBinding flag
+          this.$state |= 2 /* isBound */;
+          this.$state &= ~1 /* isBinding */;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      $unbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('LetBinding.$unbind', slice$5.call(arguments));
+          }
+          if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return;
+          }
+          // add isUnbinding flag
+          this.$state |= 64 /* isUnbinding */;
+          const sourceExpression = this.sourceExpression;
+          if (sourceExpression.unbind) {
+              sourceExpression.unbind(flags, this.$scope, this);
+          }
+          this.$scope = null;
+          this.unobserve(true);
+          // remove isBound and isUnbinding flags
+          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+  };
+  LetBinding = __decorate([
+      connectable()
+  ], LetBinding);
 
   const slice$6 = Array.prototype.slice;
+  class Listener {
+      constructor(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
+          this.$nextBind = null;
+          this.$prevBind = null;
+          this.$state = 0 /* none */;
+          this.delegationStrategy = delegationStrategy;
+          this.locator = locator;
+          this.preventDefault = preventDefault;
+          this.sourceExpression = sourceExpression;
+          this.target = target;
+          this.targetEvent = targetEvent;
+          this.eventManager = eventManager;
+      }
+      callSource(event) {
+          if (Tracer.enabled) {
+              Tracer.enter('Listener.callSource', slice$6.call(arguments));
+          }
+          const overrideContext = this.$scope.overrideContext;
+          overrideContext['$event'] = event;
+          const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+          delete overrideContext['$event'];
+          if (result !== true && this.preventDefault) {
+              event.preventDefault();
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+          return result;
+      }
+      handleEvent(event) {
+          this.callSource(event);
+      }
+      $bind(flags, scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('Listener.$bind', slice$6.call(arguments));
+          }
+          if (this.$state & 2 /* isBound */) {
+              if (this.$scope === scope) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return;
+              }
+              this.$unbind(flags | LifecycleFlags.fromBind);
+          }
+          // add isBinding flag
+          this.$state |= 1 /* isBinding */;
+          this.$scope = scope;
+          const sourceExpression = this.sourceExpression;
+          if (hasBind(sourceExpression)) {
+              sourceExpression.bind(flags, scope, this);
+          }
+          this.handler = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
+          // add isBound flag and remove isBinding flag
+          this.$state |= 2 /* isBound */;
+          this.$state &= ~1 /* isBinding */;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      $unbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Listener.$unbind', slice$6.call(arguments));
+          }
+          if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return;
+          }
+          // add isUnbinding flag
+          this.$state |= 64 /* isUnbinding */;
+          const sourceExpression = this.sourceExpression;
+          if (hasUnbind(sourceExpression)) {
+              sourceExpression.unbind(flags, this.$scope, this);
+          }
+          this.$scope = null;
+          this.handler.dispose();
+          this.handler = null;
+          // remove isBound and isUnbinding flags
+          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      observeProperty(obj, propertyName) {
+          return;
+      }
+      handleChange(newValue, previousValue, flags) {
+          return;
+      }
+  }
+
+  const slice$7 = Array.prototype.slice;
+  class Ref {
+      constructor(sourceExpression, target, locator) {
+          this.$nextBind = null;
+          this.$prevBind = null;
+          this.$state = 0 /* none */;
+          this.locator = locator;
+          this.sourceExpression = sourceExpression;
+          this.target = target;
+      }
+      $bind(flags, scope) {
+          if (Tracer.enabled) {
+              Tracer.enter('Ref.$bind', slice$7.call(arguments));
+          }
+          if (this.$state & 2 /* isBound */) {
+              if (this.$scope === scope) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
+                  return;
+              }
+              this.$unbind(flags | LifecycleFlags.fromBind);
+          }
+          // add isBinding flag
+          this.$state |= 1 /* isBinding */;
+          this.$scope = scope;
+          const sourceExpression = this.sourceExpression;
+          if (hasBind(sourceExpression)) {
+              sourceExpression.bind(flags, scope, this);
+          }
+          this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
+          // add isBound flag and remove isBinding flag
+          this.$state |= 2 /* isBound */;
+          this.$state &= ~1 /* isBinding */;
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      $unbind(flags) {
+          if (Tracer.enabled) {
+              Tracer.enter('Ref.$unbind', slice$7.call(arguments));
+          }
+          if (!(this.$state & 2 /* isBound */)) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return;
+          }
+          // add isUnbinding flag
+          this.$state |= 64 /* isUnbinding */;
+          if (this.sourceExpression.evaluate(flags, this.$scope, this.locator) === this.target) {
+              this.sourceExpression.assign(flags, this.$scope, this.locator, null);
+          }
+          const sourceExpression = this.sourceExpression;
+          if (hasUnbind(sourceExpression)) {
+              sourceExpression.unbind(flags, this.$scope, this);
+          }
+          this.$scope = null;
+          // remove isBound and isUnbinding flags
+          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+      }
+      observeProperty(obj, propertyName) {
+          return;
+      }
+      handleChange(newValue, previousValue, flags) {
+          return;
+      }
+  }
+
+  const INode = DI.createInterface().noDefault();
+  const IRenderLocation = DI.createInterface().noDefault();
+
+  const slice$8 = Array.prototype.slice;
+  function isRenderLocation(node) {
+      return node.textContent === 'au-end';
+  }
+  const DOM = {
+      createDocumentFragment(markupOrNode) {
+          if (markupOrNode === undefined || markupOrNode === null) {
+              return document.createDocumentFragment();
+          }
+          if (DOM.isNodeInstance(markupOrNode)) {
+              if (markupOrNode.content !== undefined) {
+                  return markupOrNode.content;
+              }
+              const fragment = document.createDocumentFragment();
+              fragment.appendChild(markupOrNode);
+              return fragment;
+          }
+          return DOM.createTemplate(markupOrNode).content;
+      },
+      createTemplate(markup) {
+          if (markup === undefined || markup === null) {
+              return document.createElement('template');
+          }
+          const template = document.createElement('template');
+          template.innerHTML = markup.toString();
+          return template;
+      },
+      addClass(node, className) {
+          node.classList.add(className);
+      },
+      addEventListener(eventName, subscriber, publisher, options) {
+          (publisher || document).addEventListener(eventName, subscriber, options);
+      },
+      appendChild(parent, child) {
+          parent.appendChild(child);
+      },
+      attachShadow(host, options) {
+          return host.attachShadow(options);
+      },
+      cloneNode(node, deep) {
+          return node.cloneNode(deep !== false); // use true unless the caller explicitly passes in false
+      },
+      convertToRenderLocation(node) {
+          if (isRenderLocation(node)) {
+              return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
+          }
+          if (node.parentNode === null) {
+              throw Reporter.error(52);
+          }
+          const locationEnd = document.createComment('au-end');
+          const locationStart = document.createComment('au-start');
+          DOM.replaceNode(locationEnd, node);
+          DOM.insertBefore(locationStart, locationEnd);
+          locationEnd.$start = locationStart;
+          locationStart.$nodes = null;
+          return locationEnd;
+      },
+      createComment(text) {
+          return document.createComment(text);
+      },
+      createElement: ((name) => {
+          return document.createElement(name);
+      }),
+      createNodeObserver(target, callback, options) {
+          const observer = new MutationObserver(callback);
+          observer.observe(target, options);
+          return observer;
+      },
+      createTextNode(text) {
+          return document.createTextNode(text);
+      },
+      getAttribute(node, name) {
+          return node.getAttribute(name);
+      },
+      hasClass(node, className) {
+          return node.classList.contains(className);
+      },
+      insertBefore(nodeToInsert, referenceNode) {
+          referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
+      },
+      isMarker(node) {
+          return node.nodeName === 'AU-M';
+      },
+      isCommentNodeType(node) {
+          return node.nodeType === 8 /* Comment */;
+      },
+      isDocumentFragmentType(node) {
+          return node.nodeType === 11 /* DocumentFragment */;
+      },
+      isElementNodeType(node) {
+          return node.nodeType === 1 /* Element */;
+      },
+      isNodeInstance(potentialNode) {
+          return potentialNode.nodeType > 0;
+      },
+      isTextNodeType(node) {
+          return node.nodeType === 3 /* Text */;
+      },
+      migrateChildNodes(currentParent, newParent) {
+          while (currentParent.firstChild) {
+              DOM.appendChild(newParent, currentParent.firstChild);
+          }
+      },
+      registerElementResolver(container, resolver) {
+          container.registerResolver(INode, resolver);
+          container.registerResolver(Element, resolver);
+          container.registerResolver(HTMLElement, resolver);
+          container.registerResolver(SVGElement, resolver);
+      },
+      remove(node) {
+          if (node.remove) {
+              node.remove();
+          }
+          else {
+              node.parentNode.removeChild(node);
+          }
+      },
+      removeAttribute(node, name) {
+          node.removeAttribute(name);
+      },
+      removeClass(node, className) {
+          node.classList.remove(className);
+      },
+      removeEventListener(eventName, subscriber, publisher, options) {
+          (publisher || document).removeEventListener(eventName, subscriber, options);
+      },
+      replaceNode(newChild, oldChild) {
+          if (oldChild.parentNode) {
+              oldChild.parentNode.replaceChild(newChild, oldChild);
+          }
+      },
+      setAttribute(node, name, value) {
+          node.setAttribute(name, value);
+      }
+  };
+  // This is an implementation of INodeSequence that represents "no DOM" to render.
+  // It's used in various places to avoid null and to encode
+  // the explicit idea of "no view".
+  const emptySequence = {
+      firstChild: null,
+      lastChild: null,
+      childNodes: PLATFORM.emptyArray,
+      findTargets() { return PLATFORM.emptyArray; },
+      insertBefore(refNode) { },
+      appendTo(parent) { },
+      remove() { }
+  };
+  const NodeSequence = {
+      empty: emptySequence
+  };
+  /**
+   * An specialized INodeSequence with optimizations for text (interpolation) bindings
+   * The contract of this INodeSequence is:
+   * - the previous element is an `au-m` node
+   * - text is the actual text node
+   */
+  class TextNodeSequence {
+      constructor(text) {
+          this.firstChild = text;
+          this.lastChild = text;
+          this.childNodes = [text];
+          this.targets = [new AuMarker(text)];
+      }
+      findTargets() {
+          return this.targets;
+      }
+      insertBefore(refNode) {
+          refNode.parentNode.insertBefore(this.firstChild, refNode);
+      }
+      appendTo(parent) {
+          parent.appendChild(this.firstChild);
+      }
+      remove() {
+          this.firstChild.remove();
+      }
+  }
+  // tslint:enable:no-any
+  // This is the most common form of INodeSequence.
+  // Every custom element or template controller whose node sequence is based on an HTML template
+  // has an instance of this under the hood. Anyone who wants to create a node sequence from
+  // a string of markup would also receive an instance of this.
+  // CompiledTemplates create instances of FragmentNodeSequence.
+  /** @internal */
+  class FragmentNodeSequence {
+      constructor(fragment) {
+          this.fragment = fragment;
+          // tslint:disable-next-line:no-any
+          const targetNodeList = fragment.querySelectorAll('.au');
+          let i = 0;
+          let ii = targetNodeList.length;
+          const targets = this.targets = Array(ii);
+          while (i < ii) {
+              // eagerly convert all markers to IRenderLocations (otherwise the renderer
+              // will do it anyway) and store them in the target list (since the comments
+              // can't be queried)
+              const target = targetNodeList[i];
+              if (target.nodeName === 'AU-M') {
+                  // note the renderer will still call this method, but it will just return the
+                  // location if it sees it's already a location
+                  targets[i] = DOM.convertToRenderLocation(target);
+              }
+              else {
+                  // also store non-markers for consistent ordering
+                  targets[i] = target;
+              }
+              ++i;
+          }
+          const childNodeList = fragment.childNodes;
+          i = 0;
+          ii = childNodeList.length;
+          const childNodes = this.childNodes = Array(ii);
+          while (i < ii) {
+              childNodes[i] = childNodeList[i];
+              ++i;
+          }
+          this.firstChild = fragment.firstChild;
+          this.lastChild = fragment.lastChild;
+          this.start = this.end = null;
+      }
+      findTargets() {
+          return this.targets;
+      }
+      insertBefore(refNode) {
+          // tslint:disable-next-line:no-any
+          refNode.parentNode.insertBefore(this.fragment, refNode);
+          // internally we could generally assume that this is an IRenderLocation,
+          // but since this is also public API we still need to double check
+          // (or horrible things might happen)
+          if (isRenderLocation(refNode)) {
+              this.end = refNode;
+              const start = this.start = refNode.$start;
+              if (start.$nodes === null) {
+                  start.$nodes = this;
+              }
+              else {
+                  // if more than one NodeSequence uses the same RenderLocation, it's an child
+                  // of a repeater (or something similar) and we shouldn't remove all nodes between
+                  // start - end since that would always remove all items from a repeater, even
+                  // when only one is removed
+                  // so we set $nodes to PLATFORM.emptyObject to 1) tell other sequences that it's
+                  // occupied and 2) prevent start.$nodes === this from ever evaluating to true
+                  // during remove()
+                  start.$nodes = PLATFORM.emptyObject;
+              }
+          }
+      }
+      appendTo(parent) {
+          // tslint:disable-next-line:no-any
+          parent.appendChild(this.fragment);
+          // this can never be a RenderLocation, and if for whatever reason we moved
+          // from a RenderLocation to a host, make sure "start" and "end" are null
+          this.start = this.end = null;
+      }
+      remove() {
+          const fragment = this.fragment;
+          if (this.start !== null && this.start.$nodes === this) {
+              // if we're between a valid "start" and "end" (e.g. if/else, containerless, or a
+              // repeater with a single item) then simply remove everything in-between (but not
+              // the comments themselves as they belong to the parent)
+              const end = this.end;
+              let next;
+              let current = this.start.nextSibling;
+              while (current !== end) {
+                  next = current.nextSibling;
+                  // tslint:disable-next-line:no-any
+                  fragment.appendChild(current);
+                  current = next;
+              }
+              this.start.$nodes = null;
+              this.start = this.end = null;
+          }
+          else {
+              // otherwise just remove from first to last child in the regular way
+              let current = this.firstChild;
+              if (current.parentNode !== fragment) {
+                  const end = this.lastChild;
+                  let next;
+                  while (current !== null) {
+                      next = current.nextSibling;
+                      // tslint:disable-next-line:no-any
+                      fragment.appendChild(current);
+                      if (current === end) {
+                          break;
+                      }
+                      current = next;
+                  }
+              }
+          }
+      }
+  }
+  class NodeSequenceFactory {
+      constructor(fragment) {
+          const childNodes = fragment.childNodes;
+          switch (childNodes.length) {
+              case 0:
+                  this.createNodeSequence = () => NodeSequence.empty;
+                  return;
+              case 2:
+                  const target = childNodes[0];
+                  if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
+                      const text = childNodes[1];
+                      if (text.nodeType === 3 /* Text */ && text.textContent.length === 0) {
+                          this.deepClone = false;
+                          this.node = text;
+                          this.Type = TextNodeSequence;
+                          return;
+                      }
+                  }
+              // falls through if not returned
+              default:
+                  this.deepClone = true;
+                  this.node = fragment;
+                  this.Type = FragmentNodeSequence;
+          }
+      }
+      static createFor(markupOrNode) {
+          if (Tracer.enabled) {
+              Tracer.enter('NodeSequenceFactory.createFor', slice$8.call(arguments));
+          }
+          const fragment = DOM.createDocumentFragment(markupOrNode);
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+          return new NodeSequenceFactory(fragment);
+      }
+      createNodeSequence() {
+          return new this.Type(this.node.cloneNode(this.deepClone));
+      }
+  }
+  /** @internal */
+  class AuMarker {
+      get parentNode() {
+          return this.nextSibling.parentNode;
+      }
+      constructor(next) {
+          this.nextSibling = next;
+          this.textContent = '';
+      }
+      remove() { }
+  }
+  (proto => {
+      proto.previousSibling = null;
+      proto.firstChild = null;
+      proto.lastChild = null;
+      proto.childNodes = PLATFORM.emptyArray;
+      proto.nodeName = 'AU-M';
+      proto.nodeType = 1 /* Element */;
+  })(AuMarker.prototype);
+
+  const slice$9 = Array.prototype.slice;
+  function setValue(newValue, flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.setValue`, slice$9.call(arguments));
+      }
+      const currentValue = this.currentValue;
+      newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
+      if (currentValue !== newValue) {
+          this.currentValue = newValue;
+          if ((flags & (LifecycleFlags.fromFlush | LifecycleFlags.fromBind)) &&
+              !((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj))) {
+              this.setValueCore(newValue, flags);
+          }
+          else {
+              this.currentFlags = flags;
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
+              return this.lifecycle.enqueueFlush(this);
+          }
+      }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
+      return Promise.resolve();
+  }
+  function flush(flags) {
+      if (Tracer.enabled) {
+          Tracer.enter(`${this['constructor'].name}.flush`, slice$9.call(arguments));
+      }
+      if ((flags & LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj)) {
+          // re-queue the change so it will still propagate on flush when it's attached again
+          this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
+          if (Tracer.enabled) {
+              Tracer.leave();
+          }
+          return;
+      }
+      const currentValue = this.currentValue;
+      // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
+      // in which case the target doesn't need to be updated
+      if (this.oldValue !== currentValue) {
+          this.setValueCore(currentValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
+          this.oldValue = this.currentValue;
+      }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
+  }
+  function dispose$1() {
+      this.currentValue = null;
+      this.oldValue = null;
+      this.defaultValue = null;
+      this.obj = null;
+      this.propertyKey = '';
+  }
+  function targetObserver(defaultValue = null) {
+      return function (target) {
+          subscriberCollection(MutationKind.instance)(target);
+          const proto = target.prototype;
+          proto.$nextFlush = null;
+          proto.currentValue = defaultValue;
+          proto.oldValue = defaultValue;
+          proto.defaultValue = defaultValue;
+          proto.obj = null;
+          proto.propertyKey = '';
+          proto.setValue = proto.setValue || setValue;
+          proto.flush = proto.flush || flush;
+          proto.dispose = proto.dispose || dispose$1;
+      };
+  }
+
+  const slice$a = Array.prototype.slice;
   function flush$1() {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.flush`, slice$6.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.flush`, slice$a.call(arguments));
       }
       this.callBatchedSubscribers(this.indexMap);
       if (!!this.lengthObserver) {
@@ -5404,6 +5268,224 @@ var au = (function (exports) {
   ], ArrayObserver);
   function getArrayObserver(lifecycle, array) {
       return array.$observer || new ArrayObserver(lifecycle, array);
+  }
+
+  const proto$1 = Map.prototype;
+  const nativeSet = proto$1.set; // TODO: probably want to make these internal again
+  const nativeClear = proto$1.clear;
+  const nativeDelete = proto$1.delete;
+  // note: we can't really do much with Map due to the internal data structure not being accessible so we're just using the native calls
+  // fortunately, map/delete/clear are easy to reconstruct for the indexMap
+  // https://tc39.github.io/ecma262/#sec-map.prototype.map
+  function observeSet(key, value) {
+      const o = this.$observer;
+      if (o === undefined) {
+          return nativeSet.call(this, key, value);
+      }
+      const oldSize = this.size;
+      nativeSet.call(this, key, value);
+      const newSize = this.size;
+      if (newSize === oldSize) {
+          let i = 0;
+          for (const entry of this.entries()) {
+              if (entry[0] === key) {
+                  if (entry[1] !== value) {
+                      o.indexMap[i] = -2;
+                  }
+                  return this;
+              }
+              i++;
+          }
+          return this;
+      }
+      o.indexMap[oldSize] = -2;
+      o.callSubscribers('set', arguments, LifecycleFlags.isCollectionMutation);
+      return this;
+  }
+  // https://tc39.github.io/ecma262/#sec-map.prototype.clear
+  function observeClear() {
+      const o = this.$observer;
+      if (o === undefined) {
+          return nativeClear.call(this);
+      }
+      const size = this.size;
+      if (size > 0) {
+          const indexMap = o.indexMap;
+          let i = 0;
+          for (const entry of this.keys()) {
+              if (indexMap[i] > -1) {
+                  nativePush.call(indexMap.deletedItems, entry);
+              }
+              i++;
+          }
+          nativeClear.call(this);
+          indexMap.length = 0;
+          o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
+      }
+      return undefined;
+  }
+  // https://tc39.github.io/ecma262/#sec-map.prototype.delete
+  function observeDelete(value) {
+      const o = this.$observer;
+      if (o === undefined) {
+          return nativeDelete.call(this, value);
+      }
+      const size = this.size;
+      if (size === 0) {
+          return false;
+      }
+      let i = 0;
+      const indexMap = o.indexMap;
+      for (const entry of this.keys()) {
+          if (entry === value) {
+              if (indexMap[i] > -1) {
+                  nativePush.call(indexMap.deletedItems, entry);
+              }
+              nativeSplice.call(indexMap, i, 1);
+              return nativeDelete.call(this, value);
+          }
+          i++;
+      }
+      o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
+      return false;
+  }
+  for (const observe of [observeSet, observeClear, observeDelete]) {
+      Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+  }
+  function enableMapObservation() {
+      if (proto$1.set['observing'] !== true)
+          proto$1.set = observeSet;
+      if (proto$1.clear['observing'] !== true)
+          proto$1.clear = observeClear;
+      if (proto$1.delete['observing'] !== true)
+          proto$1.delete = observeDelete;
+  }
+  enableMapObservation();
+  function disableMapObservation() {
+      if (proto$1.set['observing'] === true)
+          proto$1.set = nativeSet;
+      if (proto$1.clear['observing'] === true)
+          proto$1.clear = nativeClear;
+      if (proto$1.delete['observing'] === true)
+          proto$1.delete = nativeDelete;
+  }
+  let MapObserver = class MapObserver {
+      constructor(lifecycle, map) {
+          this.lifecycle = lifecycle;
+          map.$observer = this;
+          this.collection = map;
+          this.resetIndexMap();
+      }
+  };
+  MapObserver = __decorate([
+      collectionObserver(6 /* map */)
+  ], MapObserver);
+  function getMapObserver(lifecycle, map) {
+      return map.$observer || new MapObserver(lifecycle, map);
+  }
+
+  const proto$2 = Set.prototype;
+  const nativeAdd = proto$2.add; // TODO: probably want to make these internal again
+  const nativeClear$1 = proto$2.clear;
+  const nativeDelete$1 = proto$2.delete;
+  // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
+  // fortunately, add/delete/clear are easy to reconstruct for the indexMap
+  // https://tc39.github.io/ecma262/#sec-set.prototype.add
+  function observeAdd(value) {
+      const o = this.$observer;
+      if (o === undefined) {
+          return nativeAdd.call(this, value);
+      }
+      const oldSize = this.size;
+      nativeAdd.call(this, value);
+      const newSize = this.size;
+      if (newSize === oldSize) {
+          return this;
+      }
+      o.indexMap[oldSize] = -2;
+      o.callSubscribers('add', arguments, LifecycleFlags.isCollectionMutation);
+      return this;
+  }
+  // https://tc39.github.io/ecma262/#sec-set.prototype.clear
+  function observeClear$1() {
+      const o = this.$observer;
+      if (o === undefined) {
+          return nativeClear$1.call(this);
+      }
+      const size = this.size;
+      if (size > 0) {
+          const indexMap = o.indexMap;
+          let i = 0;
+          for (const entry of this.keys()) {
+              if (indexMap[i] > -1) {
+                  nativePush.call(indexMap.deletedItems, entry);
+              }
+              i++;
+          }
+          nativeClear$1.call(this);
+          indexMap.length = 0;
+          o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
+      }
+      return undefined;
+  }
+  // https://tc39.github.io/ecma262/#sec-set.prototype.delete
+  function observeDelete$1(value) {
+      const o = this.$observer;
+      if (o === undefined) {
+          return nativeDelete$1.call(this, value);
+      }
+      const size = this.size;
+      if (size === 0) {
+          return false;
+      }
+      let i = 0;
+      const indexMap = o.indexMap;
+      for (const entry of this.keys()) {
+          if (entry === value) {
+              if (indexMap[i] > -1) {
+                  nativePush.call(indexMap.deletedItems, entry);
+              }
+              nativeSplice.call(indexMap, i, 1);
+              return nativeDelete$1.call(this, value);
+          }
+          i++;
+      }
+      o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
+      return false;
+  }
+  for (const observe of [observeAdd, observeClear$1, observeDelete$1]) {
+      Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+  }
+  function enableSetObservation() {
+      if (proto$2.add['observing'] !== true)
+          proto$2.add = observeAdd;
+      if (proto$2.clear['observing'] !== true)
+          proto$2.clear = observeClear$1;
+      if (proto$2.delete['observing'] !== true)
+          proto$2.delete = observeDelete$1;
+  }
+  enableSetObservation();
+  function disableSetObservation() {
+      if (proto$2.add['observing'] === true)
+          proto$2.add = nativeAdd;
+      if (proto$2.clear['observing'] === true)
+          proto$2.clear = nativeClear$1;
+      if (proto$2.delete['observing'] === true)
+          proto$2.delete = nativeDelete$1;
+  }
+  let SetObserver = class SetObserver {
+      constructor(lifecycle, observedSet) {
+          this.lifecycle = lifecycle;
+          observedSet.$observer = this;
+          this.collection = observedSet;
+          this.resetIndexMap();
+      }
+  };
+  SetObserver = __decorate([
+      collectionObserver(7 /* set */)
+  ], SetObserver);
+  function getSetObserver(lifecycle, observedSet) {
+      return observedSet.$observer || new SetObserver(lifecycle, observedSet);
   }
 
   function computed(config) {
@@ -6120,222 +6202,236 @@ var au = (function (exports) {
   SelectValueObserver.prototype.handler = null;
   SelectValueObserver.prototype.observerLocator = null;
 
-  const proto$1 = Map.prototype;
-  const nativeSet = proto$1.set; // TODO: probably want to make these internal again
-  const nativeClear = proto$1.clear;
-  const nativeDelete = proto$1.delete;
-  // note: we can't really do much with Map due to the internal data structure not being accessible so we're just using the native calls
-  // fortunately, map/delete/clear are easy to reconstruct for the indexMap
-  // https://tc39.github.io/ecma262/#sec-map.prototype.map
-  function observeSet(key, value) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeSet.call(this, key, value);
-      }
-      const oldSize = this.size;
-      nativeSet.call(this, key, value);
-      const newSize = this.size;
-      if (newSize === oldSize) {
-          let i = 0;
-          for (const entry of this.entries()) {
-              if (entry[0] === key) {
-                  if (entry[1] !== value) {
-                      o.indexMap[i] = -2;
+  //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
+  /** @internal */
+  function findOriginalEventTarget(event) {
+      return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
+  }
+  function stopPropagation() {
+      this.standardStopPropagation();
+      this.propagationStopped = true;
+  }
+  function handleCapturedEvent(event) {
+      event.propagationStopped = false;
+      let target = findOriginalEventTarget(event);
+      const orderedCallbacks = [];
+      /**
+       * During capturing phase, event 'bubbles' down from parent. Needs to reorder callback from root down to target
+       */
+      while (target) {
+          if (target.capturedCallbacks) {
+              const callback = target.capturedCallbacks[event.type];
+              if (callback) {
+                  if (event.stopPropagation !== stopPropagation) {
+                      event.standardStopPropagation = event.stopPropagation;
+                      event.stopPropagation = stopPropagation;
                   }
-                  return this;
+                  orderedCallbacks.push(callback);
               }
-              i++;
           }
-          return this;
+          target = target.parentNode;
       }
-      o.indexMap[oldSize] = -2;
-      o.callSubscribers('set', arguments, LifecycleFlags.isCollectionMutation);
-      return this;
+      for (let i = orderedCallbacks.length - 1; i >= 0 && !event.propagationStopped; i--) {
+          const orderedCallback = orderedCallbacks[i];
+          if ('handleEvent' in orderedCallback) {
+              orderedCallback.handleEvent(event);
+          }
+          else {
+              orderedCallback(event);
+          }
+      }
   }
-  // https://tc39.github.io/ecma262/#sec-map.prototype.clear
-  function observeClear() {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeClear.call(this);
-      }
-      const size = this.size;
-      if (size > 0) {
-          const indexMap = o.indexMap;
-          let i = 0;
-          for (const entry of this.keys()) {
-              if (indexMap[i] > -1) {
-                  nativePush.call(indexMap.deletedItems, entry);
+  function handleDelegatedEvent(event) {
+      event.propagationStopped = false;
+      let target = findOriginalEventTarget(event);
+      while (target && !event.propagationStopped) {
+          if (target.delegatedCallbacks) {
+              const callback = target.delegatedCallbacks[event.type];
+              if (callback) {
+                  if (event.stopPropagation !== stopPropagation) {
+                      event.standardStopPropagation = event.stopPropagation;
+                      event.stopPropagation = stopPropagation;
+                  }
+                  if ('handleEvent' in callback) {
+                      callback.handleEvent(event);
+                  }
+                  else {
+                      callback(event);
+                  }
               }
-              i++;
           }
-          nativeClear.call(this);
-          indexMap.length = 0;
-          o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
+          target = target.parentNode;
       }
-      return undefined;
   }
-  // https://tc39.github.io/ecma262/#sec-map.prototype.delete
-  function observeDelete(value) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeDelete.call(this, value);
+  class ListenerTracker {
+      constructor(eventName, listener, capture) {
+          this.capture = capture;
+          this.count = 0;
+          this.eventName = eventName;
+          this.listener = listener;
       }
-      const size = this.size;
-      if (size === 0) {
-          return false;
+      increment() {
+          this.count++;
+          if (this.count === 1) {
+              DOM.addEventListener(this.eventName, this.listener, null, this.capture);
+          }
       }
-      let i = 0;
-      const indexMap = o.indexMap;
-      for (const entry of this.keys()) {
-          if (entry === value) {
-              if (indexMap[i] > -1) {
-                  nativePush.call(indexMap.deletedItems, entry);
+      decrement() {
+          this.count--;
+          if (this.count === 0) {
+              DOM.removeEventListener(this.eventName, this.listener, null, this.capture);
+          }
+      }
+  }
+  /**
+   * Enable dispose() pattern for `delegate` & `capture` commands
+   */
+  class DelegateOrCaptureSubscription {
+      constructor(entry, lookup, targetEvent, callback) {
+          this.entry = entry;
+          this.lookup = lookup;
+          this.targetEvent = targetEvent;
+          lookup[targetEvent] = callback;
+      }
+      dispose() {
+          this.entry.decrement();
+          this.lookup[this.targetEvent] = null;
+      }
+  }
+  /**
+   * Enable dispose() pattern for addEventListener for `trigger`
+   */
+  class TriggerSubscription {
+      constructor(target, targetEvent, callback) {
+          this.target = target;
+          this.targetEvent = targetEvent;
+          this.callback = callback;
+          DOM.addEventListener(targetEvent, callback, target);
+      }
+      dispose() {
+          DOM.removeEventListener(this.targetEvent, this.callback, this.target);
+      }
+  }
+  var DelegationStrategy;
+  (function (DelegationStrategy) {
+      DelegationStrategy[DelegationStrategy["none"] = 0] = "none";
+      DelegationStrategy[DelegationStrategy["capturing"] = 1] = "capturing";
+      DelegationStrategy[DelegationStrategy["bubbling"] = 2] = "bubbling";
+  })(DelegationStrategy || (DelegationStrategy = {}));
+  class EventSubscriber {
+      constructor(events) {
+          this.events = events;
+          this.events = events;
+          this.target = null;
+          this.handler = null;
+      }
+      subscribe(node, callbackOrListener) {
+          this.target = node;
+          this.handler = callbackOrListener;
+          const add = DOM.addEventListener;
+          const events = this.events;
+          for (let i = 0, ii = events.length; ii > i; ++i) {
+              add(events[i], callbackOrListener, node);
+          }
+      }
+      dispose() {
+          const node = this.target;
+          const callbackOrListener = this.handler;
+          const events = this.events;
+          const remove = DOM.removeEventListener;
+          for (let i = 0, ii = events.length; ii > i; ++i) {
+              remove(events[i], callbackOrListener, node);
+          }
+          this.target = this.handler = null;
+      }
+  }
+  const IEventManager = DI.createInterface()
+      .withDefault(x => x.singleton(EventManager));
+  /** @internal */
+  class EventManager {
+      constructor() {
+          this.elementHandlerLookup = {};
+          this.delegatedHandlers = {};
+          this.capturedHandlers = {};
+          this.registerElementConfiguration({
+              tagName: 'INPUT',
+              properties: {
+                  value: ['change', 'input'],
+                  checked: ['change', 'input'],
+                  files: ['change', 'input']
               }
-              nativeSplice.call(indexMap, i, 1);
-              return nativeDelete.call(this, value);
-          }
-          i++;
-      }
-      o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
-      return false;
-  }
-  for (const observe of [observeSet, observeClear, observeDelete]) {
-      Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
-  }
-  function enableMapObservation() {
-      if (proto$1.set['observing'] !== true)
-          proto$1.set = observeSet;
-      if (proto$1.clear['observing'] !== true)
-          proto$1.clear = observeClear;
-      if (proto$1.delete['observing'] !== true)
-          proto$1.delete = observeDelete;
-  }
-  enableMapObservation();
-  function disableMapObservation() {
-      if (proto$1.set['observing'] === true)
-          proto$1.set = nativeSet;
-      if (proto$1.clear['observing'] === true)
-          proto$1.clear = nativeClear;
-      if (proto$1.delete['observing'] === true)
-          proto$1.delete = nativeDelete;
-  }
-  let MapObserver = class MapObserver {
-      constructor(lifecycle, map) {
-          this.lifecycle = lifecycle;
-          map.$observer = this;
-          this.collection = map;
-          this.resetIndexMap();
-      }
-  };
-  MapObserver = __decorate([
-      collectionObserver(6 /* map */)
-  ], MapObserver);
-  function getMapObserver(lifecycle, map) {
-      return map.$observer || new MapObserver(lifecycle, map);
-  }
-
-  const proto$2 = Set.prototype;
-  const nativeAdd = proto$2.add; // TODO: probably want to make these internal again
-  const nativeClear$1 = proto$2.clear;
-  const nativeDelete$1 = proto$2.delete;
-  // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
-  // fortunately, add/delete/clear are easy to reconstruct for the indexMap
-  // https://tc39.github.io/ecma262/#sec-set.prototype.add
-  function observeAdd(value) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeAdd.call(this, value);
-      }
-      const oldSize = this.size;
-      nativeAdd.call(this, value);
-      const newSize = this.size;
-      if (newSize === oldSize) {
-          return this;
-      }
-      o.indexMap[oldSize] = -2;
-      o.callSubscribers('add', arguments, LifecycleFlags.isCollectionMutation);
-      return this;
-  }
-  // https://tc39.github.io/ecma262/#sec-set.prototype.clear
-  function observeClear$1() {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeClear$1.call(this);
-      }
-      const size = this.size;
-      if (size > 0) {
-          const indexMap = o.indexMap;
-          let i = 0;
-          for (const entry of this.keys()) {
-              if (indexMap[i] > -1) {
-                  nativePush.call(indexMap.deletedItems, entry);
+          });
+          this.registerElementConfiguration({
+              tagName: 'TEXTAREA',
+              properties: {
+                  value: ['change', 'input']
               }
-              i++;
-          }
-          nativeClear$1.call(this);
-          indexMap.length = 0;
-          o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
-      }
-      return undefined;
-  }
-  // https://tc39.github.io/ecma262/#sec-set.prototype.delete
-  function observeDelete$1(value) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeDelete$1.call(this, value);
-      }
-      const size = this.size;
-      if (size === 0) {
-          return false;
-      }
-      let i = 0;
-      const indexMap = o.indexMap;
-      for (const entry of this.keys()) {
-          if (entry === value) {
-              if (indexMap[i] > -1) {
-                  nativePush.call(indexMap.deletedItems, entry);
+          });
+          this.registerElementConfiguration({
+              tagName: 'SELECT',
+              properties: {
+                  value: ['change']
               }
-              nativeSplice.call(indexMap, i, 1);
-              return nativeDelete$1.call(this, value);
+          });
+          this.registerElementConfiguration({
+              tagName: 'content editable',
+              properties: {
+                  value: ['change', 'input', 'blur', 'keyup', 'paste']
+              }
+          });
+          this.registerElementConfiguration({
+              tagName: 'scrollable element',
+              properties: {
+                  scrollTop: ['scroll'],
+                  scrollLeft: ['scroll']
+              }
+          });
+      }
+      registerElementConfiguration(config) {
+          const properties = config.properties;
+          const lookup = this.elementHandlerLookup[config.tagName] = {};
+          for (const propertyName in properties) {
+              if (properties.hasOwnProperty(propertyName)) {
+                  lookup[propertyName] = properties[propertyName];
+              }
           }
-          i++;
       }
-      o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
-      return false;
-  }
-  for (const observe of [observeAdd, observeClear$1, observeDelete$1]) {
-      Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
-  }
-  function enableSetObservation() {
-      if (proto$2.add['observing'] !== true)
-          proto$2.add = observeAdd;
-      if (proto$2.clear['observing'] !== true)
-          proto$2.clear = observeClear$1;
-      if (proto$2.delete['observing'] !== true)
-          proto$2.delete = observeDelete$1;
-  }
-  enableSetObservation();
-  function disableSetObservation() {
-      if (proto$2.add['observing'] === true)
-          proto$2.add = nativeAdd;
-      if (proto$2.clear['observing'] === true)
-          proto$2.clear = nativeClear$1;
-      if (proto$2.delete['observing'] === true)
-          proto$2.delete = nativeDelete$1;
-  }
-  let SetObserver = class SetObserver {
-      constructor(lifecycle, observedSet) {
-          this.lifecycle = lifecycle;
-          observedSet.$observer = this;
-          this.collection = observedSet;
-          this.resetIndexMap();
+      getElementHandler(target, propertyName) {
+          const tagName = target['tagName'];
+          const lookup = this.elementHandlerLookup;
+          if (tagName) {
+              if (lookup[tagName] && lookup[tagName][propertyName]) {
+                  return new EventSubscriber(lookup[tagName][propertyName]);
+              }
+              if (propertyName === 'textContent' || propertyName === 'innerHTML') {
+                  return new EventSubscriber(lookup['content editable'].value);
+              }
+              if (propertyName === 'scrollTop' || propertyName === 'scrollLeft') {
+                  return new EventSubscriber(lookup['scrollable element'][propertyName]);
+              }
+          }
+          return null;
       }
-  };
-  SetObserver = __decorate([
-      collectionObserver(7 /* set */)
-  ], SetObserver);
-  function getSetObserver(lifecycle, observedSet) {
-      return observedSet.$observer || new SetObserver(lifecycle, observedSet);
+      addEventListener(target, targetEvent, callbackOrListener, strategy) {
+          let delegatedHandlers;
+          let capturedHandlers;
+          let handlerEntry;
+          if (strategy === DelegationStrategy.bubbling) {
+              delegatedHandlers = this.delegatedHandlers;
+              handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleDelegatedEvent, false));
+              handlerEntry.increment();
+              const delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
+              return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
+          }
+          if (strategy === DelegationStrategy.capturing) {
+              capturedHandlers = this.capturedHandlers;
+              handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleCapturedEvent, true));
+              handlerEntry.increment();
+              const capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
+              return new DelegateOrCaptureSubscription(handlerEntry, capturedCallbacks, targetEvent, callbackOrListener);
+          }
+          return new TriggerSubscription(target, targetEvent, callbackOrListener);
+      }
   }
 
   const ISVGAnalyzer = DI.createInterface()
@@ -6344,6 +6440,201 @@ var au = (function (exports) {
           return false;
       }
   }));
+
+  const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
+  let XLinkAttributeAccessor = class XLinkAttributeAccessor {
+      // xlink namespaced attributes require getAttributeNS/setAttributeNS
+      // (even though the NS version doesn't work for other namespaces
+      // in html5 documents)
+      // Using very HTML-specific code here since this isn't likely to get
+      // called unless operating against a real HTML element.
+      constructor(lifecycle, obj, propertyKey, attributeName) {
+          this.attributeName = attributeName;
+          this.lifecycle = lifecycle;
+          this.obj = obj;
+          this.oldValue = this.currentValue = this.getValue();
+          this.propertyKey = propertyKey;
+      }
+      getValue() {
+          return this.obj.getAttributeNS(xlinkAttributeNS, this.attributeName);
+      }
+      setValueCore(newValue) {
+          this.obj.setAttributeNS(xlinkAttributeNS, this.attributeName, newValue);
+      }
+  };
+  XLinkAttributeAccessor = __decorate([
+      targetObserver('')
+  ], XLinkAttributeAccessor);
+  XLinkAttributeAccessor.prototype.attributeName = '';
+  let DataAttributeAccessor = class DataAttributeAccessor {
+      constructor(lifecycle, obj, propertyKey) {
+          this.lifecycle = lifecycle;
+          this.obj = obj;
+          this.oldValue = this.currentValue = this.getValue();
+          this.propertyKey = propertyKey;
+      }
+      getValue() {
+          return DOM.getAttribute(this.obj, this.propertyKey);
+      }
+      setValueCore(newValue) {
+          if (newValue === null) {
+              DOM.removeAttribute(this.obj, this.propertyKey);
+          }
+          else {
+              DOM.setAttribute(this.obj, this.propertyKey, newValue);
+          }
+      }
+  };
+  DataAttributeAccessor = __decorate([
+      targetObserver()
+  ], DataAttributeAccessor);
+  let StyleAttributeAccessor = class StyleAttributeAccessor {
+      constructor(lifecycle, obj) {
+          this.lifecycle = lifecycle;
+          this.obj = obj;
+          this.oldValue = this.currentValue = obj.style.cssText;
+      }
+      getValue() {
+          return this.obj.style.cssText;
+      }
+      _setProperty(style, value) {
+          let priority = '';
+          if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
+              priority = 'important';
+              value = value.replace('!important', '');
+          }
+          this.obj.style.setProperty(style, value, priority);
+      }
+      setValueCore(newValue) {
+          const styles = this.styles || {};
+          let style;
+          let version = this.version;
+          if (newValue !== null) {
+              if (newValue instanceof Object) {
+                  let value;
+                  for (style in newValue) {
+                      if (newValue.hasOwnProperty(style)) {
+                          value = newValue[style];
+                          style = style.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);
+                          styles[style] = version;
+                          this._setProperty(style, value);
+                      }
+                  }
+              }
+              else if (newValue.length) {
+                  const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
+                  let pair;
+                  while ((pair = rx.exec(newValue)) !== null) {
+                      style = pair[1];
+                      if (!style) {
+                          continue;
+                      }
+                      styles[style] = version;
+                      this._setProperty(style, pair[2]);
+                  }
+              }
+          }
+          this.styles = styles;
+          this.version += 1;
+          if (version === 0) {
+              return;
+          }
+          version -= 1;
+          for (style in styles) {
+              if (!styles.hasOwnProperty(style) || styles[style] !== version) {
+                  continue;
+              }
+              this.obj.style.removeProperty(style);
+          }
+      }
+  };
+  StyleAttributeAccessor = __decorate([
+      targetObserver()
+  ], StyleAttributeAccessor);
+  StyleAttributeAccessor.prototype.styles = null;
+  StyleAttributeAccessor.prototype.version = 0;
+  StyleAttributeAccessor.prototype.propertyKey = 'style';
+  let ClassAttributeAccessor = class ClassAttributeAccessor {
+      constructor(lifecycle, obj) {
+          this.lifecycle = lifecycle;
+          this.obj = obj;
+      }
+      getValue() {
+          return this.currentValue;
+      }
+      setValueCore(newValue) {
+          const nameIndex = this.nameIndex || {};
+          let version = this.version;
+          let names;
+          let name;
+          // Add the classes, tracking the version at which they were added.
+          if (newValue.length) {
+              const node = this.obj;
+              names = newValue.split(/\s+/);
+              for (let i = 0, length = names.length; i < length; i++) {
+                  name = names[i];
+                  if (!name.length) {
+                      continue;
+                  }
+                  nameIndex[name] = version;
+                  DOM.addClass(node, name);
+              }
+          }
+          // Update state variables.
+          this.nameIndex = nameIndex;
+          this.version += 1;
+          // First call to setValue?  We're done.
+          if (version === 0) {
+              return;
+          }
+          // Remove classes from previous version.
+          version -= 1;
+          for (name in nameIndex) {
+              if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
+                  continue;
+              }
+              // TODO: this has the side-effect that classes already present which are added again,
+              // will be removed if they're not present in the next update.
+              // Better would be do have some configurability for this behavior, allowing the user to
+              // decide whether initial classes always need to be kept, always removed, or something in between
+              DOM.removeClass(this.obj, name);
+          }
+      }
+  };
+  ClassAttributeAccessor = __decorate([
+      targetObserver('')
+  ], ClassAttributeAccessor);
+  ClassAttributeAccessor.prototype.doNotCache = true;
+  ClassAttributeAccessor.prototype.version = 0;
+  ClassAttributeAccessor.prototype.nameIndex = null;
+  let ElementPropertyAccessor = class ElementPropertyAccessor {
+      constructor(lifecycle, obj, propertyKey) {
+          this.lifecycle = lifecycle;
+          this.obj = obj;
+          this.propertyKey = propertyKey;
+      }
+      getValue() {
+          return this.obj[this.propertyKey];
+      }
+      setValueCore(value) {
+          this.obj[this.propertyKey] = value;
+      }
+  };
+  ElementPropertyAccessor = __decorate([
+      targetObserver('')
+  ], ElementPropertyAccessor);
+  class PropertyAccessor {
+      constructor(obj, propertyKey) {
+          this.obj = obj;
+          this.propertyKey = propertyKey;
+      }
+      getValue() {
+          return this.obj[this.propertyKey];
+      }
+      setValue(value) {
+          this.obj[this.propertyKey] = value;
+      }
+  }
 
   const toStringTag$1 = Object.prototype.toString;
   const IObserverLocator = DI.createInterface()
@@ -6535,6 +6826,270 @@ var au = (function (exports) {
       return null;
   }
 
+  let AttrBindingBehavior = class AttrBindingBehavior {
+      bind(flags, scope, binding) {
+          binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), binding.target, binding.targetProperty);
+      }
+      unbind(flags, scope, binding) {
+          return;
+      }
+  };
+  AttrBindingBehavior = __decorate([
+      bindingBehavior('attr')
+  ], AttrBindingBehavior);
+
+  const { oneTime: oneTime$2, toView: toView$2, fromView: fromView$1, twoWay } = BindingMode;
+  class BindingModeBehavior {
+      constructor(mode) {
+          this.mode = mode;
+      }
+      bind(flags, scope, binding) {
+          binding.originalMode = binding.mode;
+          binding.mode = this.mode;
+      }
+      unbind(flags, scope, binding) {
+          binding.mode = binding.originalMode;
+          binding.originalMode = null;
+      }
+  }
+  let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBehavior {
+      constructor() {
+          super(oneTime$2);
+      }
+  };
+  OneTimeBindingBehavior = __decorate([
+      bindingBehavior('oneTime')
+  ], OneTimeBindingBehavior);
+  let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
+      constructor() {
+          super(toView$2);
+      }
+  };
+  ToViewBindingBehavior = __decorate([
+      bindingBehavior('toView')
+  ], ToViewBindingBehavior);
+  let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
+      constructor() {
+          super(fromView$1);
+      }
+  };
+  FromViewBindingBehavior = __decorate([
+      bindingBehavior('fromView')
+  ], FromViewBindingBehavior);
+  let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
+      constructor() {
+          super(twoWay);
+      }
+  };
+  TwoWayBindingBehavior = __decorate([
+      bindingBehavior('twoWay')
+  ], TwoWayBindingBehavior);
+
+  const unset = {};
+  /** @internal */
+  function debounceCallSource(newValue, oldValue, flags) {
+      const state = this.debounceState;
+      clearTimeout(state.timeoutId);
+      state.timeoutId = setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
+  }
+  /** @internal */
+  function debounceCall(newValue, oldValue, flags) {
+      const state = this.debounceState;
+      clearTimeout(state.timeoutId);
+      if (!(flags & state.callContextToDebounce)) {
+          state.oldValue = unset;
+          this.debouncedMethod(newValue, oldValue, flags);
+          return;
+      }
+      if (state.oldValue === unset) {
+          state.oldValue = oldValue;
+      }
+      // To disambiguate between "number" and "NodeJS.Timer" we cast it to an unknown, so we can subsequently cast it to number.
+      const timeoutId = setTimeout(() => {
+          const ov = state.oldValue;
+          state.oldValue = unset;
+          this.debouncedMethod(newValue, ov, flags);
+      }, state.delay);
+      state.timeoutId = timeoutId;
+  }
+  const fromView$2 = BindingMode.fromView;
+  let DebounceBindingBehavior = class DebounceBindingBehavior {
+      bind(flags, scope, binding, delay = 200) {
+          let methodToDebounce;
+          let callContextToDebounce;
+          let debouncer;
+          if (binding instanceof Binding) {
+              methodToDebounce = 'handleChange';
+              debouncer = debounceCall;
+              callContextToDebounce = binding.mode & fromView$2 ? LifecycleFlags.updateSourceExpression : LifecycleFlags.updateTargetInstance;
+          }
+          else {
+              methodToDebounce = 'callSource';
+              debouncer = debounceCallSource;
+              callContextToDebounce = LifecycleFlags.updateTargetInstance;
+          }
+          // stash the original method and it's name.
+          // note: a generic name like "originalMethod" is not used to avoid collisions
+          // with other binding behavior types.
+          binding.debouncedMethod = binding[methodToDebounce];
+          binding.debouncedMethod.originalName = methodToDebounce;
+          // replace the original method with the debouncing version.
+          binding[methodToDebounce] = debouncer;
+          // create the debounce state.
+          binding.debounceState = {
+              callContextToDebounce,
+              delay,
+              timeoutId: 0,
+              oldValue: unset
+          };
+      }
+      unbind(flags, scope, binding) {
+          // restore the state of the binding.
+          const methodToRestore = binding.debouncedMethod.originalName;
+          binding[methodToRestore] = binding.debouncedMethod;
+          binding.debouncedMethod = null;
+          clearTimeout(binding.debounceState.timeoutId);
+          binding.debounceState = null;
+      }
+  };
+  DebounceBindingBehavior = __decorate([
+      bindingBehavior('debounce')
+  ], DebounceBindingBehavior);
+
+  /** @internal */
+  function handleSelfEvent(event) {
+      const target = findOriginalEventTarget(event);
+      if (this.target !== target) {
+          return;
+      }
+      return this.selfEventCallSource(event);
+  }
+  let SelfBindingBehavior = class SelfBindingBehavior {
+      bind(flags, scope, binding) {
+          if (!binding.callSource || !binding.targetEvent) {
+              throw Reporter.error(8);
+          }
+          binding.selfEventCallSource = binding.callSource;
+          binding.callSource = handleSelfEvent;
+      }
+      unbind(flags, scope, binding) {
+          binding.callSource = binding.selfEventCallSource;
+          binding.selfEventCallSource = null;
+      }
+  };
+  SelfBindingBehavior = __decorate([
+      bindingBehavior('self')
+  ], SelfBindingBehavior);
+
+  let SignalBindingBehavior = class SignalBindingBehavior {
+      constructor(signaler) {
+          this.signaler = signaler;
+      }
+      bind(flags, scope, binding, ...args) {
+          if (!binding.updateTarget) {
+              throw Reporter.error(11);
+          }
+          if (arguments.length === 4) {
+              const name = args[0];
+              this.signaler.addSignalListener(name, binding);
+              binding.signal = name;
+          }
+          else if (arguments.length > 4) {
+              const names = Array.prototype.slice.call(arguments, 3);
+              let i = names.length;
+              while (i--) {
+                  const name = names[i];
+                  this.signaler.addSignalListener(name, binding);
+              }
+              binding.signal = names;
+          }
+          else {
+              throw Reporter.error(12);
+          }
+      }
+      unbind(flags, scope, binding) {
+          const name = binding.signal;
+          binding.signal = null;
+          if (Array.isArray(name)) {
+              const names = name;
+              let i = names.length;
+              while (i--) {
+                  this.signaler.removeSignalListener(names[i], binding);
+              }
+          }
+          else {
+              this.signaler.removeSignalListener(name, binding);
+          }
+      }
+  };
+  SignalBindingBehavior = __decorate([
+      bindingBehavior('signal'),
+      inject(ISignaler)
+  ], SignalBindingBehavior);
+
+  /** @internal */
+  function throttle(newValue) {
+      const state = this.throttleState;
+      const elapsed = +new Date() - state.last;
+      if (elapsed >= state.delay) {
+          clearTimeout(state.timeoutId);
+          state.timeoutId = -1;
+          state.last = +new Date();
+          this.throttledMethod(newValue);
+          return;
+      }
+      state.newValue = newValue;
+      if (state.timeoutId === -1) {
+          // To disambiguate between "number" and "NodeJS.Timer" we cast it to an unknown, so we can subsequently cast it to number.
+          const timeoutId = setTimeout(() => {
+              state.timeoutId = -1;
+              state.last = +new Date();
+              this.throttledMethod(state.newValue);
+          }, state.delay - elapsed);
+          state.timeoutId = timeoutId;
+      }
+  }
+  let ThrottleBindingBehavior = class ThrottleBindingBehavior {
+      bind(flags, scope, binding, delay = 200) {
+          let methodToThrottle;
+          if (binding instanceof Binding) {
+              if (binding.mode === BindingMode.twoWay) {
+                  methodToThrottle = 'updateSource';
+              }
+              else {
+                  methodToThrottle = 'updateTarget';
+              }
+          }
+          else {
+              methodToThrottle = 'callSource';
+          }
+          // stash the original method and it's name.
+          // note: a generic name like "originalMethod" is not used to avoid collisions
+          // with other binding behavior types.
+          binding.throttledMethod = binding[methodToThrottle];
+          binding.throttledMethod.originalName = methodToThrottle;
+          // replace the original method with the throttling version.
+          binding[methodToThrottle] = throttle;
+          // create the throttle state.
+          binding.throttleState = {
+              delay: delay,
+              last: 0,
+              timeoutId: -1
+          };
+      }
+      unbind(flags, scope, binding) {
+          // restore the state of the binding.
+          const methodToRestore = binding.throttledMethod.originalName;
+          binding[methodToRestore] = binding.throttledMethod;
+          binding.throttledMethod = null;
+          clearTimeout(binding.throttleState.timeoutId);
+          binding.throttleState = null;
+      }
+  };
+  ThrottleBindingBehavior = __decorate([
+      bindingBehavior('throttle')
+  ], ThrottleBindingBehavior);
+
   let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
       constructor(observerLocator) {
           this.observerLocator = observerLocator;
@@ -6568,564 +7123,6 @@ var au = (function (exports) {
       bindingBehavior('updateTrigger'),
       inject(IObserverLocator)
   ], UpdateTriggerBindingBehavior);
-
-  const slice$7 = Array.prototype.slice;
-  class Call {
-      constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
-          this.$nextBind = null;
-          this.$prevBind = null;
-          this.$state = 0 /* none */;
-          this.locator = locator;
-          this.sourceExpression = sourceExpression;
-          this.targetObserver = observerLocator.getObserver(target, targetProperty);
-      }
-      callSource(args) {
-          if (Tracer.enabled) {
-              Tracer.enter('Call.callSource', slice$7.call(arguments));
-          }
-          const overrideContext = this.$scope.overrideContext;
-          Object.assign(overrideContext, args);
-          const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
-          for (const prop in args) {
-              delete overrideContext[prop];
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-          return result;
-      }
-      $bind(flags, scope) {
-          if (Tracer.enabled) {
-              Tracer.enter('Call.$bind', slice$7.call(arguments));
-          }
-          if (this.$state & 2 /* isBound */) {
-              if (this.$scope === scope) {
-                  if (Tracer.enabled) {
-                      Tracer.leave();
-                  }
-                  return;
-              }
-              this.$unbind(flags | LifecycleFlags.fromBind);
-          }
-          // add isBinding flag
-          this.$state |= 1 /* isBinding */;
-          this.$scope = scope;
-          const sourceExpression = this.sourceExpression;
-          if (hasBind(sourceExpression)) {
-              sourceExpression.bind(flags, scope, this);
-          }
-          this.targetObserver.setValue($args => this.callSource($args), flags);
-          // add isBound flag and remove isBinding flag
-          this.$state |= 2 /* isBound */;
-          this.$state &= ~1 /* isBinding */;
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      $unbind(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Call.$unbind', slice$7.call(arguments));
-          }
-          if (!(this.$state & 2 /* isBound */)) {
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return;
-          }
-          // add isUnbinding flag
-          this.$state |= 64 /* isUnbinding */;
-          const sourceExpression = this.sourceExpression;
-          if (hasUnbind(sourceExpression)) {
-              sourceExpression.unbind(flags, this.$scope, this);
-          }
-          this.$scope = null;
-          this.targetObserver.setValue(null, flags);
-          // remove isBound and isUnbinding flags
-          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      observeProperty(obj, propertyName) {
-          return;
-      }
-      handleChange(newValue, previousValue, flags) {
-          return;
-      }
-  }
-
-  const IExpressionParser = DI.createInterface()
-      .withDefault(x => x.singleton(ExpressionParser));
-  /** @internal */
-  class ExpressionParser {
-      constructor() {
-          this.expressionLookup = Object.create(null);
-          this.forOfLookup = Object.create(null);
-          this.interpolationLookup = Object.create(null);
-      }
-      parse(expression, bindingType) {
-          switch (bindingType) {
-              case 2048 /* Interpolation */:
-                  {
-                      let found = this.interpolationLookup[expression];
-                      if (found === undefined) {
-                          found = this.interpolationLookup[expression] = this.parseCore(expression, bindingType);
-                      }
-                      return found;
-                  }
-              case 539 /* ForCommand */:
-                  {
-                      let found = this.forOfLookup[expression];
-                      if (found === undefined) {
-                          found = this.forOfLookup[expression] = this.parseCore(expression, bindingType);
-                      }
-                      return found;
-                  }
-              default:
-                  {
-                      // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
-                      // But don't cache it, because empty strings are always invalid for any other type of binding
-                      if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
-                          return PrimitiveLiteral.$empty;
-                      }
-                      let found = this.expressionLookup[expression];
-                      if (found === undefined) {
-                          found = this.expressionLookup[expression] = this.parseCore(expression, bindingType);
-                      }
-                      return found;
-                  }
-          }
-      }
-      cache(expressions) {
-          const { forOfLookup, expressionLookup, interpolationLookup } = this;
-          for (const expression in expressions) {
-              const expr = expressions[expression];
-              switch (expr.$kind) {
-                  case 24 /* Interpolation */:
-                      interpolationLookup[expression] = expr;
-                      break;
-                  case 55 /* ForOfStatement */:
-                      forOfLookup[expression] = expr;
-                      break;
-                  default:
-                      expressionLookup[expression] = expr;
-              }
-          }
-      }
-      parseCore(expression, bindingType) {
-          try {
-              const parts = expression.split('.');
-              const firstPart = parts[0];
-              let current;
-              if (firstPart.endsWith('()')) {
-                  current = new CallScope(firstPart.replace('()', ''), PLATFORM.emptyArray);
-              }
-              else {
-                  current = new AccessScope(parts[0]);
-              }
-              let index = 1;
-              while (index < parts.length) {
-                  const currentPart = parts[index];
-                  if (currentPart.endsWith('()')) {
-                      current = new CallMember(current, currentPart.replace('()', ''), PLATFORM.emptyArray);
-                  }
-                  else {
-                      current = new AccessMember(current, parts[index]);
-                  }
-                  index++;
-              }
-              return current;
-          }
-          catch (e) {
-              throw Reporter.error(3, e);
-          }
-      }
-  }
-
-  const { toView: toView$2, oneTime: oneTime$2 } = BindingMode;
-  class MultiInterpolationBinding {
-      constructor(observerLocator, interpolation, target, targetProperty, mode, locator) {
-          this.$nextBind = null;
-          this.$prevBind = null;
-          this.$state = 0 /* none */;
-          this.$scope = null;
-          this.interpolation = interpolation;
-          this.locator = locator;
-          this.mode = mode;
-          this.observerLocator = observerLocator;
-          this.target = target;
-          this.targetProperty = targetProperty;
-          // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
-          // value converters and binding behaviors.
-          // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
-          // in which case the renderer will create the TextBinding directly
-          const expressions = interpolation.expressions;
-          const parts = this.parts = Array(expressions.length);
-          for (let i = 0, ii = expressions.length; i < ii; ++i) {
-              parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
-          }
-      }
-      $bind(flags, scope) {
-          if (this.$state & 2 /* isBound */) {
-              if (this.$scope === scope) {
-                  return;
-              }
-              this.$unbind(flags);
-          }
-          this.$state |= 2 /* isBound */;
-          this.$scope = scope;
-          const parts = this.parts;
-          for (let i = 0, ii = parts.length; i < ii; ++i) {
-              parts[i].$bind(flags, scope);
-          }
-      }
-      $unbind(flags) {
-          if (!(this.$state & 2 /* isBound */)) {
-              return;
-          }
-          this.$state &= ~2 /* isBound */;
-          this.$scope = null;
-          const parts = this.parts;
-          for (let i = 0, ii = parts.length; i < ii; ++i) {
-              parts[i].$unbind(flags);
-          }
-      }
-  }
-  let InterpolationBinding = class InterpolationBinding {
-      // tslint:disable-next-line:parameters-max-number
-      constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
-          this.$state = 0 /* none */;
-          this.interpolation = interpolation;
-          this.isFirst = isFirst;
-          this.mode = mode;
-          this.locator = locator;
-          this.observerLocator = observerLocator;
-          this.sourceExpression = sourceExpression;
-          this.target = target;
-          this.targetProperty = targetProperty;
-          this.targetObserver = observerLocator.getAccessor(target, targetProperty);
-      }
-      updateTarget(value, flags) {
-          this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
-      }
-      handleChange(_newValue, _previousValue, flags) {
-          if (!(this.$state & 2 /* isBound */)) {
-              return;
-          }
-          const previousValue = this.targetObserver.getValue();
-          const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
-          if (newValue !== previousValue) {
-              this.updateTarget(newValue, flags);
-          }
-          if ((this.mode & oneTime$2) === 0) {
-              this.version++;
-              this.sourceExpression.connect(flags, this.$scope, this);
-              this.unobserve(false);
-          }
-      }
-      $bind(flags, scope) {
-          if (this.$state & 2 /* isBound */) {
-              if (this.$scope === scope) {
-                  return;
-              }
-              this.$unbind(flags);
-          }
-          this.$state |= 2 /* isBound */;
-          this.$scope = scope;
-          const sourceExpression = this.sourceExpression;
-          if (sourceExpression.bind) {
-              sourceExpression.bind(flags, scope, this);
-          }
-          // since the interpolation already gets the whole value, we only need to let the first
-          // text binding do the update if there are multiple
-          if (this.isFirst) {
-              this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator), flags);
-          }
-          if (this.mode & toView$2) {
-              sourceExpression.connect(flags, scope, this);
-          }
-      }
-      $unbind(flags) {
-          if (!(this.$state & 2 /* isBound */)) {
-              return;
-          }
-          this.$state &= ~2 /* isBound */;
-          const sourceExpression = this.sourceExpression;
-          if (sourceExpression.unbind) {
-              sourceExpression.unbind(flags, this.$scope, this);
-          }
-          this.$scope = null;
-          this.unobserve(true);
-      }
-  };
-  InterpolationBinding = __decorate([
-      connectable()
-  ], InterpolationBinding);
-
-  const slice$8 = Array.prototype.slice;
-  let LetBinding = class LetBinding {
-      constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
-          this.$nextBind = null;
-          this.$prevBind = null;
-          this.$state = 0 /* none */;
-          this.$lifecycle = locator.get(ILifecycle);
-          this.$scope = null;
-          this.locator = locator;
-          this.observerLocator = observerLocator;
-          this.sourceExpression = sourceExpression;
-          this.target = null;
-          this.targetProperty = targetProperty;
-          this.toViewModel = toViewModel;
-      }
-      handleChange(_newValue, _previousValue, flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('LetBinding.handleChange', slice$8.call(arguments));
-          }
-          if (!(this.$state & 2 /* isBound */)) {
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return;
-          }
-          if (flags & LifecycleFlags.updateTargetInstance) {
-              const { target, targetProperty } = this;
-              const previousValue = target[targetProperty];
-              const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
-              if (newValue !== previousValue) {
-                  target[targetProperty] = newValue;
-              }
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return;
-          }
-          throw Reporter.error(15, flags);
-      }
-      $bind(flags, scope) {
-          if (Tracer.enabled) {
-              Tracer.enter('LetBinding.$bind', slice$8.call(arguments));
-          }
-          if (this.$state & 2 /* isBound */) {
-              if (this.$scope === scope) {
-                  if (Tracer.enabled) {
-                      Tracer.leave();
-                  }
-                  return;
-              }
-              this.$unbind(flags | LifecycleFlags.fromBind);
-          }
-          // add isBinding flag
-          this.$state |= 1 /* isBinding */;
-          this.$scope = scope;
-          this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext);
-          const sourceExpression = this.sourceExpression;
-          if (sourceExpression.bind) {
-              sourceExpression.bind(flags, scope, this);
-          }
-          // sourceExpression might have been changed during bind
-          this.target[this.targetProperty] = this.sourceExpression.evaluate(LifecycleFlags.fromBind, scope, this.locator);
-          this.sourceExpression.connect(flags, scope, this);
-          // add isBound flag and remove isBinding flag
-          this.$state |= 2 /* isBound */;
-          this.$state &= ~1 /* isBinding */;
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      $unbind(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('LetBinding.$unbind', slice$8.call(arguments));
-          }
-          if (!(this.$state & 2 /* isBound */)) {
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return;
-          }
-          // add isUnbinding flag
-          this.$state |= 64 /* isUnbinding */;
-          const sourceExpression = this.sourceExpression;
-          if (sourceExpression.unbind) {
-              sourceExpression.unbind(flags, this.$scope, this);
-          }
-          this.$scope = null;
-          this.unobserve(true);
-          // remove isBound and isUnbinding flags
-          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-  };
-  LetBinding = __decorate([
-      connectable()
-  ], LetBinding);
-
-  const slice$9 = Array.prototype.slice;
-  class Listener {
-      constructor(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
-          this.$nextBind = null;
-          this.$prevBind = null;
-          this.$state = 0 /* none */;
-          this.delegationStrategy = delegationStrategy;
-          this.locator = locator;
-          this.preventDefault = preventDefault;
-          this.sourceExpression = sourceExpression;
-          this.target = target;
-          this.targetEvent = targetEvent;
-          this.eventManager = eventManager;
-      }
-      callSource(event) {
-          if (Tracer.enabled) {
-              Tracer.enter('Listener.callSource', slice$9.call(arguments));
-          }
-          const overrideContext = this.$scope.overrideContext;
-          overrideContext['$event'] = event;
-          const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
-          delete overrideContext['$event'];
-          if (result !== true && this.preventDefault) {
-              event.preventDefault();
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-          return result;
-      }
-      handleEvent(event) {
-          this.callSource(event);
-      }
-      $bind(flags, scope) {
-          if (Tracer.enabled) {
-              Tracer.enter('Listener.$bind', slice$9.call(arguments));
-          }
-          if (this.$state & 2 /* isBound */) {
-              if (this.$scope === scope) {
-                  if (Tracer.enabled) {
-                      Tracer.leave();
-                  }
-                  return;
-              }
-              this.$unbind(flags | LifecycleFlags.fromBind);
-          }
-          // add isBinding flag
-          this.$state |= 1 /* isBinding */;
-          this.$scope = scope;
-          const sourceExpression = this.sourceExpression;
-          if (hasBind(sourceExpression)) {
-              sourceExpression.bind(flags, scope, this);
-          }
-          this.handler = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
-          // add isBound flag and remove isBinding flag
-          this.$state |= 2 /* isBound */;
-          this.$state &= ~1 /* isBinding */;
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      $unbind(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Listener.$unbind', slice$9.call(arguments));
-          }
-          if (!(this.$state & 2 /* isBound */)) {
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return;
-          }
-          // add isUnbinding flag
-          this.$state |= 64 /* isUnbinding */;
-          const sourceExpression = this.sourceExpression;
-          if (hasUnbind(sourceExpression)) {
-              sourceExpression.unbind(flags, this.$scope, this);
-          }
-          this.$scope = null;
-          this.handler.dispose();
-          this.handler = null;
-          // remove isBound and isUnbinding flags
-          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      observeProperty(obj, propertyName) {
-          return;
-      }
-      handleChange(newValue, previousValue, flags) {
-          return;
-      }
-  }
-
-  const slice$a = Array.prototype.slice;
-  class Ref {
-      constructor(sourceExpression, target, locator) {
-          this.$nextBind = null;
-          this.$prevBind = null;
-          this.$state = 0 /* none */;
-          this.locator = locator;
-          this.sourceExpression = sourceExpression;
-          this.target = target;
-      }
-      $bind(flags, scope) {
-          if (Tracer.enabled) {
-              Tracer.enter('Ref.$bind', slice$a.call(arguments));
-          }
-          if (this.$state & 2 /* isBound */) {
-              if (this.$scope === scope) {
-                  if (Tracer.enabled) {
-                      Tracer.leave();
-                  }
-                  return;
-              }
-              this.$unbind(flags | LifecycleFlags.fromBind);
-          }
-          // add isBinding flag
-          this.$state |= 1 /* isBinding */;
-          this.$scope = scope;
-          const sourceExpression = this.sourceExpression;
-          if (hasBind(sourceExpression)) {
-              sourceExpression.bind(flags, scope, this);
-          }
-          this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
-          // add isBound flag and remove isBinding flag
-          this.$state |= 2 /* isBound */;
-          this.$state &= ~1 /* isBinding */;
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      $unbind(flags) {
-          if (Tracer.enabled) {
-              Tracer.enter('Ref.$unbind', slice$a.call(arguments));
-          }
-          if (!(this.$state & 2 /* isBound */)) {
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
-              return;
-          }
-          // add isUnbinding flag
-          this.$state |= 64 /* isUnbinding */;
-          if (this.sourceExpression.evaluate(flags, this.$scope, this.locator) === this.target) {
-              this.sourceExpression.assign(flags, this.$scope, this.locator, null);
-          }
-          const sourceExpression = this.sourceExpression;
-          if (hasUnbind(sourceExpression)) {
-              sourceExpression.unbind(flags, this.$scope, this);
-          }
-          this.$scope = null;
-          // remove isBound and isUnbinding flags
-          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-          if (Tracer.enabled) {
-              Tracer.leave();
-          }
-      }
-      observeProperty(obj, propertyName) {
-          return;
-      }
-      handleChange(newValue, previousValue, flags) {
-          return;
-      }
-  }
 
   /** @internal */
   const customElementName = 'custom-element';
@@ -7261,202 +7258,12 @@ var au = (function (exports) {
       return def;
   }
 
-  function bindable(configOrTarget, prop) {
-      let config;
-      const decorator = function decorate($target, $prop) {
-          const Type = $target.constructor;
-          let bindables = Type.bindables;
-          if (bindables === undefined) {
-              bindables = Type.bindables = {};
-          }
-          if (!config.attribute) {
-              config.attribute = PLATFORM.kebabCase($prop);
-          }
-          if (!config.callback) {
-              config.callback = `${$prop}Changed`;
-          }
-          if (config.mode === undefined) {
-              config.mode = BindingMode.toView;
-          }
-          if (arguments.length > 1) {
-              // Non invocation:
-              // - @bindable
-              // Invocation with or w/o opts:
-              // - @bindable()
-              // - @bindable({...opts})
-              config.property = $prop;
-          }
-          bindables[config.property] = config;
-      };
-      if (arguments.length > 1) {
-          // Non invocation:
-          // - @bindable
-          config = {};
-          decorator(configOrTarget, prop);
-          return;
-      }
-      else if (typeof configOrTarget === 'string') {
-          // ClassDecorator
-          // - @bindable('bar')
-          // Direct call:
-          // - @bindable('bar')(Foo)
-          config = {};
-          return decorator;
-      }
-      // Invocation with or w/o opts:
-      // - @bindable()
-      // - @bindable({...opts})
-      config = (configOrTarget || {});
-      return decorator;
-  }
-
   const slice$b = Array.prototype.slice;
-  function createElement(tagOrType, props, children) {
-      if (typeof tagOrType === 'string') {
-          return createElementForTag(tagOrType, props, children);
-      }
-      else {
-          return createElementForType(tagOrType, props, children);
-      }
-  }
-  class RenderPlan {
-      constructor(node, instructions, dependencies) {
-          this.dependencies = dependencies;
-          this.instructions = instructions;
-          this.node = node;
-      }
-      get definition() {
-          return this.lazyDefinition || (this.lazyDefinition =
-              buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies));
-      }
-      getElementTemplate(engine, Type) {
-          return engine.getElementTemplate(this.definition, Type);
-      }
-      createView(engine, parentContext) {
-          return this.getViewFactory(engine, parentContext).create();
-      }
-      getViewFactory(engine, parentContext) {
-          return engine.getViewFactory(this.definition, parentContext);
-      }
-      /** @internal */
-      mergeInto(parent, instructions, dependencies) {
-          DOM.appendChild(parent, this.node);
-          instructions.push(...this.instructions);
-          dependencies.push(...this.dependencies);
-      }
-  }
-  function createElementForTag(tagName, props, children) {
-      if (Tracer.enabled) {
-          Tracer.enter('createElementForTag', slice$b.call(arguments));
-      }
-      const instructions = [];
-      const allInstructions = [];
-      const dependencies = [];
-      const element = DOM.createElement(tagName);
-      let hasInstructions = false;
-      if (props) {
-          Object.keys(props)
-              .forEach(to => {
-              const value = props[to];
-              if (isTargetedInstruction(value)) {
-                  hasInstructions = true;
-                  instructions.push(value);
-              }
-              else {
-                  DOM.setAttribute(element, to, value);
-              }
-          });
-      }
-      if (hasInstructions) {
-          DOM.setAttribute(element, 'class', 'au');
-          allInstructions.push(instructions);
-      }
-      if (children) {
-          addChildren(element, children, allInstructions, dependencies);
-      }
-      if (Tracer.enabled) {
-          Tracer.leave();
-      }
-      return new RenderPlan(element, allInstructions, dependencies);
-  }
-  function createElementForType(Type, props, children) {
-      if (Tracer.enabled) {
-          Tracer.enter('createElementForType', slice$b.call(arguments));
-      }
-      const tagName = Type.description.name;
-      const instructions = [];
-      const allInstructions = [instructions];
-      const dependencies = [];
-      const childInstructions = [];
-      const bindables = Type.description.bindables;
-      const element = DOM.createElement(tagName);
-      DOM.setAttribute(element, 'class', 'au');
-      if (!dependencies.includes(Type)) {
-          dependencies.push(Type);
-      }
-      instructions.push({
-          type: "k" /* hydrateElement */,
-          res: tagName,
-          instructions: childInstructions
-      });
-      if (props) {
-          Object.keys(props)
-              .forEach(to => {
-              const value = props[to];
-              if (isTargetedInstruction(value)) {
-                  childInstructions.push(value);
-              }
-              else {
-                  const bindable = bindables[to];
-                  if (bindable) {
-                      childInstructions.push({
-                          type: "i" /* setProperty */,
-                          to,
-                          value
-                      });
-                  }
-                  else {
-                      childInstructions.push({
-                          type: "j" /* setAttribute */,
-                          to,
-                          value
-                      });
-                  }
-              }
-          });
-      }
-      if (children) {
-          addChildren(element, children, allInstructions, dependencies);
-      }
-      if (Tracer.enabled) {
-          Tracer.leave();
-      }
-      return new RenderPlan(element, allInstructions, dependencies);
-  }
-  function addChildren(parent, children, allInstructions, dependencies) {
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-          const current = children[i];
-          switch (typeof current) {
-              case 'string':
-                  DOM.appendChild(parent, DOM.createTextNode(current));
-                  break;
-              case 'object':
-                  if (DOM.isNodeInstance(current)) {
-                      DOM.appendChild(parent, current);
-                  }
-                  else if ('mergeInto' in current) {
-                      current.mergeInto(parent, allInstructions, dependencies);
-                  }
-          }
-      }
-  }
-
-  const slice$c = Array.prototype.slice;
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $attachAttribute(flags, encapsulationSource) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$attachAttribute`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$attachAttribute`, slice$b.call(arguments));
       }
       if (this.$state & 8 /* isAttached */) {
           if (Tracer.enabled) {
@@ -7488,7 +7295,7 @@ var au = (function (exports) {
   // tslint:disable-next-line:no-ignored-initial-value
   function $attachElement(flags, encapsulationSource) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$attachElement`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$attachElement`, slice$b.call(arguments));
       }
       if (this.$state & 8 /* isAttached */) {
           if (Tracer.enabled) {
@@ -7526,7 +7333,7 @@ var au = (function (exports) {
   /** @internal */
   function $attachView(flags, encapsulationSource) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$attachView`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$attachView`, slice$b.call(arguments));
       }
       if (this.$state & 8 /* isAttached */) {
           if (Tracer.enabled) {
@@ -7554,7 +7361,7 @@ var au = (function (exports) {
   // tslint:disable-next-line:no-ignored-initial-value
   function $detachAttribute(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$detachAttribute`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$detachAttribute`, slice$b.call(arguments));
       }
       if (this.$state & 8 /* isAttached */) {
           const lifecycle = this.$lifecycle;
@@ -7581,7 +7388,7 @@ var au = (function (exports) {
   // tslint:disable-next-line:no-ignored-initial-value
   function $detachElement(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$detachElement`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$detachElement`, slice$b.call(arguments));
       }
       if (this.$state & 8 /* isAttached */) {
           const lifecycle = this.$lifecycle;
@@ -7619,7 +7426,7 @@ var au = (function (exports) {
   /** @internal */
   function $detachView(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$detachView`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$detachView`, slice$b.call(arguments));
       }
       if (this.$state & 8 /* isAttached */) {
           // add isDetaching flag
@@ -7647,7 +7454,7 @@ var au = (function (exports) {
   /** @internal */
   function $cacheAttribute(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$cacheAttribute`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$cacheAttribute`, slice$b.call(arguments));
       }
       flags |= LifecycleFlags.fromCache;
       if (this.$hooks & 2048 /* hasCaching */) {
@@ -7660,7 +7467,7 @@ var au = (function (exports) {
   /** @internal */
   function $cacheElement(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$cacheElement`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$cacheElement`, slice$b.call(arguments));
       }
       flags |= LifecycleFlags.fromCache;
       if (this.$hooks & 2048 /* hasCaching */) {
@@ -7678,7 +7485,7 @@ var au = (function (exports) {
   /** @internal */
   function $cacheView(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$cacheView`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$cacheView`, slice$b.call(arguments));
       }
       flags |= LifecycleFlags.fromCache;
       let current = this.$attachableTail;
@@ -7690,7 +7497,7 @@ var au = (function (exports) {
   /** @internal */
   function $mountElement(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$mountElement`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$mountElement`, slice$b.call(arguments));
       }
       if (!(this.$state & 16 /* isMounted */)) {
           this.$state |= 16 /* isMounted */;
@@ -7703,7 +7510,7 @@ var au = (function (exports) {
   /** @internal */
   function $unmountElement(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$unmountElement`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$unmountElement`, slice$b.call(arguments));
       }
       if (this.$state & 16 /* isMounted */) {
           this.$state &= ~16 /* isMounted */;
@@ -7716,7 +7523,7 @@ var au = (function (exports) {
   /** @internal */
   function $mountView(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$mountView`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$mountView`, slice$b.call(arguments));
       }
       if (!(this.$state & 16 /* isMounted */)) {
           this.$state |= 16 /* isMounted */;
@@ -7729,7 +7536,7 @@ var au = (function (exports) {
   /** @internal */
   function $unmountView(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$unmountView`, slice$c.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$unmountView`, slice$b.call(arguments));
       }
       if (this.$state & 16 /* isMounted */) {
           this.$state &= ~16 /* isMounted */;
@@ -7755,11 +7562,11 @@ var au = (function (exports) {
       return false;
   }
 
-  const slice$d = Array.prototype.slice;
+  const slice$c = Array.prototype.slice;
   /** @internal */
   function $bindAttribute(flags, scope) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$bindAttribute`, slice$d.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$bindAttribute`, slice$c.call(arguments));
       }
       flags |= LifecycleFlags.fromBind;
       if (this.$state & 2 /* isBound */) {
@@ -7794,7 +7601,7 @@ var au = (function (exports) {
   /** @internal */
   function $bindElement(flags, parentScope) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$bindElement`, slice$d.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$bindElement`, slice$c.call(arguments));
       }
       if (this.$state & 2 /* isBound */) {
           if (Tracer.enabled) {
@@ -7832,7 +7639,7 @@ var au = (function (exports) {
   /** @internal */
   function $bindView(flags, scope) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$bindView`, slice$d.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$bindView`, slice$c.call(arguments));
       }
       flags |= LifecycleFlags.fromBind;
       if (this.$state & 2 /* isBound */) {
@@ -7862,7 +7669,7 @@ var au = (function (exports) {
   /** @internal */
   function $unbindAttribute(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$unbindAttribute`, slice$d.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$unbindAttribute`, slice$c.call(arguments));
       }
       if (this.$state & 2 /* isBound */) {
           const lifecycle = this.$lifecycle;
@@ -7888,7 +7695,7 @@ var au = (function (exports) {
   /** @internal */
   function $unbindElement(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$unbindElement`, slice$d.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$unbindElement`, slice$c.call(arguments));
       }
       if (this.$state & 2 /* isBound */) {
           const lifecycle = this.$lifecycle;
@@ -7920,7 +7727,7 @@ var au = (function (exports) {
   /** @internal */
   function $unbindView(flags) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$unbindView`, slice$d.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$unbindView`, slice$c.call(arguments));
       }
       if (this.$state & 2 /* isBound */) {
           // add isUnbinding flag
@@ -7940,33 +7747,7 @@ var au = (function (exports) {
       }
   }
 
-  class RuntimeCompilationResources {
-      constructor(context) {
-          this.context = context;
-      }
-      find(kind, name) {
-          const key = kind.keyFrom(name);
-          const resolver = this.context.getResolver(key, false);
-          if (resolver !== null && resolver.getFactory) {
-              const factory = resolver.getFactory(this.context);
-              if (factory !== null) {
-                  const description = factory.Type.description;
-                  return description === undefined ? null : description;
-              }
-          }
-          return null;
-      }
-      create(kind, name) {
-          const key = kind.keyFrom(name);
-          if (this.context.has(key, false)) {
-              const instance = this.context.get(key);
-              return instance === undefined ? null : instance;
-          }
-          return null;
-      }
-  }
-
-  const slice$e = Array.prototype.slice;
+  const slice$d = Array.prototype.slice;
   /** @internal */
   class View {
       constructor($lifecycle, cache) {
@@ -7989,7 +7770,7 @@ var au = (function (exports) {
       }
       hold(location, flags) {
           if (Tracer.enabled) {
-              Tracer.enter('View.hold', slice$e.call(arguments));
+              Tracer.enter('View.hold', slice$d.call(arguments));
           }
           if (!location.parentNode) { // unmet invariant: location must be a child of some other node
               throw Reporter.error(60); // TODO: organize error codes
@@ -8001,7 +7782,7 @@ var au = (function (exports) {
       }
       lockScope(scope) {
           if (Tracer.enabled) {
-              Tracer.enter('View.lockScope', slice$e.call(arguments));
+              Tracer.enter('View.lockScope', slice$d.call(arguments));
           }
           this.$scope = scope;
           this.$bind = lockedBind;
@@ -8011,7 +7792,7 @@ var au = (function (exports) {
       }
       release(flags) {
           if (Tracer.enabled) {
-              Tracer.enter('View.release', slice$e.call(arguments));
+              Tracer.enter('View.release', slice$d.call(arguments));
           }
           this.isFree = true;
           if (this.$state & 8 /* isAttached */) {
@@ -8113,7 +7894,7 @@ var au = (function (exports) {
       proto.$unmount = $unmountView;
   })(View.prototype);
 
-  const slice$f = Array.prototype.slice;
+  const slice$e = Array.prototype.slice;
   const ITemplateCompiler = DI.createInterface().noDefault();
   var ViewCompileFlags;
   (function (ViewCompileFlags) {
@@ -8124,7 +7905,7 @@ var au = (function (exports) {
   /** @internal */
   function $hydrateAttribute(renderingEngine) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice$f.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice$e.call(arguments));
       }
       const Type = this.constructor;
       renderingEngine.applyRuntimeBehavior(Type, this);
@@ -8138,7 +7919,7 @@ var au = (function (exports) {
   /** @internal */
   function $hydrateElement(renderingEngine, host, options = PLATFORM.emptyObject) {
       if (Tracer.enabled) {
-          Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice$f.call(arguments));
+          Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice$e.call(arguments));
       }
       const Type = this.constructor;
       const description = Type.description;
@@ -8274,7 +8055,7 @@ var au = (function (exports) {
       }
       project(nodes) {
           if (Tracer.enabled) {
-              Tracer.enter('ShadowDOMProjector.project', slice$f.call(arguments));
+              Tracer.enter('ShadowDOMProjector.project', slice$e.call(arguments));
           }
           nodes.appendTo(this.host);
           if (Tracer.enabled) {
@@ -8283,7 +8064,7 @@ var au = (function (exports) {
       }
       take(nodes) {
           if (Tracer.enabled) {
-              Tracer.enter('ShadowDOMProjector.take', slice$f.call(arguments));
+              Tracer.enter('ShadowDOMProjector.take', slice$e.call(arguments));
           }
           nodes.remove();
           if (Tracer.enabled) {
@@ -8317,7 +8098,7 @@ var au = (function (exports) {
       }
       project(nodes) {
           if (Tracer.enabled) {
-              Tracer.enter('ContainerlessProjector.project', slice$f.call(arguments));
+              Tracer.enter('ContainerlessProjector.project', slice$e.call(arguments));
           }
           nodes.insertBefore(this.host);
           if (Tracer.enabled) {
@@ -8326,7 +8107,7 @@ var au = (function (exports) {
       }
       take(nodes) {
           if (Tracer.enabled) {
-              Tracer.enter('ContainerlessProjector.take', slice$f.call(arguments));
+              Tracer.enter('ContainerlessProjector.take', slice$e.call(arguments));
           }
           nodes.remove();
           if (Tracer.enabled) {
@@ -8351,7 +8132,7 @@ var au = (function (exports) {
       }
       project(nodes) {
           if (Tracer.enabled) {
-              Tracer.enter('HostProjector.project', slice$f.call(arguments));
+              Tracer.enter('HostProjector.project', slice$e.call(arguments));
           }
           nodes.appendTo(this.host);
           if (Tracer.enabled) {
@@ -8360,7 +8141,7 @@ var au = (function (exports) {
       }
       take(nodes) {
           if (Tracer.enabled) {
-              Tracer.enter('HostProjector.take', slice$f.call(arguments));
+              Tracer.enter('HostProjector.take', slice$e.call(arguments));
           }
           nodes.remove();
           if (Tracer.enabled) {
@@ -8618,7 +8399,7 @@ var au = (function (exports) {
       }
       render(context, renderable, targets, definition, host, parts) {
           if (Tracer.enabled) {
-              Tracer.enter('Renderer.render', slice$f.call(arguments));
+              Tracer.enter('Renderer.render', slice$e.call(arguments));
           }
           const targetInstructions = definition.instructions;
           const instructionRenderers = this.instructionRenderers;
@@ -8655,232 +8436,6 @@ var au = (function (exports) {
   ], Renderer);
 
   /** @internal */
-  function registerElement(container) {
-      const resourceKey = this.kind.keyFrom(this.description.name);
-      container.register(Registration.transient(resourceKey, this));
-  }
-  function customElement(nameOrDefinition) {
-      return (target => CustomElementResource.define(nameOrDefinition, target));
-  }
-  function useShadowDOM(targetOrOptions) {
-      const options = typeof targetOrOptions === 'function' || !targetOrOptions
-          ? defaultShadowOptions
-          : targetOrOptions;
-      function useShadowDOMDecorator(target) {
-          target.shadowOptions = options;
-          return target;
-      }
-      return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
-  }
-  function containerlessDecorator(target) {
-      target.containerless = true;
-      return target;
-  }
-  function containerless(target) {
-      return target === undefined ? containerlessDecorator : containerlessDecorator(target);
-  }
-  function isType$2(Type) {
-      return Type.kind === this;
-  }
-  function define$2(nameOrDefinition, ctor = null) {
-      if (!nameOrDefinition) {
-          throw Reporter.error(70);
-      }
-      const Type = (ctor === null ? class HTMLOnlyElement {
-      } : ctor);
-      const description = buildTemplateDefinition(Type, nameOrDefinition);
-      const proto = Type.prototype;
-      Type.kind = CustomElementResource;
-      Type.description = description;
-      Type.register = registerElement;
-      proto.$hydrate = $hydrateElement;
-      proto.$bind = $bindElement;
-      proto.$attach = $attachElement;
-      proto.$detach = $detachElement;
-      proto.$unbind = $unbindElement;
-      proto.$cache = $cacheElement;
-      proto.$prevBind = null;
-      proto.$nextBind = null;
-      proto.$prevAttach = null;
-      proto.$nextAttach = null;
-      proto.$nextUnbindAfterDetach = null;
-      proto.$scope = null;
-      proto.$hooks = 0;
-      proto.$bindableHead = null;
-      proto.$bindableTail = null;
-      proto.$attachableHead = null;
-      proto.$attachableTail = null;
-      proto.$mount = $mountElement;
-      proto.$unmount = $unmountElement;
-      proto.$nextMount = null;
-      proto.$nextUnmount = null;
-      proto.$projector = null;
-      if ('flush' in proto) {
-          proto.$nextFlush = null;
-      }
-      if ('binding' in proto)
-          proto.$hooks |= 4 /* hasBinding */;
-      if ('bound' in proto) {
-          proto.$hooks |= 8 /* hasBound */;
-          proto.$nextBound = null;
-      }
-      if ('unbinding' in proto)
-          proto.$hooks |= 256 /* hasUnbinding */;
-      if ('unbound' in proto) {
-          proto.$hooks |= 512 /* hasUnbound */;
-          proto.$nextUnbound = null;
-      }
-      if ('render' in proto)
-          proto.$hooks |= 1024 /* hasRender */;
-      if ('created' in proto)
-          proto.$hooks |= 2 /* hasCreated */;
-      if ('attaching' in proto)
-          proto.$hooks |= 16 /* hasAttaching */;
-      if ('attached' in proto) {
-          proto.$hooks |= 32 /* hasAttached */;
-          proto.$nextAttached = null;
-      }
-      if ('detaching' in proto)
-          proto.$hooks |= 64 /* hasDetaching */;
-      if ('caching' in proto)
-          proto.$hooks |= 2048 /* hasCaching */;
-      if ('detached' in proto) {
-          proto.$hooks |= 128 /* hasDetached */;
-          proto.$nextDetached = null;
-      }
-      return Type;
-  }
-  const CustomElementResource = {
-      name: customElementName,
-      keyFrom: customElementKey,
-      isType: isType$2,
-      behaviorFor: customElementBehavior,
-      define: define$2
-  };
-  // tslint:enable:align
-  // TODO
-  // ## DefaultSlotProjector
-  // An implementation of IElementProjector that can handle a subset of default
-  // slot projection scenarios without needing real Shadow DOM.
-  // ### Conditions
-  // We can do a one-time, static composition of the content and view,
-  // to emulate shadow DOM, if the following constraints are met:
-  // * There must be exactly one slot and it must be a default slot.
-  // * The default slot must not have any fallback content.
-  // * The default slot must not have a custom element as its immediate parent or
-  //   a slot attribute (re-projection).
-  // ### Projection
-  // The projector copies all content nodes to the slot's location.
-  // The copy process should inject a comment node before and after the slotted
-  // content, so that the bounds of the content can be clearly determined,
-  // even if the slotted content has template controllers or string interpolation.
-  // ### Encapsulation Source
-  // Uses the same strategy as HostProjector.
-  // ### Children
-  // The projector adds a mutation observer to the parent node of the
-  // slot comment. When direct children of that node change, the projector
-  // will gather up all nodes between the start and end slot comments.
-
-  const composeSource = {
-      name: 'au-compose',
-      containerless: true
-  };
-  const composeProps = ['subject', 'composing'];
-  let Compose = class Compose {
-      constructor(renderable, instruction, renderingEngine, coordinator) {
-          this.subject = null;
-          this.composing = false;
-          this.coordinator = coordinator;
-          this.lastSubject = null;
-          this.renderable = renderable;
-          this.renderingEngine = renderingEngine;
-          this.coordinator.onSwapComplete = () => {
-              this.composing = false;
-          };
-          this.properties = instruction.instructions
-              .filter((x) => !composeProps.includes(x.to))
-              .reduce((acc, item) => {
-              if (item.to) {
-                  acc[item.to] = item;
-              }
-              return acc;
-          }, {});
-      }
-      binding(flags) {
-          this.startComposition(this.subject, null, flags);
-          this.coordinator.binding(flags, this.$scope);
-      }
-      attaching(flags) {
-          this.coordinator.attaching(flags);
-      }
-      detaching(flags) {
-          this.coordinator.detaching(flags);
-      }
-      unbinding(flags) {
-          this.lastSubject = null;
-          this.coordinator.unbinding(flags);
-      }
-      caching(flags) {
-          this.coordinator.caching(flags);
-      }
-      subjectChanged(newValue, previousValue, flags) {
-          this.startComposition(newValue, previousValue, flags);
-      }
-      startComposition(subject, _previousSubject, flags) {
-          if (this.lastSubject === subject) {
-              return;
-          }
-          this.lastSubject = subject;
-          if (subject instanceof Promise) {
-              subject = subject.then(x => this.resolveView(x, flags));
-          }
-          else {
-              subject = this.resolveView(subject, flags);
-          }
-          this.composing = true;
-          this.coordinator.compose(subject, flags);
-      }
-      resolveView(subject, flags) {
-          const view = this.provideViewFor(subject);
-          if (view) {
-              view.hold(this.$projector.host, flags);
-              view.lockScope(this.renderable.$scope);
-              return view;
-          }
-          return null;
-      }
-      provideViewFor(subject) {
-          if (!subject) {
-              return null;
-          }
-          if ('lockScope' in subject) { // IView
-              return subject;
-          }
-          if ('createView' in subject) { // RenderPlan
-              return subject.createView(this.renderingEngine, this.renderable.$context);
-          }
-          if ('create' in subject) { // IViewFactory
-              return subject.create();
-          }
-          if ('template' in subject) { // Raw Template Definition
-              return this.renderingEngine.getViewFactory(subject, this.renderable.$context).create();
-          }
-          // Constructable (Custom Element Constructor)
-          return createElement(subject, this.properties, this.$projector.children).createView(this.renderingEngine, this.renderable.$context);
-      }
-  };
-  __decorate([
-      bindable
-  ], Compose.prototype, "subject", void 0);
-  __decorate([
-      bindable
-  ], Compose.prototype, "composing", void 0);
-  Compose = __decorate([
-      customElement(composeSource),
-      inject(IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator)
-  ], Compose);
-
-  /** @internal */
   function registerAttribute(container) {
       const description = this.description;
       const resourceKey = this.kind.keyFrom(description.name);
@@ -8906,10 +8461,10 @@ var au = (function (exports) {
   function dynamicOptions(target) {
       return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator(target);
   }
-  function isType$3(Type) {
+  function isType$2(Type) {
       return Type.kind === this;
   }
-  function define$3(nameOrDefinition, ctor) {
+  function define$2(nameOrDefinition, ctor) {
       const Type = ctor;
       const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
       const proto = Type.prototype;
@@ -8966,8 +8521,8 @@ var au = (function (exports) {
   const CustomAttributeResource = {
       name: customAttributeName,
       keyFrom: customAttributeKey,
-      isType: isType$3,
-      define: define$3
+      isType: isType$2,
+      define: define$2
   };
   /** @internal */
   function createCustomAttributeDescription(def, Type) {
@@ -8981,6 +8536,55 @@ var au = (function (exports) {
           isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
           bindables: Object.assign({}, Type.bindables, def.bindables)
       };
+  }
+
+  function bindable(configOrTarget, prop) {
+      let config;
+      const decorator = function decorate($target, $prop) {
+          const Type = $target.constructor;
+          let bindables = Type.bindables;
+          if (bindables === undefined) {
+              bindables = Type.bindables = {};
+          }
+          if (!config.attribute) {
+              config.attribute = PLATFORM.kebabCase($prop);
+          }
+          if (!config.callback) {
+              config.callback = `${$prop}Changed`;
+          }
+          if (config.mode === undefined) {
+              config.mode = BindingMode.toView;
+          }
+          if (arguments.length > 1) {
+              // Non invocation:
+              // - @bindable
+              // Invocation with or w/o opts:
+              // - @bindable()
+              // - @bindable({...opts})
+              config.property = $prop;
+          }
+          bindables[config.property] = config;
+      };
+      if (arguments.length > 1) {
+          // Non invocation:
+          // - @bindable
+          config = {};
+          decorator(configOrTarget, prop);
+          return;
+      }
+      else if (typeof configOrTarget === 'string') {
+          // ClassDecorator
+          // - @bindable('bar')
+          // Direct call:
+          // - @bindable('bar')(Foo)
+          config = {};
+          return decorator;
+      }
+      // Invocation with or w/o opts:
+      // - @bindable()
+      // - @bindable({...opts})
+      config = (configOrTarget || {});
+      return decorator;
   }
 
   let If = class If {
@@ -9294,6 +8898,403 @@ var au = (function (exports) {
       templateController('with'),
       inject(IViewFactory, IRenderLocation)
   ], With);
+
+  /** @internal */
+  function registerElement(container) {
+      const resourceKey = this.kind.keyFrom(this.description.name);
+      container.register(Registration.transient(resourceKey, this));
+  }
+  function customElement(nameOrDefinition) {
+      return (target => CustomElementResource.define(nameOrDefinition, target));
+  }
+  function useShadowDOM(targetOrOptions) {
+      const options = typeof targetOrOptions === 'function' || !targetOrOptions
+          ? defaultShadowOptions
+          : targetOrOptions;
+      function useShadowDOMDecorator(target) {
+          target.shadowOptions = options;
+          return target;
+      }
+      return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
+  }
+  function containerlessDecorator(target) {
+      target.containerless = true;
+      return target;
+  }
+  function containerless(target) {
+      return target === undefined ? containerlessDecorator : containerlessDecorator(target);
+  }
+  function isType$3(Type) {
+      return Type.kind === this;
+  }
+  function define$3(nameOrDefinition, ctor = null) {
+      if (!nameOrDefinition) {
+          throw Reporter.error(70);
+      }
+      const Type = (ctor === null ? class HTMLOnlyElement {
+      } : ctor);
+      const description = buildTemplateDefinition(Type, nameOrDefinition);
+      const proto = Type.prototype;
+      Type.kind = CustomElementResource;
+      Type.description = description;
+      Type.register = registerElement;
+      proto.$hydrate = $hydrateElement;
+      proto.$bind = $bindElement;
+      proto.$attach = $attachElement;
+      proto.$detach = $detachElement;
+      proto.$unbind = $unbindElement;
+      proto.$cache = $cacheElement;
+      proto.$prevBind = null;
+      proto.$nextBind = null;
+      proto.$prevAttach = null;
+      proto.$nextAttach = null;
+      proto.$nextUnbindAfterDetach = null;
+      proto.$scope = null;
+      proto.$hooks = 0;
+      proto.$bindableHead = null;
+      proto.$bindableTail = null;
+      proto.$attachableHead = null;
+      proto.$attachableTail = null;
+      proto.$mount = $mountElement;
+      proto.$unmount = $unmountElement;
+      proto.$nextMount = null;
+      proto.$nextUnmount = null;
+      proto.$projector = null;
+      if ('flush' in proto) {
+          proto.$nextFlush = null;
+      }
+      if ('binding' in proto)
+          proto.$hooks |= 4 /* hasBinding */;
+      if ('bound' in proto) {
+          proto.$hooks |= 8 /* hasBound */;
+          proto.$nextBound = null;
+      }
+      if ('unbinding' in proto)
+          proto.$hooks |= 256 /* hasUnbinding */;
+      if ('unbound' in proto) {
+          proto.$hooks |= 512 /* hasUnbound */;
+          proto.$nextUnbound = null;
+      }
+      if ('render' in proto)
+          proto.$hooks |= 1024 /* hasRender */;
+      if ('created' in proto)
+          proto.$hooks |= 2 /* hasCreated */;
+      if ('attaching' in proto)
+          proto.$hooks |= 16 /* hasAttaching */;
+      if ('attached' in proto) {
+          proto.$hooks |= 32 /* hasAttached */;
+          proto.$nextAttached = null;
+      }
+      if ('detaching' in proto)
+          proto.$hooks |= 64 /* hasDetaching */;
+      if ('caching' in proto)
+          proto.$hooks |= 2048 /* hasCaching */;
+      if ('detached' in proto) {
+          proto.$hooks |= 128 /* hasDetached */;
+          proto.$nextDetached = null;
+      }
+      return Type;
+  }
+  const CustomElementResource = {
+      name: customElementName,
+      keyFrom: customElementKey,
+      isType: isType$3,
+      behaviorFor: customElementBehavior,
+      define: define$3
+  };
+  // tslint:enable:align
+  // TODO
+  // ## DefaultSlotProjector
+  // An implementation of IElementProjector that can handle a subset of default
+  // slot projection scenarios without needing real Shadow DOM.
+  // ### Conditions
+  // We can do a one-time, static composition of the content and view,
+  // to emulate shadow DOM, if the following constraints are met:
+  // * There must be exactly one slot and it must be a default slot.
+  // * The default slot must not have any fallback content.
+  // * The default slot must not have a custom element as its immediate parent or
+  //   a slot attribute (re-projection).
+  // ### Projection
+  // The projector copies all content nodes to the slot's location.
+  // The copy process should inject a comment node before and after the slotted
+  // content, so that the bounds of the content can be clearly determined,
+  // even if the slotted content has template controllers or string interpolation.
+  // ### Encapsulation Source
+  // Uses the same strategy as HostProjector.
+  // ### Children
+  // The projector adds a mutation observer to the parent node of the
+  // slot comment. When direct children of that node change, the projector
+  // will gather up all nodes between the start and end slot comments.
+
+  const slice$f = Array.prototype.slice;
+  function createElement(tagOrType, props, children) {
+      if (typeof tagOrType === 'string') {
+          return createElementForTag(tagOrType, props, children);
+      }
+      else {
+          return createElementForType(tagOrType, props, children);
+      }
+  }
+  class RenderPlan {
+      constructor(node, instructions, dependencies) {
+          this.dependencies = dependencies;
+          this.instructions = instructions;
+          this.node = node;
+      }
+      get definition() {
+          return this.lazyDefinition || (this.lazyDefinition =
+              buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies));
+      }
+      getElementTemplate(engine, Type) {
+          return engine.getElementTemplate(this.definition, Type);
+      }
+      createView(engine, parentContext) {
+          return this.getViewFactory(engine, parentContext).create();
+      }
+      getViewFactory(engine, parentContext) {
+          return engine.getViewFactory(this.definition, parentContext);
+      }
+      /** @internal */
+      mergeInto(parent, instructions, dependencies) {
+          DOM.appendChild(parent, this.node);
+          instructions.push(...this.instructions);
+          dependencies.push(...this.dependencies);
+      }
+  }
+  function createElementForTag(tagName, props, children) {
+      if (Tracer.enabled) {
+          Tracer.enter('createElementForTag', slice$f.call(arguments));
+      }
+      const instructions = [];
+      const allInstructions = [];
+      const dependencies = [];
+      const element = DOM.createElement(tagName);
+      let hasInstructions = false;
+      if (props) {
+          Object.keys(props)
+              .forEach(to => {
+              const value = props[to];
+              if (isTargetedInstruction(value)) {
+                  hasInstructions = true;
+                  instructions.push(value);
+              }
+              else {
+                  DOM.setAttribute(element, to, value);
+              }
+          });
+      }
+      if (hasInstructions) {
+          DOM.setAttribute(element, 'class', 'au');
+          allInstructions.push(instructions);
+      }
+      if (children) {
+          addChildren(element, children, allInstructions, dependencies);
+      }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
+      return new RenderPlan(element, allInstructions, dependencies);
+  }
+  function createElementForType(Type, props, children) {
+      if (Tracer.enabled) {
+          Tracer.enter('createElementForType', slice$f.call(arguments));
+      }
+      const tagName = Type.description.name;
+      const instructions = [];
+      const allInstructions = [instructions];
+      const dependencies = [];
+      const childInstructions = [];
+      const bindables = Type.description.bindables;
+      const element = DOM.createElement(tagName);
+      DOM.setAttribute(element, 'class', 'au');
+      if (!dependencies.includes(Type)) {
+          dependencies.push(Type);
+      }
+      instructions.push({
+          type: "k" /* hydrateElement */,
+          res: tagName,
+          instructions: childInstructions
+      });
+      if (props) {
+          Object.keys(props)
+              .forEach(to => {
+              const value = props[to];
+              if (isTargetedInstruction(value)) {
+                  childInstructions.push(value);
+              }
+              else {
+                  const bindable = bindables[to];
+                  if (bindable) {
+                      childInstructions.push({
+                          type: "i" /* setProperty */,
+                          to,
+                          value
+                      });
+                  }
+                  else {
+                      childInstructions.push({
+                          type: "j" /* setAttribute */,
+                          to,
+                          value
+                      });
+                  }
+              }
+          });
+      }
+      if (children) {
+          addChildren(element, children, allInstructions, dependencies);
+      }
+      if (Tracer.enabled) {
+          Tracer.leave();
+      }
+      return new RenderPlan(element, allInstructions, dependencies);
+  }
+  function addChildren(parent, children, allInstructions, dependencies) {
+      for (let i = 0, ii = children.length; i < ii; ++i) {
+          const current = children[i];
+          switch (typeof current) {
+              case 'string':
+                  DOM.appendChild(parent, DOM.createTextNode(current));
+                  break;
+              case 'object':
+                  if (DOM.isNodeInstance(current)) {
+                      DOM.appendChild(parent, current);
+                  }
+                  else if ('mergeInto' in current) {
+                      current.mergeInto(parent, allInstructions, dependencies);
+                  }
+          }
+      }
+  }
+
+  const composeSource = {
+      name: 'au-compose',
+      containerless: true
+  };
+  const composeProps = ['subject', 'composing'];
+  let Compose = class Compose {
+      constructor(renderable, instruction, renderingEngine, coordinator) {
+          this.subject = null;
+          this.composing = false;
+          this.coordinator = coordinator;
+          this.lastSubject = null;
+          this.renderable = renderable;
+          this.renderingEngine = renderingEngine;
+          this.coordinator.onSwapComplete = () => {
+              this.composing = false;
+          };
+          this.properties = instruction.instructions
+              .filter((x) => !composeProps.includes(x.to))
+              .reduce((acc, item) => {
+              if (item.to) {
+                  acc[item.to] = item;
+              }
+              return acc;
+          }, {});
+      }
+      binding(flags) {
+          this.startComposition(this.subject, null, flags);
+          this.coordinator.binding(flags, this.$scope);
+      }
+      attaching(flags) {
+          this.coordinator.attaching(flags);
+      }
+      detaching(flags) {
+          this.coordinator.detaching(flags);
+      }
+      unbinding(flags) {
+          this.lastSubject = null;
+          this.coordinator.unbinding(flags);
+      }
+      caching(flags) {
+          this.coordinator.caching(flags);
+      }
+      subjectChanged(newValue, previousValue, flags) {
+          this.startComposition(newValue, previousValue, flags);
+      }
+      startComposition(subject, _previousSubject, flags) {
+          if (this.lastSubject === subject) {
+              return;
+          }
+          this.lastSubject = subject;
+          if (subject instanceof Promise) {
+              subject = subject.then(x => this.resolveView(x, flags));
+          }
+          else {
+              subject = this.resolveView(subject, flags);
+          }
+          this.composing = true;
+          this.coordinator.compose(subject, flags);
+      }
+      resolveView(subject, flags) {
+          const view = this.provideViewFor(subject);
+          if (view) {
+              view.hold(this.$projector.host, flags);
+              view.lockScope(this.renderable.$scope);
+              return view;
+          }
+          return null;
+      }
+      provideViewFor(subject) {
+          if (!subject) {
+              return null;
+          }
+          if ('lockScope' in subject) { // IView
+              return subject;
+          }
+          if ('createView' in subject) { // RenderPlan
+              return subject.createView(this.renderingEngine, this.renderable.$context);
+          }
+          if ('create' in subject) { // IViewFactory
+              return subject.create();
+          }
+          if ('template' in subject) { // Raw Template Definition
+              return this.renderingEngine.getViewFactory(subject, this.renderable.$context).create();
+          }
+          // Constructable (Custom Element Constructor)
+          return createElement(subject, this.properties, this.$projector.children).createView(this.renderingEngine, this.renderable.$context);
+      }
+  };
+  __decorate([
+      bindable
+  ], Compose.prototype, "subject", void 0);
+  __decorate([
+      bindable
+  ], Compose.prototype, "composing", void 0);
+  Compose = __decorate([
+      customElement(composeSource),
+      inject(IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator)
+  ], Compose);
+
+  const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+  const ISanitizer = DI.createInterface()
+      .withDefault(x => x.singleton(class {
+      sanitize(input) {
+          return input.replace(SCRIPT_REGEX, '');
+      }
+  }));
+  /**
+   * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
+   */
+  let SanitizeValueConverter = class SanitizeValueConverter {
+      constructor(sanitizer) {
+          this.sanitizer = sanitizer;
+      }
+      /**
+       * Process the provided markup that flows to the view.
+       * @param untrustedMarkup The untrusted markup to be sanitized.
+       */
+      toView(untrustedMarkup) {
+          if (untrustedMarkup === null || untrustedMarkup === undefined) {
+              return null;
+          }
+          return this.sanitizer.sanitize(untrustedMarkup);
+      }
+  };
+  SanitizeValueConverter = __decorate([
+      valueConverter('sanitize'),
+      inject(ISanitizer)
+  ], SanitizeValueConverter);
 
   class Aurelia {
       constructor(container = DI.createContainer()) {
@@ -9963,23 +9964,6 @@ var au = (function (exports) {
     nativeAdd: nativeAdd,
     nativeSetDelete: nativeDelete$1,
     nativeSetClear: nativeClear$1,
-    get AttrBindingBehavior () { return AttrBindingBehavior; },
-    BindingModeBehavior: BindingModeBehavior,
-    get OneTimeBindingBehavior () { return OneTimeBindingBehavior; },
-    get ToViewBindingBehavior () { return ToViewBindingBehavior; },
-    get FromViewBindingBehavior () { return FromViewBindingBehavior; },
-    get TwoWayBindingBehavior () { return TwoWayBindingBehavior; },
-    debounceCallSource: debounceCallSource,
-    debounceCall: debounceCall,
-    get DebounceBindingBehavior () { return DebounceBindingBehavior; },
-    ISanitizer: ISanitizer,
-    get SanitizeValueConverter () { return SanitizeValueConverter; },
-    handleSelfEvent: handleSelfEvent,
-    get SelfBindingBehavior () { return SelfBindingBehavior; },
-    get SignalBindingBehavior () { return SignalBindingBehavior; },
-    throttle: throttle,
-    get ThrottleBindingBehavior () { return ThrottleBindingBehavior; },
-    get UpdateTriggerBindingBehavior () { return UpdateTriggerBindingBehavior; },
     connects: connects,
     observes: observes,
     callsFunction: callsFunction,
@@ -10019,15 +10003,20 @@ var au = (function (exports) {
     Interpolation: Interpolation,
     IterateForOfStatement: IterateForOfStatement,
     CountForOfStatement: CountForOfStatement,
-    bindingBehavior: bindingBehavior,
-    BindingBehaviorResource: BindingBehaviorResource,
+    get BindingMode () { return BindingMode; },
+    get Binding () { return Binding; },
+    Call: Call,
+    IExpressionParser: IExpressionParser,
+    ExpressionParser: ExpressionParser,
+    MultiInterpolationBinding: MultiInterpolationBinding,
+    get InterpolationBinding () { return InterpolationBinding; },
+    get LetBinding () { return LetBinding; },
+    Listener: Listener,
+    Ref: Ref,
     InternalObserversLookup: InternalObserversLookup,
     BindingContext: BindingContext,
     Scope: Scope,
     OverrideContext: OverrideContext,
-    get BindingMode () { return BindingMode; },
-    get Binding () { return Binding; },
-    Call: Call,
     collectionObserver: collectionObserver,
     get CollectionLengthObserver () { return CollectionLengthObserver; },
     computed: computed,
@@ -10049,19 +10038,12 @@ var au = (function (exports) {
     EventSubscriber: EventSubscriber,
     IEventManager: IEventManager,
     EventManager: EventManager,
-    IExpressionParser: IExpressionParser,
-    ExpressionParser: ExpressionParser,
-    MultiInterpolationBinding: MultiInterpolationBinding,
-    get InterpolationBinding () { return InterpolationBinding; },
-    get LetBinding () { return LetBinding; },
-    Listener: Listener,
     IObserverLocator: IObserverLocator,
     get ObserverLocator () { return ObserverLocator; },
     getCollectionObserver: getCollectionObserver,
     PrimitiveObserver: PrimitiveObserver,
     get SetterObserver () { return SetterObserver; },
     get Observer () { return Observer; },
-    Ref: Ref,
     ISignaler: ISignaler,
     Signaler: Signaler,
     subscriberCollection: subscriberCollection,
@@ -10074,28 +10056,47 @@ var au = (function (exports) {
     get ElementPropertyAccessor () { return ElementPropertyAccessor; },
     PropertyAccessor: PropertyAccessor,
     targetObserver: targetObserver,
-    valueConverter: valueConverter,
-    ValueConverterResource: ValueConverterResource,
-    get Compose () { return Compose; },
-    get If () { return If; },
-    get Else () { return Else; },
-    get Repeat () { return Repeat; },
-    get Replaceable () { return Replaceable; },
-    get With () { return With; },
-    bindable: bindable,
-    createElement: createElement,
-    RenderPlan: RenderPlan,
+    bindingBehavior: bindingBehavior,
+    BindingBehaviorResource: BindingBehaviorResource,
+    get AttrBindingBehavior () { return AttrBindingBehavior; },
+    BindingModeBehavior: BindingModeBehavior,
+    get OneTimeBindingBehavior () { return OneTimeBindingBehavior; },
+    get ToViewBindingBehavior () { return ToViewBindingBehavior; },
+    get FromViewBindingBehavior () { return FromViewBindingBehavior; },
+    get TwoWayBindingBehavior () { return TwoWayBindingBehavior; },
+    debounceCallSource: debounceCallSource,
+    debounceCall: debounceCall,
+    get DebounceBindingBehavior () { return DebounceBindingBehavior; },
+    handleSelfEvent: handleSelfEvent,
+    get SelfBindingBehavior () { return SelfBindingBehavior; },
+    get SignalBindingBehavior () { return SignalBindingBehavior; },
+    throttle: throttle,
+    get ThrottleBindingBehavior () { return ThrottleBindingBehavior; },
+    get UpdateTriggerBindingBehavior () { return UpdateTriggerBindingBehavior; },
     registerAttribute: registerAttribute,
     customAttribute: customAttribute,
     templateController: templateController,
     dynamicOptions: dynamicOptions,
     CustomAttributeResource: CustomAttributeResource,
     createCustomAttributeDescription: createCustomAttributeDescription,
+    get If () { return If; },
+    get Else () { return Else; },
+    get Repeat () { return Repeat; },
+    get Replaceable () { return Replaceable; },
+    get With () { return With; },
     registerElement: registerElement,
     customElement: customElement,
     useShadowDOM: useShadowDOM,
     containerless: containerless,
     CustomElementResource: CustomElementResource,
+    get Compose () { return Compose; },
+    valueConverter: valueConverter,
+    ValueConverterResource: ValueConverterResource,
+    ISanitizer: ISanitizer,
+    get SanitizeValueConverter () { return SanitizeValueConverter; },
+    bindable: bindable,
+    createElement: createElement,
+    RenderPlan: RenderPlan,
     $attachAttribute: $attachAttribute,
     $attachElement: $attachElement,
     $attachView: $attachView,
@@ -10209,8 +10210,7 @@ var au = (function (exports) {
     PromiseTask: PromiseTask,
     get LifecycleFlags () { return LifecycleFlags; },
     stringifyLifecycleFlags: stringifyLifecycleFlags,
-    get MutationKind () { return MutationKind; },
-    RuntimeCompilationResources: RuntimeCompilationResources
+    get MutationKind () { return MutationKind; }
   });
 
   class AttrSyntax {

@@ -2,7 +2,7 @@ import { Constructable, IRegistry } from '@aurelia/kernel';
 import { TargetedInstruction, TemplateDefinition } from '../definitions';
 import { INode } from '../dom.interfaces';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
-import { ICustomElementType } from './custom-element';
+import { ICustomElementType } from '../resources/custom-element';
 import { IRenderingEngine, ITemplate } from './lifecycle-render';
 export declare function createElement(tagOrType: string | Constructable, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan;
 export declare class RenderPlan {

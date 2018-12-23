@@ -1,10 +1,10 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
+import { IObserverLocator } from '../observation/observer-locator';
 import { IExpression } from './ast';
 import { IBindingTarget } from './binding';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
-import { IObserverLocator } from './observer-locator';
 export interface LetBinding extends IConnectableBinding {
 }
 export declare class LetBinding implements IPartialConnectableBinding {

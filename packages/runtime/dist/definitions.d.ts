@@ -1,10 +1,9 @@
-import { Immutable, IRegistry, Omit } from '@aurelia/kernel';
+import { Immutable, IRegistry, IResourceDefinition, Omit, ResourceDescription, ResourcePartDescription } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
-import { DelegationStrategy } from './binding/event-manager';
 import { IShadowRootInit } from './dom.interfaces';
-import { IResourceDefinition, ResourceDescription, ResourcePartDescription } from './resource';
-import { CustomElementConstructor } from './templating/custom-element';
+import { DelegationStrategy } from './observation/event-manager';
+import { CustomElementConstructor } from './resources/custom-element';
 export declare type BindableSource = Omit<IBindableDescription, 'property'>;
 export interface IBindableDescription {
     mode?: BindingMode;

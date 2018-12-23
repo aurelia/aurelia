@@ -694,5 +694,31 @@ function invokeWithDynamicDependencies(container, Type, staticDependencies, dyna
     return Reflect.construct(Type, args);
 }
 
-export { DI, IContainer, IServiceLocator, inject, transient, singleton, all, lazy, optional, Resolver, Factory, Container, Registration, validateKey, classInvokers, fallbackInvoker, invokeWithDynamicDependencies, PLATFORM, Reporter, Tracer };
+class RuntimeCompilationResources {
+    constructor(context) {
+        this.context = context;
+    }
+    find(kind, name) {
+        const key = kind.keyFrom(name);
+        const resolver = this.context.getResolver(key, false);
+        if (resolver !== null && resolver.getFactory) {
+            const factory = resolver.getFactory(this.context);
+            if (factory !== null) {
+                const description = factory.Type.description;
+                return description === undefined ? null : description;
+            }
+        }
+        return null;
+    }
+    create(kind, name) {
+        const key = kind.keyFrom(name);
+        if (this.context.has(key, false)) {
+            const instance = this.context.get(key);
+            return instance === undefined ? null : instance;
+        }
+        return null;
+    }
+}
+
+export { DI, IContainer, IServiceLocator, inject, transient, singleton, all, lazy, optional, Resolver, Factory, Container, Registration, validateKey, classInvokers, fallbackInvoker, invokeWithDynamicDependencies, PLATFORM, Reporter, Tracer, RuntimeCompilationResources };
 //# sourceMappingURL=index.es6.js.map

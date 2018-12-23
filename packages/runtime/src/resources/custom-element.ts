@@ -20,7 +20,7 @@ import { INode } from '../dom.interfaces';
 import {
   Hooks,
   IAttach,
-  IBindScope,
+  IBind,
   ILifecycleHooks,
   ILifecycleUnbindAfterDetach,
   IMountable,
@@ -62,7 +62,7 @@ export interface ICustomElement extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
   ILifecycleRender,
-  IBindScope,
+  IBind,
   ILifecycleUnbindAfterDetach,
   IAttach,
   IMountable,

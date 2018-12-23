@@ -1,6 +1,14 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
-import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, ISubscribable, LifecycleFlags, MutationKind } from '../observation';
+import {
+  IBindingTargetAccessor,
+  IBindingTargetObserver,
+  IObservable,
+  IPropertySubscriber,
+  ISubscribable,
+  LifecycleFlags,
+  MutationKind
+} from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
 import { subscriberCollection } from './subscriber-collection';

@@ -11,9 +11,34 @@ export * from './binding/let-binding';
 export * from './binding/listener';
 export * from './binding/ref';
 
-export { ArrayObserver, enableArrayObservation, disableArrayObservation, nativePush, nativePop, nativeShift, nativeUnshift, nativeSplice, nativeReverse, nativeSort } from './observation/array-observer'; // TODO: do this differently, not let this be ugly, etc, etc
-export { MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear } from './observation/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
-export { SetObserver, enableSetObservation, disableSetObservation, nativeAdd, nativeDelete as nativeSetDelete, nativeClear as nativeSetClear } from './observation/set-observer'; // TODO: do this differently, not let this be ugly, etc, etc
+export {
+  ArrayObserver,
+  enableArrayObservation,
+  disableArrayObservation,
+  nativePush,
+  nativePop,
+  nativeShift,
+  nativeUnshift,
+  nativeSplice,
+  nativeReverse,
+  nativeSort
+} from './observation/array-observer'; // TODO: do this differently, not let this be ugly, etc, etc
+export {
+  MapObserver,
+  enableMapObservation,
+  disableMapObservation,
+  nativeSet,
+  nativeDelete as nativeMapDelete,
+  nativeClear as nativeMapClear
+} from './observation/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
+export {
+  SetObserver,
+  enableSetObservation,
+  disableSetObservation,
+  nativeAdd,
+  nativeDelete as nativeSetDelete,
+  nativeClear as nativeSetClear
+} from './observation/set-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export * from './observation/binding-context';
 export * from './observation/collection-observer';
 export * from './observation/computed-observer';

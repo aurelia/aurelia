@@ -1,11 +1,44 @@
-import { Class, Constructable, IContainer, Immutable, IResourceKind, IResourceType, Omit, PLATFORM, Registration, ResourceDescription, Writable } from '@aurelia/kernel';
+import {
+  Class,
+  Constructable,
+  IContainer,
+  Immutable,
+  IResourceKind,
+  IResourceType,
+  Omit,
+  PLATFORM,
+  Registration,
+  ResourceDescription,
+  Writable
+} from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
-import { customAttributeKey, customAttributeName, IAttributeDefinition } from '../definitions';
-import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable } from '../lifecycle';
+import {
+  customAttributeKey,
+  customAttributeName,
+  IAttributeDefinition
+} from '../definitions';
+import {
+  Hooks,
+  IAttach,
+  IBindScope,
+  ILifecycleHooks,
+  ILifecycleUnbindAfterDetach,
+  IRenderable
+} from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { $attachAttribute, $cacheAttribute, $detachAttribute } from '../templating/lifecycle-attach';
-import { $bindAttribute, $unbindAttribute } from '../templating/lifecycle-bind';
-import { $hydrateAttribute, IRenderingEngine } from '../templating/lifecycle-render';
+import {
+  $attachAttribute,
+  $cacheAttribute,
+  $detachAttribute
+} from '../templating/lifecycle-attach';
+import {
+  $bindAttribute,
+  $unbindAttribute
+} from '../templating/lifecycle-bind';
+import {
+  $hydrateAttribute,
+  IRenderingEngine
+} from '../templating/lifecycle-render';
 
 type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
 

@@ -7,7 +7,26 @@ import { InterpolationBinding, MultiInterpolationBinding } from './binding/inter
 import { LetBinding } from './binding/let-binding';
 import { Listener } from './binding/listener';
 import { Ref } from './binding/ref';
-import { customAttributeKey, customElementKey, ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TargetedInstructionType, TemplatePartDefinitions } from './definitions';
+import {
+  customAttributeKey,
+  customElementKey,
+  ICallBindingInstruction,
+  IHydrateAttributeInstruction,
+  IHydrateElementInstruction,
+  IHydrateLetElementInstruction,
+  IHydrateTemplateController,
+  IInterpolationInstruction,
+  IIteratorBindingInstruction,
+  IListenerBindingInstruction,
+  IPropertyBindingInstruction,
+  IRefBindingInstruction,
+  ISetAttributeInstruction,
+  ISetPropertyInstruction,
+  IStylePropertyBindingInstruction,
+  ITextBindingInstruction,
+  TargetedInstructionType,
+  TemplatePartDefinitions
+} from './definitions';
 import { DOM } from './dom';
 import { IElement, IHTMLElement, INode, IRenderLocation } from './dom.interfaces';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';

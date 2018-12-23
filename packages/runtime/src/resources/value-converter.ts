@@ -1,4 +1,13 @@
-import { Class, Constructable, IContainer, IResourceDefinition, IResourceKind, IResourceType, Registration, Writable } from '@aurelia/kernel';
+import {
+  Class,
+  Constructable,
+  IContainer,
+  IResourceDefinition,
+  IResourceKind,
+  IResourceType,
+  Registration,
+  Writable
+} from '@aurelia/kernel';
 
 export interface IValueConverter {
   toView(input: unknown, ...args: unknown[]): unknown;

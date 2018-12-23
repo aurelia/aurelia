@@ -1,5 +1,33 @@
-import { all, Class, DI, IContainer, IDisposable, IIndexable, Immutable, ImmutableArray, inject, IRegistry, IResolver, IResourceDescriptions, PLATFORM, Registration, Reporter, RuntimeCompilationResources, Tracer, Writable } from '@aurelia/kernel';
-import { BindableDefinitions, buildTemplateDefinition, customElementBehavior, IHydrateElementInstruction, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from '../definitions';
+import {
+  all,
+  Class,
+  DI,
+  IContainer,
+  IDisposable,
+  IIndexable,
+  Immutable,
+  ImmutableArray,
+  inject,
+  IRegistry,
+  IResolver,
+  IResourceDescriptions,
+  PLATFORM,
+  Registration,
+  Reporter,
+  RuntimeCompilationResources,
+  Tracer,
+  Writable
+} from '@aurelia/kernel';
+import {
+  BindableDefinitions,
+  buildTemplateDefinition,
+  customElementBehavior,
+  IHydrateElementInstruction,
+  ITargetedInstruction,
+  ITemplateDefinition,
+  TemplateDefinition,
+  TemplatePartDefinitions
+} from '../definitions';
 import { DOM, INodeSequenceFactory, NodeSequence, NodeSequenceFactory } from '../dom';
 import { IElement, INode, INodeSequence, IRenderLocation } from '../dom.interfaces';
 import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory } from '../lifecycle';

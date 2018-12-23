@@ -1,11 +1,52 @@
-import { Class, Constructable, IContainer, IResourceKind, IResourceType, Registration, Reporter, Writable } from '@aurelia/kernel';
-import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName, ITemplateDefinition, TemplateDefinition } from '../definitions';
+import {
+  Class,
+  Constructable,
+  IContainer,
+  IResourceKind,
+  IResourceType,
+  Registration,
+  Reporter,
+  Writable
+} from '@aurelia/kernel';
+import {
+  buildTemplateDefinition,
+  customElementBehavior,
+  customElementKey,
+  customElementName,
+  ITemplateDefinition,
+  TemplateDefinition
+} from '../definitions';
 import { INode } from '../dom.interfaces';
-import { Hooks, IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable } from '../lifecycle';
+import {
+  Hooks,
+  IAttach,
+  IBindScope,
+  ILifecycleHooks,
+  ILifecycleUnbindAfterDetach,
+  IMountable,
+  IRenderable
+} from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { $attachElement, $cacheElement, $detachElement, $mountElement, $unmountElement } from '../templating/lifecycle-attach';
-import { $bindElement, $unbindElement } from '../templating/lifecycle-bind';
-import { $hydrateElement, defaultShadowOptions, ICustomElementHost, IElementHydrationOptions, IElementProjector, ILifecycleRender, IRenderingEngine } from '../templating/lifecycle-render';
+import {
+  $attachElement,
+  $cacheElement,
+  $detachElement,
+  $mountElement,
+  $unmountElement
+} from '../templating/lifecycle-attach';
+import {
+  $bindElement,
+  $unbindElement
+} from '../templating/lifecycle-bind';
+import {
+  $hydrateElement,
+  defaultShadowOptions,
+  ICustomElementHost,
+  IElementHydrationOptions,
+  IElementProjector,
+  ILifecycleRender,
+  IRenderingEngine
+} from '../templating/lifecycle-render';
 
 type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
 

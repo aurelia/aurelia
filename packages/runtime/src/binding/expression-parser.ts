@@ -1,5 +1,15 @@
 import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
-import { AccessMember, AccessScope, CallMember, CallScope, ExpressionKind, ForOfStatement, Interpolation, IsBindingBehavior, PrimitiveLiteral } from './ast';
+import {
+  AccessMember,
+  AccessScope,
+  CallMember,
+  CallScope,
+  ExpressionKind,
+  ForOfStatement,
+  Interpolation,
+  IsBindingBehavior,
+  PrimitiveLiteral
+} from './ast';
 
 type BindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
 

@@ -1,4 +1,13 @@
-import { DI, Immutable, IRegistry, IResourceDefinition, Omit, PLATFORM, ResourceDescription, ResourcePartDescription } from '@aurelia/kernel';
+import {
+  DI,
+  Immutable,
+  IRegistry,
+  IResourceDefinition,
+  Omit,
+  PLATFORM,
+  ResourceDescription,
+  ResourcePartDescription
+} from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { IShadowRootInit } from './dom.interfaces';

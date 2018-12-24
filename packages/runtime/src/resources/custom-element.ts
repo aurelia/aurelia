@@ -13,6 +13,7 @@ import {
   customElementBehavior,
   customElementKey,
   customElementName,
+  IElementHydrationOptions,
   ITemplateDefinition,
   TemplateDefinition
 } from '../definitions';
@@ -28,6 +29,7 @@ import {
   IRenderable
 } from '../lifecycle';
 import { IChangeTracker } from '../observation';
+import { IRenderingEngine } from '../rendering-engine';
 import {
   $attachElement,
   $cacheElement,
@@ -43,10 +45,8 @@ import {
   $hydrateElement,
   defaultShadowOptions,
   ICustomElementHost,
-  IElementHydrationOptions,
   IElementProjector,
-  ILifecycleRender,
-  IRenderingEngine
+  ILifecycleRender
 } from '../templating/lifecycle-render';
 
 type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;

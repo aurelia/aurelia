@@ -10,6 +10,7 @@ import {
   customAttributeKey,
   customElementKey,
   ICallBindingInstruction,
+  IElementHydrationOptions,
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateLetElementInstruction,
@@ -26,9 +27,9 @@ import { IDOM } from './dom';
 import { IElement, INode, IRenderLocation } from './dom.interfaces';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
+import { IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './rendering-engine';
 import { ICustomAttribute } from './resources/custom-attribute';
 import { ICustomElement } from './resources/custom-element';
-import { IElementHydrationOptions, IInstructionRenderer, instructionRenderer, IRenderer, IRenderingEngine } from './templating/lifecycle-render';
 
 const slice = Array.prototype.slice;
 

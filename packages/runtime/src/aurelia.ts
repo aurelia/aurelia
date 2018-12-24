@@ -2,8 +2,8 @@ import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kern
 import { IDOM } from './dom';
 import { INode } from './dom.interfaces';
 import { LifecycleFlags } from './observation';
+import { IRenderingEngine } from './rendering-engine';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './resources/custom-element';
-import { IRenderingEngine } from './templating/lifecycle-render';
 
 export interface ISinglePageApp {
   dom?: IDOM;

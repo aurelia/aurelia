@@ -13,9 +13,9 @@ import {
   State
 } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
+import { ITemplate } from '../rendering-engine';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
 import { $bindView, $unbindView } from './lifecycle-bind';
-import { ITemplate } from './lifecycle-render';
 
 const slice = Array.prototype.slice;
 

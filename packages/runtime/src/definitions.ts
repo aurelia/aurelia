@@ -11,7 +11,6 @@ import {
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import { IShadowRootInit } from './dom.interfaces';
-import { DelegationStrategy } from './observation/event-manager';
 import { CustomElementConstructor, ICustomElement } from './resources/custom-element';
 import { ICustomElementHost } from './templating/lifecycle-render';
 
@@ -43,24 +42,18 @@ export interface IBindableDescription {
 }
 
 export const enum TargetedInstructionType {
-  textBinding = 'a',
   interpolation = 'b',
   propertyBinding = 'c',
   iteratorBinding = 'd',
-  listenerBinding = 'e',
   callBinding = 'f',
   refBinding = 'g',
-  stylePropertyBinding = 'h',
   setProperty = 'i',
-  setAttribute = 'j',
   hydrateElement = 'k',
   hydrateAttribute = 'l',
   hydrateTemplateController = 'm',
   hydrateLetElement = 'n',
   letBinding = 'o'
 }
-
-const instructionTypeValues = 'abcdefghijklmno';
 
 export interface IBuildInstruction {
   required: boolean;
@@ -101,7 +94,6 @@ export interface ITargetedInstruction {
 }
 
 export type NodeInstruction =
-  ITextBindingInstruction |
   IHydrateElementInstruction |
   IHydrateTemplateController |
   IHydrateLetElementInstruction;
@@ -110,12 +102,9 @@ export type AttributeInstruction =
   IInterpolationInstruction |
   IPropertyBindingInstruction |
   IIteratorBindingInstruction |
-  IListenerBindingInstruction |
   ICallBindingInstruction |
   IRefBindingInstruction |
-  IStylePropertyBindingInstruction |
   ISetPropertyInstruction |
-  ISetAttributeInstruction |
   ILetBindingInstruction |
   IHydrateAttributeInstruction;
 
@@ -126,18 +115,7 @@ export type InstructionRow = [TargetedInstruction, ...AttributeInstruction[]];
 
 export function isTargetedInstruction(value: unknown): value is TargetedInstruction {
   const type = (value as { type?: string }).type;
-  return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
-}
-
-export interface ITextBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.textBinding;
-  from: string | Interpolation;
-}
-
-export interface IInterpolationInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.interpolation;
-  from: string | Interpolation;
-  to: string;
+  return typeof type === 'string' && type.length === 1;
 }
 
 export interface IInterpolationInstruction extends ITargetedInstruction {
@@ -160,14 +138,6 @@ export interface IIteratorBindingInstruction extends ITargetedInstruction {
   to: string;
 }
 
-export interface IListenerBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.listenerBinding;
-  from: string | IsBindingBehavior;
-  to: string;
-  strategy: DelegationStrategy;
-  preventDefault: boolean;
-}
-
 export interface ICallBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.callBinding;
   from: string | IsBindingBehavior;
@@ -179,21 +149,9 @@ export interface IRefBindingInstruction extends ITargetedInstruction {
   from: string | IsBindingBehavior;
 }
 
-export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.stylePropertyBinding;
-  from: string | IsBindingBehavior;
-  to: string;
-}
-
 export interface ISetPropertyInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setProperty;
   value: unknown;
-  to: string;
-}
-
-export interface ISetAttributeInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.setAttribute;
-  value: string;
   to: string;
 }
 

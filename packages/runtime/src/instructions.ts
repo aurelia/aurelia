@@ -9,31 +9,14 @@ import {
   IInterpolationInstruction,
   IIteratorBindingInstruction,
   ILetBindingInstruction,
-  IListenerBindingInstruction,
   IPropertyBindingInstruction,
   IRefBindingInstruction,
   ISetPropertyInstruction,
-  IStylePropertyBindingInstruction,
-  ITargetedInstruction,
   ITemplateDefinition,
-  ITextBindingInstruction,
   TargetedInstruction,
   TargetedInstructionType
 } from './definitions';
 import { INode } from './dom.interfaces';
-import { DelegationStrategy } from './observation/event-manager';
-
-export class TextBindingInstruction implements ITextBindingInstruction {
-  public type: TargetedInstructionType.textBinding;
-
-  public from: string | Interpolation;
-
-  constructor(from: string | Interpolation) {
-    this.type = TargetedInstructionType.textBinding;
-
-    this.from = from;
-  }
-}
 
 export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation;
@@ -135,60 +118,6 @@ export class IteratorBindingInstruction implements IIteratorBindingInstruction {
   }
 }
 
-export class TriggerBindingInstruction implements IListenerBindingInstruction {
-  public type: TargetedInstructionType.listenerBinding;
-
-  public from: string | IsBindingBehavior;
-  public preventDefault: true;
-  public strategy: DelegationStrategy.none;
-  public to: string;
-
-  constructor(from: string | IsBindingBehavior, to: string) {
-    this.type = TargetedInstructionType.listenerBinding;
-
-    this.from = from;
-    this.preventDefault = true;
-    this.strategy = DelegationStrategy.none;
-    this.to = to;
-  }
-}
-
-export class DelegateBindingInstruction implements IListenerBindingInstruction {
-  public type: TargetedInstructionType.listenerBinding;
-
-  public from: string | IsBindingBehavior;
-  public preventDefault: false;
-  public strategy: DelegationStrategy.bubbling;
-  public to: string;
-
-  constructor(from: string | IsBindingBehavior, to: string) {
-    this.type = TargetedInstructionType.listenerBinding;
-
-    this.from = from;
-    this.preventDefault = false;
-    this.strategy = DelegationStrategy.bubbling;
-    this.to = to;
-  }
-}
-
-export class CaptureBindingInstruction implements IListenerBindingInstruction {
-  public type: TargetedInstructionType.listenerBinding;
-
-  public from: string | IsBindingBehavior;
-  public preventDefault: false;
-  public strategy: DelegationStrategy.capturing;
-  public to: string;
-
-  constructor(from: string | IsBindingBehavior, to: string) {
-    this.type = TargetedInstructionType.listenerBinding;
-
-    this.from = from;
-    this.preventDefault = false;
-    this.strategy = DelegationStrategy.capturing;
-    this.to = to;
-  }
-}
-
 export class CallBindingInstruction implements ICallBindingInstruction {
   public type: TargetedInstructionType.callBinding;
 
@@ -215,20 +144,6 @@ export class RefBindingInstruction implements IRefBindingInstruction {
   }
 }
 
-export class StylePropertyBindingInstruction implements IStylePropertyBindingInstruction {
-  public type: TargetedInstructionType.stylePropertyBinding;
-
-  public from: string | IsBindingBehavior;
-  public to: string;
-
-  constructor(from: string | IsBindingBehavior, to: string) {
-    this.type = TargetedInstructionType.stylePropertyBinding;
-
-    this.from = from;
-    this.to = to;
-  }
-}
-
 export class SetPropertyInstruction implements ISetPropertyInstruction {
   public type: TargetedInstructionType.setProperty;
 
@@ -237,20 +152,6 @@ export class SetPropertyInstruction implements ISetPropertyInstruction {
 
   constructor(value: unknown, to: string) {
     this.type = TargetedInstructionType.setProperty;
-
-    this.to = to;
-    this.value = value;
-  }
-}
-
-export class SetAttributeInstruction implements ITargetedInstruction {
-  public type: TargetedInstructionType.setAttribute;
-
-  public to: string;
-  public value: string;
-
-  constructor(value: string, to: string) {
-    this.type = TargetedInstructionType.setAttribute;
 
     this.to = to;
     this.value = value;

@@ -4,43 +4,26 @@ import {
   IContainer,
   IResolver,
   PLATFORM,
-  Reporter,
   Writable
 } from '@aurelia/kernel';
 import {
-  IAddEventListenerOptions,
   IChildNode,
   IComment,
-  IDocument,
   IDocumentFragment,
-  IElement,
-  IEventListenerOptions,
-  IEventListenerOrEventListenerObject,
   IHTMLElement,
   IHTMLTemplateElement,
-  IMutationCallback,
   IMutationObserver,
-  IMutationObserverInit,
   INode,
   INodeSequence,
   IParentNode,
   IRenderLocation,
-  IShadowRootInit,
-  ISVGElement,
   IText,
   NodeType
 } from './dom.interfaces';
 
-const slice = Array.prototype.slice;
-
 function isRenderLocation(node: INode): node is IRenderLocation {
   return node.textContent === 'au-end';
 }
-
-declare var MutationObserver: Constructable & IMutationObserver;
-declare var Element: IElement;
-declare var HTMLElement: IHTMLElement;
-declare var SVGElement: ISVGElement;
 
 export const IDOM = DI.createInterface<IDOM>().noDefault();
 
@@ -71,132 +54,6 @@ export interface IDOM {
   removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
   replaceNode(newChild: unknown, oldChild: unknown): void;
   setAttribute(node: unknown, name: string, value: string): void;
-}
-
-export class DOM implements IDOM {
-  private readonly doc: IDocument;
-
-  constructor(doc: IDocument) {
-    this.doc = doc;
-  }
-
-  public addClass(node: IHTMLElement, className: string): void {
-    node.classList.add(className);
-  }
-  public addEventListener(eventName: string, subscriber: IEventListenerOrEventListenerObject, publisher?: INode, options?: boolean | IAddEventListenerOptions): void {
-    (publisher || this.doc).addEventListener(eventName, subscriber, options);
-  }
-  public appendChild(parent: INode, child: INode): void {
-    parent.appendChild(child);
-  }
-  public attachShadow(host: IHTMLElement, options: IShadowRootInit): IDocumentFragment {
-    return host.attachShadow(options);
-  }
-  public cloneNode<T>(node: T, deep?: boolean): T {
-    return (node as unknown as INode).cloneNode(deep !== false) as unknown as T;
-  }
-  public convertToRenderLocation(node: INode): IRenderLocation {
-    if (this.isRenderLocation(node)) {
-      return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
-    }
-    if (node.parentNode === null) {
-      throw Reporter.error(52);
-    }
-    const locationEnd = this.doc.createComment('au-end');
-    const locationStart = this.doc.createComment('au-start');
-    this.replaceNode(locationEnd, node);
-    this.insertBefore(locationStart, locationEnd);
-    (locationEnd as IRenderLocation).$start = locationStart as IRenderLocation;
-    (locationStart as IRenderLocation).$nodes = null;
-    return locationEnd as IRenderLocation;
-  }
-  public createComment(text: string): IComment {
-    return this.doc.createComment(text);
-  }
-  public createDocumentFragment(markupOrNode?: string | INode): IDocumentFragment {
-    if (markupOrNode === undefined || markupOrNode === null) {
-      return this.doc.createDocumentFragment();
-    }
-    if (this.isNodeInstance(markupOrNode)) {
-      if ((markupOrNode as IHTMLTemplateElement).content !== undefined) {
-        return (markupOrNode as IHTMLTemplateElement).content;
-      }
-      const fragment = this.doc.createDocumentFragment();
-      fragment.appendChild(markupOrNode);
-      return fragment;
-    }
-    return this.createTemplate(markupOrNode).content;
-  }
-  public createElement(name: string): IHTMLElement {
-    return this.doc.createElement(name);
-  }
-  public createNodeObserver(target: INode, callback: IMutationCallback, options: IMutationObserverInit): IMutationObserver {
-    const observer = new MutationObserver(callback);
-    observer.observe(target, options);
-    return observer;
-  }
-  public createTemplate(markup?: unknown): IHTMLTemplateElement {
-    if (markup === undefined || markup === null) {
-      return this.doc.createElement('template');
-    }
-    const template = this.doc.createElement('template');
-    template.innerHTML = (markup as string | object).toString();
-    return template;
-  }
-  public createTextNode(text: string): IText {
-    return this.doc.createTextNode(text);
-  }
-  public getAttribute(node: IHTMLElement, name: string): string {
-    return node.getAttribute(name);
-  }
-  public hasClass(node: IHTMLElement, className: string): boolean {
-    return node.classList.contains(className);
-  }
-  public hasParent(node: INode): boolean {
-    return node.parentNode !== null;
-  }
-  public insertBefore(nodeToInsert: INode, referenceNode: INode): void {
-    referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
-  }
-  public isMarker(node: unknown): node is IHTMLElement {
-    return (node as AuMarker).nodeName === 'AU-M';
-  }
-  public isNodeInstance(potentialNode: unknown): potentialNode is INode {
-    return (potentialNode as INode).nodeType > 0;
-  }
-  public isRenderLocation(node: unknown): node is IRenderLocation {
-    return (node as IComment).textContent === 'au-end';
-  }
-  public registerElementResolver(container: IContainer, resolver: IResolver): void {
-    container.registerResolver(INode, resolver);
-    container.registerResolver(Element, resolver);
-    container.registerResolver(HTMLElement, resolver);
-    container.registerResolver(SVGElement, resolver);
-  }
-  public remove(node: INode): void {
-    if ((node as IChildNode).remove) {
-      (node as IChildNode).remove();
-    } else {
-      node.parentNode.removeChild(node);
-    }
-  }
-  public removeAttribute(node: IHTMLElement, name: string): void {
-    node.removeAttribute(name);
-  }
-  public removeClass(node: IHTMLElement, className: string): void {
-    node.classList.remove(className);
-  }
-  public removeEventListener(eventName: string, subscriber: IEventListenerOrEventListenerObject, publisher?: INode, options?: boolean | IEventListenerOptions): void {
-    (publisher || this.doc).removeEventListener(eventName, subscriber, options);
-  }
-  public replaceNode(newChild: INode, oldChild: INode): void {
-    if (oldChild.parentNode !== null) {
-      oldChild.parentNode.replaceChild(newChild, oldChild);
-    }
-  }
-  public setAttribute(node: IHTMLElement, name: string, value: string): void {
-    node.setAttribute(name, value);
-  }
 }
 
 // This is an implementation of INodeSequence that represents "no DOM" to render.

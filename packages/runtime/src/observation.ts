@@ -79,6 +79,12 @@ export const enum SubscriberFlags {
   Any             = 0b1111,
 }
 
+export enum DelegationStrategy {
+  none = 0,
+  capturing = 1,
+  bubbling = 2
+}
+
 /**
  * Describes a type that tracks changes and can flush those changes in some way
  */

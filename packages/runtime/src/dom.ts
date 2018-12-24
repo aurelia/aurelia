@@ -219,13 +219,15 @@ export const NodeSequence = {
  * - text is the actual text node
  */
 export class TextNodeSequence implements INodeSequence {
+  public dom: DOM;
   public firstChild: IText;
   public lastChild: IText;
   public childNodes: IText[];
 
   private targets: [INode];
 
-  constructor(text: IText) {
+  constructor(dom: DOM, text: IText) {
+    this.dom = dom;
     this.firstChild = text;
     this.lastChild = text;
     this.childNodes = [text];
@@ -257,11 +259,11 @@ export class TextNodeSequence implements INodeSequence {
 // CompiledTemplates create instances of FragmentNodeSequence.
 /** @internal */
 export class FragmentNodeSequence implements INodeSequence {
+  public dom: DOM;
   public firstChild: INode;
   public lastChild: INode;
   public childNodes: INode[];
 
-  private readonly dom: DOM;
   private end: IRenderLocation;
   private fragment: IDocumentFragment;
   private start: IRenderLocation;
@@ -420,7 +422,7 @@ export class NodeSequenceFactory implements INodeSequenceFactory {
   }
 
   public createNodeSequence(): INodeSequence {
-    return new this.Type(this.node.cloneNode(this.deepClone));
+    return new this.Type(this.dom, this.node.cloneNode(this.deepClone));
   }
 }
 

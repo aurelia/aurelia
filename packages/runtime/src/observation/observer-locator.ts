@@ -64,7 +64,7 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
   return pd;
 }
 
-@inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
+@inject(DOM, ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
   private dom: DOM;

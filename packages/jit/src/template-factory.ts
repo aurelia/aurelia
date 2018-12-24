@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { DI, inject } from '@aurelia/kernel';
 import { DOM, IElement, IHTMLTemplateElement, INode } from '@aurelia/runtime';
 
 /**
@@ -38,6 +38,7 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>()
  *
  * @internal
  */
+@inject(DOM)
 export class TemplateFactory {
   private dom: DOM;
   private template: IHTMLTemplateElement;

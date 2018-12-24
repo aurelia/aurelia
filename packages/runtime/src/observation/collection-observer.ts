@@ -84,6 +84,10 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
 
 export interface CollectionLengthObserver extends IBindingTargetObserver<Collection, string> {}
 
+/**
+ * Temporary shortcut to let the @targetObserver decorator know that the length property is never on a DOM instance
+ * TODO: add information to the observers so they don't need to consult the DOM
+ */
 const domStub = {
   isNodeInstance(value: unknown): false {
     return false;

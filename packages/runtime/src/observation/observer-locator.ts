@@ -1,4 +1,4 @@
-import { DI, inject, Reporter } from '@aurelia/kernel';
+import { DI, inject, Primitive, Reporter } from '@aurelia/kernel';
 import { IDOM } from '../dom';
 import { IHTMLElement } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
@@ -190,7 +190,7 @@ export class ObserverLocator implements IObserverLocator {
   // TODO: Reduce complexity (currently at 37)
   private createPropertyObserver(obj: IObservable, propertyName: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
-      return new PrimitiveObserver(obj, propertyName) as IBindingTargetAccessor;
+      return new PrimitiveObserver(obj as unknown as Primitive, propertyName) as IBindingTargetAccessor;
     }
 
     let isNode: boolean;

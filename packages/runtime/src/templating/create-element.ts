@@ -6,7 +6,7 @@ import {
   TargetedInstructionType,
   TemplateDefinition
 } from '../definitions';
-import { DOM } from '../dom';
+import { IDOM } from '../dom';
 import { INode } from '../dom.interfaces';
 import { IRenderContext, IView, IViewFactory } from '../lifecycle';
 import { ICustomElementType } from '../resources/custom-element';
@@ -14,7 +14,7 @@ import { IRenderingEngine, ITemplate } from './lifecycle-render';
 
 const slice = Array.prototype.slice;
 
-export function createElement(dom: DOM, tagOrType: string | Constructable, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
+export function createElement(dom: IDOM, tagOrType: string | Constructable, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(dom, tagOrType, props, children);
   } else {
@@ -23,14 +23,14 @@ export function createElement(dom: DOM, tagOrType: string | Constructable, props
 }
 
 export class RenderPlan {
-  private readonly dom: DOM;
+  private readonly dom: IDOM;
   private readonly dependencies: ReadonlyArray<IRegistry>;
   private readonly instructions: TargetedInstruction[][];
   private readonly node: INode;
 
   private lazyDefinition: TemplateDefinition;
 
-  constructor(dom: DOM, node: INode, instructions: TargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>) {
+  constructor(dom: IDOM, node: INode, instructions: TargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>) {
     this.dom = dom;
     this.dependencies = dependencies;
     this.instructions = instructions;
@@ -62,7 +62,7 @@ export class RenderPlan {
   }
 }
 
-function createElementForTag(dom: DOM, tagName: string, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
+function createElementForTag(dom: IDOM, tagName: string, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
   if (Tracer.enabled) { Tracer.enter('createElementForTag', slice.call(arguments)); }
   const instructions: TargetedInstruction[] = [];
   const allInstructions: TargetedInstruction[][] = [];
@@ -97,7 +97,7 @@ function createElementForTag(dom: DOM, tagName: string, props?: Record<string, s
   return new RenderPlan(dom, element, allInstructions, dependencies);
 }
 
-function createElementForType(dom: DOM, Type: ICustomElementType, props?: object, children?: ArrayLike<unknown>): RenderPlan {
+function createElementForType(dom: IDOM, Type: ICustomElementType, props?: object, children?: ArrayLike<unknown>): RenderPlan {
   if (Tracer.enabled) { Tracer.enter('createElementForType', slice.call(arguments)); }
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
@@ -154,7 +154,7 @@ function createElementForType(dom: DOM, Type: ICustomElementType, props?: object
   return new RenderPlan(dom, element, allInstructions, dependencies);
 }
 
-function addChildren(dom: DOM, parent: INode, children: ArrayLike<unknown>, allInstructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
+function addChildren(dom: IDOM, parent: INode, children: ArrayLike<unknown>, allInstructions: TargetedInstruction[][], dependencies: IRegistry[]): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {
     const current = children[i];
 

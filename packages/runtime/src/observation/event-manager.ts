@@ -1,5 +1,5 @@
 import { DI, IDisposable } from '@aurelia/kernel';
-import { DOM } from '../dom';
+import { IDOM } from '../dom';
 import { IEventListenerOrEventListenerObject, IEventTarget, IManagedEvent, INode } from '../dom.interfaces';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
@@ -67,13 +67,13 @@ function handleDelegatedEvent(event: IManagedEvent): void {
 }
 
 export class ListenerTracker {
-  private dom: DOM;
+  private dom: IDOM;
   private capture: boolean;
   private count: number;
   private eventName: string;
   private listener: IEventListenerOrEventListenerObject;
 
-  constructor(dom: DOM, eventName: string, listener: IEventListenerOrEventListenerObject, capture: boolean) {
+  constructor(dom: IDOM, eventName: string, listener: IEventListenerOrEventListenerObject, capture: boolean) {
     this.dom = dom;
     this.capture = capture;
     this.count = 0;
@@ -129,10 +129,10 @@ export class TriggerSubscription {
   public target: INode;
   public targetEvent: string;
   public callback: IEventListenerOrEventListenerObject;
-  private dom: DOM;
+  private dom: IDOM;
 
   constructor(
-    dom: DOM,
+    dom: IDOM,
     target: INode,
     targetEvent: string,
     callback: IEventListenerOrEventListenerObject
@@ -170,12 +170,12 @@ export interface IEventSubscriber extends IDisposable {
 }
 
 export class EventSubscriber implements IEventSubscriber {
-  private readonly dom: DOM;
+  private readonly dom: IDOM;
   private readonly events: string[];
   private target: INode;
   private handler: IEventListenerOrEventListenerObject;
 
-  constructor(dom: DOM, events: string[]) {
+  constructor(dom: IDOM, events: string[]) {
     this.dom = dom;
     this.events = events;
     this.target = null;
@@ -212,8 +212,8 @@ export type EventSubscription = DelegateOrCaptureSubscription | TriggerSubscript
 
 export interface IEventManager {
   registerElementConfiguration(config: IElementConfiguration): void;
-  getElementHandler(dom: DOM, target: INode, propertyName: string): IEventSubscriber | null;
-  addEventListener(dom: DOM, target: INode, targetEvent: string, callbackOrListener: IEventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
+  getElementHandler(dom: IDOM, target: INode, propertyName: string): IEventSubscriber | null;
+  addEventListener(dom: IDOM, target: INode, targetEvent: string, callbackOrListener: IEventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
 
 export const IEventManager = DI.createInterface<IEventManager>()
@@ -272,7 +272,7 @@ export class EventManager implements IEventManager {
     }
   }
 
-  public getElementHandler(dom: DOM, target: INode, propertyName: string): IEventSubscriber | null {
+  public getElementHandler(dom: IDOM, target: INode, propertyName: string): IEventSubscriber | null {
     const tagName = target['tagName'];
     const lookup = this.elementHandlerLookup;
 
@@ -291,7 +291,7 @@ export class EventManager implements IEventManager {
   }
 
   public addEventListener(
-    dom: DOM,
+    dom: IDOM,
     target: IEventTargetWithLookups,
     targetEvent: string,
     callbackOrListener: IEventListenerOrEventListenerObject,

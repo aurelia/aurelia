@@ -16,7 +16,7 @@ import {
   ITemplateDefinition,
   TemplateDefinition
 } from '../definitions';
-import { DOM } from '../dom';
+import { IDOM } from '../dom';
 import { INode } from '../dom.interfaces';
 import {
   Hooks,
@@ -71,7 +71,7 @@ export interface ICustomElement extends
 
   readonly $projector: IElementProjector;
   readonly $host: ICustomElementHost;
-  $hydrate(dom: DOM, renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+  $hydrate(dom: IDOM, renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
 export interface ICustomElementResource extends

@@ -1,10 +1,10 @@
 import {
   Constructable,
+  DI,
   IContainer,
   IResolver,
   PLATFORM,
   Reporter,
-  Tracer,
   Writable
 } from '@aurelia/kernel';
 import {
@@ -42,7 +42,38 @@ declare var Element: IElement;
 declare var HTMLElement: IHTMLElement;
 declare var SVGElement: ISVGElement;
 
-export class DOM {
+export const IDOM = DI.createInterface<IDOM>().noDefault();
+
+export interface IDOM {
+  addClass(node: unknown, className: string): void;
+  addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
+  appendChild(parent: unknown, child: unknown): void;
+  attachShadow(host: unknown, options: unknown): IDocumentFragment;
+  cloneNode<T>(node: T, deep?: boolean): T;
+  convertToRenderLocation(node: unknown): IRenderLocation;
+  createComment(text: string): IComment;
+  createDocumentFragment(markupOrNode?: unknown): IDocumentFragment;
+  createElement(name: string): IHTMLElement;
+  createNodeObserver(target: unknown, callback: unknown, options: unknown): IMutationObserver;
+  createTemplate(markup?: unknown): IHTMLTemplateElement;
+  createTextNode(text: string): IText;
+  getAttribute(node: unknown, name: string): string;
+  hasClass(node: unknown, className: string): boolean;
+  hasParent(node: unknown): boolean;
+  insertBefore(nodeToInsert: unknown, referenceNode: unknown): void;
+  isMarker(node: unknown): node is IHTMLElement;
+  isNodeInstance(potentialNode: unknown): potentialNode is INode;
+  isRenderLocation(node: unknown): node is IRenderLocation;
+  registerElementResolver(container: IContainer, resolver: IResolver): void;
+  remove(node: unknown): void;
+  removeAttribute(node: unknown, name: string): void;
+  removeClass(node: unknown, className: string): void;
+  removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
+  replaceNode(newChild: unknown, oldChild: unknown): void;
+  setAttribute(node: unknown, name: string, value: string): void;
+}
+
+export class DOM implements IDOM {
   private readonly doc: IDocument;
 
   constructor(doc: IDocument) {
@@ -61,8 +92,8 @@ export class DOM {
   public attachShadow(host: IHTMLElement, options: IShadowRootInit): IDocumentFragment {
     return host.attachShadow(options);
   }
-  public cloneNode<T extends INode>(node: T, deep?: boolean): T {
-    return node.cloneNode(deep !== false) as T;
+  public cloneNode<T>(node: T, deep?: boolean): T {
+    return (node as unknown as INode).cloneNode(deep !== false) as unknown as T;
   }
   public convertToRenderLocation(node: INode): IRenderLocation {
     if (this.isRenderLocation(node)) {
@@ -192,14 +223,14 @@ export const NodeSequence = {
  * - text is the actual text node
  */
 export class TextNodeSequence implements INodeSequence {
-  public dom: DOM;
+  public dom: IDOM;
   public firstChild: IText;
   public lastChild: IText;
   public childNodes: IText[];
 
   private targets: [INode];
 
-  constructor(dom: DOM, text: IText) {
+  constructor(dom: IDOM, text: IText) {
     this.dom = dom;
     this.firstChild = text;
     this.lastChild = text;
@@ -232,7 +263,7 @@ export class TextNodeSequence implements INodeSequence {
 // CompiledTemplates create instances of FragmentNodeSequence.
 /** @internal */
 export class FragmentNodeSequence implements INodeSequence {
-  public dom: DOM;
+  public dom: IDOM;
   public firstChild: INode;
   public lastChild: INode;
   public childNodes: INode[];
@@ -242,7 +273,7 @@ export class FragmentNodeSequence implements INodeSequence {
   private start: IRenderLocation;
   private targets: ArrayLike<INode>;
 
-  constructor(dom: DOM, fragment: IDocumentFragment) {
+  constructor(dom: IDOM, fragment: IDocumentFragment) {
     this.dom = dom;
     this.fragment = fragment;
     // tslint:disable-next-line:no-any
@@ -362,12 +393,12 @@ export interface INodeSequenceFactory {
 }
 
 export class NodeSequenceFactory implements INodeSequenceFactory {
-  private readonly dom: DOM;
+  private readonly dom: IDOM;
   private readonly deepClone: boolean;
   private readonly node: INode;
   private readonly Type: Constructable;
 
-  constructor(dom: DOM, markupOrNode: string | INode) {
+  constructor(dom: IDOM, markupOrNode: string | INode) {
     this.dom = dom;
     const fragment = dom.createDocumentFragment(markupOrNode);
     const childNodes = fragment.childNodes;

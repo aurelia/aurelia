@@ -1,5 +1,5 @@
-import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { BindingMode, BindingType, DOM, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
+import { PLATFORM, Tracer } from '@aurelia/kernel';
+import { BindingMode, BindingType, IDOM, IExpressionParser, IHTMLElement, IHTMLTemplateElement, INode, Interpolation, IsExpressionOrStatement, IText, NodeType } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -47,7 +47,7 @@ export class TemplateControllerSymbol {
     return this._bindings;
   }
 
-  constructor(dom: DOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
+  constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
     this.flags = SymbolFlags.isTemplateController | SymbolFlags.hasMarker;
     this.res = info.name;
     this.partName = partName;
@@ -212,7 +212,7 @@ export class CustomElementSymbol {
     return this._parts;
   }
 
-  constructor(dom: DOM, node: IHTMLElement, info: ElementInfo) {
+  constructor(dom: IDOM, node: IHTMLElement, info: ElementInfo) {
     this.flags = SymbolFlags.isCustomElement;
     this.res = info.name;
     this.physicalNode = node;
@@ -249,7 +249,7 @@ export class LetElementSymbol {
     return this._bindings;
   }
 
-  constructor(dom: DOM, node: IHTMLElement) {
+  constructor(dom: IDOM, node: IHTMLElement) {
     this.flags = SymbolFlags.isLetElement | SymbolFlags.hasMarker;
     this.physicalNode = node;
     this.toViewModel = false;
@@ -307,7 +307,7 @@ export class TextSymbol {
   public interpolation: Interpolation;
   public marker: IHTMLElement;
 
-  constructor(dom: DOM, node: IText, interpolation: Interpolation) {
+  constructor(dom: IDOM, node: IText, interpolation: Interpolation) {
     this.flags = SymbolFlags.isText | SymbolFlags.hasMarker;
     this.physicalNode = node;
     this.interpolation = interpolation;
@@ -334,7 +334,7 @@ export type AnySymbol =
 
 const slice = Array.prototype.slice;
 
-function createMarker(dom: DOM): IHTMLElement {
+function createMarker(dom: IDOM): IHTMLElement {
   const marker = dom.createElement('au-m');
   marker.className = 'au';
   return marker as IHTMLElement;
@@ -384,7 +384,7 @@ export class TemplateBinder {
     this.partName = null;
   }
 
-  public bind(dom: DOM, node: IHTMLTemplateElement): PlainElementSymbol {
+  public bind(dom: IDOM, node: IHTMLTemplateElement): PlainElementSymbol {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bind', slice.call(arguments)); }
 
     const surrogateSave = this.surrogate;
@@ -427,7 +427,7 @@ export class TemplateBinder {
     return manifest;
   }
 
-  private bindManifest(dom: DOM, parentManifest: ElementSymbol, node: IHTMLTemplateElement | IHTMLElement): void {
+  private bindManifest(dom: IDOM, parentManifest: ElementSymbol, node: IHTMLTemplateElement | IHTMLElement): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindManifest', slice.call(arguments)); }
 
     switch (node.nodeName) {
@@ -484,7 +484,7 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private bindLetElement(dom: DOM, parentManifest: ElementSymbol, node: IHTMLElement): void {
+  private bindLetElement(dom: IDOM, parentManifest: ElementSymbol, node: IHTMLElement): void {
     const symbol = new LetElementSymbol(dom, node);
     parentManifest.childNodes.push(symbol);
 
@@ -510,7 +510,7 @@ export class TemplateBinder {
     node.parentNode.replaceChild(symbol.marker, node);
   }
 
-  private bindAttributes(dom: DOM, node: IHTMLTemplateElement | IHTMLElement, parentManifest: ElementSymbol): void {
+  private bindAttributes(dom: IDOM, node: IHTMLTemplateElement | IHTMLElement, parentManifest: ElementSymbol): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindAttributes', slice.call(arguments)); }
 
     const { parentManifestRoot, manifestRoot, manifest } = this;
@@ -582,7 +582,7 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private bindChildNodes(dom: DOM, node: IHTMLTemplateElement | IHTMLElement): void {
+  private bindChildNodes(dom: IDOM, node: IHTMLTemplateElement | IHTMLElement): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindChildNodes', slice.call(arguments)); }
 
     let childNode: INode;
@@ -618,7 +618,7 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private bindText(dom: DOM, node: IText): INode {
+  private bindText(dom: IDOM, node: IText): INode {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindText', slice.call(arguments)); }
     const interpolation = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
     if (interpolation !== null) {
@@ -633,7 +633,7 @@ export class TemplateBinder {
     return node;
   }
 
-  private declareTemplateController(dom: DOM, attrSyntax: AttrSyntax, attrInfo: AttrInfo): TemplateControllerSymbol {
+  private declareTemplateController(dom: IDOM, attrSyntax: AttrSyntax, attrInfo: AttrInfo): TemplateControllerSymbol {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.declareTemplateController', slice.call(arguments)); }
 
     let symbol: TemplateControllerSymbol;
@@ -655,7 +655,7 @@ export class TemplateBinder {
     return symbol;
   }
 
-  private bindCustomAttribute(dom: DOM, attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
+  private bindCustomAttribute(dom: IDOM, attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindCustomAttribute', slice.call(arguments)); }
 
     const command = this.resources.getBindingCommand(attrSyntax);
@@ -679,7 +679,7 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private bindMultiAttribute(dom: DOM, symbol: ResourceAttributeSymbol, attrInfo: AttrInfo, value: string): void {
+  private bindMultiAttribute(dom: IDOM, symbol: ResourceAttributeSymbol, attrInfo: AttrInfo, value: string): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindMultiAttribute', slice.call(arguments)); }
 
     const attributes = parseMultiAttributeBinding(value);
@@ -702,7 +702,7 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private bindPlainAttribute(dom: DOM, attrSyntax: AttrSyntax): void {
+  private bindPlainAttribute(dom: IDOM, attrSyntax: AttrSyntax): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindPlainAttribute', slice.call(arguments)); }
 
     if (attrSyntax.rawValue.length === 0) {
@@ -740,7 +740,7 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private declareReplacePart(dom: DOM, node: IHTMLTemplateElement | IHTMLElement): ReplacePartSymbol {
+  private declareReplacePart(dom: IDOM, node: IHTMLTemplateElement | IHTMLElement): ReplacePartSymbol {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.declareReplacePart', slice.call(arguments)); }
 
     const name = node.getAttribute('replace-part');
@@ -757,7 +757,7 @@ export class TemplateBinder {
   }
 }
 
-function processInterpolationText(dom: DOM, symbol: TextSymbol): void {
+function processInterpolationText(dom: IDOM, symbol: TextSymbol): void {
   const node = symbol.physicalNode;
   const parentNode = node.parentNode;
   while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
@@ -771,7 +771,7 @@ function processInterpolationText(dom: DOM, symbol: TextSymbol): void {
  * A (temporary) standalone function that purely does the DOM processing (lifting) related to template controllers.
  * It's a first refactoring step towards separating DOM parsing/binding from mutations.
  */
-function processTemplateControllers(dom: DOM, manifestProxy: ParentNodeSymbol, manifest: ElementSymbol): void {
+function processTemplateControllers(dom: IDOM, manifestProxy: ParentNodeSymbol, manifest: ElementSymbol): void {
   const manifestNode = manifest.physicalNode;
   let current = manifestProxy as TemplateControllerSymbol;
   while ((current as ParentNodeSymbol) !== manifest) {
@@ -799,7 +799,7 @@ function processTemplateControllers(dom: DOM, manifestProxy: ParentNodeSymbol, m
   }
 }
 
-function processReplacePart(dom: DOM, replacePart: ReplacePartSymbol, manifestProxy: ParentNodeSymbol): void {
+function processReplacePart(dom: IDOM, replacePart: ReplacePartSymbol, manifestProxy: ParentNodeSymbol): void {
     let proxyNode: IHTMLElement;
     if (manifestProxy.flags & SymbolFlags.hasMarker) {
       proxyNode = (manifestProxy as SymbolWithMarker).marker;

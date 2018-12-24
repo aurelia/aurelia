@@ -1,5 +1,5 @@
 import { DI, inject } from '@aurelia/kernel';
-import { DOM, IElement, IHTMLTemplateElement, INode } from '@aurelia/runtime';
+import { IDOM, IElement, IHTMLTemplateElement, INode } from '@aurelia/runtime';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.
@@ -38,12 +38,12 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>()
  *
  * @internal
  */
-@inject(DOM)
+@inject(IDOM)
 export class TemplateFactory {
-  private dom: DOM;
+  private dom: IDOM;
   private template: IHTMLTemplateElement;
 
-  constructor(dom: DOM) {
+  constructor(dom: IDOM) {
     this.dom = dom;
     this.template = dom.createTemplate();
   }

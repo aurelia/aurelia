@@ -1,4 +1,4 @@
-import { DOM } from '../dom';
+import { IDOM } from '../dom';
 import { IHTMLInputElement, IHTMLOptionElement, IHTMLSelectElement, IMutationObserver, INode } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -48,7 +48,7 @@ export interface ValueAttributeObserver extends
 
 @targetObserver('')
 export class ValueAttributeObserver implements ValueAttributeObserver {
-  public dom: DOM;
+  public dom: IDOM;
   public currentFlags: LifecycleFlags;
   public currentValue: unknown;
   public defaultValue: unknown;
@@ -59,7 +59,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
   public obj: INode;
   public propertyKey: string;
 
-  constructor(dom: DOM, lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber) {
+  constructor(dom: IDOM, lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber) {
     this.dom = dom;
     this.handler = handler;
     this.lifecycle = lifecycle;
@@ -147,7 +147,7 @@ export interface CheckedObserver extends
 
 @targetObserver()
 export class CheckedObserver implements CheckedObserver {
-  public dom: DOM;
+  public dom: IDOM;
   public currentFlags: LifecycleFlags;
   public currentValue: unknown;
   public defaultValue: unknown;
@@ -161,7 +161,7 @@ export class CheckedObserver implements CheckedObserver {
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver | SetterObserver;
 
-  constructor(dom: DOM, lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
+  constructor(dom: IDOM, lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
     this.dom = dom;
     this.handler = handler;
     this.lifecycle = lifecycle;
@@ -314,7 +314,7 @@ export interface SelectValueObserver extends
 
 @targetObserver()
 export class SelectValueObserver implements SelectValueObserver {
-  public dom: DOM;
+  public dom: IDOM;
   public currentValue: unknown;
   public currentFlags: LifecycleFlags;
   public oldValue: unknown;
@@ -331,7 +331,7 @@ export class SelectValueObserver implements SelectValueObserver {
   private nodeObserver: IMutationObserver;
 
   constructor(
-    dom: DOM,
+    dom: IDOM,
     lifecycle: ILifecycle,
     obj: ISelectElement,
     handler: IEventSubscriber,

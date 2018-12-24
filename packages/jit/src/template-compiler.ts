@@ -1,11 +1,11 @@
 import { inject, IResourceDescriptions, PLATFORM } from '@aurelia/kernel';
 import {
   AttributeInstruction,
-  DOM,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
   IBuildInstruction,
+  IDOM,
   IExpressionParser,
   ILetBindingInstruction,
   InstructionRow,
@@ -77,7 +77,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.instructionRows = null;
   }
 
-  public compile(dom: DOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
+  public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
     const resources = new ResourceModel(descriptions);
     const binder = new TemplateBinder(resources, this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template);

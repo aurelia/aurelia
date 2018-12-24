@@ -1,6 +1,6 @@
 import { DI, inject, Reporter } from '@aurelia/kernel';
-import { DOM } from '../dom';
-import { IElement, IHTMLElement } from '../dom.interfaces';
+import { IDOM } from '../dom';
+import { IHTMLElement } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
@@ -64,10 +64,10 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
   return pd;
 }
 
-@inject(DOM, ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
+@inject(IDOM, ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
-  private dom: DOM;
+  private dom: IDOM;
   private adapters: IObjectObservationAdapter[];
   private dirtyChecker: IDirtyChecker;
   private eventManager: IEventManager;
@@ -75,7 +75,7 @@ export class ObserverLocator implements IObserverLocator {
   private svgAnalyzer: ISVGAnalyzer;
 
   constructor(
-    dom: DOM,
+    dom: IDOM,
     lifecycle: ILifecycle,
     eventManager: IEventManager,
     dirtyChecker: IDirtyChecker,

@@ -1,5 +1,5 @@
 import { IDisposable, IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
-import { DOM } from '../dom';
+import { IDOM } from '../dom';
 import { IEvent, INode } from '../dom.interfaces';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
@@ -12,7 +12,7 @@ const slice = Array.prototype.slice;
 
 export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
-  public dom: DOM;
+  public dom: IDOM;
 
   public $nextBind: IBindScope;
   public $prevBind: IBindScope;
@@ -30,7 +30,7 @@ export class Listener implements IBinding {
   private handler: IDisposable;
 
   constructor(
-    dom: DOM,
+    dom: IDOM,
     targetEvent: string,
     delegationStrategy: DelegationStrategy,
     sourceExpression: IsBindingBehavior,

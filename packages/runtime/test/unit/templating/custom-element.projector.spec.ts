@@ -1,7 +1,9 @@
-import { customElement, useShadowDOM, noViewTemplate, ICustomElement, ShadowDOMProjector, containerless, ContainerlessProjector, HostProjector } from '../../../src';
+import { customElement, useShadowDOM, noViewTemplate, ICustomElement, ShadowDOMProjector, containerless, ContainerlessProjector, HostProjector, DOM } from '../../../src';
 import { MockRenderingEngine } from '../mock';
 import { expect } from 'chai';
 import { PLATFORM } from '@aurelia/kernel';
+
+const dom = new DOM(<any>document);
 
 describe(`determineProjector`, () => {
   it(`@useShadowDOM yields ShadowDOMProjector`, () => {
@@ -15,7 +17,7 @@ describe(`determineProjector`, () => {
     const host = document.createElement('div');
 
     const sut = new Foo() as ICustomElement;
-    sut.$hydrate(<any>renderingEngine, host);
+    sut.$hydrate(dom, <any>renderingEngine, host);
 
     expect(sut.$projector).to.be.instanceof(ShadowDOMProjector);
     expect(sut.$projector['shadowRoot']).to.be.instanceof(Node);
@@ -36,7 +38,7 @@ describe(`determineProjector`, () => {
     const host = document.createElement('div');
 
     const sut = new Foo() as ICustomElement;
-    sut.$hydrate(<any>renderingEngine, host);
+    sut.$hydrate(dom, <any>renderingEngine, host);
 
     expect(sut.$projector).to.be.instanceof(ShadowDOMProjector);
     expect(sut.$projector['shadowRoot']).to.be.instanceof(Node);
@@ -59,7 +61,7 @@ describe(`determineProjector`, () => {
     parent.appendChild(host);
 
     const sut = new Foo() as ICustomElement;
-    sut.$hydrate(<any>renderingEngine, host);
+    sut.$hydrate(dom, <any>renderingEngine, host);
 
     expect(sut.$projector).to.be.instanceof(ContainerlessProjector);
     expect(sut.$projector['childNodes'].length).to.equal(0);
@@ -87,7 +89,7 @@ describe(`determineProjector`, () => {
     host.appendChild(child);
 
     const sut = new Foo() as ICustomElement;
-    sut.$hydrate(<any>renderingEngine, host);
+    sut.$hydrate(dom, <any>renderingEngine, host);
 
     expect(sut.$projector).to.be.instanceof(ContainerlessProjector);
     expect(sut.$projector['childNodes'][0]).to.equal(child);
@@ -109,7 +111,7 @@ describe(`determineProjector`, () => {
     });
     const host = document.createElement('div');
     const sut = new Foo() as ICustomElement;
-    sut.$hydrate(<any>renderingEngine, host);
+    sut.$hydrate(dom, <any>renderingEngine, host);
     expect(host['$customElement']).to.equal(sut);
     expect(sut.$projector).to.be.instanceof(HostProjector);
     expect(sut.$projector.children).to.equal(PLATFORM.emptyArray);
@@ -126,7 +128,7 @@ describe(`determineProjector`, () => {
     });
     const host = document.createElement('div');
     const sut = new Foo() as ICustomElement;
-    expect(() => sut.$hydrate(<any>renderingEngine, host)).to.throw(/21/);
+    expect(() => sut.$hydrate(dom, <any>renderingEngine, host)).to.throw(/21/);
   });
 
   it(`@containerless + hasSlots throws`, () => {
@@ -141,7 +143,7 @@ describe(`determineProjector`, () => {
     });
     const host = document.createElement('div');
     const sut = new Foo() as ICustomElement;
-    expect(() => sut.$hydrate(<any>renderingEngine, host)).to.throw(/21/);
+    expect(() => sut.$hydrate(dom, <any>renderingEngine, host)).to.throw(/21/);
   });
 });
 describe('ShadowDOMProjector', () => {

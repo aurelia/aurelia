@@ -28,8 +28,8 @@ import {
   TemplateDefinition,
   TemplatePartDefinitions
 } from '../definitions';
-import { DOM, INodeSequenceFactory, NodeSequence, NodeSequenceFactory } from '../dom';
-import { IElement, INode, INodeSequence, IRenderLocation } from '../dom.interfaces';
+import { IDOM, INodeSequenceFactory, NodeSequence, NodeSequenceFactory } from '../dom';
+import { IHTMLElement, INode, INodeSequence, IRenderLocation } from '../dom.interfaces';
 import { Hooks, ILifecycle, IRenderable, IRenderContext, IViewFactory } from '../lifecycle';
 import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { Scope } from '../observation/binding-context';
@@ -43,7 +43,7 @@ const slice = Array.prototype.slice;
 
 export interface ITemplateCompiler {
   readonly name: string;
-  compile(definition: ITemplateDefinition, resources: IResourceDescriptions, viewCompileFlags?: ViewCompileFlags): TemplateDefinition;
+  compile(dom: IDOM, definition: ITemplateDefinition, resources: IResourceDescriptions, viewCompileFlags?: ViewCompileFlags): TemplateDefinition;
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>().noDefault();
@@ -116,14 +116,14 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEng
 }
 
 /** @internal */
-export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+export function $hydrateElement(this: Writable<ICustomElement>, dom: IDOM, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice.call(arguments)); }
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
   this.$scope = Scope.create(this, null);
   this.$host = host;
-  this.$projector = determineProjector(this, host, description);
+  this.$projector = determineProjector(dom, this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
@@ -135,7 +135,7 @@ export function $hydrateElement(this: Writable<ICustomElement>, renderingEngine:
       template.render(this, host, options.parts);
     }
   } else {
-    const template = renderingEngine.getElementTemplate(description, Type);
+    const template = renderingEngine.getElementTemplate(dom, description, Type);
     template.render(this, host, options.parts);
   }
 
@@ -151,6 +151,7 @@ export const defaultShadowOptions = {
 };
 
 function determineProjector(
+  dom: IDOM,
   $customElement: ICustomElement,
   host: ICustomElementHost,
   definition: TemplateDefinition
@@ -160,19 +161,19 @@ function determineProjector(
       throw Reporter.error(21);
     }
 
-    return new ShadowDOMProjector($customElement, host, definition);
+    return new ShadowDOMProjector(dom, $customElement, host, definition);
   }
 
   if (definition.containerless) {
-    return new ContainerlessProjector($customElement, host);
+    return new ContainerlessProjector(dom, $customElement, host);
   }
 
-  return new HostProjector($customElement, host);
+  return new HostProjector(dom, $customElement, host);
 }
 
 export interface IRenderingEngine {
-  getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
-  getViewFactory(source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory;
+  getElementTemplate(dom: IDOM, definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
+  getViewFactory(dom: IDOM, source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory;
 
   applyRuntimeBehavior(Type: ICustomAttributeType, instance: ICustomAttribute): void;
   applyRuntimeBehavior(Type: ICustomElementType, instance: ICustomElement): void;
@@ -209,7 +210,7 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  public getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate {
+  public getElementTemplate(dom: IDOM, definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate {
     if (!definition) {
       return null;
     }
@@ -217,7 +218,7 @@ export class RenderingEngine implements IRenderingEngine {
     let found = this.templateLookup.get(definition);
 
     if (!found) {
-      found = this.templateFromSource(definition);
+      found = this.templateFromSource(dom, definition);
 
       //If the element has a view, support Recursive Components by adding self to own view template container.
       if (found.renderContext !== null && componentType) {
@@ -230,7 +231,7 @@ export class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  public getViewFactory(definition: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
+  public getViewFactory(dom: IDOM, definition: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
     if (!definition) {
       return null;
     }
@@ -239,7 +240,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     if (!factory) {
       const validSource = buildTemplateDefinition(null, definition);
-      const template = this.templateFromSource(validSource, parentContext);
+      const template = this.templateFromSource(dom, validSource, parentContext);
       factory = new ViewFactory(validSource.name, template, this.lifecycle);
       factory.setCacheSize(validSource.cache, true);
       this.factoryLookup.set(definition, factory);
@@ -259,7 +260,7 @@ export class RenderingEngine implements IRenderingEngine {
     found.applyTo(instance, this.lifecycle);
   }
 
-  private templateFromSource(definition: TemplateDefinition, parentContext?: IRenderContext): ITemplate {
+  private templateFromSource(dom: IDOM, definition: TemplateDefinition, parentContext?: IRenderContext): ITemplate {
     parentContext = parentContext || this.container as ExposedContext;
 
     if (definition && definition.template) {
@@ -271,10 +272,10 @@ export class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(definition as ITemplateDefinition, new RuntimeCompilationResources(parentContext as ExposedContext), ViewCompileFlags.surrogate);
+        definition = compiler.compile(dom, definition as ITemplateDefinition, new RuntimeCompilationResources(parentContext as ExposedContext), ViewCompileFlags.surrogate);
       }
 
-      return new CompiledTemplate(this, parentContext, definition);
+      return new CompiledTemplate(dom, this, parentContext, definition);
     }
 
     return noViewTemplate;
@@ -284,13 +285,15 @@ const childObserverOptions = { childList: true };
 
 /** @internal */
 export class ShadowDOMProjector implements IElementProjector {
+  public dom: IDOM;
   public host: ICustomElementHost;
   public shadowRoot: ICustomElementHost;
 
-  constructor($customElement: ICustomElement, host: ICustomElementHost, definition: TemplateDefinition) {
+  constructor(dom: IDOM, $customElement: ICustomElement, host: ICustomElementHost, definition: TemplateDefinition) {
+    this.dom = dom;
     this.host = host;
 
-    this.shadowRoot = DOM.attachShadow(this.host as IElement, definition.shadowOptions || defaultShadowOptions);
+    this.shadowRoot = dom.attachShadow(this.host as IHTMLElement, definition.shadowOptions || defaultShadowOptions);
     this.host.$customElement = $customElement;
     this.shadowRoot.$customElement = $customElement;
   }
@@ -300,7 +303,7 @@ export class ShadowDOMProjector implements IElementProjector {
   }
 
   public subscribeToChildrenChange(callback: () => void): void {
-    DOM.createNodeObserver(this.host, callback, childObserverOptions);
+    this.dom.createNodeObserver(this.host, callback, childObserverOptions);
   }
 
   public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
@@ -322,18 +325,20 @@ export class ShadowDOMProjector implements IElementProjector {
 
 /** @internal */
 export class ContainerlessProjector implements IElementProjector {
+  public dom: IDOM;
   public host: ICustomElementHost;
 
   private childNodes: ArrayLike<INode>;
 
-  constructor($customElement: ICustomElement, host: ICustomElementHost) {
+  constructor(dom: IDOM, $customElement: ICustomElement, host: ICustomElementHost) {
+    this.dom = dom;
     if (host.childNodes.length) {
       this.childNodes = PLATFORM.toArray(host.childNodes);
     } else {
       this.childNodes = PLATFORM.emptyArray;
     }
 
-    this.host = DOM.convertToRenderLocation(host);
+    this.host = dom.convertToRenderLocation(host);
     this.host.$customElement = $customElement;
   }
 
@@ -368,9 +373,11 @@ export class ContainerlessProjector implements IElementProjector {
 
 /** @internal */
 export class HostProjector implements IElementProjector {
+  public dom: IDOM;
   public host: ICustomElementHost;
 
-  constructor($customElement: ICustomElement, host: ICustomElementHost) {
+  constructor(dom: IDOM, $customElement: ICustomElement, host: ICustomElementHost) {
+    this.dom = dom;
     this.host = host;
 
     this.host.$customElement = $customElement;
@@ -571,11 +578,11 @@ export class CompiledTemplate implements ITemplate {
 
   private templateDefinition: TemplateDefinition;
 
-  constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, templateDefinition: TemplateDefinition) {
+  constructor(dom: IDOM, renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, templateDefinition: TemplateDefinition) {
     this.templateDefinition = templateDefinition;
 
-    this.factory = NodeSequenceFactory.createFor(this.templateDefinition.template);
-    this.renderContext = createRenderContext(renderingEngine, parentRenderContext, this.templateDefinition.dependencies);
+    this.factory = new NodeSequenceFactory(dom, this.templateDefinition.template as string | INode);
+    this.renderContext = createRenderContext(dom, renderingEngine, parentRenderContext, this.templateDefinition.dependencies);
   }
 
   public render(renderable: IRenderable, host?: INode, parts?: TemplatePartDefinitions): void {
@@ -598,16 +605,16 @@ export const noViewTemplate: ITemplate = {
 /** @internal */
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
-export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext {
+export function createRenderContext(dom: IDOM, renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext {
   const context = parentRenderContext.createChild() as ExposedContext;
   const renderableProvider = new InstanceProvider();
   const elementProvider = new InstanceProvider();
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
-  const factoryProvider = new ViewFactoryProvider(renderingEngine);
+  const factoryProvider = new ViewFactoryProvider(dom, renderingEngine);
   const renderLocationProvider = new InstanceProvider<IRenderLocation>();
   const renderer = context.get(IRenderer);
 
-  DOM.registerElementResolver(context, elementProvider);
+  dom.registerElementResolver(context, elementProvider);
 
   context.registerResolver(IViewFactory, factoryProvider);
   context.registerResolver(IRenderable, renderableProvider);
@@ -619,7 +626,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   }
 
   context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
-    renderer.render(this, renderable, targets, templateDefinition, host, parts);
+    renderer.render(dom, this, renderable, targets, templateDefinition, host, parts);
   };
 
   context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
@@ -675,11 +682,13 @@ export class InstanceProvider<T> implements IResolver {
 
 /** @internal */
 export class ViewFactoryProvider implements IResolver {
+  private dom: IDOM;
   private factory: IViewFactory | null;
   private renderingEngine: IRenderingEngine;
   private replacements: TemplatePartDefinitions;
 
-  constructor(renderingEngine: IRenderingEngine) {
+  constructor(dom: IDOM, renderingEngine: IRenderingEngine) {
+    this.dom = dom;
     this.renderingEngine = renderingEngine;
   }
 
@@ -698,7 +707,7 @@ export class ViewFactoryProvider implements IResolver {
     }
     const found = this.replacements[factory.name];
     if (found) {
-      return this.renderingEngine.getViewFactory(found, requestor);
+      return this.renderingEngine.getViewFactory(this.dom, found, requestor);
     }
 
     return factory;
@@ -712,7 +721,7 @@ export class ViewFactoryProvider implements IResolver {
 
 export interface IRenderer {
   instructionRenderers: Record<string, IInstructionRenderer>;
-  render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(dom: IDOM, context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
 }
 
 export const IRenderer = DI.createInterface<IRenderer>().withDefault(x => x.singleton(Renderer));
@@ -722,7 +731,7 @@ export interface IInstructionTypeClassifier<TType extends string = string> {
 }
 
 export interface IInstructionRenderer<TType extends string = string> extends Partial<IInstructionTypeClassifier<TType>> {
-  render(context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
+  render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
 }
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>().noDefault();
@@ -767,7 +776,7 @@ export class Renderer implements IRenderer {
     });
   }
 
-  public render(context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     if (Tracer.enabled) { Tracer.enter('Renderer.render', slice.call(arguments)); }
     const targetInstructions = definition.instructions;
     const instructionRenderers = this.instructionRenderers;
@@ -785,7 +794,7 @@ export class Renderer implements IRenderer {
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
         const current = instructions[j];
-        instructionRenderers[current.type].render(context, renderable, target, current, parts);
+        instructionRenderers[current.type].render(dom, context, renderable, target, current, parts);
       }
     }
 
@@ -794,7 +803,7 @@ export class Renderer implements IRenderer {
 
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
         const current = surrogateInstructions[i];
-        instructionRenderers[current.type].render(context, renderable, host, current, parts);
+        instructionRenderers[current.type].render(dom, context, renderable, host, current, parts);
       }
     }
     if (Tracer.enabled) { Tracer.leave(); }

@@ -14,12 +14,15 @@ import {
   IScope, isPureLiteral, Binding, ObserverLocator, Lifecycle,
   connects, HtmlLiteral, ArrayBindingPattern, ObjectBindingPattern,
   BindingIdentifier, ForOfStatement, Interpolation, observes, callsFunction,
-  hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, ExpressionKind, ISignaler, Scope, OverrideContext
+  hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, ExpressionKind, ISignaler, Scope, OverrideContext,
+  DOM
 } from '../../../src/index';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
 import { createScopeForTest } from './shared';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
+
+const dom = new DOM(<any>document);
 
 const $false = PrimitiveLiteral.$false;
 const $true = PrimitiveLiteral.$true;
@@ -1926,7 +1929,7 @@ describe('BindingBehavior', () => {
 
           const mock = new MockBindingBehavior();
           const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-          const observerLocator = new ObserverLocator(new Lifecycle(), null, null, null);
+          const observerLocator = new ObserverLocator(dom, new Lifecycle(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -1943,7 +1946,7 @@ describe('BindingBehavior', () => {
 
           const mock = new MockBindingBehavior();
           const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-          const observerLocator = new ObserverLocator(new Lifecycle(), null, null, null);
+          const observerLocator = new ObserverLocator(dom, new Lifecycle(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1 }, null);
@@ -1966,7 +1969,7 @@ describe('BindingBehavior', () => {
 
           const mock = new MockBindingBehavior();
           const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-          const observerLocator = new ObserverLocator(new Lifecycle(), null, null, null);
+          const observerLocator = new ObserverLocator(dom, new Lifecycle(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1, b: arg2, c: arg3 }, null);
@@ -2198,7 +2201,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new Lifecycle(), null, null, null);
+          const observerLocator = new ObserverLocator(dom, new Lifecycle(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2215,7 +2218,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new Lifecycle(), null, null, null);
+          const observerLocator = new ObserverLocator(dom, new Lifecycle(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2232,7 +2235,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new Lifecycle(), null, null, null);
+          const observerLocator = new ObserverLocator(dom, new Lifecycle(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2249,7 +2252,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new Lifecycle(), null, null, null);
+          const observerLocator = new ObserverLocator(dom, new Lifecycle(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value }, null);
@@ -2267,7 +2270,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new Lifecycle(), null, null, null);
+          const observerLocator = new ObserverLocator(dom, new Lifecycle(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1 }, null);
@@ -2291,7 +2294,7 @@ describe('ValueConverter', () => {
           const mock = new MockValueConverter(methods);
           mock['signals'] = signals;
           const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
-          const observerLocator = new ObserverLocator(new Lifecycle(), null, null, null);
+          const observerLocator = new ObserverLocator(dom, new Lifecycle(), null, null, null);
           const binding = new Binding(<any>expr, null, null, null, observerLocator, locator);
 
           const scope = Scope.create({ foo: value, a: arg1, b: arg2, c: arg3 }, null);

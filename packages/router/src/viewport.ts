@@ -1,4 +1,4 @@
-import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { Router } from './router';
 import { Scope } from './scope';
@@ -119,6 +119,7 @@ export class Viewport {
 
     const host: INode = this.element as INode;
     const renderingEngine = this.router.container.get(IRenderingEngine);
+    const dom = this.router.container.get(IDOM);
 
     if (this.component) {
       if (this.component.leave) {
@@ -132,7 +133,7 @@ export class Viewport {
       if (this.nextComponent.enter) {
         this.nextComponent.enter(this.nextInstruction, this.instruction);
       }
-      this.nextComponent.$hydrate(renderingEngine, host);
+      this.nextComponent.$hydrate(dom, renderingEngine, host);
       this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
       this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);
 

@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry, PLATFORM, Constructable, IResourceDescriptions, RuntimeCompilationResources } from '../../../kernel/src';
+import { DI, IContainer, IRegistry, PLATFORM, Constructable, IResourceDescriptions, RuntimeCompilationResources, Registration } from '../../../kernel/src';
 import {
   IExpressionParser,
   BindingType,
@@ -21,7 +21,9 @@ import {
   ForOfStatement,
   BindingIdentifier,
   IExpression,
-  PrimitiveLiteral
+  PrimitiveLiteral,
+  DOM,
+  IDOM
 } from '../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -37,11 +39,14 @@ import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual
 import { stringifyTemplateDefinition } from '../../src/debugging';
 import { ITemplateFactory, TemplateFactory } from '../../src/template-factory';
 
+const dom = <any>new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 const c = DI.createContainer();
+c.register(domRegistration);
 c.register(<any>DotSeparatedAttributePattern);
 
 const attrParser = c.get(IAttributeParser);
-const tplFactory = new TemplateFactory();
+const tplFactory = new TemplateFactory(dom);
 
 
 export function createAttribute(name: string, value: string): Attr {
@@ -59,6 +64,7 @@ describe('TemplateCompiler', () => {
   beforeEach(() => {
     container = DI.createContainer();
     container.register(<any>BasicConfiguration);
+    container.register(domRegistration);
     expressionParser = container.get<IExpressionParser>(IExpressionParser);
     sut = new TemplateCompiler(tplFactory, <any>attrParser, <any>expressionParser);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ Type: { description: {} } }) });
@@ -395,7 +401,7 @@ describe('TemplateCompiler', () => {
 
     function compileWith(markup: string | Element, extraResources: any[] = [], viewCompileFlags?: ViewCompileFlags) {
       extraResources.forEach(e => e.register(container));
-      return sut.compile(<any>{ template: markup, instructions: [], surrogates: [] }, <any>resources);
+      return sut.compile(dom, <any>{ template: markup, instructions: [], surrogates: [] }, <any>resources);
     }
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
@@ -631,6 +637,7 @@ describe(`TemplateCompiler - combinations`, () => {
   function setup(...globals: IRegistry[]) {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
+    container.register(domRegistration);
     const expressionParser = container.get(IExpressionParser);
     const factory = container.get(ITemplateFactory);
     const sut = new TemplateCompiler(factory, attrParser, expressionParser as any);
@@ -670,7 +677,7 @@ describe(`TemplateCompiler - combinations`, () => {
 
         const { sut, resources } = setup();
 
-        const actual = sut.compile(<any>input, resources);
+        const actual = sut.compile(dom, <any>input, resources);
 
         verifyBindingInstructionsEqual(actual, expected);
       });
@@ -725,7 +732,7 @@ describe(`TemplateCompiler - combinations`, () => {
         const $def = CustomAttributeResource.define(def, ctor);
         const { sut, resources } = setup($def);
 
-        const actual = sut.compile(<any>input, resources);
+        const actual = sut.compile(dom, <any>input, resources);
 
         verifyBindingInstructionsEqual(actual, expected);
       });
@@ -779,7 +786,7 @@ describe(`TemplateCompiler - combinations`, () => {
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            sut.compile(<any>input, resources);
+            sut.compile(dom, <any>input, resources);
           } catch(err) {
             //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
             //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
@@ -789,7 +796,7 @@ describe(`TemplateCompiler - combinations`, () => {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(<any>input, resources);
+          const actual = sut.compile(dom, <any>input, resources);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
           try {
@@ -850,7 +857,7 @@ describe(`TemplateCompiler - combinations`, () => {
           <any>CustomAttributeResource.define({ name: 'qux', isTemplateController: true }, class Qux{})
         );
 
-        const actual = sut.compile(<any>input, resources);
+        const actual = sut.compile(dom, <any>input, resources);
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
@@ -908,7 +915,7 @@ describe(`TemplateCompiler - combinations`, () => {
           <any>CustomAttributeResource.define({ name: 'quux', isTemplateController: true }, class Quux{})
         );
 
-        const actual = sut.compile(<any>input, resources);
+        const actual = sut.compile(dom, <any>input, resources);
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
@@ -969,7 +976,7 @@ describe(`TemplateCompiler - combinations`, () => {
         };
         //enableTracing();
         //Tracer.enableLiveLogging(SymbolTraceWriter);
-        const actual = sut.compile(<any>input, resources);
+        const actual = sut.compile(dom, <any>input, resources);
         //console.log('\n'+stringifyTemplateDefinition(actual, 0));
         //disableTracing();
         try {
@@ -1038,7 +1045,7 @@ describe(`TemplateCompiler - combinations`, () => {
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            sut.compile(<any>input, resources);
+            sut.compile(dom, <any>input, resources);
           } catch(err) {
             //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
             //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
@@ -1048,7 +1055,7 @@ describe(`TemplateCompiler - combinations`, () => {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(<any>input, resources);
+          const actual = sut.compile(dom, <any>input, resources);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
           try {
@@ -1092,7 +1099,7 @@ describe(`TemplateCompiler - combinations`, () => {
 
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(<any>input, resources);
+          const actual = sut.compile(dom, <any>input, resources);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
         try {

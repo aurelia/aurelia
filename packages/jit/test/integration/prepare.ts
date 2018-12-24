@@ -1,8 +1,11 @@
 
 import { BasicConfiguration } from "../../src";
 import { expect } from "chai";
-import { valueConverter, customElement, bindable, CustomElementResource, IObserverLocator, Aurelia, Lifecycle, ILifecycle, INode, IElement } from "../../../runtime/src/index";
-import { IContainer, DI, Constructable, PLATFORM } from "../../../kernel/src/index";
+import { valueConverter, customElement, bindable, CustomElementResource, IObserverLocator, Aurelia, Lifecycle, ILifecycle, INode, IElement, DOM, IDOM } from "../../../runtime/src/index";
+import { IContainer, DI, Constructable, PLATFORM, Registration } from "../../../kernel/src/index";
+
+const dom = <any>new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 export function cleanup(): void {
   const body = document.body;
@@ -65,6 +68,7 @@ const globalResources: any[] = [
 export const TestConfiguration = {
   register(container: IContainer) {
     container.register(...globalResources);
+    container.register(domRegistration);
   }
 }
 
@@ -115,9 +119,10 @@ export function stringify(o) {
 
 export function setupAndStart(template: string, $class: Constructable | null, ...registrations: any[]) {
   const container = DI.createContainer();
+  container.register(domRegistration);
   container.register(...registrations);
-  const lifecycle = container.get(ILifecycle);
-  const observerLocator = container.get(IObserverLocator);
+  const lifecycle = container.get<ILifecycle>(ILifecycle);
+  const observerLocator = container.get<IObserverLocator>(IObserverLocator);
   container.register(TestConfiguration, BasicConfiguration)
   const host = document.createElement('app');
   document.body.appendChild(host);
@@ -129,9 +134,10 @@ export function setupAndStart(template: string, $class: Constructable | null, ..
 
 export function setup(template: string, $class: Constructable | null, ...registrations: any[]) {
   const container = DI.createContainer();
+  container.register(domRegistration);
   container.register(...registrations);
-  const lifecycle = container.get(ILifecycle);
-  const observerLocator = container.get(IObserverLocator);
+  const lifecycle = container.get<ILifecycle>(ILifecycle);
+  const observerLocator = container.get<IObserverLocator>(IObserverLocator);
   container.register(TestConfiguration, BasicConfiguration)
   const host = document.createElement('app');
   document.body.appendChild(host);

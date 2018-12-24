@@ -176,7 +176,7 @@ export function jsonStringify(o: any): string {
 }
 
 export function htmlStringify(node: Node): string {
-  if (node.textContent.length || node instanceof Text || node instanceof Comment) {
+  if ((node.textContent !== null && node.textContent.length) || node instanceof Text || node instanceof Comment) {
     return node.textContent.replace(newline, '');
   }
   if (node instanceof Element) {

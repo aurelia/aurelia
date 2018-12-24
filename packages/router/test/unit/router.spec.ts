@@ -327,7 +327,7 @@ let setup = async (): Promise<{ au, container, host, router }> => {
   container.register(<any>ViewportCustomElement);
   container.register(Foo, Bar, Baz, Qux, Quux, Corge);
   const au = new Aurelia(<any>container);
-  const host = DOM.createElement('div');
+  const host = document.createElement('div');
   document.body.appendChild(<any>host);
   const component = new App();
   au.app({ component, host });

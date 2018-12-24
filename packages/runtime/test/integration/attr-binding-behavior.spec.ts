@@ -15,7 +15,7 @@ describe('AttrBindingBehavior', () => {
   let scope: IScope;
 
   beforeEach(() => {
-    target = DOM.createElement('div');
+    target = document.createElement('div');
     targetProperty = 'foo';
     sut = new AttrBindingBehavior();
     container = DI.createContainer();

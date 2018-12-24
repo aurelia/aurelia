@@ -1,11 +1,16 @@
 import { spy, SinonSpy } from 'sinon';
-import { BindingContext, Scope, AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, LifecycleFlags, IScope, ILifecycle, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType, State, Lifecycle } from '../../src/index';
-import { DI } from '../../../kernel/src/index';
+import { BindingContext, Scope, AccessMember, PrimitiveLiteral, DOM, IDOM, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, LifecycleFlags, IScope, ILifecycle, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType, State, Lifecycle } from '../../src/index';
+import { DI, Registration } from '../../../kernel/src/index';
 import { createScopeForTest } from '../unit/binding/shared';
 import { expect } from 'chai';
 import { _, massSpy, massReset, massRestore, ensureNotCalled, eachCartesianJoinFactory, verifyEqual } from '../unit/util';
 import sinon from 'sinon';
 import { parse, ParserState, Access, Precedence, parseCore } from '../../../jit/src';
+
+
+
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -30,6 +35,7 @@ describe('Binding', () => {
 
   function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
     const container = DI.createContainer();
+    container.register(domRegistration);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const observerLocator = container.get(IObserverLocator);
     const sut = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, <any>container);
@@ -79,6 +85,7 @@ describe('Binding', () => {
     rawExpr += args.join('+');
     const expr = parseCore(rawExpr, 0);
     const container = DI.createContainer();
+    container.register(domRegistration);
     const observerLocator = container.get(IObserverLocator);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const target = {val: 0};

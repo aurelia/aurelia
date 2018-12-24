@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { DOM } from '../dom';
+import { IDOM } from '../dom';
 import { IElement, IHTMLElement, INode } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor } from '../observation';
@@ -11,6 +11,7 @@ export interface XLinkAttributeAccessor extends IBindingTargetAccessor<IHTMLElem
 
 @targetObserver('')
 export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
+  public dom: IDOM;
   public attributeName: string;
   public currentValue: string;
   public defaultValue: string;
@@ -26,7 +27,8 @@ export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
   // Using very HTML-specific code here since this isn't likely to get
   // called unless operating against a real HTML element.
 
-  constructor(lifecycle: ILifecycle, obj: IHTMLElement, propertyKey: string, attributeName: string) {
+  constructor(dom: IDOM, lifecycle: ILifecycle, obj: IHTMLElement, propertyKey: string, attributeName: string) {
+    this.dom = dom;
     this.attributeName = attributeName;
     this.lifecycle = lifecycle;
     this.obj = obj;
@@ -49,14 +51,16 @@ export interface DataAttributeAccessor extends IBindingTargetAccessor<INode, str
 
 @targetObserver()
 export class DataAttributeAccessor implements DataAttributeAccessor {
+  public dom: IDOM;
   public currentValue: string;
   public defaultValue: string;
   public lifecycle: ILifecycle;
-  public obj: IElement;
+  public obj: IHTMLElement;
   public oldValue: string;
   public propertyKey: string;
 
-  constructor(lifecycle: ILifecycle, obj: IElement, propertyKey: string) {
+  constructor(dom: IDOM, lifecycle: ILifecycle, obj: IHTMLElement, propertyKey: string) {
+    this.dom = dom;
     this.lifecycle = lifecycle;
     this.obj = obj;
     this.oldValue = this.currentValue = this.getValue();
@@ -64,14 +68,14 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   }
 
   public getValue(): string {
-    return DOM.getAttribute(this.obj, this.propertyKey);
+    return this.dom.getAttribute(this.obj, this.propertyKey);
   }
 
   public setValueCore(newValue: string): void {
     if (newValue === null) {
-      DOM.removeAttribute(this.obj, this.propertyKey);
+      this.dom.removeAttribute(this.obj, this.propertyKey);
     } else {
-      DOM.setAttribute(this.obj, this.propertyKey, newValue);
+      this.dom.setAttribute(this.obj, this.propertyKey, newValue);
     }
   }
 }
@@ -80,6 +84,7 @@ export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElem
 
 @targetObserver()
 export class StyleAttributeAccessor implements StyleAttributeAccessor {
+  public dom: IDOM;
   public currentValue: string | Record<string, string>;
   public defaultValue: string | Record<string, string>;
   public lifecycle: ILifecycle;
@@ -89,7 +94,8 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
   public styles: object;
   public version: number;
 
-  constructor(lifecycle: ILifecycle, obj: IHTMLElement) {
+  constructor(dom: IDOM, lifecycle: ILifecycle, obj: IHTMLElement) {
+    this.dom = dom;
     this.lifecycle = lifecycle;
     this.obj = obj;
     this.oldValue = this.currentValue = obj.style.cssText;
@@ -163,16 +169,18 @@ export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, st
 
 @targetObserver('')
 export class ClassAttributeAccessor implements ClassAttributeAccessor {
+  public dom: IDOM;
   public currentValue: string;
   public defaultValue: string;
   public doNotCache: true;
   public lifecycle: ILifecycle;
   public nameIndex: object;
-  public obj: IElement;
+  public obj: IHTMLElement;
   public oldValue: string;
   public version: number;
 
-  constructor(lifecycle: ILifecycle, obj: IElement) {
+  constructor(dom: IDOM, lifecycle: ILifecycle, obj: IHTMLElement) {
+    this.dom = dom;
     this.lifecycle = lifecycle;
     this.obj = obj;
   }
@@ -184,8 +192,8 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
   public setValueCore(newValue: string): void {
     const nameIndex = this.nameIndex || {};
     let version = this.version;
-    let names;
-    let name;
+    let names: string[];
+    let name: string;
 
     // Add the classes, tracking the version at which they were added.
     if (newValue.length) {
@@ -197,7 +205,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
           continue;
         }
         nameIndex[name] = version;
-        DOM.addClass(node, name);
+        this.dom.addClass(node, name);
       }
     }
 
@@ -221,7 +229,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
       // will be removed if they're not present in the next update.
       // Better would be do have some configurability for this behavior, allowing the user to
       // decide whether initial classes always need to be kept, always removed, or something in between
-      DOM.removeClass(this.obj, name);
+      this.dom.removeClass(this.obj, name);
     }
   }
 }
@@ -234,11 +242,13 @@ export interface ElementPropertyAccessor extends IBindingTargetAccessor<object, 
 
 @targetObserver('')
 export class ElementPropertyAccessor implements ElementPropertyAccessor {
+  public dom: IDOM;
   public lifecycle: ILifecycle;
   public obj: object;
   public propertyKey: string;
 
-  constructor(lifecycle: ILifecycle, obj: object, propertyKey: string) {
+  constructor(dom: IDOM, lifecycle: ILifecycle, obj: object, propertyKey: string) {
+    this.dom = dom;
     this.lifecycle = lifecycle;
     this.obj = obj;
     this.propertyKey = propertyKey;

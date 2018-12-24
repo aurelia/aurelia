@@ -2,7 +2,8 @@ import { expect } from "chai";
 import { defineCustomElement } from "./prepare";
 import {
   bindable, Aurelia, ViewFactory, View, IView,
-  RenderPlan, IViewFactory, CompiledTemplate, IRenderingEngine, DOM, ILifecycle
+  RenderPlan, IViewFactory, CompiledTemplate, IRenderingEngine, DOM, ILifecycle,
+  IDOM, TemplateDefinition
 } from "../../../runtime/src/index";
 import { baseSuite } from "./template-compiler.base";
 import { IContainer } from "@aurelia/kernel";
@@ -64,7 +65,8 @@ suite.addDataSlot('f') // subject + expected text
     const msg = ctx.h = 'Hello!';
     ctx.g = 'sub';
     const engine = ctx.a.get(IRenderingEngine);
-    return engine.getViewFactory({
+    const dom = ctx.a.get(IDOM);
+    return engine.getViewFactory(dom, <TemplateDefinition>{
       template: `<template>${msg}</template>`,
       build: { required: true, compiler: 'default' }
     });
@@ -74,16 +76,18 @@ suite.addDataSlot('f') // subject + expected text
     const msg = ctx.h = 'Hello!';
     ctx.g = 'sub';
     const engine = ctx.a.get(IRenderingEngine);
-    return engine.getViewFactory({
+    const dom = ctx.a.get(IDOM);
+    return engine.getViewFactory(dom, <TemplateDefinition>{
       template: `<template>${msg}</template>`,
       build: { required: true, compiler: 'default' }
     }).create();
   })
   // RenderPlan
   .addData('06').setFactory(ctx => {
+    const dom = ctx.a.get(IDOM);
     const msg = ctx.h = 'Hello!';
     ctx.g = 'sub';
-    return new RenderPlan(<any>`<div>${msg}</div>`, [], []);
+    return new RenderPlan(dom, <any>`<div>${msg}</div>`, [], []);
   })
   // Raw Template (inline)
   .addData('07').setFactory(ctx => {

@@ -1,5 +1,5 @@
 import { spy } from 'sinon';
-import { PLATFORM, Writable, DI } from '../../../kernel/src/index';
+import { PLATFORM, Writable, DI, Registration } from '../../../kernel/src/index';
 import {
   noViewTemplate,
   ITemplate,
@@ -23,11 +23,17 @@ import {
   State,
   ObserverLocator,
   NodeSequence,
-  INodeSequenceFactory
+  INodeSequenceFactory,
+  DOM,
+  IDOM
 } from '../../src';
 import { expect } from 'chai';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import { MockTextNodeTemplate } from '../unit/mock';
+
+
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 class StubView {
   constructor(public cached = false) {}
@@ -165,6 +171,7 @@ describe(`View`, () => {
       [
         () => {
           const container = DI.createContainer();
+          container.register(domRegistration);
           const lifecycle = container.get(ILifecycle) as Lifecycle;
           const factory = new ViewFactory('foo', noViewTemplate, lifecycle);
           factory.setCacheSize('*', true);
@@ -172,29 +179,33 @@ describe(`View`, () => {
         },
         () => {
           const container = DI.createContainer();
+          container.register(domRegistration);
           const lifecycle = container.get(ILifecycle) as Lifecycle;
           const factory = new ViewFactory('foo', noViewTemplate, lifecycle);
           return [` noViewTemplate, viewFactory(cache=false)`, lifecycle, <View>factory.create(), noViewTemplate, factory, false];
         },
         () => {
           const container = DI.createContainer();
+          container.register(domRegistration);
           const lifecycle = container.get(ILifecycle) as Lifecycle;
-          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(lifecycle, null, null, null), container) as any;
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(dom, lifecycle, null, null, null), container) as any;
           const factory = new ViewFactory('foo', <any>template, lifecycle);
           factory.setCacheSize('*', true);
           return [`textNodeTemplate, viewFactory(cache=true )`, lifecycle, <View>factory.create(), template, factory, true];
         },
         () => {
           const container = DI.createContainer();
+          container.register(domRegistration);
           const lifecycle = container.get(ILifecycle) as Lifecycle;
-          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(lifecycle, null, null, null), container) as any;
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(dom, lifecycle, null, null, null), container) as any;
           const factory = new ViewFactory('foo', <any>template, lifecycle);
           return [`textNodeTemplate, viewFactory(cache=false)`, lifecycle, <View>factory.create(), template, factory, false];
         },
         () => {
           const container = DI.createContainer();
+          container.register(domRegistration);
           const lifecycle = container.get(ILifecycle) as Lifecycle;
-          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(lifecycle, null, null, null), container) as any;
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(dom, lifecycle, null, null, null), container) as any;
           const factory = new ViewFactory('foo', <any>template, lifecycle);
           const child = <View>factory.create();
           const sut = <View>factory.create();
@@ -205,8 +216,9 @@ describe(`View`, () => {
         },
         () => {
           const container = DI.createContainer();
+          container.register(domRegistration);
           const lifecycle = container.get(ILifecycle) as Lifecycle;
-          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(lifecycle, null, null, null), container) as any;
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(dom, lifecycle, null, null, null), container) as any;
           const factory = new ViewFactory('foo', <any>template, lifecycle);
           const child = <View>factory.create();
           const sut = <View>factory.create();

@@ -25,14 +25,18 @@ import {
   IView,
   Interpolation,
   State,
-  HtmlRenderer
+  HtmlRenderer,
+  IDOM
 } from '../../src/index';
-import { IContainer, DI } from '../../../kernel/src/index';
+import { IContainer, DI, Registration } from '../../../kernel/src/index';
 import { createAureliaRepeaterConfig, createRepeater } from '../unit/util';
 import { expect } from 'chai';
 import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import { createScopeForTest } from '../unit/binding/shared';
 
+
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 const expressions = {
   item: new AccessScope('item'),
@@ -60,10 +64,11 @@ function setup<T extends ObservedCollection>() {
   const location = document.createComment('au-loc');
   host.appendChild(location);
   const container = DI.createContainer();
+  container.register(domRegistration);
   const lifecycle = container.get(ILifecycle) as Lifecycle;
 
-  const observerLocator = new ObserverLocator(lifecycle, null, null, null);
-  const factory = new ViewFactory(null, <any>new MockIfElseTextNodeTemplate(expressions.show, observerLocator, lifecycle, container), lifecycle);
+  const observerLocator = new ObserverLocator(dom, lifecycle, null, null, null);
+  const factory = new ViewFactory(null, <any>new MockIfElseTextNodeTemplate(dom, expressions.show, observerLocator, lifecycle, container), lifecycle);
   const renderable = { } as any;
   const sut = new Repeat<T>(location, renderable, factory);
   renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, <any>container);
@@ -242,10 +247,11 @@ describe('ArrayRepeater - render html', () => {
 
   beforeEach(() => {
     container = DI.createContainer();
+    container.register(domRegistration);
     lifecycle = container.get(ILifecycle);
     au = new Aurelia(<any>container);
-    host = DOM.createElement('app');
-    DOM.appendChild(document.body, host);
+    host = document.createElement('app');
+    dom.appendChild(document.body, host);
   });
 
   it('triple nested repeater should render correctly', () => {
@@ -286,6 +292,7 @@ describe('ArrayRepeater - render html', () => {
     aureliaConfig = {
       register(container: IContainer) {
         (<IExpressionParser>container.get(IExpressionParser)).cache(expressionCache);
+        container.register(domRegistration);
         container.register(<any>Repeat);
         container.register(<any>HtmlRenderer)
       }

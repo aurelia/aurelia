@@ -19,9 +19,9 @@ const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, IHTMLElemen
 
 parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = DOM.createTemplate();
-  const text = DOM.createTextNode('${$1}${$2}${$3}');
-  const fooA_el = DOM.createElement('foo-a');
+  const template = document.createElement('template');
+  const text = document.createTextNode('${$1}${$2}${$3}');
+  const fooA_el = document.createElement('foo-a');
 
   fooA_el.setAttribute('a1.bind', '$1');
   fooA_el.setAttribute('a2.bind', '$2');
@@ -37,9 +37,9 @@ parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
 });
 parentSuite.addDataSlot('f').addData('foo-a').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = DOM.createElement('template');
-  const text = DOM.createTextNode('${a1}${a2}${a3}');
-  const fooB_el = DOM.createElement('foo-b');
+  const template = document.createElement('template');
+  const text = document.createTextNode('${a1}${a2}${a3}');
+  const fooB_el = document.createElement('foo-b');
 
   fooB_el.setAttribute('b1.bind', 'a1');
   fooB_el.setAttribute('b2.bind', 'a2');
@@ -62,9 +62,9 @@ parentSuite.addDataSlot('f').addData('foo-a').setFactory(ctx => {
 });
 parentSuite.addDataSlot('g').addData('foo-b').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = DOM.createElement('template');
-  const text = DOM.createTextNode('${b1}${b2}${b3}');
-  const fooC_el = DOM.createElement('foo-c');
+  const template = document.createElement('template');
+  const text = document.createTextNode('${b1}${b2}${b3}');
+  const fooC_el = document.createElement('foo-c');
 
   fooC_el.setAttribute('c1.bind', 'b1');
   fooC_el.setAttribute('c2.bind', 'b2');
@@ -87,8 +87,8 @@ parentSuite.addDataSlot('g').addData('foo-b').setFactory(ctx => {
 });
 parentSuite.addDataSlot('h').addData('foo-c').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = DOM.createElement('template');
-  const text = DOM.createTextNode('${c1}${c2}${c3}');
+  const template = document.createElement('template');
+  const text = document.createTextNode('${c1}${c2}${c3}');
 
   template.content.appendChild(text);
 
@@ -120,7 +120,7 @@ wrappedBasic.addActionSlot('wrap in div')
     } = ctx;
 
     for (const template of [appTemplate, fooATemplate, fooBTemplate, fooCTemplate] as IHTMLTemplateElement[]) {
-      const div = DOM.createElement('div');
+      const div = document.createElement('div');
       div.appendChild(template.content);
       template.content.appendChild(div);
     }

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { DI } from "../../../kernel/src/index";
-import { CustomElementResource, DOM, Aurelia, BindingMode } from "../../../runtime/src/index";
+import { CustomElementResource, Aurelia, BindingMode } from "../../../runtime/src/index";
 import { BasicConfiguration } from "../../src/index";
 
 describe("generated.template-compiler.static.if-else", function () {
@@ -8,7 +8,7 @@ describe("generated.template-compiler.static.if-else", function () {
         const container = DI.createContainer();
         container.register(BasicConfiguration);
         const au = new Aurelia(container);
-        const host = DOM.createElement("div");
+        const host = document.createElement("div");
         return { au, host };
     }
     function verify(au, host, expected) {

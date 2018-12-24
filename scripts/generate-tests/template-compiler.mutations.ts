@@ -232,7 +232,7 @@ function generateAndEmit(): void {
     const nodes = [
       $$import('chai', 'expect'),
       $$import('../../../kernel/src/index', 'DI'),
-      $$import('../../../runtime/src/index', 'CustomElementResource', 'DOM', 'Aurelia', 'BindingMode', 'ILifecycle'),
+      $$import('../../../runtime/src/index', 'CustomElementResource', 'Aurelia', 'BindingMode', 'ILifecycle'),
       $$import('../../src/index', 'BasicConfiguration'),
       null,
       $$functionExpr('describe', [
@@ -244,7 +244,7 @@ function generateAndEmit(): void {
               $$const('container', $call('DI.createContainer')),
               $$call('container.register', ['BasicConfiguration']),
               $$new('au', 'Aurelia', ['container']),
-              $$const('host', $call('DOM.createElement', [$expression('div')])),
+              $$const('host', $call('document.createElement', [$expression('div')])),
               $$return({ au: 'au', host: 'host' })
             ],
             []

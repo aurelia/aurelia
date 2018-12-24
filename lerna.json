@@ -1,5 +1,5 @@
 {
-  "lerna": "3.5.0",
+  "lerna": "3.8.0",
   "packages": [
     "packages/aot",
     "packages/debug",

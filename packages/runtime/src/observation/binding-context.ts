@@ -130,7 +130,7 @@ export class BindingContext implements IBindingContext {
     if (Tracer.enabled) { Tracer.enter('BindingContext.getObservers', slice.call(arguments)); }
     let observers = this.$observers;
     if (observers === undefined) {
-      this.$observers = observers = new InternalObserversLookup() as ObserversLookup<this>;
+      this.$observers = observers = new InternalObserversLookup() as ObserversLookup<IOverrideContext>;
     }
     if (Tracer.enabled) { Tracer.leave(); }
     return observers;

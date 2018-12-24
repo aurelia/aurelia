@@ -14,7 +14,7 @@
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.10",
+    "@types/node": "^10.12.18",
     "@types/selenium-webdriver": "^3.0.13",
     "browserify": "^16.2.3",
     "chai": "^4.2.0",
@@ -27,7 +27,7 @@
     "selenium-webdriver": "^4.0.0-alpha.1",
     "ts-node": "^7.0.1",
     "tsify": "^4.0.1",
-    "typescript": "^3.1.6",
+    "typescript": "^3.2.2",
     "vinyl-source-stream": "^2.0.0"
   }
 }

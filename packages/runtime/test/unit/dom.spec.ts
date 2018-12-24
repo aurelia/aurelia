@@ -357,61 +357,61 @@ describe('DOM', () => {
     }
   });
 
-  describe('isElementNodeType', () => {
-    const nodes = [
-      document.createElement('div'),
-      document.createElement('asdf')
-    ];
-    for (const node of nodes) {
-      it(`should return true if the value is of type ${Object.prototype.toString.call(node)}`, () => {
-        const actual = DOM.isElementNodeType(node);
-        expect(actual).to.be.true;
-      });
-    }
+  // describe('isElementNodeType', () => {
+  //   const nodes = [
+  //     document.createElement('div'),
+  //     document.createElement('asdf')
+  //   ];
+  //   for (const node of nodes) {
+  //     it(`should return true if the value is of type ${Object.prototype.toString.call(node)}`, () => {
+  //       const actual = DOM.isElementNodeType(node);
+  //       expect(actual).to.be.true;
+  //     });
+  //   }
 
-    const nonNodes = [
-      document.createAttribute('asdf'),
-      document.createComment('asdf'),
-      document.createTextNode('asdf'),
-      document.createDocumentFragment(),
-      document,
-      document.doctype
-    ];
-    for (const nonNode of nonNodes) {
-      it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, () => {
-        const actual = DOM.isElementNodeType(nonNode);
-        expect(actual).to.be.false;
-      });
-    }
-  });
+  //   const nonNodes = [
+  //     document.createAttribute('asdf'),
+  //     document.createComment('asdf'),
+  //     document.createTextNode('asdf'),
+  //     document.createDocumentFragment(),
+  //     document,
+  //     document.doctype
+  //   ];
+  //   for (const nonNode of nonNodes) {
+  //     it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, () => {
+  //       const actual = DOM.isElementNodeType(nonNode);
+  //       expect(actual).to.be.false;
+  //     });
+  //   }
+  // });
 
-  describe('isTextNodeType', () => {
-    const nodes = [
-      document.createTextNode('asdf')
-    ];
-    for (const node of nodes) {
-      it(`should return true if the value is of type ${Object.prototype.toString.call(node)}`, () => {
-        const actual = DOM.isTextNodeType(node);
-        expect(actual).to.be.true;
-      });
-    }
+  // describe('isTextNodeType', () => {
+  //   const nodes = [
+  //     document.createTextNode('asdf')
+  //   ];
+  //   for (const node of nodes) {
+  //     it(`should return true if the value is of type ${Object.prototype.toString.call(node)}`, () => {
+  //       const actual = DOM.isTextNodeType(node);
+  //       expect(actual).to.be.true;
+  //     });
+  //   }
 
-    const nonNodes = [
-      document.createAttribute('asdf'),
-      document.createComment('asdf'),
-      document.createElement('div'),
-      document.createElement('asdf'),
-      document.createDocumentFragment(),
-      document,
-      document.doctype
-    ];
-    for (const nonNode of nonNodes) {
-      it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, () => {
-        const actual = DOM.isTextNodeType(nonNode);
-        expect(actual).to.be.false;
-      });
-    }
-  });
+  //   const nonNodes = [
+  //     document.createAttribute('asdf'),
+  //     document.createComment('asdf'),
+  //     document.createElement('div'),
+  //     document.createElement('asdf'),
+  //     document.createDocumentFragment(),
+  //     document,
+  //     document.doctype
+  //   ];
+  //   for (const nonNode of nonNodes) {
+  //     it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, () => {
+  //       const actual = DOM.isTextNodeType(nonNode);
+  //       expect(actual).to.be.false;
+  //     });
+  //   }
+  // });
 
   describe('remove', () => {
     it('should remove the childNode from its parent (non-polyfilled)', () => {

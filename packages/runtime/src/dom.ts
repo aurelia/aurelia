@@ -118,16 +118,6 @@ export class DOM {
   public getAttribute(node: IHTMLElement, name: string): string {
     return node.getAttribute(name);
   }
-  public getChildNodes(node: INode): ReadonlyArray<INode> {
-    if (node.childNodes.length) {
-      return PLATFORM.toArray(node.childNodes);
-    } else {
-      return PLATFORM.emptyArray;
-    }
-  }
-  public getParentNode(node: INode): INode {
-    return node.parentNode;
-  }
   public hasClass(node: IHTMLElement, className: string): boolean {
     return node.classList.contains(className);
   }
@@ -137,15 +127,6 @@ export class DOM {
   public insertBefore(nodeToInsert: INode, referenceNode: INode): void {
     referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
   }
-  public isCommentNodeType(node: INode): node is IComment {
-    return node.nodeType === NodeType.Comment;
-  }
-  public isDocumentFragmentType(node: INode): node is IDocumentFragment {
-    return node.nodeType === NodeType.DocumentFragment;
-  }
-  public isElementNodeType(node: INode): node is IHTMLElement {
-    return node.nodeType === NodeType.Element;
-  }
   public isMarker(node: unknown): node is IHTMLElement {
     return (node as AuMarker).nodeName === 'AU-M';
   }
@@ -154,14 +135,6 @@ export class DOM {
   }
   public isRenderLocation(node: unknown): node is IRenderLocation {
     return (node as IComment).textContent === 'au-end';
-  }
-  public isTextNodeType(node: INode): node is IText {
-    return node.nodeType === NodeType.Text;
-  }
-  public migrateChildNodes(currentParent: INode, newParent: INode): void {
-    while (currentParent.firstChild !== null) {
-      newParent.appendChild(currentParent.firstChild);
-    }
   }
   public registerElementResolver(container: IContainer, resolver: IResolver): void {
     container.registerResolver(INode, resolver);

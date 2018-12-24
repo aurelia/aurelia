@@ -3469,7 +3469,8 @@ this.au.runtime = (function (exports,kernel) {
 
   const slice$6 = Array.prototype.slice;
   class Listener {
-      constructor(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
+      constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
+          this.dom = dom;
           this.$nextBind = null;
           this.$prevBind = null;
           this.$state = 0 /* none */;
@@ -3520,7 +3521,7 @@ this.au.runtime = (function (exports,kernel) {
           if (hasBind(sourceExpression)) {
               sourceExpression.bind(flags, scope, this);
           }
-          this.handler = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
+          this.handler = this.eventManager.addEventListener(this.dom, this.target, this.targetEvent, this, this.delegationStrategy);
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
@@ -3633,369 +3634,17 @@ this.au.runtime = (function (exports,kernel) {
       }
   }
 
-  const INode = kernel.DI.createInterface().noDefault();
-  const IRenderLocation = kernel.DI.createInterface().noDefault();
-
   const slice$8 = Array.prototype.slice;
-  function isRenderLocation(node) {
-      return node.textContent === 'au-end';
-  }
-  const DOM = {
-      createDocumentFragment(markupOrNode) {
-          if (markupOrNode === undefined || markupOrNode === null) {
-              return document.createDocumentFragment();
-          }
-          if (DOM.isNodeInstance(markupOrNode)) {
-              if (markupOrNode.content !== undefined) {
-                  return markupOrNode.content;
-              }
-              const fragment = document.createDocumentFragment();
-              fragment.appendChild(markupOrNode);
-              return fragment;
-          }
-          return DOM.createTemplate(markupOrNode).content;
-      },
-      createTemplate(markup) {
-          if (markup === undefined || markup === null) {
-              return document.createElement('template');
-          }
-          const template = document.createElement('template');
-          template.innerHTML = markup.toString();
-          return template;
-      },
-      addClass(node, className) {
-          node.classList.add(className);
-      },
-      addEventListener(eventName, subscriber, publisher, options) {
-          (publisher || document).addEventListener(eventName, subscriber, options);
-      },
-      appendChild(parent, child) {
-          parent.appendChild(child);
-      },
-      attachShadow(host, options) {
-          return host.attachShadow(options);
-      },
-      cloneNode(node, deep) {
-          return node.cloneNode(deep !== false); // use true unless the caller explicitly passes in false
-      },
-      convertToRenderLocation(node) {
-          if (isRenderLocation(node)) {
-              return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
-          }
-          if (node.parentNode === null) {
-              throw kernel.Reporter.error(52);
-          }
-          const locationEnd = document.createComment('au-end');
-          const locationStart = document.createComment('au-start');
-          DOM.replaceNode(locationEnd, node);
-          DOM.insertBefore(locationStart, locationEnd);
-          locationEnd.$start = locationStart;
-          locationStart.$nodes = null;
-          return locationEnd;
-      },
-      createComment(text) {
-          return document.createComment(text);
-      },
-      createElement: ((name) => {
-          return document.createElement(name);
-      }),
-      createNodeObserver(target, callback, options) {
-          const observer = new MutationObserver(callback);
-          observer.observe(target, options);
-          return observer;
-      },
-      createTextNode(text) {
-          return document.createTextNode(text);
-      },
-      getAttribute(node, name) {
-          return node.getAttribute(name);
-      },
-      hasClass(node, className) {
-          return node.classList.contains(className);
-      },
-      insertBefore(nodeToInsert, referenceNode) {
-          referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
-      },
-      isMarker(node) {
-          return node.nodeName === 'AU-M';
-      },
-      isCommentNodeType(node) {
-          return node.nodeType === 8 /* Comment */;
-      },
-      isDocumentFragmentType(node) {
-          return node.nodeType === 11 /* DocumentFragment */;
-      },
-      isElementNodeType(node) {
-          return node.nodeType === 1 /* Element */;
-      },
-      isNodeInstance(potentialNode) {
-          return potentialNode.nodeType > 0;
-      },
-      isTextNodeType(node) {
-          return node.nodeType === 3 /* Text */;
-      },
-      migrateChildNodes(currentParent, newParent) {
-          while (currentParent.firstChild) {
-              DOM.appendChild(newParent, currentParent.firstChild);
-          }
-      },
-      registerElementResolver(container, resolver) {
-          container.registerResolver(INode, resolver);
-          container.registerResolver(Element, resolver);
-          container.registerResolver(HTMLElement, resolver);
-          container.registerResolver(SVGElement, resolver);
-      },
-      remove(node) {
-          if (node.remove) {
-              node.remove();
-          }
-          else {
-              node.parentNode.removeChild(node);
-          }
-      },
-      removeAttribute(node, name) {
-          node.removeAttribute(name);
-      },
-      removeClass(node, className) {
-          node.classList.remove(className);
-      },
-      removeEventListener(eventName, subscriber, publisher, options) {
-          (publisher || document).removeEventListener(eventName, subscriber, options);
-      },
-      replaceNode(newChild, oldChild) {
-          if (oldChild.parentNode) {
-              oldChild.parentNode.replaceChild(newChild, oldChild);
-          }
-      },
-      setAttribute(node, name, value) {
-          node.setAttribute(name, value);
-      }
-  };
-  // This is an implementation of INodeSequence that represents "no DOM" to render.
-  // It's used in various places to avoid null and to encode
-  // the explicit idea of "no view".
-  const emptySequence = {
-      firstChild: null,
-      lastChild: null,
-      childNodes: kernel.PLATFORM.emptyArray,
-      findTargets() { return kernel.PLATFORM.emptyArray; },
-      insertBefore(refNode) { },
-      appendTo(parent) { },
-      remove() { }
-  };
-  const NodeSequence = {
-      empty: emptySequence
-  };
-  /**
-   * An specialized INodeSequence with optimizations for text (interpolation) bindings
-   * The contract of this INodeSequence is:
-   * - the previous element is an `au-m` node
-   * - text is the actual text node
-   */
-  class TextNodeSequence {
-      constructor(text) {
-          this.firstChild = text;
-          this.lastChild = text;
-          this.childNodes = [text];
-          this.targets = [new AuMarker(text)];
-      }
-      findTargets() {
-          return this.targets;
-      }
-      insertBefore(refNode) {
-          refNode.parentNode.insertBefore(this.firstChild, refNode);
-      }
-      appendTo(parent) {
-          parent.appendChild(this.firstChild);
-      }
-      remove() {
-          this.firstChild.remove();
-      }
-  }
-  // tslint:enable:no-any
-  // This is the most common form of INodeSequence.
-  // Every custom element or template controller whose node sequence is based on an HTML template
-  // has an instance of this under the hood. Anyone who wants to create a node sequence from
-  // a string of markup would also receive an instance of this.
-  // CompiledTemplates create instances of FragmentNodeSequence.
-  /** @internal */
-  class FragmentNodeSequence {
-      constructor(fragment) {
-          this.fragment = fragment;
-          // tslint:disable-next-line:no-any
-          const targetNodeList = fragment.querySelectorAll('.au');
-          let i = 0;
-          let ii = targetNodeList.length;
-          const targets = this.targets = Array(ii);
-          while (i < ii) {
-              // eagerly convert all markers to IRenderLocations (otherwise the renderer
-              // will do it anyway) and store them in the target list (since the comments
-              // can't be queried)
-              const target = targetNodeList[i];
-              if (target.nodeName === 'AU-M') {
-                  // note the renderer will still call this method, but it will just return the
-                  // location if it sees it's already a location
-                  targets[i] = DOM.convertToRenderLocation(target);
-              }
-              else {
-                  // also store non-markers for consistent ordering
-                  targets[i] = target;
-              }
-              ++i;
-          }
-          const childNodeList = fragment.childNodes;
-          i = 0;
-          ii = childNodeList.length;
-          const childNodes = this.childNodes = Array(ii);
-          while (i < ii) {
-              childNodes[i] = childNodeList[i];
-              ++i;
-          }
-          this.firstChild = fragment.firstChild;
-          this.lastChild = fragment.lastChild;
-          this.start = this.end = null;
-      }
-      findTargets() {
-          return this.targets;
-      }
-      insertBefore(refNode) {
-          // tslint:disable-next-line:no-any
-          refNode.parentNode.insertBefore(this.fragment, refNode);
-          // internally we could generally assume that this is an IRenderLocation,
-          // but since this is also public API we still need to double check
-          // (or horrible things might happen)
-          if (isRenderLocation(refNode)) {
-              this.end = refNode;
-              const start = this.start = refNode.$start;
-              if (start.$nodes === null) {
-                  start.$nodes = this;
-              }
-              else {
-                  // if more than one NodeSequence uses the same RenderLocation, it's an child
-                  // of a repeater (or something similar) and we shouldn't remove all nodes between
-                  // start - end since that would always remove all items from a repeater, even
-                  // when only one is removed
-                  // so we set $nodes to PLATFORM.emptyObject to 1) tell other sequences that it's
-                  // occupied and 2) prevent start.$nodes === this from ever evaluating to true
-                  // during remove()
-                  start.$nodes = kernel.PLATFORM.emptyObject;
-              }
-          }
-      }
-      appendTo(parent) {
-          // tslint:disable-next-line:no-any
-          parent.appendChild(this.fragment);
-          // this can never be a RenderLocation, and if for whatever reason we moved
-          // from a RenderLocation to a host, make sure "start" and "end" are null
-          this.start = this.end = null;
-      }
-      remove() {
-          const fragment = this.fragment;
-          if (this.start !== null && this.start.$nodes === this) {
-              // if we're between a valid "start" and "end" (e.g. if/else, containerless, or a
-              // repeater with a single item) then simply remove everything in-between (but not
-              // the comments themselves as they belong to the parent)
-              const end = this.end;
-              let next;
-              let current = this.start.nextSibling;
-              while (current !== end) {
-                  next = current.nextSibling;
-                  // tslint:disable-next-line:no-any
-                  fragment.appendChild(current);
-                  current = next;
-              }
-              this.start.$nodes = null;
-              this.start = this.end = null;
-          }
-          else {
-              // otherwise just remove from first to last child in the regular way
-              let current = this.firstChild;
-              if (current.parentNode !== fragment) {
-                  const end = this.lastChild;
-                  let next;
-                  while (current !== null) {
-                      next = current.nextSibling;
-                      // tslint:disable-next-line:no-any
-                      fragment.appendChild(current);
-                      if (current === end) {
-                          break;
-                      }
-                      current = next;
-                  }
-              }
-          }
-      }
-  }
-  class NodeSequenceFactory {
-      constructor(fragment) {
-          const childNodes = fragment.childNodes;
-          switch (childNodes.length) {
-              case 0:
-                  this.createNodeSequence = () => NodeSequence.empty;
-                  return;
-              case 2:
-                  const target = childNodes[0];
-                  if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
-                      const text = childNodes[1];
-                      if (text.nodeType === 3 /* Text */ && text.textContent.length === 0) {
-                          this.deepClone = false;
-                          this.node = text;
-                          this.Type = TextNodeSequence;
-                          return;
-                      }
-                  }
-              // falls through if not returned
-              default:
-                  this.deepClone = true;
-                  this.node = fragment;
-                  this.Type = FragmentNodeSequence;
-          }
-      }
-      static createFor(markupOrNode) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('NodeSequenceFactory.createFor', slice$8.call(arguments));
-          }
-          const fragment = DOM.createDocumentFragment(markupOrNode);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
-          return new NodeSequenceFactory(fragment);
-      }
-      createNodeSequence() {
-          return new this.Type(this.node.cloneNode(this.deepClone));
-      }
-  }
-  /** @internal */
-  class AuMarker {
-      get parentNode() {
-          return this.nextSibling.parentNode;
-      }
-      constructor(next) {
-          this.nextSibling = next;
-          this.textContent = '';
-      }
-      remove() { }
-  }
-  (proto => {
-      proto.previousSibling = null;
-      proto.firstChild = null;
-      proto.lastChild = null;
-      proto.childNodes = kernel.PLATFORM.emptyArray;
-      proto.nodeName = 'AU-M';
-      proto.nodeType = 1 /* Element */;
-  })(AuMarker.prototype);
-
-  const slice$9 = Array.prototype.slice;
   function setValue(newValue, flags) {
       if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.setValue`, slice$9.call(arguments));
+          kernel.Tracer.enter(`${this['constructor'].name}.setValue`, slice$8.call(arguments));
       }
       const currentValue = this.currentValue;
       newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
       if (currentValue !== newValue) {
           this.currentValue = newValue;
           if ((flags & (exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.fromBind)) &&
-              !((flags & exports.LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj))) {
+              !((flags & exports.LifecycleFlags.doNotUpdateDOM) && this.dom.isNodeInstance(this.obj))) {
               this.setValueCore(newValue, flags);
           }
           else {
@@ -4013,9 +3662,9 @@ this.au.runtime = (function (exports,kernel) {
   }
   function flush(flags) {
       if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.flush`, slice$9.call(arguments));
+          kernel.Tracer.enter(`${this['constructor'].name}.flush`, slice$8.call(arguments));
       }
-      if ((flags & exports.LifecycleFlags.doNotUpdateDOM) && DOM.isNodeInstance(this.obj)) {
+      if ((flags & exports.LifecycleFlags.doNotUpdateDOM) && this.dom.isNodeInstance(this.obj)) {
           // re-queue the change so it will still propagate on flush when it's attached again
           this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
           if (kernel.Tracer.enabled) {
@@ -4057,10 +3706,10 @@ this.au.runtime = (function (exports,kernel) {
       };
   }
 
-  const slice$a = Array.prototype.slice;
+  const slice$9 = Array.prototype.slice;
   function flush$1() {
       if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.flush`, slice$a.call(arguments));
+          kernel.Tracer.enter(`${this['constructor'].name}.flush`, slice$9.call(arguments));
       }
       this.callBatchedSubscribers(this.indexMap);
       if (!!this.lengthObserver) {
@@ -4118,8 +3767,18 @@ this.au.runtime = (function (exports,kernel) {
           proto.unsubscribeBatched = proto.unsubscribeBatched || proto.removeBatchedSubscriber;
       };
   }
+  /**
+   * Temporary shortcut to let the @targetObserver decorator know that the length property is never on a DOM instance
+   * TODO: add information to the observers so they don't need to consult the DOM
+   */
+  const domStub = {
+      isNodeInstance(value) {
+          return false;
+      }
+  };
   exports.CollectionLengthObserver = class CollectionLengthObserver {
       constructor(obj, propertyKey) {
+          this.dom = domStub;
           this.obj = obj;
           this.propertyKey = propertyKey;
           this.currentValue = obj[propertyKey];
@@ -5062,7 +4721,8 @@ this.au.runtime = (function (exports,kernel) {
   };
   const handleEventFlags = exports.LifecycleFlags.fromDOMEvent | exports.LifecycleFlags.updateSourceExpression;
   exports.ValueAttributeObserver = class ValueAttributeObserver {
-      constructor(lifecycle, obj, propertyKey, handler) {
+      constructor(dom, lifecycle, obj, propertyKey, handler) {
+          this.dom = dom;
           this.handler = handler;
           this.lifecycle = lifecycle;
           this.obj = obj;
@@ -5127,7 +4787,8 @@ this.au.runtime = (function (exports,kernel) {
   exports.ValueAttributeObserver.prototype.handler = null;
   const defaultHandleBatchedChangeFlags = exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.updateTargetInstance;
   exports.CheckedObserver = class CheckedObserver {
-      constructor(lifecycle, obj, handler, observerLocator) {
+      constructor(dom, lifecycle, obj, handler, observerLocator) {
+          this.dom = dom;
           this.handler = handler;
           this.lifecycle = lifecycle;
           this.obj = obj;
@@ -5258,7 +4919,8 @@ this.au.runtime = (function (exports,kernel) {
       return a === b;
   }
   exports.SelectValueObserver = class SelectValueObserver {
-      constructor(lifecycle, obj, handler, observerLocator) {
+      constructor(dom, lifecycle, obj, handler, observerLocator) {
+          this.dom = dom;
           this.lifecycle = lifecycle;
           this.obj = obj;
           this.handler = handler;
@@ -5427,7 +5089,7 @@ this.au.runtime = (function (exports,kernel) {
           }
       }
       bind() {
-          this.nodeObserver = DOM.createNodeObserver(this.obj, this.handleNodeChange.bind(this), childObserverOptions);
+          this.nodeObserver = this.dom.createNodeObserver(this.obj, this.handleNodeChange.bind(this), childObserverOptions);
       }
       unbind() {
           this.nodeObserver.disconnect();
@@ -5513,7 +5175,8 @@ this.au.runtime = (function (exports,kernel) {
       }
   }
   class ListenerTracker {
-      constructor(eventName, listener, capture) {
+      constructor(dom, eventName, listener, capture) {
+          this.dom = dom;
           this.capture = capture;
           this.count = 0;
           this.eventName = eventName;
@@ -5522,13 +5185,13 @@ this.au.runtime = (function (exports,kernel) {
       increment() {
           this.count++;
           if (this.count === 1) {
-              DOM.addEventListener(this.eventName, this.listener, null, this.capture);
+              this.dom.addEventListener(this.eventName, this.listener, null, this.capture);
           }
       }
       decrement() {
           this.count--;
           if (this.count === 0) {
-              DOM.removeEventListener(this.eventName, this.listener, null, this.capture);
+              this.dom.removeEventListener(this.eventName, this.listener, null, this.capture);
           }
       }
   }
@@ -5551,14 +5214,15 @@ this.au.runtime = (function (exports,kernel) {
    * Enable dispose() pattern for addEventListener for `trigger`
    */
   class TriggerSubscription {
-      constructor(target, targetEvent, callback) {
+      constructor(dom, target, targetEvent, callback) {
+          this.dom = dom;
           this.target = target;
           this.targetEvent = targetEvent;
           this.callback = callback;
-          DOM.addEventListener(targetEvent, callback, target);
+          dom.addEventListener(targetEvent, callback, target);
       }
       dispose() {
-          DOM.removeEventListener(this.targetEvent, this.callback, this.target);
+          this.dom.removeEventListener(this.targetEvent, this.callback, this.target);
       }
   }
   (function (DelegationStrategy) {
@@ -5567,8 +5231,8 @@ this.au.runtime = (function (exports,kernel) {
       DelegationStrategy[DelegationStrategy["bubbling"] = 2] = "bubbling";
   })(exports.DelegationStrategy || (exports.DelegationStrategy = {}));
   class EventSubscriber {
-      constructor(events) {
-          this.events = events;
+      constructor(dom, events) {
+          this.dom = dom;
           this.events = events;
           this.target = null;
           this.handler = null;
@@ -5576,7 +5240,7 @@ this.au.runtime = (function (exports,kernel) {
       subscribe(node, callbackOrListener) {
           this.target = node;
           this.handler = callbackOrListener;
-          const add = DOM.addEventListener;
+          const add = this.dom.addEventListener;
           const events = this.events;
           for (let i = 0, ii = events.length; ii > i; ++i) {
               add(events[i], callbackOrListener, node);
@@ -5586,7 +5250,7 @@ this.au.runtime = (function (exports,kernel) {
           const node = this.target;
           const callbackOrListener = this.handler;
           const events = this.events;
-          const remove = DOM.removeEventListener;
+          const remove = this.dom.removeEventListener;
           for (let i = 0, ii = events.length; ii > i; ++i) {
               remove(events[i], callbackOrListener, node);
           }
@@ -5644,43 +5308,381 @@ this.au.runtime = (function (exports,kernel) {
               }
           }
       }
-      getElementHandler(target, propertyName) {
+      getElementHandler(dom, target, propertyName) {
           const tagName = target['tagName'];
           const lookup = this.elementHandlerLookup;
           if (tagName) {
               if (lookup[tagName] && lookup[tagName][propertyName]) {
-                  return new EventSubscriber(lookup[tagName][propertyName]);
+                  return new EventSubscriber(dom, lookup[tagName][propertyName]);
               }
               if (propertyName === 'textContent' || propertyName === 'innerHTML') {
-                  return new EventSubscriber(lookup['content editable'].value);
+                  return new EventSubscriber(dom, lookup['content editable'].value);
               }
               if (propertyName === 'scrollTop' || propertyName === 'scrollLeft') {
-                  return new EventSubscriber(lookup['scrollable element'][propertyName]);
+                  return new EventSubscriber(dom, lookup['scrollable element'][propertyName]);
               }
           }
           return null;
       }
-      addEventListener(target, targetEvent, callbackOrListener, strategy) {
+      addEventListener(dom, target, targetEvent, callbackOrListener, strategy) {
           let delegatedHandlers;
           let capturedHandlers;
           let handlerEntry;
           if (strategy === exports.DelegationStrategy.bubbling) {
               delegatedHandlers = this.delegatedHandlers;
-              handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleDelegatedEvent, false));
+              handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new ListenerTracker(dom, targetEvent, handleDelegatedEvent, false));
               handlerEntry.increment();
               const delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
               return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
           }
           if (strategy === exports.DelegationStrategy.capturing) {
               capturedHandlers = this.capturedHandlers;
-              handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleCapturedEvent, true));
+              handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new ListenerTracker(dom, targetEvent, handleCapturedEvent, true));
               handlerEntry.increment();
               const capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
               return new DelegateOrCaptureSubscription(handlerEntry, capturedCallbacks, targetEvent, callbackOrListener);
           }
-          return new TriggerSubscription(target, targetEvent, callbackOrListener);
+          return new TriggerSubscription(dom, target, targetEvent, callbackOrListener);
       }
   }
+
+  const INode = kernel.DI.createInterface().noDefault();
+  const IRenderLocation = kernel.DI.createInterface().noDefault();
+
+  function isRenderLocation(node) {
+      return node.textContent === 'au-end';
+  }
+  const IDOM = kernel.DI.createInterface().noDefault();
+  class DOM {
+      constructor(doc) {
+          this.doc = doc;
+      }
+      addClass(node, className) {
+          node.classList.add(className);
+      }
+      addEventListener(eventName, subscriber, publisher, options) {
+          (publisher || this.doc).addEventListener(eventName, subscriber, options);
+      }
+      appendChild(parent, child) {
+          parent.appendChild(child);
+      }
+      attachShadow(host, options) {
+          return host.attachShadow(options);
+      }
+      cloneNode(node, deep) {
+          return node.cloneNode(deep !== false);
+      }
+      convertToRenderLocation(node) {
+          if (this.isRenderLocation(node)) {
+              return node; // it's already a RenderLocation (converted by FragmentNodeSequence)
+          }
+          if (node.parentNode === null) {
+              throw kernel.Reporter.error(52);
+          }
+          const locationEnd = this.doc.createComment('au-end');
+          const locationStart = this.doc.createComment('au-start');
+          this.replaceNode(locationEnd, node);
+          this.insertBefore(locationStart, locationEnd);
+          locationEnd.$start = locationStart;
+          locationStart.$nodes = null;
+          return locationEnd;
+      }
+      createComment(text) {
+          return this.doc.createComment(text);
+      }
+      createDocumentFragment(markupOrNode) {
+          if (markupOrNode === undefined || markupOrNode === null) {
+              return this.doc.createDocumentFragment();
+          }
+          if (this.isNodeInstance(markupOrNode)) {
+              if (markupOrNode.content !== undefined) {
+                  return markupOrNode.content;
+              }
+              const fragment = this.doc.createDocumentFragment();
+              fragment.appendChild(markupOrNode);
+              return fragment;
+          }
+          return this.createTemplate(markupOrNode).content;
+      }
+      createElement(name) {
+          return this.doc.createElement(name);
+      }
+      createNodeObserver(target, callback, options) {
+          const observer = new MutationObserver(callback);
+          observer.observe(target, options);
+          return observer;
+      }
+      createTemplate(markup) {
+          if (markup === undefined || markup === null) {
+              return this.doc.createElement('template');
+          }
+          const template = this.doc.createElement('template');
+          template.innerHTML = markup.toString();
+          return template;
+      }
+      createTextNode(text) {
+          return this.doc.createTextNode(text);
+      }
+      getAttribute(node, name) {
+          return node.getAttribute(name);
+      }
+      hasClass(node, className) {
+          return node.classList.contains(className);
+      }
+      hasParent(node) {
+          return node.parentNode !== null;
+      }
+      insertBefore(nodeToInsert, referenceNode) {
+          referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
+      }
+      isMarker(node) {
+          return node.nodeName === 'AU-M';
+      }
+      isNodeInstance(potentialNode) {
+          return potentialNode.nodeType > 0;
+      }
+      isRenderLocation(node) {
+          return node.textContent === 'au-end';
+      }
+      registerElementResolver(container, resolver) {
+          container.registerResolver(INode, resolver);
+          container.registerResolver(Element, resolver);
+          container.registerResolver(HTMLElement, resolver);
+          container.registerResolver(SVGElement, resolver);
+      }
+      remove(node) {
+          if (node.remove) {
+              node.remove();
+          }
+          else {
+              node.parentNode.removeChild(node);
+          }
+      }
+      removeAttribute(node, name) {
+          node.removeAttribute(name);
+      }
+      removeClass(node, className) {
+          node.classList.remove(className);
+      }
+      removeEventListener(eventName, subscriber, publisher, options) {
+          (publisher || this.doc).removeEventListener(eventName, subscriber, options);
+      }
+      replaceNode(newChild, oldChild) {
+          if (oldChild.parentNode !== null) {
+              oldChild.parentNode.replaceChild(newChild, oldChild);
+          }
+      }
+      setAttribute(node, name, value) {
+          node.setAttribute(name, value);
+      }
+  }
+  // This is an implementation of INodeSequence that represents "no DOM" to render.
+  // It's used in various places to avoid null and to encode
+  // the explicit idea of "no view".
+  const emptySequence = {
+      firstChild: null,
+      lastChild: null,
+      childNodes: kernel.PLATFORM.emptyArray,
+      findTargets() { return kernel.PLATFORM.emptyArray; },
+      insertBefore(refNode) { },
+      appendTo(parent) { },
+      remove() { }
+  };
+  const NodeSequence = {
+      empty: emptySequence
+  };
+  /**
+   * An specialized INodeSequence with optimizations for text (interpolation) bindings
+   * The contract of this INodeSequence is:
+   * - the previous element is an `au-m` node
+   * - text is the actual text node
+   */
+  class TextNodeSequence {
+      constructor(dom, text) {
+          this.dom = dom;
+          this.firstChild = text;
+          this.lastChild = text;
+          this.childNodes = [text];
+          this.targets = [new AuMarker(text)];
+      }
+      findTargets() {
+          return this.targets;
+      }
+      insertBefore(refNode) {
+          refNode.parentNode.insertBefore(this.firstChild, refNode);
+      }
+      appendTo(parent) {
+          parent.appendChild(this.firstChild);
+      }
+      remove() {
+          this.firstChild.remove();
+      }
+  }
+  // tslint:enable:no-any
+  // This is the most common form of INodeSequence.
+  // Every custom element or template controller whose node sequence is based on an HTML template
+  // has an instance of this under the hood. Anyone who wants to create a node sequence from
+  // a string of markup would also receive an instance of this.
+  // CompiledTemplates create instances of FragmentNodeSequence.
+  /** @internal */
+  class FragmentNodeSequence {
+      constructor(dom, fragment) {
+          this.dom = dom;
+          this.fragment = fragment;
+          // tslint:disable-next-line:no-any
+          const targetNodeList = fragment.querySelectorAll('.au');
+          let i = 0;
+          let ii = targetNodeList.length;
+          const targets = this.targets = Array(ii);
+          while (i < ii) {
+              // eagerly convert all markers to IRenderLocations (otherwise the renderer
+              // will do it anyway) and store them in the target list (since the comments
+              // can't be queried)
+              const target = targetNodeList[i];
+              if (target.nodeName === 'AU-M') {
+                  // note the renderer will still call this method, but it will just return the
+                  // location if it sees it's already a location
+                  targets[i] = this.dom.convertToRenderLocation(target);
+              }
+              else {
+                  // also store non-markers for consistent ordering
+                  targets[i] = target;
+              }
+              ++i;
+          }
+          const childNodeList = fragment.childNodes;
+          i = 0;
+          ii = childNodeList.length;
+          const childNodes = this.childNodes = Array(ii);
+          while (i < ii) {
+              childNodes[i] = childNodeList[i];
+              ++i;
+          }
+          this.firstChild = fragment.firstChild;
+          this.lastChild = fragment.lastChild;
+          this.start = this.end = null;
+      }
+      findTargets() {
+          return this.targets;
+      }
+      insertBefore(refNode) {
+          // tslint:disable-next-line:no-any
+          refNode.parentNode.insertBefore(this.fragment, refNode);
+          // internally we could generally assume that this is an IRenderLocation,
+          // but since this is also public API we still need to double check
+          // (or horrible things might happen)
+          if (isRenderLocation(refNode)) {
+              this.end = refNode;
+              const start = this.start = refNode.$start;
+              if (start.$nodes === null) {
+                  start.$nodes = this;
+              }
+              else {
+                  // if more than one NodeSequence uses the same RenderLocation, it's an child
+                  // of a repeater (or something similar) and we shouldn't remove all nodes between
+                  // start - end since that would always remove all items from a repeater, even
+                  // when only one is removed
+                  // so we set $nodes to PLATFORM.emptyObject to 1) tell other sequences that it's
+                  // occupied and 2) prevent start.$nodes === this from ever evaluating to true
+                  // during remove()
+                  start.$nodes = kernel.PLATFORM.emptyObject;
+              }
+          }
+      }
+      appendTo(parent) {
+          // tslint:disable-next-line:no-any
+          parent.appendChild(this.fragment);
+          // this can never be a RenderLocation, and if for whatever reason we moved
+          // from a RenderLocation to a host, make sure "start" and "end" are null
+          this.start = this.end = null;
+      }
+      remove() {
+          const fragment = this.fragment;
+          if (this.start !== null && this.start.$nodes === this) {
+              // if we're between a valid "start" and "end" (e.g. if/else, containerless, or a
+              // repeater with a single item) then simply remove everything in-between (but not
+              // the comments themselves as they belong to the parent)
+              const end = this.end;
+              let next;
+              let current = this.start.nextSibling;
+              while (current !== end) {
+                  next = current.nextSibling;
+                  // tslint:disable-next-line:no-any
+                  fragment.appendChild(current);
+                  current = next;
+              }
+              this.start.$nodes = null;
+              this.start = this.end = null;
+          }
+          else {
+              // otherwise just remove from first to last child in the regular way
+              let current = this.firstChild;
+              if (current.parentNode !== fragment) {
+                  const end = this.lastChild;
+                  let next;
+                  while (current !== null) {
+                      next = current.nextSibling;
+                      // tslint:disable-next-line:no-any
+                      fragment.appendChild(current);
+                      if (current === end) {
+                          break;
+                      }
+                      current = next;
+                  }
+              }
+          }
+      }
+  }
+  class NodeSequenceFactory {
+      constructor(dom, markupOrNode) {
+          this.dom = dom;
+          const fragment = dom.createDocumentFragment(markupOrNode);
+          const childNodes = fragment.childNodes;
+          switch (childNodes.length) {
+              case 0:
+                  this.createNodeSequence = () => NodeSequence.empty;
+                  return;
+              case 2:
+                  const target = childNodes[0];
+                  if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
+                      const text = childNodes[1];
+                      if (text.nodeType === 3 /* Text */ && text.textContent.length === 0) {
+                          this.deepClone = false;
+                          this.node = text;
+                          this.Type = TextNodeSequence;
+                          return;
+                      }
+                  }
+              // falls through if not returned
+              default:
+                  this.deepClone = true;
+                  this.node = fragment;
+                  this.Type = FragmentNodeSequence;
+          }
+      }
+      createNodeSequence() {
+          return new this.Type(this.dom, this.node.cloneNode(this.deepClone));
+      }
+  }
+  /** @internal */
+  class AuMarker {
+      get parentNode() {
+          return this.nextSibling.parentNode;
+      }
+      constructor(next) {
+          this.nextSibling = next;
+          this.textContent = '';
+      }
+      remove() { }
+  }
+  (proto => {
+      proto.previousSibling = null;
+      proto.firstChild = null;
+      proto.lastChild = null;
+      proto.childNodes = kernel.PLATFORM.emptyArray;
+      proto.nodeName = 'AU-M';
+      proto.nodeType = 1 /* Element */;
+  })(AuMarker.prototype);
 
   const ISVGAnalyzer = kernel.DI.createInterface()
       .withDefault(x => x.singleton(class {
@@ -5696,7 +5698,8 @@ this.au.runtime = (function (exports,kernel) {
       // in html5 documents)
       // Using very HTML-specific code here since this isn't likely to get
       // called unless operating against a real HTML element.
-      constructor(lifecycle, obj, propertyKey, attributeName) {
+      constructor(dom, lifecycle, obj, propertyKey, attributeName) {
+          this.dom = dom;
           this.attributeName = attributeName;
           this.lifecycle = lifecycle;
           this.obj = obj;
@@ -5715,21 +5718,22 @@ this.au.runtime = (function (exports,kernel) {
   ], exports.XLinkAttributeAccessor);
   exports.XLinkAttributeAccessor.prototype.attributeName = '';
   exports.DataAttributeAccessor = class DataAttributeAccessor {
-      constructor(lifecycle, obj, propertyKey) {
+      constructor(dom, lifecycle, obj, propertyKey) {
+          this.dom = dom;
           this.lifecycle = lifecycle;
           this.obj = obj;
           this.oldValue = this.currentValue = this.getValue();
           this.propertyKey = propertyKey;
       }
       getValue() {
-          return DOM.getAttribute(this.obj, this.propertyKey);
+          return this.dom.getAttribute(this.obj, this.propertyKey);
       }
       setValueCore(newValue) {
           if (newValue === null) {
-              DOM.removeAttribute(this.obj, this.propertyKey);
+              this.dom.removeAttribute(this.obj, this.propertyKey);
           }
           else {
-              DOM.setAttribute(this.obj, this.propertyKey, newValue);
+              this.dom.setAttribute(this.obj, this.propertyKey, newValue);
           }
       }
   };
@@ -5737,7 +5741,8 @@ this.au.runtime = (function (exports,kernel) {
       targetObserver()
   ], exports.DataAttributeAccessor);
   exports.StyleAttributeAccessor = class StyleAttributeAccessor {
-      constructor(lifecycle, obj) {
+      constructor(dom, lifecycle, obj) {
+          this.dom = dom;
           this.lifecycle = lifecycle;
           this.obj = obj;
           this.oldValue = this.currentValue = obj.style.cssText;
@@ -5803,7 +5808,8 @@ this.au.runtime = (function (exports,kernel) {
   exports.StyleAttributeAccessor.prototype.version = 0;
   exports.StyleAttributeAccessor.prototype.propertyKey = 'style';
   exports.ClassAttributeAccessor = class ClassAttributeAccessor {
-      constructor(lifecycle, obj) {
+      constructor(dom, lifecycle, obj) {
+          this.dom = dom;
           this.lifecycle = lifecycle;
           this.obj = obj;
       }
@@ -5825,7 +5831,7 @@ this.au.runtime = (function (exports,kernel) {
                       continue;
                   }
                   nameIndex[name] = version;
-                  DOM.addClass(node, name);
+                  this.dom.addClass(node, name);
               }
           }
           // Update state variables.
@@ -5845,7 +5851,7 @@ this.au.runtime = (function (exports,kernel) {
               // will be removed if they're not present in the next update.
               // Better would be do have some configurability for this behavior, allowing the user to
               // decide whether initial classes always need to be kept, always removed, or something in between
-              DOM.removeClass(this.obj, name);
+              this.dom.removeClass(this.obj, name);
           }
       }
   };
@@ -5856,7 +5862,8 @@ this.au.runtime = (function (exports,kernel) {
   exports.ClassAttributeAccessor.prototype.version = 0;
   exports.ClassAttributeAccessor.prototype.nameIndex = null;
   exports.ElementPropertyAccessor = class ElementPropertyAccessor {
-      constructor(lifecycle, obj, propertyKey) {
+      constructor(dom, lifecycle, obj, propertyKey) {
+          this.dom = dom;
           this.lifecycle = lifecycle;
           this.obj = obj;
           this.propertyKey = propertyKey;
@@ -5899,7 +5906,8 @@ this.au.runtime = (function (exports,kernel) {
   exports.ObserverLocator = 
   /** @internal */
   class ObserverLocator {
-      constructor(lifecycle, eventManager, dirtyChecker, svgAnalyzer) {
+      constructor(dom, lifecycle, eventManager, dirtyChecker, svgAnalyzer) {
+          this.dom = dom;
           this.adapters = [];
           this.dirtyChecker = dirtyChecker;
           this.eventManager = eventManager;
@@ -5928,11 +5936,11 @@ this.au.runtime = (function (exports,kernel) {
           this.adapters.push(adapter);
       }
       getAccessor(obj, propertyName) {
-          if (DOM.isNodeInstance(obj)) {
+          if (this.dom.isNodeInstance(obj)) {
               const tagName = obj['tagName'];
               // this check comes first for hot path optimization
               if (propertyName === 'textContent') {
-                  return new exports.ElementPropertyAccessor(this.lifecycle, obj, propertyName);
+                  return new exports.ElementPropertyAccessor(this.dom, this.lifecycle, obj, propertyName);
               }
               // TODO: optimize and make pluggable
               if (propertyName === 'class' || propertyName === 'style' || propertyName === 'css'
@@ -5946,9 +5954,9 @@ this.au.runtime = (function (exports,kernel) {
                   || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)
                   || tagName === 'IMG' && propertyName === 'src'
                   || tagName === 'A' && propertyName === 'href') {
-                  return new exports.DataAttributeAccessor(this.lifecycle, obj, propertyName);
+                  return new exports.DataAttributeAccessor(this.dom, this.lifecycle, obj, propertyName);
               }
-              return new exports.ElementPropertyAccessor(this.lifecycle, obj, propertyName);
+              return new exports.ElementPropertyAccessor(this.dom, this.lifecycle, obj, propertyName);
           }
           return new PropertyAccessor(obj, propertyName);
       }
@@ -5992,32 +6000,32 @@ this.au.runtime = (function (exports,kernel) {
               return new PrimitiveObserver(obj, propertyName);
           }
           let isNode;
-          if (DOM.isNodeInstance(obj)) {
+          if (this.dom.isNodeInstance(obj)) {
               if (propertyName === 'class') {
-                  return new exports.ClassAttributeAccessor(this.lifecycle, obj);
+                  return new exports.ClassAttributeAccessor(this.dom, this.lifecycle, obj);
               }
               if (propertyName === 'style' || propertyName === 'css') {
-                  return new exports.StyleAttributeAccessor(this.lifecycle, obj);
+                  return new exports.StyleAttributeAccessor(this.dom, this.lifecycle, obj);
               }
               const tagName = obj['tagName'];
-              const handler = this.eventManager.getElementHandler(obj, propertyName);
+              const handler = this.eventManager.getElementHandler(this.dom, obj, propertyName);
               if (propertyName === 'value' && tagName === 'SELECT') {
-                  return new exports.SelectValueObserver(this.lifecycle, obj, handler, this);
+                  return new exports.SelectValueObserver(this.dom, this.lifecycle, obj, handler, this);
               }
               if (propertyName === 'checked' && tagName === 'INPUT') {
-                  return new exports.CheckedObserver(this.lifecycle, obj, handler, this);
+                  return new exports.CheckedObserver(this.dom, this.lifecycle, obj, handler, this);
               }
               if (handler) {
-                  return new exports.ValueAttributeObserver(this.lifecycle, obj, propertyName, handler);
+                  return new exports.ValueAttributeObserver(this.dom, this.lifecycle, obj, propertyName, handler);
               }
               const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
               if (xlinkResult) {
-                  return new exports.XLinkAttributeAccessor(this.lifecycle, obj, propertyName, xlinkResult[1]);
+                  return new exports.XLinkAttributeAccessor(this.dom, this.lifecycle, obj, propertyName, xlinkResult[1]);
               }
               if (propertyName === 'role'
                   || /^\w+:|^data-|^aria-/.test(propertyName)
                   || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
-                  return new exports.DataAttributeAccessor(this.lifecycle, obj, propertyName);
+                  return new exports.DataAttributeAccessor(this.dom, this.lifecycle, obj, propertyName);
               }
               isNode = true;
           }
@@ -6059,7 +6067,7 @@ this.au.runtime = (function (exports,kernel) {
       }
   };
   exports.ObserverLocator = __decorate([
-      kernel.inject(ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
+      kernel.inject(IDOM, ILifecycle, IEventManager, IDirtyChecker, ISVGAnalyzer)
       /** @internal */
   ], exports.ObserverLocator);
   function getCollectionObserver(lifecycle, collection) {
@@ -6076,7 +6084,7 @@ this.au.runtime = (function (exports,kernel) {
 
   exports.AttrBindingBehavior = class AttrBindingBehavior {
       bind(flags, scope, binding) {
-          binding.targetObserver = new exports.DataAttributeAccessor(binding.locator.get(ILifecycle), binding.target, binding.targetProperty);
+          binding.targetObserver = new exports.DataAttributeAccessor(binding.locator.get(DOM), binding.locator.get(ILifecycle), binding.target, binding.targetProperty);
       }
       unbind(flags, scope, binding) {
           return;
@@ -6358,7 +6366,7 @@ this.au.runtime = (function (exports,kernel) {
           // stash the original element subscribe function.
           targetObserver.originalHandler = binding.targetObserver.handler;
           // replace the element subscribe function with one that uses the correct events.
-          targetObserver.handler = new EventSubscriber(events);
+          targetObserver.handler = new EventSubscriber(binding.locator.get(DOM), events);
       }
       unbind(flags, scope, binding) {
           // restore the state of the binding.
@@ -7164,7 +7172,7 @@ this.au.runtime = (function (exports,kernel) {
       }
   }
   /** @internal */
-  function $hydrateElement(renderingEngine, host, options = kernel.PLATFORM.emptyObject) {
+  function $hydrateElement(dom, renderingEngine, host, options = kernel.PLATFORM.emptyObject) {
       if (kernel.Tracer.enabled) {
           kernel.Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice$e.call(arguments));
       }
@@ -7172,7 +7180,7 @@ this.au.runtime = (function (exports,kernel) {
       const description = Type.description;
       this.$scope = Scope.create(this, null);
       this.$host = host;
-      this.$projector = determineProjector(this, host, description);
+      this.$projector = determineProjector(dom, this, host, description);
       renderingEngine.applyRuntimeBehavior(Type, this);
       if (this.$hooks & 1024 /* hasRender */) {
           const result = this.render(host, options.parts);
@@ -7182,7 +7190,7 @@ this.au.runtime = (function (exports,kernel) {
           }
       }
       else {
-          const template = renderingEngine.getElementTemplate(description, Type);
+          const template = renderingEngine.getElementTemplate(dom, description, Type);
           template.render(this, host, options.parts);
       }
       if (this.$hooks & 2 /* hasCreated */) {
@@ -7196,17 +7204,17 @@ this.au.runtime = (function (exports,kernel) {
   const defaultShadowOptions = {
       mode: 'open'
   };
-  function determineProjector($customElement, host, definition) {
+  function determineProjector(dom, $customElement, host, definition) {
       if (definition.shadowOptions || definition.hasSlots) {
           if (definition.containerless) {
               throw kernel.Reporter.error(21);
           }
-          return new ShadowDOMProjector($customElement, host, definition);
+          return new ShadowDOMProjector(dom, $customElement, host, definition);
       }
       if (definition.containerless) {
-          return new ContainerlessProjector($customElement, host);
+          return new ContainerlessProjector(dom, $customElement, host);
       }
-      return new HostProjector($customElement, host);
+      return new HostProjector(dom, $customElement, host);
   }
   const IRenderingEngine = kernel.DI.createInterface()
       .withDefault(x => x.singleton(exports.RenderingEngine));
@@ -7225,13 +7233,13 @@ this.au.runtime = (function (exports,kernel) {
               return acc;
           }, Object.create(null));
       }
-      getElementTemplate(definition, componentType) {
+      getElementTemplate(dom, definition, componentType) {
           if (!definition) {
               return null;
           }
           let found = this.templateLookup.get(definition);
           if (!found) {
-              found = this.templateFromSource(definition);
+              found = this.templateFromSource(dom, definition);
               //If the element has a view, support Recursive Components by adding self to own view template container.
               if (found.renderContext !== null && componentType) {
                   componentType.register(found.renderContext);
@@ -7240,14 +7248,14 @@ this.au.runtime = (function (exports,kernel) {
           }
           return found;
       }
-      getViewFactory(definition, parentContext) {
+      getViewFactory(dom, definition, parentContext) {
           if (!definition) {
               return null;
           }
           let factory = this.factoryLookup.get(definition);
           if (!factory) {
               const validSource = buildTemplateDefinition(null, definition);
-              const template = this.templateFromSource(validSource, parentContext);
+              const template = this.templateFromSource(dom, validSource, parentContext);
               factory = new ViewFactory(validSource.name, template, this.lifecycle);
               factory.setCacheSize(validSource.cache, true);
               this.factoryLookup.set(definition, factory);
@@ -7262,7 +7270,7 @@ this.au.runtime = (function (exports,kernel) {
           }
           found.applyTo(instance, this.lifecycle);
       }
-      templateFromSource(definition, parentContext) {
+      templateFromSource(dom, definition, parentContext) {
           parentContext = parentContext || this.container;
           if (definition && definition.template) {
               if (definition.build.required) {
@@ -7271,9 +7279,9 @@ this.au.runtime = (function (exports,kernel) {
                   if (!compiler) {
                       throw kernel.Reporter.error(20, compilerName);
                   }
-                  definition = compiler.compile(definition, new kernel.RuntimeCompilationResources(parentContext), exports.ViewCompileFlags.surrogate);
+                  definition = compiler.compile(dom, definition, new kernel.RuntimeCompilationResources(parentContext), exports.ViewCompileFlags.surrogate);
               }
-              return new CompiledTemplate(this, parentContext, definition);
+              return new CompiledTemplate(dom, this, parentContext, definition);
           }
           return noViewTemplate;
       }
@@ -7285,9 +7293,10 @@ this.au.runtime = (function (exports,kernel) {
   const childObserverOptions$1 = { childList: true };
   /** @internal */
   class ShadowDOMProjector {
-      constructor($customElement, host, definition) {
+      constructor(dom, $customElement, host, definition) {
+          this.dom = dom;
           this.host = host;
-          this.shadowRoot = DOM.attachShadow(this.host, definition.shadowOptions || defaultShadowOptions);
+          this.shadowRoot = dom.attachShadow(this.host, definition.shadowOptions || defaultShadowOptions);
           this.host.$customElement = $customElement;
           this.shadowRoot.$customElement = $customElement;
       }
@@ -7295,7 +7304,7 @@ this.au.runtime = (function (exports,kernel) {
           return this.host.childNodes;
       }
       subscribeToChildrenChange(callback) {
-          DOM.createNodeObserver(this.host, callback, childObserverOptions$1);
+          this.dom.createNodeObserver(this.host, callback, childObserverOptions$1);
       }
       provideEncapsulationSource(parentEncapsulationSource) {
           return this.shadowRoot;
@@ -7321,14 +7330,15 @@ this.au.runtime = (function (exports,kernel) {
   }
   /** @internal */
   class ContainerlessProjector {
-      constructor($customElement, host) {
+      constructor(dom, $customElement, host) {
+          this.dom = dom;
           if (host.childNodes.length) {
               this.childNodes = kernel.PLATFORM.toArray(host.childNodes);
           }
           else {
               this.childNodes = kernel.PLATFORM.emptyArray;
           }
-          this.host = DOM.convertToRenderLocation(host);
+          this.host = dom.convertToRenderLocation(host);
           this.host.$customElement = $customElement;
       }
       get children() {
@@ -7364,7 +7374,8 @@ this.au.runtime = (function (exports,kernel) {
   }
   /** @internal */
   class HostProjector {
-      constructor($customElement, host) {
+      constructor(dom, $customElement, host) {
+          this.dom = dom;
           this.host = host;
           this.host.$customElement = $customElement;
       }
@@ -7506,10 +7517,10 @@ this.au.runtime = (function (exports,kernel) {
   // and create instances of it on demand.
   /** @internal */
   class CompiledTemplate {
-      constructor(renderingEngine, parentRenderContext, templateDefinition) {
+      constructor(dom, renderingEngine, parentRenderContext, templateDefinition) {
           this.templateDefinition = templateDefinition;
-          this.factory = NodeSequenceFactory.createFor(this.templateDefinition.template);
-          this.renderContext = createRenderContext(renderingEngine, parentRenderContext, this.templateDefinition.dependencies);
+          this.factory = new NodeSequenceFactory(dom, this.templateDefinition.template);
+          this.renderContext = createRenderContext(dom, renderingEngine, parentRenderContext, this.templateDefinition.dependencies);
       }
       render(renderable, host, parts) {
           const nodes = renderable.$nodes = this.factory.createNodeSequence();
@@ -7526,15 +7537,15 @@ this.au.runtime = (function (exports,kernel) {
           renderable.$context = null;
       }
   };
-  function createRenderContext(renderingEngine, parentRenderContext, dependencies) {
+  function createRenderContext(dom, renderingEngine, parentRenderContext, dependencies) {
       const context = parentRenderContext.createChild();
       const renderableProvider = new InstanceProvider();
       const elementProvider = new InstanceProvider();
       const instructionProvider = new InstanceProvider();
-      const factoryProvider = new ViewFactoryProvider(renderingEngine);
+      const factoryProvider = new ViewFactoryProvider(dom, renderingEngine);
       const renderLocationProvider = new InstanceProvider();
       const renderer = context.get(IRenderer);
-      DOM.registerElementResolver(context, elementProvider);
+      dom.registerElementResolver(context, elementProvider);
       context.registerResolver(IViewFactory, factoryProvider);
       context.registerResolver(IRenderable, renderableProvider);
       context.registerResolver(ITargetedInstruction, instructionProvider);
@@ -7543,7 +7554,7 @@ this.au.runtime = (function (exports,kernel) {
           context.register(...dependencies);
       }
       context.render = function (renderable, targets, templateDefinition, host, parts) {
-          renderer.render(this, renderable, targets, templateDefinition, host, parts);
+          renderer.render(dom, this, renderable, targets, templateDefinition, host, parts);
       };
       context.beginComponentOperation = function (renderable, target, instruction, factory, parts, location) {
           renderableProvider.prepare(renderable);
@@ -7586,7 +7597,8 @@ this.au.runtime = (function (exports,kernel) {
   }
   /** @internal */
   class ViewFactoryProvider {
-      constructor(renderingEngine) {
+      constructor(dom, renderingEngine) {
+          this.dom = dom;
           this.renderingEngine = renderingEngine;
       }
       prepare(factory, parts) {
@@ -7603,7 +7615,7 @@ this.au.runtime = (function (exports,kernel) {
           }
           const found = this.replacements[factory.name];
           if (found) {
-              return this.renderingEngine.getViewFactory(found, requestor);
+              return this.renderingEngine.getViewFactory(this.dom, found, requestor);
           }
           return factory;
       }
@@ -7644,7 +7656,7 @@ this.au.runtime = (function (exports,kernel) {
               record[item.instructionType] = item;
           });
       }
-      render(context, renderable, targets, definition, host, parts) {
+      render(dom, context, renderable, targets, definition, host, parts) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('Renderer.render', slice$e.call(arguments));
           }
@@ -7663,14 +7675,14 @@ this.au.runtime = (function (exports,kernel) {
               const target = targets[i];
               for (let j = 0, jj = instructions.length; j < jj; ++j) {
                   const current = instructions[j];
-                  instructionRenderers[current.type].render(context, renderable, target, current, parts);
+                  instructionRenderers[current.type].render(dom, context, renderable, target, current, parts);
               }
           }
           if (host) {
               const surrogateInstructions = definition.surrogates;
               for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
                   const current = surrogateInstructions[i];
-                  instructionRenderers[current.type].render(context, renderable, host, current, parts);
+                  instructionRenderers[current.type].render(dom, context, renderable, host, current, parts);
               }
           }
           if (kernel.Tracer.enabled) {
@@ -8274,16 +8286,17 @@ this.au.runtime = (function (exports,kernel) {
   // will gather up all nodes between the start and end slot comments.
 
   const slice$f = Array.prototype.slice;
-  function createElement(tagOrType, props, children) {
+  function createElement(dom, tagOrType, props, children) {
       if (typeof tagOrType === 'string') {
-          return createElementForTag(tagOrType, props, children);
+          return createElementForTag(dom, tagOrType, props, children);
       }
       else {
-          return createElementForType(tagOrType, props, children);
+          return createElementForType(dom, tagOrType, props, children);
       }
   }
   class RenderPlan {
-      constructor(node, instructions, dependencies) {
+      constructor(dom, node, instructions, dependencies) {
+          this.dom = dom;
           this.dependencies = dependencies;
           this.instructions = instructions;
           this.node = node;
@@ -8293,29 +8306,29 @@ this.au.runtime = (function (exports,kernel) {
               buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies));
       }
       getElementTemplate(engine, Type) {
-          return engine.getElementTemplate(this.definition, Type);
+          return engine.getElementTemplate(this.dom, this.definition, Type);
       }
       createView(engine, parentContext) {
           return this.getViewFactory(engine, parentContext).create();
       }
       getViewFactory(engine, parentContext) {
-          return engine.getViewFactory(this.definition, parentContext);
+          return engine.getViewFactory(this.dom, this.definition, parentContext);
       }
       /** @internal */
       mergeInto(parent, instructions, dependencies) {
-          DOM.appendChild(parent, this.node);
+          this.dom.appendChild(parent, this.node);
           instructions.push(...this.instructions);
           dependencies.push(...this.dependencies);
       }
   }
-  function createElementForTag(tagName, props, children) {
+  function createElementForTag(dom, tagName, props, children) {
       if (kernel.Tracer.enabled) {
           kernel.Tracer.enter('createElementForTag', slice$f.call(arguments));
       }
       const instructions = [];
       const allInstructions = [];
       const dependencies = [];
-      const element = DOM.createElement(tagName);
+      const element = dom.createElement(tagName);
       let hasInstructions = false;
       if (props) {
           Object.keys(props)
@@ -8326,23 +8339,23 @@ this.au.runtime = (function (exports,kernel) {
                   instructions.push(value);
               }
               else {
-                  DOM.setAttribute(element, to, value);
+                  dom.setAttribute(element, to, value);
               }
           });
       }
       if (hasInstructions) {
-          DOM.setAttribute(element, 'class', 'au');
+          dom.setAttribute(element, 'class', 'au');
           allInstructions.push(instructions);
       }
       if (children) {
-          addChildren(element, children, allInstructions, dependencies);
+          addChildren(dom, element, children, allInstructions, dependencies);
       }
       if (kernel.Tracer.enabled) {
           kernel.Tracer.leave();
       }
-      return new RenderPlan(element, allInstructions, dependencies);
+      return new RenderPlan(dom, element, allInstructions, dependencies);
   }
-  function createElementForType(Type, props, children) {
+  function createElementForType(dom, Type, props, children) {
       if (kernel.Tracer.enabled) {
           kernel.Tracer.enter('createElementForType', slice$f.call(arguments));
       }
@@ -8352,8 +8365,8 @@ this.au.runtime = (function (exports,kernel) {
       const dependencies = [];
       const childInstructions = [];
       const bindables = Type.description.bindables;
-      const element = DOM.createElement(tagName);
-      DOM.setAttribute(element, 'class', 'au');
+      const element = dom.createElement(tagName);
+      dom.setAttribute(element, 'class', 'au');
       if (!dependencies.includes(Type)) {
           dependencies.push(Type);
       }
@@ -8389,23 +8402,23 @@ this.au.runtime = (function (exports,kernel) {
           });
       }
       if (children) {
-          addChildren(element, children, allInstructions, dependencies);
+          addChildren(dom, element, children, allInstructions, dependencies);
       }
       if (kernel.Tracer.enabled) {
           kernel.Tracer.leave();
       }
-      return new RenderPlan(element, allInstructions, dependencies);
+      return new RenderPlan(dom, element, allInstructions, dependencies);
   }
-  function addChildren(parent, children, allInstructions, dependencies) {
+  function addChildren(dom, parent, children, allInstructions, dependencies) {
       for (let i = 0, ii = children.length; i < ii; ++i) {
           const current = children[i];
           switch (typeof current) {
               case 'string':
-                  DOM.appendChild(parent, DOM.createTextNode(current));
+                  dom.appendChild(parent, dom.createTextNode(current));
                   break;
               case 'object':
-                  if (DOM.isNodeInstance(current)) {
-                      DOM.appendChild(parent, current);
+                  if (dom.isNodeInstance(current)) {
+                      dom.appendChild(parent, current);
                   }
                   else if ('mergeInto' in current) {
                       current.mergeInto(parent, allInstructions, dependencies);
@@ -8420,7 +8433,8 @@ this.au.runtime = (function (exports,kernel) {
   };
   const composeProps = ['subject', 'composing'];
   exports.Compose = class Compose {
-      constructor(renderable, instruction, renderingEngine, coordinator) {
+      constructor(dom, renderable, instruction, renderingEngine, coordinator) {
+          this.dom = dom;
           this.subject = null;
           this.composing = false;
           this.coordinator = coordinator;
@@ -8496,10 +8510,10 @@ this.au.runtime = (function (exports,kernel) {
               return subject.create();
           }
           if ('template' in subject) { // Raw Template Definition
-              return this.renderingEngine.getViewFactory(subject, this.renderable.$context).create();
+              return this.renderingEngine.getViewFactory(this.dom, subject, this.renderable.$context).create();
           }
           // Constructable (Custom Element Constructor)
-          return createElement(subject, this.properties, this.$projector.children).createView(this.renderingEngine, this.renderable.$context);
+          return createElement(this.dom, subject, this.properties, this.$projector.children).createView(this.renderingEngine, this.renderable.$context);
       }
   };
   __decorate([
@@ -8510,7 +8524,7 @@ this.au.runtime = (function (exports,kernel) {
   ], exports.Compose.prototype, "composing", void 0);
   exports.Compose = __decorate([
       customElement(composeSource),
-      kernel.inject(IRenderable, ITargetedInstruction, IRenderingEngine, exports.CompositionCoordinator)
+      kernel.inject(IDOM, IRenderable, ITargetedInstruction, IRenderingEngine, exports.CompositionCoordinator)
   ], exports.Compose);
 
   const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
@@ -8570,13 +8584,25 @@ this.au.runtime = (function (exports,kernel) {
           else {
               component = componentOrType;
           }
+          if (!this.container.has(IDOM, false)) {
+              if (config.dom !== undefined) {
+                  this.useDOM(config.dom);
+              }
+              else if (host.ownerDocument !== null) {
+                  this.useDOM(host.ownerDocument);
+              }
+              else {
+                  this.useDOM();
+              }
+          }
           const startTask = () => {
               host.$au = this;
               if (!this.components.includes(component)) {
                   this._root = component;
                   this.components.push(component);
+                  const dom = this.container.get(IDOM);
                   const re = this.container.get(IRenderingEngine);
-                  component.$hydrate(re, host);
+                  component.$hydrate(dom, re, host);
               }
               component.$bind(exports.LifecycleFlags.fromStartTask | exports.LifecycleFlags.fromBind, null);
               component.$attach(exports.LifecycleFlags.fromStartTask | exports.LifecycleFlags.fromAttach, host);
@@ -8609,6 +8635,25 @@ this.au.runtime = (function (exports,kernel) {
           }
           return this;
       }
+      useDOM(domOrDocument) {
+          let dom;
+          if (domOrDocument === undefined) {
+              dom = new DOM(document);
+          }
+          else if (quacksLikeDOM(domOrDocument)) {
+              dom = domOrDocument;
+          }
+          else {
+              dom = new DOM(domOrDocument);
+          }
+          kernel.Registration
+              .instance(IDOM, dom)
+              .register(this.container, IDOM);
+          return this;
+      }
+  }
+  function quacksLikeDOM(potentialDOM) {
+      return 'convertToRenderLocation' in potentialDOM;
   }
   kernel.PLATFORM.global.Aurelia = Aurelia;
 
@@ -8660,13 +8705,13 @@ this.au.runtime = (function (exports,kernel) {
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('TextBindingRenderer.render', slice$g.call(arguments));
           }
           const next = target.nextSibling;
-          if (DOM.isMarker(target)) {
-              DOM.remove(target);
+          if (dom.isMarker(target)) {
+              dom.remove(target);
           }
           let bindable;
           const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
@@ -8694,7 +8739,7 @@ this.au.runtime = (function (exports,kernel) {
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('InterpolationBindingRenderer.render', slice$g.call(arguments));
           }
@@ -8724,7 +8769,7 @@ this.au.runtime = (function (exports,kernel) {
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('PropertyBindingRenderer.render', slice$g.call(arguments));
           }
@@ -8748,7 +8793,7 @@ this.au.runtime = (function (exports,kernel) {
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('IteratorBindingRenderer.render', slice$g.call(arguments));
           }
@@ -8772,12 +8817,12 @@ this.au.runtime = (function (exports,kernel) {
           this.parser = parser;
           this.eventManager = eventManager;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('ListenerBindingRenderer.render', slice$g.call(arguments));
           }
           const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-          const bindable = new Listener(instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
+          const bindable = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
           addBindable(renderable, bindable);
           if (kernel.Tracer.enabled) {
               kernel.Tracer.leave();
@@ -8796,7 +8841,7 @@ this.au.runtime = (function (exports,kernel) {
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('CallBindingRenderer.render', slice$g.call(arguments));
           }
@@ -8819,7 +8864,7 @@ this.au.runtime = (function (exports,kernel) {
       constructor(parser) {
           this.parser = parser;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('RefBindingRenderer.render', slice$g.call(arguments));
           }
@@ -8843,7 +8888,7 @@ this.au.runtime = (function (exports,kernel) {
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('StylePropertyBindingRenderer.render', slice$g.call(arguments));
           }
@@ -8863,7 +8908,7 @@ this.au.runtime = (function (exports,kernel) {
   exports.SetPropertyRenderer = 
   /** @internal */
   class SetPropertyRenderer {
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('SetPropertyRenderer.render', slice$g.call(arguments));
           }
@@ -8880,11 +8925,11 @@ this.au.runtime = (function (exports,kernel) {
   exports.SetAttributeRenderer = 
   /** @internal */
   class SetAttributeRenderer {
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('SetAttributeRenderer.render', slice$g.call(arguments));
           }
-          DOM.setAttribute(target, instruction.to, instruction.value);
+          dom.setAttribute(target, instruction.to, instruction.value);
           if (kernel.Tracer.enabled) {
               kernel.Tracer.leave();
           }
@@ -8900,7 +8945,7 @@ this.au.runtime = (function (exports,kernel) {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('CustomElementRenderer.render', slice$g.call(arguments));
           }
@@ -8908,10 +8953,10 @@ this.au.runtime = (function (exports,kernel) {
           const component = context.get(customElementKey(instruction.res));
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
           const childInstructions = instruction.instructions;
-          component.$hydrate(this.renderingEngine, target, instruction);
+          component.$hydrate(dom, this.renderingEngine, target, instruction);
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
               const current = childInstructions[i];
-              instructionRenderers[current.type].render(context, renderable, component, current);
+              instructionRenderers[current.type].render(dom, context, renderable, component, current);
           }
           addBindable(renderable, component);
           addAttachable(renderable, component);
@@ -8932,7 +8977,7 @@ this.au.runtime = (function (exports,kernel) {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('CustomAttributeRenderer.render', slice$g.call(arguments));
           }
@@ -8943,7 +8988,7 @@ this.au.runtime = (function (exports,kernel) {
           component.$hydrate(this.renderingEngine);
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
               const current = childInstructions[i];
-              instructionRenderers[current.type].render(context, renderable, component, current);
+              instructionRenderers[current.type].render(dom, context, renderable, component, current);
           }
           addBindable(renderable, component);
           addAttachable(renderable, component);
@@ -8964,12 +9009,12 @@ this.au.runtime = (function (exports,kernel) {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
       }
-      render(context, renderable, target, instruction, parts) {
+      render(dom, context, renderable, target, instruction, parts) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('TemplateControllerRenderer.render', slice$g.call(arguments));
           }
-          const factory = this.renderingEngine.getViewFactory(instruction.def, context);
-          const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
+          const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
+          const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
           const component = context.get(customAttributeKey(instruction.res));
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
           const childInstructions = instruction.instructions;
@@ -8979,7 +9024,7 @@ this.au.runtime = (function (exports,kernel) {
           }
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
               const current = childInstructions[i];
-              instructionRenderers[current.type].render(context, renderable, component, current);
+              instructionRenderers[current.type].render(dom, context, renderable, component, current);
           }
           addBindable(renderable, component);
           addAttachable(renderable, component);
@@ -9001,7 +9046,7 @@ this.au.runtime = (function (exports,kernel) {
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(context, renderable, target, instruction) {
+      render(dom, context, renderable, target, instruction) {
           if (kernel.Tracer.enabled) {
               kernel.Tracer.enter('LetElementRenderer.render', slice$g.call(arguments));
           }
@@ -9354,6 +9399,7 @@ this.au.runtime = (function (exports,kernel) {
   exports.buildTemplateDefinition = buildTemplateDefinition;
   exports.INode = INode;
   exports.IRenderLocation = IRenderLocation;
+  exports.IDOM = IDOM;
   exports.DOM = DOM;
   exports.NodeSequence = NodeSequence;
   exports.TextNodeSequence = TextNodeSequence;

@@ -1,5 +1,5 @@
 import { IContainer, inject } from '@aurelia/kernel';
-import { CustomElementResource, IRenderingEngine, LifecycleFlags, Aurelia } from '@aurelia/runtime';
+import { CustomElementResource, IDOM, IRenderingEngine, LifecycleFlags, Aurelia } from '@aurelia/runtime';
 
 class HistoryBrowser {
     constructor() {
@@ -438,6 +438,7 @@ class Viewport {
         }
         const host = this.element;
         const renderingEngine = this.router.container.get(IRenderingEngine);
+        const dom = this.router.container.get(IDOM);
         if (this.component) {
             if (this.component.leave) {
                 this.component.leave(this.instruction, this.nextInstruction);
@@ -449,7 +450,7 @@ class Viewport {
             if (this.nextComponent.enter) {
                 this.nextComponent.enter(this.nextInstruction, this.instruction);
             }
-            this.nextComponent.$hydrate(renderingEngine, host);
+            this.nextComponent.$hydrate(dom, renderingEngine, host);
             this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
             this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);
             this.content = this.nextContent;

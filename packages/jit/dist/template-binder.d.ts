@@ -1,4 +1,4 @@
-import { IExpressionParser, IHTMLElement, IHTMLTemplateElement, Interpolation, IsExpressionOrStatement, IText } from '@aurelia/runtime';
+import { IDOM, IExpressionParser, IHTMLElement, IHTMLTemplateElement, Interpolation, IsExpressionOrStatement, IText } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IAttributeParser } from './attribute-parser';
 import { IBindingCommand } from './binding-command';
@@ -35,7 +35,7 @@ export declare class TemplateControllerSymbol {
     marker: IHTMLElement;
     private _bindings;
     readonly bindings: BindingSymbol[];
-    constructor(syntax: AttrSyntax, info: AttrInfo, partName: string | null);
+    constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null);
 }
 /**
  * Wrapper for an element (with all of its attributes, regardless of the order in which they are declared)
@@ -112,7 +112,7 @@ export declare class CustomElementSymbol {
     readonly childNodes: NodeSymbol[];
     private _parts;
     readonly parts: ReplacePartSymbol[];
-    constructor(node: IHTMLElement, info: ElementInfo);
+    constructor(dom: IDOM, node: IHTMLElement, info: ElementInfo);
 }
 export declare class LetElementSymbol {
     flags: SymbolFlags;
@@ -121,7 +121,7 @@ export declare class LetElementSymbol {
     marker: IHTMLElement;
     private _bindings;
     readonly bindings: BindingSymbol[];
-    constructor(node: IHTMLElement);
+    constructor(dom: IDOM, node: IHTMLElement);
 }
 /**
  * A normal html element that may or may not have attribute behaviors and/or child node behaviors.
@@ -148,7 +148,7 @@ export declare class TextSymbol {
     physicalNode: IText;
     interpolation: Interpolation;
     marker: IHTMLElement;
-    constructor(node: IText, interpolation: Interpolation);
+    constructor(dom: IDOM, node: IText, interpolation: Interpolation);
 }
 export declare type AttributeSymbol = CustomAttributeSymbol | PlainAttributeSymbol;
 export declare type ResourceAttributeSymbol = CustomAttributeSymbol | TemplateControllerSymbol;
@@ -169,7 +169,7 @@ export declare class TemplateBinder {
     private parentManifestRoot;
     private partName;
     constructor(resources: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser);
-    bind(node: IHTMLTemplateElement): PlainElementSymbol;
+    bind(dom: IDOM, node: IHTMLTemplateElement): PlainElementSymbol;
     private bindManifest;
     private bindLetElement;
     private bindAttributes;

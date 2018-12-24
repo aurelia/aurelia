@@ -1,5 +1,6 @@
 import { Constructable, Immutable, IRegistry } from '@aurelia/kernel';
 import { IHydrateElementInstruction, TemplateDefinition } from '../../definitions';
+import { IDOM } from '../../dom';
 import { CompositionCoordinator, IRenderable, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { RenderPlan } from '../../templating/create-element';
@@ -12,12 +13,13 @@ export declare class Compose {
     static register: IRegistry['register'];
     subject: Subject | Promise<Subject> | null;
     composing: boolean;
+    private dom;
     private coordinator;
     private lastSubject;
     private properties;
     private renderable;
     private renderingEngine;
-    constructor(renderable: IRenderable, instruction: Immutable<IHydrateElementInstruction>, renderingEngine: IRenderingEngine, coordinator: CompositionCoordinator);
+    constructor(dom: IDOM, renderable: IRenderable, instruction: Immutable<IHydrateElementInstruction>, renderingEngine: IRenderingEngine, coordinator: CompositionCoordinator);
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;

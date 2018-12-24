@@ -1,36 +1,64 @@
 import { IContainer, IResolver } from '@aurelia/kernel';
-import { IAddEventListenerOptions, IChildNode, IComment, IDocumentFragment, IElement, IEventListenerOptions, IEventListenerOrEventListenerObject, IEventTarget, IHTMLElement, IHTMLTemplateElement, IMutationCallback, IMutationObserver, IMutationObserverInit, INode, INodeSequence, IRenderLocation, IShadowRootInit, IText } from './dom.interfaces';
-export declare const DOM: {
+import { IAddEventListenerOptions, IComment, IDocument, IDocumentFragment, IEventListenerOptions, IEventListenerOrEventListenerObject, IHTMLElement, IHTMLTemplateElement, IMutationCallback, IMutationObserver, IMutationObserverInit, INode, INodeSequence, IRenderLocation, IShadowRootInit, IText } from './dom.interfaces';
+export declare const IDOM: import("@aurelia/kernel/dist/di").InterfaceSymbol<IDOM>;
+export interface IDOM {
+    addClass(node: unknown, className: string): void;
+    addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
+    appendChild(parent: unknown, child: unknown): void;
+    attachShadow(host: unknown, options: unknown): IDocumentFragment;
+    cloneNode<T>(node: T, deep?: boolean): T;
+    convertToRenderLocation(node: unknown): IRenderLocation;
+    createComment(text: string): IComment;
     createDocumentFragment(markupOrNode?: unknown): IDocumentFragment;
+    createElement(name: string): IHTMLElement;
+    createNodeObserver(target: unknown, callback: unknown, options: unknown): IMutationObserver;
     createTemplate(markup?: unknown): IHTMLTemplateElement;
-    addClass(node: IElement, className: string): void;
-    addEventListener(eventName: string, subscriber: IEventListenerOrEventListenerObject, publisher?: IEventTarget, options?: boolean | IAddEventListenerOptions): void;
+    createTextNode(text: string): IText;
+    getAttribute(node: unknown, name: string): string;
+    hasClass(node: unknown, className: string): boolean;
+    hasParent(node: unknown): boolean;
+    insertBefore(nodeToInsert: unknown, referenceNode: unknown): void;
+    isMarker(node: unknown): node is IHTMLElement;
+    isNodeInstance(potentialNode: unknown): potentialNode is INode;
+    isRenderLocation(node: unknown): node is IRenderLocation;
+    registerElementResolver(container: IContainer, resolver: IResolver): void;
+    remove(node: unknown): void;
+    removeAttribute(node: unknown, name: string): void;
+    removeClass(node: unknown, className: string): void;
+    removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
+    replaceNode(newChild: unknown, oldChild: unknown): void;
+    setAttribute(node: unknown, name: string, value: string): void;
+}
+export declare class DOM implements IDOM {
+    private readonly doc;
+    constructor(doc: IDocument);
+    addClass(node: IHTMLElement, className: string): void;
+    addEventListener(eventName: string, subscriber: IEventListenerOrEventListenerObject, publisher?: INode, options?: boolean | IAddEventListenerOptions): void;
     appendChild(parent: INode, child: INode): void;
-    attachShadow(host: IElement, options: IShadowRootInit): IDocumentFragment;
-    cloneNode<T extends INode = INode>(node: T, deep?: boolean): T;
+    attachShadow(host: IHTMLElement, options: IShadowRootInit): IDocumentFragment;
+    cloneNode<T>(node: T, deep?: boolean): T;
     convertToRenderLocation(node: INode): IRenderLocation;
     createComment(text: string): IComment;
-    createElement: <T extends IHTMLElement, TTag extends string>(tagName: TTag) => TTag extends "template" ? IHTMLTemplateElement : TTag extends "slot" ? import("./dom.interfaces").IHTMLSlotElement : T;
+    createDocumentFragment(markupOrNode?: string | INode): IDocumentFragment;
+    createElement(name: string): IHTMLElement;
     createNodeObserver(target: INode, callback: IMutationCallback, options: IMutationObserverInit): IMutationObserver;
+    createTemplate(markup?: unknown): IHTMLTemplateElement;
     createTextNode(text: string): IText;
-    getAttribute(node: IElement, name: string): string;
-    hasClass(node: IElement, className: string): boolean;
+    getAttribute(node: IHTMLElement, name: string): string;
+    hasClass(node: IHTMLElement, className: string): boolean;
+    hasParent(node: INode): boolean;
     insertBefore(nodeToInsert: INode, referenceNode: INode): void;
-    isMarker(node: INode): node is IElement;
-    isCommentNodeType(node: INode): node is IComment;
-    isDocumentFragmentType(node: INode): node is IDocumentFragment;
-    isElementNodeType(node: INode): node is IElement;
+    isMarker(node: unknown): node is IHTMLElement;
     isNodeInstance(potentialNode: unknown): potentialNode is INode;
-    isTextNodeType(node: INode): node is IText;
-    migrateChildNodes(currentParent: INode, newParent: INode): void;
-    registerElementResolver(container: IContainer, resolver: IResolver<any>): void;
-    remove(node: INode | IChildNode): void;
-    removeAttribute(node: IElement, name: string): void;
-    removeClass(node: IElement, className: string): void;
-    removeEventListener(eventName: string, subscriber: IEventListenerOrEventListenerObject, publisher?: IEventTarget, options?: boolean | IEventListenerOptions): void;
+    isRenderLocation(node: unknown): node is IRenderLocation;
+    registerElementResolver(container: IContainer, resolver: IResolver): void;
+    remove(node: INode): void;
+    removeAttribute(node: IHTMLElement, name: string): void;
+    removeClass(node: IHTMLElement, className: string): void;
+    removeEventListener(eventName: string, subscriber: IEventListenerOrEventListenerObject, publisher?: INode, options?: boolean | IEventListenerOptions): void;
     replaceNode(newChild: INode, oldChild: INode): void;
-    setAttribute(node: IElement, name: string, value: string): void;
-};
+    setAttribute(node: IHTMLElement, name: string, value: string): void;
+}
 export declare const NodeSequence: {
     empty: INodeSequence;
 };
@@ -41,11 +69,12 @@ export declare const NodeSequence: {
  * - text is the actual text node
  */
 export declare class TextNodeSequence implements INodeSequence {
+    dom: IDOM;
     firstChild: IText;
     lastChild: IText;
     childNodes: IText[];
     private targets;
-    constructor(text: IText);
+    constructor(dom: IDOM, text: IText);
     findTargets(): ArrayLike<INode>;
     insertBefore(refNode: INode): void;
     appendTo(parent: INode): void;
@@ -54,12 +83,12 @@ export declare class TextNodeSequence implements INodeSequence {
 export interface INodeSequenceFactory {
     createNodeSequence(): INodeSequence;
 }
-export declare class NodeSequenceFactory {
+export declare class NodeSequenceFactory implements INodeSequenceFactory {
+    private readonly dom;
     private readonly deepClone;
     private readonly node;
     private readonly Type;
-    constructor(fragment: IDocumentFragment);
-    static createFor(markupOrNode: unknown): NodeSequenceFactory;
+    constructor(dom: IDOM, markupOrNode: string | INode);
     createNodeSequence(): INodeSequence;
 }
 export interface AuMarker extends INode {

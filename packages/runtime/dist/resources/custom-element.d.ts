@@ -1,5 +1,6 @@
 import { Class, Constructable, IResourceKind, IResourceType } from '@aurelia/kernel';
 import { ITemplateDefinition, TemplateDefinition } from '../definitions';
+import { IDOM } from '../dom';
 import { INode } from '../dom.interfaces';
 import { IAttach, IBind, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable } from '../lifecycle';
 import { IChangeTracker } from '../observation';
@@ -12,7 +13,7 @@ export interface ICustomElementType extends IResourceType<ITemplateDefinition, I
 export interface ICustomElement extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IBind, ILifecycleUnbindAfterDetach, IAttach, IMountable, IRenderable {
     readonly $projector: IElementProjector;
     readonly $host: ICustomElementHost;
-    $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+    $hydrate(dom: IDOM, renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 export interface ICustomElementResource extends IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
     behaviorFor(node: INode): ICustomElement | null;

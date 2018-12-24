@@ -205,7 +205,7 @@
       // Using very HTML-specific code here since you won't install this module
       // unless you are actually running in a browser, using HTML,
       // and dealing with browser inconsistencies.
-      const div = runtime.DOM.createElement('div');
+      const div = document.createElement('div');
       div.innerHTML = html;
       return div.firstElementChild;
   }

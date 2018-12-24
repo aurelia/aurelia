@@ -63,6 +63,7 @@ export interface INode extends INodeLike, IEventTarget {
     readonly nextSibling: INode | null;
     readonly nodeName: string;
     readonly nodeType: NodeType;
+    readonly ownerDocument: IDocument | null;
     readonly parentNode: INode & IParentNode | null;
     readonly previousSibling: INode | null;
     textContent: string | null;

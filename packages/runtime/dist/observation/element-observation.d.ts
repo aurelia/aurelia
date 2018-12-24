@@ -1,3 +1,4 @@
+import { IDOM } from '../dom';
 import { IHTMLInputElement, IHTMLOptionElement, IHTMLSelectElement, INode } from '../dom.interfaces';
 import { ILifecycle } from '../lifecycle';
 import { IBatchedCollectionSubscriber, IBindingTargetObserver, IndexMap, IPropertySubscriber, LifecycleFlags, ObserversLookup } from '../observation';
@@ -7,6 +8,7 @@ import { SetterObserver } from './property-observation';
 export interface ValueAttributeObserver extends IBindingTargetObserver<INode, string> {
 }
 export declare class ValueAttributeObserver implements ValueAttributeObserver {
+    dom: IDOM;
     currentFlags: LifecycleFlags;
     currentValue: unknown;
     defaultValue: unknown;
@@ -16,7 +18,7 @@ export declare class ValueAttributeObserver implements ValueAttributeObserver {
     lifecycle: ILifecycle;
     obj: INode;
     propertyKey: string;
-    constructor(lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber);
+    constructor(dom: IDOM, lifecycle: ILifecycle, obj: INode, propertyKey: string, handler: IEventSubscriber);
     getValue(): unknown;
     setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleEvent(): void;
@@ -35,6 +37,7 @@ export interface IInputElement extends IHTMLInputElement {
 export interface CheckedObserver extends IBindingTargetObserver<IInputElement, string>, IBatchedCollectionSubscriber, IPropertySubscriber {
 }
 export declare class CheckedObserver implements CheckedObserver {
+    dom: IDOM;
     currentFlags: LifecycleFlags;
     currentValue: unknown;
     defaultValue: unknown;
@@ -46,7 +49,7 @@ export declare class CheckedObserver implements CheckedObserver {
     oldValue: unknown;
     private arrayObserver;
     private valueObserver;
-    constructor(lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
+    constructor(dom: IDOM, lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleBatchedChange(): void;
@@ -69,18 +72,19 @@ export interface IOptionElement extends IHTMLOptionElement {
 export interface SelectValueObserver extends IBindingTargetObserver<ISelectElement, string>, IBatchedCollectionSubscriber, IPropertySubscriber {
 }
 export declare class SelectValueObserver implements SelectValueObserver {
-    lifecycle: ILifecycle;
-    obj: ISelectElement;
-    handler: IEventSubscriber;
-    observerLocator: IObserverLocator;
+    dom: IDOM;
     currentValue: unknown;
     currentFlags: LifecycleFlags;
     oldValue: unknown;
     defaultValue: unknown;
+    lifecycle: ILifecycle;
+    obj: ISelectElement;
+    handler: IEventSubscriber;
+    observerLocator: IObserverLocator;
     flush: () => void;
     private arrayObserver;
     private nodeObserver;
-    constructor(lifecycle: ILifecycle, obj: ISelectElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
+    constructor(dom: IDOM, lifecycle: ILifecycle, obj: ISelectElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleBatchedChange(indexMap: number[]): void;

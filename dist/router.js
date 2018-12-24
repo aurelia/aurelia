@@ -439,6 +439,7 @@ this.au.router = (function (exports,kernel,runtime) {
           }
           const host = this.element;
           const renderingEngine = this.router.container.get(runtime.IRenderingEngine);
+          const dom = this.router.container.get(runtime.IDOM);
           if (this.component) {
               if (this.component.leave) {
                   this.component.leave(this.instruction, this.nextInstruction);
@@ -450,7 +451,7 @@ this.au.router = (function (exports,kernel,runtime) {
               if (this.nextComponent.enter) {
                   this.nextComponent.enter(this.nextInstruction, this.instruction);
               }
-              this.nextComponent.$hydrate(renderingEngine, host);
+              this.nextComponent.$hydrate(dom, renderingEngine, host);
               this.nextComponent.$bind(runtime.LifecycleFlags.fromStartTask | runtime.LifecycleFlags.fromBind, null);
               this.nextComponent.$attach(runtime.LifecycleFlags.fromStartTask, host);
               this.content = this.nextContent;

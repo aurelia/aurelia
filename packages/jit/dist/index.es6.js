@@ -1,5 +1,5 @@
 import { DI, PLATFORM, Registration, Reporter, all, inject, Tracer } from '@aurelia/kernel';
-import { BindingMode, CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, IteratorBindingInstruction, OneTimeBindingInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction, AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, IExpressionParser, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, CustomAttributeResource, CustomElementResource, DOM, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, LetBindingInstruction, LetElementInstruction, RefBindingInstruction, SetAttributeInstruction, SetPropertyInstruction, TextBindingInstruction, AttrBindingBehavior, Compose, DebounceBindingBehavior, Else, FromViewBindingBehavior, HtmlRenderer, If, ITemplateCompiler, OneTimeBindingBehavior, Repeat, Replaceable, SanitizeValueConverter, SelfBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior, UpdateTriggerBindingBehavior, With } from '@aurelia/runtime';
+import { BindingMode, CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, IteratorBindingInstruction, OneTimeBindingInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction, AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, IExpressionParser, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, CustomAttributeResource, CustomElementResource, IDOM, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, LetBindingInstruction, LetElementInstruction, RefBindingInstruction, SetAttributeInstruction, SetPropertyInstruction, TextBindingInstruction, AttrBindingBehavior, Compose, DebounceBindingBehavior, Else, FromViewBindingBehavior, HtmlRenderer, If, ITemplateCompiler, OneTimeBindingBehavior, Repeat, Replaceable, SanitizeValueConverter, SelfBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior, UpdateTriggerBindingBehavior, With } from '@aurelia/runtime';
 
 class AttrSyntax {
     constructor(rawName, rawValue, target, command) {
@@ -1808,7 +1808,7 @@ class TemplateControllerSymbol {
         }
         return this._bindings;
     }
-    constructor(syntax, info, partName) {
+    constructor(dom, syntax, info, partName) {
         this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
         this.res = info.name;
         this.partName = partName;
@@ -1816,7 +1816,7 @@ class TemplateControllerSymbol {
         this.syntax = syntax;
         this.template = null;
         this.templateController = null;
-        this.marker = createMarker();
+        this.marker = createMarker(dom);
         this._bindings = null;
     }
 }
@@ -1917,7 +1917,7 @@ class CustomElementSymbol {
         }
         return this._parts;
     }
-    constructor(node, info) {
+    constructor(dom, node, info) {
         this.flags = 16 /* isCustomElement */;
         this.res = info.name;
         this.physicalNode = node;
@@ -1926,7 +1926,7 @@ class CustomElementSymbol {
         this.templateController = null;
         if (info.containerless) {
             this.isContainerless = true;
-            this.marker = createMarker();
+            this.marker = createMarker(dom);
             this.flags |= 512 /* hasMarker */;
         }
         else {
@@ -1947,11 +1947,11 @@ class LetElementSymbol {
         }
         return this._bindings;
     }
-    constructor(node) {
+    constructor(dom, node) {
         this.flags = 32 /* isLetElement */ | 512 /* hasMarker */;
         this.physicalNode = node;
         this.toViewModel = false;
-        this.marker = createMarker();
+        this.marker = createMarker(dom);
         this._bindings = null;
     }
 }
@@ -1988,16 +1988,16 @@ class PlainElementSymbol {
  * A standalone text node that has an interpolation.
  */
 class TextSymbol {
-    constructor(node, interpolation) {
+    constructor(dom, node, interpolation) {
         this.flags = 128 /* isText */ | 512 /* hasMarker */;
         this.physicalNode = node;
         this.interpolation = interpolation;
-        this.marker = createMarker();
+        this.marker = createMarker(dom);
     }
 }
 const slice = Array.prototype.slice;
-function createMarker() {
-    const marker = DOM.createElement('au-m');
+function createMarker(dom) {
+    const marker = dom.createElement('au-m');
     marker.className = 'au';
     return marker;
 }
@@ -2022,7 +2022,7 @@ class TemplateBinder {
         this.parentManifestRoot = null;
         this.partName = null;
     }
-    bind(node) {
+    bind(dom, node) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.bind', slice.call(arguments));
         }
@@ -2042,18 +2042,18 @@ class TemplateBinder {
             }
             const attrInfo = this.resources.getAttributeInfo(attrSyntax);
             if (attrInfo === null) {
-                this.bindPlainAttribute(attrSyntax);
+                this.bindPlainAttribute(dom, attrSyntax);
             }
             else if (attrInfo.isTemplateController) {
                 throw new Error('Cannot have template controller on surrogate element.');
                 // TODO: use reporter
             }
             else {
-                this.bindCustomAttribute(attrSyntax, attrInfo);
+                this.bindCustomAttribute(dom, attrSyntax, attrInfo);
             }
             ++i;
         }
-        this.bindChildNodes(node);
+        this.bindChildNodes(dom, node);
         this.surrogate = surrogateSave;
         this.parentManifestRoot = parentManifestRootSave;
         this.manifestRoot = manifestRootSave;
@@ -2063,14 +2063,14 @@ class TemplateBinder {
         }
         return manifest;
     }
-    bindManifest(parentManifest, node) {
+    bindManifest(dom, parentManifest, node) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.bindManifest', slice.call(arguments));
         }
         switch (node.nodeName) {
             case 'LET':
                 // let cannot have children and has some different processing rules, so return early
-                this.bindLetElement(parentManifest, node);
+                this.bindLetElement(dom, parentManifest, node);
                 if (Tracer.enabled) {
                     Tracer.leave();
                 }
@@ -2099,13 +2099,13 @@ class TemplateBinder {
         else {
             // it's a custom element so we set the manifestRoot as well (for storing replace-parts)
             this.parentManifestRoot = this.manifestRoot;
-            manifestRoot = this.manifestRoot = this.manifest = new CustomElementSymbol(node, elementInfo);
+            manifestRoot = this.manifestRoot = this.manifest = new CustomElementSymbol(dom, node, elementInfo);
         }
         // lifting operations done by template controllers and replace-parts effectively unlink the nodes, so start at the bottom
-        this.bindChildNodes(node);
+        this.bindChildNodes(dom, node);
         // the parentManifest will receive either the direct child nodes, or the template controllers / replace-parts
         // wrapping them
-        this.bindAttributes(node, parentManifest);
+        this.bindAttributes(dom, node, parentManifest);
         if (manifestRoot !== undefined && manifestRoot.isContainerless) {
             node.parentNode.replaceChild(manifestRoot.marker, node);
         }
@@ -2120,8 +2120,8 @@ class TemplateBinder {
             Tracer.leave();
         }
     }
-    bindLetElement(parentManifest, node) {
-        const symbol = new LetElementSymbol(node);
+    bindLetElement(dom, parentManifest, node) {
+        const symbol = new LetElementSymbol(dom, node);
         parentManifest.childNodes.push(symbol);
         const attributes = node.attributes;
         let i = 0;
@@ -2143,7 +2143,7 @@ class TemplateBinder {
         }
         node.parentNode.replaceChild(symbol.marker, node);
     }
-    bindAttributes(node, parentManifest) {
+    bindAttributes(dom, node, parentManifest) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.bindAttributes', slice.call(arguments));
         }
@@ -2152,7 +2152,7 @@ class TemplateBinder {
         // If there are no template controllers or replace-parts, it is always the manifest itself.
         // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
         let manifestProxy = manifest;
-        const replacePart = this.declareReplacePart(node);
+        const replacePart = this.declareReplacePart(dom, node);
         let previousController;
         let currentController;
         const attributes = node.attributes;
@@ -2167,12 +2167,12 @@ class TemplateBinder {
             const attrInfo = this.resources.getAttributeInfo(attrSyntax);
             if (attrInfo === null) {
                 // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                this.bindPlainAttribute(attrSyntax);
+                this.bindPlainAttribute(dom, attrSyntax);
             }
             else if (attrInfo.isTemplateController) {
                 // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
                 // so keep setting manifest.templateController to the latest template controller we find
-                currentController = manifest.templateController = this.declareTemplateController(attrSyntax, attrInfo);
+                currentController = manifest.templateController = this.declareTemplateController(dom, attrSyntax, attrInfo);
                 // the proxy and the manifest are only identical when we're at the first template controller (since the controller
                 // is assigned to the proxy), so this evaluates to true at most once per node
                 if (manifestProxy === manifest) {
@@ -2188,10 +2188,10 @@ class TemplateBinder {
             }
             else {
                 // a regular custom attribute
-                this.bindCustomAttribute(attrSyntax, attrInfo);
+                this.bindCustomAttribute(dom, attrSyntax, attrInfo);
             }
         }
-        processTemplateControllers(manifestProxy, manifest);
+        processTemplateControllers(dom, manifestProxy, manifest);
         if (replacePart === null) {
             // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
             parentManifest.childNodes.push(manifestProxy);
@@ -2205,13 +2205,13 @@ class TemplateBinder {
             // element, so add the part to the parent wrapping custom element instead
             const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
             partOwner.parts.push(replacePart);
-            processReplacePart(replacePart, manifestProxy);
+            processReplacePart(dom, replacePart, manifestProxy);
         }
         if (Tracer.enabled) {
             Tracer.leave();
         }
     }
-    bindChildNodes(node) {
+    bindChildNodes(dom, node) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.bindChildNodes', slice.call(arguments));
         }
@@ -2227,11 +2227,11 @@ class TemplateBinder {
             switch (childNode.nodeType) {
                 case 1 /* Element */:
                     nextChild = childNode.nextSibling;
-                    this.bindManifest(this.manifest, childNode);
+                    this.bindManifest(dom, this.manifest, childNode);
                     childNode = nextChild;
                     break;
                 case 3 /* Text */:
-                    childNode = this.bindText(childNode).nextSibling;
+                    childNode = this.bindText(dom, childNode).nextSibling;
                     break;
                 case 4 /* CDATASection */:
                 case 7 /* ProcessingInstruction */:
@@ -2248,15 +2248,15 @@ class TemplateBinder {
             Tracer.leave();
         }
     }
-    bindText(node) {
+    bindText(dom, node) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.bindText', slice.call(arguments));
         }
         const interpolation = this.exprParser.parse(node.wholeText, 2048 /* Interpolation */);
         if (interpolation !== null) {
-            const symbol = new TextSymbol(node, interpolation);
+            const symbol = new TextSymbol(dom, node, interpolation);
             this.manifest.childNodes.push(symbol);
-            processInterpolationText(symbol);
+            processInterpolationText(dom, symbol);
         }
         while (node.nextSibling !== null && node.nextSibling.nodeType === 3 /* Text */) {
             node = node.nextSibling;
@@ -2266,7 +2266,7 @@ class TemplateBinder {
         }
         return node;
     }
-    declareTemplateController(attrSyntax, attrInfo) {
+    declareTemplateController(dom, attrSyntax, attrInfo) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.declareTemplateController', slice.call(arguments));
         }
@@ -2274,12 +2274,12 @@ class TemplateBinder {
         // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
         const command = this.resources.getBindingCommand(attrSyntax);
         if (command === null && attrInfo.hasDynamicOptions) {
-            symbol = new TemplateControllerSymbol(attrSyntax, attrInfo, this.partName);
+            symbol = new TemplateControllerSymbol(dom, attrSyntax, attrInfo, this.partName);
             this.partName = null;
-            this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
+            this.bindMultiAttribute(dom, symbol, attrInfo, attrSyntax.rawValue);
         }
         else {
-            symbol = new TemplateControllerSymbol(attrSyntax, attrInfo, this.partName);
+            symbol = new TemplateControllerSymbol(dom, attrSyntax, attrInfo, this.partName);
             const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
             const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
             symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
@@ -2290,7 +2290,7 @@ class TemplateBinder {
         }
         return symbol;
     }
-    bindCustomAttribute(attrSyntax, attrInfo) {
+    bindCustomAttribute(dom, attrSyntax, attrInfo) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.bindCustomAttribute', slice.call(arguments));
         }
@@ -2300,7 +2300,7 @@ class TemplateBinder {
             // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
             // the binding commands must be declared in the dynamicOptions expression itself
             symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
-            this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
+            this.bindMultiAttribute(dom, symbol, attrInfo, attrSyntax.rawValue);
         }
         else {
             // we've either got a command (with or without dynamicOptions, the latter maps to the first bindable),
@@ -2316,7 +2316,7 @@ class TemplateBinder {
             Tracer.leave();
         }
     }
-    bindMultiAttribute(symbol, attrInfo, value) {
+    bindMultiAttribute(dom, symbol, attrInfo, value) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.bindMultiAttribute', slice.call(arguments));
         }
@@ -2339,7 +2339,7 @@ class TemplateBinder {
             Tracer.leave();
         }
     }
-    bindPlainAttribute(attrSyntax) {
+    bindPlainAttribute(dom, attrSyntax) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.bindPlainAttribute', slice.call(arguments));
         }
@@ -2381,7 +2381,7 @@ class TemplateBinder {
             Tracer.leave();
         }
     }
-    declareReplacePart(node) {
+    declareReplacePart(dom, node) {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder.declareReplacePart', slice.call(arguments));
         }
@@ -2400,7 +2400,7 @@ class TemplateBinder {
         return symbol;
     }
 }
-function processInterpolationText(symbol) {
+function processInterpolationText(dom, symbol) {
     const node = symbol.physicalNode;
     const parentNode = node.parentNode;
     while (node.nextSibling !== null && node.nextSibling.nodeType === 3 /* Text */) {
@@ -2413,7 +2413,7 @@ function processInterpolationText(symbol) {
  * A (temporary) standalone function that purely does the DOM processing (lifting) related to template controllers.
  * It's a first refactoring step towards separating DOM parsing/binding from mutations.
  */
-function processTemplateControllers(manifestProxy, manifest) {
+function processTemplateControllers(dom, manifestProxy, manifest) {
     const manifestNode = manifest.physicalNode;
     let current = manifestProxy;
     while (current !== manifest) {
@@ -2429,19 +2429,19 @@ function processTemplateControllers(manifestProxy, manifest) {
             }
             else {
                 // the manifest is not a template element so we need to wrap it in one
-                current.physicalNode = DOM.createTemplate();
+                current.physicalNode = dom.createTemplate();
                 current.physicalNode.content.appendChild(manifestNode);
             }
         }
         else {
-            current.physicalNode = DOM.createTemplate();
+            current.physicalNode = dom.createTemplate();
             current.physicalNode.content.appendChild(current.marker);
         }
         manifestNode.removeAttribute(current.syntax.rawName);
         current = current.template;
     }
 }
-function processReplacePart(replacePart, manifestProxy) {
+function processReplacePart(dom, replacePart, manifestProxy) {
     let proxyNode;
     if (manifestProxy.flags & 512 /* hasMarker */) {
         proxyNode = manifestProxy.marker;
@@ -2455,7 +2455,7 @@ function processReplacePart(replacePart, manifestProxy) {
     }
     else {
         // otherwise wrap the replace-part in a template
-        replacePart.physicalNode = DOM.createTemplate();
+        replacePart.physicalNode = dom.createTemplate();
         replacePart.physicalNode.content.appendChild(proxyNode);
     }
 }
@@ -2524,9 +2524,10 @@ const ITemplateFactory = DI.createInterface()
  *
  * @internal
  */
-class TemplateFactory {
-    constructor() {
-        this.template = DOM.createTemplate();
+let TemplateFactory = class TemplateFactory {
+    constructor(dom) {
+        this.dom = dom;
+        this.template = dom.createTemplate();
     }
     createTemplate(input) {
         if (typeof input === 'string') {
@@ -2536,7 +2537,7 @@ class TemplateFactory {
             // if the input is either not wrapped in a template or there is more than one node,
             // return the whole template that wraps it/them (and create a new one for the next input)
             if (node === null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling !== null) {
-                this.template = DOM.createTemplate();
+                this.template = this.dom.createTemplate();
                 return template;
             }
             // the node to return is both a template and the only node, so return just the node
@@ -2546,7 +2547,7 @@ class TemplateFactory {
         }
         if (input.nodeName !== 'TEMPLATE') {
             // if we get one node that is not a template, wrap it in one
-            const template = DOM.createTemplate();
+            const template = this.dom.createTemplate();
             template.content.appendChild(input);
             return template;
         }
@@ -2557,7 +2558,10 @@ class TemplateFactory {
         }
         return input;
     }
-}
+};
+TemplateFactory = __decorate([
+    inject(IDOM)
+], TemplateFactory);
 
 const buildNotRequired = Object.freeze({
     required: false,
@@ -2578,11 +2582,11 @@ let TemplateCompiler = class TemplateCompiler {
     get name() {
         return 'default';
     }
-    compile(definition, descriptions) {
+    compile(dom, definition, descriptions) {
         const resources = new ResourceModel(descriptions);
         const binder = new TemplateBinder(resources, this.attrParser, this.exprParser);
         const template = definition.template = this.factory.createTemplate(definition.template);
-        const surrogate = binder.bind(template);
+        const surrogate = binder.bind(dom, template);
         if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
             definition.instructions = [];
         }

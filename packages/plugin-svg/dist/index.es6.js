@@ -1,4 +1,4 @@
-import { DOM, ISVGAnalyzer } from '@aurelia/runtime';
+import { ISVGAnalyzer } from '@aurelia/runtime';
 
 const svgElements = {
     'a': ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
@@ -201,7 +201,7 @@ function createElement(html) {
     // Using very HTML-specific code here since you won't install this module
     // unless you are actually running in a browser, using HTML,
     // and dealing with browser inconsistencies.
-    const div = DOM.createElement('div');
+    const div = document.createElement('div');
     div.innerHTML = html;
     return div.firstElementChild;
 }

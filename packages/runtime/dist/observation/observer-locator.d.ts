@@ -1,3 +1,4 @@
+import { IDOM } from '../dom';
 import { ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet, IOverrideContext } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
@@ -16,12 +17,13 @@ export interface IObserverLocator {
 }
 export declare const IObserverLocator: import("@aurelia/kernel/dist/di").InterfaceSymbol<IObserverLocator>;
 export declare class ObserverLocator implements IObserverLocator {
+    private dom;
     private adapters;
     private dirtyChecker;
     private eventManager;
     private lifecycle;
     private svgAnalyzer;
-    constructor(lifecycle: ILifecycle, eventManager: IEventManager, dirtyChecker: IDirtyChecker, svgAnalyzer: ISVGAnalyzer);
+    constructor(dom: IDOM, lifecycle: ILifecycle, eventManager: IEventManager, dirtyChecker: IDirtyChecker, svgAnalyzer: ISVGAnalyzer);
     getObserver(obj: IObservable | IBindingContext | IOverrideContext, propertyName: string): AccessorOrObserver;
     addAdapter(adapter: IObjectObservationAdapter): void;
     getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;

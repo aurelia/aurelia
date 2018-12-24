@@ -18,7 +18,6 @@ import {
   IHydrateElementInstruction,
   IHydrateAttributeInstruction,
   IHydrateTemplateController,
-  ILetElementInstruction,
   ILetBindingInstruction,
 
   ITemplateDefinition,
@@ -80,13 +79,19 @@ import {
   IRenderingEngine,
   ILifecycle,
   ICustomElement,
-  BindingType
+  BindingType,
+
+  IDOM
 
 } from '../../../runtime/src/index';
-import { IIndexable, DI, Container, IContainer, Constructable, Class } from '../../../kernel/src/index';
+import { IIndexable, DI, Container, IContainer, Constructable, Class, Registration } from '../../../kernel/src/index';
 import { BasicConfiguration, parseCore } from '../../../jit/src/index';
 import { eachCartesianJoin } from '../unit/util';
 import { expect } from 'chai';
+
+
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
 export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;
@@ -96,7 +101,7 @@ export class TemplateBuilder {
   private template: IElement;
 
   constructor() {
-    this.template = DOM.createElement('template');
+    this.template = document.createElement('template');
   }
 
   public static interpolation(): TemplateBuilder {
@@ -104,9 +109,9 @@ export class TemplateBuilder {
   }
 
   public interpolation(): TemplateBuilder {
-    const marker = DOM.createElement('au-m');
+    const marker = document.createElement('au-m');
     marker['classList'].add('au');
-    const text = DOM.createTextNode(' ');
+    const text = document.createTextNode(' ');
     this.template.content['appendChild'](marker);
     this.template.content['appendChild'](text);
     return this;
@@ -117,7 +122,7 @@ export class TemplateBuilder {
   }
 
   public behavior(): TemplateBuilder {
-    const marker = DOM.createElement('au-m');
+    const marker = document.createElement('au-m');
     marker['classList'].add('au');
     this.template.content['appendChild'](marker);
     return this;
@@ -374,6 +379,7 @@ export class TestBuilder<T extends Constructable> {
   constructor(Type: T) {
     this.container = DI.createContainer();
     this.container.register(<any>BasicConfiguration, <any>Type);
+    this.container.register(domRegistration);
     this.Type = Type;
   }
 
@@ -405,7 +411,7 @@ export class TestBuilder<T extends Constructable> {
 
   public build(): TestContext<InstanceType<T>> {
     const { container, Type } = this;
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new Type();
     return new TestContext(container, host, component);
   }
@@ -435,7 +441,7 @@ export class TestContext<T extends Object> {
   public hydrate(renderingEngine?: IRenderingEngine, host?: INode): void {
     renderingEngine = renderingEngine || this.container.get<IRenderingEngine>(IRenderingEngine);
     host = host || this.host;
-    this.component.$hydrate(<any>renderingEngine, host);
+    this.component.$hydrate(dom, <any>renderingEngine, host);
   }
 
   public bind(flags?: LifecycleFlags): void {

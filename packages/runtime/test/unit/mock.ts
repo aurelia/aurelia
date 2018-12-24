@@ -36,7 +36,6 @@ import {
   RuntimeBehavior,
   ILifecycle,
   ITemplateDefinition,
-  IResourceType,
   IAttributeDefinition,
   ICustomAttribute,
   IRenderer,
@@ -196,6 +195,7 @@ const expressions = {
 
 export class MockIfTextNodeTemplate {
   constructor(
+    public dom: any,
     public sourceExpression: any,
     public observerLocator: any,
     public lifecycle: any,
@@ -205,7 +205,7 @@ export class MockIfTextNodeTemplate {
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     const nodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
-    const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
+    const observerLocator = new ObserverLocator(dom, this.lifecycle, null, null, null);
     const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, this.container), this.lifecycle);
 
     const sut = new If(factory, nodes.firstChild, new CompositionCoordinator(this.lifecycle));
@@ -224,6 +224,7 @@ export class MockIfTextNodeTemplate {
 
 export class MockIfElseTextNodeTemplate {
   constructor(
+    public dom: any,
     public sourceExpression: any,
     public observerLocator: any,
     public lifecycle: any,
@@ -233,7 +234,7 @@ export class MockIfElseTextNodeTemplate {
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     const ifNodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
-    const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
+    const observerLocator = new ObserverLocator(this.dom, this.lifecycle, null, null, null);
     const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, this.container), this.lifecycle);
 
     const ifSut = new If(ifFactory, ifNodes.firstChild, new CompositionCoordinator(this.lifecycle));

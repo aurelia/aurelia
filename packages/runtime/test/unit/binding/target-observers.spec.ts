@@ -1,9 +1,10 @@
-import { XLinkAttributeAccessor, DataAttributeAccessor, StyleAttributeAccessor, Lifecycle, ClassAttributeAccessor, LifecycleFlags } from "../../../src/index";
+import { XLinkAttributeAccessor, DataAttributeAccessor, StyleAttributeAccessor, Lifecycle, ClassAttributeAccessor, LifecycleFlags, DOM } from "../../../src/index";
 import { createElement, globalAttributeNames } from "../util";
 import { expect } from "chai";
 import { CSS_PROPERTIES } from "../css-properties";
 import { spy } from "sinon";
 
+const dom = new DOM(<any>document);
 
 function createSvgUseElement(name: string, value: string) {
   return createElement(`<svg>
@@ -38,7 +39,7 @@ describe('XLinkAttributeAccessor', () => {
       it(`returns ${value} for xlink:${name}`, () => {
         el = createSvgUseElement(name, value);
         lifecycle = new Lifecycle();
-        sut = new XLinkAttributeAccessor(lifecycle, el, `xlink:${name}`, name);
+        sut = new XLinkAttributeAccessor(dom, lifecycle, el, `xlink:${name}`, name);
         const actual = sut.getValue();
         expect(actual).to.equal(value);
       });
@@ -50,7 +51,7 @@ describe('XLinkAttributeAccessor', () => {
       it(`sets xlink:${name} to foo`, () => {
         el = createSvgUseElement(name, value);
         lifecycle = new Lifecycle();
-        sut = new XLinkAttributeAccessor(lifecycle, el, `xlink:${name}`, name);
+        sut = new XLinkAttributeAccessor(dom, lifecycle, el, `xlink:${name}`, name);
         sut.setValue('foo', LifecycleFlags.none);
         expect(sut.getValue()).not.to.equal('foo');
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -73,7 +74,7 @@ describe('DataAttributeAccessor', () => {
         it(`returns "${value}" for attribute "${name}"`, () => {
           el = createElement(`<div ${name}="${value}"></div>`);
           lifecycle = new Lifecycle();
-          sut = new DataAttributeAccessor(lifecycle, el, name);
+          sut = new DataAttributeAccessor(dom, lifecycle, el, name);
           const actual = sut.getValue();
           expect(actual).to.equal(value);
         });
@@ -88,7 +89,7 @@ describe('DataAttributeAccessor', () => {
           el = createElement(`<div></div>`);
           lifecycle = new Lifecycle();
           const expected = value !== null && value !== undefined ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(lifecycle, el, name);
+          sut = new DataAttributeAccessor(dom, lifecycle, el, name);
           sut.setValue(value, LifecycleFlags.none);
           if (value !== null && value !== undefined) {
             expect(el.outerHTML).not.to.equal(expected);
@@ -116,7 +117,7 @@ describe('StyleAccessor', () => {
     it(`setValue - style="${rule}"`, () => {
       el = <HTMLElement>createElement('<div></div>');
       lifecycle = new Lifecycle();
-      sut = new StyleAttributeAccessor(lifecycle, el);
+      sut = new StyleAttributeAccessor(dom, lifecycle, el);
       sut._setProperty = spy();
 
       sut.setValue(rule, LifecycleFlags.none);
@@ -130,7 +131,7 @@ describe('StyleAccessor', () => {
   it(`getValue - style="display: block;"`, () => {
     el = <HTMLElement>createElement(`<div style="display: block;"></div>`);
     lifecycle = new Lifecycle();
-    sut = new StyleAttributeAccessor(lifecycle, el);
+    sut = new StyleAttributeAccessor(dom, lifecycle, el);
 
     const actual = sut.getValue();
     expect(actual).to.equal('display: block;');
@@ -158,7 +159,7 @@ describe('ClassAccessor', () => {
         el = createElement(markup);
         initialClassList = el.classList.toString();
         lifecycle = new Lifecycle();
-        sut = new ClassAttributeAccessor(lifecycle, el);
+        sut = new ClassAttributeAccessor(dom, lifecycle, el);
       });
 
       it(`setValue("${classList}") updates ${markup}`, () => {

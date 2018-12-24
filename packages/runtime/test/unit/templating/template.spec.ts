@@ -9,11 +9,13 @@ import {
   ITargetedInstruction,
   IRenderLocation,
   INode,
+  DOM
 
 } from '../../../src';
 import { expect } from 'chai';
 import { createElement } from '../util';
 
+const dom = new DOM(<any>document);
 
 describe(`CompiledTemplate`, () => {
   describe(`constructor`, () => {
@@ -25,7 +27,7 @@ describe(`CompiledTemplate`, () => {
       const renderer = new Renderer([]);
       const renderingEngine = new MockRenderingEngine(null, viewFactory, renderer, null);
       const container = new Container();
-      const sut = new CompiledTemplate(renderingEngine, container as any, def as any);
+      const sut = new CompiledTemplate(dom, renderingEngine, container as any, def as any);
 
       expect(sut.renderContext['parent']).to.equal(container);
 

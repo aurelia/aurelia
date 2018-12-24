@@ -1,13 +1,16 @@
-import { HydrateElementInstruction } from '../../../../jit/src';
 import { expect } from 'chai';
 import { eachCartesianJoinFactory, eachCartesianJoin, createElement, _ } from '../util';
-import { TargetedInstruction, INode, ICustomElementType, CustomElementResource, TargetedInstructionType, createElement as sut, RenderPlan  } from '../../../src';
+import { Registration } from '../../../../kernel/src/index';
+import { TargetedInstruction, INode, ICustomElementType, CustomElementResource, TargetedInstructionType, createElement as sut, RenderPlan, HydrateElementInstruction, IDOM, DOM } from '../../../src/index';
+
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 describe(`createElement() creates element based on tag`, () => {
   eachCartesianJoin([['div', 'template']], (tag: string) => {
     describe(`tag=${tag}`, () => {
       it(`translates raw object properties to attributes`, () => {
-        const actual = sut(tag, { title: 'asdf', foo: 'bar' });
+        const actual = sut(dom, tag, { title: 'asdf', foo: 'bar' });
 
         const node = actual['node'] as Element;
 
@@ -20,7 +23,7 @@ describe(`createElement() creates element based on tag`, () => {
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
         it(`can handle ${str} props`, () => {
-          const actual = sut(tag, props);
+          const actual = sut(dom, tag, props);
 
           const node = actual['node'] as Element;
 
@@ -31,7 +34,7 @@ describe(`createElement() creates element based on tag`, () => {
 
       eachCartesianJoin([['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']], t => {
         it(`understands targeted instruction type=${t}`, () => {
-          const actual = sut(tag, { prop: { type: t }});
+          const actual = sut(dom, tag, { prop: { type: t }});
 
           const instruction = actual['instructions'][0][0] as TargetedInstruction;
           const node = actual['node'] as Element;
@@ -51,12 +54,12 @@ describe(`createElement() creates element based on tag`, () => {
         ],
         <(($1: [Array<RenderPlan | string | INode>, string]) => [Array<RenderPlan | string | INode>, string])[]>[
           ([children, expected]) => [children, expected],
-          ([children, expected]) => [[sut('div', null, ['baz']), ...children], `baz${expected}`],
-          ([children, expected]) => [[sut('div', null, [createElement('<div>baz</div>')]), ...children], `baz${expected}`]
+          ([children, expected]) => [[sut(dom, 'div', null, ['baz']), ...children], `baz${expected}`],
+          ([children, expected]) => [[sut(dom, 'div', null, [createElement('<div>baz</div>')]), ...children], `baz${expected}`]
         ]
       ], ($1, [children, expected]) => {
         it(_`adds children (${children})`, () => {
-          const actual = sut(tag, null, children);
+          const actual = sut(dom, tag, null, children);
 
           const node = actual['node'] as Element;
 
@@ -81,7 +84,7 @@ describe(`createElement() creates element based on type`, () => {
     describe(_`type=${createType()}`, () => {
       it(`translates raw object properties to attributes`, () => {
         const type = createType();
-        const actual = sut(type, { title: 'asdf', foo: 'bar' });
+        const actual = sut(dom, type, { title: 'asdf', foo: 'bar' });
 
         const node = actual['node'] as Element;
         const instruction = (<any>actual['instructions'][0][0]) as HydrateElementInstruction
@@ -110,7 +113,7 @@ describe(`createElement() creates element based on type`, () => {
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
         it(`can handle ${str} props`, () => {
           const type = createType();
-          const actual = sut(type, props);
+          const actual = sut(dom, type, props);
 
           const node = actual['node'] as Element;
           const instruction = (<any>actual['instructions'][0][0]) as HydrateElementInstruction
@@ -125,7 +128,7 @@ describe(`createElement() creates element based on type`, () => {
       eachCartesianJoin([['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']], t => {
         it(`understands targeted instruction type=${t}`, () => {
           const type = createType();
-          const actual = sut(type, { prop: { type: t }});
+          const actual = sut(dom, type, { prop: { type: t }});
 
           const node = actual['node'] as Element;
           const instruction = (<any>actual['instructions'][0][0]) as HydrateElementInstruction
@@ -148,13 +151,13 @@ describe(`createElement() creates element based on type`, () => {
         ],
         <(($1: [Array<RenderPlan | string | INode>, string]) => [Array<RenderPlan | string | INode>, string])[]>[
           ([children, expected]) => [children, expected],
-          ([children, expected]) => [[sut('div', null, ['baz']), ...children], `baz${expected}`],
-          ([children, expected]) => [[sut('div', null, [createElement('<div>baz</div>')]), ...children], `baz${expected}`]
+          ([children, expected]) => [[sut(dom, 'div', null, ['baz']), ...children], `baz${expected}`],
+          ([children, expected]) => [[sut(dom, 'div', null, [createElement('<div>baz</div>')]), ...children], `baz${expected}`]
         ]
       ], ($1, [children, expected]) => {
         it(_`adds children (${children})`, () => {
           const type = createType();
-          const actual = sut(type, null, children);
+          const actual = sut(dom, type, null, children);
 
           const node = actual['node'] as Element;
           const instruction = (<any>actual['instructions'][0][0]) as HydrateElementInstruction

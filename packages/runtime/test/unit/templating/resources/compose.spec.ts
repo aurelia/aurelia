@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import { hydrateCustomElement } from '../behavior-assistance';
-import { DOM, IViewFactory, customElement, ITemplateDefinition, LifecycleFlags, IAttach, Lifecycle, RenderPlan, Compose, CustomElementResource } from '../../../../src/index';
+import { DOM, IViewFactory, customElement, ITemplateDefinition, LifecycleFlags, IAttach, Lifecycle, RenderPlan, Compose, CustomElementResource, IDOM } from '../../../../src/index';
 import { ViewFactoryFake } from '../fakes/view-factory-fake';
+
+const dom = new DOM(<any>document);
 
 describe('The "compose" custom element', () => {
   // this is not ideal (same instance will be reused for multiple loops) but probably fine
@@ -271,7 +273,8 @@ describe('The "compose" custom element', () => {
 
   function createPotentialRenderable(lifecycle: Lifecycle): RenderPlan {
     return new RenderPlan(
-      DOM.createElement('div'),
+      dom,
+      document.createElement('div'),
       [],
       []
     );

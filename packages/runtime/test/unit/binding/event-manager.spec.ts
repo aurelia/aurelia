@@ -3,6 +3,8 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import { _, createElement } from '../util';
 
+const dom = new DOM(<any>document);
+
 const CAPTURING_PHASE = 1;
 const AT_TARGET = 2;
 const BUBBLING_PHASE = 3;
@@ -39,7 +41,7 @@ describe('ListenerTracker', () => {
     } else {
       listener['handleEvent'] = handler;
     }
-    const sut = new ListenerTracker(eventName, listener, capture);
+    const sut = new ListenerTracker(dom, eventName, listener, capture);
     const el = document.createElement('div');
     el.addEventListener(eventName, listener, capture);
     document.body.appendChild(el);
@@ -194,7 +196,7 @@ describe('TriggerSubscription', () => {
     });
 
     const callback = spy();
-    const sut = new TriggerSubscription(el, eventName, callback);
+    const sut = new TriggerSubscription(dom, el, eventName, callback);
 
     return { callback, sut, handler, event, el };
   }
@@ -252,7 +254,7 @@ describe('EventSubscriber', () => {
       });
     })
 
-    const sut = new EventSubscriber(eventNames);
+    const sut = new EventSubscriber(dom, eventNames);
 
     return { sut, handler, listener, events, el };
   }
@@ -396,7 +398,7 @@ describe('EventManager', () => {
           expectedEventNames = lookup[tagName][propertyName];
         }
         it(_`tagName=${tagName}, propertyName=${propertyName} returns handler with eventNames=${expectedEventNames}`, () => {
-          const handler = sut.getElementHandler(createElement(`<${tagName}></${tagName}>`), propertyName);
+          const handler = sut.getElementHandler(dom, createElement(`<${tagName}></${tagName}>`), propertyName);
           expect(handler['events']).to.deep.equal(expectedEventNames);
         })
       }
@@ -404,15 +406,15 @@ describe('EventManager', () => {
 
     it(`returns null if the target does not have a tagName`, () => {
       const text = document.createTextNode('asdf');
-      const handler = sut.getElementHandler(text, 'textContent');
+      const handler = sut.getElementHandler(dom, text, 'textContent');
       expect(handler).to.be.null;
     });
 
     it(`returns null if the property does not exist in the configuration`, () => {
       const el = createElement('<input></input>');
-      let handler = sut.getElementHandler(el, 'value');
+      let handler = sut.getElementHandler(dom, el, 'value');
       expect(handler).not.to.be.null;
-      handler = sut.getElementHandler(el, 'value1');
+      handler = sut.getElementHandler(dom, el, 'value1');
       expect(handler).to.be.null;
     });
   });
@@ -457,8 +459,8 @@ describe('EventManager', () => {
       const wrapper = document.createElement('div');
       const parentEl = document.createElement('parent-div');
       const childEl = document.createElement('child-div');
-      const parentSubscription = sut.addEventListener(parentEl, eventName, parentListener, strategy);
-      const childSubscription = sut.addEventListener(childEl, eventName, childListener, strategy);
+      const parentSubscription = sut.addEventListener(dom, parentEl, eventName, parentListener, strategy);
+      const childSubscription = sut.addEventListener(dom, childEl, eventName, childListener, strategy);
       parentEl.appendChild(childEl);
       if (shadow !== null) {
         const shadowRoot = wrapper.attachShadow(<any>{ mode: shadow });

@@ -18,13 +18,18 @@ import {
   Lifecycle,
   ILifecycle,
   State,
+  DOM,
+  IDOM,
   CompositionCoordinator
 } from '../../../../src/index';
 import { MockTextNodeTemplate } from '../../mock';
 import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
 import { createScopeForTest } from '../../binding/shared';
 import { expect } from 'chai';
-import { DI, Writable } from '../../../../../kernel/src/index';
+import { DI, Writable, Registration } from '../../../../../kernel/src/index';
+
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 describe('The "if" template controller', () => {
   it("renders its view when the value is true", () => {
@@ -184,7 +189,7 @@ function setup() {
   const ifLoc = document.createComment('au-loc');
   host.appendChild(ifLoc);
 
-  const observerLocator = new ObserverLocator(lifecycle, null, null, null);
+  const observerLocator = new ObserverLocator(dom, lifecycle, null, null, null);
   const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, container), lifecycle);
   const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator, container), lifecycle);
 

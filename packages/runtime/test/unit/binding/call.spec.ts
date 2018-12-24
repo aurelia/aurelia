@@ -1,14 +1,18 @@
 import { CallScope, BindingBehavior, ExpressionKind } from './../../../src/binding/ast';
 import { spy, SinonSpy } from 'sinon';
-import { IExpression, IObserverLocator, AccessScope, LifecycleFlags, IScope, ILifecycle, SetterObserver, Call } from '../../../src/index';
-import { DI } from '../../../../kernel/src/index';
+import { IExpression, IObserverLocator, AccessScope, LifecycleFlags, IScope, ILifecycle, SetterObserver, Call, DOM, IDOM } from '../../../src/index';
+import { DI, Registration } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
 import { _, massSpy, massReset, massRestore, eachCartesianJoinFactory } from '../util';
 
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
+
 describe('Call', () => {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
     const container = DI.createContainer();
+    container.register(domRegistration);
     const lifecycle = container.get(ILifecycle);
     const observerLocator = container.get(IObserverLocator);
     const sut = new Call(sourceExpression, target, targetProperty, observerLocator, container);

@@ -19,17 +19,21 @@ import {
   View,
   ILifecycle,
   Lifecycle,
-  HtmlRenderer
+  HtmlRenderer,
+  IDOM
 } from "../../../src/index";
 import { DI, Registration, IContainer, Constructable, IRegistry } from '../../../../kernel/src/index';
 import { ViewFactoryFake } from "./fakes/view-factory-fake";
 import { ViewFake } from "./fakes/view-fake";
 
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
+
 function createRenderLocation() {
   const parent = document.createElement('div');
   const child = document.createElement('div');
   parent.appendChild(child);
-  return DOM.convertToRenderLocation(child);
+  return dom.convertToRenderLocation(child);
 }
 interface IAttributeTestOptions {
   lifecycle?: Lifecycle;
@@ -70,7 +74,7 @@ export function hydrateCustomAttribute<T extends Constructable>(
     const hostProvider = new InstanceProvider();
     hostProvider.prepare(options.target || document.createElement('div'));
 
-    DOM.registerElementResolver(container, hostProvider);
+    dom.registerElementResolver(container, hostProvider);
   }
 
   const attribute = container.get<InstanceType<T> & ICustomAttribute>(
@@ -96,9 +100,10 @@ export function hydrateCustomElement<T>(
   if (options.lifecycle) {
     Registration.instance(ILifecycle, options.lifecycle).register(container, ILifecycle);
   }
+  container.register(domRegistration);
   const lifecycle = container.get(ILifecycle) as Lifecycle;
-  const parent = DOM.createElement('div');
-  const host = DOM.createElement(ElementType.description.name);
+  const parent = document.createElement('div');
+  const host = document.createElement(ElementType.description.name);
   const renderable = new ViewFake(lifecycle);
   const instruction: IHydrateElementInstruction = {
     type: TargetedInstructionType.hydrateElement,
@@ -106,7 +111,7 @@ export function hydrateCustomElement<T>(
     instructions: []
   };
 
-  DOM.appendChild(parent, host);
+  dom.appendChild(parent, host);
 
   const renderableProvider = new InstanceProvider();
   const elementProvider = new InstanceProvider();
@@ -119,14 +124,14 @@ export function hydrateCustomElement<T>(
   container.register(ElementType);
   container.registerResolver(IRenderable, renderableProvider);
   container.registerResolver(ITargetedInstruction, instructionProvider);
-  DOM.registerElementResolver(container, elementProvider);
+  dom.registerElementResolver(container, elementProvider);
 
   const element = container.get<T & ICustomElement>(
     CustomElementResource.keyFrom(ElementType.description.name)
   );
 
   const renderingEngine = container.get(IRenderingEngine);
-  element.$hydrate(renderingEngine, host);
+  element.$hydrate(dom, renderingEngine, host);
 
   return { element, parent };
 }

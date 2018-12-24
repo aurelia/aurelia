@@ -1,5 +1,5 @@
 import { DI, IDisposable } from '@aurelia/kernel';
-import { DOM } from '../dom';
+import { IDOM } from '../dom';
 import { IEventListenerOrEventListenerObject, IEventTarget, IManagedEvent, INode } from '../dom.interfaces';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
@@ -67,12 +67,14 @@ function handleDelegatedEvent(event: IManagedEvent): void {
 }
 
 export class ListenerTracker {
+  private dom: IDOM;
   private capture: boolean;
   private count: number;
   private eventName: string;
   private listener: IEventListenerOrEventListenerObject;
 
-  constructor(eventName: string, listener: IEventListenerOrEventListenerObject, capture: boolean) {
+  constructor(dom: IDOM, eventName: string, listener: IEventListenerOrEventListenerObject, capture: boolean) {
+    this.dom = dom;
     this.capture = capture;
     this.count = 0;
     this.eventName = eventName;
@@ -82,14 +84,14 @@ export class ListenerTracker {
   public increment(): void {
     this.count++;
     if (this.count === 1) {
-      DOM.addEventListener(this.eventName, this.listener, null, this.capture);
+      this.dom .addEventListener(this.eventName, this.listener, null, this.capture);
     }
   }
 
   public decrement(): void {
     this.count--;
     if (this.count === 0) {
-      DOM.removeEventListener(this.eventName, this.listener, null, this.capture);
+      this.dom .removeEventListener(this.eventName, this.listener, null, this.capture);
     }
   }
 }
@@ -98,12 +100,19 @@ export class ListenerTracker {
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
 export class DelegateOrCaptureSubscription {
+  public entry: ListenerTracker;
+  public lookup: Record<string, IEventListenerOrEventListenerObject>;
+  public targetEvent: string;
+
   constructor(
-    public entry: ListenerTracker,
-    public lookup: Record<string, IEventListenerOrEventListenerObject>,
-    public targetEvent: string,
+    entry: ListenerTracker,
+    lookup: Record<string, IEventListenerOrEventListenerObject>,
+    targetEvent: string,
     callback: IEventListenerOrEventListenerObject
   ) {
+    this.entry = entry;
+    this.lookup = lookup;
+    this.targetEvent = targetEvent;
     lookup[targetEvent] = callback;
   }
 
@@ -117,16 +126,26 @@ export class DelegateOrCaptureSubscription {
  * Enable dispose() pattern for addEventListener for `trigger`
  */
 export class TriggerSubscription {
+  public target: INode;
+  public targetEvent: string;
+  public callback: IEventListenerOrEventListenerObject;
+  private dom: IDOM;
+
   constructor(
-    public target: INode,
-    public targetEvent: string,
-    public callback: IEventListenerOrEventListenerObject
+    dom: IDOM,
+    target: INode,
+    targetEvent: string,
+    callback: IEventListenerOrEventListenerObject
   ) {
-    DOM.addEventListener(targetEvent, callback, target);
+    this.dom = dom;
+    this.target = target;
+    this.targetEvent = targetEvent;
+    this.callback = callback;
+    dom.addEventListener(targetEvent, callback, target);
   }
 
   public dispose(): void {
-    DOM.removeEventListener(this.targetEvent, this.callback, this.target);
+    this.dom.removeEventListener(this.targetEvent, this.callback, this.target);
   }
 }
 
@@ -151,10 +170,13 @@ export interface IEventSubscriber extends IDisposable {
 }
 
 export class EventSubscriber implements IEventSubscriber {
+  private readonly dom: IDOM;
+  private readonly events: string[];
   private target: INode;
   private handler: IEventListenerOrEventListenerObject;
 
-  constructor(private readonly events: string[]) {
+  constructor(dom: IDOM, events: string[]) {
+    this.dom = dom;
     this.events = events;
     this.target = null;
     this.handler = null;
@@ -164,7 +186,7 @@ export class EventSubscriber implements IEventSubscriber {
     this.target = node;
     this.handler = callbackOrListener;
 
-    const add = DOM.addEventListener;
+    const add = this.dom.addEventListener;
     const events = this.events;
 
     for (let i = 0, ii = events.length; ii > i; ++i) {
@@ -176,7 +198,7 @@ export class EventSubscriber implements IEventSubscriber {
     const node = this.target;
     const callbackOrListener = this.handler;
     const events = this.events;
-    const remove = DOM.removeEventListener;
+    const remove = this.dom.removeEventListener;
 
     for (let i = 0, ii = events.length; ii > i; ++i) {
       remove(events[i], callbackOrListener, node);
@@ -190,8 +212,8 @@ export type EventSubscription = DelegateOrCaptureSubscription | TriggerSubscript
 
 export interface IEventManager {
   registerElementConfiguration(config: IElementConfiguration): void;
-  getElementHandler(target: INode, propertyName: string): IEventSubscriber | null;
-  addEventListener(target: INode, targetEvent: string, callbackOrListener: IEventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
+  getElementHandler(dom: IDOM, target: INode, propertyName: string): IEventSubscriber | null;
+  addEventListener(dom: IDOM, target: INode, targetEvent: string, callbackOrListener: IEventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
 
 export const IEventManager = DI.createInterface<IEventManager>()
@@ -250,25 +272,26 @@ export class EventManager implements IEventManager {
     }
   }
 
-  public getElementHandler(target: INode, propertyName: string): IEventSubscriber | null {
+  public getElementHandler(dom: IDOM, target: INode, propertyName: string): IEventSubscriber | null {
     const tagName = target['tagName'];
     const lookup = this.elementHandlerLookup;
 
     if (tagName) {
       if (lookup[tagName] && lookup[tagName][propertyName]) {
-        return new EventSubscriber(lookup[tagName][propertyName]);
+        return new EventSubscriber(dom, lookup[tagName][propertyName]);
       }
       if (propertyName === 'textContent' || propertyName === 'innerHTML') {
-        return new EventSubscriber(lookup['content editable'].value);
+        return new EventSubscriber(dom, lookup['content editable'].value);
       }
       if (propertyName === 'scrollTop' || propertyName === 'scrollLeft') {
-        return new EventSubscriber(lookup['scrollable element'][propertyName]);
+        return new EventSubscriber(dom, lookup['scrollable element'][propertyName]);
       }
     }
     return null;
   }
 
   public addEventListener(
+    dom: IDOM,
     target: IEventTargetWithLookups,
     targetEvent: string,
     callbackOrListener: IEventListenerOrEventListenerObject,
@@ -280,18 +303,18 @@ export class EventManager implements IEventManager {
 
     if (strategy === DelegationStrategy.bubbling) {
       delegatedHandlers = this.delegatedHandlers;
-      handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleDelegatedEvent, false));
+      handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new ListenerTracker(dom, targetEvent, handleDelegatedEvent, false));
       handlerEntry.increment();
       const delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
       return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
     }
     if (strategy === DelegationStrategy.capturing) {
       capturedHandlers = this.capturedHandlers;
-      handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleCapturedEvent, true));
+      handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new ListenerTracker(dom, targetEvent, handleCapturedEvent, true));
       handlerEntry.increment();
       const capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
       return new DelegateOrCaptureSubscription(handlerEntry, capturedCallbacks, targetEvent, callbackOrListener);
     }
-    return new TriggerSubscription(target, targetEvent, callbackOrListener);
+    return new TriggerSubscription(dom, target, targetEvent, callbackOrListener);
   }
 }

@@ -1,8 +1,12 @@
-import { IObserverLocator, ILifecycle, SelectValueObserver, LifecycleFlags, DOM } from '../../src/index';
+import { IObserverLocator, ILifecycle, SelectValueObserver, LifecycleFlags, DOM, IDOM } from '../../src/index';
 import { createElement, _, eachCartesianJoin, eachCartesianJoinFactory, h, verifyEqual } from '../unit/util';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
-import { DI, Primitive } from '../../../kernel/src/index';
+import { DI, Primitive, Registration } from '../../../kernel/src/index';
+
+
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 const eventDefaults = { bubbles: true };
 
@@ -12,6 +16,7 @@ type Anything = any;
 describe('SelectValueObserver', () => {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const container = DI.createContainer();
+    container.register(domRegistration);
     const observerLocator = <IObserverLocator>container.get(IObserverLocator);
     const lifecycle = container.get(ILifecycle);
     const optionElements = options.map(o => `<option value="${o}">${o}</option>`).join('\n');
@@ -56,7 +61,7 @@ describe('SelectValueObserver', () => {
         const nodeObserver = sut['nodeObserver'];
         expect(nodeObserver).not.to.be.undefined;
         expect(nodeObserver).to.be.instanceOf(
-          DOM.createNodeObserver(document.createElement('div'), () => {}, { childList: true }).constructor,
+          dom.createNodeObserver(document.createElement('div'), () => {}, { childList: true }).constructor,
           'It should have created instance from the same class with other node observer'
         );
       }
@@ -243,6 +248,7 @@ describe('SelectValueObserver', () => {
 
       function createMutiSelectSut(initialValue: Anything[], options: SelectValidChild[]) {
         const container = DI.createContainer();
+        container.register(domRegistration);
         const observerLocator = <IObserverLocator>container.get(IObserverLocator);
         // const lifecycle = <ILifecycle>container.get(ILifecycle);
         const el = select(...options);

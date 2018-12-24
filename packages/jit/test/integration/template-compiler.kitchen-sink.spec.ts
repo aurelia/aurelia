@@ -1,11 +1,15 @@
 import { expect } from 'chai';
 import { tearDown, setupAndStart, cleanup, defineCustomElement } from './prepare';
 import { baseSuite } from './template-compiler.base';
-import { IContainer, Constructable, DI, IRegistry, Tracer, RuntimeCompilationResources } from '../../../kernel/src/index';;
-import { Aurelia, ICustomElementType, ILifecycle, CustomElementResource, DOM, ISignaler, Lifecycle, TextNodeSequence, IExpressionParser, LifecycleFlags, INodeSequence, NodeSequenceFactory, ITemplateCompiler } from '../../../runtime/src/index';
+import { IContainer, Constructable, DI, IRegistry, Tracer, RuntimeCompilationResources, Registration } from '../../../kernel/src/index';;
+import { Aurelia, ICustomElementType, ILifecycle, CustomElementResource, DOM, IDOM, ISignaler, Lifecycle, TextNodeSequence, IExpressionParser, LifecycleFlags, INodeSequence, NodeSequenceFactory, ITemplateCompiler } from '../../../runtime/src/index';
 import { BasicConfiguration, TemplateBinder, ResourceModel, IAttributeParser } from '../../src/index';
 import { enableTracing, SymbolTraceWriter, disableTracing } from '../unit/util';
 import { stringifyTemplateDefinition } from '../../src/debugging';
+
+
+const dom = <any>new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 const spec = 'template-compiler.kitchen-sink';
 
@@ -13,7 +17,7 @@ const spec = 'template-compiler.kitchen-sink';
 describe(spec, () => {
   it('startup with App type', () => {
     const component = CustomElementResource.define({ name: 'app', template: `<template>\${message}</template>` }, class { message = 'Hello!' });
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const au = new Aurelia().register(BasicConfiguration).app({ host, component }).start();
     expect(host.textContent).to.equal('Hello!');
     au.stop();
@@ -247,7 +251,7 @@ describe(spec, () => {
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -321,7 +325,7 @@ describe(spec, () => {
     container.register(<any>Foo);
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -383,7 +387,7 @@ describe(spec, () => {
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -448,7 +452,7 @@ describe(spec, () => {
     container.register(<any>Foo);
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -518,7 +522,7 @@ describe(spec, () => {
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -584,7 +588,7 @@ describe(spec, () => {
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -647,7 +651,7 @@ describe(spec, () => {
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -710,7 +714,7 @@ describe(spec, () => {
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -776,7 +780,7 @@ describe(spec, () => {
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -824,7 +828,7 @@ describe(spec, () => {
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -863,7 +867,7 @@ describe(spec, () => {
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -892,7 +896,7 @@ describe(spec, () => {
     }, class {
       $nodes: INodeSequence;
       render() {
-        this.$nodes = NodeSequenceFactory.createFor('foo').createNodeSequence();
+        this.$nodes = new NodeSequenceFactory(dom, 'foo').createNodeSequence();
       }
     });
 
@@ -901,7 +905,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -946,7 +950,7 @@ describe(spec, () => {
 
       const au = new Aurelia(<any>container);
 
-      const host = DOM.createElement('div');
+      const host = document.createElement('div');
       const component = new App();
 
       au.app({ host, component });
@@ -968,7 +972,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -989,7 +993,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -1010,7 +1014,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -1031,7 +1035,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -1052,7 +1056,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -1073,7 +1077,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -1095,7 +1099,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -1116,7 +1120,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -1137,7 +1141,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -1158,7 +1162,7 @@ describe(spec, () => {
 
     const au = new Aurelia(<any>container);
 
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const component = new App();
 
     au.app({ host, component });
@@ -1209,7 +1213,7 @@ describe('xml node compiler tests', () => {
       const exprParser = container.get(IExpressionParser) as IExpressionParser;
       const binder = new TemplateBinder(resources, attrParser, <any>exprParser);
 
-      const result = binder.bind(<any>fakeSurrogate);
+      const result = binder.bind(dom, <any>fakeSurrogate);
       expect(result.physicalNode).to.equal(fakeSurrogate);
     });
   }
@@ -1223,7 +1227,7 @@ describe("generated.template-compiler.static (with tracing)", function () {
       const container = DI.createContainer();
       container.register(BasicConfiguration);
       const au = new Aurelia(container);
-      const host = DOM.createElement("div");
+      const host = document.createElement("div");
       return { au, host };
   }
   function verify(au, host, expected, description) {

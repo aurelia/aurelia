@@ -199,7 +199,7 @@ describe(spec, () => {
       txt = 'a';
       $children;
     });
-    const host = DOM.createElement('div');
+    const host = document.createElement('div');
     const au = new Aurelia();
     au.register(BasicConfiguration);
     au.register(FooEl);

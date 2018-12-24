@@ -1,7 +1,9 @@
-import { Hooks, INode,  ICustomElementType, IRenderingEngine, ITemplate, RuntimeBehavior } from '../../../src/index';
+import { Hooks, INode,  ICustomElementType, IRenderingEngine, ITemplate, RuntimeBehavior, DOM } from '../../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../util';
 import { CustomElement, createCustomElement } from './custom-element._builder';
+
+const dom = new DOM(<any>document);
 
 describe('@customElement', () => {
 
@@ -68,7 +70,7 @@ describe('@customElement', () => {
         let host: INode = <any>{};
 
         // Act
-        sut.$hydrate(renderingEngine, host);
+        sut.$hydrate(dom, renderingEngine, host);
 
         // Assert
         expect(sut).to.not.have.$state.isAttached('sut.$isAttached');

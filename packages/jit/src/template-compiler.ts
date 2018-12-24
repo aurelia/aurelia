@@ -5,6 +5,7 @@ import {
   HydrateElementInstruction,
   HydrateTemplateController,
   IBuildInstruction,
+  IDOM,
   IExpressionParser,
   ILetBindingInstruction,
   InstructionRow,
@@ -76,11 +77,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.instructionRows = null;
   }
 
-  public compile(definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
+  public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
     const resources = new ResourceModel(descriptions);
     const binder = new TemplateBinder(resources, this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template);
-    const surrogate = binder.bind(template);
+    const surrogate = binder.bind(dom, template);
     if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
       definition.instructions = [];
     }

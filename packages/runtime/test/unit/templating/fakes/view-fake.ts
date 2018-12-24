@@ -7,7 +7,6 @@ import {
   IRenderContext,
   IBindScope,
   IAttach,
-  DOM,
   INodeSequence,
   IRenderLocation,
   ILifecycle,
@@ -15,8 +14,11 @@ import {
   NodeSequenceFactory,
   State,
   IMountable,
-  ILifecycleUnbind
+  ILifecycleUnbind,
+  DOM
 } from "../../../../src/index";
+
+const dom = new DOM(<any>document);
 
 export class ViewFake implements IView {
   public $bindableHead: IBindScope = null;
@@ -46,7 +48,7 @@ export class ViewFake implements IView {
   public cache: IViewFactory;
 
   constructor(public $lifecycle: Lifecycle) {
-    this.$nodes = NodeSequenceFactory.createFor('<div>Fake View</div>').createNodeSequence();
+    this.$nodes = new NodeSequenceFactory(dom, '<div>Fake View</div>').createNodeSequence();
   }
 
   public lockScope(scope: IScope): void {

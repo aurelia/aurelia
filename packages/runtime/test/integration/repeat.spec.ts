@@ -14,14 +14,17 @@ import {
   Lifecycle,
   IView,
   State,
-  ILifecycle
+  ILifecycle,
+  DOM, IDOM
 } from '../../src/index';
 import { expect } from 'chai';
 import { MockTextNodeTemplate } from '../unit/mock';
 import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import { createScopeForTest } from '../unit/binding/shared';
-import { DI } from '../../../kernel/src/index';
+import { DI, Registration } from '../../../kernel/src/index';
 
+const dom = new DOM(<any>document);
+const domRegistration = Registration.instance(IDOM, dom);
 
 const expressions = {
   item: new AccessScope('item'),
@@ -46,12 +49,13 @@ function verifyViewBindingContexts(views: IView[], items: any[]): void {
 
 function setup<T extends ObservedCollection>() {
   const container = DI.createContainer();
+  container.register(domRegistration);
   const lifecycle = container.get(ILifecycle) as Lifecycle;
   const host = document.createElement('div');
   const location = document.createComment('au-loc');
   host.appendChild(location);
 
-  const observerLocator = new ObserverLocator(lifecycle, null, null, null);
+  const observerLocator = new ObserverLocator(dom, lifecycle, null, null, null);
   const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.item, observerLocator, container), lifecycle)
   const renderable = { } as any;
   const sut = new Repeat<T>(location, renderable, factory);

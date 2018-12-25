@@ -1,5 +1,5 @@
 this.au = this.au || {};
-this.au.pluginRequirejs = (function (exports,runtime) {
+this.au.pluginRequirejs = (function (exports, runtime) {
   'use strict';
 
   function processImports(toProcess, relativeTo) {
@@ -271,4 +271,4 @@ this.au.pluginRequirejs = (function (exports,runtime) {
 
   return exports;
 
-}({},au.runtime));
+}({}, au.runtime));

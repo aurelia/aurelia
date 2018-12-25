@@ -1,5 +1,5 @@
 this.au = this.au || {};
-this.au.debug = (function (exports,AST,kernel) {
+this.au.debug = (function (exports, AST, kernel) {
   'use strict';
 
   const astTypeMap = [
@@ -726,4 +726,4 @@ this.au.debug = (function (exports,AST,kernel) {
 
   return exports;
 
-}({},au.runtime,au.kernel));
+}({}, au.runtime, au.kernel));

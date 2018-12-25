@@ -10,7 +10,7 @@ export interface ITemplateCompiler {
     readonly name: string;
     compile(dom: IDOM, definition: ITemplateDefinition, resources: IResourceDescriptions, viewCompileFlags?: ViewCompileFlags): TemplateDefinition;
 }
-export declare const ITemplateCompiler: import("@aurelia/kernel/dist/di").InterfaceSymbol<ITemplateCompiler>;
+export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export declare enum ViewCompileFlags {
     none = 1,
     surrogate = 2,
@@ -65,7 +65,7 @@ export interface IRenderingEngine {
     applyRuntimeBehavior(Type: ICustomAttributeType, instance: ICustomAttribute): void;
     applyRuntimeBehavior(Type: ICustomElementType, instance: ICustomElement): void;
 }
-export declare const IRenderingEngine: import("@aurelia/kernel/dist/di").InterfaceSymbol<IRenderingEngine>;
+export declare const IRenderingEngine: import("@aurelia/kernel").InterfaceSymbol<IRenderingEngine>;
 export declare class RenderingEngine implements IRenderingEngine {
     private behaviorLookup;
     private compilers;
@@ -90,14 +90,14 @@ export interface IRenderer {
     instructionRenderers: Record<string, IInstructionRenderer>;
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
 }
-export declare const IRenderer: import("@aurelia/kernel/dist/di").InterfaceSymbol<IRenderer>;
+export declare const IRenderer: import("@aurelia/kernel").InterfaceSymbol<IRenderer>;
 export interface IInstructionTypeClassifier<TType extends string = string> {
     instructionType: TType;
 }
 export interface IInstructionRenderer<TType extends string = string> extends Partial<IInstructionTypeClassifier<TType>> {
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
 }
-export declare const IInstructionRenderer: import("@aurelia/kernel/dist/di").InterfaceSymbol<IInstructionRenderer<string>>;
+export declare const IInstructionRenderer: import("@aurelia/kernel").InterfaceSymbol<IInstructionRenderer<string>>;
 declare type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 declare type DecoratedInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
 declare type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;

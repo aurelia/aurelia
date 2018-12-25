@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/runtime')) :
   typeof define === 'function' && define.amd ? define(['exports', '@aurelia/runtime'], factory) :
-  (factory((global.pluginRequirejs = {}),global.runtime));
-}(this, (function (exports,runtime) { 'use strict';
+  (global = global || self, factory(global.pluginRequirejs = {}, global.runtime));
+}(this, function (exports, runtime) { 'use strict';
 
   function processImports(toProcess, relativeTo) {
       return toProcess.map(x => {
@@ -273,5 +273,5 @@
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
 //# sourceMappingURL=index.umd.js.map

@@ -7,7 +7,7 @@ export interface IExpressionParser {
     parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
     parse(expression: string, bindingType: BindingType): BindingExpression;
 }
-export declare const IExpressionParser: import("@aurelia/kernel/dist/di").InterfaceSymbol<IExpressionParser>;
+export declare const IExpressionParser: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>;
 export declare const enum BindingType {
     None = 0,
     Interpolation = 2048,

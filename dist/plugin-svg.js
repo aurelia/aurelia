@@ -1,5 +1,5 @@
 this.au = this.au || {};
-this.au.pluginSvg = (function (exports,runtime) {
+this.au.pluginSvg = (function (exports, runtime) {
   'use strict';
 
   const svgElements = {
@@ -238,4 +238,4 @@ this.au.pluginSvg = (function (exports,runtime) {
 
   return exports;
 
-}({},au.runtime));
+}({}, au.runtime));

@@ -1,4 +1,4 @@
-import { Reporter, PLATFORM, Tracer, DI, Registration, inject, all, IContainer, RuntimeCompilationResources } from '@aurelia/kernel';
+import { Reporter, PLATFORM, Tracer, DI, Registration, inject, RuntimeCompilationResources, IContainer, all } from '@aurelia/kernel';
 
 var LifecycleFlags;
 (function (LifecycleFlags) {

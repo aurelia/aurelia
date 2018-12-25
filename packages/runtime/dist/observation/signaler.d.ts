@@ -7,6 +7,6 @@ export interface ISignaler {
     addSignalListener(name: Signal, listener: IPropertySubscriber): void;
     removeSignalListener(name: Signal, listener: IPropertySubscriber): void;
 }
-export declare const ISignaler: import("@aurelia/kernel/dist/di").InterfaceSymbol<ISignaler>;
+export declare const ISignaler: import("@aurelia/kernel").InterfaceSymbol<ISignaler>;
 export {};
 //# sourceMappingURL=signaler.d.ts.map

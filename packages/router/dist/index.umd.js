@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/kernel'), require('@aurelia/runtime')) :
   typeof define === 'function' && define.amd ? define(['exports', '@aurelia/kernel', '@aurelia/runtime'], factory) :
-  (factory((global.router = {}),global.kernel,global.runtime));
-}(this, (function (exports,kernel,runtime) { 'use strict';
+  (global = global || self, factory(global.router = {}, global.kernel, global.runtime));
+}(this, function (exports, kernel, runtime) { 'use strict';
 
   class HistoryBrowser {
       constructor() {
@@ -1189,5 +1189,5 @@
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
 //# sourceMappingURL=index.umd.js.map

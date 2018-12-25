@@ -15,7 +15,7 @@ export interface IObserverLocator {
     getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
     getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
 }
-export declare const IObserverLocator: import("@aurelia/kernel/dist/di").InterfaceSymbol<IObserverLocator>;
+export declare const IObserverLocator: import("@aurelia/kernel").InterfaceSymbol<IObserverLocator>;
 export declare class ObserverLocator implements IObserverLocator {
     private dom;
     private adapters;

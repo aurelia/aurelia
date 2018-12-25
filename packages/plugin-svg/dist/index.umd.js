@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/runtime')) :
   typeof define === 'function' && define.amd ? define(['exports', '@aurelia/runtime'], factory) :
-  (factory((global.pluginSvg = {}),global.runtime));
-}(this, (function (exports,runtime) { 'use strict';
+  (global = global || self, factory(global.pluginSvg = {}, global.runtime));
+}(this, function (exports, runtime) { 'use strict';
 
   const svgElements = {
       'a': ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
@@ -240,5 +240,5 @@
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
 //# sourceMappingURL=index.umd.js.map

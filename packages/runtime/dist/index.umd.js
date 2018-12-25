@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/kernel')) :
   typeof define === 'function' && define.amd ? define(['exports', '@aurelia/kernel'], factory) :
-  (factory((global.runtime = {}),global.kernel));
-}(this, (function (exports,kernel) { 'use strict';
+  (global = global || self, factory(global.runtime = {}, global.kernel));
+}(this, function (exports, kernel) { 'use strict';
 
   (function (LifecycleFlags) {
       LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
@@ -9447,5 +9447,5 @@
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
 //# sourceMappingURL=index.umd.js.map

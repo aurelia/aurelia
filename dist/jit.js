@@ -1,5 +1,5 @@
 this.au = this.au || {};
-this.au.jit = (function (exports,kernel,runtime) {
+this.au.jit = (function (exports, kernel, runtime) {
   'use strict';
 
   class AttrSyntax {
@@ -2985,4 +2985,4 @@ this.au.jit = (function (exports,kernel,runtime) {
 
   return exports;
 
-}({},au.kernel,au.runtime));
+}({}, au.kernel, au.runtime));

@@ -1,5 +1,5 @@
 this.au = this.au || {};
-this.au.runtime = (function (exports,kernel) {
+this.au.runtime = (function (exports, kernel) {
   'use strict';
 
   (function (LifecycleFlags) {
@@ -9445,4 +9445,4 @@ this.au.runtime = (function (exports,kernel) {
 
   return exports;
 
-}({},au.kernel));
+}({}, au.kernel));

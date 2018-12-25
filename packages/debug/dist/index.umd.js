@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/runtime'), require('@aurelia/kernel')) :
   typeof define === 'function' && define.amd ? define(['exports', '@aurelia/runtime', '@aurelia/kernel'], factory) :
-  (factory((global.debug = {}),global.runtime,global.kernel));
-}(this, (function (exports,AST,kernel) { 'use strict';
+  (global = global || self, factory(global.debug = {}, global.runtime, global.kernel));
+}(this, function (exports, AST, kernel) { 'use strict';
 
   const astTypeMap = [
       { type: AST.AccessKeyed, name: 'AccessKeyed' },
@@ -728,5 +728,5 @@
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
 //# sourceMappingURL=index.umd.js.map

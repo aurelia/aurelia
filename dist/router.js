@@ -1,5 +1,5 @@
 this.au = this.au || {};
-this.au.router = (function (exports,kernel,runtime) {
+this.au.router = (function (exports, kernel, runtime) {
   'use strict';
 
   class HistoryBrowser {
@@ -1187,4 +1187,4 @@ this.au.router = (function (exports,kernel,runtime) {
 
   return exports;
 
-}({},au.kernel,au.runtime));
+}({}, au.kernel, au.runtime));

@@ -6,7 +6,7 @@ export interface ISanitizer {
      */
     sanitize(input: string): string;
 }
-export declare const ISanitizer: import("@aurelia/kernel/dist/di").InterfaceSymbol<ISanitizer>;
+export declare const ISanitizer: import("@aurelia/kernel").InterfaceSymbol<ISanitizer>;
 /**
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */

@@ -1,6 +1,6 @@
 import { IContainer, IResolver } from '@aurelia/kernel';
 import { IAddEventListenerOptions, IComment, IDocument, IDocumentFragment, IEventListenerOptions, IEventListenerOrEventListenerObject, IHTMLElement, IHTMLTemplateElement, IMutationCallback, IMutationObserver, IMutationObserverInit, INode, INodeSequence, IRenderLocation, IShadowRootInit, IText } from './dom.interfaces';
-export declare const IDOM: import("@aurelia/kernel/dist/di").InterfaceSymbol<IDOM>;
+export declare const IDOM: import("@aurelia/kernel").InterfaceSymbol<IDOM>;
 export interface IDOM {
     addClass(node: unknown, className: string): void;
     addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;

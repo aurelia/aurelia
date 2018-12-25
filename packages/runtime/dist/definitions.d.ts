@@ -55,7 +55,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
     bindables?: Record<string, IBindableDescription>;
 }
 export declare type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
-export declare const ITargetedInstruction: import("@aurelia/kernel/dist/di").IDefaultableInterfaceSymbol<ITargetedInstruction>;
+export declare const ITargetedInstruction: import("@aurelia/kernel").IDefaultableInterfaceSymbol<ITargetedInstruction>;
 export interface ITargetedInstruction {
     type: TargetedInstructionType;
 }

@@ -63,5 +63,5 @@ export interface IEventManager {
     getElementHandler(dom: IDOM, target: INode, propertyName: string): IEventSubscriber | null;
     addEventListener(dom: IDOM, target: INode, targetEvent: string, callbackOrListener: IEventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
-export declare const IEventManager: import("@aurelia/kernel/dist/di").InterfaceSymbol<IEventManager>;
+export declare const IEventManager: import("@aurelia/kernel").InterfaceSymbol<IEventManager>;
 //# sourceMappingURL=event-manager.d.ts.map

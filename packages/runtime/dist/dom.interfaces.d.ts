@@ -253,8 +253,8 @@ export interface IManagedEvent extends IEvent {
     standardStopPropagation?(): void;
     deepPath?(): IEventTarget[];
 }
-export declare const INode: import("@aurelia/kernel/dist/di").InterfaceSymbol<INode>;
-export declare const IRenderLocation: import("@aurelia/kernel/dist/di").InterfaceSymbol<IRenderLocation>;
+export declare const INode: import("@aurelia/kernel").InterfaceSymbol<INode>;
+export declare const IRenderLocation: import("@aurelia/kernel").InterfaceSymbol<IRenderLocation>;
 export interface IRenderLocation extends INode {
     $start?: IRenderLocation;
     $nodes?: INodeSequence | Readonly<{}>;

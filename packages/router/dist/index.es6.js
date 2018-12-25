@@ -1,5 +1,5 @@
-import { IContainer, inject } from '@aurelia/kernel';
-import { CustomElementResource, IDOM, IRenderingEngine, LifecycleFlags, Aurelia } from '@aurelia/runtime';
+import { inject, IContainer } from '@aurelia/kernel';
+import { CustomElementResource, IRenderingEngine, IDOM, LifecycleFlags, Aurelia } from '@aurelia/runtime';
 
 class HistoryBrowser {
     constructor() {

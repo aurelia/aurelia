@@ -98,7 +98,7 @@ export class Aurelia {
     return this;
   }
 }
-(PLATFORM.global as {Aurelia: unknown}).Aurelia = Aurelia;
+(PLATFORM.global as typeof PLATFORM.global & {Aurelia: unknown}).Aurelia = Aurelia;
 
 export const IDOMInitializer = DI.createInterface<IDOMInitializer>().noDefault();
 

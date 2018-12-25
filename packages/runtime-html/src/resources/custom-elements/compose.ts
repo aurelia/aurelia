@@ -18,7 +18,6 @@ import {
 } from '@aurelia/runtime';
 import { createElement, RenderPlan } from '../../create-element';
 
-
 const composeSource: ITemplateDefinition = {
   name: 'au-compose',
   containerless: true

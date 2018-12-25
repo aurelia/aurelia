@@ -40,7 +40,7 @@ export interface SelectValueObserver extends
 
 @targetObserver()
 export class SelectValueObserver implements SelectValueObserver {
-  public readonly dom: IDOM;
+  public readonly isDOMObserver: true;
   public lifecycle: ILifecycle;
   public obj: ISelectElement;
   public handler: IEventSubscriber;
@@ -56,13 +56,12 @@ export class SelectValueObserver implements SelectValueObserver {
   private nodeObserver: MutationObserver;
 
   constructor(
-    dom: IDOM,
     lifecycle: ILifecycle,
     obj: ISelectElement,
     handler: IEventSubscriber,
     observerLocator: IObserverLocator
   ) {
-    this.dom = dom;
+    this.isDOMObserver = true;
     this.lifecycle = lifecycle;
     this.obj = obj;
     this.handler = handler;

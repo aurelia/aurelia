@@ -33,7 +33,7 @@ export interface ValueAttributeObserver extends
 
 @targetObserver('')
 export class ValueAttributeObserver implements ValueAttributeObserver {
-  public readonly dom: IDOM;
+  public readonly isDOMObserver: true;
   public currentFlags: LifecycleFlags;
   public currentValue: unknown;
   public defaultValue: unknown;
@@ -44,8 +44,8 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
   public obj: Node;
   public propertyKey: string;
 
-  constructor(dom: IDOM, lifecycle: ILifecycle, obj: Node, propertyKey: string, handler: IEventSubscriber) {
-    this.dom = dom;
+  constructor(lifecycle: ILifecycle, obj: Node, propertyKey: string, handler: IEventSubscriber) {
+    this.isDOMObserver = true;
     this.handler = handler;
     this.lifecycle = lifecycle;
     this.obj = obj;

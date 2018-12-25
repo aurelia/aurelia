@@ -111,7 +111,9 @@ export interface IBindingTargetAccessor<
   TValue = unknown>
   extends IDisposable,
           IAccessor<TValue>,
-          IPropertyChangeTracker<TObj, TProp> { }
+          IPropertyChangeTracker<TObj, TProp> {
+  isDOMObserver: boolean;
+}
 
 /**
  * Describes a target observer for from-view or two-way bindings.

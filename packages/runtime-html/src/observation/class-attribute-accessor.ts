@@ -1,10 +1,10 @@
-import { IBindingTargetAccessor, IDOM, ILifecycle, INode, targetObserver } from '@aurelia/runtime';
+import { IBindingTargetAccessor, ILifecycle, INode, targetObserver } from '@aurelia/runtime';
 
 export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {}
 
 @targetObserver('')
 export class ClassAttributeAccessor implements ClassAttributeAccessor {
-  public readonly dom: IDOM;
+  public readonly isDOMObserver: true;
   public currentValue: string;
   public doNotCache: true;
   public lifecycle: ILifecycle;
@@ -13,8 +13,8 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
   public oldValue: string;
   public version: number;
 
-  constructor(dom: IDOM, lifecycle: ILifecycle, obj: HTMLElement) {
-    this.dom = dom;
+  constructor(lifecycle: ILifecycle, obj: HTMLElement) {
+    this.isDOMObserver = true;
     this.doNotCache = true;
     this.lifecycle = lifecycle;
     this.nameIndex = null;
@@ -42,7 +42,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
           continue;
         }
         nameIndex[name] = version;
-        this.dom.addClass(node, name);
+        node.classList.add(name);
       }
     }
 
@@ -66,7 +66,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
       // will be removed if they're not present in the next update.
       // Better would be do have some configurability for this behavior, allowing the user to
       // decide whether initial classes always need to be kept, always removed, or something in between
-      this.dom.removeClass(this.obj, name);
+      this.obj.classList.remove(name);
     }
   }
 }

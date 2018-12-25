@@ -39,7 +39,7 @@ export interface CheckedObserver extends
 
 @targetObserver()
 export class CheckedObserver implements CheckedObserver {
-  public readonly dom: IDOM;
+  public readonly isDOMObserver: true;
   public currentFlags: LifecycleFlags;
   public currentValue: unknown;
   public defaultValue: unknown;
@@ -53,8 +53,8 @@ export class CheckedObserver implements CheckedObserver {
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver | SetterObserver;
 
-  constructor(dom: IDOM, lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
-    this.dom = dom;
+  constructor(lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
+    this.isDOMObserver = true;
     this.handler = handler;
     this.lifecycle = lifecycle;
     this.obj = obj;

@@ -4,7 +4,7 @@ export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLEleme
 
 @targetObserver()
 export class StyleAttributeAccessor implements StyleAttributeAccessor {
-  public readonly dom: IDOM;
+  public readonly isDOMObserver: true;
   public currentValue: string | Record<string, string>;
   public defaultValue: string | Record<string, string>;
   public lifecycle: ILifecycle;
@@ -13,8 +13,8 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
   public styles: object;
   public version: number;
 
-  constructor(dom: IDOM, lifecycle: ILifecycle, obj: HTMLElement) {
-    this.dom = dom;
+  constructor(lifecycle: ILifecycle, obj: HTMLElement) {
+    this.isDOMObserver = true;
     this.oldValue = this.currentValue = obj.style.cssText;
     this.lifecycle = lifecycle;
     this.obj = obj;

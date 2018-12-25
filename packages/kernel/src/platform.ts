@@ -1,14 +1,21 @@
-import { IWindow, IWindowOrWorkerGlobalScope } from './interfaces';
+import { ITimerHandler, IWindow, IWindowOrWorkerGlobalScope } from './interfaces';
 
 const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};
 
+declare var window: IWindowOrWorkerGlobalScope;
 declare var self: IWindowOrWorkerGlobalScope;
 declare var performance: IWindowOrWorkerGlobalScope['performance'];
-declare var requestAnimationFrame: IWindow['requestAnimationFrame'];
 
 export const PLATFORM = {
-  global: (function(): unknown {
+  global: (function(): IWindowOrWorkerGlobalScope {
+    // Workers don’t have `window`, only `self`
+    // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
+    // tslint:disable-next-line:no-typeof-undefined
+    if (typeof window !== 'undefined') {
+      return window;
+    }
+
     // Workers don’t have `window`, only `self`
     // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
     // tslint:disable-next-line:no-typeof-undefined
@@ -19,12 +26,12 @@ export const PLATFORM = {
     // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
     // tslint:disable-next-line:no-typeof-undefined
     if (typeof global !== 'undefined') {
-      return global;
+      return global as unknown as IWindowOrWorkerGlobalScope;
     }
 
     // Not all environments allow eval and Function
     // Use only as a last resort:
-    // tslint:disable-next-line:no-function-constructor-with-string-args
+    // tslint:disable-next-line:no-function-constructor-with-string-args function-constructor
     return new Function('return this')();
   })(),
   emptyArray: Object.freeze([]),
@@ -82,6 +89,24 @@ export const PLATFORM = {
   },
 
   requestAnimationFrame(callback: (time: number) => void): number {
-    return requestAnimationFrame(callback);
+    return (this.global as IWindow).requestAnimationFrame(callback);
+  },
+
+  clearInterval(handle?: number): void {
+    return this.global.clearInterval(handle);
+  },
+
+  clearTimeout(handle?: number): void {
+    return this.global.clearTimeout(handle);
+  },
+
+    // tslint:disable-next-line:no-any
+  setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number {
+    return this.global.setInterval(handler, timeout, ...args);
+  },
+
+    // tslint:disable-next-line:no-any
+  setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number {
+    return this.global.setTimeout(handler, timeout, ...args);
   }
 };

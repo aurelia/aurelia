@@ -1,12 +1,8 @@
-import { IRegistry, IWindow } from '@aurelia/kernel';
+import { IRegistry, IWindow, PLATFORM } from '@aurelia/kernel';
 import { Binding, IBinding } from '../../binding/binding';
 import { BindingMode } from '../../binding/binding-mode';
 import { IScope, LifecycleFlags } from '../../observation';
 import { bindingBehavior } from '../binding-behavior';
-
-// defaults to nodejs setTimeout/clearTimeout type otherwise
-declare var setTimeout: IWindow['setTimeout'];
-declare var clearTimeout: IWindow['clearTimeout'];
 
 export type DebounceableBinding = IBinding & {
   debouncedMethod: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) & { originalName: string };
@@ -23,14 +19,14 @@ const unset = {};
 /** @internal */
 export function debounceCallSource(this: DebounceableBinding, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
   const state = this.debounceState;
-  clearTimeout(state.timeoutId);
-  state.timeoutId = setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
+  PLATFORM.global.clearTimeout(state.timeoutId);
+  state.timeoutId = PLATFORM.global.setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
 }
 
 /** @internal */
 export function debounceCall(this: DebounceableBinding, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
   const state = this.debounceState;
-  clearTimeout(state.timeoutId);
+  PLATFORM.global.clearTimeout(state.timeoutId);
   if (!(flags & state.callContextToDebounce)) {
     state.oldValue = unset;
     this.debouncedMethod(newValue, oldValue, flags);
@@ -39,8 +35,7 @@ export function debounceCall(this: DebounceableBinding, newValue: unknown, oldVa
   if (state.oldValue === unset) {
     state.oldValue = oldValue;
   }
-  // To disambiguate between "number" and "NodeJS.Timer" we cast it to an unknown, so we can subsequently cast it to number.
-  const timeoutId: unknown = setTimeout(
+  const timeoutId = PLATFORM.global.setTimeout(
     () => {
       const ov = state.oldValue;
       state.oldValue = unset;
@@ -48,7 +43,7 @@ export function debounceCall(this: DebounceableBinding, newValue: unknown, oldVa
     },
     state.delay
   );
-  state.timeoutId = timeoutId as number;
+  state.timeoutId = timeoutId;
 }
 
 const fromView = BindingMode.fromView;
@@ -95,7 +90,7 @@ export class DebounceBindingBehavior {
     const methodToRestore = binding.debouncedMethod.originalName;
     binding[methodToRestore] = binding.debouncedMethod;
     binding.debouncedMethod = null;
-    clearTimeout(binding.debounceState.timeoutId);
+    PLATFORM.global.clearTimeout(binding.debounceState.timeoutId);
     binding.debounceState = null;
   }
 }

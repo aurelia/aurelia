@@ -1,3 +1,4 @@
+import { PLATFORM } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { Router } from './router';
@@ -222,7 +223,7 @@ export class Viewport {
 
   private async wait(time: number = 0): Promise<void> {
     await new Promise((resolve) => {
-      setTimeout(resolve, time);
+      PLATFORM.global.setTimeout(resolve, time);
     });
   }
 }

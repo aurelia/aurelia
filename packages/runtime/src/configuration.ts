@@ -1,7 +1,8 @@
 import { DI, IContainer, IRegistry, Registration } from '@aurelia/kernel';
 import { ILifecycle, Lifecycle } from './lifecycle';
 import { IObserverLocator, ObserverLocator } from './observation/observer-locator';
-import { BasicRenderer } from './renderer';
+import { BasicRenderer, Renderer } from './renderer';
+import { IRenderer } from './rendering-engine';
 import { FromViewBindingBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
@@ -34,6 +35,7 @@ export const RuntimeConfiguration = {
       BasicRenderer,
       Registration.singleton(IObserverLocator, ObserverLocator),
       Registration.singleton(ILifecycle, Lifecycle),
+      Registration.singleton(IRenderer, Renderer),
       ...GlobalResources
     );
   },

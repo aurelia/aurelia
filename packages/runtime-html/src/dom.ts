@@ -1,4 +1,4 @@
-import { Constructable, IContainer, IResolver, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, IResolver, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
 import { CompiledTemplate, IDOM, IDOMInitializer, INode, INodeSequence, IRenderContext, IRenderLocation, ISinglePageApp, ITemplate, ITemplateFactory, NodeSequence, TemplateDefinition } from '@aurelia/runtime';
 
 export const enum NodeType {
@@ -383,6 +383,7 @@ export class HTMLDOMInitializer implements IDOMInitializer {
     } else {
       dom = new HTMLDOM(document);
     }
+    Registration.instance(IDOM, dom).register(this.container, IDOM);
     return dom;
   }
 }

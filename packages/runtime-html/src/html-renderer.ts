@@ -44,7 +44,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: Node, instruction: ITextBindingInstruction): void {
+  public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: ChildNode, instruction: ITextBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('TextBindingRenderer.render', slice.call(arguments)); }
     const next = target.nextSibling;
     if (dom.isMarker(target)) {
@@ -88,7 +88,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
 export class SetAttributeRenderer implements IInstructionRenderer {
   public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: ISetAttributeInstruction): void {
     if (Tracer.enabled) { Tracer.enter('SetAttributeRenderer.render', slice.call(arguments)); }
-    dom.setAttribute(target, instruction.to, instruction.value);
+    target.setAttribute(instruction.to, instruction.value);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

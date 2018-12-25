@@ -4,7 +4,6 @@ import {
   HydrateElementInstruction,
   ICustomElementType,
   IDOM,
-  INode,
   IRenderContext,
   IRenderingEngine,
   ITemplate,
@@ -30,11 +29,11 @@ export class RenderPlan {
   private readonly dom: IDOM;
   private readonly dependencies: ReadonlyArray<IRegistry>;
   private readonly instructions: HTMLTargetedInstruction[][];
-  private readonly node: INode;
+  private readonly node: Node;
 
   private lazyDefinition: TemplateDefinition;
 
-  constructor(dom: IDOM, node: INode, instructions: HTMLTargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>) {
+  constructor(dom: IDOM, node: Node, instructions: HTMLTargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>) {
     this.dom = dom;
     this.dependencies = dependencies;
     this.instructions = instructions;
@@ -59,7 +58,7 @@ export class RenderPlan {
   }
 
   /** @internal */
-  public mergeInto(parent: INode, instructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
+  public mergeInto(parent: Node, instructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
     this.dom.appendChild(parent, this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
@@ -71,7 +70,7 @@ function createElementForTag(dom: IDOM, tagName: string, props?: Record<string, 
   const instructions: HTMLTargetedInstruction[] = [];
   const allInstructions: HTMLTargetedInstruction[][] = [];
   const dependencies: IRegistry[] = [];
-  const element = dom.createElement(tagName);
+  const element = dom.createElement(tagName) as HTMLElement;
   let hasInstructions = false;
 
   if (props) {
@@ -83,13 +82,13 @@ function createElementForTag(dom: IDOM, tagName: string, props?: Record<string, 
           hasInstructions = true;
           instructions.push(value);
         } else {
-          dom.setAttribute(element, to, value);
+          element.setAttribute(to, value);
         }
       });
   }
 
   if (hasInstructions) {
-    dom.setAttribute(element, 'class', 'au');
+    element.className = 'au';
     allInstructions.push(instructions);
   }
 
@@ -109,9 +108,9 @@ function createElementForType(dom: IDOM, Type: ICustomElementType, props?: objec
   const dependencies: IRegistry[] = [];
   const childInstructions: HTMLTargetedInstruction[] = [];
   const bindables = Type.description.bindables;
-  const element = dom.createElement(tagName);
+  const element = dom.createElement(tagName) as HTMLElement;
 
-  dom.setAttribute(element, 'class', 'au');
+  element.className = 'au';
 
   if (!dependencies.includes(Type)) {
     dependencies.push(Type);
@@ -150,17 +149,17 @@ function createElementForType(dom: IDOM, Type: ICustomElementType, props?: objec
   return new RenderPlan(dom, element, allInstructions, dependencies);
 }
 
-function addChildren(dom: IDOM, parent: INode, children: ArrayLike<unknown>, allInstructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
+function addChildren(dom: IDOM, parent: Node, children: ArrayLike<unknown>, allInstructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {
     const current = children[i];
 
     switch (typeof current) {
       case 'string':
-        dom.appendChild(parent, dom.createTextNode(current));
+        parent.appendChild(dom.createTextNode(current) as Text);
         break;
       case 'object':
         if (dom.isNodeInstance(current)) {
-          dom.appendChild(parent, current);
+          parent.appendChild(current as Node);
         } else if ('mergeInto' in (current as RenderPlan)) {
           (current as RenderPlan).mergeInto(parent, allInstructions, dependencies);
         }

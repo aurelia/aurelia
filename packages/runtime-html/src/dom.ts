@@ -20,24 +20,18 @@ function isRenderLocation(node: Node): node is Node & IRenderLocation {
   return node.textContent === 'au-end';
 }
 
-export class HTMLDOM implements HTMLDOM {
+export class HTMLDOM implements IDOM {
   private readonly doc: Document;
 
   constructor(doc: Document) {
     this.doc = doc;
   }
 
-  public addClass(node: HTMLElement, className: string): void {
-    node.classList.add(className);
-  }
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
     (publisher || this.doc).addEventListener(eventName, subscriber, options);
   }
   public appendChild(parent: Node, child: Node): void {
     parent.appendChild(child);
-  }
-  public attachShadow(host: HTMLElement, options: ShadowRootInit): DocumentFragment {
-    return host.attachShadow(options);
   }
   public cloneNode<T>(node: T, deep?: boolean): T {
     return (node as unknown as Node).cloneNode(deep !== false) as unknown as T;
@@ -51,14 +45,11 @@ export class HTMLDOM implements HTMLDOM {
     }
     const locationEnd = this.doc.createComment('au-end');
     const locationStart = this.doc.createComment('au-start');
-    this.replaceNode(locationEnd, node);
-    this.insertBefore(locationStart, locationEnd);
+    node.parentNode.replaceChild(locationEnd, node);
+    locationEnd.parentNode.insertBefore(locationStart, locationEnd);
     (locationEnd as IRenderLocation).$start = locationStart as IRenderLocation;
     (locationStart as IRenderLocation).$nodes = null;
     return locationEnd as IRenderLocation;
-  }
-  public createComment(text: string): Comment {
-    return this.doc.createComment(text);
   }
   public createDocumentFragment(markupOrNode?: string | Node): DocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {
@@ -77,11 +68,6 @@ export class HTMLDOM implements HTMLDOM {
   public createElement(name: string): HTMLElement {
     return this.doc.createElement(name);
   }
-  public createNodeObserver(target: Node, callback: MutationCallback, options: MutationObserverInit): MutationObserver {
-    const observer = new MutationObserver(callback);
-    observer.observe(target, options);
-    return observer;
-  }
   public createTemplate(markup?: unknown): HTMLTemplateElement {
     if (markup === undefined || markup === null) {
       return this.doc.createElement('template');
@@ -92,15 +78,6 @@ export class HTMLDOM implements HTMLDOM {
   }
   public createTextNode(text: string): Text {
     return this.doc.createTextNode(text);
-  }
-  public getAttribute(node: HTMLElement, name: string): string {
-    return node.getAttribute(name);
-  }
-  public hasClass(node: HTMLElement, className: string): boolean {
-    return node.classList.contains(className);
-  }
-  public hasParent(node: Node): boolean {
-    return node.parentNode !== null;
   }
   public insertBefore(nodeToInsert: Node, referenceNode: Node): void {
     referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
@@ -127,22 +104,8 @@ export class HTMLDOM implements HTMLDOM {
       node.parentNode.removeChild(node);
     }
   }
-  public removeAttribute(node: HTMLElement, name: string): void {
-    node.removeAttribute(name);
-  }
-  public removeClass(node: HTMLElement, className: string): void {
-    node.classList.remove(className);
-  }
   public removeEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | EventListenerOptions): void {
     (publisher || this.doc).removeEventListener(eventName, subscriber, options);
-  }
-  public replaceNode(newChild: Node, oldChild: Node): void {
-    if (oldChild.parentNode !== null) {
-      oldChild.parentNode.replaceChild(newChild, oldChild);
-    }
-  }
-  public setAttribute(node: HTMLElement, name: string, value: string): void {
-    node.setAttribute(name, value);
   }
 }
 

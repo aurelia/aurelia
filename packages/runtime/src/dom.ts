@@ -43,32 +43,21 @@ export interface INodeSequence extends INode {
 export const IDOM = DI.createInterface<IDOM>().noDefault();
 
 export interface IDOM {
-  addClass(node: unknown, className: string): void;
   addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
   appendChild(parent: unknown, child: unknown): void;
-  attachShadow(host: unknown, options: unknown): INode;
   cloneNode<T>(node: T, deep?: boolean): T;
   convertToRenderLocation(node: unknown): IRenderLocation;
-  createComment(text: string): INode;
   createDocumentFragment(markupOrNode?: unknown): INode;
   createElement(name: string): INode;
-  createNodeObserver(target: unknown, callback: unknown, options: unknown): void;
   createTemplate(markup?: unknown): INode;
   createTextNode(text: string): INode;
-  getAttribute(node: unknown, name: string): string;
-  hasClass(node: unknown, className: string): boolean;
-  hasParent(node: unknown): boolean;
   insertBefore(nodeToInsert: unknown, referenceNode: unknown): void;
   isMarker(node: unknown): node is INode;
   isNodeInstance(potentialNode: unknown): potentialNode is INode;
   isRenderLocation(node: unknown): node is IRenderLocation;
   registerElementResolver(container: IContainer, resolver: IResolver): void;
   remove(node: unknown): void;
-  removeAttribute(node: unknown, name: string): void;
-  removeClass(node: unknown, className: string): void;
   removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
-  replaceNode(newChild: unknown, oldChild: unknown): void;
-  setAttribute(node: unknown, name: string, value: string): void;
 }
 
 // This is an implementation of INodeSequence that represents "no DOM" to render.

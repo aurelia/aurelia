@@ -108,6 +108,7 @@ export function registerElement(this: ICustomElementType, container: IContainer)
  */
 export function customElement(name: string): ICustomElementDecorator;
 export function customElement(definition: ITemplateDefinition): ICustomElementDecorator;
+export function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator;
 export function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator {
   return (target => CustomElementResource.define(nameOrDefinition, target)) as ICustomElementDecorator;
 }

@@ -80,6 +80,7 @@ export function registerAttribute(this: ICustomAttributeType, container: IContai
  */
 export function customAttribute(name: string): CustomAttributeDecorator;
 export function customAttribute(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator;
 export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator {
   return target => CustomAttributeResource.define(nameOrDefinition, target);
 }
@@ -91,6 +92,7 @@ export function customAttribute(nameOrDefinition: string | IAttributeDefinition)
  */
 export function templateController(name: string): CustomAttributeDecorator;
 export function templateController(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
 export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return target => CustomAttributeResource.define(
     typeof nameOrDefinition === 'string'

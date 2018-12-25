@@ -1,4 +1,4 @@
-import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { Router } from './router';
 import { Scope } from './scope';
@@ -118,8 +118,10 @@ export class Viewport {
     }
 
     const host: INode = this.element as INode;
-    const renderingEngine = this.router.container.get(IRenderingEngine);
-    const dom = this.router.container.get(IDOM);
+    const container = this.router.container;
+    const dom = container.get(IDOM);
+    const projectorLocator = container.get(IProjectorLocator);
+    const renderingEngine = container.get(IRenderingEngine);
 
     if (this.component) {
       if (this.component.leave) {
@@ -133,9 +135,9 @@ export class Viewport {
       if (this.nextComponent.enter) {
         this.nextComponent.enter(this.nextInstruction, this.instruction);
       }
-      this.nextComponent.$hydrate(dom, renderingEngine, host);
+      this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host);
       this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
-      this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);
+      this.nextComponent.$attach(LifecycleFlags.fromStartTask);
 
       this.content = this.nextContent;
       this.instruction = this.nextInstruction;

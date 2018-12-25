@@ -5,22 +5,21 @@ export interface IPerformance {
 export type ITimerHandler = string | Function;
 
 export interface IWindowOrWorkerGlobalScope {
-    readonly performance: IPerformance;
-    clearInterval(handle?: number): void;
-    clearTimeout(handle?: number): void;
-    // tslint:disable-next-line:no-any
-    setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
-    // tslint:disable-next-line:no-any
-    setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
+  process?: NodeJS.Process;
+  readonly performance: IPerformance;
+  clearInterval(handle?: number): void;
+  clearTimeout(handle?: number): void;
+  // tslint:disable-next-line:no-any
+  setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
+  // tslint:disable-next-line:no-any
+  setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
+  requestAnimationFrame(callback: IFrameRequestCallback): number;
+  cancelAnimationFrame(handle: number): void;
 }
 
 export interface IFrameRequestCallback {
   // tslint:disable-next-line:callable-types
   (time: number): void;
-}
-
-export interface IWindow extends IWindowOrWorkerGlobalScope {
-  requestAnimationFrame(callback: IFrameRequestCallback): number;
 }
 
 export interface ICallable {

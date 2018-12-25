@@ -1,4 +1,4 @@
-import { Hooks, INode,  ICustomElementType, IRenderingEngine, ITemplate, RuntimeBehavior, DOM } from '../../../src/index';
+import { Hooks, INode,  ICustomElementType, IRenderingEngine, ITemplate, RuntimeBehavior, DOM } from '../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../util';
 import { CustomElement, createCustomElement } from './custom-element._builder';

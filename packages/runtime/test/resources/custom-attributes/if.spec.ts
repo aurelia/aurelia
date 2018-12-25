@@ -21,12 +21,12 @@ import {
   DOM,
   IDOM,
   CompositionCoordinator
-} from '../../../../src/index';
+} from '../../../src/index';
 import { MockTextNodeTemplate } from '../../mock';
 import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
 import { createScopeForTest } from '../../binding/shared';
 import { expect } from 'chai';
-import { DI, Writable, Registration } from '../../../../../kernel/src/index';
+import { DI, Writable, Registration } from '@aurelia/kernel';
 
 const dom = new DOM(<any>document);
 const domRegistration = Registration.instance(IDOM, dom);

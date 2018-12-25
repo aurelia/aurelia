@@ -1,4 +1,4 @@
-import { LifecycleFlags, subscriberCollection, MutationKind } from '../../../src/index';
+import { LifecycleFlags, subscriberCollection, MutationKind } from '../../src/index';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 

@@ -1,8 +1,7 @@
+import { State } from '../src/index';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { State } from "../src";
-
 
 chai.should();
 chai.use(sinonChai);

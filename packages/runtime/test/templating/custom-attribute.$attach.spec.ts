@@ -1,4 +1,4 @@
-import { State, ILifecycle, INode, Hooks, LifecycleFlags } from '../../../src/index';
+import { State, ILifecycle, INode, Hooks, LifecycleFlags } from '../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../util';
 import { CustomAttribute, createCustomAttribute } from './custom-attribute._builder';

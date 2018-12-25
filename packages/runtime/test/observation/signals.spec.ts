@@ -1,7 +1,7 @@
 import { IExpression, IObserverLocator, Binding, LifecycleFlags, IScope, BindingMode, SignalBindingBehavior, ISignaler, IsBindingBehavior } from '../../src/index';
 import { spy } from 'sinon';
 import { expect } from 'chai';
-import { IContainer, DI } from '../../../kernel/src/index';
+import { IContainer, DI } from '@aurelia/kernel';
 
 describe('SignalBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;

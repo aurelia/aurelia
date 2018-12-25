@@ -1,7 +1,7 @@
 // import { expect } from 'chai';
 // import { spy } from 'sinon';
-// import { DI, IContainer } from '../../../../kernel/src/index';
-// import { LetBinding, LifecycleFlags, BindingMode, ExpressionKind, IBindingTarget, IExpression, IObserverLocator, IScope, Scope, State } from '../../../src/index';
+// import { DI, IContainer } from '@aurelia/kernel';
+// import { LetBinding, LifecycleFlags, BindingMode, ExpressionKind, IBindingTarget, IExpression, IObserverLocator, IScope, Scope, State } from '../../src/index';
 // import { MockExpression } from '../mock';
 
 // const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);

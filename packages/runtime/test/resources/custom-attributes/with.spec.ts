@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { With, LifecycleFlags } from '../../../../src/index';
+import { With, LifecycleFlags } from '../../../src/index';
 import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';
 import { ensureSingleChildTemplateControllerBehaviors } from './template-controller-tests';

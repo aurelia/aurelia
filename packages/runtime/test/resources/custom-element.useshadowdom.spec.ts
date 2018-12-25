@@ -1,4 +1,4 @@
-import { useShadowDOM } from '../../../src';
+import { useShadowDOM } from '../../src/index';
 import { expect } from 'chai';
 
 describe('@useShadowDOM', () => {

@@ -1,16 +1,44 @@
-import { spy, SinonSpy } from 'sinon';
-import { BindingContext, Scope, AccessMember, PrimitiveLiteral, DOM, IDOM, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, LifecycleFlags, IScope, ILifecycle, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType, State, Lifecycle } from '../../src/index';
-import { DI, Registration } from '../../../kernel/src/index';
-import { createScopeForTest } from '../unit/binding/shared';
+import { DI } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { _, massSpy, massReset, massRestore, ensureNotCalled, eachCartesianJoinFactory, verifyEqual } from '../unit/util';
+import {
+  SinonSpy,
+  spy
+} from 'sinon';
 import sinon from 'sinon';
-import { parse, ParserState, Access, Precedence, parseCore } from '../../../jit/src';
-
-
-
-const dom = new DOM(<any>document);
-const domRegistration = Registration.instance(IDOM, dom);
+import { parseCore } from '../../../jit/src';
+import {
+  AccessMember,
+  AccessScope,
+  Binding,
+  BindingMode,
+  ExpressionKind,
+  IBindingTargetObserver,
+  IExpression,
+  IPropertyChangeNotifier,
+  IPropertySubscriber,
+  IScope,
+  Lifecycle,
+  LifecycleFlags,
+  ObjectLiteral,
+  PrimitiveLiteral,
+  PropertyAccessor,
+  Scope,
+  SetterObserver,
+  State,
+  SubscriberFlags,
+  ILifecycle
+} from '../../src/index';
+import { createScopeForTest } from '../shared';
+import {
+  _,
+  createObserverLocator,
+  eachCartesianJoinFactory,
+  ensureNotCalled,
+  massReset,
+  massRestore,
+  massSpy,
+  verifyEqual
+} from '../util';
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -29,23 +57,22 @@ const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
 describe('Binding', () => {
   let dummySourceExpression: IExpression;
-  let dummyTarget: IBindingTarget;
+  let dummyTarget: Object;
   let dummyTargetProperty: string;
   let dummyMode: BindingMode;
 
   function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
     const container = DI.createContainer();
-    container.register(domRegistration);
+    const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
-    const observerLocator = container.get(IObserverLocator);
-    const sut = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, <any>container);
+    const sut = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
 
     return { sut, lifecycle, container, observerLocator };
   }
 
   beforeEach(() => {
     dummySourceExpression = <any>{};
-    dummyTarget = <any>{foo: 'bar'};
+    dummyTarget = {foo: 'bar'};
     dummyTargetProperty = 'foo';
     dummyMode = BindingMode.twoWay;
   });
@@ -85,11 +112,10 @@ describe('Binding', () => {
     rawExpr += args.join('+');
     const expr = parseCore(rawExpr, 0);
     const container = DI.createContainer();
-    container.register(domRegistration);
-    const observerLocator = container.get(IObserverLocator);
+    const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const target = {val: 0};
-    const sut = new Binding(<any>expr, target, 'val', BindingMode.toView, observerLocator, <any>container);
+    const sut = new Binding(<any>expr, target, 'val', BindingMode.toView, observerLocator, container);
     const scope = Scope.create(ctx, null);
 
     sut.$bind(LifecycleFlags.fromBind, scope);
@@ -149,7 +175,7 @@ describe('Binding', () => {
         it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
           // - Arrange -
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.oneTime);
-          const srcVal = expr.evaluate(LifecycleFlags.none, scope, <any>container);
+          const srcVal = expr.evaluate(LifecycleFlags.none, scope, container);
           const targetObserver = observerLocator.getAccessor(target, prop);
           const stub = sinon.stub(observerLocator, 'getAccessor').returns(targetObserver);
           stub.withArgs(target, prop);
@@ -167,7 +193,7 @@ describe('Binding', () => {
           // - Assert -
           // double check we have the correct target observer
           expect(sut.targetObserver).to.be.instanceof(PropertyAccessor);
-          expect(target['$observers']).to.be.undefined;
+          expect(target['$observers']).to.equal(undefined);
 
           // verify the behavior inside $bind
           expect(expr.evaluate).to.have.been.calledOnce;
@@ -217,7 +243,7 @@ describe('Binding', () => {
         it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.toView);
-          const srcVal = expr.evaluate(LifecycleFlags.none, scope, <any>container);
+          const srcVal = expr.evaluate(LifecycleFlags.none, scope, container);
           const targetObserver = observerLocator.getAccessor(target, prop);
 
           const stub = sinon.stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -240,16 +266,16 @@ describe('Binding', () => {
           const observer02: SetterObserver = sut['_observer2'];
           if (expr instanceof AccessScope) {
             expect(observer00).to.be.instanceof(SetterObserver);
-            expect(observer01).to.be.undefined;
-            expect(observer02).to.be.undefined;
+            expect(observer01).to.equal(undefined);
+            expect(observer02).to.equal(undefined);
           } else if (expr instanceof AccessMember) {
             expect(observer00).to.be.instanceof(SetterObserver);
             expect(observer01).to.be.instanceof(SetterObserver);
-            expect(observer02).to.be.undefined;
+            expect(observer02).to.equal(undefined);
           }
 
           expect(sut.targetObserver).to.be.instanceof(PropertyAccessor);
-          expect(target['$observers']).to.be.undefined;
+          expect(target['$observers']).to.equal(undefined);
 
           expect(expr.evaluate).to.have.been.calledOnce;
           expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
@@ -309,7 +335,7 @@ describe('Binding', () => {
           const newValue = {};
 
           // - Act - Part 2
-          expr.assign(flags, scope, <any>container, newValue);
+          expr.assign(flags, scope, container, newValue);
 
           // - Assert - Part 2
           // verify that no observers were added/removed/changed (redundant)
@@ -319,14 +345,14 @@ describe('Binding', () => {
           if (expr instanceof AccessScope) {
             expect(observer10).to.be.instanceof(SetterObserver);
             expect(observer10).to.equal(observer00);
-            expect(observer11).to.be.undefined;
-            expect(observer12).to.be.undefined;
+            expect(observer11).to.equal(undefined);
+            expect(observer12).to.equal(undefined);
           } else if (expr instanceof AccessMember) {
             expect(observer10).to.be.instanceof(SetterObserver);
             expect(observer10).to.equal(observer00);
             expect(observer11).to.be.instanceof(SetterObserver);
             expect(observer11).to.equal(observer01);
-            expect(observer12).to.be.undefined;
+            expect(observer12).to.equal(undefined);
           }
 
           if (observer00) {
@@ -445,8 +471,8 @@ describe('Binding', () => {
           expect(sut.targetObserver).to.be.instanceof(SetterObserver);
           expect(target['$observers'][prop]).to.be.instanceof(SetterObserver);
 
-          expect(sut['_observer0']).to.be.undefined;
-          expect(sut['_observer1']).to.be.undefined;
+          expect(sut['_observer0']).to.equal(undefined);
+          expect(sut['_observer1']).to.equal(undefined);
 
           // verify the behavior inside $bind
           expect(targetObserver.subscribe).to.have.been.calledOnce;
@@ -470,8 +496,8 @@ describe('Binding', () => {
           expect(lifecycle.flushCount).to.equal(0);
 
           // verify the behavior of the targetObserver (redundant)
-          expect(sut['_observer0']).to.be.undefined;
-          expect(sut['_observer1']).to.be.undefined;
+          expect(sut['_observer0']).to.equal(undefined);
+          expect(sut['_observer1']).to.equal(undefined);
 
           if (initialVal !== newValue) {
             expect(sut.handleChange).to.have.been.calledOnce;
@@ -542,7 +568,7 @@ describe('Binding', () => {
           const originalScope = JSON.parse(JSON.stringify(scope));
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.twoWay);
-          const srcVal = expr.evaluate(LifecycleFlags.none, scope, <any>container);
+          const srcVal = expr.evaluate(LifecycleFlags.none, scope, container);
           const targetObserver = observerLocator.getObserver(target, prop) as IBindingTargetObserver;
 
           massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
@@ -563,17 +589,17 @@ describe('Binding', () => {
           const subscriber01: IPropertySubscriber = targetObserver['_subscriber1'];
           if (expr instanceof AccessScope) {
             expect(observer00).to.be.instanceof(SetterObserver);
-            expect(observer01).to.be.undefined;
+            expect(observer01).to.equal(undefined);
           } else if (expr instanceof AccessMember) {
             expect(observer00).to.be.instanceof(SetterObserver);
             expect(observer01).to.be.instanceof(SetterObserver);
-            expect(observer02).to.be.undefined;
+            expect(observer02).to.equal(undefined);
           } else {
-            expect(observer00).to.be.undefined;
+            expect(observer00).to.equal(undefined);
           }
 
           expect(subscriber00).to.equal(sut);
-          expect(subscriber01).to.be.null;
+          expect(subscriber01).to.equal(null);
 
           expect(sut.targetObserver).to.equal(targetObserver);
           expect(sut.targetObserver).to.be.instanceof(SetterObserver);
@@ -648,7 +674,7 @@ describe('Binding', () => {
           }
 
           // - Act - Part 2
-          expr.assign(flags, scope, <any>container, newValue1);
+          expr.assign(flags, scope, container, newValue1);
 
           // - Assert - Part 2
           expect(lifecycle.flushCount).to.equal(0);
@@ -662,20 +688,20 @@ describe('Binding', () => {
           if (expr instanceof AccessScope) {
             expect(observer10).to.be.instanceof(SetterObserver);
             expect(observer10).to.equal(observer00);
-            expect(observer11).to.be.undefined;
-            expect(observer12).to.be.undefined;
+            expect(observer11).to.equal(undefined);
+            expect(observer12).to.equal(undefined);
           } else if (expr instanceof AccessMember) {
             expect(observer10).to.be.instanceof(SetterObserver);
             expect(observer10).to.equal(observer00);
             expect(observer11).to.be.instanceof(SetterObserver);
             expect(observer11).to.equal(observer01);
-            expect(observer12).to.be.undefined;
+            expect(observer12).to.equal(undefined);
           } else {
-            expect(observer10).to.be.undefined;
+            expect(observer10).to.equal(undefined);
           }
 
           expect(subscriber10).to.equal(sut);
-          expect(subscriber11).to.be.null;
+          expect(subscriber11).to.equal(null);
 
           if (observer00) {
             // verify the behavior of the sourceExpression / sourceObserver (redundant)
@@ -793,7 +819,7 @@ describe('Binding', () => {
       const scope: any = {};
       sut['$scope'] = scope;
       sut.$unbind(LifecycleFlags.fromUnbind);
-      expect(sut['$scope'] === scope).to.be.true;
+      expect(sut['$scope'] === scope).to.equal(true);
     });
 
     it('should unbind if it is bound', () => {
@@ -806,7 +832,7 @@ describe('Binding', () => {
       const unbindSpy = dummySourceExpression.unbind = spy();
       (<any>dummySourceExpression).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(LifecycleFlags.fromUnbind);
-      expect(sut['$scope']).to.be.null;
+      expect(sut['$scope']).to.equal(null);
       expect(sut['$state'] & State.isBound).to.equal(0);
       //expect(unobserveSpy).to.have.been.calledWith(true);
       //expect(unbindSpy).to.have.been.calledWith(LifecycleFlags.fromUnbind, scope, sut);
@@ -823,8 +849,8 @@ describe('Binding', () => {
         while (i < count) {
           const observer = new MockObserver();
           sut.addObserver(observer);
-          expect(sut[`_observer${i}`] === observer).to.be.true;
-          expect(sut[`_observerVersion${i}`] === 0).to.be.true;
+          expect(sut[`_observer${i}`] === observer).to.equal(true);
+          expect(sut[`_observerVersion${i}`] === 0).to.equal(true);
           i++;
         }
       });
@@ -871,7 +897,7 @@ describe('Binding', () => {
         while (i < count) {
           const observer = sut[`_observer${i}`];
           sut.addObserver(observer);
-          expect(sut[`_observerVersion${i}`] === version).to.be.true;
+          expect(sut[`_observerVersion${i}`] === version).to.equal(true);
           i++;
         }
       });
@@ -893,8 +919,8 @@ describe('Binding', () => {
         }
         i = 0;
         while (i < count) {
-          expect(sut[`_observerVersion${i}`] === version).to.be.true;
-          expect(sut[`_observerVersion${i + 1}`] === version).to.be.false;
+          expect(sut[`_observerVersion${i}`] === version).to.equal(true);
+          expect(sut[`_observerVersion${i + 1}`] === version).to.equal(false);
           i+= 2;
         }
       });
@@ -923,10 +949,10 @@ describe('Binding', () => {
 
 class MockObserver implements IBindingTargetObserver {
   _subscriberFlags?: SubscriberFlags;
-  _subscriber0?: IPropertySubscriber<any>;
-  _subscriber1?: IPropertySubscriber<any>;
-  _subscriber2?: IPropertySubscriber<any>;
-  _subscribersRest?: IPropertySubscriber<any>[];
+  _subscriber0?: IPropertySubscriber;
+  _subscriber1?: IPropertySubscriber;
+  _subscriber2?: IPropertySubscriber;
+  _subscribersRest?: IPropertySubscriber[];
   callSubscribers: IPropertyChangeNotifier;
   hasSubscribers: IBindingTargetObserver['hasSubscribers'];
   hasSubscriber: IBindingTargetObserver['hasSubscriber'];

@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
-import { PLATFORM } from '../../../../kernel/src/index';
-import { PrimitiveObserver, SetterObserver, Lifecycle, LifecycleFlags, Observer } from '../../../src/index';
+import { PLATFORM } from '@aurelia/kernel';
+import { PrimitiveObserver, SetterObserver, Lifecycle, LifecycleFlags, Observer } from '../../src/index';
 import { expect } from 'chai';
 import { SpySubscriber } from '../util';
 

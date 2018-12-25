@@ -1,4 +1,4 @@
-import { State, Hooks, ICustomAttributeType, IRenderingEngine } from '../../../src/index';
+import { State, Hooks, ICustomAttributeType, IRenderingEngine } from '../../src/index';
 import { eachCartesianJoin } from '../util';
 import { CustomAttribute, createCustomAttribute } from './custom-attribute._builder';
 import { expect } from 'chai';

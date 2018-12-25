@@ -1,6 +1,6 @@
 import { IComponentLifecycleMock, defineComponentLifecycleMock } from './../mock';
 import { PLATFORM, Writable } from '@aurelia/kernel';
-import { customElement, ITemplateDefinition, IInternalCustomElementImplementation } from '../../../src/index';
+import { customElement, ITemplateDefinition, IInternalCustomElementImplementation } from '../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../util';
 import { createCustomElement } from './custom-element._builder';

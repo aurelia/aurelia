@@ -1,5 +1,5 @@
 import { match } from 'sinon';
-import { MapObserver, enableMapObservation, disableMapObservation, nativeMapDelete, nativeSet, IndexMap, Lifecycle, LifecycleFlags } from '../../../src/index';
+import { MapObserver, enableMapObservation, disableMapObservation, nativeMapDelete, nativeSet, IndexMap, Lifecycle, LifecycleFlags } from '../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
 

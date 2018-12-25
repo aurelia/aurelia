@@ -1,4 +1,4 @@
-import { IRegistry, IWindow, PLATFORM } from '@aurelia/kernel';
+import { IRegistry, PLATFORM } from '@aurelia/kernel';
 import { Binding, IBinding } from '../../binding/binding';
 import { BindingMode } from '../../binding/binding-mode';
 import { IScope, LifecycleFlags } from '../../observation';

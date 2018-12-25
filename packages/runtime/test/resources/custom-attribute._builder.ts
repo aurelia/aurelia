@@ -1,4 +1,4 @@
-import { customAttribute, IAttributeDefinition, ICustomAttribute, templateController } from '../../../src/index';
+import { customAttribute, IAttributeDefinition, ICustomAttribute, templateController } from '../../src/index';
 import { defineComponentLifecycleMock, IComponentLifecycleMock } from '../mock';
 import { Writable } from '@aurelia/kernel';
 

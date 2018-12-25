@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { Constructable } from '../../../../../kernel/src/index';
-import { LifecycleFlags, IAttach, IView, Lifecycle } from '../../../../src/index';
+import { Constructable } from '@aurelia/kernel';
+import { LifecycleFlags, IAttach, IView, Lifecycle } from '../../../src/index';
 import { ViewFake } from '../fakes/view-fake';
 import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';

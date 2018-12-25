@@ -1,4 +1,4 @@
-import { CustomElementResource, CustomAttributeResource } from '../../../src';
+import { CustomElementResource, CustomAttributeResource } from '../../src/index';
 import { expect } from 'chai';
 
 

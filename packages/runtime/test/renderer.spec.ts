@@ -44,13 +44,13 @@ import {
   HtmlRenderer,
   IRenderer,
   IDOM
-} from '../../../src/index';
+} from '../src/index';
 import { expect } from 'chai';
 import { _, createElement } from '../util';
 import {
   ParserRegistration
 } from '../../../../jit/src/index';
-import { DI, Registration } from '../../../../kernel/src/index';
+import { DI, Registration } from '@aurelia/kernel';
 import { spy, SinonSpy } from 'sinon';
 
 

@@ -16,12 +16,12 @@ import {
   State,
   ILifecycle,
   DOM, IDOM
-} from '../../src/index';
+} from '../../../src/index';
 import { expect } from 'chai';
 import { MockTextNodeTemplate } from '../unit/mock';
 import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import { createScopeForTest } from '../unit/binding/shared';
-import { DI, Registration } from '../../../kernel/src/index';
+import { DI, Registration } from '@aurelia/kernel';
 
 const dom = new DOM(<any>document);
 const domRegistration = Registration.instance(IDOM, dom);

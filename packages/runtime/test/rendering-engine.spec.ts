@@ -9,9 +9,9 @@ import {
   CustomAttributeResource,
   BindingBehaviorResource,
   ValueConverterResource
-} from '../../../src/index';
+} from '../src/index';
 import { expect } from 'chai';
-import { Container } from '../../../../kernel/src';
+import { Container } from '@aurelia/kernel';
 import { BindingCommandResource } from '../../../../jit/src';
 
 

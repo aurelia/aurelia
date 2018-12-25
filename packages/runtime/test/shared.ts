@@ -1,14 +1,8 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { BindingContext, IScope, IObserverLocator, Scope, OverrideContext } from '../../../src/index';
-import { DI, IContainer } from '../../../../kernel/src/index';
+import { IScope, Scope, OverrideContext } from '../src/index';
 
 export const checkDelay = 20;
-
-export function createObserverLocator(container: IContainer = DI.createContainer()): IObserverLocator {
-  return container.get(IObserverLocator);
-}
-
 
 export function createScopeForTest(bindingContext: any, parentBindingContext?: any): IScope {
   if (parentBindingContext) {

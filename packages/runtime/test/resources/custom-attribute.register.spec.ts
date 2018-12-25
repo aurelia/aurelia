@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Container } from '../../../../kernel/src';
+import { Container } from '@aurelia/kernel';
 import { createCustomAttribute } from './custom-attribute._builder';
 
 describe('@customAttribute', () => {

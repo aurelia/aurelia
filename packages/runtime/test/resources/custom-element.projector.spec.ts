@@ -1,4 +1,4 @@
-import { customElement, useShadowDOM, noViewTemplate, ICustomElement, ShadowDOMProjector, containerless, ContainerlessProjector, HostProjector, DOM } from '../../../src';
+import { customElement, useShadowDOM, noViewTemplate, ICustomElement, ShadowDOMProjector, containerless, ContainerlessProjector, HostProjector, DOM } from '../../src/index';
 import { MockRenderingEngine } from '../mock';
 import { expect } from 'chai';
 import { PLATFORM } from '@aurelia/kernel';

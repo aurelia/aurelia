@@ -1,5 +1,5 @@
 import { match } from 'sinon';
-import { SetObserver, enableSetObservation, disableSetObservation, nativeSetDelete, nativeAdd, IndexMap, Lifecycle, LifecycleFlags } from '../../../src/index';
+import { SetObserver, enableSetObservation, disableSetObservation, nativeSetDelete, nativeAdd, IndexMap, Lifecycle, LifecycleFlags } from '../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
 

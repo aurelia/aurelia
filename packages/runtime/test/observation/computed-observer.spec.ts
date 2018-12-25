@@ -1,4 +1,4 @@
-import { createComputedObserver, CustomSetterObserver, GetterObserver, GetterController } from '../../../src/index';
+import { createComputedObserver, CustomSetterObserver, GetterObserver, GetterController } from '../../src/index';
 import { expect } from 'chai';
 
 describe('createComputedObserver', () => {

@@ -1,73 +1,64 @@
-import { PLATFORM, IContainer, IDisposable, ImmutableArray, Immutable, Writable } from '../../../kernel/src/index';
+import { IContainer, IDisposable, Immutable, ImmutableArray, IResourceType, PLATFORM, Writable } from '@aurelia/kernel';
+import { expect } from 'chai';
+import { spy } from 'sinon';
 import {
-  INodeSequence,
-  ITemplate,
-  IRenderContext,
-  IRenderingEngine,
-  TemplatePartDefinitions,
-  IRenderable,
-  TemplateDefinition,
-  IViewFactory,
-  ITargetedInstruction,
-  IRenderLocation,
-  IView,
-  IBindScope,
-  IAttach,
-  IScope,
-  LifecycleFlags,
-  ICustomElementType,
-  ICustomElement,
-  Binding,
-  BindingMode,
-  IExpression,
-  BindingContext,
-  IElementProjector,
-  InstanceProvider,
-  ViewFactoryProvider,
-  IObserverLocator,
-  ObserverLocator,
-  ViewFactory,
-  If,
-  Else,
   AccessMember,
   AccessScope,
-  ForOfStatement,
-  BindingIdentifier,
-  RuntimeBehavior,
-  ILifecycle,
-  ITemplateDefinition,
-  IAttributeDefinition,
-  ICustomAttribute,
-  IRenderer,
-  INode,
-  ExpressionKind,
-  IBinding,
-  ISignaler,
-  Scope,
-  addBindable,
   addAttachable,
-  ILifecycleTask,
-  State,
+  addBindable,
+  Binding,
+  BindingContext,
+  BindingIdentifier,
+  BindingMode,
   CompositionCoordinator,
-  Lifecycle
-} from '../../src/index';
-import { spy } from 'sinon';
-import { expect } from 'chai';
+  Else,
+  ExpressionKind,
+  ForOfStatement,
+  IAttach,
+  IAttributeDefinition,
+  IBinding,
+  IBindScope,
+  ICustomAttribute,
+  ICustomElement,
+  ICustomElementType,
+  IDOM,
+  IElementProjector,
+  IExpression,
+  If,
+  ILifecycle,
+  ILifecycleTask,
+  INode,
+  INodeSequence,
+  InstanceProvider,
+  IObserverLocator,
+  IRenderable,
+  IRenderContext,
+  IRenderer,
+  IRenderingEngine,
+  IRenderLocation,
+  IScope,
+  ISignaler,
+  ITargetedInstruction,
+  ITemplate,
+  ITemplateDefinition,
+  IView,
+  IViewFactory,
+  Lifecycle,
+  LifecycleFlags,
+  ObserverLocator,
+  RuntimeBehavior,
+  Scope,
+  State,
+  TemplateDefinition,
+  TemplatePartDefinitions,
+  ViewFactory,
+  ViewFactoryProvider
+} from '../src/index';
 
 export class MockContext {
   public log: any[] = [];
 }
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
-
-const marker = document.createElement('au-m');
-marker.classList.add('au');
-export const createMarker = marker.cloneNode.bind(marker, false);
-
-const emptyTextNode = document.createTextNode(' ');
-export const createEmptyTextNode = emptyTextNode.cloneNode.bind(emptyTextNode, false);
-
-const renderLocation = document.createComment('au-loc');
-export const createRenderLocation = renderLocation.cloneNode.bind(renderLocation, false);
 
 export class MockNodeSequence implements INodeSequence {
   public firstChild: Node;
@@ -115,22 +106,24 @@ export class MockNodeSequence implements INodeSequence {
 
   public static createSimpleMarker(): MockNodeSequence {
     const fragment = document.createDocumentFragment();
-    const marker = createMarker();
+    const marker = document.createElement('au-m');
+    marker.classList.add('au');
     fragment.appendChild(marker);
     return new MockNodeSequence(fragment);
   }
 
   public static createRenderLocation(): MockNodeSequence {
     const fragment = document.createDocumentFragment();
-    const location = createRenderLocation();
+    const location = document.createComment('au-loc');
     fragment.appendChild(location);
     return new MockNodeSequence(fragment);
   }
 
   public static createTextBindingMarker(): MockNodeSequence {
     const fragment = document.createDocumentFragment();
-    const marker = createMarker();
-    const textNode = createEmptyTextNode();
+    const marker = document.createElement('au-m');
+    marker.classList.add('au');
+    const textNode = document.createTextNode('');
     fragment.appendChild(marker);
     fragment.appendChild(textNode);
     return new MockNodeSequence(fragment);
@@ -205,7 +198,7 @@ export class MockIfTextNodeTemplate {
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     const nodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
-    const observerLocator = new ObserverLocator(dom, this.lifecycle, null, null, null);
+    const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
     const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, this.container), this.lifecycle);
 
     const sut = new If(factory, nodes.firstChild, new CompositionCoordinator(this.lifecycle));
@@ -213,7 +206,7 @@ export class MockIfTextNodeTemplate {
     (<any>sut)['$isAttached'] = false;
     (<any>sut)['$scope'] = null;
 
-    const behavior = RuntimeBehavior.create(<any>If, sut);
+    const behavior = RuntimeBehavior.create(<any>If);
     behavior.applyTo(sut, this.lifecycle);
 
     addAttachable(renderable, sut);
@@ -234,7 +227,7 @@ export class MockIfElseTextNodeTemplate {
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     const ifNodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
 
-    const observerLocator = new ObserverLocator(this.dom, this.lifecycle, null, null, null);
+    const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
     const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, this.container), this.lifecycle);
 
     const ifSut = new If(ifFactory, ifNodes.firstChild, new CompositionCoordinator(this.lifecycle));
@@ -243,7 +236,7 @@ export class MockIfElseTextNodeTemplate {
     (<any>ifSut)['$state'] = State.none;
     (<any>ifSut)['$scope'] = null;
 
-    const ifBehavior = RuntimeBehavior.create(<any>If, ifSut);
+    const ifBehavior = RuntimeBehavior.create(<any>If);
     ifBehavior.applyTo(ifSut, this.lifecycle);
 
     addAttachable(renderable, ifSut);
@@ -260,7 +253,7 @@ export class MockIfElseTextNodeTemplate {
     (<any>elseSut)['$state'] = State.none;
     (<any>elseSut)['$scope'] = null;
 
-    const elseBehavior = RuntimeBehavior.create(<any>Else, <any>elseSut);
+    const elseBehavior = RuntimeBehavior.create(<any>Else);
     elseBehavior.applyTo(<any>elseSut, this.lifecycle);
 
     addAttachable(renderable, <any>elseSut);
@@ -281,12 +274,12 @@ export class MockRenderingEngine implements IRenderingEngine {
     this.calls = [];
   }
 
-  public getElementTemplate(definition: Immutable<Required<ITemplateDefinition>>, componentType?: ICustomElementType): ITemplate {
+  public getElementTemplate(dom: IDOM, definition: Immutable<Required<ITemplateDefinition>>, componentType?: ICustomElementType): ITemplate {
     this.trace(`getElementTemplate`, definition, componentType);
     return this.elementTemplate;
   }
 
-  public getViewFactory(source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
+  public getViewFactory(dom: IDOM, source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
     this.trace(`getViewFactory`, source, parentContext);
     return this.viewFactory;
   }

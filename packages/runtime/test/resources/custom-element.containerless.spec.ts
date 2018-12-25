@@ -1,4 +1,4 @@
-import { containerless } from '../../../src';
+import { containerless } from '../../src/index';
 import { expect } from 'chai';
 
 describe('@containerless', () => {

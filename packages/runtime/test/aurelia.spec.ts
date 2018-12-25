@@ -1,8 +1,8 @@
-import { Aurelia, State } from '../../src/index';
 import { expect } from 'chai';
+import { Aurelia, State } from '../src/index';
 import { spy } from 'sinon';
 
-describe('Aurelia', () => {
+describe.only('Aurelia', () => {
   let sut: Aurelia;
 
   beforeEach(() => {
@@ -23,18 +23,18 @@ describe('Aurelia', () => {
 
   it('should register dependencies', () => {
     spy(sut['container'], 'register');
-    class Foo{}
-    class Bar{}
-    sut.register(<any>Foo, <any>Bar);
+    class Foo {}
+    class Bar {}
+    sut.register(Foo as any, Bar as any);
 
     expect(sut['container'].register).to.have.been.calledWith(Foo, Bar);
   });
 
   it('should register dependencies as array', () => {
     spy(sut['container'], 'register');
-    class Foo{}
-    class Bar{}
-    sut.register(<any>[Foo, Bar]);
+    class Foo {}
+    class Bar {}
+    sut.register([Foo, Bar] as any);
 
     expect(sut['container'].register).to.have.been.calledWith([Foo, Bar]);
   });

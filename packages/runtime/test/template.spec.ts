@@ -1,4 +1,4 @@
-import { Container, Registration } from '../../../../kernel/src';
+import { IContainer, Registration, DI } from '@aurelia/kernel';
 import { MockRenderingEngine } from "../mock";
 import {
   Renderer,
@@ -11,7 +11,7 @@ import {
   INode,
   DOM
 
-} from '../../../src';
+} from '../src/index';
 import { expect } from 'chai';
 import { createElement } from '../util';
 
@@ -21,12 +21,12 @@ describe(`CompiledTemplate`, () => {
   describe(`constructor`, () => {
     it(`creates a new renderContext and createNodeSequence function`, () => {
       class Foo{}
-      class Bar{static register(container: Container){ container.register(Registration.singleton(Bar, Bar)) }}
+      class Bar{static register(container: IContainer){ container.register(Registration.singleton(Bar, Bar)) }}
       const def = { template: createElement('<div>foo</div>'), dependencies: [Foo, Bar] };
       const viewFactory = new ViewFactory(null, null, null);
       const renderer = new Renderer([]);
       const renderingEngine = new MockRenderingEngine(null, viewFactory, renderer, null);
-      const container = new Container();
+      const container = DI.createContainer();
       const sut = new CompiledTemplate(dom, renderingEngine, container as any, def as any);
 
       expect(sut.renderContext['parent']).to.equal(container);

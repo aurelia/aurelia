@@ -1,6 +1,6 @@
 import { IExpression, IObserverLocator, Binding, LifecycleFlags, IScope, BindingMode, DebounceBindingBehavior, IsBindingBehavior } from '../../src/index';
 import { expect } from 'chai';
-import { IContainer, DI } from '../../../kernel/src/index';
+import { IContainer, DI } from '@aurelia/kernel';
 
 describe('DebounceBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;

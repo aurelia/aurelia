@@ -1,4 +1,4 @@
-import { customAttribute, IAttributeDefinition, BindingMode } from '../../../src/index';
+import { customAttribute, IAttributeDefinition, BindingMode } from '../../src/index';
 import { expect } from 'chai';
 import { PLATFORM } from '@aurelia/kernel';
 import { eachCartesianJoin } from '../util';

@@ -27,13 +27,12 @@ import {
   State,
   HtmlRenderer,
   IDOM
-} from '../../src/index';
-import { IContainer, DI, Registration } from '../../../kernel/src/index';
-import { createAureliaRepeaterConfig, createRepeater } from '../unit/util';
+} from '../../../src/index';
+import { IContainer, DI, Registration } from '@aurelia/kernel';
+import { createRepeater } from '../unit/util';
 import { expect } from 'chai';
 import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import { createScopeForTest } from '../unit/binding/shared';
-
 
 const dom = new DOM(<any>document);
 const domRegistration = Registration.instance(IDOM, dom);
@@ -242,7 +241,7 @@ describe('ArrayRepeater - render html', () => {
   let au: Aurelia;
   let host: INode;
 
-  let aureliaConfig: ReturnType<typeof createAureliaRepeaterConfig>;
+  let aureliaConfig: any;
   let component: ICustomElement;
 
   beforeEach(() => {

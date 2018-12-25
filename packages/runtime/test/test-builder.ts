@@ -1,104 +1,44 @@
+import { Class, Constructable, DI, IContainer, Registration } from '@aurelia/kernel';
+import { parseCore } from '../../jit/src/index';
+import { HTMLJitConfiguration } from '../../jit-html/src/index';
 import {
-  Aurelia,
-  DOM,
+  BindingType,
   CustomElementResource,
-  CustomAttributeResource,
-  Lifecycle,
-  LifecycleFlags,
-  ITextBindingInstruction,
-  IInterpolationInstruction,
-  IPropertyBindingInstruction,
-  IIteratorBindingInstruction,
-  IListenerBindingInstruction,
-  ICallBindingInstruction,
-  IRefBindingInstruction,
-  IStylePropertyBindingInstruction,
-  ISetPropertyInstruction,
-  ITargetedInstruction,
-  IHydrateElementInstruction,
-  IHydrateAttributeInstruction,
-  IHydrateTemplateController,
-  ILetBindingInstruction,
+  HydrateAttributeInstruction,
+
+  HydrateElementInstruction,
+
+  HydrateTemplateController,
+  ICustomElement,
+  IDOM,
+  ILifecycle,
+  INode,
+  Interpolation,
+
+  IRenderingEngine,
+
+  IsBindingBehavior,
 
   ITemplateDefinition,
 
-  TargetedInstruction,
-  TextBindingInstruction,
-  InterpolationInstruction,
-  OneTimeBindingInstruction,
-  ToViewBindingInstruction,
-  FromViewBindingInstruction,
-  TwoWayBindingInstruction,
   IteratorBindingInstruction,
-  TriggerBindingInstruction,
-  DelegateBindingInstruction,
-  CaptureBindingInstruction,
-  CallBindingInstruction,
-  RefBindingInstruction,
-  StylePropertyBindingInstruction,
-  SetPropertyInstruction,
-  SetAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateAttributeInstruction,
-  HydrateTemplateController,
-  LetElementInstruction,
-  LetBindingInstruction,
+  Lifecycle,
+  LifecycleFlags,
+  TargetedInstruction,
 
-  AccessScope,
-  AccessMember,
-  AccessKeyed,
-  AccessThis,
+  ToViewBindingInstruction,
+  IProjectorLocator
 
-  ArrayLiteral,
-  Assign,
-  Binary,
-  BindingBehavior,
-  BindingIdentifier,
+} from '../src/index';
+import { TextBindingInstruction } from '../../runtime-html/src/index';
 
-  CallFunction,
-  CallMember,
-  CallScope,
-
-  Conditional,
-  ForOfStatement,
-  Interpolation,
-  ObjectLiteral,
-  PrimitiveLiteral,
-  TaggedTemplate,
-  Template,
-  Unary,
-  ValueConverter,
-
-  IsBindingBehavior,
-  IsAssign,
-
-  IElement,
-  INode,
-
-  ISinglePageApp,
-  IRenderingEngine,
-  ILifecycle,
-  ICustomElement,
-  BindingType,
-
-  IDOM
-
-} from '../../../runtime/src/index';
-import { IIndexable, DI, Container, IContainer, Constructable, Class, Registration } from '../../../kernel/src/index';
-import { BasicConfiguration, parseCore } from '../../../jit/src/index';
-import { eachCartesianJoin } from '../unit/util';
-import { expect } from 'chai';
-
-
-const dom = new DOM(<any>document);
-const domRegistration = Registration.instance(IDOM, dom);
 
 export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
 export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;
 export type DefinitionCb = (builder: DefinitionBuilder) => DefinitionBuilder;
 
 export class TemplateBuilder {
-  private template: IElement;
+  private template: HTMLTemplateElement;
 
   constructor() {
     this.template = document.createElement('template');
@@ -128,7 +68,7 @@ export class TemplateBuilder {
     return this;
   }
 
-  public build(): IElement {
+  public build(): HTMLTemplateElement {
     const { template } = this;
     this.template = null;
     return template;
@@ -377,9 +317,8 @@ export class TestBuilder<T extends Constructable> {
   private Type: T;
 
   constructor(Type: T) {
-    this.container = DI.createContainer();
-    this.container.register(<any>BasicConfiguration, <any>Type);
-    this.container.register(domRegistration);
+    this.container = HTMLJitConfiguration.createContainer();
+    this.container.register(<any>Type);
     this.Type = Type;
   }
 
@@ -439,9 +378,10 @@ export class TestContext<T extends Object> {
   }
 
   public hydrate(renderingEngine?: IRenderingEngine, host?: INode): void {
-    renderingEngine = renderingEngine || this.container.get<IRenderingEngine>(IRenderingEngine);
+    renderingEngine = renderingEngine || this.container.get(IRenderingEngine);
+    const projectorLocator = this.container.get(IProjectorLocator);
     host = host || this.host;
-    this.component.$hydrate(dom, <any>renderingEngine, host);
+    this.component.$hydrate(dom, projectorLocator, renderingEngine, host);
   }
 
   public bind(flags?: LifecycleFlags): void {

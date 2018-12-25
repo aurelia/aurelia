@@ -1,17 +1,35 @@
+import {
+  IContainer,
+  Registration
+} from '@aurelia/kernel';
 import { spy } from 'sinon';
-import { IContainer } from '../../../kernel/src/index';
 import {
-  IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource,
-  ICustomElement, ITemplateDefinition, TargetedInstructionType, IExpressionParser,
-  AccessMember, AccessScope, Repeat
-} from '../../src/index';
+  _,
+  createElement,
+  eachCartesianJoin,
+  eachCartesianJoinFactory,
+  ensureNotCalled,
+  getAllPropertyDescriptors,
+  htmlStringify,
+  jsonStringify,
+  massReset,
+  massRestore,
+  massSpy,
+  massStub,
+  padRight,
+  stringify,
+  verifyEqual
+} from '../../../scripts/test-lib';
+import { h } from '../../../scripts/test-lib-dom';
 import {
-  _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement,
-  padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled,
-  eachCartesianJoin, eachCartesianJoinFactory, getAllPropertyDescriptors
-} from '../../../../scripts/test-lib';
-import { h } from '../../../../scripts/test-lib-dom';
-
+  CustomElementResource,
+  ICustomElement,
+  ILifecycle,
+  IObserverLocator,
+  ITemplateDefinition,
+  Lifecycle,
+  ObserverLocator
+} from '../src/index';
 
 /**
  * Object describing a test fixture
@@ -25,69 +43,8 @@ export interface IRepeaterFixture {
   propName?: string;
 }
 
-export function createTextBindingTemplateSource(propertyName: string, oneTime?: boolean): ITemplateDefinition {
-  return {
-    template: `<div><au-m class="au"></au-m> </div>`,
-    instructions: [
-      [
-        {
-          type: TargetedInstructionType.textBinding,
-          from: propertyName
-        }
-      ]
-    ]
-  };
-}
-
-/**
- * Verify a collection of Visuals is in sync with the backing bindingContext
- *
- * (currently specific to repeater)
- */
-export function assertVisualsSynchronized(views: IView[], items: any[], itemName: string, propName?: string): void {
-
-  let isSynced = true;
-  const len = views.length;
-  if (len === items.length) {
-    let i = 0;
-    while (i < len) {
-      const visual = views[i];
-      if (visual.$scope.bindingContext[itemName] !== items[i]) {
-        isSynced = false;
-        break;
-      }
-      i++;
-    }
-  } else {
-    isSynced = false;
-  }
-  if (!isSynced) {
-    const mapVisuals: (v: IView) => string = propName ?
-      v => stringify(v.$scope.bindingContext[itemName][propName]) :
-      v => stringify(v.$scope.bindingContext[itemName]);
-    const mapItems: (i: any) => string = propName ?
-      i => stringify(i[propName]) :
-      i => stringify(i);
-    const $actual = views.map(mapVisuals).join(',');
-    const $expected = items.map(mapItems).join(',');
-    throw new Error(`assertVisualsSynchronized - expected visuals[${$actual}] to equal items[${$expected}]`);
-  }
-}
 
 const newline = /\r?\n/g;
-
-/**
- * Verify the DOM is in sync with the backing bindingContext
- *
- * (currently specific to repeater)
- */
-export function assertDOMSynchronized({ propName }: IRepeaterFixture, items: any[], element: HTMLElement): void {
-  const expected = items.map(i => i[propName]).join(',');
-  const actual = element.innerText.replace(newline, ',');
-  if (actual !== expected) {
-    throw new Error(`assertDOMSynchronized - expected element.innerText[${actual}] to equal items[${expected}]`);
-  }
-}
 
 /**
  * Increment the specified (numeric) values (or properties) by the specified number
@@ -109,63 +66,6 @@ export function incrementItems(items: any[], by: number, fixture?: IRepeaterFixt
   }
 }
 
-/**
- * Create App configuration based on the provided fixture
- *
- * (currently specific to repeater)
- */
-export function createRepeaterTemplateSource({ elName, colName, itemName }: IRepeaterFixture, def: ITemplateDefinition): ITemplateDefinition {
-  return {
-    name: elName,
-    dependencies: [],
-    template: `
-      <au-m class="au"></au-m>
-    `,
-    instructions: [
-      [
-        {
-          type: TargetedInstructionType.hydrateTemplateController,
-          res: 'repeat',
-          def: def,
-          instructions: [
-            {
-              type: TargetedInstructionType.propertyBinding,
-              mode: BindingMode.toView,
-              from: colName,
-              to: 'items'
-            },
-            {
-              type: TargetedInstructionType.setProperty,
-              value: itemName,
-              to: 'local'
-            }
-          ]
-        }
-      ]
-    ],
-    surrogates: []
-  };
-};
-
-/**
- * Create Aurelia configuration based on the provided fixture
- *
- * (currently specific to repeater)
- */
-export function createAureliaRepeaterConfig({ colName, itemName, propName }: IRepeaterFixture): { register(container: IContainer): void } {
-  const globalResources: any[] = [Repeat];
-  const expressionCache = {
-    [colName]: new ForOfStatement(new BindingIdentifier(itemName), new AccessScope(colName)),
-    [propName]: new AccessMember(new AccessScope(itemName), propName)
-  };
-
-  return {
-    register(container: IContainer) {
-      (<IExpressionParser>container.get(IExpressionParser)).cache(expressionCache);
-      container.register(...globalResources);
-    }
-  };
-};
 
 /**
  * Create a customElement based on the provided fixture
@@ -190,6 +90,27 @@ export class SpySubscriber {
     this.handleChange.resetHistory();
     this.handleBatchedChange.resetHistory();
   }
+}
+
+export function createObserverLocator(containerOrLifecycle?: IContainer | ILifecycle): IObserverLocator {
+  let lifecycle: ILifecycle;
+  if (containerOrLifecycle === undefined) {
+    lifecycle = new Lifecycle();
+  } else if ('get' in containerOrLifecycle) {
+    lifecycle = containerOrLifecycle.get(ILifecycle);
+  } else {
+    lifecycle = lifecycle;
+  }
+  const dummyLocator: any = {
+    handles(obj: any): boolean {
+      return false;
+    }
+  };
+  const observerLocator = new ObserverLocator(lifecycle, null, dummyLocator, dummyLocator);
+  if (containerOrLifecycle !== undefined && 'get' in containerOrLifecycle) {
+    Registration.instance(IObserverLocator, observerLocator).register(containerOrLifecycle, IObserverLocator);
+  }
+  return observerLocator;
 }
 
 
@@ -291,9 +212,21 @@ export const globalAttributeNames = [
   'onwaiting'
 ];
 
-
 export {
-  _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement,
-  padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled,
-  eachCartesianJoin, eachCartesianJoinFactory, getAllPropertyDescriptors, h
+  _,
+  stringify,
+  jsonStringify,
+  htmlStringify,
+  verifyEqual,
+  createElement,
+  padRight,
+  massSpy,
+  massStub,
+  massReset,
+  massRestore,
+  ensureNotCalled,
+  eachCartesianJoin,
+  eachCartesianJoinFactory,
+  getAllPropertyDescriptors,
+  h
 };

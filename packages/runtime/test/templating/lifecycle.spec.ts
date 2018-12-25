@@ -1,4 +1,4 @@
-// import { LifecycleController, LifecycleFlags, Lifecycle, LifecycleController, Lifecycle, State } from '../../../src/index';
+// import { LifecycleController, LifecycleFlags, Lifecycle, LifecycleController, Lifecycle, State } from '../../src/index';
 // import { eachCartesianJoinFactory } from '../util';
 // import { LifecycleMock } from '../mock';
 // import { expect } from 'chai';

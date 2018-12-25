@@ -1,5 +1,5 @@
 import { spy } from 'sinon';
-import { PLATFORM, Writable, DI, Registration } from '../../../kernel/src/index';
+import { PLATFORM, Writable, DI, Registration } from '@aurelia/kernel';
 import {
   noViewTemplate,
   ITemplate,
@@ -26,7 +26,7 @@ import {
   INodeSequenceFactory,
   DOM,
   IDOM
-} from '../../src';
+} from '../../src/index';
 import { expect } from 'chai';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import { MockTextNodeTemplate } from '../unit/mock';

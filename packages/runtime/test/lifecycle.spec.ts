@@ -1,5 +1,5 @@
-import { State, Hooks, Lifecycle, ILifecycle, PromiseTask, LifecycleFlags, ILifecycleBound } from '../../src/index';
-import { DI } from '../../../kernel/src/index';
+import { State, Hooks, Lifecycle, ILifecycle, PromiseTask, LifecycleFlags, ILifecycleBound } from '../src/index';
+import { DI } from '@aurelia/kernel';
 import { expect } from 'chai';
 
 describe('Lifecycle', () => {

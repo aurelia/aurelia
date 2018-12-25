@@ -1,7 +1,7 @@
-import { CallScope, BindingBehavior, ExpressionKind } from './../../../src/binding/ast';
+import { CallScope, BindingBehavior, ExpressionKind } from '../../src/index';
 import { spy, SinonSpy } from 'sinon';
-import { IExpression, IObserverLocator, AccessScope, LifecycleFlags, IScope, ILifecycle, SetterObserver, Call, DOM, IDOM } from '../../../src/index';
-import { DI, Registration } from '../../../../kernel/src/index';
+import { IExpression, IObserverLocator, AccessScope, LifecycleFlags, IScope, ILifecycle, SetterObserver, Call, DOM, IDOM } from '../../src/index';
+import { DI, Registration } from '@aurelia/kernel';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
 import { _, massSpy, massReset, massRestore, eachCartesianJoinFactory } from '../util';

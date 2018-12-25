@@ -1,5 +1,5 @@
 import { match } from 'sinon';
-import { ArrayObserver, enableArrayObservation, disableArrayObservation, Lifecycle, IndexMap, LifecycleFlags } from '../../../src/index';
+import { ArrayObserver, enableArrayObservation, disableArrayObservation, Lifecycle, IndexMap, LifecycleFlags } from '../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
 

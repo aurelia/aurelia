@@ -1,4 +1,4 @@
-import { Hooks, LifecycleFlags, Scope, State } from '../../../src/index';
+import { Hooks, LifecycleFlags, Scope, State } from '../../src/index';
 import { eachCartesianJoin } from '../util';
 import { CustomElement, createCustomElement } from './custom-element._builder';
 

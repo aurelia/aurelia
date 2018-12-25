@@ -1,5 +1,4 @@
 import {
-  DOM,
   IViewFactory,
   IRenderLocation,
   CustomAttributeResource,
@@ -15,16 +14,15 @@ import {
   IRenderable,
   TargetedInstructionType,
   IHydrateElementInstruction,
-  IRenderContext,
-  View,
+  BasicRenderer,
   ILifecycle,
   Lifecycle,
-  HtmlRenderer,
-  IDOM
-} from "../../../src/index";
-import { DI, Registration, IContainer, Constructable, IRegistry } from '../../../../kernel/src/index';
-import { ViewFactoryFake } from "./fakes/view-factory-fake";
-import { ViewFake } from "./fakes/view-fake";
+  IDOM,
+  IProjectorLocator
+} from '../src/index';
+import { DI, Registration, IContainer, Constructable } from '@aurelia/kernel';
+import { ViewFactoryFake } from './fakes/view-factory-fake';
+import { ViewFake } from './fakes/view-fake';
 
 const dom = new DOM(<any>document);
 const domRegistration = Registration.instance(IDOM, dom);
@@ -44,7 +42,7 @@ interface IAttributeTestOptions {
 interface ICustomAttributeCreation<T extends Constructable> {
   attribute: InstanceType<T> & ICustomAttribute,
   location?: IRenderLocation,
-  lifecycle: Lifecycle
+  lifecycle: Lifecycle;
 }
 
 export function hydrateCustomAttribute<T extends Constructable>(
@@ -96,7 +94,7 @@ export function hydrateCustomElement<T>(
 ) {
   const ElementType: ICustomElementType = Type as any;
   const container = options.container || DI.createContainer();
-  container.register(HtmlRenderer);
+  container.register(BasicRenderer);
   if (options.lifecycle) {
     Registration.instance(ILifecycle, options.lifecycle).register(container, ILifecycle);
   }
@@ -131,7 +129,8 @@ export function hydrateCustomElement<T>(
   );
 
   const renderingEngine = container.get(IRenderingEngine);
-  element.$hydrate(dom, renderingEngine, host);
+  const projectorLocator = container.get(IProjectorLocator);
+  element.$hydrate(dom, projectorLocator, renderingEngine, host);
 
   return { element, parent };
 }

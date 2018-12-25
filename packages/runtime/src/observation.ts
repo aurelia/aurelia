@@ -112,7 +112,7 @@ export interface IBindingTargetAccessor<
   extends IDisposable,
           IAccessor<TValue>,
           IPropertyChangeTracker<TObj, TProp> {
-  isDOMObserver: boolean;
+  isDOMObserver?: boolean;
 }
 
 /**

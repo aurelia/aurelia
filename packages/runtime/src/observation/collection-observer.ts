@@ -86,7 +86,6 @@ export interface CollectionLengthObserver extends IBindingTargetObserver<Collect
 
 @targetObserver()
 export class CollectionLengthObserver implements CollectionLengthObserver, IPatch {
-  public readonly isDOMObserver: false;
   public currentValue: number;
   public currentFlags: LifecycleFlags;
 
@@ -94,7 +93,6 @@ export class CollectionLengthObserver implements CollectionLengthObserver, IPatc
   public propertyKey: 'length' | 'size';
 
   constructor(obj: Collection, propertyKey: 'length' | 'size') {
-    this.isDOMObserver = false;
     this.obj = obj;
     this.propertyKey = propertyKey;
 

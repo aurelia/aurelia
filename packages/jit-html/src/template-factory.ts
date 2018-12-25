@@ -1,5 +1,5 @@
 import { DI, inject } from '@aurelia/kernel';
-import { IDOM, IElement, IHTMLTemplateElement, INode } from '@aurelia/runtime';
+import { IDOM, INode } from '@aurelia/runtime';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.
@@ -13,25 +13,24 @@ export interface ITemplateFactory {
    *
    * @param markup A raw html string that may or may not be wrapped in `<template></template>`
    */
-  createTemplate(markup: string): IHTMLTemplateElement;
+  createTemplate(markup: string): INode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node. If the node is already a template, it
    * will be returned as-is (and removed from the DOM).
    *
    * @param node A DOM node that may or may not be wrapped in `<template></template>`
    */
-  createTemplate(node: INode): IHTMLTemplateElement;
+  createTemplate(node: INode): INode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node or html string.
    *
    * @param input A DOM node or raw html string that may or may not be wrapped in `<template></template>`
    */
-  createTemplate(input: unknown): IHTMLTemplateElement;
-  createTemplate(input: unknown): IHTMLTemplateElement;
+  createTemplate(input: unknown): INode;
+  createTemplate(input: unknown): INode;
 }
 
-export const ITemplateFactory = DI.createInterface<ITemplateFactory>()
-  .withDefault(x => x.singleton(TemplateFactory));
+export const ITemplateFactory = DI.createInterface<ITemplateFactory>().noDefault();
 
 /**
  * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
@@ -39,37 +38,37 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>()
  * @internal
  */
 @inject(IDOM)
-export class TemplateFactory {
+export class HTMLTemplateFactory {
   private dom: IDOM;
-  private template: IHTMLTemplateElement;
+  private template: HTMLTemplateElement;
 
   constructor(dom: IDOM) {
     this.dom = dom;
-    this.template = dom.createTemplate();
+    this.template = dom.createTemplate() as HTMLTemplateElement;
   }
 
-  public createTemplate(markup: string): IHTMLTemplateElement;
-  public createTemplate(node: INode): IHTMLTemplateElement;
-  public createTemplate(input: unknown): IHTMLTemplateElement;
-  public createTemplate(input: string | INode): IHTMLTemplateElement {
+  public createTemplate(markup: string): HTMLTemplateElement;
+  public createTemplate(node: Node): HTMLTemplateElement;
+  public createTemplate(input: unknown): HTMLTemplateElement;
+  public createTemplate(input: string | Node): HTMLTemplateElement {
     if (typeof input === 'string') {
       const template = this.template;
       template.innerHTML = input;
-      const node = template.content.firstElementChild as IElement;
+      const node = template.content.firstElementChild;
       // if the input is either not wrapped in a template or there is more than one node,
       // return the whole template that wraps it/them (and create a new one for the next input)
       if (node === null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling !== null) {
-        this.template = this.dom.createTemplate();
+        this.template = this.dom.createTemplate() as HTMLTemplateElement;
         return template;
       }
       // the node to return is both a template and the only node, so return just the node
       // and clean up the template for the next input
       template.content.removeChild(node);
-      return node as IHTMLTemplateElement;
+      return node as HTMLTemplateElement;
     }
     if (input.nodeName !== 'TEMPLATE') {
       // if we get one node that is not a template, wrap it in one
-      const template = this.dom.createTemplate();
+      const template = this.dom.createTemplate() as HTMLTemplateElement;
       template.content.appendChild(input);
       return template;
     }
@@ -78,6 +77,6 @@ export class TemplateFactory {
     if (input.parentNode !== null) {
       input.parentNode.removeChild(input);
     }
-    return input as IHTMLTemplateElement;
+    return input as HTMLTemplateElement;
   }
 }

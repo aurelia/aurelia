@@ -91,6 +91,9 @@ export class HTMLDOM implements IDOM {
   public isRenderLocation(node: unknown): node is IRenderLocation {
     return (node as Comment).textContent === 'au-end';
   }
+  public makeTarget(node: unknown): void {
+    (node as Element).className = 'au';
+  }
   public registerElementResolver(container: IContainer, resolver: IResolver): void {
     container.registerResolver(Node, resolver);
     container.registerResolver(Element, resolver);

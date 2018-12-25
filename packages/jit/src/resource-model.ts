@@ -1,5 +1,12 @@
 import { IResourceDescriptions, PLATFORM, Reporter } from '@aurelia/kernel';
-import { AttributeDefinition, BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, IElement, TemplateDefinition } from '@aurelia/runtime';
+import {
+  AttributeDefinition,
+  BindingMode,
+  CustomAttributeResource,
+  CustomElementResource,
+  IBindableDescription,
+  TemplateDefinition
+} from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
 
@@ -28,11 +35,7 @@ export class ResourceModel {
    *
    * @returns The resource information if the element exists, or `null` if it does not exist.
    */
-  public getElementInfo(element: IElement): ElementInfo | null {
-    let name = element.getAttribute('as-element');
-    if (name === null) {
-      name = element.nodeName.toLowerCase();
-    }
+  public getElementInfo(name: string): ElementInfo | null {
     let result = this.elementLookup[name];
     if (result === undefined) {
       const def = this.resources.find(CustomElementResource, name);

@@ -1,6 +1,24 @@
+import {
+  BindingSymbol,
+  CustomAttributeSymbol,
+  CustomElementSymbol,
+  IAttributeParser,
+  IAttributeSymbol,
+  IElementSymbol,
+  INodeSymbol,
+  IParentNodeSymbol,
+  ISymbolWithBindings,
+  LetElementSymbol,
+  PlainAttributeSymbol,
+  PlainElementSymbol,
+  ReplacePartSymbol,
+  ResourceModel,
+  SymbolFlags,
+  TemplateControllerSymbol,
+  TextSymbol
+} from '@aurelia/jit';
 import { inject, IResourceDescriptions, PLATFORM } from '@aurelia/kernel';
 import {
-  AttributeInstruction,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
@@ -8,41 +26,25 @@ import {
   IDOM,
   IExpressionParser,
   ILetBindingInstruction,
-  InstructionRow,
   Interpolation,
   InterpolationInstruction,
   IsBindingBehavior,
+  ITargetedInstruction,
   ITemplateCompiler,
   ITemplateDefinition,
   LetBindingInstruction,
   LetElementInstruction,
   RefBindingInstruction,
-  SetAttributeInstruction,
   SetPropertyInstruction,
-  TargetedInstruction,
-  TemplateDefinition,
-  TextBindingInstruction
+  TemplateDefinition
 } from '@aurelia/runtime';
-import { IAttributeParser } from './attribute-parser';
-import { ResourceModel } from './resource-model';
 import {
-  AttributeSymbol,
-  BindingSymbol,
-  CustomAttributeSymbol,
-  CustomElementSymbol,
-  ElementSymbol,
-  LetElementSymbol,
-  NodeSymbol,
-  ParentNodeSymbol,
-  PlainAttributeSymbol,
-  PlainElementSymbol,
-  ReplacePartSymbol,
-  SymbolFlags,
-  SymbolWithBindings,
-  TemplateBinder,
-  TemplateControllerSymbol,
-  TextSymbol
-} from './template-binder';
+  HTMLAttributeInstruction,
+  HTMLInstructionRow,
+  SetAttributeInstruction,
+  TextBindingInstruction
+} from '@aurelia/runtime-html';
+import { TemplateBinder } from './template-binder';
 import { ITemplateFactory } from './template-factory';
 
 const buildNotRequired: IBuildInstruction = Object.freeze({
@@ -64,7 +66,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   /**
    * The instructions array for the currently instruction-collecting `ITemplateDefinition`
    */
-  private instructionRows: InstructionRow[];
+  private instructionRows: HTMLInstructionRow[];
 
   public get name(): string {
     return 'default';
@@ -78,10 +80,9 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
-    const resources = new ResourceModel(descriptions);
-    const binder = new TemplateBinder(resources, this.attrParser, this.exprParser);
-    const template = definition.template = this.factory.createTemplate(definition.template);
-    const surrogate = binder.bind(dom, template);
+    const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
+    const template = definition.template = this.factory.createTemplate(definition.template) as HTMLTemplateElement;
+    const surrogate = binder.bind(template);
     if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
       definition.instructions = [];
     }
@@ -89,12 +90,12 @@ export class TemplateCompiler implements ITemplateCompiler {
       definition.hasSlots = true;
     }
 
-    this.instructionRows = definition.instructions as InstructionRow[];
+    this.instructionRows = definition.instructions as HTMLInstructionRow[];
 
     const attributes = surrogate.attributes;
     const len = attributes.length;
     if (len > 0) {
-      let surrogates: TargetedInstruction[];
+      let surrogates: ITargetedInstruction[];
       if (definition.surrogates === undefined || definition.surrogates === PLATFORM.emptyArray) {
         definition.surrogates = Array(len);
       }
@@ -111,10 +112,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     return definition as TemplateDefinition;
   }
 
-  private compileChildNodes(parent: ElementSymbol): void {
+  private compileChildNodes(parent: IElementSymbol): void {
     if (parent.flags & SymbolFlags.hasChildNodes) {
       const { childNodes } = parent;
-      let childNode: NodeSymbol;
+      let childNode: INodeSymbol;
       const ii = childNodes.length;
       for (let i = 0; i < ii; ++i) {
         childNode = childNodes[i];
@@ -131,7 +132,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
           this.instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toViewModel)]);
         } else {
-          this.compileParentNode(childNode as ParentNodeSymbol);
+          this.compileParentNode(childNode as IParentNodeSymbol);
         }
       }
     }
@@ -139,7 +140,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileCustomElement(symbol: CustomElementSymbol): void {
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
-    const instructionRow = this.compileAttributes(symbol, 1) as InstructionRow;
+    const instructionRow = this.compileAttributes(symbol, 1) as HTMLInstructionRow;
     instructionRow[0] = new HydrateElementInstruction(
       symbol.res,
       this.compileBindings(symbol),
@@ -152,12 +153,12 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compilePlainElement(symbol: PlainElementSymbol): void {
     const attributes = this.compileAttributes(symbol, 0);
     if (attributes.length > 0) {
-      this.instructionRows.push(attributes as InstructionRow);
+      this.instructionRows.push(attributes as HTMLInstructionRow);
     }
     this.compileChildNodes(symbol);
   }
 
-  private compileParentNode(symbol: ParentNodeSymbol): void {
+  private compileParentNode(symbol: IParentNodeSymbol): void {
     switch (symbol.flags & SymbolFlags.type) {
       case SymbolFlags.isCustomElement:
         this.compileCustomElement(symbol as CustomElementSymbol);
@@ -186,8 +187,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
   }
 
-  private compileBindings(symbol: SymbolWithBindings): AttributeInstruction[] {
-    let bindingInstructions: AttributeInstruction[];
+  private compileBindings(symbol: ISymbolWithBindings): HTMLAttributeInstruction[] {
+    let bindingInstructions: HTMLAttributeInstruction[];
     if (symbol.flags & SymbolFlags.hasBindings) {
       // either a custom element with bindings, a custom attribute / template controller with dynamic options,
       // or a single value custom attribute binding
@@ -199,12 +200,12 @@ export class TemplateCompiler implements ITemplateCompiler {
         bindingInstructions[i] = this.compileBinding(bindings[i]);
       }
     } else {
-      bindingInstructions = PLATFORM.emptyArray as AttributeInstruction[];
+      bindingInstructions = PLATFORM.emptyArray as HTMLAttributeInstruction[];
     }
     return bindingInstructions;
   }
 
-  private compileBinding(symbol: BindingSymbol): AttributeInstruction {
+  private compileBinding(symbol: BindingSymbol): HTMLAttributeInstruction {
     if (symbol.command === null) {
       // either an interpolation or a normal string value assigned to an element or attribute binding
       if (symbol.expression === null) {
@@ -217,12 +218,12 @@ export class TemplateCompiler implements ITemplateCompiler {
     } else {
       // either an element binding command, dynamic options attribute binding command,
       // or custom attribute / template controller (single value) binding command
-      return symbol.command.compile(symbol);
+      return symbol.command.compile(symbol) as HTMLAttributeInstruction;
     }
   }
 
-  private compileAttributes(symbol: ElementSymbol, offset: number): AttributeInstruction[] {
-    let attributeInstructions: AttributeInstruction[];
+  private compileAttributes(symbol: IElementSymbol, offset: number): HTMLAttributeInstruction[] {
+    let attributeInstructions: HTMLAttributeInstruction[];
     if (symbol.flags & SymbolFlags.hasAttributes) {
       // any attributes on a custom element (which are not bindables) or a plain element
       const { attributes } = symbol;
@@ -234,31 +235,41 @@ export class TemplateCompiler implements ITemplateCompiler {
     } else if (offset > 0) {
       attributeInstructions = Array(offset);
     } else {
-      attributeInstructions = PLATFORM.emptyArray as AttributeInstruction[];
+      attributeInstructions = PLATFORM.emptyArray as HTMLAttributeInstruction[];
     }
     return attributeInstructions;
   }
 
-  private compileAttribute(symbol: AttributeSymbol): AttributeInstruction {
+  private compileCustomAttribute(symbol: CustomAttributeSymbol): HTMLAttributeInstruction {
+    // a normal custom attribute (not template controller)
+    const bindings = this.compileBindings(symbol);
+    return new HydrateAttributeInstruction(symbol.res, bindings);
+  }
+
+  private compilePlainAttribute(symbol: PlainAttributeSymbol): HTMLAttributeInstruction {
+    if ((symbol as PlainAttributeSymbol).command === null) {
+      if (symbol.expression === null) {
+        // a plain attribute on a surrogate
+        return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
+      } else {
+        // a plain attribute with an interpolation
+        return new InterpolationInstruction(symbol.expression as Interpolation, symbol.syntax.target);
+      }
+    } else {
+      // a plain attribute with a binding command
+      return symbol.command.compile(symbol) as HTMLAttributeInstruction;
+    }
+  }
+
+  private compileAttribute(symbol: IAttributeSymbol): HTMLAttributeInstruction {
     if (symbol.syntax.target === 'ref') {
       return new RefBindingInstruction(symbol.syntax.rawValue);
     }
     // any attribute on a custom element (which is not a bindable) or a plain element
     if (symbol.flags & SymbolFlags.isCustomAttribute) {
-      // a normal custom attribute (not template controller)
-      const bindings = this.compileBindings(symbol as CustomAttributeSymbol);
-      return new HydrateAttributeInstruction((symbol as CustomAttributeSymbol).res, bindings);
-    } else if ((symbol as PlainAttributeSymbol).command === null) {
-      if ((symbol as PlainAttributeSymbol).expression === null) {
-        // a plain attribute on a surrogate
-        return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
-      } else {
-        // a plain attribute with an interpolation
-        return new InterpolationInstruction((symbol as PlainAttributeSymbol).expression as Interpolation, symbol.syntax.target);
-      }
+      return this.compileCustomAttribute(symbol as CustomAttributeSymbol);
     } else {
-      // a plain attribute with a binding command
-      return (symbol as PlainAttributeSymbol).command.compile(symbol as PlainAttributeSymbol);
+      return this.compilePlainAttribute(symbol as PlainAttributeSymbol);
     }
   }
 
@@ -268,8 +279,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       parts = {};
       const replaceParts = symbol.parts;
       const ii = replaceParts.length;
-      let instructionRowsSave: InstructionRow[];
-      let partInstructions: InstructionRow[];
+      let instructionRowsSave: HTMLInstructionRow[];
+      let partInstructions: HTMLInstructionRow[];
       let replacePart: ReplacePartSymbol;
       for (let i = 0; i < ii; ++i) {
         replacePart = replaceParts[i];

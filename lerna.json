@@ -4,6 +4,7 @@
     "packages/aot",
     "packages/debug",
     "packages/jit",
+    "packages/jit-html",
     "packages/kernel",
     "packages/plugin-parcel",
     "packages/plugin-requirejs",

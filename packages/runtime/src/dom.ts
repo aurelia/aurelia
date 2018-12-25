@@ -55,6 +55,7 @@ export interface IDOM {
   isMarker(node: unknown): node is INode;
   isNodeInstance(potentialNode: unknown): potentialNode is INode;
   isRenderLocation(node: unknown): node is IRenderLocation;
+  makeTarget(node: unknown): void;
   registerElementResolver(container: IContainer, resolver: IResolver): void;
   remove(node: unknown): void;
   removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;

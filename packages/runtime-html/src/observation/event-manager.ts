@@ -213,8 +213,6 @@ export class EventSubscriber implements IEventSubscriber {
 export type EventSubscription = DelegateOrCaptureSubscription | TriggerSubscription;
 
 export interface IEventManager {
-  registerElementConfiguration(config: IElementConfiguration): void;
-  getElementHandler(dom: IDOM, target: Node, propertyName: string): IEventSubscriber | null;
   addEventListener(dom: IDOM, target: Node, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
 
@@ -226,71 +224,6 @@ export class EventManager implements IEventManager {
   public elementHandlerLookup: Record<string, Record<string, string[]>> = {};
   public delegatedHandlers: Record<string, ListenerTracker> = {};
   public capturedHandlers: Record<string, ListenerTracker> = {};
-
-  constructor() {
-    this.registerElementConfiguration({
-      tagName: 'INPUT',
-      properties: {
-        value: ['change', 'input'],
-        checked: ['change', 'input'],
-        files: ['change', 'input']
-      }
-    });
-    this.registerElementConfiguration({
-      tagName: 'TEXTAREA',
-      properties: {
-        value: ['change', 'input']
-      }
-    });
-    this.registerElementConfiguration({
-      tagName: 'SELECT',
-      properties: {
-        value: ['change']
-      }
-    });
-    this.registerElementConfiguration({
-      tagName: 'content editable',
-      properties: {
-        value: ['change', 'input', 'blur', 'keyup', 'paste']
-      }
-    });
-    this.registerElementConfiguration({
-      tagName: 'scrollable element',
-      properties: {
-        scrollTop: ['scroll'],
-        scrollLeft: ['scroll']
-      }
-    });
-  }
-
-  public registerElementConfiguration(config: IElementConfiguration): void {
-    const properties = config.properties;
-    const lookup: Record<string, string[]> = this.elementHandlerLookup[config.tagName] = {};
-
-    for (const propertyName in properties) {
-      if (properties.hasOwnProperty(propertyName)) {
-        lookup[propertyName] = properties[propertyName];
-      }
-    }
-  }
-
-  public getElementHandler(dom: IDOM, target: Node, propertyName: string): IEventSubscriber | null {
-    const tagName = target['tagName'];
-    const lookup = this.elementHandlerLookup;
-
-    if (tagName) {
-      if (lookup[tagName] && lookup[tagName][propertyName]) {
-        return new EventSubscriber(dom, lookup[tagName][propertyName]);
-      }
-      if (propertyName === 'textContent' || propertyName === 'innerHTML') {
-        return new EventSubscriber(dom, lookup['content editable'].value);
-      }
-      if (propertyName === 'scrollTop' || propertyName === 'scrollLeft') {
-        return new EventSubscriber(dom, lookup['scrollable element'][propertyName]);
-      }
-    }
-    return null;
-  }
 
   public addEventListener(
     dom: IDOM,

@@ -1,15 +1,12 @@
 import { expect } from 'chai';
-import { tearDown, setupAndStart, cleanup, defineCustomElement } from './prepare';
-import { baseSuite } from './template-compiler.base';
-import { IContainer, Constructable, DI, IRegistry, Tracer, RuntimeCompilationResources, Registration } from '../../../kernel/src/index';;
-import { Aurelia, ICustomElementType, ILifecycle, CustomElementResource, DOM, IDOM, ISignaler, Lifecycle, TextNodeSequence, IExpressionParser, LifecycleFlags, INodeSequence, NodeSequenceFactory, ITemplateCompiler } from '../../../runtime/src/index';
-import { BasicConfiguration, TemplateBinder, ResourceModel, IAttributeParser } from '../../src/index';
+import { defineCustomElement } from './prepare';
+import { DI, IRegistry, Tracer, RuntimeCompilationResources, Registration } from '../../../kernel/src/index';;
+import { Aurelia, ILifecycle, CustomElementResource, IDOM, ISignaler, Lifecycle, IExpressionParser, LifecycleFlags, INodeSequence } from '../../../runtime/src/index';
+import { TemplateBinder, HTMLJitConfiguration } from '../../src/index';
 import { enableTracing, SymbolTraceWriter, disableTracing } from '../unit/util';
 import { stringifyTemplateDefinition } from '../../src/debugging';
-
-
-const dom = <any>new DOM(<any>document);
-const domRegistration = Registration.instance(IDOM, dom);
+import { NodeSequenceFactory, HTMLDOM } from '../../../runtime-html/src';
+import { ResourceModel, IAttributeParser } from '@aurelia/jit';
 
 const spec = 'template-compiler.kitchen-sink';
 
@@ -18,7 +15,7 @@ describe(spec, () => {
   it('startup with App type', () => {
     const component = CustomElementResource.define({ name: 'app', template: `<template>\${message}</template>` }, class { message = 'Hello!' });
     const host = document.createElement('div');
-    const au = new Aurelia().register(BasicConfiguration).app({ host, component }).start();
+    const au = new Aurelia().register(HTMLJitConfiguration).app({ host, component }).start();
     expect(host.textContent).to.equal('Hello!');
     au.stop();
     expect(host.textContent).to.equal('');
@@ -245,8 +242,7 @@ describe(spec, () => {
       }
     });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
     container.register(<any>Col, <any>Row, <any>CustomTable);
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
@@ -320,8 +316,7 @@ describe(spec, () => {
       template: `<template><foo if.bind="true"></foo></template>`
     }, class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
     container.register(<any>Foo);
     const au = new Aurelia(<any>container);
 
@@ -381,8 +376,7 @@ describe(spec, () => {
       template: `<template><foo if.bind="true"></foo></template>`
     }, class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
     container.register(<any>Foo);
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
@@ -447,8 +441,7 @@ describe(spec, () => {
       template: `<template><foo if.bind="true"></foo></template>`
     }, class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
     container.register(<any>Foo);
     const au = new Aurelia(<any>container);
 
@@ -516,8 +509,7 @@ describe(spec, () => {
       template: `<template><foo if.bind="true"></foo></template>`
     }, class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
     container.register(<any>Foo);
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
@@ -582,8 +574,7 @@ describe(spec, () => {
       template: `<template><foo if.bind="true"></foo></template>`
     }, class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
     container.register(<any>Foo);
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
@@ -645,8 +636,7 @@ describe(spec, () => {
       template: `<template><foo if.bind="true"></foo></template>`
     }, class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
     container.register(<any>Foo);
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
@@ -708,8 +698,7 @@ describe(spec, () => {
       template: `<template><foo if.bind="true"></foo></template>`
     }, class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
     container.register(<any>Foo);
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
@@ -774,8 +763,7 @@ describe(spec, () => {
       template: `<template><foo if.bind="true"></foo></template>`
     }, class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
     container.register(<any>Foo);
     const lifecycle = container.get(ILifecycle);
     const au = new Aurelia(<any>container);
@@ -821,8 +809,7 @@ describe(spec, () => {
       items = items;
     });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
 
     const signaler = container.get(ISignaler);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
@@ -860,8 +847,7 @@ describe(spec, () => {
       items = items;
     });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
 
     const signaler = container.get(ISignaler);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
@@ -900,8 +886,7 @@ describe(spec, () => {
       }
     });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration);
+    const container = HTMLJitConfiguration.createContainer();
 
     const au = new Aurelia(<any>container);
 
@@ -945,8 +930,8 @@ describe(spec, () => {
       const App = defineCustomElement('app', `<template><foo>${appMarkup}</foo></template>`, class {});
       const Foo = defineCustomElement('foo', `<template>${ceMarkup}</template>`, class {});
 
-      const container = DI.createContainer();
-      container.register(<IRegistry>BasicConfiguration, <any>Foo);
+      const container = HTMLJitConfiguration.createContainer();
+      container.register(<any>Foo);
 
       const au = new Aurelia(<any>container);
 
@@ -967,8 +952,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><div replace-part="bar">\${baz}</div></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><div replaceable part="bar"></div></template>`, <any>class { baz = 'abc' });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -988,8 +973,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><div replace-part="bar">\${baz}</div></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><div replaceable part="bar"></div></template>`, <any>class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -1009,8 +994,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -1030,8 +1015,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -1051,8 +1036,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${qux}</template><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class {});
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -1072,8 +1057,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><template replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -1094,8 +1079,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><template if.bind="true"><template replace-part="bar">\${baz}</template></template></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -1115,8 +1100,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><template if.bind="true" replace-part="bar">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -1136,8 +1121,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc' });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -1157,8 +1142,8 @@ describe(spec, () => {
     const App = defineCustomElement('app', `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo><foo><template replace-part="bar" if.bind="false">\${baz}</template></foo></template>`, <any>class { baz = 'def' });
     const Foo = defineCustomElement('foo', `<template><template replaceable part="bar"></template></template>`, <any>class { baz = 'abc'; });
 
-    const container = DI.createContainer();
-    container.register(<IRegistry>BasicConfiguration, <any>Foo);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(<any>Foo);
 
     const au = new Aurelia(<any>container);
 
@@ -1206,14 +1191,13 @@ describe('xml node compiler tests', () => {
       const doc = parser.parseFromString(markup, 'application/xml');
       const fakeSurrogate = { firstChild: doc, attributes: [] };
 
-      const container = DI.createContainer();
-      container.register(<IRegistry>BasicConfiguration);
+      const container = HTMLJitConfiguration.createContainer();
       const resources = new ResourceModel(new RuntimeCompilationResources(<any>container));
       const attrParser = container.get(IAttributeParser) as IAttributeParser;
       const exprParser = container.get(IExpressionParser) as IExpressionParser;
-      const binder = new TemplateBinder(resources, attrParser, <any>exprParser);
+      const binder = new TemplateBinder(new HTMLDOM(document), resources, attrParser, <any>exprParser);
 
-      const result = binder.bind(dom, <any>fakeSurrogate);
+      const result = binder.bind(<any>fakeSurrogate);
       expect(result.physicalNode).to.equal(fakeSurrogate);
     });
   }
@@ -1224,8 +1208,7 @@ describe("generated.template-compiler.static (with tracing)", function () {
   function setup() {
       enableTracing();
       Tracer.enableLiveLogging(SymbolTraceWriter);
-      const container = DI.createContainer();
-      container.register(BasicConfiguration);
+      const container = HTMLJitConfiguration.createContainer();
       const au = new Aurelia(container);
       const host = document.createElement("div");
       return { au, host };

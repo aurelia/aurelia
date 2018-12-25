@@ -1,7 +1,7 @@
-import { customElement, bindable, CustomElementResource, DOM, Aurelia, Lifecycle } from '../../../runtime/src/index';;
+import { customElement, bindable, CustomElementResource, Aurelia } from '../../../runtime/src/index';;
 import { setupAndStart, tearDown, setup } from "./prepare";
 import { expect } from "chai";
-import { BasicConfiguration } from '../../src';
+import { HTMLJitConfiguration } from '../../src/index';
 import { LifecycleFlags } from '../../../runtime/src/index';
 
 
@@ -201,7 +201,7 @@ describe(spec, () => {
     });
     const host = document.createElement('div');
     const au = new Aurelia();
-    au.register(BasicConfiguration);
+    au.register(HTMLJitConfiguration);
     au.register(FooEl);
     const component = new App();
     au.app({ host, component });

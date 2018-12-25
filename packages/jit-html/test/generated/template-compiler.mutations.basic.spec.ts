@@ -1,12 +1,10 @@
 import { expect } from "chai";
-import { DI } from "../../../kernel/src/index";
-import { CustomElementResource, Aurelia, BindingMode, ILifecycle } from "../../../runtime/src/index";
-import { BasicConfiguration } from "../../src/index";
+import { CustomElementResource, Aurelia } from "../../../runtime/src/index";
+import { HTMLJitConfiguration } from "../../src/index";
 
 describe("generated.template-compiler.mutations.basic", function () {
     function setup() {
-        const container = DI.createContainer();
-        container.register(BasicConfiguration);
+        const container = HTMLJitConfiguration.createContainer();
         const au = new Aurelia(container);
         const host = document.createElement("div");
         return { au, host };

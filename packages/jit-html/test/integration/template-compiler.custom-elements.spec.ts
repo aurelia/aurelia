@@ -1,12 +1,13 @@
 import { expect } from "chai";
 import { tearDown, createCustomElement, setupAndStart, TestConfiguration, cleanup } from "./prepare";
-import { customElement, bindable, Aurelia, Binding, SetterObserver, PropertyAccessor, ElementPropertyAccessor, Observer } from '../../../runtime/src/index';;
+import { customElement, bindable, Aurelia, Binding, SetterObserver, PropertyAccessor, Observer } from '../../../runtime/src/index';;
 import { DI } from "@aurelia/kernel";
-import { BasicConfiguration } from "../../src";
+import { HTMLJitConfiguration } from "../../src/index";
 import { h } from "./util";
 import { InterpolationBinding } from "../../../runtime/src/binding/interpolation-binding";
 import { ILifecycle } from '../../../runtime/src/index';
 import { LifecycleFlags } from '../../../runtime/src/index';
+import { ElementPropertyAccessor } from '../../../runtime-html/src';
 
 // TemplateCompiler - custom element integration
 describe('template-compiler.custom-elements', () => {
@@ -166,10 +167,10 @@ describe('template-compiler.custom-elements', () => {
     }
 
     const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
-    const container = DI.createContainer();
+    const container = HTMLJitConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle);
     container.register(...customElementCtors);
-    container.register(TestConfiguration, BasicConfiguration)
+    container.register(TestConfiguration)
     const host = document.createElement('app');
     document.body.appendChild(host);
     const au = new Aurelia(container);

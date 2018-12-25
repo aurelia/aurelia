@@ -1,15 +1,14 @@
 import { expect } from "chai";
 import { defineCustomElement } from "./prepare";
 import {
-  bindable, Aurelia, ViewFactory, View, IView,
-  RenderPlan, IViewFactory, CompiledTemplate, IRenderingEngine, DOM, ILifecycle,
+  Aurelia, IRenderingEngine, ILifecycle,
   IDOM, TemplateDefinition
 } from "../../../runtime/src/index";
 import { baseSuite } from "./template-compiler.base";
 import { IContainer } from "@aurelia/kernel";
-import { trimFull, createElement } from "./util";
-import { Lifecycle } from '../../../runtime/src/index';
+import { trimFull } from "./util";
 import { LifecycleFlags } from '../../../runtime/src/index';
+import { RenderPlan } from '../../../runtime-html/src';
 
 const spec = 'template-compiler.compose';
 

@@ -22,31 +22,35 @@ import {
   BindingIdentifier,
   IExpression,
   PrimitiveLiteral,
-  DOM,
   IDOM
 } from '../../../runtime/src/index';
 import {
-  TemplateCompiler,
-  BasicConfiguration,
+  HTMLDOM,
+  HTMLTargetedInstructionType as HTT
+} from '../../../runtime-html/src/index';
+import {
   parseCore,
-  AttributeParser,
-  SyntaxInterpreter,
   DotSeparatedAttributePattern,
   IAttributeParser
+} from '../../../jit/src/index';
+import {
+  TemplateCompiler,
+  HTMLJitConfiguration,
+  HTMLTemplateFactory
 } from '../../src/index';
 import { expect } from 'chai';
 import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual, enableTracing, disableTracing, SymbolTraceWriter } from './util';
 import { stringifyTemplateDefinition } from '../../src/debugging';
-import { ITemplateFactory, TemplateFactory } from '../../src/template-factory';
+import { ITemplateFactory } from '../../src/template-factory';
 
-const dom = <any>new DOM(<any>document);
+const dom = <any>new HTMLDOM(<any>document);
 const domRegistration = Registration.instance(IDOM, dom);
 const c = DI.createContainer();
 c.register(domRegistration);
 c.register(<any>DotSeparatedAttributePattern);
 
 const attrParser = c.get(IAttributeParser);
-const tplFactory = new TemplateFactory(dom);
+const tplFactory = new HTMLTemplateFactory(dom);
 
 
 export function createAttribute(name: string, value: string): Attr {
@@ -62,9 +66,7 @@ describe('TemplateCompiler', () => {
   let resources: IResourceDescriptions;
 
   beforeEach(() => {
-    container = DI.createContainer();
-    container.register(<any>BasicConfiguration);
-    container.register(domRegistration);
+    container = HTMLJitConfiguration.createContainer();
     expressionParser = container.get<IExpressionParser>(IExpressionParser);
     sut = new TemplateCompiler(tplFactory, <any>attrParser, <any>expressionParser);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ Type: { description: {} } }) });
@@ -93,7 +95,7 @@ describe('TemplateCompiler', () => {
           );
           verifyInstructions(instructions as any, []);
           verifyInstructions(surrogates as any, [
-            { toVerify: ['type', 'value', 'to'], type: TT.setAttribute, value: 'h-100', to: 'class' }
+            { toVerify: ['type', 'value', 'to'], type: HTT.setAttribute, value: 'h-100', to: 'class' }
           ]);
         });
 
@@ -635,9 +637,8 @@ type Bindables = { [pdName: string]: IBindableDescription };
 
 describe(`TemplateCompiler - combinations`, () => {
   function setup(...globals: IRegistry[]) {
-    const container = DI.createContainer();
-    container.register(BasicConfiguration, ...globals);
-    container.register(domRegistration);
+    const container = HTMLJitConfiguration.createContainer();
+    container.register(...globals);
     const expressionParser = container.get(IExpressionParser);
     const factory = container.get(ITemplateFactory);
     const sut = new TemplateCompiler(factory, attrParser, expressionParser as any);
@@ -663,9 +664,9 @@ describe(`TemplateCompiler - combinations`, () => {
         ($1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
         ($1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.fromView, oneTime: false }],
         ($1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.twoWay,   oneTime: false }],
-        ($1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.none,      preventDefault: true }],
-        ($1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
-        ($1, [attr, to, value]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
+        ($1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: HTT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.none,      preventDefault: true }],
+        ($1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: HTT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
+        ($1, [attr, to, value]) => [`${attr}.capture`,   value, { type: HTT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
         ($1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,     from: new AccessScope(value), to }]
       ]
     ], ([el], $2, [n1, v1, i1]) => {

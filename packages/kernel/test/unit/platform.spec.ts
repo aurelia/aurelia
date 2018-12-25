@@ -1,13 +1,25 @@
 import { PLATFORM } from './../../src/platform';
 import { expect } from 'chai';
-import { createElement, _ } from './util';
+import { _ } from './util';
 
 const toString = Object.prototype.toString;
 
 describe(`The PLATFORM object`, () => {
-  it(`global references window`, () => {
-    expect(PLATFORM.global).to.equal(window);
-  });
+  if (typeof global !== 'undefined') {
+    it(`global references global`, () => {
+      expect(PLATFORM.global).to.equal(global);
+    });
+  }
+  if (typeof self !== 'undefined') {
+    it(`global references self`, () => {
+      expect(PLATFORM.global).to.equal(self);
+    });
+  }
+  if (typeof window !== 'undefined') {
+    it(`global references window`, () => {
+      expect(PLATFORM.global).to.equal(window);
+    });
+  }
 
   it(`now() returns a timestamp`, async () => {
     const $1 = PLATFORM.now();
@@ -95,7 +107,7 @@ describe(`The PLATFORM object`, () => {
   describe(`toArray()`, () => {
     for (const input of <ArrayLike<any>[]>[
       [1, 2, 3, 4, 5],
-      createElement('<div><div></div><div></div><div></div><div></div><div></div></div>').childNodes
+      { length: 5, [1]: 1, [2]: 2, [3]: 3, [4]: 4, [5]: 5 }
     ]) {
       it(_`converts ${input} to array`, () => {
         const expected = Array.from(input);

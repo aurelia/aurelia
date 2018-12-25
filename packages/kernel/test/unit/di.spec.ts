@@ -1,6 +1,21 @@
-import { Resolver, Factory, fallbackInvoker, transient, singleton } from './../../src/di';
+import {
+  Resolver,
+  Factory,
+  fallbackInvoker,
+  transient,
+  singleton,
+  DI,
+  Container,
+  PLATFORM,
+  IContainer,
+  IDefaultableInterfaceSymbol,
+  ResolverStrategy,
+  inject,
+  invokeWithDynamicDependencies,
+  classInvokers,
+  Registration
+} from '../../src/index';
 import { spy } from 'sinon';
-import { DI, Container, PLATFORM, IContainer, IDefaultableInterfaceSymbol, ResolverStrategy, inject, invokeWithDynamicDependencies, classInvokers, Registration } from "../../src";
 import { expect } from "chai";
 import { _ } from "./util";
 import * as sinon from 'sinon';
@@ -66,6 +81,7 @@ describe(`The DI object`, () => {
 
     it(`returns PLATFORM.emptyArray if the class is declared as an anonymous variable, even if it has ctor args and decorator is applied properly`, () => {
       class Bar {}
+      // @ts-ignore
       @decorator()
       const FooInline = class{ constructor(public bar: Bar) {} }
       const actual = DI.getDesignParamTypes(FooInline);
@@ -74,6 +90,7 @@ describe(`The DI object`, () => {
 
     it(`returns PLATFORM.emptyArray if the class is declared as a named variable, even if it has ctor args and decorator is applied properly`, () => {
       class Bar {}
+      // @ts-ignore
       @decorator()
       const FooInline = class Foo{ constructor(public bar: Bar) {} }
       const actual = DI.getDesignParamTypes(FooInline);
@@ -93,6 +110,7 @@ describe(`The DI object`, () => {
       it(_`${class{}}`, () => {
         let cls;
         function anonDecorator(): ClassDecorator { return (target: any) => cls = target; }
+        // @ts-ignore
         @anonDecorator()
         class{ constructor() {} };
         const actual = DI.getDesignParamTypes(cls);
@@ -271,6 +289,7 @@ describe(`The DI object`, () => {
         });
 
         @decorator()
+        // @ts-ignore
         class FooAnonClass{ constructor(public arg: AnonClass){} }
 
         it(_`${FooAnonClass} { constructor(public ${AnonClass}) }`, () => {
@@ -280,6 +299,7 @@ describe(`The DI object`, () => {
         });
 
         @decorator()
+        // @ts-ignore
         class FooVarFunc{ constructor(public arg: VarFunc){} }
 
         it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, () => {
@@ -289,6 +309,7 @@ describe(`The DI object`, () => {
         });
 
         @decorator()
+        // @ts-ignore
         class FooFunc{ constructor(public arg: Func){} }
 
         it(_`${FooFunc} { constructor(public ${Func}) }`, () => {
@@ -298,6 +319,7 @@ describe(`The DI object`, () => {
         });
 
         @decorator()
+        // @ts-ignore
         class FooArrow{ constructor(public arg: Arrow){} }
 
         it(_`${FooArrow} { constructor(public ${Arrow}) }`, () => {
@@ -548,6 +570,7 @@ describe(`The inject decorator`, () => {
   });
 
   it(`can decorate properties explicitly`, () => {
+    // @ts-ignore
     class Foo { @inject(Dep1)dep1; @inject(Dep2)dep2; @inject(Dep3)dep3; }
 
     expect(Foo['inject'].dep1).to.equal(Dep1);
@@ -556,6 +579,7 @@ describe(`The inject decorator`, () => {
   });
 
   it(`cannot decorate properties implicitly`, () => {
+    // @ts-ignore
     class Foo { @inject()dep1: Dep1; @inject()dep2: Dep2; @inject()dep3: Dep3; }
 
     expect(Foo['inject'].dep1).to.be.undefined;

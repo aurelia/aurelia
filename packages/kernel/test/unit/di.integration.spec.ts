@@ -1,4 +1,4 @@
-import { inject, DI, Registration, InterfaceSymbol, IContainer, Container } from "../../src";
+import { inject, DI, Registration, InterfaceSymbol, IContainer } from "../../src";
 import { expect } from "chai";
 import { spy } from "sinon";
 

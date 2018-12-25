@@ -157,7 +157,7 @@ export function jsonStringify(o: any): string {
   let cache = [];
   const result = JSON.stringify(o, function(_key: string, value: any): string {
     if (typeof value === 'object' && value !== null) {
-      if (value instanceof Node) {
+      if (value.nodeType > 0) {
         return htmlStringify(value);
       }
       if (cache.indexOf(value) !== -1) {
@@ -175,8 +175,8 @@ export function jsonStringify(o: any): string {
   return result.replace(newline, '');
 }
 
-export function htmlStringify(node: Node): string {
-  if ((node.textContent !== null && node.textContent.length) || node instanceof Text || node instanceof Comment) {
+export function htmlStringify(node: Object & { textContent?: string; childNodes?: ArrayLike<Object>; nodeType?: number }): string {
+  if ((node.textContent !== null && node.textContent.length) || node.nodeType === 3/*Text*/ || node.nodeType === 8/*Comment*/) {
     return node.textContent.replace(newline, '');
   }
   if (node instanceof Element) {
@@ -221,7 +221,7 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
     }
     return;
   }
-  if (expected instanceof Node) {
+  if (expected.nodeType > 0) {
     if (expected.nodeType === 11) {
       for (let i = 0; i < expected.childNodes.length; i++) {
         verifyEqual(actual.childNodes.item(i), expected.childNodes.item(i), depth + 1, property, i);

@@ -1,7 +1,9 @@
 /// <reference types="reflect-metadata" />
 import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
 import { PLATFORM } from './platform';
-import { Reporter } from './reporter';
+import { Reporter, Tracer } from './reporter';
+
+const slice = Array.prototype.slice;
 
 export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
@@ -474,12 +476,14 @@ export class Factory implements IFactory {
   }
 
   public construct(container: IContainer, dynamicDependencies?: Function[]): any {
+    if (Tracer.enabled) { Tracer.enter(`Factory.construct`, slice.call(arguments).concat(this.Type)); }
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
       ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
       : this.invoker.invoke(container, this.Type, this.dependencies);
 
     if (transformers === null) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return instance;
     }
 
@@ -487,6 +491,7 @@ export class Factory implements IFactory {
       instance = transformers[i](instance);
     }
 
+    if (Tracer.enabled) { Tracer.leave(); }
     return instance;
   }
 
@@ -624,9 +629,11 @@ export class Container implements IContainer {
   }
 
   public get(key: any): any {
+    if (Tracer.enabled) { Tracer.enter(`Container.get`, slice.call(arguments)); }
     validateKey(key);
 
     if (key.resolve) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return key.resolve(this, this);
     }
 
@@ -638,11 +645,13 @@ export class Container implements IContainer {
       if (resolver === undefined) {
         if (current.parent === null) {
           resolver = this.jitRegister(key, current);
+          if (Tracer.enabled) { Tracer.leave(); }
           return resolver.resolve(current, this);
         }
 
         current = current.parent;
       } else {
+        if (Tracer.enabled) { Tracer.leave(); }
         return resolver.resolve(current, this);
       }
     }

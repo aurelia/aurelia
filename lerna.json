@@ -11,6 +11,7 @@
     "packages/plugin-webpack",
     "packages/router",
     "packages/runtime",
+    "packages/runtime-html",
     "packages/testing",
     "packages/validation"
   ],

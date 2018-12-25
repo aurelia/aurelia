@@ -71,6 +71,7 @@ export * from './templating/lifecycle-render';
 export * from './templating/view';
 
 export * from './aurelia';
+export * from './configuration';
 export * from './definitions';
 export * from './dom';
 export * from './instructions';

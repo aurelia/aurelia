@@ -1,5 +1,5 @@
 import { Reporter, Tracer } from '@aurelia/kernel';
-import { INodeSequence, IRenderLocation } from '../dom.interfaces';
+import { INodeSequence, IRenderLocation } from '../dom';
 import {
   IAttach,
   IBindScope,
@@ -79,9 +79,6 @@ export class View implements IView {
 
   public hold(location: IRenderLocation, flags: LifecycleFlags): void {
     if (Tracer.enabled) { Tracer.enter('View.hold', slice.call(arguments)); }
-    if (!location.parentNode) { // unmet invariant: location must be a child of some other node
-      throw Reporter.error(60); // TODO: organize error codes
-    }
     this.location = location;
     if (Tracer.enabled) { Tracer.leave(); }
   }

@@ -14,7 +14,7 @@ import {
 } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
-import { INode, INodeSequence, IRenderLocation } from './dom.interfaces';
+import { INodeSequence, IRenderLocation } from './dom';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
 
 const slice = Array.prototype.slice;
@@ -28,7 +28,8 @@ export const enum State {
   isMounted             = 0b000000010000,
   isDetaching           = 0b000000100000,
   isUnbinding           = 0b000001000000,
-  isCached              = 0b000010000000
+  isCached              = 0b000010000000,
+  isContainerless       = 0b000100000000
 }
 
 export const enum Hooks {
@@ -103,8 +104,8 @@ export const IRenderable = DI.createInterface<IRenderable>().noDefault();
 
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;
-  render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: unknown, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IRenderable, target: unknown, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: unknown, locationIsContainer?: boolean): IDisposable;
+  render(renderable: IRenderable, targets: ArrayLike<Object>, templateDefinition: TemplateDefinition, host?: Object, parts?: TemplatePartDefinitions): void;
+  beginComponentOperation(renderable: IRenderable, target: Object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: Object, locationIsContainer?: boolean): IDisposable;
 }
 
 export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
@@ -259,7 +260,7 @@ export interface ILifecycleAttaching extends IHooks, IState {
    * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
    * the nodes are added to the DOM.
    */
-  attaching?(flags: LifecycleFlags, encapsulationSource?: INode): void;
+  attaching?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleAttached extends IHooks, IState {
@@ -354,7 +355,7 @@ export interface ILifecycleCache {
 export interface ICachable extends ILifecycleCache { }
 
 export interface ILifecycleAttach {
-  $attach(flags: LifecycleFlags, encapsulationSource?: INode): void;
+  $attach(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleDetach {

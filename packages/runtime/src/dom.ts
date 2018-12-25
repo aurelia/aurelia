@@ -1,24 +1,44 @@
-import {
-  DI,
-  IContainer,
-  IResolver,
-  PLATFORM,
-  Writable
-} from '@aurelia/kernel';
-import {
-  IChildNode,
-  IComment,
-  IDocumentFragment,
-  IHTMLElement,
-  IHTMLTemplateElement,
-  IMutationObserver,
-  INode,
-  INodeSequence,
-  IParentNode,
-  IRenderLocation,
-  IText,
-  NodeType
-} from './dom.interfaces';
+import { DI, IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
+
+export interface INode extends Object {}
+
+export const INode = DI.createInterface<INode>().noDefault();
+
+export const IRenderLocation = DI.createInterface<IRenderLocation>().noDefault();
+export interface IRenderLocation extends INode {
+  $start?: IRenderLocation;
+  $nodes?: INodeSequence | Readonly<{}>;
+}
+
+/**
+ * Represents a DocumentFragment
+ */
+export interface INodeSequence extends INode {
+  /**
+   * The nodes of this sequence.
+   */
+  childNodes: ArrayLike<INode>;
+
+  /**
+   * Find all instruction targets in this sequence.
+   */
+  findTargets(): ArrayLike<INode>;
+
+  /**
+   * Insert this sequence as a sibling before refNode
+   */
+  insertBefore(refNode: INode): void;
+
+  /**
+   * Append this sequence as a child to parent
+   */
+  appendTo(parent: INode): void;
+
+  /**
+   * Remove this sequence from its parent.
+   */
+  remove(): void;
+}
 
 export const IDOM = DI.createInterface<IDOM>().noDefault();
 
@@ -26,20 +46,20 @@ export interface IDOM {
   addClass(node: unknown, className: string): void;
   addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
   appendChild(parent: unknown, child: unknown): void;
-  attachShadow(host: unknown, options: unknown): IDocumentFragment;
+  attachShadow(host: unknown, options: unknown): INode;
   cloneNode<T>(node: T, deep?: boolean): T;
   convertToRenderLocation(node: unknown): IRenderLocation;
-  createComment(text: string): IComment;
-  createDocumentFragment(markupOrNode?: unknown): IDocumentFragment;
-  createElement(name: string): IHTMLElement;
-  createNodeObserver(target: unknown, callback: unknown, options: unknown): IMutationObserver;
-  createTemplate(markup?: unknown): IHTMLTemplateElement;
-  createTextNode(text: string): IText;
+  createComment(text: string): INode;
+  createDocumentFragment(markupOrNode?: unknown): INode;
+  createElement(name: string): INode;
+  createNodeObserver(target: unknown, callback: unknown, options: unknown): void;
+  createTemplate(markup?: unknown): INode;
+  createTextNode(text: string): INode;
   getAttribute(node: unknown, name: string): string;
   hasClass(node: unknown, className: string): boolean;
   hasParent(node: unknown): boolean;
   insertBefore(nodeToInsert: unknown, referenceNode: unknown): void;
-  isMarker(node: unknown): node is IHTMLElement;
+  isMarker(node: unknown): node is INode;
   isNodeInstance(potentialNode: unknown): potentialNode is INode;
   isRenderLocation(node: unknown): node is IRenderLocation;
   registerElementResolver(container: IContainer, resolver: IResolver): void;
@@ -55,13 +75,11 @@ export interface IDOM {
 // It's used in various places to avoid null and to encode
 // the explicit idea of "no view".
 const emptySequence: INodeSequence = {
-  firstChild: null,
-  lastChild: null,
   childNodes: PLATFORM.emptyArray,
-  findTargets(): ReturnType<INodeSequence['findTargets']> { return PLATFORM.emptyArray; },
-  insertBefore(refNode: INode): ReturnType<INodeSequence['insertBefore']> { /*do nothing*/ },
-  appendTo(parent: INode): ReturnType<INodeSequence['appendTo']> { /*do nothing*/ },
-  remove(): ReturnType<INodeSequence['remove']> { /*do nothing*/ }
+  findTargets(): ArrayLike<INode> { return PLATFORM.emptyArray; },
+  insertBefore(refNode: INode): void { /*do nothing*/ },
+  appendTo(parent: INode): void { /*do nothing*/ },
+  remove(): void { /*do nothing*/ }
 };
 
 export const NodeSequence = {
@@ -71,37 +89,3 @@ export const NodeSequence = {
 export interface INodeSequenceFactory {
   createNodeSequence(): INodeSequence;
 }
-
-export interface AuMarker extends INode { }
-
-/** @internal */
-export class AuMarker implements INode {
-  public get parentNode(): INode & IParentNode {
-    return this.nextSibling.parentNode;
-  }
-  public readonly nextSibling: INode;
-  public readonly previousSibling: INode;
-  public readonly content?: INode;
-  public readonly firstChild: IChildNode;
-  public readonly lastChild: IChildNode;
-  public readonly childNodes: ArrayLike<IChildNode>;
-  public readonly nodeName: 'AU-M';
-  public readonly nodeType: NodeType.Element;
-
-  public textContent: string;
-
-  constructor(next: INode) {
-    this.nextSibling = next;
-    this.textContent = '';
-  }
-  public remove(): void { /* do nothing */ }
-}
-
-(proto => {
-  proto.previousSibling = null;
-  proto.firstChild = null;
-  proto.lastChild = null;
-  proto.childNodes = PLATFORM.emptyArray;
-  proto.nodeName = 'AU-M';
-  proto.nodeType = NodeType.Element;
-})(AuMarker.prototype as Writable<AuMarker>);

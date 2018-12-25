@@ -1,5 +1,5 @@
 import { inject, IRegistry } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom.interfaces';
+import { IRenderLocation } from '../../dom';
 import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
 import { IBindingContext, LifecycleFlags } from '../../observation';
 import { Scope } from '../../observation/binding-context';

@@ -1,13 +1,12 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
-import { IDOM } from './dom';
-import { INode } from './dom.interfaces';
+import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './observation';
 import { IRenderingEngine } from './rendering-engine';
-import { CustomElementResource, ICustomElement, ICustomElementType } from './resources/custom-element';
+import { CustomElementResource, ICustomElement, ICustomElementType, IProjectorLocator } from './resources/custom-element';
 
-export interface ISinglePageApp {
+export interface ISinglePageApp<THost extends INode = INode> {
   dom?: IDOM;
-  host: unknown;
+  host: THost;
   component: unknown;
 }
 
@@ -56,11 +55,12 @@ export class Aurelia {
         this._root = component;
         this.components.push(component);
         const re = this.container.get(IRenderingEngine);
-        component.$hydrate(dom, re, host);
+        const pl = this.container.get(IProjectorLocator);
+        component.$hydrate(dom, pl, re, host);
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
-      component.$attach(LifecycleFlags.fromStartTask | LifecycleFlags.fromAttach, host);
+      component.$attach(LifecycleFlags.fromStartTask | LifecycleFlags.fromAttach);
     };
 
     this.startTasks.push(startTask);

@@ -1,6 +1,7 @@
 import {
   Class,
   Constructable,
+  DI,
   IContainer,
   IResourceKind,
   IResourceType,
@@ -17,8 +18,7 @@ import {
   ITemplateDefinition,
   TemplateDefinition
 } from '../definitions';
-import { IDOM } from '../dom';
-import { INode } from '../dom.interfaces';
+import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import {
   Hooks,
   IAttach,
@@ -43,20 +43,38 @@ import {
 } from '../templating/lifecycle-bind';
 import {
   $hydrateElement,
-  defaultShadowOptions,
-  ICustomElementHost,
-  IElementProjector,
   ILifecycleRender
 } from '../templating/lifecycle-render';
 
-type CustomElementStaticProperties = Pick<TemplateDefinition, 'containerless' | 'shadowOptions' | 'bindables'>;
-
-export type CustomElementConstructor = Constructable & CustomElementStaticProperties;
-
-export interface ICustomElementType extends
-  IResourceType<ITemplateDefinition, ICustomElement>,
-  CustomElementStaticProperties {
+export interface ICustomElementType extends IResourceType<ITemplateDefinition, ICustomElement>, ICustomElementStaticProperties {
   description: TemplateDefinition;
+}
+
+export type CustomElementHost<T extends INode = INode> = IRenderLocation & T & {
+  $customElement?: ICustomElement;
+};
+
+export interface IElementProjector {
+  readonly host: CustomElementHost;
+  readonly children: ArrayLike<CustomElementHost>;
+
+  provideEncapsulationSource(): INode;
+  project(nodes: INodeSequence): void;
+  take(nodes: INodeSequence): void;
+
+  subscribeToChildrenChange(callback: () => void): void;
+}
+
+export const IProjectorLocator = DI.createInterface<IProjectorLocator>().noDefault();
+
+export interface IProjectorLocator {
+  getElementProjector(dom: IDOM, $component: ICustomElement, host: CustomElementHost, def: TemplateDefinition): IElementProjector;
+}
+
+export interface ICustomElementStaticProperties {
+  containerless?: TemplateDefinition['containerless'];
+  shadowOptions?: TemplateDefinition['shadowOptions'];
+  bindables?: TemplateDefinition['bindables'];
 }
 
 export interface ICustomElement extends
@@ -70,16 +88,14 @@ export interface ICustomElement extends
   IRenderable {
 
   readonly $projector: IElementProjector;
-  readonly $host: ICustomElementHost;
-  $hydrate(dom: IDOM, renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+  readonly $host: CustomElementHost;
+  $hydrate(dom: IDOM, projectorLocator: IProjectorLocator, renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
 export interface ICustomElementResource extends
-  IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & CustomElementStaticProperties> {
+  IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & ICustomElementStaticProperties> {
   behaviorFor(node: INode): ICustomElement | null;
 }
-
-type CustomElementDecorator = <T extends Constructable>(target: T) => T & ICustomElementType;
 
 /** @internal */
 export function registerElement(this: ICustomElementType, container: IContainer): void {
@@ -90,52 +106,10 @@ export function registerElement(this: ICustomElementType, container: IContainer)
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-export function customElement(name: string): CustomElementDecorator;
-export function customElement(definition: ITemplateDefinition): CustomElementDecorator;
-export function customElement(nameOrDefinition: string | ITemplateDefinition): CustomElementDecorator {
-  return (target => CustomElementResource.define(nameOrDefinition, target)) as CustomElementDecorator;
-}
-
-type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
-
-/**
- * Decorator: Indicates that the custom element should render its view in ShadowDOM.
- */
-export function useShadowDOM<T extends Constructable>(options?: HasShadowOptions['shadowOptions']): (target: T & HasShadowOptions) => T & Required<HasShadowOptions>;
-/**
- * Decorator: Indicates that the custom element should render its view in ShadowDOM.
- */
-export function useShadowDOM<T extends Constructable>(target: T & HasShadowOptions): T & Required<HasShadowOptions>;
-export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & HasShadowOptions) | HasShadowOptions['shadowOptions']): (T & Required<HasShadowOptions>) | ((target: T & HasShadowOptions) => (T & Required<HasShadowOptions>)) {
-  const options = typeof targetOrOptions === 'function' || !targetOrOptions
-    ? defaultShadowOptions
-    : targetOrOptions as HasShadowOptions['shadowOptions'];
-
-  function useShadowDOMDecorator(target: T & HasShadowOptions): T & Required<HasShadowOptions> {
-    target.shadowOptions = options;
-    return target as T & Required<HasShadowOptions>;
-  }
-
-  return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
-}
-
-type HasContainerless = Pick<ITemplateDefinition, 'containerless'>;
-
-function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless> {
-  target.containerless = true;
-  return target as T & Required<HasContainerless>;
-}
-
-/**
- * Decorator: Indicates that the custom element should be rendered without its element container.
- */
-export function containerless(): typeof containerlessDecorator;
-/**
- * Decorator: Indicates that the custom element should be rendered without its element container.
- */
-export function containerless<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless>;
-export function containerless<T extends Constructable>(target?: T & HasContainerless): T & Required<HasContainerless> | typeof containerlessDecorator {
-  return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
+export function customElement(name: string): ICustomElementDecorator;
+export function customElement(definition: ITemplateDefinition): ICustomElementDecorator;
+export function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator {
+  return (target => CustomElementResource.define(nameOrDefinition, target)) as ICustomElementDecorator;
 }
 
 function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType {
@@ -251,3 +225,55 @@ export const CustomElementResource: ICustomElementResource = {
 // The projector adds a mutation observer to the parent node of the
 // slot comment. When direct children of that node change, the projector
 // will gather up all nodes between the start and end slot comments.
+
+export interface ICustomElementDecorator {
+  // Using a type breaks syntax highlighting: https://github.com/Microsoft/TypeScript-TmLanguage/issues/481
+  // tslint:disable-next-line:callable-types
+  <T extends Constructable>(target: T): T & ICustomElementType;
+}
+
+type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
+
+const defaultShadowOptions = {
+  mode: 'open' as 'open' | 'closed'
+};
+
+/**
+ * Decorator: Indicates that the custom element should render its view in ShadowDOM.
+ */
+export function useShadowDOM<T extends Constructable>(options?: HasShadowOptions['shadowOptions']): (target: T & HasShadowOptions) => T & Required<HasShadowOptions>;
+/**
+ * Decorator: Indicates that the custom element should render its view in ShadowDOM.
+ */
+export function useShadowDOM<T extends Constructable>(target: T & HasShadowOptions): T & Required<HasShadowOptions>;
+export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & HasShadowOptions) | HasShadowOptions['shadowOptions']): (T & Required<HasShadowOptions>) | ((target: T & HasShadowOptions) => (T & Required<HasShadowOptions>)) {
+  const options = typeof targetOrOptions === 'function' || !targetOrOptions
+    ? defaultShadowOptions
+    : targetOrOptions as HasShadowOptions['shadowOptions'];
+
+  function useShadowDOMDecorator(target: T & HasShadowOptions): T & Required<HasShadowOptions> {
+    target.shadowOptions = options;
+    return target as T & Required<HasShadowOptions>;
+  }
+
+  return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
+}
+
+type HasContainerless = Pick<ITemplateDefinition, 'containerless'>;
+
+function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless> {
+  target.containerless = true;
+  return target as T & Required<HasContainerless>;
+}
+
+/**
+ * Decorator: Indicates that the custom element should be rendered without its element container.
+ */
+export function containerless(): typeof containerlessDecorator;
+/**
+ * Decorator: Indicates that the custom element should be rendered without its element container.
+ */
+export function containerless<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless>;
+export function containerless<T extends Constructable>(target?: T & HasContainerless): T & Required<HasContainerless> | typeof containerlessDecorator {
+  return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
+}

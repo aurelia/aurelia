@@ -14,9 +14,9 @@ import {
   ISetPropertyInstruction,
   ITemplateDefinition,
   TargetedInstruction,
-  TargetedInstructionType
+  TargetedInstructionType,
+  ITargetedInstruction
 } from './definitions';
-import { INode } from './dom.interfaces';
 
 export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation;
@@ -161,15 +161,13 @@ export class SetPropertyInstruction implements ISetPropertyInstruction {
 export class HydrateElementInstruction implements IHydrateElementInstruction {
   public type: TargetedInstructionType.hydrateElement;
 
-  public contentOverride?: INode;
-  public instructions: TargetedInstruction[];
+  public instructions: ITargetedInstruction[];
   public parts?: Record<string, ITemplateDefinition>;
   public res: string;
 
-  constructor(res: string, instructions: TargetedInstruction[], parts?: Record<string, ITemplateDefinition>, contentOverride?: INode) {
+  constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, ITemplateDefinition>) {
     this.type = TargetedInstructionType.hydrateElement;
 
-    this.contentOverride = contentOverride;
     this.instructions = instructions;
     this.parts = parts;
     this.res = res;
@@ -179,10 +177,10 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
 export class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
   public type: TargetedInstructionType.hydrateAttribute;
 
-  public instructions: TargetedInstruction[];
+  public instructions: ITargetedInstruction[];
   public res: string;
 
-  constructor(res: string, instructions: TargetedInstruction[]) {
+  constructor(res: string, instructions: ITargetedInstruction[]) {
     this.type = TargetedInstructionType.hydrateAttribute;
 
     this.instructions = instructions;
@@ -194,11 +192,11 @@ export class HydrateTemplateController implements IHydrateTemplateController {
   public type: TargetedInstructionType.hydrateTemplateController;
 
   public def: ITemplateDefinition;
-  public instructions: TargetedInstruction[];
+  public instructions: ITargetedInstruction[];
   public link?: boolean;
   public res: string;
 
-  constructor(def: ITemplateDefinition, res: string, instructions: TargetedInstruction[], link?: boolean) {
+  constructor(def: ITemplateDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean) {
     this.type = TargetedInstructionType.hydrateTemplateController;
 
     this.def = def;

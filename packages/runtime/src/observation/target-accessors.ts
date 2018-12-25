@@ -1,13 +1,12 @@
-import { IIndexable } from '@aurelia/kernel';
 import { IBindingTargetAccessor } from '../observation';
 
-export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string> {}
+export interface PropertyAccessor extends IBindingTargetAccessor<Object, string> {}
 
 export class PropertyAccessor implements PropertyAccessor {
-  public obj: IIndexable;
+  public obj: Object;
   public propertyKey: string;
 
-  constructor(obj: IIndexable, propertyKey: string) {
+  constructor(obj: Object, propertyKey: string) {
     this.obj = obj;
     this.propertyKey = propertyKey;
   }

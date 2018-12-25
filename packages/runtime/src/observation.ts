@@ -300,7 +300,7 @@ export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj
   IAccessor<TObj[TProp]>,
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection<MutationKind.instance> {
-  /** @internal */observing: boolean;
+  observing: boolean;
 }
 
 /**

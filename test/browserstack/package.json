@@ -21,7 +21,7 @@
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.10",
+    "@types/node": "^10.12.18",
     "@types/webdriverio": "^4.13.0",
     "allure-commandline": "^2.8.1",
     "browserify": "^16.2.3",
@@ -37,7 +37,7 @@
     "ts-node": "^7.0.1",
     "tsify": "^4.0.1",
     "tslib": "^1.9.3",
-    "typescript": "^3.1.6",
+    "typescript": "^3.2.2",
     "wdio": "^3.0.0",
     "wdio-allure-reporter": "^0.8.3",
     "wdio-mocha-framework": "^0.6.4"

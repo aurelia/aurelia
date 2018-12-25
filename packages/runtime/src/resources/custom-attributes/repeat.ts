@@ -6,7 +6,7 @@ import { IBindScope, IRenderable, IView, IViewFactory, State } from '../../lifec
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
-import { SetterObserver } from '../../observation/property-observation';
+import { SetterObserver } from '../../observation/setter-observer';
 import { bindable } from '../../templating/bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 

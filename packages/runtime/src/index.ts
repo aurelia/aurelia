@@ -41,10 +41,12 @@ export * from './observation/collection-observer';
 export * from './observation/computed-observer';
 export * from './observation/dirty-checker';
 export * from './observation/observer-locator';
-export * from './observation/property-observation';
+export * from './observation/primitive-observer';
+export * from './observation/property-accessor';
+export * from './observation/self-observer';
+export * from './observation/setter-observer';
 export * from './observation/signaler';
 export * from './observation/subscriber-collection';
-export * from './observation/target-accessors';
 export * from './observation/target-observer';
 
 export * from './resources/binding-behavior';

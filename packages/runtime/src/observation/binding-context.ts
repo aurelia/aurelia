@@ -9,7 +9,7 @@ import {
   ObserversLookup,
   PropertyObserver
 } from '../observation';
-import { SetterObserver } from './property-observation';
+import { SetterObserver } from './setter-observer';
 
 const slice = Array.prototype.slice;
 

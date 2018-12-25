@@ -17,9 +17,10 @@ import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
 import { getMapObserver } from './map-observer';
-import { PrimitiveObserver, SetterObserver } from './property-observation';
+import { PrimitiveObserver } from './primitive-observer';
+import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
-import { PropertyAccessor } from './target-accessors';
+import { SetterObserver } from './setter-observer';
 
 const toStringTag = Object.prototype.toString;
 

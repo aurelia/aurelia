@@ -40,7 +40,7 @@ import {
   LifecycleFlags,
   MutationKind
 } from './observation';
-import { Observer } from './observation/property-observation';
+import { SelfObserver } from './observation/self-observer';
 import { subscriberCollection } from './observation/subscriber-collection';
 import { ICustomAttribute, ICustomAttributeType } from './resources/custom-attribute';
 import { ICustomElement, ICustomElementType } from './resources/custom-element';
@@ -473,7 +473,7 @@ export class RuntimeBehavior {
     for (let i = 0, ii = observableNames.length; i < ii; ++i) {
       const name = observableNames[i];
 
-      observers[name] = new Observer(
+      observers[name] = new SelfObserver(
         instance,
         name,
         bindables[name].callback

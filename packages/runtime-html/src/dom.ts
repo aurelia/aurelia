@@ -1,5 +1,5 @@
 import { Constructable, IContainer, IResolver, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
-import { IDOM, INode, INodeSequence, IRenderLocation, NodeSequence } from '@aurelia/runtime';
+import { CompiledTemplate, IDOM, IDOMInitializer, INode, INodeSequence, IRenderContext, IRenderLocation, ISinglePageApp, ITemplate, ITemplateFactory, NodeSequence, TemplateDefinition } from '@aurelia/runtime';
 
 export const enum NodeType {
   Element = 1,
@@ -203,7 +203,7 @@ export class FragmentNodeSequence implements INodeSequence {
   private start: IRenderLocation & Comment;
   private targets: ArrayLike<Node>;
 
-  constructor(dom: HTMLDOM, fragment: DocumentFragment) {
+  constructor(dom: IDOM, fragment: DocumentFragment) {
     this.dom = dom;
     this.fragment = fragment;
     // tslint:disable-next-line:no-any
@@ -323,14 +323,14 @@ export interface NodeSequenceFactory {
 }
 
 export class NodeSequenceFactory implements NodeSequenceFactory {
-  private readonly dom: HTMLDOM;
+  private readonly dom: IDOM;
   private readonly deepClone: boolean;
   private readonly node: Node;
   private readonly Type: Constructable;
 
-  constructor(dom: HTMLDOM, markupOrNode: string | Node) {
+  constructor(dom: IDOM, markupOrNode: string | Node) {
     this.dom = dom;
-    const fragment = dom.createDocumentFragment(markupOrNode);
+    const fragment = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
     const childNodes = fragment.childNodes;
     switch (childNodes.length) {
       case 0:
@@ -389,3 +389,48 @@ export class AuMarker implements INode {
   proto.nodeName = 'AU-M';
   proto.nodeType = NodeType.Element;
 })(AuMarker.prototype as Writable<AuMarker>);
+
+export class HTMLDOMInitializer implements IDOMInitializer {
+  public static inject: unknown[] = [IContainer];
+
+  private readonly container: IContainer;
+
+  constructor(container: IContainer) {
+    this.container = container;
+  }
+
+  /**
+   * Either create a new HTML `DOM` backed by the supplied `document` or uses the supplied `DOM` directly.
+   *
+   * If no argument is provided, uses the default global `document` variable.
+   * (this will throw an error in non-browser environments).
+   */
+  public initialize(config: ISinglePageApp<Node>): IDOM {
+    if (this.container.has(IDOM, false)) {
+      return this.container.get(IDOM);
+    }
+    let dom: IDOM;
+    if (config.dom !== undefined) {
+      dom = config.dom;
+    } else if (config.host.ownerDocument !== null) {
+      dom = new HTMLDOM(config.host.ownerDocument);
+    } else {
+      dom = new HTMLDOM(document);
+    }
+    return dom;
+  }
+}
+
+export class HTMLTemplateFactory implements ITemplateFactory {
+  public static inject: unknown[] = [IDOM];
+
+  private readonly dom: IDOM;
+
+  constructor(dom: IDOM) {
+    this.dom = dom;
+  }
+
+  public create(parentRenderContext: IRenderContext, definition: TemplateDefinition): ITemplate {
+    return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node), parentRenderContext);
+  }
+}

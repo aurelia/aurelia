@@ -1,7 +1,17 @@
-import { match } from 'sinon';
-import { ArrayObserver, enableArrayObservation, disableArrayObservation, Lifecycle, IndexMap, LifecycleFlags } from '../../src/index';
 import { expect } from 'chai';
-import { stringify, SpySubscriber } from '../util';
+import { match } from 'sinon';
+import {
+  ArrayObserver,
+  disableArrayObservation,
+  enableArrayObservation,
+  IndexMap,
+  Lifecycle,
+  LifecycleFlags
+} from '../../src/index';
+import {
+  SpySubscriber,
+  stringify
+} from '../util';
 
 function assertArrayEqual(actual: any[], expected: any[]): void {
   const len = actual.length;
@@ -11,8 +21,8 @@ function assertArrayEqual(actual: any[], expected: any[]): void {
     if (actual[i] !== expected[i]) {
       const start = Math.max(i - 3, 0);
       const end = Math.min(i + 3, len);
-      let $actual = actual.slice(start, end).map(stringify).join(',');
-      let $expected = expected.slice(start, end).map(stringify).join(',');
+      const $actual = actual.slice(start, end).map(stringify).join(',');
+      const $expected = expected.slice(start, end).map(stringify).join(',');
       const prefix = `[${start > 0 ? '...,' : ''}`;
       const suffix = `${end < len ? ',...' : ''}]`;
       throw new Error(`expected ${prefix}${$actual}${suffix} to equal ${prefix}${$expected}${suffix}`);
@@ -327,8 +337,8 @@ describe(`ArrayObserver`, () => {
                   if (items === undefined) {
                     if (deleteCount === undefined) {
                       if (start === undefined) {
-                        expectedResult = (<any>expectedArr).splice();
-                        actualResult = (<any>arr).splice();
+                        expectedResult = (expectedArr as any).splice();
+                        actualResult = (arr as any).splice();
                       } else {
                         expectedResult = expectedArr.splice(start);
                         actualResult = arr.splice(start);
@@ -452,7 +462,7 @@ describe(`ArrayObserver`, () => {
               expect(actualResult).to.equal(arr);
               try {
                 assertArrayEqual(arr, expectedArr);
-              } catch(e) {
+              } catch (e) {
                 if (compareFn !== undefined) {
                   // a browser may wrap a custom sort function to normalize the results
                   // so don't consider this a failed test, but just warn so we know about it
@@ -472,7 +482,7 @@ describe(`ArrayObserver`, () => {
             });
 
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - tracks changes`, () => {
-              let arr = init.slice();
+              const arr = init.slice();
               const copy = init.slice();
               sut = new ArrayObserver(new Lifecycle(), arr);
               arr.sort(compareFn);
@@ -501,7 +511,7 @@ function getNumberFactory(arraySize: number) {
   const middle = (arraySize / 2) | 0;
   return (i) => {
     return i < middle ? arraySize - i : i;
-  }
+  };
 }
 
 function getValueFactory(getNumber: Function, type: string, types: string[]): Function {
@@ -517,7 +527,7 @@ function getValueFactory(getNumber: Function, type: string, types: string[]): Fu
     case 'number':
       return getNumber;
     case 'object':
-      return (i) => {[getNumber(i)]};
+      return (i) => {[getNumber(i)]; };
     case 'mixed':
       const factories = [
         getValueFactory(getNumber, types[0], types),
@@ -531,7 +541,7 @@ function getValueFactory(getNumber: Function, type: string, types: string[]): Fu
   }
 }
 
-function synchronize(oldArr: Array<Object>, indexMap: Array<number>, newArr: Array<Object>): void {
+function synchronize(oldArr: Object[], indexMap: number[], newArr: Object[]): void {
   if (newArr.length === 0 && oldArr.length === 0) {
     return;
   }
@@ -559,7 +569,7 @@ function incrementItems(items: number[], by: number): void {
     return;
   }
   let i = 0;
-  let len = items.length;
+  const len = items.length;
   while (i < len) {
     if (typeof items[i] === 'number') {
       items[i] += by;

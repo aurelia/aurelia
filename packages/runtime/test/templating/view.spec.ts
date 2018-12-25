@@ -359,7 +359,7 @@ describe(`View`, () => {
 
           expect(sut).to.not.have.$state.isAttached('sut.$isAttached');
           if (attach === PLATFORM.noop) {
-            //expect(sut.$encapsulationSource).to.be.undefined;
+            //expect(sut.$encapsulationSource).to.equal(undefined);
 
             // verify short-circuit if already detached
             const s = spy(lifecycle, <any>'enqueueUnmount');
@@ -372,7 +372,7 @@ describe(`View`, () => {
           if (sut.$attachableHead) {
             expect(sut.$attachableHead).to.not.have.$state.isAttached('sut.$attachableHead.$isAttached');
             if (attach === PLATFORM.noop) {
-              //expect(sut.$attachableHead.$encapsulationSource).to.be.undefined;
+              //expect(sut.$attachableHead.$encapsulationSource).to.equal(undefined);
             } else {
               //expect(sut.$attachableHead.$encapsulationSource).to.equal(source);
             }

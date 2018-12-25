@@ -1,50 +1,72 @@
-import { CallScope, BindingBehavior, ExpressionKind } from '../../src/index';
-import { spy, SinonSpy } from 'sinon';
-import { IExpression, IObserverLocator, AccessScope, LifecycleFlags, IScope, ILifecycle, SetterObserver, Call, DOM, IDOM } from '../../src/index';
-import { DI, Registration } from '@aurelia/kernel';
-import { createScopeForTest } from './shared';
 import { expect } from 'chai';
-import { _, massSpy, massReset, massRestore, eachCartesianJoinFactory } from '../util';
+import {
+  SinonSpy,
+  spy
+} from 'sinon';
+import {
+  AccessScope,
+  BindingBehavior,
+  Call,
+  CallScope,
+  ExpressionKind,
+  IExpression,
+  ILifecycle,
+  IScope,
+  Lifecycle,
+  LifecycleFlags,
+  RuntimeConfiguration,
+  SetterObserver
+} from '../../src/index';
+import { createScopeForTest } from '../shared';
+import {
+  _,
+  createObserverLocator,
+  eachCartesianJoinFactory,
+  massReset,
+  massRestore,
+  massSpy
+} from '../util';
 
-const dom = new DOM(<any>document);
-const domRegistration = Registration.instance(IDOM, dom);
-
-describe('Call', () => {
+describe.only('Call', () => {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
-    const container = DI.createContainer();
-    container.register(domRegistration);
-    const lifecycle = container.get(ILifecycle);
-    const observerLocator = container.get(IObserverLocator);
-    const sut = new Call(sourceExpression, target, targetProperty, observerLocator, container);
+    const container = RuntimeConfiguration.createContainer();
+    const lifecycle = container.get(ILifecycle) as Lifecycle;
+    const observerLocator = createObserverLocator(container);
+    const sut = new Call(sourceExpression as any, target, targetProperty, observerLocator, container);
 
     return { sut, lifecycle, container, observerLocator };
   }
 
   describe('$bind -> $bind', () => {
 
-    eachCartesianJoinFactory(
-      [
-        <(() => [{}, string])[]>[
-          () => [({}), `{}`],
-          () => [({ fooz: () => {} }), `fooz:()=>{}`]
-        ],
-        <(() => [string, string])[]>[
-          () => ['fooz', `'fooz' `],
-          () => ['barz', `'barz' `]
-        ],
-        <(() => [IExpression, string])[]>[
-          () => [new CallScope('theFunc', []),          `theFunc()`],
-          () => [new BindingBehavior(new CallScope('theFunc', []), 'debounce', []),          `theFunc()`]
-        ],
-        <(() => [IScope, string])[]>[
-          () => [createScopeForTest({theFunc: () => {}}),       `{theFunc:()=>{}}       `]
-        ],
-        <(() => [boolean, string])[]>[
-          () => [true,       `true`],
-          () => [false,       `false`]
-        ]
-      ],
-      ([target, $1], [prop, $2], [expr, $3], [scope, $4], [renewScope, $5]) => {
+    const targetVariations: (() => [{foo?: string}, string])[] = [
+      () => [({}), `{}`],
+      () => [({ fooz: () => {} }), `fooz:()=>{}`]
+    ];
+
+    const propVariations: (() => [string, string])[] = [
+      () => ['fooz', `'fooz' `],
+      () => ['barz', `'barz' `]
+    ];
+
+    const exprVariations: (() => [IExpression, string])[] = [
+      () => [new CallScope('theFunc', []),          `theFunc()`],
+      () => [new BindingBehavior(new CallScope('theFunc', []), 'debounce', []),          `theFunc()`]
+    ];
+
+    const scopeVariations: (() => [IScope, string])[] = [
+      () => [createScopeForTest({theFunc: () => {}}),       `{theFunc:()=>{}}       `]
+    ];
+
+    const renewScopeVariations: (() => [boolean, string])[] = [
+      () => [true,       `true`],
+      () => [false,       `false`]
+    ];
+
+    const inputs: [typeof targetVariations, typeof propVariations, typeof exprVariations, typeof scopeVariations, typeof renewScopeVariations]
+       = [targetVariations, propVariations, exprVariations, scopeVariations, renewScopeVariations];
+
+    eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4], [renewScope, $5]) => {
         it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, () => {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
@@ -55,7 +77,7 @@ describe('Call', () => {
           massSpy(sut, 'callSource');
           massSpy(targetObserver, 'setValue', 'getValue');
           massSpy(expr, 'evaluate', 'assign', 'connect');
-          (<any>expr).$kind |= ExpressionKind.HasBind | ExpressionKind.HasUnbind;
+          (expr as any).$kind |= ExpressionKind.HasBind | ExpressionKind.HasUnbind;
           expr['bind'] = spy();
           expr['unbind'] = spy();
 
@@ -101,30 +123,34 @@ describe('Call', () => {
           expect(lifecycle.flushCount).to.equal(0);
         });
       }
-    )
+    );
   });
 
   describe('$bind -> $unbind -> $unbind', () => {
 
-    eachCartesianJoinFactory(
-      [
-        <(() => [{}, string])[]>[
-          () => [({}), `{}`],
-          () => [({ fooz: () => {} }), `fooz:()=>{}`]
-        ],
-        <(() => [string, string])[]>[
-          () => ['fooz', `'fooz' `],
-          () => ['barz', `'barz' `]
-        ],
-        <(() => [IExpression, string])[]>[
-          () => [new CallScope('theFunc', []),          `theFunc()`],
-          () => [new BindingBehavior(new CallScope('theFunc', []), 'debounce', []),          `theFunc()`]
-        ],
-        <(() => [IScope, string])[]>[
-          () => [createScopeForTest({theFunc: () => {}}),       `{theFunc:()=>{}}       `]
-        ]
-      ],
-      ([target, $1], [prop, $2], [expr, $3], [scope, $4]) => {
+    const targetVariations: (() => [{foo?: string}, string])[] = [
+      () => [({}), `{}`],
+      () => [({ fooz: () => {} }), `fooz:()=>{}`]
+    ];
+
+    const propVariations: (() => [string, string])[] = [
+      () => ['fooz', `'fooz' `],
+      () => ['barz', `'barz' `]
+    ];
+
+    const exprVariations: (() => [IExpression, string])[] = [
+      () => [new CallScope('theFunc', []),          `theFunc()`],
+      () => [new BindingBehavior(new CallScope('theFunc', []), 'debounce', []),          `theFunc()`]
+    ];
+
+    const scopeVariations: (() => [IScope, string])[] = [
+      () => [createScopeForTest({theFunc: () => {}}),       `{theFunc:()=>{}}       `]
+    ];
+
+    const inputs: [typeof targetVariations, typeof propVariations, typeof exprVariations, typeof scopeVariations]
+       = [targetVariations, propVariations, exprVariations, scopeVariations];
+
+    eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4]) => {
         it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, () => {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
@@ -135,7 +161,7 @@ describe('Call', () => {
           massSpy(sut, 'callSource');
           massSpy(targetObserver, 'setValue', 'getValue');
           massSpy(expr, 'evaluate', 'assign', 'connect');
-          (<any>expr).$kind |= ExpressionKind.HasBind | ExpressionKind.HasUnbind;
+          (expr as any).$kind |= ExpressionKind.HasBind | ExpressionKind.HasUnbind;
           expr['bind'] = spy();
           expr['unbind'] = spy();
 
@@ -167,7 +193,7 @@ describe('Call', () => {
           expect(sut.targetObserver).to.equal(targetObserver);
 
           expect(expr.unbind).to.have.been.calledOnce;
-          expect(target[prop]).to.be.null;
+          expect(target[prop]).to.equal(null);
 
           expect(lifecycle.flushCount).to.equal(0);
 
@@ -188,36 +214,41 @@ describe('Call', () => {
           expect(expr.unbind).not.to.have.been.called;
         });
       }
-    )
+    );
   });
 
   describe('$bind -> call -> $unbind', () => {
 
-    eachCartesianJoinFactory(
-      [
-        <(() => [{}, string])[]>[
-          () => [({}), `{}`],
-          () => [({ fooz: () => {} }), `fooz:()=>{}`]
-        ],
-        <(() => [string, string])[]>[
-          () => ['fooz', `'fooz' `],
-          () => ['barz', `'barz' `]
-        ],
-        <(() => [{}, string])[]>[
-          () => [{ arg1: 'asdf' }, `{} `],
-          () => [{ arg2: 42 }, `{} `],
-          () => [{ arg3: null }, `{} `],
-          () => [{ arg3: ';lkasdf', arg1: {}, arg2: 42  }, `{} `]
-        ],
-        <(() => [IExpression, string])[]>[
-          () => [new CallScope('theFunc', []),          `theFunc()`],
-          () => [new CallScope('theFunc', [new AccessScope('arg1'), new AccessScope('arg2'), new AccessScope('arg3')]), `theFunc(arg1, arg2, arg3)`]
-        ],
-        <(() => [IScope, string])[]>[
-          () => [createScopeForTest({theFunc: () => {}}),       `{theFunc:()=>{}}       `]
-        ]
-      ],
-      ([target, $1], [prop, $2], [args, $3], [expr, $4], [scope, $5]) => {
+    const targetVariations: (() => [{foo?: string}, string])[] = [
+      () => [({}), `{}`],
+      () => [({ fooz: () => {} }), `fooz:()=>{}`]
+    ];
+
+    const propVariations: (() => [string, string])[] = [
+      () => ['fooz', `'fooz' `],
+      () => ['barz', `'barz' `]
+    ];
+
+    const argsVariations: (() => [{}, string])[] = [
+      () => [{ arg1: 'asdf' }, `{} `],
+      () => [{ arg2: 42 }, `{} `],
+      () => [{ arg3: null }, `{} `],
+      () => [{ arg3: ';lkasdf', arg1: {}, arg2: 42  }, `{} `]
+    ];
+
+    const exprVariations: (() => [IExpression, string])[] = [
+      () => [new CallScope('theFunc', []),          `theFunc()`],
+      () => [new CallScope('theFunc', [new AccessScope('arg1'), new AccessScope('arg2'), new AccessScope('arg3')]), `theFunc(arg1, arg2, arg3)`]
+    ];
+
+    const scopeVariations: (() => [IScope, string])[] = [
+      () => [createScopeForTest({theFunc: () => {}}),       `{theFunc:()=>{}}       `]
+    ];
+
+    const inputs: [typeof targetVariations, typeof propVariations, typeof argsVariations, typeof exprVariations, typeof scopeVariations]
+       = [targetVariations, propVariations, argsVariations, exprVariations, scopeVariations];
+
+    eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [args, $3], [expr, $4], [scope, $5]) => {
         it(`$bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, () => {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
@@ -251,7 +282,7 @@ describe('Call', () => {
           target[prop](args);
 
           // - Assert -
-          expect((<SinonSpy>sut.callSource).getCalls()[0].args[0]).to.deep.equal(args);
+          expect((sut.callSource as SinonSpy).getCalls()[0].args[0]).to.deep.equal(args);
           expect(expr.evaluate).to.have.been.calledOnce;
           expect(target[prop]).to.have.been.calledOnce;
           if (expr['args'].length === 3) {
@@ -270,9 +301,9 @@ describe('Call', () => {
           sut.$unbind(flags);
 
           // - Assert -
-          expect(target[prop]).to.be.null;
+          expect(target[prop]).to.equal(null);
         });
       }
-    )
+    );
   });
 });

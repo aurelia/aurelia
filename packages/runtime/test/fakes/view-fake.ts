@@ -1,24 +1,18 @@
 import {
+  IAttach,
+  IBindScope,
+  ILifecycleUnbind,
+  IMountable,
+  INodeSequence,
+  IRenderContext,
+  IRenderLocation,
+  IScope,
   IView,
   IViewFactory,
-  LifecycleFlags,
-  IScope,
-  INode,
-  IRenderContext,
-  IBindScope,
-  IAttach,
-  INodeSequence,
-  IRenderLocation,
-  ILifecycle,
   Lifecycle,
-  NodeSequenceFactory,
+  LifecycleFlags,
   State,
-  IMountable,
-  ILifecycleUnbind,
-  DOM
-} from "../../../../src/index";
-
-const dom = new DOM(<any>document);
+} from '../../src/index';
 
 export class ViewFake implements IView {
   public $bindableHead: IBindScope = null;

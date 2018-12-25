@@ -6,13 +6,13 @@ describe('@containerless', () => {
     @containerless
     class Foo {}
 
-    expect(Foo['containerless']).to.be.true;
+    expect(Foo['containerless']).to.equal(true);
   });
 
   it(`invocation`, () => {
     @containerless()
     class Foo {}
 
-    expect(Foo['containerless']).to.be.true;
+    expect(Foo['containerless']).to.equal(true);
   });
 });

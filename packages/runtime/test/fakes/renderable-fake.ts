@@ -1,14 +1,4 @@
-import {
-  IRenderContext,
-  IBindScope,
-  IAttach,
-  IScope,
-  IRenderable,
-  INodeSequence,
-  ICustomElement,
-  ILifecycle
-} from "../../../../src/index";
-import { State } from "../../../../src/index";
+import { ICustomElement, IRenderable } from '../../src/index';
 
 export class RenderableFake implements IRenderable {
   public $context: IRenderable['$context'] = null;
@@ -22,7 +12,7 @@ export class RenderableFake implements IRenderable {
 
   public $scope: ICustomElement['$scope'] = null;
   public $hooks: ICustomElement['$hooks'] = 0;
-  public $state: ICustomElement['$state'] = State.needsMount;
+  public $state: ICustomElement['$state'] = 0;
 
   public $bindableHead: ICustomElement['$bindableHead'] = null;
   public $bindableTail: ICustomElement['$bindableTail'] = null;

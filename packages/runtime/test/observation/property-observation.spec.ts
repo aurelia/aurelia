@@ -1,7 +1,11 @@
-import { spy } from 'sinon';
 import { PLATFORM } from '@aurelia/kernel';
-import { PrimitiveObserver, SetterObserver, Lifecycle, LifecycleFlags, Observer } from '../../src/index';
 import { expect } from 'chai';
+import {
+  LifecycleFlags,
+  PrimitiveObserver,
+  SelfObserver,
+  SetterObserver
+} from '../../src/index';
 import { SpySubscriber } from '../util';
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
@@ -29,7 +33,7 @@ describe('PrimitiveObserver', () => {
             }
           } else {
             const actual = sut.getValue();
-            expect(actual).to.be.undefined;
+            expect(actual).to.equal(undefined);
           }
         });
       }
@@ -38,25 +42,25 @@ describe('PrimitiveObserver', () => {
 
   describe('setValue()', () => {
     it('is a no-op', () => {
-      expect(new PrimitiveObserver(null, 0).setValue === PLATFORM.noop).to.be.true;
+      expect(new PrimitiveObserver(null, 0).setValue === PLATFORM.noop).to.equal(true);
     });
   });
 
   describe('subscribe()', () => {
     it('is a no-op', () => {
-      expect(new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop).to.be.true;
+      expect(new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop).to.equal(true);
     });
   });
 
   describe('unsubscribe()', () => {
     it('is a no-op', () => {
-      expect(new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop).to.be.true;
+      expect(new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop).to.equal(true);
     });
   });
 
   describe('doNotCache', () => {
     it('is true', () => {
-      expect(new PrimitiveObserver(null, 0).doNotCache).to.be.true;
+      expect(new PrimitiveObserver(null, 0).doNotCache).to.equal(true);
     });
   });
 });
@@ -79,7 +83,7 @@ describe('SetterObserver', () => {
           // note: we're deliberately using explicit strict equality here (and in various other places) instead of expect(actual).to.equal(expected)
           // this is because .equal assertions can give false positives in certain edge cases, and triple-equals also speeds up the tests (which is needed with these quantities)
           // the obvious drawback is that the error messages are less helpful when tests fail, so a todo is to make a utility function that reports the differences when not equal
-          expect(actual === object[propertyName]).to.be.true;
+          expect(actual === object[propertyName]).to.equal(true);
         });
       }
     }
@@ -97,7 +101,7 @@ describe('SetterObserver', () => {
             sut = new SetterObserver(object, <any>propertyName);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
-            expect(object[propertyName] === value).to.be.true;
+            expect(object[propertyName] === value).to.equal(true);
           });
         }
       }
@@ -164,8 +168,8 @@ describe('Observer', () => {
   it('use noop function as default callback', () => {
     const values = createObjectArr();
     values.forEach(value => {
-      const observer = new Observer({}, 'a', 'aChanged');
-      expect(observer['callback'](value, undefined)).to.be.undefined;
+      const observer = new SelfObserver({}, 'a', 'aChanged');
+      expect(observer['callback'](value, undefined)).to.equal(undefined);
     });
   });
 });
@@ -173,8 +177,7 @@ describe('Observer', () => {
 function createObjectArr(): any[] {
   return [
     {}, Object.create(null), new Number(), new Boolean(), new String(),
-    document.createEvent('MouseEvent'), new Error(), new Foo(),
-    new Uint8Array(), new WeakMap(), new WeakSet(), JSON.parse("{}"),
+    new Error(), new Foo(), new Uint8Array(), new WeakMap(), new WeakSet(), JSON.parse("{}"),
     /asdf/, function(){}, Promise.resolve(), new Proxy({}, {})
   ];
 }

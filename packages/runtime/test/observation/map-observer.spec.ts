@@ -1,20 +1,32 @@
-import { match } from 'sinon';
-import { MapObserver, enableMapObservation, disableMapObservation, nativeMapDelete, nativeSet, IndexMap, Lifecycle, LifecycleFlags } from '../../src/index';
 import { expect } from 'chai';
-import { stringify, SpySubscriber } from '../util';
+import { match } from 'sinon';
+import {
+  disableMapObservation,
+  enableMapObservation,
+  IndexMap,
+  Lifecycle,
+  LifecycleFlags,
+  MapObserver,
+  nativeMapDelete,
+  nativeSet
+} from '../../src/index';
+import {
+  SpySubscriber,
+  stringify
+} from '../util';
 
 function assetMapEqual(actual: Map<any, any>, expected: Map<any, any>): void {
   const len = actual.size;
   expect(len).to.equal(expected.size, `expected.size=${expected.size}, actual.size=${actual.size}`);
-  actual = <any>Array.from(actual);
-  expected = <any>Array.from(expected);
+  actual = Array.from(actual) as any;
+  expected = Array.from(expected) as any;
   let i = 0;
   while (i < len) {
     if (actual[i][0] !== expected[i][0] || actual[i][1] !== expected[i][1]) {
       const start = Math.max(i - 3, 0);
       const end = Math.min(i + 3, len);
-      let $actual = Array.from(actual).slice(start, end).map(stringify).join(',');
-      let $expected = Array.from(expected).slice(start, end).map(stringify).join(',');
+      const $actual = Array.from(actual).slice(start, end).map(stringify).join(',');
+      const $expected = Array.from(expected).slice(start, end).map(stringify).join(',');
       const prefix = `[${start > 0 ? '...,' : ''}`;
       const suffix = `${end < len ? ',...' : ''}]`;
       throw new Error(`expected ${prefix}${$actual}${suffix} to equal ${prefix}${$expected}${suffix}`);
@@ -118,8 +130,8 @@ describe(`MapObserver`, () => {
             while (i < repeat) {
               incrementItems(newItems, i);
               if (newItems === undefined) {
-                expectedResult = (<any>expectedMap).set();
-                actualResult = (<any>map).set();
+                expectedResult = (expectedMap as any).set();
+                actualResult = (map as any).set();
               } else {
                 for (const item of newItems) {
                   expectedResult = expectedMap.set(item, item);
@@ -144,7 +156,7 @@ describe(`MapObserver`, () => {
             while (i < repeat) {
               incrementItems(newItems, i);
               if (newItems === undefined) {
-                (<any>map).set();
+                (map as any).set();
               } else {
                 for (const item of newItems) {
                   map.set(item, item);
@@ -179,8 +191,8 @@ describe(`MapObserver`, () => {
             while (i < repeat) {
               incrementItems(newItems, i);
               if (newItems === undefined) {
-                expectedResult = (<any>expectedMap).delete();
-                actualResult = (<any>map).delete();
+                expectedResult = (expectedMap as any).delete();
+                actualResult = (map as any).delete();
               } else {
                 for (const item of newItems) {
                   expectedResult = expectedMap.delete(item);
@@ -205,7 +217,7 @@ describe(`MapObserver`, () => {
             while (i < repeat) {
               incrementItems(newItems, i);
               if (newItems === undefined) {
-                (<any>map).delete();
+                (map as any).delete();
               } else {
                 for (const item of newItems) {
                   map.delete(item);
@@ -235,7 +247,7 @@ describe(`MapObserver`, () => {
           while (i < repeat) {
             const expectedResult = expectedMap.clear();
             const actualResult = map.clear();
-            expect(expectedResult === actualResult).to.be.true;
+            expect(expectedResult === actualResult).to.equal(true);
             assetMapEqual(map, expectedMap);
             i++;
           }
@@ -286,7 +298,7 @@ function incrementItems(items: number[], by: number): void {
     return;
   }
   let i = 0;
-  let len = items.length;
+  const len = items.length;
   while (i < len) {
     if (typeof items[i] === 'number') {
       items[i] += by;

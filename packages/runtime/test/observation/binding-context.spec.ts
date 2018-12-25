@@ -1,76 +1,80 @@
-import { BindingContext, Scope, OverrideContext } from "../../../src/index";
 import { expect } from 'chai';
+import {
+  BindingContext,
+  LifecycleFlags,
+  Scope
+} from '../../src/index';
 
 describe('Scope', () => {
   describe('create', () => {
     it('undefined, undefined', () => {
       const actual = Scope.create(undefined, undefined);
-      expect(actual.bindingContext).to.be.undefined;
+      expect(actual.bindingContext).to.equal(undefined);
       expect(actual.overrideContext).to.be.instanceof(Object);
-      expect(actual.overrideContext.bindingContext).to.be.undefined;
-      expect(actual.overrideContext.parentOverrideContext).to.be.null;
+      expect(actual.overrideContext.bindingContext).to.equal(undefined);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
     it('undefined, null', () => {
       const actual = Scope.create(undefined, null);
-      expect(actual.bindingContext).to.be.undefined;
+      expect(actual.bindingContext).to.equal(undefined);
       expect(actual.overrideContext).to.be.instanceof(Object);
-      expect(actual.overrideContext.bindingContext).to.be.undefined;
-      expect(actual.overrideContext.parentOverrideContext).to.be.null;
+      expect(actual.overrideContext.bindingContext).to.equal(undefined);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
     it('undefined, {}', () => {
       const overrideContext = {} as any;
       const actual = Scope.create(undefined, overrideContext);
-      expect(actual.bindingContext).to.be.undefined;
+      expect(actual.bindingContext).to.equal(undefined);
       expect(actual.overrideContext).to.equal(overrideContext);
-      expect(actual.overrideContext.bindingContext).to.be.undefined;
-      expect(actual.overrideContext.parentOverrideContext).to.be.undefined;
+      expect(actual.overrideContext.bindingContext).to.equal(undefined);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
     it('undefined, { bindingContext }', () => {
       const bindingContext = {} as any;
       const overrideContext = { bindingContext } as any;
       const actual = Scope.create(null, overrideContext);
-      expect(actual.bindingContext).to.be.null;
+      expect(actual.bindingContext).to.equal(null);
       expect(actual.overrideContext).to.equal(overrideContext);
       expect(actual.overrideContext.bindingContext).to.equal(bindingContext);
-      expect(actual.overrideContext.parentOverrideContext).to.be.undefined;
+      expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
     it('null, undefined', () => {
       const actual = Scope.create(null, undefined);
-      expect(actual.bindingContext).to.be.null;
+      expect(actual.bindingContext).to.equal(null);
       expect(actual.overrideContext).to.be.instanceof(Object);
-      expect(actual.overrideContext.bindingContext).to.be.null;
-      expect(actual.overrideContext.parentOverrideContext).to.be.null;
+      expect(actual.overrideContext.bindingContext).to.equal(null);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
     it('null, null', () => {
       const actual = Scope.create(null, null);
-      expect(actual.bindingContext).to.be.null;
+      expect(actual.bindingContext).to.equal(null);
       expect(actual.overrideContext).to.be.instanceof(Object);
-      expect(actual.overrideContext.bindingContext).to.be.null;
-      expect(actual.overrideContext.parentOverrideContext).to.be.null;
+      expect(actual.overrideContext.bindingContext).to.equal(null);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
     it('null, {}', () => {
       const overrideContext = {} as any;
       const actual = Scope.create(null, overrideContext);
-      expect(actual.bindingContext).to.be.null;
+      expect(actual.bindingContext).to.equal(null);
       expect(actual.overrideContext).to.equal(overrideContext);
-      expect(actual.overrideContext.bindingContext).to.be.undefined;
-      expect(actual.overrideContext.parentOverrideContext).to.be.undefined;
+      expect(actual.overrideContext.bindingContext).to.equal(undefined);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
     it('null, { bindingContext }', () => {
       const bindingContext = {} as any;
       const overrideContext = { bindingContext } as any;
       const actual = Scope.create(null, overrideContext);
-      expect(actual.bindingContext).to.be.null;
+      expect(actual.bindingContext).to.equal(null);
       expect(actual.overrideContext).to.equal(overrideContext);
       expect(actual.overrideContext.bindingContext).to.equal(bindingContext);
-      expect(actual.overrideContext.parentOverrideContext).to.be.undefined;
+      expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
     it('{}, undefined', () => {
@@ -79,7 +83,7 @@ describe('Scope', () => {
       expect(actual.bindingContext).to.equal(bindingContext);
       expect(actual.overrideContext).to.be.instanceof(Object);
       expect(actual.overrideContext.bindingContext).to.equal(bindingContext);
-      expect(actual.overrideContext.parentOverrideContext).to.be.null;
+      expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
     it('{}, null', () => {
@@ -88,7 +92,7 @@ describe('Scope', () => {
       expect(actual.bindingContext).to.equal(bindingContext);
       expect(actual.overrideContext).to.be.instanceof(Object);
       expect(actual.overrideContext.bindingContext).to.equal(bindingContext);
-      expect(actual.overrideContext.parentOverrideContext).to.be.null;
+      expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
     it('{}, {}', () => {
@@ -97,8 +101,8 @@ describe('Scope', () => {
       const actual = Scope.create(bindingContext, overrideContext);
       expect(actual.bindingContext).to.equal(bindingContext);
       expect(actual.overrideContext).to.equal(overrideContext);
-      expect(actual.overrideContext.bindingContext).to.be.undefined;
-      expect(actual.overrideContext.parentOverrideContext).to.be.undefined;
+      expect(actual.overrideContext.bindingContext).to.equal(undefined);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
     it('{}, { bindingContext }', () => {
@@ -108,7 +112,7 @@ describe('Scope', () => {
       expect(actual.bindingContext).to.equal(bindingContext);
       expect(actual.overrideContext).to.equal(overrideContext);
       expect(actual.overrideContext.bindingContext).to.equal(bindingContext);
-      expect(actual.overrideContext.parentOverrideContext).to.be.undefined;
+      expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
     it('{}, { bindingContext2 }', () => {
@@ -119,7 +123,7 @@ describe('Scope', () => {
       expect(actual.bindingContext).to.equal(bindingContext);
       expect(actual.overrideContext).to.equal(overrideContext);
       expect(actual.overrideContext.bindingContext).to.equal(bindingContext2);
-      expect(actual.overrideContext.parentOverrideContext).to.be.undefined;
+      expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
   });
 
@@ -135,10 +139,10 @@ describe('Scope', () => {
     it('{}', () => {
       const overrideContext = {} as any;
       const actual = Scope.fromOverride(overrideContext);
-      expect(actual.bindingContext).to.be.undefined;
+      expect(actual.bindingContext).to.equal(undefined);
       expect(actual.overrideContext).to.equal(overrideContext);
-      expect(actual.overrideContext.bindingContext).to.be.undefined;
-      expect(actual.overrideContext.parentOverrideContext).to.be.undefined;
+      expect(actual.overrideContext.bindingContext).to.equal(undefined);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
     it('{ bindingContext }', () => {
@@ -148,7 +152,7 @@ describe('Scope', () => {
       expect(actual.bindingContext).to.equal(bindingContext);
       expect(actual.overrideContext).to.equal(overrideContext);
       expect(actual.overrideContext.bindingContext).to.equal(bindingContext);
-      expect(actual.overrideContext.parentOverrideContext).to.be.undefined;
+      expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
   });
 
@@ -164,19 +168,19 @@ describe('Scope', () => {
     it('{}, undefined', () => {
       const parentScope = {} as any;
       const actual = Scope.fromParent(parentScope, undefined);
-      expect(actual.bindingContext).to.be.undefined;
+      expect(actual.bindingContext).to.equal(undefined);
       expect(actual.overrideContext).to.be.instanceof(Object);
-      expect(actual.overrideContext.bindingContext).to.be.undefined;
-      expect(actual.overrideContext.parentOverrideContext).to.be.null;
+      expect(actual.overrideContext.bindingContext).to.equal(undefined);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
     it('{}, null', () => {
       const parentScope = {} as any;
       const actual = Scope.fromParent(parentScope, null);
-      expect(actual.bindingContext).to.be.null;
+      expect(actual.bindingContext).to.equal(null);
       expect(actual.overrideContext).to.be.instanceof(Object);
-      expect(actual.overrideContext.bindingContext).to.be.null;
-      expect(actual.overrideContext.parentOverrideContext).to.be.null;
+      expect(actual.overrideContext.bindingContext).to.equal(null);
+      expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
     it('{}, {}', () => {
@@ -186,7 +190,7 @@ describe('Scope', () => {
       expect(actual.bindingContext).to.equal(bindingContext);
       expect(actual.overrideContext).to.be.instanceof(Object);
       expect(actual.overrideContext.bindingContext).to.equal(bindingContext);
-      expect(actual.overrideContext.parentOverrideContext).to.be.null;
+      expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
     it('{}, { overrideContext }', () => {
@@ -205,62 +209,62 @@ describe('Scope', () => {
 describe('BindingContext', () => {
   describe('get', () => {
     it('undefined', () => {
-      expect(() => BindingContext.get(undefined, undefined, undefined)).to.throw('Code 250');
+      expect(() => BindingContext.get(undefined, undefined, undefined, LifecycleFlags.none)).to.throw('Code 250');
     });
 
     it('null', () => {
-      expect(() => BindingContext.get(null, undefined, undefined)).to.throw('Code 251');
+      expect(() => BindingContext.get(null, undefined, undefined, LifecycleFlags.none)).to.throw('Code 251');
     });
 
     it('{ bindingContext: undefined, overrideContext: undefined }', () => {
       const scope = { } as any;
-      const actual = BindingContext.get(scope, null, null);
-      expect(actual).to.be.undefined;
+      const actual = BindingContext.get(scope, null, null, LifecycleFlags.none);
+      expect(actual).to.equal(undefined);
     });
 
     it('{ bindingContext: undefined, overrideContext: null }', () => {
       const scope = { overrideContext: null} as any;
-      const actual = BindingContext.get(scope, null, null);
-      expect(actual).to.be.null;
+      const actual = BindingContext.get(scope, null, null, LifecycleFlags.none);
+      expect(actual).to.equal(null);
     });
 
     it('{ bindingContext: undefined, overrideContext: {} }', () => {
       const overrideContext = {} as any;
       const scope = { overrideContext } as any;
-      const actual = BindingContext.get(scope, null, null);
+      const actual = BindingContext.get(scope, null, null, LifecycleFlags.none);
       expect(actual).to.equal(overrideContext);
     });
 
     it('{ bindingContext: null, overrideContext: undefined }', () => {
       const scope = { } as any;
-      const actual = BindingContext.get(scope, null, null);
-      expect(actual).to.be.undefined;
+      const actual = BindingContext.get(scope, null, null, LifecycleFlags.none);
+      expect(actual).to.equal(undefined);
     });
 
     it('{ bindingContext: null, overrideContext: null }', () => {
       const scope = { overrideContext: null} as any;
-      const actual = BindingContext.get(scope, null, null);
-      expect(actual).to.be.null;
+      const actual = BindingContext.get(scope, null, null, LifecycleFlags.none);
+      expect(actual).to.equal(null);
     });
 
     it('{ bindingContext: null, overrideContext: {} }', () => {
       const overrideContext = {} as any;
       const scope = { overrideContext } as any;
-      const actual = BindingContext.get(scope, null, null);
+      const actual = BindingContext.get(scope, null, null, LifecycleFlags.none);
       expect(actual).to.equal(overrideContext);
     });
 
     it('{ bindingContext: {}, overrideContext: undefined }', () => {
       const bindingContext = {} as any;
       const scope = { bindingContext } as any;
-      const actual = BindingContext.get(scope, null, null);
+      const actual = BindingContext.get(scope, null, null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext);
     });
 
     it('{ bindingContext: {}, overrideContext: null }', () => {
       const bindingContext = {} as any;
       const scope = { bindingContext, overrideContext: null} as any;
-      const actual = BindingContext.get(scope, null, null);
+      const actual = BindingContext.get(scope, null, null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext);
     });
 
@@ -268,7 +272,7 @@ describe('BindingContext', () => {
       const overrideContext = {} as any;
       const bindingContext = {} as any;
       const scope = { bindingContext, overrideContext } as any;
-      const actual = BindingContext.get(scope, null, null);
+      const actual = BindingContext.get(scope, null, null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext);
     });
 
@@ -277,7 +281,7 @@ describe('BindingContext', () => {
       const bindingContext2 = {} as any;
       const scope1 = Scope.create(bindingContext1, null);
       const scope2 = Scope.fromParent(scope1, bindingContext2);
-      const actual = BindingContext.get(scope2, null, null);
+      const actual = BindingContext.get(scope2, null, null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext2);
     });
 
@@ -288,7 +292,7 @@ describe('BindingContext', () => {
       const scope1 = Scope.create(bindingContext1, null);
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
-      const actual = BindingContext.get(scope3, null, null);
+      const actual = BindingContext.get(scope3, null, null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext3);
     });
 
@@ -301,7 +305,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, null, null);
+      const actual = BindingContext.get(scope4, null, null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext4);
     });
 
@@ -310,7 +314,7 @@ describe('BindingContext', () => {
       const bindingContext2 = {} as any;
       const scope1 = Scope.create(bindingContext1, null);
       const scope2 = Scope.fromParent(scope1, bindingContext2);
-      const actual = BindingContext.get(scope2, 'foo', null);
+      const actual = BindingContext.get(scope2, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext2);
     });
 
@@ -321,7 +325,7 @@ describe('BindingContext', () => {
       const scope1 = Scope.create(bindingContext1, null);
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
-      const actual = BindingContext.get(scope3, 'foo', null);
+      const actual = BindingContext.get(scope3, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext3);
     });
 
@@ -334,7 +338,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext4);
     });
 
@@ -347,7 +351,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext1);
     });
 
@@ -360,7 +364,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext2);
     });
 
@@ -373,7 +377,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext3);
     });
 
@@ -386,7 +390,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext4);
     });
 
@@ -400,7 +404,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(scope1.overrideContext);
     });
 
@@ -414,7 +418,7 @@ describe('BindingContext', () => {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(scope2.overrideContext);
     });
 
@@ -428,7 +432,7 @@ describe('BindingContext', () => {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(scope3.overrideContext);
     });
 
@@ -442,7 +446,7 @@ describe('BindingContext', () => {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
       scope4.overrideContext['foo'] = 'bar';
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(scope4.overrideContext);
     });
 
@@ -456,7 +460,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(scope1.overrideContext);
     });
 
@@ -470,7 +474,7 @@ describe('BindingContext', () => {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(scope2.overrideContext);
     });
 
@@ -484,7 +488,7 @@ describe('BindingContext', () => {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(scope3.overrideContext);
     });
 
@@ -498,7 +502,7 @@ describe('BindingContext', () => {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
       scope4.overrideContext['foo'] = 'bar';
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(scope4.overrideContext);
     });
 
@@ -512,7 +516,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext2);
     });
 
@@ -526,7 +530,7 @@ describe('BindingContext', () => {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext3);
     });
 
@@ -540,7 +544,7 @@ describe('BindingContext', () => {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null);
+      const actual = BindingContext.get(scope4, 'foo', null, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext4);
     });
 
@@ -554,7 +558,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 1);
+      const actual = BindingContext.get(scope4, 'foo', 1, LifecycleFlags.none);
       expect(actual).to.equal(scope3.bindingContext);
     });
 
@@ -568,7 +572,7 @@ describe('BindingContext', () => {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 1);
+      const actual = BindingContext.get(scope4, 'foo', 1, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext3);
     });
 
@@ -582,7 +586,7 @@ describe('BindingContext', () => {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 1);
+      const actual = BindingContext.get(scope4, 'foo', 1, LifecycleFlags.none);
       expect(actual).to.equal(scope3.overrideContext);
     });
 
@@ -596,7 +600,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 2);
+      const actual = BindingContext.get(scope4, 'foo', 2, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext2);
     });
 
@@ -610,7 +614,7 @@ describe('BindingContext', () => {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 2);
+      const actual = BindingContext.get(scope4, 'foo', 2, LifecycleFlags.none);
       expect(actual).to.equal(scope2.overrideContext);
     });
 
@@ -624,7 +628,7 @@ describe('BindingContext', () => {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 2);
+      const actual = BindingContext.get(scope4, 'foo', 2, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext2);
     });
 
@@ -638,7 +642,7 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 3);
+      const actual = BindingContext.get(scope4, 'foo', 3, LifecycleFlags.none);
       expect(actual).to.equal(scope1.overrideContext);
     });
 
@@ -652,7 +656,7 @@ describe('BindingContext', () => {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 3);
+      const actual = BindingContext.get(scope4, 'foo', 3, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext1);
     });
 
@@ -666,7 +670,7 @@ describe('BindingContext', () => {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 3);
+      const actual = BindingContext.get(scope4, 'foo', 3, LifecycleFlags.none);
       expect(actual).to.equal(bindingContext1);
     });
 
@@ -679,8 +683,8 @@ describe('BindingContext', () => {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 4);
-      expect(actual).to.be.undefined;
+      const actual = BindingContext.get(scope4, 'foo', 4, LifecycleFlags.none);
+      expect(actual).to.equal(undefined);
     });
   });
 });

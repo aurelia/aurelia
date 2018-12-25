@@ -1,20 +1,32 @@
-import { match } from 'sinon';
-import { SetObserver, enableSetObservation, disableSetObservation, nativeSetDelete, nativeAdd, IndexMap, Lifecycle, LifecycleFlags } from '../../src/index';
 import { expect } from 'chai';
-import { stringify, SpySubscriber } from '../util';
+import { match } from 'sinon';
+import {
+  disableSetObservation,
+  enableSetObservation,
+  IndexMap,
+  Lifecycle,
+  LifecycleFlags,
+  nativeAdd,
+  nativeSetDelete,
+  SetObserver
+} from '../../src/index';
+import {
+  SpySubscriber,
+  stringify
+} from '../util';
 
 function assetSetEqual(actual: Set<any>, expected: Set<any>): void {
   const len = actual.size;
   expect(len).to.equal(expected.size, `expected.size=${expected.size}, actual.size=${actual.size}`);
-  actual = <any>Array.from(actual);
-  expected = <any>Array.from(expected);
+  actual = Array.from(actual) as any;
+  expected = Array.from(expected) as any;
   let i = 0;
   while (i < len) {
     if (actual[i] !== expected[i]) {
       const start = Math.max(i - 3, 0);
       const end = Math.min(i + 3, len);
-      let $actual = Array.from(actual).slice(start, end).map(stringify).join(',');
-      let $expected = Array.from(expected).slice(start, end).map(stringify).join(',');
+      const $actual = Array.from(actual).slice(start, end).map(stringify).join(',');
+      const $expected = Array.from(expected).slice(start, end).map(stringify).join(',');
       const prefix = `[${start > 0 ? '...,' : ''}`;
       const suffix = `${end < len ? ',...' : ''}]`;
       throw new Error(`expected ${prefix}${$actual}${suffix} to equal ${prefix}${$expected}${suffix}`);
@@ -117,8 +129,8 @@ describe(`SetObserver`, () => {
             while (i < repeat) {
               incrementItems(newItems, i);
               if (newItems === undefined) {
-                expectedResult = (<any>expectedSet).add();
-                actualResult = (<any>set).add();
+                expectedResult = (expectedSet as any).add();
+                actualResult = (set as any).add();
               } else {
                 for (const item of newItems) {
                   expectedResult = expectedSet.add(item);
@@ -143,7 +155,7 @@ describe(`SetObserver`, () => {
             while (i < repeat) {
               incrementItems(newItems, i);
               if (newItems === undefined) {
-                (<any>set).add();
+                (set as any).add();
               } else {
                 for (const item of newItems) {
                   set.add(item);
@@ -178,8 +190,8 @@ describe(`SetObserver`, () => {
             while (i < repeat) {
               incrementItems(newItems, i);
               if (newItems === undefined) {
-                expectedResult = (<any>expectedSet).delete();
-                actualResult = (<any>set).delete();
+                expectedResult = (expectedSet as any).delete();
+                actualResult = (set as any).delete();
               } else {
                 for (const item of newItems) {
                   expectedResult = expectedSet.delete(item);
@@ -204,7 +216,7 @@ describe(`SetObserver`, () => {
             while (i < repeat) {
               incrementItems(newItems, i);
               if (newItems === undefined) {
-                (<any>set).delete();
+                (set as any).delete();
               } else {
                 for (const item of newItems) {
                   set.delete(item);
@@ -234,7 +246,7 @@ describe(`SetObserver`, () => {
           while (i < repeat) {
             const expectedResult = expectedSet.clear();
             const actualResult = set.clear();
-            expect(expectedResult === actualResult).to.be.true;
+            expect(expectedResult === actualResult).to.equal(true);
             assetSetEqual(set, expectedSet);
             i++;
           }
@@ -286,7 +298,7 @@ function incrementItems(items: number[], by: number): void {
     return;
   }
   let i = 0;
-  let len = items.length;
+  const len = items.length;
   while (i < len) {
     if (typeof items[i] === 'number') {
       items[i] += by;

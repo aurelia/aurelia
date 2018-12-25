@@ -65,7 +65,7 @@ describe(`determineProjector`, () => {
 
     expect(sut.$projector).to.be.instanceof(ContainerlessProjector);
     expect(sut.$projector['childNodes'].length).to.equal(0);
-    expect(host.parentNode).to.be.null;
+    expect(host.parentNode).to.equal(null);
     expect(parent.firstChild).to.be.instanceof(Comment);
     expect(parent.firstChild.textContent).to.equal('au-start');
     expect(parent.lastChild).to.be.instanceof(Comment);
@@ -93,7 +93,7 @@ describe(`determineProjector`, () => {
 
     expect(sut.$projector).to.be.instanceof(ContainerlessProjector);
     expect(sut.$projector['childNodes'][0]).to.equal(child);
-    expect(host.parentNode).to.be.null;
+    expect(host.parentNode).to.equal(null);
     expect(parent.firstChild).to.be.instanceof(Comment);
     expect(parent.firstChild.textContent).to.equal('au-start');
     expect(parent.lastChild).to.be.instanceof(Comment);

@@ -1,6 +1,17 @@
-import { IExpression, IObserverLocator, Binding, LifecycleFlags, IScope, BindingMode, ThrottleBindingBehavior, IsBindingBehavior } from '../../../src/index';
+import {
+  DI,
+  IContainer
+} from '@aurelia/kernel';
 import { expect } from 'chai';
-import { IContainer, DI } from '@aurelia/kernel';
+import {
+  Binding,
+  BindingMode,
+  IObserverLocator,
+  IsBindingBehavior,
+  IScope,
+  LifecycleFlags,
+  ThrottleBindingBehavior
+} from '../../../src/index';
 
 describe('ThrottleBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;
@@ -8,7 +19,7 @@ describe('ThrottleBindingBehavior', () => {
   let targetProperty: string;
   let mode: BindingMode;
   let observerLocator: IObserverLocator;
-  let container: IContainer = DI.createContainer();
+  const container: IContainer = DI.createContainer();
   let sut: ThrottleBindingBehavior;
   let binding: Binding;
   let flags: LifecycleFlags;
@@ -17,26 +28,26 @@ describe('ThrottleBindingBehavior', () => {
 
   beforeEach(() => {
     sut = new ThrottleBindingBehavior();
-    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, <any>container);
+    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container as any);
     originalFn = binding.updateTarget;
-    sut.bind(flags, scope, <any>binding);
+    sut.bind(flags, scope, binding as any);
   });
 
   // TODO: test properly (whether throttling works etc)
   it('bind()   should apply the correct behavior', () => {
-    expect(binding['throttledMethod'] === originalFn).to.be.true;
+    expect(binding['throttledMethod'] === originalFn).to.equal(true);
     expect(binding['throttledMethod'].originalName).to.equal('updateTarget');
-    expect(binding.updateTarget === originalFn).to.be.false;
+    expect(binding.updateTarget === originalFn).to.equal(false);
     expect(typeof binding.updateTarget).to.equal('function');
-    expect(binding['throttleState']).not.to.be.null
+    expect(binding['throttleState']).not.to.be.null;
     expect(typeof binding['throttleState']).to.equal('object');
   });
 
   it('unbind() should revert the original behavior', () => {
-    sut.unbind(flags, scope, <any>binding);
-    expect(binding['throttledMethod']).to.be.null;
-    expect(binding.updateTarget === originalFn).to.be.true;
+    sut.unbind(flags, scope, binding as any);
+    expect(binding['throttledMethod']).to.equal(null);
+    expect(binding.updateTarget === originalFn).to.equal(true);
     expect(typeof binding.updateTarget).to.equal('function');
-    expect(binding['throttleState']).to.be.null
+    expect(binding['throttleState']).to.be.null;
   });
 });

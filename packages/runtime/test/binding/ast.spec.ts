@@ -1,7 +1,13 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { SinonSpy, spy } from 'sinon';
-import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
+import {
+  SinonSpy,
+  spy
+} from 'sinon';
+import {
+  eachCartesianJoin,
+  eachCartesianJoinFactory
+} from '../../../../scripts/test-lib';
 import {
   AccessKeyed,
   AccessMember,
@@ -56,7 +62,13 @@ import {
   Unary,
   ValueConverter
 } from '../../src/index';
-import { MockBindingBehavior, MockServiceLocator, MockSignaler, MockTracingExpression, MockValueConverter } from '../mock';
+import {
+  MockBindingBehavior,
+  MockServiceLocator,
+  MockSignaler,
+  MockTracingExpression,
+  MockValueConverter
+} from '../mock';
 import { createScopeForTest } from '../shared';
 import { createObserverLocator } from '../util';
 
@@ -2342,7 +2354,7 @@ describe('ValueConverter', () => {
 
   const connectVariations: (($1: $1, $2: $2, $3: $3) => /*connect*/() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
-      expect(binding.observerSlots).to.be.undefined;
+      expect(binding.observerSlots).to.equal(undefined);
 
       // act
       sut.connect(flags, scope, binding);

@@ -44,13 +44,13 @@ export function executeSharedPropertyObserverTests(obj: any, observer: any, done
   spy(observer, 'addSubscriber');
   spy(observer, 'removeSubscriber');
   // hasSubscribers, hasSubscriber
-  expect(observer.hasSubscribers()).to.be.false;
-  expect(observer.hasSubscriber(context, callable0)).to.be.false;
+  expect(observer.hasSubscribers()).to.equal(false);
+  expect(observer.hasSubscriber(context, callable0)).to.equal(false);
   observer.subscribe(context, callable0);
   expect(observer.addSubscriber).to.have.been.calledWith(context, callable0);
   expect(countSubscribers(observer)).to.equal(1);
-  expect(observer.hasSubscribers()).to.be.true;
-  expect(observer.hasSubscriber(context, callable0)).to.be.true;
+  expect(observer.hasSubscribers()).to.equal(true);
+  expect(observer.hasSubscriber(context, callable0)).to.equal(true);
   // doesn't allow multiple subscribe
   observer.subscribe(context, callable0);
   expect(observer.addSubscriber).to.have.been.calledWith(context, callable0);
@@ -67,51 +67,51 @@ export function executeSharedPropertyObserverTests(obj: any, observer: any, done
   observer.subscribe(context, callable0);
   expect(observer._callable0).to.equal(callable0);
   expect(countSubscribers(observer)).to.equal(1);
-  expect(observer.hasSubscribers()).to.be.true;
-  expect(observer.hasSubscriber(context, callable0)).to.be.true;
+  expect(observer.hasSubscribers()).to.equal(true);
+  expect(observer.hasSubscriber(context, callable0)).to.equal(true);
 
   observer.subscribe(context, callable1);
   expect(observer._callable1).to.equal(callable1);
   expect(countSubscribers(observer)).to.equal(2);
-  expect(observer.hasSubscribers()).to.be.true;
-  expect(observer.hasSubscriber(context, callable1)).to.be.true;
+  expect(observer.hasSubscribers()).to.equal(true);
+  expect(observer.hasSubscriber(context, callable1)).to.equal(true);
 
   observer.subscribe(context, callable2);
   expect(observer._callable2).to.equal(callable2);
   expect(countSubscribers(observer)).to.equal(3);
-  expect(observer.hasSubscribers()).to.be.true;
-  expect(observer.hasSubscriber(context, callable2)).to.be.true;
+  expect(observer.hasSubscribers()).to.equal(true);
+  expect(observer.hasSubscriber(context, callable2)).to.equal(true);
 
   observer.subscribe(context, callable3);
   expect(observer._callablesRest[0]).to.equal(callable3);
   expect(countSubscribers(observer)).to.equal(4);
-  expect(observer.hasSubscribers()).to.be.true;
-  expect(observer.hasSubscriber(context, callable3)).to.be.true;
+  expect(observer.hasSubscribers()).to.equal(true);
+  expect(observer.hasSubscriber(context, callable3)).to.equal(true);
 
   observer.subscribe(context, callable4);
   expect(observer._callablesRest[1]).to.equal(callable4);
   expect(countSubscribers(observer)).to.equal(5);
-  expect(observer.hasSubscribers()).to.be.true;
-  expect(observer.hasSubscriber(context, callable4)).to.be.true;
+  expect(observer.hasSubscribers()).to.equal(true);
+  expect(observer.hasSubscriber(context, callable4)).to.equal(true);
 
   observer.subscribe(context, callable5);
   expect(observer._callablesRest[2]).to.equal(callable5);
   expect(countSubscribers(observer)).to.equal(6);
-  expect(observer.hasSubscribers()).to.be.true;
-  expect(observer.hasSubscriber(context, callable5)).to.be.true;
+  expect(observer.hasSubscribers()).to.equal(true);
+  expect(observer.hasSubscriber(context, callable5)).to.equal(true);
 
   // reuses empty slots
   observer.unsubscribe(context, callable2);
-  expect(observer._callable2).to.be.null;
+  expect(observer._callable2).to.equal(null);
   expect(countSubscribers(observer)).to.equal(5);
-  expect(observer.hasSubscribers()).to.be.true;
-  expect(observer.hasSubscriber(context, callable2)).to.be.false;
+  expect(observer.hasSubscribers()).to.equal(true);
+  expect(observer.hasSubscriber(context, callable2)).to.equal(false);
 
   observer.subscribe(context, callable2);
   expect(observer._callable2).to.equal(callable2);
   expect(countSubscribers(observer)).to.equal(6);
-  expect(observer.hasSubscribers()).to.be.true;
-  expect(observer.hasSubscriber(context, callable2)).to.be.true;
+  expect(observer.hasSubscribers()).to.equal(true);
+  expect(observer.hasSubscriber(context, callable2)).to.equal(true);
 
   // handles unsubscribe during callable0
   let unsubscribeDuringCallbackTested = false;
@@ -151,9 +151,9 @@ export function executeSharedPropertyObserverTests(obj: any, observer: any, done
       observer.setValue('bar');
       setTimeout(() => {
         expect(callable0.call).not.to.have.been.called;
-        expect(observer._callable0).to.be.null;
-        expect(observer._callable1).to.be.null;
-        expect(observer._callable2).to.be.null;
+        expect(observer._callable0).to.equal(null);
+        expect(observer._callable1).to.equal(null);
+        expect(observer._callable2).to.equal(null);
         expect(observer._callablesRest.length).to.equal(0);
         done();
       },         checkDelay * 2);

@@ -1,6 +1,17 @@
-import { IExpression, IObserverLocator, Binding, LifecycleFlags, IScope, BindingMode, DebounceBindingBehavior, IsBindingBehavior } from '../../src/index';
+import {
+  DI,
+  IContainer
+} from '@aurelia/kernel';
 import { expect } from 'chai';
-import { IContainer, DI } from '@aurelia/kernel';
+import {
+  Binding,
+  BindingMode,
+  DebounceBindingBehavior,
+  IObserverLocator,
+  IsBindingBehavior,
+  IScope,
+  LifecycleFlags
+} from '../../src/index';
 
 describe('DebounceBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;
@@ -8,7 +19,7 @@ describe('DebounceBindingBehavior', () => {
   let targetProperty: string;
   let mode: BindingMode;
   let observerLocator: IObserverLocator;
-  let container: IContainer = DI.createContainer();
+  const container: IContainer = DI.createContainer();
   let sut: DebounceBindingBehavior;
   let binding: Binding;
   let flags: LifecycleFlags;
@@ -17,26 +28,26 @@ describe('DebounceBindingBehavior', () => {
 
   beforeEach(() => {
     sut = new DebounceBindingBehavior();
-    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, <any>container);
+    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container as any);
     originalFn = binding.handleChange;
-    sut.bind(flags, scope, <any>binding);
+    sut.bind(flags, scope, binding as any);
   });
 
   // TODO: test properly (whether debouncing works etc)
   it('bind()   should apply the correct behavior', () => {
-    expect(binding['debouncedMethod'] === originalFn).to.be.true;
+    expect(binding['debouncedMethod'] === originalFn).to.equal(true);
     expect(binding['debouncedMethod'].originalName).to.equal('handleChange');
-    expect(binding.handleChange === originalFn).to.be.false;
+    expect(binding.handleChange === originalFn).to.equal(false);
     expect(typeof binding.handleChange).to.equal('function');
-    expect(binding['debounceState']).not.to.be.null
+    expect(binding['debounceState']).not.to.be.null;
     expect(typeof binding['debounceState']).to.equal('object');
   });
 
   it('unbind() should revert the original behavior', () => {
-    sut.unbind(flags, scope, <any>binding);
-    expect(binding['debouncedMethod']).to.be.null;
-    expect(binding.handleChange === originalFn).to.be.true;
+    sut.unbind(flags, scope, binding as any);
+    expect(binding['debouncedMethod']).to.equal(null);
+    expect(binding.handleChange === originalFn).to.equal(true);
     expect(typeof binding.handleChange).to.equal('function');
-    expect(binding['debounceState']).to.be.null
+    expect(binding['debounceState']).to.be.null;
   });
 });

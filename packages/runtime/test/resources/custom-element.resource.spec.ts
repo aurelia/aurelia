@@ -35,12 +35,12 @@ describe('CustomElementResource', () => {
   describe(`isType`, () => {
     it(`returns true when given a resource with the correct kind`, () => {
       const type = CustomElementResource.define('foo', class Foo{});
-      expect(CustomElementResource.isType(type)).to.be.true;
+      expect(CustomElementResource.isType(type)).to.equal(true);
     });
 
     it(`returns false when given a resource with the wrong kind`, () => {
       const type = CustomAttributeResource.define('foo', class Foo{});
-      expect(CustomElementResource.isType(type)).to.be.false;
+      expect(CustomElementResource.isType(type)).to.equal(false);
     });
   });
 
@@ -50,7 +50,7 @@ describe('CustomElementResource', () => {
     });
 
     it(`returns null if the $customElement variable does nots`, () => {
-      expect(CustomElementResource.behaviorFor(<any>{})).to.be.null;
+      expect(CustomElementResource.behaviorFor(<any>{})).to.equal(null);
     });
   });
 });

@@ -251,15 +251,15 @@
 //             const task = sut.end();
 
 //             expect(task).not.to.equal(this.lifecycle.done);
-//             expect(task.done).to.be.false;
-//             expect(task.canCancel()).to.be.true;
+//             expect(task.done).to.equal(false);
+//             expect(task.canCancel()).to.equal(true);
 
 //             expect(mock.calls.length).to.equal(count * 2);
 
 //             await task.wait();
 
-//             expect(task.done).to.be.true;
-//             expect(task.canCancel()).to.be.false;
+//             expect(task.done).to.equal(true);
+//             expect(task.canCancel()).to.equal(false);
 
 //             verifyCompleteAsyncWorkCalls(count * 2, count, mock);
 //             verifyAddNodesCalls(count * 4, count, mock);
@@ -280,16 +280,16 @@
 //             const task = sut.end();
 
 //             expect(task).not.to.equal(this.lifecycle.done);
-//             expect(task.done).to.be.false;
-//             expect(task.canCancel()).to.be.true;
+//             expect(task.done).to.equal(false);
+//             expect(task.canCancel()).to.equal(true);
 
 //             expect(mock.calls.length).to.equal(count * 2);
 
 //             task.cancel();
 //             await task.wait();
 
-//             expect(task.done).to.be.true;
-//             expect(task.canCancel()).to.be.false;
+//             expect(task.done).to.equal(true);
+//             expect(task.canCancel()).to.equal(false);
 
 //             verifyCancelAsyncWorkCalls(count * 2, count, mock);
 //             verifyAddNodesCalls(count * 4, count, mock);
@@ -437,15 +437,15 @@
 //             const task = sut.end();
 
 //             expect(task).not.to.equal(this.lifecycle.done);
-//             expect(task.done).to.be.false;
-//             expect(task.canCancel()).to.be.true;
+//             expect(task.done).to.equal(false);
+//             expect(task.canCancel()).to.equal(true);
 
 //             expect(mock.calls.length).to.equal(count * 2);
 
 //             await task.wait();
 
-//             expect(task.done).to.be.true;
-//             expect(task.canCancel()).to.be.false;
+//             expect(task.done).to.equal(true);
+//             expect(task.canCancel()).to.equal(false);
 
 //             verifyCompleteAsyncWorkCalls(count * 2, count, mock);
 //             verifyRemoveNodesCalls(count * 4, count, mock);
@@ -480,16 +480,16 @@
 //             const task = sut.end();
 
 //             expect(task).not.to.equal(this.lifecycle.done);
-//             expect(task.done).to.be.false;
-//             expect(task.canCancel()).to.be.true;
+//             expect(task.done).to.equal(false);
+//             expect(task.canCancel()).to.equal(true);
 
 //             expect(mock.calls.length).to.equal(count * 2);
 
 //             task.cancel();
 //             await task.wait();
 
-//             expect(task.done).to.be.true;
-//             expect(task.canCancel()).to.be.false;
+//             expect(task.done).to.equal(true);
+//             expect(task.canCancel()).to.equal(false);
 
 //             verifyCancelAsyncWorkCalls(count * 2, count, mock);
 //             verifyRemoveNodesCalls(count * 4, count, mock);

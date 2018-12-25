@@ -1,4 +1,7 @@
-import { createMarker, MockNodeSequence, MockIfElseTextNodeTemplate } from '../unit/mock';
+import {
+  createMarker,
+MockNodeSequence,
+MockIfElseTextNodeTemplate } from '../unit/mock';
 import {
   ITemplateDefinition,
   TargetedInstructionType,
@@ -28,7 +31,9 @@ import {
   HtmlRenderer,
   IDOM
 } from '../../../src/index';
-import { IContainer, DI, Registration } from '@aurelia/kernel';
+import { IContainer,
+DI,
+Registration } from '@aurelia/kernel';
 import { createRepeater } from '../unit/util';
 import { expect } from 'chai';
 import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';

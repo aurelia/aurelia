@@ -83,7 +83,7 @@
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);
 //       sut['$scope'] = scope;
 //       sut.$unbind(LifecycleFlags.fromUnbind);
-//       expect(sut['$scope'] === scope).to.be.true;
+//       expect(sut['$scope'] === scope).to.equal(true);
 //     });
 
 //     it('should unbind if it is bound', () => {
@@ -95,7 +95,7 @@
 //       const unobserveSpy = spy(sut, 'unobserve');
 //       const unbindSpy = sourceExpression.unbind = spy();
 //       sut.$unbind(LifecycleFlags.fromUnbind);
-//       expect(sut['$scope']).to.be.null;
+//       expect(sut['$scope']).to.equal(null);
 //       expect(sut['$state'] & State.isBound).to.equal(0);
 //       expect(unobserveSpy).to.have.been.calledWith(true);
 //       expect(unbindSpy).to.have.been.calledWith(LifecycleFlags.fromUnbind, scope, sut);

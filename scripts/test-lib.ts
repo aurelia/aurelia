@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { SinonStub, spy } from 'sinon';
-import sinon from 'sinon';
+import * as sinon from 'sinon';
 
 const toStringTag = Object.prototype.toString;
 

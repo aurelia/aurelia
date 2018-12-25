@@ -1,19 +1,19 @@
-import { DI } from '@aurelia/kernel';
 import { expect } from 'chai';
 import {
   SinonSpy,
-  spy
+  spy,
+  stub
 } from 'sinon';
-import sinon from 'sinon';
-import { parseCore } from '../../../jit/src';
 import {
   AccessMember,
   AccessScope,
+  Binary,
   Binding,
   BindingMode,
   ExpressionKind,
   IBindingTargetObserver,
   IExpression,
+  ILifecycle,
   IPropertyChangeNotifier,
   IPropertySubscriber,
   IScope,
@@ -22,11 +22,11 @@ import {
   ObjectLiteral,
   PrimitiveLiteral,
   PropertyAccessor,
+  RuntimeConfiguration,
   Scope,
   SetterObserver,
   State,
-  SubscriberFlags,
-  ILifecycle
+  SubscriberFlags
 } from '../../src/index';
 import { createScopeForTest } from '../shared';
 import {
@@ -62,7 +62,7 @@ describe('Binding', () => {
   let dummyMode: BindingMode;
 
   function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
-    const container = DI.createContainer();
+    const container = RuntimeConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const sut = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
@@ -71,7 +71,7 @@ describe('Binding', () => {
   }
 
   beforeEach(() => {
-    dummySourceExpression = <any>{};
+    dummySourceExpression = {} as any;
     dummyTarget = {foo: 'bar'};
     dummyTargetProperty = 'foo';
     dummyMode = BindingMode.twoWay;
@@ -87,7 +87,6 @@ describe('Binding', () => {
     }
   });
 
-
   describe('updateTarget()', () => {
 
   });
@@ -101,21 +100,26 @@ describe('Binding', () => {
   });
 
   it(`$bind() [to-view] works with 200 observers`, () => {
+    let expr: AccessScope | Binary;
+
     const count = 200;
-    let rawExpr = '';
+    const rawExpr = '';
     const ctx = {};
     const args = Array(count);
     for (let i = 0; i < count; ++i) {
       const prop = args[i] = `$${i}`;
       ctx[prop] = 1;
+      if (expr === undefined) {
+        expr = new AccessScope(prop, 0);
+      } else {
+        expr = new Binary('+', expr, new AccessScope(prop, 0));
+      }
     }
-    rawExpr += args.join('+');
-    const expr = parseCore(rawExpr, 0);
-    const container = DI.createContainer();
+    const container = RuntimeConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const target = {val: 0};
-    const sut = new Binding(<any>expr, target, 'val', BindingMode.toView, observerLocator, container);
+    const sut = new Binding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
     const scope = Scope.create(ctx, null);
 
     sut.$bind(LifecycleFlags.fromBind, scope);
@@ -141,44 +145,49 @@ describe('Binding', () => {
   }).timeout(20000);
 
   describe('$bind() [one-time] assigns the target value', () => {
-    eachCartesianJoinFactory(
-      [
-        <(() => [{foo:string}, string])[]>[
-          () => [({ foo: 'bar' }), `{foo:'bar'} `],
-          () => [({}),             `{}          `]
-        ],
-        <(() => [string, string])[]>[
-          () => ['fooz', `'foo' `],
-          () => ['barz', `'bar' `]
-        ],
-        <(() => [IExpression, string])[]>[
-          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
-          () => [new AccessScope('foo'),                                   `foo        `],
-          () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-          () => [new PrimitiveLiteral(null),                               `null       `],
-          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
-        ],
-        <(() => [LifecycleFlags, string])[]>[
-          () => [LifecycleFlags.fromBind,                                            `fromBind               `],
-          () => [LifecycleFlags.updateTargetInstance,                                `updateTarget           `],
-          () => [LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush,`updateTarget|fromFlush `]
-        ],
-        <(() => [IScope, string])[]>[
-          () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
-          () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-          () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
-          () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
-          () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
-        ]
-      ],
-      ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
+    const targetVariations: (() => [{foo?: string}, string])[] = [
+      () => [({ foo: 'bar' }), `{foo:'bar'} `],
+      () => [({}),             `{}          `]
+    ];
+
+    const propVariations: (() => [string, string])[] = [
+      () => ['fooz', `'foo' `],
+      () => ['barz', `'bar' `]
+    ];
+
+    const exprVariations: (() => [IExpression, string])[] = [
+      () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+      () => [new AccessScope('foo'),                                   `foo        `],
+      () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
+      () => [new PrimitiveLiteral(null),                               `null       `],
+      () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+    ];
+
+    const flagsVariations: (() => [LifecycleFlags, string])[] = [
+      () => [LifecycleFlags.fromBind,                                            `fromBind               `],
+      () => [LifecycleFlags.updateTargetInstance,                                `updateTarget           `],
+      () => [LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush, `updateTarget|fromFlush `]
+    ];
+
+    const scopeVariations: (() => [IScope, string])[] = [
+      () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
+      () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
+      () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
+      () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
+      () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+    ];
+
+    const inputs: [typeof targetVariations, typeof propVariations, typeof exprVariations, typeof flagsVariations, typeof scopeVariations]
+       = [targetVariations, propVariations, exprVariations, flagsVariations, scopeVariations];
+
+    eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
         it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
           // - Arrange -
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.oneTime);
           const srcVal = expr.evaluate(LifecycleFlags.none, scope, container);
           const targetObserver = observerLocator.getAccessor(target, prop);
-          const stub = sinon.stub(observerLocator, 'getAccessor').returns(targetObserver);
-          stub.withArgs(target, prop);
+          const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
+          $stub.withArgs(target, prop);
 
           massSpy(targetObserver, 'setValue', 'getValue');
           massSpy(expr, 'evaluate');
@@ -204,50 +213,56 @@ describe('Binding', () => {
           expect(lifecycle.flushCount).to.equal(0);
         });
       }
-    )
+    );
   });
 
   describe('$bind() [to-view] assigns the target value and listens for changes', () => {
-    eachCartesianJoinFactory(
-      [
-        <(() => [{foo:string}, string])[]>[
-          () => [({ foo: 'bar' }), `{foo:'bar'} `],
-          () => [({ foo: null }),  `{foo:null}  `],
-          () => [({}),             `{}          `]
-        ],
-        <(() => [string, string])[]>[
-          () => ['fooz', `'fooz' `], // the target properties are named a bit different to ensure no argument match collision occurs for the observerLocator stub
-          () => ['barz', `'barz' `]
-        ],
-        <(() => [IExpression, string])[]>[
-          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
-          () => [new AccessScope('foo'),                                   `foo        `],
-          () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-          () => [new PrimitiveLiteral(null),                               `null       `],
-          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
-        ],
-        <(() => [LifecycleFlags, string])[]>[
-          () => [LifecycleFlags.fromBind,                                            `fromBind               `],
-          () => [LifecycleFlags.updateTargetInstance,                                `updateTarget           `],
-          () => [LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush,`updateTarget|fromFlush `]
-        ],
-        <(() => [IScope, string])[]>[
-          () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
-          () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-          () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
-          () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
-          () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
-        ]
-      ],
-      ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
+
+    const targetVariations: (() => [{foo?: string}, string])[] = [
+      () => [({ foo: 'bar' }), `{foo:'bar'} `],
+      () => [({ foo: null }),  `{foo:null}  `],
+      () => [({}),             `{}          `]
+    ];
+
+    const propVariations: (() => [string, string])[] = [
+      () => ['fooz', `'fooz' `], // the target properties are named a bit different to ensure no argument match collision occurs for the observerLocator stub
+      () => ['barz', `'barz' `]
+    ];
+
+    const exprVariations: (() => [IExpression, string])[] = [
+      () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+      () => [new AccessScope('foo'),                                   `foo        `],
+      () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
+      () => [new PrimitiveLiteral(null),                               `null       `],
+      () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+    ];
+
+    const flagsVariations: (() => [LifecycleFlags, string])[] = [
+      () => [LifecycleFlags.fromBind,                                            `fromBind               `],
+      () => [LifecycleFlags.updateTargetInstance,                                `updateTarget           `],
+      () => [LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush, `updateTarget|fromFlush `]
+    ];
+
+    const scopeVariations: (() => [IScope, string])[] = [
+      () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
+      () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
+      () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
+      () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
+      () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+    ];
+
+    const inputs: [typeof targetVariations, typeof propVariations, typeof exprVariations, typeof flagsVariations, typeof scopeVariations]
+       = [targetVariations, propVariations, exprVariations, flagsVariations, scopeVariations];
+
+    eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
         it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.toView);
           const srcVal = expr.evaluate(LifecycleFlags.none, scope, container);
           const targetObserver = observerLocator.getAccessor(target, prop);
 
-          const stub = sinon.stub(observerLocator, 'getAccessor').returns(targetObserver);
-          stub.withArgs(target, prop);
+          const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
+          $stub.withArgs(target, prop);
 
           massSpy(targetObserver, 'setValue', 'getValue');
           massSpy(expr, 'evaluate', 'connect');
@@ -311,7 +326,7 @@ describe('Binding', () => {
           }
 
           // - Arrange - Part 2
-          stub.restore();
+          $stub.restore();
           massRestore(targetObserver);
           massRestore(sut);
           massRestore(expr);
@@ -330,7 +345,6 @@ describe('Binding', () => {
             ensureNotCalled(sut, 'handleChange');
             ensureNotCalled(expr, 'evaluate', 'connect');
           }
-
 
           const newValue = {};
 
@@ -415,40 +429,47 @@ describe('Binding', () => {
           }
         });
       }
-    )
+    );
   });
 
   describe('$bind() [from-view] does not assign the target, and listens for changes', () => {
-    eachCartesianJoinFactory(
-      [
-        <(() => [{foo:string}, string])[]>[
-          () => [({ foo: 'bar' }), `{foo:'bar'} `],
-          () => [({ foo: null }),  `{foo:null}  `],
-          () => [({}),             `{}          `]
-        ],
-        <(() => [string, string])[]>[
-          () => ['foo', `'foo' `],
-          () => ['bar', `'bar' `]
-        ],
-        <(() => [any, string])[]>[
-          () => [{},        `{}        `],
-          () => [null,      `null      `],
-          () => [undefined, `undefined `],
-          () => [42,        `42        `]
-        ],
-        <(() => [IExpression, string])[]>[
-          () => [new AccessScope('foo'), `foo `]
-        ],
-        <(() => [LifecycleFlags, string])[]>[
-          () => [LifecycleFlags.fromBind,                                            `fromBind               `],
-          () => [LifecycleFlags.updateTargetInstance,                                `updateTarget           `],
-          () => [LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush,`updateTarget|fromFlush `]
-        ],
-        <(() => [IScope, string])[]>[
-          () => [createScopeForTest({foo: {}}), `{foo:{}} `]
-        ]
-      ],
-      ([target, $1], [prop, $2], [newValue, $3], [expr, $4], [flags, $5], [scope, $6]) => {
+
+    const targetVariations: (() => [{foo?: string}, string])[] = [
+      () => [({ foo: 'bar' }), `{foo:'bar'} `],
+      () => [({ foo: null }),  `{foo:null}  `],
+      () => [({}),             `{}          `]
+    ];
+
+    const propVariations: (() => [string, string])[] = [
+      () => ['foo', `'foo' `],
+      () => ['bar', `'bar' `]
+    ];
+
+    const newValueVariations: (() => [any, string])[] = [
+      () => [{},        `{}        `],
+      () => [null,      `null      `],
+      () => [undefined, `undefined `],
+      () => [42,        `42        `]
+    ];
+
+    const exprVariations: (() => [IExpression, string])[] = [
+      () => [new AccessScope('foo'), `foo `]
+    ];
+
+    const flagsVariations: (() => [LifecycleFlags, string])[] = [
+      () => [LifecycleFlags.fromBind,                                            `fromBind               `],
+      () => [LifecycleFlags.updateTargetInstance,                                `updateTarget           `],
+      () => [LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush, `updateTarget|fromFlush `]
+    ];
+
+    const scopeVariations: (() => [IScope, string])[] = [
+      () => [createScopeForTest({foo: {}}), `{foo:{}} `]
+    ];
+
+    const inputs: [typeof targetVariations, typeof propVariations, typeof newValueVariations, typeof exprVariations, typeof flagsVariations, typeof scopeVariations]
+       = [targetVariations, propVariations, newValueVariations, exprVariations, flagsVariations, scopeVariations];
+
+    eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [newValue, $3], [expr, $4], [flags, $5], [scope, $6]) => {
         it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, () => {
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.fromView);
@@ -523,47 +544,54 @@ describe('Binding', () => {
           }
         });
       }
-    )
+    );
   });
 
   describe('$bind() [two-way] assign the targets, and listens for changes', () => {
-    eachCartesianJoinFactory(
-      [
-        <(() => [{foo:string}, string])[]>[
-          () => [{ foo: 'bar' },       `{foo:'bar'}     `],
-          () => [({ foo: null }),      `{foo:null}      `],
-          () => [({ foo: undefined }), `{foo:undefined} `],
-          () => [({}),                 `{}              `]
-        ],
-        <(() => [string, string])[]>[
-          () => ['foo', `'foo' `],
-          () => ['bar', `'bar' `]
-        ],
-        <(() => [any, string])[]>[
-          () => [[{}, {}],      `{}, {} `],
-          () => [[41, 43],      `41, 43 `]
-        ],
-        <(() => [IExpression, string])[]>[
-          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
-          () => [new AccessScope('foo'),                                   `foo        `],
-          () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-          () => [new PrimitiveLiteral(null),                               `null       `],
-          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
-        ],
-        <(() => [LifecycleFlags, string])[]>[
-          () => [LifecycleFlags.fromBind,             `fromBind     `],
-          () => [LifecycleFlags.updateTargetInstance, `updateTarget `]
-        ],
-        <(() => [IScope, string])[]>[
-          () => [createScopeForTest({foo: {}}),              `{foo:{}} `],
-          () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
-          () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-          () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
-          () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
-          () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
-        ]
-      ],
-      ([target, $1], [prop, $2], [[newValue1, newValue2], $3], [expr, $4], [flags, $5], [scope, $6]) => {
+
+    const targetVariations: (() => [{foo?: string}, string])[] = [
+      () => [{ foo: 'bar' },       `{foo:'bar'}     `],
+      () => [({ foo: null }),      `{foo:null}      `],
+      () => [({ foo: undefined }), `{foo:undefined} `],
+      () => [({}),                 `{}              `]
+    ];
+
+    const propVariations: (() => [string, string])[] = [
+      () => ['foo', `'foo' `],
+      () => ['bar', `'bar' `]
+    ];
+
+    const newValueVariations: (() => [any, string])[] = [
+      () => [[{}, {}],      `{}, {} `],
+      () => [[41, 43],      `41, 43 `]
+    ];
+
+    const exprVariations: (() => [IExpression, string])[] = [
+      () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+      () => [new AccessScope('foo'),                                   `foo        `],
+      () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
+      () => [new PrimitiveLiteral(null),                               `null       `],
+      () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+    ];
+
+    const flagsVariations: (() => [LifecycleFlags, string])[] = [
+      () => [LifecycleFlags.fromBind,             `fromBind     `],
+      () => [LifecycleFlags.updateTargetInstance, `updateTarget `]
+    ];
+
+    const scopeVariations: (() => [IScope, string])[] = [
+      () => [createScopeForTest({foo: {}}),              `{foo:{}} `],
+      () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
+      () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
+      () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
+      () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
+      () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+    ];
+
+    const inputs: [typeof targetVariations, typeof propVariations, typeof newValueVariations, typeof exprVariations, typeof flagsVariations, typeof scopeVariations]
+       = [targetVariations, propVariations, newValueVariations, exprVariations, flagsVariations, scopeVariations];
+
+    eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [[newValue1, newValue2], $3], [expr, $4], [flags, $5], [scope, $6]) => {
         it(`$bind() [two-way]  target=${$1} prop=${$2} newValue1,newValue2=${$3} expr=${$4} flags=${$5} scope=${$6}`, () => {
           const originalScope = JSON.parse(JSON.stringify(scope));
           // - Arrange - Part 1
@@ -622,7 +650,7 @@ describe('Binding', () => {
           // verify the behavior of the sourceExpression (redundant)
           if (expr instanceof AccessMember) {
             expect(sut.addObserver).to.have.been.calledTwice;
-            expect(sut.observeProperty).to.have.been.calledTwice
+            expect(sut.observeProperty).to.have.been.calledTwice;
             const obj = scope.bindingContext[expr.object['name']];
             expect(sut.observeProperty).to.have.been.calledWithExactly(obj, expr.name);
             expect(sut.observeProperty).to.have.been.calledWithExactly(scope.bindingContext, expr.object['name']);
@@ -742,8 +770,8 @@ describe('Binding', () => {
 
             // verify the behavior of the sourceExpression (connect) (redundant)
             if (expr instanceof AccessMember) {
-              expect((<SinonSpy>sut.addObserver).getCalls().length).to.equal(4);
-              expect((<SinonSpy>sut.observeProperty).getCalls().length).to.equal(4);
+              expect((sut.addObserver as SinonSpy).getCalls().length).to.equal(4);
+              expect((sut.observeProperty as SinonSpy).getCalls().length).to.equal(4);
               const obj = scope.bindingContext[expr.object['name']];
               expect(sut.observeProperty).to.have.been.calledWithExactly(obj, expr.name);
               expect(sut.observeProperty).to.have.been.calledWithExactly(scope.bindingContext, expr.object['name']);
@@ -752,8 +780,8 @@ describe('Binding', () => {
                 expect(sut.addObserver).to.have.been.calledWithExactly(observer01);
               }
             } else if (expr instanceof AccessScope) {
-              expect((<SinonSpy>sut.addObserver).getCalls().length).to.equal(2);
-              expect((<SinonSpy>sut.observeProperty).getCalls().length).to.equal(2);
+              expect((sut.addObserver as SinonSpy).getCalls().length).to.equal(2);
+              expect((sut.observeProperty as SinonSpy).getCalls().length).to.equal(2);
               expect(sut.observeProperty).to.have.been.calledWithExactly(scope.bindingContext, expr.name);
 
               expect(sut.addObserver).to.have.been.calledWithExactly(observer00);
@@ -810,7 +838,7 @@ describe('Binding', () => {
           verifyEqual(targetObserver.currentValue, srcVal);
         });
       }
-    )
+    );
   });
 
   describe('$unbind()', () => {
@@ -827,10 +855,10 @@ describe('Binding', () => {
       const scope: any = {};
       sut['$scope'] = scope;
       sut.$state = State.isBound;
-      sut['targetObserver'] = <any>{};
+      sut['targetObserver'] = {} as any;
       const unobserveSpy = spy(sut, 'unobserve');
       const unbindSpy = dummySourceExpression.unbind = spy();
-      (<any>dummySourceExpression).$kind |= ExpressionKind.HasUnbind;
+      (dummySourceExpression as any).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(LifecycleFlags.fromUnbind);
       expect(sut['$scope']).to.equal(null);
       expect(sut['$state'] & State.isBound).to.equal(0);
@@ -915,13 +943,13 @@ describe('Binding', () => {
         while (i < count) {
           const observer = sut[`_observer${i}`];
           sut.addObserver(observer);
-          i+= 2;
+          i += 2;
         }
         i = 0;
         while (i < count) {
           expect(sut[`_observerVersion${i}`] === version).to.equal(true);
           expect(sut[`_observerVersion${i + 1}`] === version).to.equal(false);
-          i+= 2;
+          i += 2;
         }
       });
     }
@@ -948,28 +976,28 @@ describe('Binding', () => {
 });
 
 class MockObserver implements IBindingTargetObserver {
-  _subscriberFlags?: SubscriberFlags;
-  _subscriber0?: IPropertySubscriber;
-  _subscriber1?: IPropertySubscriber;
-  _subscriber2?: IPropertySubscriber;
-  _subscribersRest?: IPropertySubscriber[];
-  callSubscribers: IPropertyChangeNotifier;
-  hasSubscribers: IBindingTargetObserver['hasSubscribers'];
-  hasSubscriber: IBindingTargetObserver['hasSubscriber'];
-  removeSubscriber: IBindingTargetObserver['removeSubscriber'];
-  addSubscriber: IBindingTargetObserver['addSubscriber'];
-  bind = spy();
-  unbind = spy();
-  dispose = spy();
-  obj: any;
-  propertyKey?: string | number | symbol;
-  oldValue?: any;
-  previousValue?: any;
-  currentValue: any;
-  hasChanges?: boolean;
-  flush = spy();
-  getValue = spy();
-  setValue = spy();
-  subscribe = spy();
-  unsubscribe = spy();
+  public _subscriberFlags?: SubscriberFlags;
+  public _subscriber0?: IPropertySubscriber;
+  public _subscriber1?: IPropertySubscriber;
+  public _subscriber2?: IPropertySubscriber;
+  public _subscribersRest?: IPropertySubscriber[];
+  public callSubscribers: IPropertyChangeNotifier;
+  public hasSubscribers: IBindingTargetObserver['hasSubscribers'];
+  public hasSubscriber: IBindingTargetObserver['hasSubscriber'];
+  public removeSubscriber: IBindingTargetObserver['removeSubscriber'];
+  public addSubscriber: IBindingTargetObserver['addSubscriber'];
+  public bind = spy();
+  public unbind = spy();
+  public dispose = spy();
+  public obj: any;
+  public propertyKey?: string | number | symbol;
+  public oldValue?: any;
+  public previousValue?: any;
+  public currentValue: any;
+  public hasChanges?: boolean;
+  public flush = spy();
+  public getValue = spy();
+  public setValue = spy();
+  public subscribe = spy();
+  public unsubscribe = spy();
 }

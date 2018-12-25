@@ -26,7 +26,10 @@ import { MockTextNodeTemplate } from '../../mock';
 import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
 import { createScopeForTest } from '../../binding/shared';
 import { expect } from 'chai';
-import { DI, Writable, Registration } from '@aurelia/kernel';
+import {
+  DI,
+Writable,
+Registration } from '@aurelia/kernel';
 
 const dom = new DOM(<any>document);
 const domRegistration = Registration.instance(IDOM, dom);
@@ -41,7 +44,7 @@ describe('The "if" template controller', () => {
     const child = getCurrentView(ifAttr);
     const ifView = ifAttr['ifView'] as IView;
 
-    expect(child).to.not.be.null;
+    expect(child).not.to.equal(null);
     expect(child).to.equal(ifView);
     expect(ifView).to.be.instanceof(ViewFake);
     expect(ifView).to.have.$state.isBound();
@@ -78,7 +81,7 @@ describe('The "if" template controller', () => {
     lifecycle.processFlushQueue(LifecycleFlags.none)
 
     const child = getCurrentView(ifAttr);
-    expect(child).to.be.null;
+    expect(child).to.equal(null);
     expect(location.previousSibling).to.equal(location.$start);
 
     ifView = ifAttr['ifView'] as IView;
@@ -100,14 +103,14 @@ describe('The "if" template controller', () => {
     let child = getCurrentView(ifAttr);
     let elseView = ifAttr['elseView'] as IView;
 
-    expect(child).to.not.be.null;
-    expect(elseView).to.be.null;
+    expect(child).not.to.equal(null);
+    expect(elseView).to.equal(null);
 
     lifecycle.processFlushQueue(LifecycleFlags.none)
 
     child = getCurrentView(ifAttr);
     elseView = ifAttr['elseView'] as IView;
-    expect(child).to.not.be.null;
+    expect(child).not.to.equal(null);
     expect(child).to.equal(elseView);
     expect(elseView).to.be.instanceof(ViewFake);
     expect(elseView).to.have.$state.isBound();

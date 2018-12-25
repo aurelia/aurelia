@@ -6,6 +6,7 @@
   "rules": {
     "no-implicit-dependencies": false,
     "typedef": false,
-    "mocha-no-side-effect-code": false
+    "mocha-no-side-effect-code": false,
+    "no-any": false
   }
 }

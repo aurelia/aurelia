@@ -1,6 +1,10 @@
-import { LifecycleFlags, subscriberCollection, MutationKind } from '../../src/index';
 import { expect } from 'chai';
 import { spy } from 'sinon';
+import {
+  LifecycleFlags,
+  MutationKind,
+  subscriberCollection
+} from '../../src/index';
 
 @subscriberCollection(MutationKind.instance)
 class Test {}
@@ -54,7 +58,7 @@ describe('subscriberCollection', () => {
 
     const subscribers = [];
     for (let i = 0, ii = 100; ii > i; ++i) {
-      observer['addSubscriber'](<any>(subscribers[i] = { i }));
+      observer['addSubscriber']((subscribers[i] = { i }) as any);
     }
 
     let removalCount = 0;
@@ -66,6 +70,6 @@ describe('subscriberCollection', () => {
     }
     expect(observer['_subscribersRest'].length).to.equal(subscribers.length - 3 - removalCount);
 
-    expect(observer['removeSubscriber'](<any>{})).to.be.false;
+    expect(observer['removeSubscriber']({} as any)).to.equal(false);
   });
 });

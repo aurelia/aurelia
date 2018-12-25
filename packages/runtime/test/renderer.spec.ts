@@ -109,7 +109,7 @@ describe('Renderer', () => {
         expect(bindable.interpolation['parts'][0]).to.equal('');
         expect(bindable.interpolation['parts'][1]).to.equal('');
         expect(bindable.mode).to.equal(BindingMode.toView);
-        //expect(target.isConnected).to.be.false;
+        //expect(target.isConnected).to.equal(false);
 
         tearDown({ wrapper });
       });
@@ -333,7 +333,7 @@ describe('Renderer', () => {
             expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
             const bindable = <InterpolationBinding>renderable.$bindableHead;
 
-            expect(document.contains(target)).to.be.false;
+            expect(document.contains(target)).to.equal(false);
 
             tearDown({ wrapper });
           });

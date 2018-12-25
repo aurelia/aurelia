@@ -1,6 +1,10 @@
 import { expect } from 'chai';
 import { Constructable } from '@aurelia/kernel';
-import { LifecycleFlags, IAttach, IView, Lifecycle } from '../../../src/index';
+import {
+  LifecycleFlags,
+IAttach,
+IView,
+Lifecycle } from '../../../src/index';
 import { ViewFake } from '../fakes/view-fake';
 import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';
@@ -27,7 +31,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
 
     runAttachLifecycle(lifecycle, attribute);
 
-    expect(attachCalled).to.be.true;
+    expect(attachCalled).to.equal(true);
   });
 
   it('adds a child instance at the render location when attaching', () => {
@@ -50,7 +54,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
 
     attribute.$bind(LifecycleFlags.fromBind, createScope());
 
-    expect(bindCalled).to.be.true;
+    expect(bindCalled).to.equal(true);
   });
 
   it('enforces the detach lifecycle of its child instance', () => {
@@ -64,7 +68,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
     runAttachLifecycle(lifecycle, attribute);
     runDetachLifecycle(lifecycle, attribute);
 
-    expect(detachCalled).to.be.true;
+    expect(detachCalled).to.equal(true);
   });
 
   it('enforces the unbind lifecycle of its child instance', () => {
@@ -77,7 +81,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
     attribute.$bind(LifecycleFlags.fromBind, createScope());
     attribute.$unbind(LifecycleFlags.fromUnbind);
 
-    expect(unbindCalled).to.be.true;
+    expect(unbindCalled).to.equal(true);
   });
 
   function runAttachLifecycle(lifecycle: Lifecycle, item: IAttach) {

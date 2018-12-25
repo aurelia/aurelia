@@ -31,25 +31,25 @@ describe(`CompiledTemplate`, () => {
 
       expect(sut.renderContext['parent']).to.equal(container);
 
-      expect(sut.renderContext.has(IViewFactory, false)).to.be.true;
-      expect(sut.renderContext.has(IRenderable, false)).to.be.true;
-      expect(sut.renderContext.has(ITargetedInstruction, false)).to.be.true;
-      expect(sut.renderContext.has(IRenderLocation, false)).to.be.true;
-      expect(sut.renderContext.has(Foo, false)).to.be.false;
-      expect(sut.renderContext.has(Bar, false)).to.be.true;
-      expect(sut.renderContext.has(INode, false)).to.be.true;
-      expect(sut.renderContext.has(Element, false)).to.be.true;
-      expect(sut.renderContext.has(HTMLElement, false)).to.be.true;
-      expect(sut.renderContext.has(SVGElement, false)).to.be.true;
+      expect(sut.renderContext.has(IViewFactory, false)).to.equal(true);
+      expect(sut.renderContext.has(IRenderable, false)).to.equal(true);
+      expect(sut.renderContext.has(ITargetedInstruction, false)).to.equal(true);
+      expect(sut.renderContext.has(IRenderLocation, false)).to.equal(true);
+      expect(sut.renderContext.has(Foo, false)).to.equal(false);
+      expect(sut.renderContext.has(Bar, false)).to.equal(true);
+      expect(sut.renderContext.has(INode, false)).to.equal(true);
+      expect(sut.renderContext.has(Element, false)).to.equal(true);
+      expect(sut.renderContext.has(HTMLElement, false)).to.equal(true);
+      expect(sut.renderContext.has(SVGElement, false)).to.equal(true);
 
       expect(typeof sut.renderContext.render).to.equal('function');
       expect(typeof sut.renderContext.beginComponentOperation).to.equal('function');
       expect(typeof sut.renderContext['dispose']).to.equal('function');
 
       expect(() => sut.renderContext.get(IViewFactory)).to.throw(/50/);
-      expect(sut.renderContext.get(IRenderable)).to.be.null;
-      expect(sut.renderContext.get(ITargetedInstruction)).to.be.null;
-      expect(sut.renderContext.get(IRenderLocation)).to.be.null;
+      expect(sut.renderContext.get(IRenderable)).to.equal(null);
+      expect(sut.renderContext.get(ITargetedInstruction)).to.equal(null);
+      expect(sut.renderContext.get(IRenderLocation)).to.equal(null);
 
       const renderable = {} as any;
       const target = {} as any;

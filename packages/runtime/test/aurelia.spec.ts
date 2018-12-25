@@ -17,8 +17,8 @@ describe.only('Aurelia', () => {
     expect(sut['components'].length).to.equal(0);
     expect(sut['startTasks'].length).to.equal(0);
     expect(sut['stopTasks'].length).to.equal(0);
-    expect(sut['isStarted']).to.be.false;
-    expect(sut['container']).not.to.be.undefined;
+    expect(sut['isStarted']).to.equal(false);
+    expect(sut['container']).not.to.equal(undefined);
   });
 
   it('should register dependencies', () => {
@@ -58,10 +58,10 @@ describe.only('Aurelia', () => {
 
     sut.start();
 
-    expect(sut['isStarted']).to.be.true;
-    expect(hydrated).to.be.true;
-    expect(bound).to.be.true;
-    expect(attached).to.be.true;
+    expect(sut['isStarted']).to.equal(true);
+    expect(hydrated).to.equal(true);
+    expect(bound).to.equal(true);
+    expect(attached).to.equal(true);
   });
 
   it('should stop', () => {
@@ -76,8 +76,8 @@ describe.only('Aurelia', () => {
 
     sut.stop();
 
-    expect(sut['isStarted']).to.be.false;
-    expect(detached).to.be.true;
-    expect(unbound).to.be.true;
+    expect(sut['isStarted']).to.equal(false);
+    expect(detached).to.equal(true);
+    expect(unbound).to.equal(true);
   });
 });

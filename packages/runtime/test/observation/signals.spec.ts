@@ -1,7 +1,19 @@
-import { IExpression, IObserverLocator, Binding, LifecycleFlags, IScope, BindingMode, SignalBindingBehavior, ISignaler, IsBindingBehavior } from '../../src/index';
-import { spy } from 'sinon';
+import {
+  DI,
+  IContainer
+} from '@aurelia/kernel';
 import { expect } from 'chai';
-import { IContainer, DI } from '@aurelia/kernel';
+import { spy } from 'sinon';
+import {
+  Binding,
+  BindingMode,
+  IObserverLocator,
+  IsBindingBehavior,
+  IScope,
+  ISignaler,
+  LifecycleFlags,
+  SignalBindingBehavior
+} from '../../src/index';
 
 describe('SignalBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;
@@ -9,7 +21,7 @@ describe('SignalBindingBehavior', () => {
   let targetProperty: string;
   let mode: BindingMode;
   let observerLocator: IObserverLocator;
-  let container: IContainer = DI.createContainer();
+  const container: IContainer = DI.createContainer();
   let sut: SignalBindingBehavior;
   let binding: Binding;
   let flags: LifecycleFlags;
@@ -19,10 +31,10 @@ describe('SignalBindingBehavior', () => {
 
   beforeEach(() => {
     name = 'foo';
-    signaler = <any>new MockSignaler();
+    signaler = new MockSignaler() as any;
     sut = new SignalBindingBehavior(signaler);
-    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, <any>container);
-    (<any>sut).bind(flags, scope, <any>binding, name);
+    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container as any);
+    (sut as any).bind(flags, scope, binding as any, name);
   });
 
   // TODO: test properly (multiple names etc)
@@ -31,12 +43,12 @@ describe('SignalBindingBehavior', () => {
   });
 
   it('unbind() should revert the original behavior', () => {
-    sut.unbind(flags, scope, <any>binding);
+    sut.unbind(flags, scope, binding as any);
     expect(signaler.removeSignalListener).to.have.been.calledWith(name, binding);
   });
 });
 
 class MockSignaler {
-  addSignalListener = spy();
-  removeSignalListener = spy();
+  public addSignalListener = spy();
+  public removeSignalListener = spy();
 }

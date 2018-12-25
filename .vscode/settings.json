@@ -11,8 +11,7 @@
     "**/aurelia_project/**",
     "**/coverage/**",
     "**/node_modules/**",
-    "**/scripts/**",
-    "**/test/**"
+    "**/scripts/**"
   ],
   "emmet.triggerExpansionOnTab": true,
   "prettier.printWidth": 260,

@@ -3,4 +3,4 @@ export * from './configuration';
 export * from './debugging';
 export * from './template-binder';
 export * from './template-compiler';
-export * from './template-factory';
+export * from './template-element-factory';

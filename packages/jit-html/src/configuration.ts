@@ -8,7 +8,7 @@ import {
   TriggerBindingCommand
 } from './binding-command';
 import { TemplateCompiler } from './template-compiler';
-import { HTMLTemplateFactory, ITemplateFactory } from './template-factory';
+import { HTMLTemplateElementFactory, ITemplateElementFactory } from './template-element-factory';
 
 export const HTMLBindingLanguage: IRegistry[] = [
   TriggerBindingCommand,
@@ -22,7 +22,7 @@ export const HTMLJitConfiguration = {
       HTMLRuntimeConfiguration,
       JitConfiguration,
       Registration.singleton(ITemplateCompiler, TemplateCompiler),
-      Registration.singleton(ITemplateFactory, HTMLTemplateFactory),
+      Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory),
       ...HTMLBindingLanguage
     );
   },

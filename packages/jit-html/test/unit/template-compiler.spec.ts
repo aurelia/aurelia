@@ -29,19 +29,19 @@ import {
   HTMLTargetedInstructionType as HTT
 } from '../../../runtime-html/src/index';
 import {
-  parseCore,
+  parseExpression,
   DotSeparatedAttributePattern,
   IAttributeParser
 } from '../../../jit/src/index';
 import {
   TemplateCompiler,
   HTMLJitConfiguration,
-  HTMLTemplateFactory
+  HTMLTemplateElementFactory
 } from '../../src/index';
 import { expect } from 'chai';
 import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual, enableTracing, disableTracing, SymbolTraceWriter } from './util';
 import { stringifyTemplateDefinition } from '../../src/debugging';
-import { ITemplateFactory } from '../../src/template-factory';
+import { ITemplateElementFactory } from '../../src/template-element-factory';
 
 const dom = <any>new HTMLDOM(<any>document);
 const domRegistration = Registration.instance(IDOM, dom);
@@ -50,7 +50,7 @@ c.register(domRegistration);
 c.register(<any>DotSeparatedAttributePattern);
 
 const attrParser = c.get(IAttributeParser);
-const tplFactory = new HTMLTemplateFactory(dom);
+const tplFactory = new HTMLTemplateElementFactory(dom);
 
 
 export function createAttribute(name: string, value: string): Attr {
@@ -593,10 +593,10 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
     if (!!cmd && validCommands.indexOf(cmd) !== -1) {
       const type = TT.propertyBinding;
       const to = bindable.property;
-      const from = parseCore(attributeValue);
+      const from = parseExpression(attributeValue);
       return { type, to, mode, from, oneTime };
     } else {
-      const from = parseCore(attributeValue, <any>BindingType.Interpolation);
+      const from = parseExpression(attributeValue, <any>BindingType.Interpolation);
       if (!!from) {
         const type = TT.interpolation;
         const to = bindable.property;
@@ -612,10 +612,10 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
     const type = TT.propertyBinding;
     const to = attr;
     if (!!cmd && validCommands.indexOf(cmd) !== -1) {
-      const from = parseCore(attributeValue);
+      const from = parseExpression(attributeValue);
       return { type, to, mode, from, oneTime };
     } else {
-      let from = parseCore(attributeValue, <any>BindingType.Interpolation);
+      let from = parseExpression(attributeValue, <any>BindingType.Interpolation);
       if (!!from) {
         const type = TT.interpolation;
         return { type, to, from };

@@ -7,7 +7,7 @@ import { IDOM, INode } from '@aurelia/runtime';
  * It is idempotent in the sense that passing in an existing template element will simply return that template element,
  * so it is always safe to pass in a node without causing unnecessary DOM parsing or template creation.
  */
-export interface ITemplateFactory {
+export interface ITemplateElementFactory {
   /**
    * Create a `HTMLTemplateElement` from a provided html string.
    *
@@ -30,7 +30,7 @@ export interface ITemplateFactory {
   createTemplate(input: unknown): INode;
 }
 
-export const ITemplateFactory = DI.createInterface<ITemplateFactory>().noDefault();
+export const ITemplateElementFactory = DI.createInterface<ITemplateElementFactory>().noDefault();
 
 /**
  * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
@@ -38,7 +38,7 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>().noDefault
  * @internal
  */
 @inject(IDOM)
-export class HTMLTemplateFactory {
+export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   private dom: IDOM;
   private template: HTMLTemplateElement;
 

@@ -15,7 +15,7 @@ import { Access, Char, Precedence, Token, unescapeCode } from './common';
 export const ParserRegistration: IRegistry = {
   register(container: IContainer): void {
     container.registerTransformer(IExpressionParser, parser => {
-      parser['parseCore'] = parseCore;
+      parser['parseCore'] = parseExpression;
       return parser;
     });
   }
@@ -80,8 +80,7 @@ const enum SemanticError {
   UnexpectedForOf = 151
 }
 
-/** @internal */
-export function parseCore(input: string, bindingType?: BindingType): IExpression {
+export function parseExpression(input: string, bindingType?: BindingType): IExpression {
   $state.input = input;
   $state.length = input.length;
   $state.index = 0;

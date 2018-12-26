@@ -1,4 +1,4 @@
-import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
+import { AccessScope, BindingIdentifier, ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import {
   ICallBindingInstruction,
@@ -12,10 +12,9 @@ import {
   IPropertyBindingInstruction,
   IRefBindingInstruction,
   ISetPropertyInstruction,
+  ITargetedInstruction,
   ITemplateDefinition,
-  TargetedInstruction,
-  TargetedInstructionType,
-  ITargetedInstruction
+  TargetedInstructionType
 } from './definitions';
 
 export class InterpolationInstruction implements IInterpolationInstruction {

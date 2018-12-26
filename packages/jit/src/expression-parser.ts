@@ -80,7 +80,11 @@ const enum SemanticError {
   UnexpectedForOf = 151
 }
 
-export function parseExpression(input: string, bindingType?: BindingType): IExpression {
+export function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType):
+  TType extends BindingType.Interpolation ? Interpolation :
+  TType extends BindingType.ForCommand ? ForOfStatement :
+  IsBindingBehavior {
+
   $state.input = input;
   $state.length = input.length;
   $state.index = 0;

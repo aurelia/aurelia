@@ -1,6 +1,6 @@
-import { customAttribute, IAttributeDefinition, BindingMode } from '../../src/index';
-import { expect } from 'chai';
 import { PLATFORM } from '@aurelia/kernel';
+import { expect } from 'chai';
+import { BindingMode, customAttribute, IAttributeDefinition } from '../../src/index';
 import { eachCartesianJoin } from '../util';
 import { createCustomAttribute } from './custom-attribute._builder';
 
@@ -27,7 +27,7 @@ describe('@customAttribute', () => {
     {
       description: 'aliases is null',
       expectation: 'uses PLATFORM.emptyArray',
-      getAliases() { return null },
+      getAliases() { return null; },
       getExpectedAliases(def: IAttributeDefinition) {
         return PLATFORM.emptyArray;
       }
@@ -35,7 +35,7 @@ describe('@customAttribute', () => {
     {
       description: 'aliases is undefined',
       expectation: 'uses PLATFORM.emptyArray',
-      getAliases() { return undefined },
+      getAliases() { return undefined; },
       getExpectedAliases(def: IAttributeDefinition) {
         return PLATFORM.emptyArray;
       }
@@ -43,7 +43,7 @@ describe('@customAttribute', () => {
     {
       description: 'aliases is empty array',
       expectation: 'uses the provided aliases',
-      getAliases() { return [] },
+      getAliases() { return []; },
       getExpectedAliases(def: IAttributeDefinition) {
         return def.aliases;
       }
@@ -51,7 +51,7 @@ describe('@customAttribute', () => {
     {
       description: 'aliases has one item',
       expectation: 'uses the provided aliases',
-      getAliases() { return ['a'] },
+      getAliases() { return ['a']; },
       getExpectedAliases(def: IAttributeDefinition) {
         return def.aliases;
       }
@@ -59,7 +59,7 @@ describe('@customAttribute', () => {
     {
       description: 'aliases has three items',
       expectation: 'uses the provided aliases',
-      getAliases() { return ['a', 'b', 'c'] },
+      getAliases() { return ['a', 'b', 'c']; },
       getExpectedAliases(def: IAttributeDefinition) {
         return def.aliases;
       }
@@ -94,7 +94,7 @@ describe('@customAttribute', () => {
     {
       description: 'bindingMode is null',
       expectation: 'uses BindingMode.toView',
-      getBindingMode() { return null },
+      getBindingMode() { return null; },
       getExpectedBindingMode(def: IAttributeDefinition) {
         return BindingMode.toView;
       }
@@ -102,7 +102,7 @@ describe('@customAttribute', () => {
     {
       description: 'bindingMode is undefined',
       expectation: 'uses BindingMode.toView',
-      getBindingMode() { return undefined },
+      getBindingMode() { return undefined; },
       getExpectedBindingMode(def: IAttributeDefinition) {
         return BindingMode.toView;
       }
@@ -110,7 +110,7 @@ describe('@customAttribute', () => {
     {
       description: 'bindingMode is BindingMode.toView',
       expectation: 'uses the provided BindingMode',
-      getBindingMode() { return BindingMode.toView },
+      getBindingMode() { return BindingMode.toView; },
       getExpectedBindingMode(def: IAttributeDefinition) {
         return def.defaultBindingMode;
       }
@@ -118,7 +118,7 @@ describe('@customAttribute', () => {
     {
       description: 'bindingMode is BindingMode.oneTime',
       expectation: 'uses the provided BindingMode',
-      getBindingMode() { return BindingMode.oneTime },
+      getBindingMode() { return BindingMode.oneTime; },
       getExpectedBindingMode(def: IAttributeDefinition) {
         return def.defaultBindingMode;
       }
@@ -126,7 +126,7 @@ describe('@customAttribute', () => {
     {
       description: 'bindingMode is BindingMode.fromView',
       expectation: 'uses the provided BindingMode',
-      getBindingMode() { return BindingMode.fromView },
+      getBindingMode() { return BindingMode.fromView; },
       getExpectedBindingMode(def: IAttributeDefinition) {
         return def.defaultBindingMode;
       }
@@ -134,7 +134,7 @@ describe('@customAttribute', () => {
     {
       description: 'bindingMode is BindingMode.twoWay',
       expectation: 'uses the provided BindingMode',
-      getBindingMode() { return BindingMode.twoWay },
+      getBindingMode() { return BindingMode.twoWay; },
       getExpectedBindingMode(def: IAttributeDefinition) {
         return def.defaultBindingMode;
       }
@@ -142,7 +142,7 @@ describe('@customAttribute', () => {
     {
       description: 'bindingMode is BindingMode.default',
       expectation: 'uses the provided BindingMode',
-      getBindingMode() { return BindingMode.default },
+      getBindingMode() { return BindingMode.default; },
       getExpectedBindingMode(def: IAttributeDefinition) {
         return def.defaultBindingMode;
       }
@@ -177,51 +177,51 @@ describe('@customAttribute', () => {
     {
       description: 'def.bindables is null, Type.bindables is null',
       expectation: 'does NOT yield any bindables',
-      getDefBindables() { return null },
-      getTypeBindables() { return null },
-      getExpectedBindables() { return {} }
+      getDefBindables() { return null; },
+      getTypeBindables() { return null; },
+      getExpectedBindables() { return {}; }
     },
     {
       description: 'def.bindables is undefined, Type.bindables is undefined',
       expectation: 'does NOT yield any bindables',
-      getDefBindables() { return undefined },
-      getTypeBindables() { return undefined },
-      getExpectedBindables() { return {} }
+      getDefBindables() { return undefined; },
+      getTypeBindables() { return undefined; },
+      getExpectedBindables() { return {}; }
     },
     {
       description: 'def.bindables is empty obj, Type.bindables is empty obj',
       expectation: 'does NOT yield any bindables',
-      getDefBindables() { return {} },
-      getTypeBindables() { return {} },
-      getExpectedBindables() { return {} }
+      getDefBindables() { return {}; },
+      getTypeBindables() { return {}; },
+      getExpectedBindables() { return {}; }
     },
     {
       description: 'def.bindables has bindables, Type.bindables is empty obj',
       expectation: 'yields bindables from def',
-      getDefBindables() { return { 'foo': 1 } },
-      getTypeBindables() { return {} },
-      getExpectedBindables() { return { 'foo': 1 } }
+      getDefBindables() { return { 'foo': 1 }; },
+      getTypeBindables() { return {}; },
+      getExpectedBindables() { return { 'foo': 1 }; }
     },
     {
       description: 'def.bindables has bindables, Type.bindables has different bindables',
       expectation: 'yields bindables from def and Type',
-      getDefBindables() { return { 'foo': 1 } },
-      getTypeBindables() { return { 'bar': 2 } },
-      getExpectedBindables() { return { 'foo': 1, 'bar': 2 } }
+      getDefBindables() { return { 'foo': 1 }; },
+      getTypeBindables() { return { 'bar': 2 }; },
+      getExpectedBindables() { return { 'foo': 1, 'bar': 2 }; }
     },
     {
       description: 'def.bindables is empty obj, Type.bindables has different bindables',
       expectation: 'yields bindables from Type',
-      getDefBindables() { return { } },
-      getTypeBindables() { return { 'bar': 2 } },
-      getExpectedBindables() { return { 'bar': 2 } }
+      getDefBindables() { return { }; },
+      getTypeBindables() { return { 'bar': 2 }; },
+      getExpectedBindables() { return { 'bar': 2 }; }
     },
     {
       description: 'def.bindables has bindables, Type.bindables has same bindables',
       expectation: 'yields bindables from def',
-      getDefBindables() { return { 'foo': 1 } },
-      getTypeBindables() { return { 'foo': 2 } },
-      getExpectedBindables() { return { 'foo': 1 } }
+      getDefBindables() { return { 'foo': 1 }; },
+      getTypeBindables() { return { 'foo': 2 }; },
+      getExpectedBindables() { return { 'foo': 1 }; }
     }
   ];
 
@@ -233,7 +233,7 @@ describe('@customAttribute', () => {
         bindables: bindablesSpec.getDefBindables(),
       };
       class Foo {
-        static bindables = bindablesSpec.getTypeBindables();
+        public static bindables = bindablesSpec.getTypeBindables();
       }
 
       // Act

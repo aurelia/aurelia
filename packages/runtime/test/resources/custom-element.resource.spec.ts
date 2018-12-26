@@ -1,6 +1,5 @@
-import { CustomElementResource, CustomAttributeResource } from '../../src/index';
 import { expect } from 'chai';
-
+import { CustomAttributeResource, CustomElementResource } from '../../src/index';
 
 describe('CustomElementResource', () => {
   describe(`define`, () => {
@@ -13,7 +12,7 @@ describe('CustomElementResource', () => {
     });
 
     it(`creates a new class when applied to undefined`, () => { // how though?? it explicitly checks for null??
-      const type = (<any>CustomElementResource).define('foo');
+      const type = (CustomElementResource as any).define('foo');
       expect(typeof type).to.equal('function');
       expect(typeof type.constructor).to.equal('function');
       expect(type.name).to.equal('HTMLOnlyElement');
@@ -21,7 +20,7 @@ describe('CustomElementResource', () => {
     });
 
     it(`names the resource 'unnamed' if no name is provided`, () => {
-      const type = CustomElementResource.define({}, class Foo {});
+      const type = CustomElementResource.define({} as any, class Foo {});
       expect(type.description.name).to.equal('unnamed');
     });
   });
@@ -34,23 +33,23 @@ describe('CustomElementResource', () => {
 
   describe(`isType`, () => {
     it(`returns true when given a resource with the correct kind`, () => {
-      const type = CustomElementResource.define('foo', class Foo{});
+      const type = CustomElementResource.define('foo', class Foo {});
       expect(CustomElementResource.isType(type)).to.equal(true);
     });
 
     it(`returns false when given a resource with the wrong kind`, () => {
-      const type = CustomAttributeResource.define('foo', class Foo{});
+      const type = CustomAttributeResource.define('foo', class Foo {});
       expect(CustomElementResource.isType(type)).to.equal(false);
     });
   });
 
   describe(`behaviorFor`, () => {
     it(`returns $customElement variable if it exists`, () => {
-      expect(CustomElementResource.behaviorFor(<any>{$customElement: 'foo'})).to.equal('foo');
+      expect(CustomElementResource.behaviorFor({$customElement: 'foo'} as any)).to.equal('foo');
     });
 
     it(`returns null if the $customElement variable does nots`, () => {
-      expect(CustomElementResource.behaviorFor(<any>{})).to.equal(null);
+      expect(CustomElementResource.behaviorFor({} as any)).to.equal(null);
     });
   });
 });

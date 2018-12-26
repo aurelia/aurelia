@@ -1,5 +1,5 @@
-import { useShadowDOM } from '../../src/index';
 import { expect } from 'chai';
+import { useShadowDOM } from '../../src/index';
 
 describe('@useShadowDOM', () => {
   it(`non-invocation`, () => {

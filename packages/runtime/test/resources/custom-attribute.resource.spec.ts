@@ -1,5 +1,5 @@
-import { customAttribute, CustomAttributeResource } from '../../src/index';
 import { expect } from 'chai';
+import { customAttribute, CustomAttributeResource } from '../../src/index';
 
 describe('CustomAttributeResource', () => {
   it('name is custom-attribute', () => {
@@ -16,6 +16,6 @@ describe('CustomAttributeResource', () => {
   });
 
   it('isType returns false if it is NOT a custom-attribute', () => {
-    expect(CustomAttributeResource.isType(class {})).to.equal(false, 'isType');
+    expect(CustomAttributeResource.isType(class {} as any)).to.equal(false, 'isType');
   });
 });

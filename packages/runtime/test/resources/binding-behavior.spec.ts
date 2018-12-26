@@ -1,6 +1,6 @@
-import { bindingBehavior, BindingBehaviorResource } from "../../../src/index";
-import { IContainer, DI } from "../../../../kernel/src/index";
+import { DI, IContainer } from '@aurelia/kernel';
 import { expect } from 'chai';
+import { bindingBehavior, BindingBehaviorResource } from '../../src/index';
 
 describe(`@bindingBehavior('foo')`, () => {
   let container: IContainer;
@@ -9,6 +9,7 @@ describe(`@bindingBehavior('foo')`, () => {
     container = DI.createContainer();
   });
 
+  // @ts-ignore
   @bindingBehavior('foo')
   class FooBindingBehavior { }
 

@@ -1,10 +1,15 @@
-import {
-  Hooks, INode, ILifecycle, Scope,
-  IElementProjector, State, LifecycleFlags
-} from '../../src/index';
 import { expect } from 'chai';
+import {
+  Hooks,
+  LifecycleFlags,
+  Scope,
+  State
+} from '../../src/index';
+import {
+  createCustomElement,
+  CustomElement
+} from '../resources/custom-element._builder';
 import { eachCartesianJoin } from '../util';
-import { CustomElement, createCustomElement } from './custom-element._builder';
 
 //TODO: verify mount callbacks
 describe('@customElement', () => {
@@ -32,27 +37,27 @@ describe('@customElement', () => {
       {
         description: 'Hooks.hasAttaching',
         expectation: 'calls attaching(), does NOT call attached()',
-        getHooks() { return Hooks.hasAttaching }
+        getHooks() { return Hooks.hasAttaching; }
       },
       {
         description: 'Hooks.none',
         expectation: 'does NOT call attaching(), does NOT call attached()',
-        getHooks() { return Hooks.none }
+        getHooks() { return Hooks.none; }
       },
       {
         description: 'Hooks.hasAttaching | Hooks.hasAttached',
         expectation: 'calls attaching(), calls attached()',
-        getHooks() { return Hooks.hasAttaching | Hooks.hasAttached }
+        getHooks() { return Hooks.hasAttaching | Hooks.hasAttached; }
       },
       {
         description: 'Hooks.hasAttached',
         expectation: 'does NOT call attaching(), calls attached()',
-        getHooks() { return Hooks.hasAttached }
+        getHooks() { return Hooks.hasAttached; }
       }
     ];
 
     eachCartesianJoin([propsSpecs, hooksSpecs],
-      (propsSpec, hooksSpec) => {
+                      (propsSpec, hooksSpec) => {
 
       it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
         // Arrange
@@ -66,10 +71,10 @@ describe('@customElement', () => {
         const hooks = hooksSpec.getHooks();
         sut.$hooks = hooks;
 
-        const nodes = sut.$nodes = <any>{};
+        const nodes = sut.$nodes = {} as any;
         let projectCalled = false;
         let projectNodes;
-        sut.$projector = <any> {
+        sut.$projector = {
           project(nodes) {
             projectCalled = true;
             projectNodes = nodes;
@@ -77,7 +82,7 @@ describe('@customElement', () => {
           provideEncapsulationSource(parentEncapsulationSource) {
             return parentEncapsulationSource;
           }
-        };
+        } as any;
 
         // Act
         sut.$attach(LifecycleFlags.none);
@@ -124,27 +129,27 @@ describe('@customElement', () => {
       {
         description: 'Hooks.hasDetaching',
         expectation: 'calls detaching(), does NOT call detached()',
-        getHooks() { return Hooks.hasDetaching }
+        getHooks() { return Hooks.hasDetaching; }
       },
       {
         description: 'Hooks.none',
         expectation: 'does NOT call detaching(), does NOT call detached()',
-        getHooks() { return Hooks.none }
+        getHooks() { return Hooks.none; }
       },
       {
         description: 'Hooks.hasDetaching | Hooks.hasDetached',
         expectation: 'calls detaching(), calls detached()',
-        getHooks() { return Hooks.hasDetaching | Hooks.hasDetaching }
+        getHooks() { return Hooks.hasDetaching | Hooks.hasDetaching; }
       },
       {
         description: 'Hooks.hasDetached',
         expectation: 'does NOT call detaching(), calls detached()',
-        getHooks() { return Hooks.hasDetached }
+        getHooks() { return Hooks.hasDetached; }
       }
     ];
 
     eachCartesianJoin([propsSpecs, hooksSpecs],
-      (propsSpec, hooksSpec) => {
+                      (propsSpec, hooksSpec) => {
 
       it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
         // Arrange
@@ -158,11 +163,11 @@ describe('@customElement', () => {
         sut.$hooks = hooks;
 
         let takeCalled = false;
-        sut.$projector = <any> {
+        sut.$projector = {
           take(nodes) {
             takeCalled = true;
           }
-        };
+        } as any;
 
         // Act
         sut.$detach(LifecycleFlags.none);
@@ -189,17 +194,17 @@ describe('@customElement', () => {
       {
         description: '$behavior.hasCaching: true',
         expectation: 'calls hasCaching()',
-        getHooks() { return Hooks.hasCaching }
+        getHooks() { return Hooks.hasCaching; }
       },
       {
         description: '$behavior.hasCaching: false',
         expectation: 'does NOT call hasCaching()',
-        getHooks() { return Hooks.none }
+        getHooks() { return Hooks.none; }
       }
     ];
 
     eachCartesianJoin([hooksSpecs],
-      (hooksSpec) => {
+                      (hooksSpec) => {
 
       it(`${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
         // Arrange
@@ -227,15 +232,15 @@ describe('@customElement', () => {
     it('calls $projector.project()', () => {
       const { sut } = createCustomElement('foo');
 
-      const nodes = sut.$nodes = <any>{};
+      const nodes = sut.$nodes = {} as any;
       let projectCalled = false;
       let projectNodes;
-      sut.$projector = <any> {
+      sut.$projector = {
         project(nodes) {
           projectCalled = true;
           projectNodes = nodes;
         }
-      };
+      } as any;
 
       sut.$mount(LifecycleFlags.none);
 
@@ -248,15 +253,15 @@ describe('@customElement', () => {
     it('calls $projector.take()', () => {
       const { sut } = createCustomElement('foo');
 
-      const nodes = sut.$nodes = <any>{};
+      const nodes = sut.$nodes = {} as any;
       let takeCalled = false;
       let takeNodes;
-      sut.$projector = <any> {
+      sut.$projector = {
         take(nodes) {
           takeCalled = true;
           takeNodes = nodes;
         }
-      };
+      } as any;
       sut.$state |= State.isMounted;
 
       sut.$unmount(LifecycleFlags.none);

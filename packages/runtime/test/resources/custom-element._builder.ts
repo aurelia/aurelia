@@ -1,6 +1,6 @@
-import { IComponentLifecycleMock, defineComponentLifecycleMock } from './../mock';
 import { Writable } from '@aurelia/kernel';
-import { customElement, ITemplateDefinition, ICustomElement } from '../../src/index';
+import { customElement, ICustomElement, ITemplateDefinition } from '../../src/index';
+import { defineComponentLifecycleMock, IComponentLifecycleMock } from './../mock';
 
 export type CustomElement = Writable<ICustomElement> & IComponentLifecycleMock;
 
@@ -9,7 +9,7 @@ export function createCustomElement(nameOrDef: string | ITemplateDefinition) {
     nameOrDef = 'foo';
   }
   const Type = customElement(nameOrDef)(defineComponentLifecycleMock());
-  const sut: CustomElement = new (<any>Type)();
+  const sut: CustomElement = new (Type as any)();
 
   return { Type, sut };
 }

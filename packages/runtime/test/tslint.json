@@ -7,6 +7,7 @@
     "no-implicit-dependencies": false,
     "typedef": false,
     "mocha-no-side-effect-code": false,
-    "no-any": false
+    "no-any": false,
+    "no-big-function": false
   }
 }

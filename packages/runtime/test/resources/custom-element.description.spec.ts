@@ -1,7 +1,6 @@
-import { IComponentLifecycleMock, defineComponentLifecycleMock } from './../mock';
-import { PLATFORM, Writable } from '@aurelia/kernel';
-import { customElement, ITemplateDefinition, IInternalCustomElementImplementation } from '../../src/index';
+import { PLATFORM } from '@aurelia/kernel';
 import { expect } from 'chai';
+import { customElement } from '../../src/index';
 import { eachCartesianJoin } from '../util';
 import { createCustomElement } from './custom-element._builder';
 
@@ -32,7 +31,7 @@ describe('@customElement', () => {
   ];
 
   it('creates the default template description', () => {
-    const { Type } = createCustomElement({});
+    const { Type } = createCustomElement({} as any);
     expect(Type.description).to.be.a('object', 'description');
     expect(Type.description.name).to.equal('unnamed', 'name');
     expect(Type.description.template).to.equal(null, 'template');
@@ -123,7 +122,7 @@ describe('@customElement', () => {
 
   eachCartesianJoin([templateSpecs], (templateSpec) => {
     it(`${templateSpec.expectation} if ${templateSpec.description}`, () => {
-      const { Type } = createCustomElement({ template: templateSpec.getTemplate() });
+      const { Type } = createCustomElement({ template: templateSpec.getTemplate() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(templateSpec.getExpectedTemplate(), 'template');
@@ -181,7 +180,7 @@ describe('@customElement', () => {
 
   eachCartesianJoin([cacheSpecs], (cacheSpec) => {
     it(`${cacheSpec.expectation} if ${cacheSpec.description}`, () => {
-      const { Type } = createCustomElement({ cache: cacheSpec.getCache() });
+      const { Type } = createCustomElement({ cache: cacheSpec.getCache() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
@@ -226,7 +225,7 @@ describe('@customElement', () => {
 
   eachCartesianJoin([buildSpecs], (buildSpec) => {
     it(`${buildSpec.expectation} if ${buildSpec.description}`, () => {
-      const { Type } = createCustomElement( buildSpec.getBuild ? { build: buildSpec.getBuild() } : {});
+      const { Type } = createCustomElement(buildSpec.getBuild ? { build: buildSpec.getBuild() } : {} as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
@@ -247,51 +246,51 @@ describe('@customElement', () => {
     {
       description: 'def.bindables is null, Type.bindables is null',
       expectation: 'does NOT yield any bindables',
-      getDefBindables() { return null },
-      getTypeBindables() { return null },
-      getExpectedBindables() { return {} }
+      getDefBindables() { return null; },
+      getTypeBindables() { return null; },
+      getExpectedBindables() { return {}; }
     },
     {
       description: 'def.bindables is undefined, Type.bindables is undefined',
       expectation: 'does NOT yield any bindables',
-      getDefBindables() { return undefined },
-      getTypeBindables() { return undefined },
-      getExpectedBindables() { return {} }
+      getDefBindables() { return undefined; },
+      getTypeBindables() { return undefined; },
+      getExpectedBindables() { return {}; }
     },
     {
       description: 'def.bindables is empty obj, Type.bindables is empty obj',
       expectation: 'does NOT yield any bindables',
-      getDefBindables() { return {} },
-      getTypeBindables() { return {} },
-      getExpectedBindables() { return {} }
+      getDefBindables() { return {}; },
+      getTypeBindables() { return {}; },
+      getExpectedBindables() { return {}; }
     },
     {
       description: 'def.bindables has bindables, Type.bindables is empty obj',
       expectation: 'yields bindables from def',
-      getDefBindables() { return { 'foo': 1 } },
-      getTypeBindables() { return {} },
-      getExpectedBindables() { return { 'foo': 1 } }
+      getDefBindables() { return { 'foo': 1 }; },
+      getTypeBindables() { return {}; },
+      getExpectedBindables() { return { 'foo': 1 }; }
     },
     {
       description: 'def.bindables has bindables, Type.bindables has different bindables',
       expectation: 'yields bindables from def and Type',
-      getDefBindables() { return { 'foo': 1 } },
-      getTypeBindables() { return { 'bar': 2 } },
-      getExpectedBindables() { return { 'foo': 1, 'bar': 2 } }
+      getDefBindables() { return { 'foo': 1 }; },
+      getTypeBindables() { return { 'bar': 2 }; },
+      getExpectedBindables() { return { 'foo': 1, 'bar': 2 }; }
     },
     {
       description: 'def.bindables is empty obj, Type.bindables has different bindables',
       expectation: 'yields bindables from Type',
-      getDefBindables() { return { } },
-      getTypeBindables() { return { 'bar': 2 } },
-      getExpectedBindables() { return { 'bar': 2 } }
+      getDefBindables() { return { }; },
+      getTypeBindables() { return { 'bar': 2 }; },
+      getExpectedBindables() { return { 'bar': 2 }; }
     },
     {
       description: 'def.bindables has bindables, Type.bindables has same bindables',
       expectation: 'yields bindables from def',
-      getDefBindables() { return { 'foo': 1 } },
-      getTypeBindables() { return { 'foo': 2 } },
-      getExpectedBindables() { return { 'foo': 1 } }
+      getDefBindables() { return { 'foo': 1 }; },
+      getTypeBindables() { return { 'foo': 2 }; },
+      getExpectedBindables() { return { 'foo': 1 }; }
     }
   ];
 
@@ -301,9 +300,9 @@ describe('@customElement', () => {
         bindables: bindablesSpec.getDefBindables(),
       };
       class Foo {
-        static bindables = bindablesSpec.getTypeBindables();
+        public static bindables = bindablesSpec.getTypeBindables();
       }
-      const Type = customElement(def)(Foo);
+      const Type = customElement(def as any)(Foo);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
@@ -347,13 +346,13 @@ describe('@customElement', () => {
       expectation: 'uses provided instructions',
       canMutate: true,
       getInstructions() { return [{}]; },
-      getExpectedInstructions() { return [{}];; }
+      getExpectedInstructions() { return [{}]; }
     }
   ];
 
   eachCartesianJoin([instructionsSpecs], (instructionsSpec) => {
     it(`${instructionsSpec.expectation} if ${instructionsSpec.description}`, () => {
-      const { Type } = createCustomElement({ instructions: instructionsSpec.getInstructions() });
+      const { Type } = createCustomElement({ instructions: instructionsSpec.getInstructions() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
@@ -362,9 +361,9 @@ describe('@customElement', () => {
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
       expect(Type.description.instructions).to.deep.equal(instructionsSpec.getExpectedInstructions(), 'instructions');
       if (instructionsSpec.canMutate) {
-        (<any>Type.description.instructions).push({})
+        (Type.description.instructions as any).push({});
       } else {
-        expect(() => (<any>Type.description.instructions).push({})).to.throw;
+        expect(() => (Type.description.instructions as any).push({})).to.throw;
       }
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
       expect(Type.description.surrogates).to.equal(PLATFORM.emptyArray, 'surrogates');
@@ -402,13 +401,13 @@ describe('@customElement', () => {
       expectation: 'uses provided dependencies',
       canMutate: true,
       getDependencies() { return [{}]; },
-      getExpectedDependencies() { return [{}];; }
+      getExpectedDependencies() { return [{}]; }
     }
   ];
 
   eachCartesianJoin([dependenciesSpecs], (dependenciesSpec) => {
     it(`${dependenciesSpec.expectation} if ${dependenciesSpec.description}`, () => {
-      const { Type } = createCustomElement({ dependencies: dependenciesSpec.getDependencies() });
+      const { Type } = createCustomElement({ dependencies: dependenciesSpec.getDependencies() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
@@ -418,9 +417,9 @@ describe('@customElement', () => {
       expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
       expect(Type.description.dependencies).to.deep.equal(dependenciesSpec.getExpectedDependencies(), 'dependencies');
       if (dependenciesSpec.canMutate) {
-        (<any>Type.description.dependencies).push({})
+        (Type.description.dependencies as any).push({});
       } else {
-        expect(() => (<any>Type.description.dependencies).push({})).to.throw;
+        expect(() => (Type.description.dependencies as any).push({})).to.throw;
       }
       expect(Type.description.surrogates).to.equal(PLATFORM.emptyArray, 'surrogates');
       expect(Type.description.containerless).to.equal(false, 'containerless');
@@ -457,13 +456,13 @@ describe('@customElement', () => {
       expectation: 'uses provided surrogates',
       canMutate: true,
       getSurrogates() { return [{}]; },
-      getExpectedSurrogates() { return [{}];; }
+      getExpectedSurrogates() { return [{}]; }
     }
   ];
 
   eachCartesianJoin([surrogatesSpecs], (surrogatesSpec) => {
     it(`${surrogatesSpec.expectation} if ${surrogatesSpec.description}`, () => {
-      const { Type } = createCustomElement({ surrogates: surrogatesSpec.getSurrogates() });
+      const { Type } = createCustomElement({ surrogates: surrogatesSpec.getSurrogates() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
@@ -474,9 +473,9 @@ describe('@customElement', () => {
       expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
       expect(Type.description.surrogates).to.deep.equal(surrogatesSpec.getExpectedSurrogates(), 'surrogates');
       if (surrogatesSpec.canMutate) {
-        (<any>Type.description.surrogates).push({})
+        (Type.description.surrogates as any).push({});
       } else {
-        expect(() => (<any>Type.description.surrogates).push({})).to.throw;
+        expect(() => (Type.description.surrogates as any).push({})).to.throw;
       }
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
@@ -536,9 +535,9 @@ describe('@customElement', () => {
         containerless: containerlessSpec.getDefContainerless(),
       };
       class Foo {
-        static containerless = containerlessSpec.getTypeContainerless();
+        public static containerless = containerlessSpec.getTypeContainerless();
       }
-      const Type = customElement(def)(Foo);
+      const Type = customElement(def as any)(Foo);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
@@ -599,9 +598,9 @@ describe('@customElement', () => {
         shadowOptions: shadowOptionsSpec.getDefShadowOptions(),
       };
       class Foo {
-        static shadowOptions = shadowOptionsSpec.getTypeShadowOptions();
+        public static shadowOptions = shadowOptionsSpec.getTypeShadowOptions();
       }
-      const Type = customElement(def)(Foo);
+      const Type = customElement(def as any)(Foo);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');
@@ -647,7 +646,7 @@ describe('@customElement', () => {
 
   eachCartesianJoin([hasSlotsSpecs], (hasSlotsSpec) => {
     it(`${hasSlotsSpec.expectation} if ${hasSlotsSpec.description}`, () => {
-      const { Type } = createCustomElement({ hasSlots: hasSlotsSpec.getHasSlots() });
+      const { Type } = createCustomElement({ hasSlots: hasSlotsSpec.getHasSlots() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
       expect(Type.description.template).to.equal(null, 'template');

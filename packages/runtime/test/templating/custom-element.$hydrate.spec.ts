@@ -1,9 +1,7 @@
-import { Hooks, INode,  ICustomElementType, IRenderingEngine, ITemplate, RuntimeBehavior, DOM } from '../../src/index';
 import { expect } from 'chai';
+import { Hooks, ICustomElementType,  INode, IRenderingEngine, ITemplate } from '../../src/index';
+import { createCustomElement, CustomElement } from '../resources/custom-element._builder';
 import { eachCartesianJoin } from '../util';
-import { CustomElement, createCustomElement } from './custom-element._builder';
-
-const dom = new DOM(<any>document);
 
 describe('@customElement', () => {
 
@@ -30,7 +28,7 @@ describe('@customElement', () => {
     ];
 
     eachCartesianJoin([hooksSpecs],
-      (hooksSpec) => {
+                      (hooksSpec) => {
 
       it(`sets properties, applies runtime behavior and ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
         // Arrange
@@ -40,21 +38,21 @@ describe('@customElement', () => {
         let renderRenderable;
         let renderHost;
         let renderParts;
-        const template: ITemplate = <any>{
-          renderContext: <ITemplate['renderContext']>{},
-          render: <ITemplate['render']>((renderable, host, parts) => {
+        const template: ITemplate = {
+          renderContext: {} as ITemplate['renderContext'],
+          render: ((renderable, host, parts) => {
             renderCalled = true;
             renderRenderable = renderable;
             renderHost = host;
             renderParts = parts;
-          })
-        };
+          }) as ITemplate['render']
+        } as any;
         let appliedType: ICustomElementType;
         let appliedInstance: CustomElement;
         let getElementTemplateCalled = false;
         let getElementTemplateDescription;
         let getElementTemplateType;
-        const renderingEngine: IRenderingEngine = <any>{
+        const renderingEngine: IRenderingEngine = {
           applyRuntimeBehavior(type: ICustomElementType, instance: CustomElement) {
             instance.$hooks = hooksSpec.getHooks();
             appliedType = type;
@@ -66,11 +64,16 @@ describe('@customElement', () => {
             getElementTemplateType = type;
             return template;
           }
-        };
-        let host: INode = <any>{};
+        } as any;
+        const host: INode = {} as any;
 
         // Act
-        sut.$hydrate(dom, renderingEngine, host);
+        sut.$hydrate(
+          {} as any,
+          { getElementProjector() { return null; }} as any,
+          renderingEngine,
+          host
+        );
 
         // Assert
         expect(sut).to.not.have.$state.isAttached('sut.$isAttached');
@@ -83,6 +86,5 @@ describe('@customElement', () => {
       });
     });
   });
-
 
 });

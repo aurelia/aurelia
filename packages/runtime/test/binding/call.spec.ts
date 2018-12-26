@@ -27,7 +27,7 @@ import {
   massSpy
 } from '../util';
 
-describe.only('Call', () => {
+describe('Call', () => {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
     const container = RuntimeConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle) as Lifecycle;

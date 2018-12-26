@@ -1,6 +1,6 @@
-import { valueConverter, ValueConverterResource } from '../../src/index';
-import { IContainer, DI } from '@aurelia/kernel';
+import { DI, IContainer } from '@aurelia/kernel';
 import { expect } from 'chai';
+import { valueConverter, ValueConverterResource } from '../../src/index';
 
 describe(`@valueConverter('foo')`, () => {
   let container: IContainer;
@@ -9,6 +9,7 @@ describe(`@valueConverter('foo')`, () => {
     container = DI.createContainer();
   });
 
+  // @ts-ignore
   @valueConverter('foo')
   class FooValueConverter { }
 

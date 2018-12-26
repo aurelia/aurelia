@@ -1,5 +1,5 @@
-import { containerless } from '../../src/index';
 import { expect } from 'chai';
+import { containerless } from '../../src/index';
 
 describe('@containerless', () => {
   it(`non-invocation`, () => {

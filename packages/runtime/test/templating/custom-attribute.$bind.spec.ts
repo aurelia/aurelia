@@ -1,7 +1,7 @@
-import { State, Scope, LifecycleFlags, Hooks } from '../../src/index';
 import { expect } from 'chai';
+import { Hooks, LifecycleFlags, Scope, State } from '../../src/index';
+import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
 import { eachCartesianJoin } from '../util';
-import { CustomAttribute, createCustomAttribute } from './custom-attribute._builder';
 
 describe('@customAttribute', () => {
 
@@ -177,7 +177,7 @@ describe('@customAttribute', () => {
     ];
 
     eachCartesianJoin([propsAndScopeSpecs, flagsSpecs, hooksSpecs],
-      (psSpec, flagsSpec, hooksSpec) => {
+                      (psSpec, flagsSpec, hooksSpec) => {
 
       it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
         // Arrange
@@ -201,7 +201,7 @@ describe('@customAttribute', () => {
         // Assert
         expect(unbindCalled).to.equal(psSpec.callsUnbind, 'unbindCalled');
         if (unbindCalled) {
-          expect(unbindFlags).to.equal(expectedFlags, 'unbindFlags')
+          expect(unbindFlags).to.equal(expectedFlags, 'unbindFlags');
         }
         if (psSpec.callsBehaviors) {
           hooksSpec.verifyBehaviorInvocation(sut, expectedFlags);
@@ -270,7 +270,7 @@ describe('@customAttribute', () => {
       {
         description: 'Hooks.hasUnbinding',
         expectation: 'calls unbinding(), does NOT call unbound()',
-        getHooks() { return Hooks.hasUnbinding },
+        getHooks() { return Hooks.hasUnbinding; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
           sut.verifyUnbindingCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -279,7 +279,7 @@ describe('@customAttribute', () => {
       {
         description: 'Hooks.none',
         expectation: 'does NOT call unbinding(), does NOT call unbound()',
-        getHooks() { return Hooks.none },
+        getHooks() { return Hooks.none; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
           sut.verifyNoFurtherCalls();
         }
@@ -287,7 +287,7 @@ describe('@customAttribute', () => {
       {
         description: 'Hooks.hasUnbinding | Hooks.hasUnbound',
         expectation: 'calls unbinding(), calls unbound()',
-        getHooks() { return Hooks.hasUnbinding | Hooks.hasUnbound },
+        getHooks() { return Hooks.hasUnbinding | Hooks.hasUnbound; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyUnbindingCalled(flags);
@@ -297,7 +297,7 @@ describe('@customAttribute', () => {
       {
         description: 'Hooks.hasUnbound',
         expectation: 'does NOT call unbinding(), calls unbound()',
-        getHooks() { return Hooks.hasUnbound},
+        getHooks() { return Hooks.hasUnbound;},
         verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -305,9 +305,8 @@ describe('@customAttribute', () => {
       }
     ];
 
-
     eachCartesianJoin([propsAndScopeSpecs, flagsSpec, hooksSpecs],
-      (psSpec, flagsSpec, hooksSpec) => {
+                      (psSpec, flagsSpec, hooksSpec) => {
 
       it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
         // Arrange

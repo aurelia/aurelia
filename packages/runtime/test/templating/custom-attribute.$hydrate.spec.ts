@@ -1,7 +1,7 @@
-import { State, Hooks, ICustomAttributeType, IRenderingEngine } from '../../src/index';
-import { eachCartesianJoin } from '../util';
-import { CustomAttribute, createCustomAttribute } from './custom-attribute._builder';
 import { expect } from 'chai';
+import { Hooks, ICustomAttributeType, IRenderingEngine, State } from '../../src/index';
+import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
+import { eachCartesianJoin } from '../util';
 
 describe('@customAttribute', () => {
 
@@ -11,7 +11,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasCreated: true',
         expectation: 'calls created()',
-        getHooks() { return Hooks.hasCreated },
+        getHooks() { return Hooks.hasCreated; },
         verifyBehaviorInvocation(sut: CustomAttribute) {
           sut.verifyCreatedCalled();
           sut.verifyNoFurtherCalls();
@@ -20,7 +20,7 @@ describe('@customAttribute', () => {
       {
         description: '$behavior.hasCreated: false',
         expectation: 'does NOT call created()',
-        getHooks() { return Hooks.none },
+        getHooks() { return Hooks.none; },
         verifyBehaviorInvocation(sut: CustomAttribute) {
           sut.verifyNoFurtherCalls();
         }
@@ -28,7 +28,7 @@ describe('@customAttribute', () => {
     ];
 
     eachCartesianJoin([hooksSpecs],
-      (hooksSpec) => {
+                      (hooksSpec) => {
 
       it(`sets properties, applies runtime behavior and ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
         // Arrange
@@ -36,13 +36,13 @@ describe('@customAttribute', () => {
 
         let appliedType: ICustomAttributeType;
         let appliedInstance: CustomAttribute;
-        const renderingEngine: IRenderingEngine = <any>{
+        const renderingEngine: IRenderingEngine = {
           applyRuntimeBehavior(type: ICustomAttributeType, instance: CustomAttribute) {
             instance.$hooks = hooksSpec.getHooks();
             appliedType = type;
             appliedInstance = instance;
           }
-        };
+        } as any;
 
         // Act
         sut.$hydrate(renderingEngine);

@@ -1,12 +1,12 @@
+import { DI } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { Container } from '@aurelia/kernel';
 import { createCustomAttribute } from './custom-attribute._builder';
 
 describe('@customAttribute', () => {
   describe('register', () => {
     it('registers the custom attribute as transient', () => {
       const { Type } = createCustomAttribute();
-      const container = new Container();
+      const container = DI.createContainer();
 
       Type.register(container);
 
@@ -20,7 +20,7 @@ describe('@customAttribute', () => {
         name: 'foo',
         aliases: ['bar', 'baz']
       });
-      const container = new Container();
+      const container = DI.createContainer();
 
       Type.register(container);
 

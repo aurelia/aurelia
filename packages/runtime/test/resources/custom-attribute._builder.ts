@@ -1,3 +1,4 @@
+import { Writable } from '@aurelia/kernel';
 import {
   customAttribute,
   IAttributeDefinition,
@@ -8,20 +9,19 @@ import {
   defineComponentLifecycleMock,
   IComponentLifecycleMock
 } from '../mock';
-import { Writable } from '@aurelia/kernel';
 
 export type CustomAttribute = Writable<ICustomAttribute> & IComponentLifecycleMock;
 
 export function createCustomAttribute(nameOrDef: string | IAttributeDefinition = 'foo') {
   const Type = customAttribute(nameOrDef)(defineComponentLifecycleMock());
-  const sut: CustomAttribute = new (<any>Type)();
+  const sut: CustomAttribute = new (Type as any)();
 
   return { Type, sut };
 }
 
 export function createTemplateController(nameOrDef: string | IAttributeDefinition = 'foo') {
   const Type = templateController(nameOrDef)(defineComponentLifecycleMock());
-  const sut: CustomAttribute = new (<any>Type)();
+  const sut: CustomAttribute = new (Type as any)();
 
   return { Type, sut };
 }

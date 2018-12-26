@@ -5,35 +5,49 @@ import typescript2 from 'rollup-plugin-typescript2';
 import ts from 'typescript';
 import { c, createLogger } from './logger';
 import project from './project';
+import { loadPackageJson } from './package.json';
 
 const log = createLogger('bundle');
+
+// automatically sort packages in the correct dependency order by
+// reading the package.json dependencies and performing a topological sort
+async function sortByDependencies(packages: any[]) {
+  const sorted = [];
+  const visited = {};
+
+  async function visit(current) {
+    const json = await loadPackageJson('packages', current.name);
+    const depNames = Object.keys(json.dependencies || {});
+    current.deps = packages.filter(p => depNames.indexOf(p.scopedName) !== -1);
+
+    visited[current.name] = true;
+    for (const dep of current.deps) {
+      if (!visited[dep.name]) {
+        await visit(dep);
+      }
+    }
+    if(sorted.indexOf(current) === -1) {
+      sorted.push(current);
+    }
+  }
+
+  for (const pkg of packages) {
+    await visit(pkg);
+  }
+  return sorted;
+}
 
 async function createBundle(): Promise<void> {
   const args = process.argv.slice(2);
 
   const outputs = args[0].split(',');
-  const filtered = args.length > 1 ? args[1].split(',') : null;
+  let packages = project.packages.slice();
+  if (args.length > 1) {
+    const filter = args[1].split(',');
+    packages = packages.filter(p => filter.indexOf(p.name) !== -1);
+  }
+  packages = await sortByDependencies(packages);
 
-  // ensure the bundles are created in the correct order of dependency
-  const packages = project.packages.slice()
-    .filter(p => filtered === null || filtered.indexOf(p.name) !== -1)
-    .sort((a, b) => {
-      switch (a.name) {
-        case 'kernel':
-          return 0;
-        case 'runtime':
-          return 1;
-        case 'debug':
-        case 'jit':
-        case 'plugin-requirejs':
-        case 'plugin-svg':
-        case 'router':
-          return 2;
-        case 'aot':
-          return 3;
-      }
-    }
-  );
   const count = packages.length;
   let cur = 0;
   for (const pkg of packages) {

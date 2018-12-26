@@ -77,19 +77,30 @@ export class View<T extends INode = INode> implements IView<T> {
     this.cache = cache;
   }
 
-  public hold(location: IRenderLocation<T>, flags: LifecycleFlags): void {
+  /**
+   * Reserves this `View` for mounting at a particular `IRenderLocation`.
+   * Also marks this `View` such that it cannot be returned to the cache until
+   * it is released again.
+   *
+   * @param location The RenderLocation before which the view will be appended to the DOM.
+   */
+  public hold(location: IRenderLocation<T>): void {
     if (Tracer.enabled) { Tracer.enter('View.hold', slice.call(arguments)); }
+    this.isFree = false;
     this.location = location;
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public lockScope(scope: IScope): void {
-    if (Tracer.enabled) { Tracer.enter('View.lockScope', slice.call(arguments)); }
-    this.$scope = scope;
-    this.$bind = lockedBind;
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
+  /**
+   * Marks this `View` such that it can be returned to the cache when it is unmounted.
+   *
+   * If this `View` is not currently attached, it will be unmounted immediately.
+   *
+   * @param flags The `LifecycleFlags` to pass to the unmount operation (only effective
+   * if the view is already in detached state).
+   *
+   * @returns Whether this `View` can/will be returned to cache
+   */
   public release(flags: LifecycleFlags): boolean {
     if (Tracer.enabled) { Tracer.enter('View.release', slice.call(arguments)); }
     this.isFree = true;
@@ -101,6 +112,14 @@ export class View<T extends INode = INode> implements IView<T> {
     if (Tracer.enabled) { Tracer.leave(); }
     return !!this.$unmount(flags);
   }
+
+  public lockScope(scope: IScope): void {
+    if (Tracer.enabled) { Tracer.enter('View.lockScope', slice.call(arguments)); }
+    this.$scope = scope;
+    this.$bind = lockedBind;
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+
 }
 
 /** @internal */

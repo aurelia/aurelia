@@ -113,7 +113,25 @@ export interface IView<T extends INode = INode> extends IBindScope, IRenderable<
   readonly isFree: boolean;
   readonly location: IRenderLocation<T>;
 
-  hold(location: IRenderLocation<T>, flags: LifecycleFlags): void;
+  /**
+   * Reserves this `IView` for mounting at a particular `IRenderLocation`.
+   * Also marks this `IView` such that it cannot be returned to the cache until
+   * it is released again.
+   *
+   * @param location The RenderLocation before which the view will be appended to the DOM.
+   */
+  hold(location: IRenderLocation<T>): void;
+
+  /**
+   * Marks this `IView` such that it can be returned to the cache when it is unmounted.
+   *
+   * If this `IView` is not currently attached, it will be unmounted immediately.
+   *
+   * @param flags The `LifecycleFlags` to pass to the unmount operation (only effective
+   * if the view is already in detached state).
+   *
+   * @returns Whether this `IView` can/will be returned to cache
+   */
   release(flags: LifecycleFlags): boolean;
 
   lockScope(scope: IScope): void;

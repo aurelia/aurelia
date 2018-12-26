@@ -61,7 +61,7 @@ export class AuNode implements INode {
   public readonly isMarker: boolean;
   public readonly isRenderLocation: boolean;
   public $start: AuNode | null;
-  public $nodes: INodeSequence | Readonly<{}> | null;
+  public $nodes: INodeSequence<AuNode> | Readonly<{}> | null;
   public isTarget: boolean;
   public get isConnected(): boolean {
     return this._isConnected;
@@ -293,7 +293,7 @@ export class AuNode implements INode {
   }
 }
 
-export class AuDOM implements IDOM {
+export class AuDOM implements IDOM<AuNode> {
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
     return;
   }
@@ -369,7 +369,7 @@ export class AuDOM implements IDOM {
 }
 
 export class AuProjectorLocator implements IProjectorLocator {
-  public getElementProjector(dom: IDOM, $component: ICustomElement, host: CustomElementHost<AuNode>, def: TemplateDefinition): IElementProjector {
+  public getElementProjector(dom: IDOM, $component: ICustomElement<AuNode>, host: CustomElementHost<AuNode>, def: TemplateDefinition): IElementProjector {
     return new AuProjector($component, host);
   }
 }
@@ -377,12 +377,12 @@ export class AuProjectorLocator implements IProjectorLocator {
 export class AuProjector implements IElementProjector {
   public host: CustomElementHost<AuNode>;
 
-  constructor($customElement: ICustomElement, host: CustomElementHost<AuNode>) {
+  constructor($customElement: ICustomElement<AuNode>, host: CustomElementHost<AuNode>) {
     this.host = host;
     this.host.$customElement = $customElement;
   }
 
-  public get children(): ArrayLike<CustomElementHost> {
+  public get children(): ArrayLike<CustomElementHost<AuNode>> {
     return this.host.childNodes;
   }
 
@@ -405,7 +405,7 @@ export class AuProjector implements IElementProjector {
   }
 }
 
-export class AuNodeSequence implements INodeSequence {
+export class AuNodeSequence implements INodeSequence<AuNode> {
   public readonly dom: AuDOM;
   public firstChild: AuNode;
   public lastChild: AuNode;
@@ -504,7 +504,7 @@ export class AuNodeSequence implements INodeSequence {
   }
 }
 
-export class AuNodeSequenceFactory implements INodeSequenceFactory {
+export class AuNodeSequenceFactory implements INodeSequenceFactory<AuNode> {
   private readonly dom: AuDOM;
   private readonly wrapper: AuNode;
 
@@ -527,9 +527,9 @@ export class AuDOMInitializer implements IDOMInitializer {
     this.container = container;
   }
 
-  public initialize(config: ISinglePageApp<AuNode>): IDOM {
+  public initialize(config: ISinglePageApp<AuNode>): AuDOM {
     if (this.container.has(IDOM, false)) {
-      return this.container.get(IDOM);
+      return this.container.get(IDOM) as AuDOM;
     }
     const dom = new AuDOM();
     Registration.instance(IDOM, dom).register(this.container, IDOM);
@@ -537,17 +537,17 @@ export class AuDOMInitializer implements IDOMInitializer {
   }
 }
 
-export class AuTemplateFactory implements ITemplateFactory {
+export class AuTemplateFactory implements ITemplateFactory<AuNode> {
   public static inject: unknown[] = [IDOM];
 
-  private readonly dom: IDOM;
+  private readonly dom: AuDOM;
 
-  constructor(dom: IDOM) {
+  constructor(dom: AuDOM) {
     this.dom = dom;
   }
 
-  public create(parentRenderContext: IRenderContext, definition: TemplateDefinition): ITemplate {
-    return new CompiledTemplate(this.dom, definition, new AuNodeSequenceFactory(this.dom as AuDOM, definition.template as AuNode), parentRenderContext);
+  public create(parentRenderContext: IRenderContext<AuNode>, definition: TemplateDefinition): ITemplate<AuNode> {
+    return new CompiledTemplate<AuNode>(this.dom, definition, new AuNodeSequenceFactory(this.dom, definition.template as AuNode), parentRenderContext);
   }
 }
 
@@ -586,7 +586,7 @@ export class AuTextRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: AuNode, instruction: AuTextInstruction): void {
+  public render(dom: IDOM, context: IRenderContext<AuNode>, renderable: IRenderable<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
     if (Tracer.enabled) { Tracer.enter('AuTextRenderer.render', slice.call(arguments)); }
     let realTarget: AuNode;
     if (target.isRenderLocation) {

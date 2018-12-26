@@ -14,7 +14,7 @@ import {
 } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
-import { INodeSequence, IRenderLocation } from './dom';
+import { INode, INodeSequence, IRenderLocation } from './dom';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
 
 const slice = Array.prototype.slice;
@@ -76,21 +76,21 @@ export interface IAttachables {
 /**
  * An object containing the necessary information to render something for display.
  */
-export interface IRenderable extends IBindables, IAttachables, IState {
+export interface IRenderable<T extends INode = INode> extends IBindables, IAttachables, IState {
 
   /**
    * The (dependency) context of this instance.
    *
    * Contains any dependencies required by this instance or its children.
    */
-  readonly $context: IRenderContext;
+  readonly $context: IRenderContext<T>;
 
   /**
    * The nodes that represent the visible aspect of this instance.
    *
    * Typically this will be a sequence of `DOM` nodes contained in a `DocumentFragment`
    */
-  readonly $nodes: INodeSequence;
+  readonly $nodes: INodeSequence<T>;
 
   /**
    * The binding scope that the `$bindables` of this instance will be bound to.
@@ -102,33 +102,33 @@ export interface IRenderable extends IBindables, IAttachables, IState {
 
 export const IRenderable = DI.createInterface<IRenderable>().noDefault();
 
-export interface IRenderContext extends IServiceLocator {
-  createChild(): IRenderContext;
-  render(renderable: IRenderable, targets: ArrayLike<Object>, templateDefinition: TemplateDefinition, host?: Object, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IRenderable, target: Object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: Object, locationIsContainer?: boolean): IDisposable;
+export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
+  createChild(): IRenderContext<T>;
+  render(renderable: IRenderable<T>, targets: ArrayLike<Object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
+  beginComponentOperation(renderable: IRenderable<T>, target: Object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 
-export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
-  readonly cache: IViewCache;
+export interface IView<T extends INode = INode> extends IBindScope, IRenderable<T>, IAttach, IMountable {
+  readonly cache: IViewCache<T>;
   readonly isFree: boolean;
-  readonly location: IRenderLocation;
+  readonly location: IRenderLocation<T>;
 
-  hold(location: IRenderLocation, flags: LifecycleFlags): void;
+  hold(location: IRenderLocation<T>, flags: LifecycleFlags): void;
   release(flags: LifecycleFlags): boolean;
 
   lockScope(scope: IScope): void;
 }
 
-export interface IViewCache {
+export interface IViewCache<T extends INode = INode> {
   readonly isCaching: boolean;
   setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
-  canReturnToCache(view: IView): boolean;
-  tryReturnToCache(view: IView): boolean;
+  canReturnToCache(view: IView<T>): boolean;
+  tryReturnToCache(view: IView<T>): boolean;
 }
 
-export interface IViewFactory extends IViewCache {
+export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
-  create(): IView;
+  create(): IView<T>;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>().noDefault();

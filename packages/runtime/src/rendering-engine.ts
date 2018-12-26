@@ -59,8 +59,8 @@ export enum ViewCompileFlags {
   shadowDOM   = 0b0_100,
 }
 
-export interface ITemplateFactory {
-  create(parentRenderContext: IRenderContext, definition: TemplateDefinition): ITemplate;
+export interface ITemplateFactory<T extends INode = INode> {
+  create(parentRenderContext: IRenderContext<T>, definition: TemplateDefinition): ITemplate<T>;
 }
 
 export const ITemplateFactory = DI.createInterface<ITemplateFactory>().noDefault();
@@ -70,10 +70,10 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>().noDefault
 // part of a particular application, with application-level resources, but they also may have their
 // own scoped resources or be part of another view (via a template controller) which provides a
 // context for the template.
-export interface ITemplate {
-  readonly renderContext: IRenderContext;
-  readonly dom: IDOM;
-  render(renderable: IRenderable, host?: Object, parts?: Immutable<Record<string, ITemplateDefinition>>): void;
+export interface ITemplate<T extends INode = INode> {
+  readonly renderContext: IRenderContext<T>;
+  readonly dom: IDOM<T>;
+  render(renderable: IRenderable<T>, host?: T, parts?: Immutable<Record<string, ITemplateDefinition>>): void;
 }
 
 // This is the main implementation of ITemplate.
@@ -82,21 +82,21 @@ export interface ITemplate {
 // TemplateCompiler either through a JIT or AOT process.
 // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
 // and create instances of it on demand.
-export class CompiledTemplate implements ITemplate {
-  public readonly factory: INodeSequenceFactory;
-  public readonly renderContext: IRenderContext;
-  public readonly dom: IDOM;
+export class CompiledTemplate<T extends INode = INode> implements ITemplate {
+  public readonly factory: INodeSequenceFactory<T>;
+  public readonly renderContext: IRenderContext<T>;
+  public readonly dom: IDOM<T>;
 
   private definition: TemplateDefinition;
 
-  constructor(dom: IDOM, definition: TemplateDefinition, factory: INodeSequenceFactory, parentRenderContext: IRenderContext) {
+  constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, parentRenderContext: IRenderContext<T>) {
     this.dom = dom;
     this.definition = definition;
     this.factory = factory;
     this.renderContext = createRenderContext(dom, parentRenderContext, definition.dependencies);
   }
 
-  public render(renderable: IRenderable, host?: Object, parts?: TemplatePartDefinitions): void {
+  public render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions): void {
     const nodes = (renderable as Writable<IRenderable>).$nodes = this.factory.createNodeSequence();
     (renderable as Writable<IRenderable>).$context = this.renderContext;
     this.renderContext.render(renderable, nodes.findTargets(), this.definition, host, parts);

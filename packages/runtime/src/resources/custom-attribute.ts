@@ -17,6 +17,7 @@ import {
   customAttributeName,
   IAttributeDefinition
 } from '../definitions';
+import { INode } from '../dom';
 import {
   Hooks,
   IAttach,
@@ -42,23 +43,23 @@ type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinit
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
-export interface ICustomAttributeType extends
-  IResourceType<IAttributeDefinition, ICustomAttribute>,
+export interface ICustomAttributeType<T extends INode = INode> extends
+  IResourceType<IAttributeDefinition, ICustomAttribute<T>>,
   CustomAttributeStaticProperties { }
 
-export interface ICustomAttribute extends
+export interface ICustomAttribute<T extends INode = INode> extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
   IBindScope,
   ILifecycleUnbindAfterDetach,
   IAttach,
-  IRenderable {
+  IRenderable<T> {
 
   $hydrate(renderingEngine: IRenderingEngine): void;
 }
 
-export interface ICustomAttributeResource extends
-  IResourceKind<IAttributeDefinition, ICustomAttribute, Class<ICustomAttribute> & CustomAttributeStaticProperties> {
+export interface ICustomAttributeResource<T extends INode = INode> extends
+  IResourceKind<IAttributeDefinition, ICustomAttribute<T>, Class<ICustomAttribute<T>> & CustomAttributeStaticProperties> {
 }
 
 /** @internal */

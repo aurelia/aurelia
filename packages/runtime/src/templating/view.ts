@@ -1,5 +1,5 @@
 import { Reporter, Tracer } from '@aurelia/kernel';
-import { INodeSequence, IRenderLocation } from '../dom';
+import { INode, INodeSequence, IRenderLocation } from '../dom';
 import {
   IAttach,
   IBindScope,
@@ -20,10 +20,10 @@ import { $bindView, $unbindView } from './lifecycle-bind';
 const slice = Array.prototype.slice;
 
 /** @internal */
-export interface View extends IView {}
+export interface View<T extends INode = INode> extends IView<T> {}
 
 /** @internal */
-export class View implements IView {
+export class View<T extends INode = INode> implements IView<T> {
   public $bindableHead: IBindScope;
   public $bindableTail: IBindScope;
 
@@ -43,15 +43,15 @@ export class View implements IView {
 
   public $state: State;
   public $scope: IScope;
-  public $nodes: INodeSequence;
-  public $context: IRenderContext;
-  public cache: IViewCache;
-  public location: IRenderLocation;
+  public $nodes: INodeSequence<T>;
+  public $context: IRenderContext<T>;
+  public cache: IViewCache<T>;
+  public location: IRenderLocation<T>;
   public isFree: boolean;
 
   public readonly $lifecycle: ILifecycle;
 
-  constructor($lifecycle: ILifecycle, cache: IViewCache) {
+  constructor($lifecycle: ILifecycle, cache: IViewCache<T>) {
     this.$bindableHead = null;
     this.$bindableTail = null;
 
@@ -77,7 +77,7 @@ export class View implements IView {
     this.cache = cache;
   }
 
-  public hold(location: IRenderLocation, flags: LifecycleFlags): void {
+  public hold(location: IRenderLocation<T>, flags: LifecycleFlags): void {
     if (Tracer.enabled) { Tracer.enter('View.hold', slice.call(arguments)); }
     this.location = location;
     if (Tracer.enabled) { Tracer.leave(); }
@@ -104,18 +104,18 @@ export class View implements IView {
 }
 
 /** @internal */
-export class ViewFactory implements IViewFactory {
+export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
 
   public isCaching: boolean;
   public name: string;
 
-  private cache: View[];
+  private cache: View<T>[];
   private cacheSize: number;
   private lifecycle: ILifecycle;
-  private template: ITemplate;
+  private template: ITemplate<T>;
 
-  constructor(name: string, template: ITemplate, lifecycle: ILifecycle) {
+  constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
     this.isCaching = false;
 
     this.cacheSize = -1;
@@ -147,11 +147,11 @@ export class ViewFactory implements IViewFactory {
     this.isCaching = this.cacheSize > 0;
   }
 
-  public canReturnToCache(view: IView): boolean {
+  public canReturnToCache(view: IView<T>): boolean {
     return this.cache !== null && this.cache.length < this.cacheSize;
   }
 
-  public tryReturnToCache(view: View): boolean {
+  public tryReturnToCache(view: View<T>): boolean {
     if (this.canReturnToCache(view)) {
       view.$cache(LifecycleFlags.none);
       this.cache.push(view);
@@ -161,17 +161,17 @@ export class ViewFactory implements IViewFactory {
     return false;
   }
 
-  public create(): IView {
+  public create(): IView<T> {
     const cache = this.cache;
-    let view: View;
+    let view: View<T>;
 
     if (cache !== null && cache.length > 0) {
-      view = cache.pop() as View;
+      view = cache.pop() as View<T>;
       view.$state &= ~State.isCached;
       return view;
     }
 
-    view = new View(this.lifecycle, this);
+    view = new View<T>(this.lifecycle, this);
     this.template.render(view);
     if (!view.$nodes) {
       throw Reporter.error(90);
@@ -180,7 +180,7 @@ export class ViewFactory implements IViewFactory {
   }
 }
 
-function lockedBind(this: View, flags: LifecycleFlags): void {
+function lockedBind<T extends INode = INode>(this: View<T>, flags: LifecycleFlags): void {
   if (this.$state & State.isBound) {
     if (Tracer.enabled) { Tracer.leave(); }
     return;

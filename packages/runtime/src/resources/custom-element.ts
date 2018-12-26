@@ -46,12 +46,12 @@ import {
   ILifecycleRender
 } from '../templating/lifecycle-render';
 
-export interface ICustomElementType extends IResourceType<ITemplateDefinition, ICustomElement>, ICustomElementStaticProperties {
+export interface ICustomElementType<T extends INode = INode> extends IResourceType<ITemplateDefinition, ICustomElement<T>>, ICustomElementStaticProperties {
   description: TemplateDefinition;
 }
 
-export type CustomElementHost<T extends INode = INode> = IRenderLocation & T & {
-  $customElement?: ICustomElement;
+export type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
+  $customElement?: ICustomElement<T>;
 };
 
 export interface IElementProjector {
@@ -77,7 +77,7 @@ export interface ICustomElementStaticProperties {
   bindables?: TemplateDefinition['bindables'];
 }
 
-export interface ICustomElement extends
+export interface ICustomElement<T extends INode = INode> extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
   ILifecycleRender,
@@ -85,16 +85,16 @@ export interface ICustomElement extends
   ILifecycleUnbindAfterDetach,
   IAttach,
   IMountable,
-  IRenderable {
+  IRenderable<T> {
 
   readonly $projector: IElementProjector;
   readonly $host: CustomElementHost;
   $hydrate(dom: IDOM, projectorLocator: IProjectorLocator, renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
-export interface ICustomElementResource extends
-  IResourceKind<ITemplateDefinition, ICustomElement, Class<ICustomElement> & ICustomElementStaticProperties> {
-  behaviorFor(node: INode): ICustomElement | null;
+export interface ICustomElementResource<T extends INode = INode> extends
+  IResourceKind<ITemplateDefinition, ICustomElement<T>, Class<ICustomElement<T>> & ICustomElementStaticProperties> {
+  behaviorFor(node: T): ICustomElement<T> | null;
 }
 
 /** @internal */

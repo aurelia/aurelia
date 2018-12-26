@@ -5,34 +5,34 @@ export interface INode extends Object {}
 export const INode = DI.createInterface<INode>().noDefault();
 
 export const IRenderLocation = DI.createInterface<IRenderLocation>().noDefault();
-export interface IRenderLocation extends INode {
-  $start?: IRenderLocation;
-  $nodes?: INodeSequence | Readonly<{}>;
+export interface IRenderLocation<T extends INode = INode> extends INode {
+  $start?: IRenderLocation<T>;
+  $nodes?: INodeSequence<T> | Readonly<{}>;
 }
 
 /**
  * Represents a DocumentFragment
  */
-export interface INodeSequence extends INode {
+export interface INodeSequence<T extends INode = INode> extends INode {
   /**
    * The nodes of this sequence.
    */
-  childNodes: ArrayLike<INode>;
+  childNodes: ArrayLike<T>;
 
   /**
    * Find all instruction targets in this sequence.
    */
-  findTargets(): ArrayLike<INode>;
+  findTargets(): ArrayLike<T>;
 
   /**
    * Insert this sequence as a sibling before refNode
    */
-  insertBefore(refNode: INode): void;
+  insertBefore(refNode: T): void;
 
   /**
    * Append this sequence as a child to parent
    */
-  appendTo(parent: INode): void;
+  appendTo(parent: T): void;
 
   /**
    * Remove this sequence from its parent.
@@ -42,22 +42,22 @@ export interface INodeSequence extends INode {
 
 export const IDOM = DI.createInterface<IDOM>().noDefault();
 
-export interface IDOM {
+export interface IDOM<T extends INode = INode> {
   addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
-  appendChild(parent: unknown, child: unknown): void;
-  cloneNode<T>(node: T, deep?: boolean): T;
-  convertToRenderLocation(node: unknown): IRenderLocation;
-  createDocumentFragment(markupOrNode?: unknown): INode;
-  createElement(name: string): INode;
-  createTemplate(markup?: unknown): INode;
-  createTextNode(text: string): INode;
-  insertBefore(nodeToInsert: unknown, referenceNode: unknown): void;
-  isMarker(node: unknown): node is INode;
-  isNodeInstance(potentialNode: unknown): potentialNode is INode;
-  isRenderLocation(node: unknown): node is IRenderLocation;
-  makeTarget(node: unknown): void;
+  appendChild(parent: T, child: T): void;
+  cloneNode<TClone extends T>(node: TClone, deep?: boolean): TClone;
+  convertToRenderLocation(node: T): IRenderLocation<T>;
+  createDocumentFragment(markupOrNode?: string | T): T;
+  createElement(name: string): T;
+  createTemplate(markup?: string): T;
+  createTextNode(text: string): T;
+  insertBefore(nodeToInsert: T, referenceNode: T): void;
+  isMarker(node: unknown): node is T;
+  isNodeInstance(potentialNode: unknown): potentialNode is T;
+  isRenderLocation(node: unknown): node is IRenderLocation<T>;
+  makeTarget(node: T): void;
   registerElementResolver(container: IContainer, resolver: IResolver): void;
-  remove(node: unknown): void;
+  remove(node: T): void;
   removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
 }
 
@@ -76,6 +76,6 @@ export const NodeSequence = {
   empty: emptySequence
 };
 
-export interface INodeSequenceFactory {
-  createNodeSequence(): INodeSequence;
+export interface INodeSequenceFactory<T extends INode = INode> {
+  createNodeSequence(): INodeSequence<T>;
 }

@@ -22,15 +22,13 @@ import {
   ITemplateDefinition,
 
   IteratorBindingInstruction,
-  Lifecycle,
   LifecycleFlags,
-  TargetedInstruction,
 
   ToViewBindingInstruction,
   IProjectorLocator
 
-} from '../src/index';
-import { TextBindingInstruction } from '../../runtime-html/src/index';
+} from '@aurelia/runtime';
+import { TextBindingInstruction, HTMLTargetedInstruction } from '../src/index';
 
 
 export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
@@ -76,7 +74,7 @@ export class TemplateBuilder {
 }
 
 export class InstructionBuilder {
-  private instructions: TargetedInstruction[];
+  private instructions: HTMLTargetedInstruction[];
 
   constructor() {
     this.instructions = [];
@@ -144,7 +142,7 @@ export class InstructionBuilder {
     insCbOrBuilder: InstructionCb | InstructionBuilder,
     defCbOrBuilder: DefinitionCb | DefinitionBuilder
   ): InstructionBuilder {
-    let childInstructions: TargetedInstruction[];
+    let childInstructions: HTMLTargetedInstruction[];
     let definition: ITemplateDefinition;
     if (insCbOrBuilder instanceof InstructionBuilder) {
       childInstructions = insCbOrBuilder.build();
@@ -175,7 +173,7 @@ export class InstructionBuilder {
     return this;
   }
 
-  public build(): TargetedInstruction[] {
+  public build(): HTMLTargetedInstruction[] {
     const { instructions } = this;
     this.instructions = null;
     return instructions;
@@ -187,7 +185,7 @@ export class DefinitionBuilder {
   private name: string;
   private templateBuilder: TemplateBuilder;
   private instructionBuilder: InstructionBuilder;
-  private instructions: TargetedInstruction[][];
+  private instructions: HTMLTargetedInstruction[][];
 
   constructor(name?: string) {
     this.name = name || ('$' + ++DefinitionBuilder.lastId);
@@ -360,7 +358,7 @@ export class TestContext<T extends Object> {
   public container: IContainer;
   public host: INode;
   public component: ICustomElement & T;
-  public lifecycle: Lifecycle;
+  public lifecycle: ILifecycle;
   public isHydrated: boolean;
   public assertCount: number;
 
@@ -372,7 +370,7 @@ export class TestContext<T extends Object> {
     this.container = container;
     this.host = host;
     this.component = component;
-    this.lifecycle = container.get<Lifecycle>(ILifecycle);
+    this.lifecycle = container.get<ILifecycle>(ILifecycle);
     this.isHydrated = false;
     this.assertCount = 0;
   }
@@ -380,6 +378,7 @@ export class TestContext<T extends Object> {
   public hydrate(renderingEngine?: IRenderingEngine, host?: INode): void {
     renderingEngine = renderingEngine || this.container.get(IRenderingEngine);
     const projectorLocator = this.container.get(IProjectorLocator);
+    const dom = this.container.get(IDOM);
     host = host || this.host;
     this.component.$hydrate(dom, projectorLocator, renderingEngine, host);
   }
@@ -434,7 +433,7 @@ export class TestContext<T extends Object> {
 
   public assertTextContentEquals(text: string): void {
     ++this.assertCount;
-    const { textContent } = this.host;
+    const { textContent } = this.host as { textContent?: string };
     if (textContent !== text) {
       throw new Error(`Expected host.textContent to equal "${text}", but got: "${textContent}" (assert #${this.assertCount})`);
     }
@@ -442,7 +441,7 @@ export class TestContext<T extends Object> {
 
   public assertTextContentEmpty(): void {
     ++this.assertCount;
-    const { textContent } = this.host;
+    const { textContent } = this.host as { textContent?: string };
     if (textContent !== '') {
       throw new Error(`Expected host.textContent to be empty, but got: "${textContent}" (assert #${this.assertCount})`);
     }

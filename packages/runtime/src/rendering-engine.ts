@@ -134,11 +134,11 @@ export interface IRenderer {
 export const IRenderer = DI.createInterface<IRenderer>().noDefault();
 
 export interface IRenderingEngine {
-  getElementTemplate(dom: IDOM, definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
-  getViewFactory(dom: IDOM, source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory;
+  getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, componentType?: ICustomElementType<T>): ITemplate<T>;
+  getViewFactory<T extends INode = INode>(dom: IDOM<T>, source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext<T>): IViewFactory<T>;
 
-  applyRuntimeBehavior(Type: ICustomAttributeType, instance: ICustomAttribute): void;
-  applyRuntimeBehavior(Type: ICustomElementType, instance: ICustomElement): void;
+  applyRuntimeBehavior<T extends INode = INode>(Type: ICustomAttributeType<T>, instance: ICustomAttribute<T>): void;
+  applyRuntimeBehavior<T extends INode = INode>(Type: ICustomElementType<T>, instance: ICustomElement<T>): void;
 }
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>().withDefault(x => x.singleton(RenderingEngine));
@@ -171,7 +171,7 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  public getElementTemplate(dom: IDOM, definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate {
+  public getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, componentType?: ICustomElementType<T>): ITemplate<T> {
     if (!definition) {
       return null;
     }
@@ -189,10 +189,10 @@ export class RenderingEngine implements IRenderingEngine {
       this.templateLookup.set(definition, found);
     }
 
-    return found;
+    return found as ITemplate<T>;
   }
 
-  public getViewFactory(dom: IDOM, definition: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
+  public getViewFactory<T extends INode = INode>(dom: IDOM<T>, definition: Immutable<ITemplateDefinition>, parentContext?: IRenderContext<T>): IViewFactory<T> {
     if (!definition) {
       return null;
     }
@@ -207,7 +207,7 @@ export class RenderingEngine implements IRenderingEngine {
       this.viewFactoryLookup.set(definition, factory);
     }
 
-    return factory;
+    return factory as IViewFactory<T>;
   }
 
   public applyRuntimeBehavior(Type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement): void {

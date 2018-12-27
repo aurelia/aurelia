@@ -1,12 +1,13 @@
 import { expect } from 'chai';
-import { Aurelia, State } from '../src/index';
 import { spy } from 'sinon';
+import { Aurelia, State } from '../src/index';
+import { AuDOMConfiguration } from './au-dom';
 
-describe.only('Aurelia', () => {
+describe('Aurelia', () => {
   let sut: Aurelia;
 
   beforeEach(() => {
-    sut = new Aurelia();
+    sut = new Aurelia(AuDOMConfiguration.createContainer());
   });
 
   it('should initialize container directly', () => {

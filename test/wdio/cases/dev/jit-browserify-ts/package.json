@@ -8,8 +8,10 @@
   },
   "dependencies": {
     "@aurelia/debug": "dev",
+    "@aurelia/jit-html": "dev",
     "@aurelia/jit": "dev",
     "@aurelia/kernel": "dev",
+    "@aurelia/runtime-html": "dev",
     "@aurelia/runtime": "dev"
   },
   "devDependencies": {

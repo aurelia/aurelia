@@ -54,21 +54,21 @@ export type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T 
   $customElement?: ICustomElement<T>;
 };
 
-export interface IElementProjector {
-  readonly host: CustomElementHost;
-  readonly children: ArrayLike<CustomElementHost>;
+export interface IElementProjector<T extends INode = INode> {
+  readonly host: CustomElementHost<T>;
+  readonly children: ArrayLike<CustomElementHost<T>>;
 
-  provideEncapsulationSource(): INode;
-  project(nodes: INodeSequence): void;
-  take(nodes: INodeSequence): void;
+  provideEncapsulationSource(): T;
+  project(nodes: INodeSequence<T>): void;
+  take(nodes: INodeSequence<T>): void;
 
   subscribeToChildrenChange(callback: () => void): void;
 }
 
 export const IProjectorLocator = DI.createInterface<IProjectorLocator>().noDefault();
 
-export interface IProjectorLocator {
-  getElementProjector(dom: IDOM, $component: ICustomElement, host: CustomElementHost, def: TemplateDefinition): IElementProjector;
+export interface IProjectorLocator<T extends INode = INode> {
+  getElementProjector(dom: IDOM<T>, $component: ICustomElement<T>, host: CustomElementHost<T>, def: TemplateDefinition): IElementProjector<T>;
 }
 
 export interface ICustomElementStaticProperties {

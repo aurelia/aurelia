@@ -4,10 +4,8 @@ import {
   ICustomElement,
   IDOM,
   IElementProjector,
-  INode,
   INodeSequence,
   IProjectorLocator,
-  IRenderLocation,
   TemplateDefinition
 } from '@aurelia/runtime';
 
@@ -17,8 +15,8 @@ const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
 
-export class HTMLProjectorLocator implements IProjectorLocator {
-  public getElementProjector(dom: IDOM, $component: ICustomElement, host: CustomElementHost<HTMLElement>, def: TemplateDefinition): IElementProjector {
+export class HTMLProjectorLocator implements IProjectorLocator<Node> {
+  public getElementProjector(dom: IDOM<Node>, $component: ICustomElement<Node>, host: CustomElementHost<HTMLElement>, def: TemplateDefinition): IElementProjector<Node> {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {
         throw Reporter.error(21);
@@ -38,11 +36,11 @@ export class HTMLProjectorLocator implements IProjectorLocator {
 const childObserverOptions = { childList: true };
 
 /** @internal */
-export class ShadowDOMProjector implements IElementProjector {
-  public host: CustomElementHost<HTMLElement>;
+export class ShadowDOMProjector implements IElementProjector<Node> {
+  public host: CustomElementHost<Node>;
   public shadowRoot: CustomElementHost<ShadowRoot>;
 
-  constructor($customElement: ICustomElement, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
+  constructor($customElement: ICustomElement<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
     this.host = host;
 
     let shadowOptions: ShadowRootInit;
@@ -53,10 +51,10 @@ export class ShadowDOMProjector implements IElementProjector {
     }
     this.shadowRoot = host.attachShadow(shadowOptions);
     this.host.$customElement = $customElement;
-    this.shadowRoot.$customElement = $customElement;
+    this.shadowRoot.$customElement = $customElement as ICustomElement<ShadowRoot>;
   }
 
-  public get children(): ArrayLike<CustomElementHost> {
+  public get children(): ArrayLike<CustomElementHost<Node>> {
     return this.host.childNodes;
   }
 
@@ -70,13 +68,13 @@ export class ShadowDOMProjector implements IElementProjector {
     return this.shadowRoot;
   }
 
-  public project(nodes: INodeSequence): void {
+  public project(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector.project', slice.call(arguments)); }
     nodes.appendTo(this.host);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public take(nodes: INodeSequence): void {
+  public take(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector.take', slice.call(arguments)); }
     nodes.remove();
     if (Tracer.enabled) { Tracer.leave(); }
@@ -84,23 +82,23 @@ export class ShadowDOMProjector implements IElementProjector {
 }
 
 /** @internal */
-export class ContainerlessProjector implements IElementProjector {
-  public host: IRenderLocation & CustomElementHost<Comment>;
+export class ContainerlessProjector implements IElementProjector<Node> {
+  public host: CustomElementHost<Node>;
 
-  private childNodes: ReadonlyArray<CustomElementHost>;
+  private childNodes: ReadonlyArray<CustomElementHost<Node>>;
 
-  constructor(dom: IDOM, $customElement: ICustomElement, host: CustomElementHost<HTMLElement>) {
+  constructor(dom: IDOM<Node>, $customElement: ICustomElement<Node>, host: Node) {
     if (host.childNodes.length) {
       this.childNodes = PLATFORM.toArray(host.childNodes);
     } else {
       this.childNodes = PLATFORM.emptyArray;
     }
 
-    this.host = dom.convertToRenderLocation(host) as IRenderLocation & CustomElementHost<Comment>;
+    this.host = dom.convertToRenderLocation(host) as CustomElementHost<Node>;
     this.host.$customElement = $customElement;
   }
 
-  public get children(): ArrayLike<CustomElementHost> {
+  public get children(): ArrayLike<CustomElementHost<Node>> {
     return this.childNodes;
   }
 
@@ -108,17 +106,17 @@ export class ContainerlessProjector implements IElementProjector {
     // Do nothing since this scenario will never have children.
   }
 
-  public provideEncapsulationSource(): INode {
+  public provideEncapsulationSource(): Node {
     return this.host.getRootNode();
   }
 
-  public project(nodes: INodeSequence): void {
+  public project(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('ContainerlessProjector.project', slice.call(arguments)); }
     nodes.insertBefore(this.host);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public take(nodes: INodeSequence): void {
+  public take(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('ContainerlessProjector.take', slice.call(arguments)); }
     nodes.remove();
     if (Tracer.enabled) { Tracer.leave(); }
@@ -126,15 +124,15 @@ export class ContainerlessProjector implements IElementProjector {
 }
 
 /** @internal */
-export class HostProjector implements IElementProjector {
-  public host: CustomElementHost<HTMLElement>;
+export class HostProjector implements IElementProjector<Node> {
+  public host: CustomElementHost<Node>;
 
-  constructor($customElement: ICustomElement, host: CustomElementHost<HTMLElement>) {
+  constructor($customElement: ICustomElement<Node>, host: CustomElementHost<Node>) {
     this.host = host;
     this.host.$customElement = $customElement;
   }
 
-  public get children(): ArrayLike<CustomElementHost> {
+  public get children(): ArrayLike<CustomElementHost<Node>> {
     return this.host.childNodes;
   }
 
@@ -142,17 +140,17 @@ export class HostProjector implements IElementProjector {
     // Do nothing since this scenario will never have children.
   }
 
-  public provideEncapsulationSource(): INode {
+  public provideEncapsulationSource(): Node {
     return this.host.getRootNode();
   }
 
-  public project(nodes: INodeSequence): void {
+  public project(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('HostProjector.project', slice.call(arguments)); }
     nodes.appendTo(this.host);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public take(nodes: INodeSequence): void {
+  public take(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('HostProjector.take', slice.call(arguments)); }
     nodes.remove();
     if (Tracer.enabled) { Tracer.leave(); }

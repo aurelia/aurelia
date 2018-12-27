@@ -1,6 +1,12 @@
-import { inject, DI, Registration, InterfaceSymbol, IContainer } from "../../src";
-import { expect } from "chai";
-import { spy } from "sinon";
+import { expect } from 'chai';
+import { spy } from 'sinon';
+import {
+  DI,
+  IContainer,
+  inject,
+  InterfaceSymbol,
+  Registration
+} from '../../src/index';
 
 describe('DI.createInterface() -> container.get()', () => {
   let container: IContainer;
@@ -93,7 +99,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
 
     it(`InterfaceSymbol alias to transient registration returns a new instance each time`, () => {
-      interface IAlias{}
+      interface IAlias {}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(ITransient));
 
       const actual1 = container.get(IAlias);
@@ -106,7 +112,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
 
     it(`InterfaceSymbol alias to singleton registration returns the same instance each time`, () => {
-      interface IAlias{}
+      interface IAlias {}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(ISingleton));
 
       const actual1 = container.get(IAlias);
@@ -119,7 +125,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
 
     it(`InterfaceSymbol alias to instance registration returns the same instance each time`, () => {
-      interface IAlias{}
+      interface IAlias {}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(IInstance));
 
       const actual1 = container.get(IAlias);
@@ -134,7 +140,7 @@ describe('DI.createInterface() -> container.get()', () => {
 
     // TODO: make test work
     it(`InterfaceSymbol alias to callback registration is invoked each time`, () => {
-      interface IAlias{}
+      interface IAlias {}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(ICallback));
 
       const actual1 = container.get(IAlias);
@@ -149,7 +155,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
 
     it(`string alias to transient registration returns a new instance each time`, () => {
-      container.register(Registration.alias(ITransient, 'alias'))
+      container.register(Registration.alias(ITransient, 'alias'));
 
       const actual1 = container.get('alias');
       expect(actual1).to.be.instanceof(Transient);
@@ -161,7 +167,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
 
     it(`string alias to singleton registration returns the same instance each time`, () => {
-      container.register(Registration.alias(ISingleton, 'alias'))
+      container.register(Registration.alias(ISingleton, 'alias'));
 
       const actual1 = container.get('alias');
       expect(actual1).to.be.instanceof(Singleton);
@@ -173,7 +179,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
 
     it(`string alias to instance registration returns the same instance each time`, () => {
-      container.register(Registration.alias(IInstance, 'alias'))
+      container.register(Registration.alias(IInstance, 'alias'));
 
       const actual1 = container.get('alias');
       expect(actual1).to.be.instanceof(Instance);
@@ -186,7 +192,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
 
     it(`string alias to callback registration is invoked each time`, () => {
-      container.register(Registration.alias(ICallback, 'alias'))
+      container.register(Registration.alias(ICallback, 'alias'));
 
       const actual1 = container.get('alias');
       expect(actual1).to.be.instanceof(Callback);
@@ -201,7 +207,7 @@ describe('DI.createInterface() -> container.get()', () => {
   });
 
   describe('parent without inject decorator', () => {
-    function decorator(): ClassDecorator { return (target: any) => target };
+    function decorator(): ClassDecorator { return (target: any) => target; }
     interface IParent { dep: any; }
     let IParent: InterfaceSymbol<IParent>;
 

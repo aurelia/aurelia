@@ -1,5 +1,5 @@
-import { RuntimeCompilationResources, Container } from '../../src/index'
 import { expect } from 'chai';
+import { Container, RuntimeCompilationResources } from '../../src/index'
 
 describe('RuntimeCompilationResources', () => {
 
@@ -7,8 +7,8 @@ describe('RuntimeCompilationResources', () => {
     const container = new Container();
     const resources = new RuntimeCompilationResources(container as any);
 
-    const res = <any>{ keyFrom(name: string): string { return name; } };
+    const res = { keyFrom(name: string): string { return name; } } as any;
     resources.find(res, 'a');
-    expect(container.getResolver(res.keyFrom('a'), false)).to.be.null;
+    expect(container.getResolver(res.keyFrom('a'), false)).to.equal(null);
   });
 });

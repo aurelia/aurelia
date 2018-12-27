@@ -1,6 +1,8 @@
-import { PLATFORM } from './../../src/platform';
 import { expect } from 'chai';
+import { PLATFORM } from './../../src/platform';
 import { _ } from './util';
+
+// tslint:disable:no-typeof-undefined
 
 const toString = Object.prototype.toString;
 
@@ -10,13 +12,17 @@ describe(`The PLATFORM object`, () => {
       expect(PLATFORM.global).to.equal(global);
     });
   }
+  // @ts-ignore
   if (typeof self !== 'undefined') {
     it(`global references self`, () => {
+      // @ts-ignore
       expect(PLATFORM.global).to.equal(self);
     });
   }
+  // @ts-ignore
   if (typeof window !== 'undefined') {
     it(`global references window`, () => {
+      // @ts-ignore
       expect(PLATFORM.global).to.equal(window);
     });
   }
@@ -46,13 +52,13 @@ describe(`The PLATFORM object`, () => {
     let promiseResolved = false;
     PLATFORM.requestAnimationFrame(() => {
       rafResolved = true;
-      expect(promiseResolved).to.be.true;
+      expect(promiseResolved).to.equal(true);
       done();
     });
     Promise.resolve().then(() => {
       Promise.resolve().then(() => {
         Promise.resolve().then(() => {
-          expect(rafResolved).to.be.false;
+          expect(rafResolved).to.equal(false);
           promiseResolved = true;
         });
       });
@@ -66,13 +72,13 @@ describe(`The PLATFORM object`, () => {
           const f = prepend ? 'F' : 'f';
           for (const append of [true, false]) {
             for (const [[foo, bar, baz], expected] of [
-              [['foo', 'bar', 'baz'], f+'ooBarBaz'],
-              [['Foo', 'Bar', 'Baz'], f+'ooBarBaz'],
-              [['FOO', 'BAR', 'BAZ'], f+'OOBARBAZ'],
-              [['fOO', 'bAR', 'bAZ'], f+'OOBARBAZ'],
-              [['foo', 'bar42', '42baz'], f+'ooBar4242baz']
+              [['foo', 'bar', 'baz'], f + 'ooBarBaz'],
+              [['Foo', 'Bar', 'Baz'], f + 'ooBarBaz'],
+              [['FOO', 'BAR', 'BAZ'], f + 'OOBARBAZ'],
+              [['fOO', 'bAR', 'bAZ'], f + 'OOBARBAZ'],
+              [['foo', 'bar42', '42baz'], f + 'ooBar4242baz']
             ]) {
-              const actualSep = count === 1 ? sep : sep+sep;
+              const actualSep = count === 1 ? sep : sep + sep;
               let input = [foo, bar, baz].join(actualSep);
               if (prepend) input = actualSep + input;
               if (append) input += actualSep;
@@ -105,10 +111,10 @@ describe(`The PLATFORM object`, () => {
   });
 
   describe(`toArray()`, () => {
-    for (const input of <ArrayLike<any>[]>[
+    for (const input of [
       [1, 2, 3, 4, 5],
       { length: 5, [1]: 1, [2]: 2, [3]: 3, [4]: 4, [5]: 5 }
-    ]) {
+    ] as ArrayLike<any>[]) {
       it(_`converts ${input} to array`, () => {
         const expected = Array.from(input);
         const actual = PLATFORM.toArray(input);

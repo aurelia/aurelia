@@ -488,6 +488,11 @@ export interface IFlushLifecycle {
 }
 
 export interface IBindLifecycle extends IFlushLifecycle {
+  processConnectQueue(flags: LifecycleFlags): void;
+  processPatchQueue(flags: LifecycleFlags): void;
+  processBindQueue(flags: LifecycleFlags): void;
+  processUnbindQueue(flags: LifecycleFlags): void;
+
   /**
    * Open up / expand a bind batch for enqueueing `bound` callbacks.
    *
@@ -557,6 +562,9 @@ export interface IBindLifecycle extends IFlushLifecycle {
 }
 
 export interface IAttachLifecycle extends IFlushLifecycle {
+  processAttachQueue(flags: LifecycleFlags): void;
+  processDetachQueue(flags: LifecycleFlags): void;
+
   /**
    * Open up / expand an attach batch for enqueueing `$mount` and `attached` callbacks.
    *
@@ -651,9 +659,6 @@ export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {
 }
 
 export const ILifecycle = DI.createInterface<ILifecycle>().withDefault(x => x.singleton(Lifecycle));
-export const IFlushLifecycle = ILifecycle as InterfaceSymbol<IFlushLifecycle>;
-export const IBindLifecycle = ILifecycle as InterfaceSymbol<IBindLifecycle>;
-export const IAttachLifecycle = ILifecycle as InterfaceSymbol<IAttachLifecycle>;
 
 /** @internal */
 export class Lifecycle implements ILifecycle {

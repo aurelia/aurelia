@@ -11,7 +11,6 @@ const otherBMPIdentifierPartCodes = [
   65500 /*ￜ*/
 ];
 
-
 function toChars(compressed: number[]): string[] {
   const chars = [];
   const rangeCount = compressed.length;

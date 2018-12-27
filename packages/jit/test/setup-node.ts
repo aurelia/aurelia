@@ -7,4 +7,3 @@ chai.use(sinonChai);
 
 Error.stackTraceLimit = Infinity;
 
-

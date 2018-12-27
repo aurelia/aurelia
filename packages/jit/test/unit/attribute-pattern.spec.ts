@@ -1,14 +1,14 @@
+import { DI } from '@aurelia/kernel';
 import { expect } from 'chai';
 import {
   attributePattern,
+  AttributePatternDefinition,
   IAttributePattern,
-  ISyntaxInterpreter,
-  AttributePatternDefinition
+  ISyntaxInterpreter
 } from '../../src/index';
-import { DI } from '@aurelia/kernel';
 
 describe('@attributePattern', () => {
-  for (const [defs, tests] of <[AttributePatternDefinition[], [string, string, string[]][]][]>[
+  for (const [defs, tests] of [
     [
       [
         { pattern: 'PART.PART', symbols: '.' }
@@ -137,7 +137,7 @@ describe('@attributePattern', () => {
         ['value@bind',   null,           []]
       ]
     ]
-  ]) {
+  ] as [AttributePatternDefinition[], [string, string, string[]][]][]) {
     describe(`parse [${defs.map(d => d.pattern)}]`, () => {
       for (const [value, match, values] of tests) {
         it(`parse [${defs.map(d => d.pattern)}] -> interpret [${value}] -> match=[${match}]`, () => {
@@ -151,10 +151,10 @@ describe('@attributePattern', () => {
               receivedRawName = rawName;
               receivedRawValue = rawValue;
               receivedParts = parts;
-            }
+            };
           }
           const container = DI.createContainer();
-          container.register(<any>ThePattern);
+          container.register(ThePattern as any);
           const interpreter = container.get(ISyntaxInterpreter);
           const attrPattern = container.get(IAttributePattern);
           interpreter.add(attrPattern.$patternDefs);
@@ -167,7 +167,7 @@ describe('@attributePattern', () => {
             expect(receivedRawValue).to.equal('foo');
             expect(receivedParts).to.deep.equal(result.parts);
           } else {
-            expect(attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern)).to.equal(-1);
+            expect(attrPattern.$patternDefs.map(d => d.pattern)).not.to.contain(result.pattern);
           }
 
           expect(result.parts).to.deep.equal(values);

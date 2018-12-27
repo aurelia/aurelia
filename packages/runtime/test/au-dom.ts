@@ -294,7 +294,7 @@ export class AuNode implements INode {
 }
 
 export class AuDOM implements IDOM<AuNode> {
-  public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
+  public addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void {
     return;
   }
   public appendChild(parent: AuNode, child: AuNode): void {
@@ -363,7 +363,7 @@ export class AuDOM implements IDOM<AuNode> {
   public remove(node: AuNode): void {
     node.remove();
   }
-  public removeEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | EventListenerOptions): void {
+  public removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void {
     return;
   }
 }

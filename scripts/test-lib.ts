@@ -175,16 +175,16 @@ export function jsonStringify(o: any): string {
   return result.replace(newline, '');
 }
 
-export function htmlStringify(node: Object & { textContent?: string; childNodes?: ArrayLike<Object>; nodeType?: number }): string {
+export function htmlStringify(node: Object & { nodeName?: string; content?: any; innerHTML?: string; textContent?: string; childNodes?: ArrayLike<Object>; nodeType?: number }): string {
   if ((node.textContent !== null && node.textContent.length) || node.nodeType === 3/*Text*/ || node.nodeType === 8/*Comment*/) {
     return node.textContent.replace(newline, '');
   }
-  if (node instanceof Element) {
+  if (node.nodeType === 1/*Element*/) {
     if (node.innerHTML.length) {
       return node.innerHTML.replace(newline, '');
     }
     if (node.nodeName === 'TEMPLATE') {
-      return htmlStringify((<HTMLTemplateElement>node).content);
+      return htmlStringify(node.content);
     }
   }
   let val = '';
@@ -239,16 +239,6 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
       verifyEqual(actual[prop], expected[prop], depth + 1, prop, index);
     }
   }
-}
-
-// lazy initializing this in case the consuming test doesn't need this and doesn't have DOM available
-let domParser: HTMLDivElement;
-export function createElement(markup: string): Node {
-  if (domParser === undefined) {
-    domParser = document.createElement('div');
-  }
-  domParser.innerHTML = markup;
-  return domParser.firstElementChild;
 }
 
 export function lazyProduct(sets: any[][], f: (...args: any[]) => void, context?: any): void {

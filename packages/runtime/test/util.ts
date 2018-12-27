@@ -5,7 +5,6 @@ import {
 import { spy } from 'sinon';
 import {
   _,
-  createElement,
   eachCartesianJoin,
   eachCartesianJoinFactory,
   ensureNotCalled,
@@ -218,7 +217,6 @@ export {
   jsonStringify,
   htmlStringify,
   verifyEqual,
-  createElement,
   padRight,
   massSpy,
   massStub,

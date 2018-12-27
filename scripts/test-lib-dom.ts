@@ -37,3 +37,9 @@ export function h<T extends keyof HTMLElementTagNameMap, TChildren extends (stri
 function isNodeOrTextOrComment(obj: any): obj is Text | Comment | Node {
   return obj instanceof Node || obj instanceof Text || obj instanceof Comment;
 }
+
+const domParser = document.createElement('div');
+export function createElement(markup: string): HTMLElement {
+  domParser.innerHTML = markup;
+  return domParser.firstElementChild as HTMLElement;
+}

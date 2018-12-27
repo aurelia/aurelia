@@ -1,9 +1,9 @@
-import { ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, EventSubscriber, EventManager, DelegationStrategy, DOM } from '../../../src/index';
+import { HTMLDOM, ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, EventSubscriber, EventManager, createElement } from '../../src/index';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { _, createElement } from '../util';
+import { DelegationStrategy } from '@aurelia/runtime';
 
-const dom = new DOM(<any>document);
+const dom = new HTMLDOM(<any>document);
 
 const CAPTURING_PHASE = 1;
 const AT_TARGET = 2;

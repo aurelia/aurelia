@@ -1,5 +1,5 @@
 import { Class, Constructable, DI, IContainer, Registration } from '@aurelia/kernel';
-import { parseCore } from '../../jit/src/index';
+import { parseExpression } from '../../jit/src/index';
 import { HTMLJitConfiguration } from '../../jit-html/src/index';
 import {
   BindingType,
@@ -108,12 +108,12 @@ export class InstructionBuilder {
       expressions = [];
       if (Array.isArray(sources)) {
         for (const source of sources) {
-          expressions.push(<any>parseCore(<string>source, <any>BindingType.None));
+          expressions.push(<any>parseExpression(<string>source, <any>BindingType.None));
         }
       }
     } else {
       parts = ['', ''];
-      expressions = [<any>parseCore(<string>partsOrSource, <any>BindingType.None)];
+      expressions = [<any>parseExpression(<string>partsOrSource, <any>BindingType.None)];
     }
     const instruction = new TextBindingInstruction(
       new Interpolation(parts, expressions)
@@ -124,14 +124,14 @@ export class InstructionBuilder {
 
 
   public iterator(source: string, target: string): InstructionBuilder {
-    const statement = <any>parseCore(source, <any>BindingType.ForCommand);
+    const statement = <any>parseExpression(source, <any>BindingType.ForCommand);
     const instruction = new IteratorBindingInstruction(statement, target);
     this.instructions.push(instruction);
     return this;
   }
 
   public toView(source: string, target?: string): InstructionBuilder {
-    const statement = <any>parseCore(source, <any>BindingType.ToViewCommand);
+    const statement = <any>parseExpression(source, <any>BindingType.ToViewCommand);
     const instruction = new ToViewBindingInstruction(statement, target || 'value');
     this.instructions.push(instruction);
     return this;

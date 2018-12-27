@@ -1,24 +1,32 @@
 import { inject, IRegistry } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
+import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
+import { INode, IRenderLocation } from '../../dom';
 import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
 import { IBindingContext, LifecycleFlags } from '../../observation';
 import { Scope } from '../../observation/binding-context';
 import { bindable } from '../../templating/bindable';
-import { ICustomAttribute, templateController } from '../custom-attribute';
+import { ICustomAttribute, ICustomAttributeResource, templateController } from '../custom-attribute';
 
-export interface With extends ICustomAttribute {}
+export interface With<T extends INode = INode> extends ICustomAttribute<T> {}
+
 @templateController('with')
 @inject(IViewFactory, IRenderLocation)
-export class With {
-  public static register: IRegistry['register'];
+export class With<T extends INode = INode> implements With<T>  {
+  public static readonly register: IRegistry['register'];
+  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static readonly kind: ICustomAttributeResource;
+  public static readonly description: AttributeDefinition;
 
   // TODO: this type is incorrect (it can be any user-provided object), need to fix and double check Scope.
   @bindable public value: IBindScope | IBindingContext;
 
-  private currentView: IView;
-  private factory: IViewFactory;
+  private currentView: IView<T>;
+  private factory: IViewFactory<T>;
 
-  constructor(factory: IViewFactory, location: IRenderLocation) {
+  constructor(
+    factory: IViewFactory<T>,
+    location: IRenderLocation<T>
+  ) {
     this.value = null;
 
     this.factory = factory;

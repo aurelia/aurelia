@@ -1,26 +1,35 @@
 import { inject, IRegistry } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
+import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
+import { INode, IRenderLocation } from '../../dom';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
 import { bindable } from '../../templating/bindable';
-import { ICustomAttribute, templateController } from '../custom-attribute';
+import { ICustomAttribute, ICustomAttributeResource, templateController } from '../custom-attribute';
 
-export interface If extends ICustomAttribute {}
+export interface If<T extends INode = INode> extends ICustomAttribute<T> {}
+
 @templateController('if')
 @inject(IViewFactory, IRenderLocation, CompositionCoordinator)
-export class If {
-  public static register: IRegistry['register'];
+export class If<T extends INode = INode> implements If<T> {
+  public static readonly register: IRegistry['register'];
+  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static readonly kind: ICustomAttributeResource;
+  public static readonly description: AttributeDefinition;
 
   @bindable public value: boolean;
 
-  public elseFactory: IViewFactory | null;
-  public elseView: IView | null;
-  public ifFactory: IViewFactory;
-  public ifView: IView | null;
-  public location: IRenderLocation;
+  public elseFactory: IViewFactory<T> | null;
+  public elseView: IView<T> | null;
+  public ifFactory: IViewFactory<T>;
+  public ifView: IView<T> | null;
+  public location: IRenderLocation<T>;
   public coordinator: CompositionCoordinator;
 
-  constructor(ifFactory: IViewFactory, location: IRenderLocation, coordinator: CompositionCoordinator) {
+  constructor(
+    ifFactory: IViewFactory<T>,
+    location: IRenderLocation<T>,
+    coordinator: CompositionCoordinator
+  ) {
     this.value = false;
 
     this.coordinator = coordinator;
@@ -76,8 +85,8 @@ export class If {
   }
 
   /** @internal */
-  public updateView(flags: LifecycleFlags): IView | null {
-    let view: IView | null;
+  public updateView(flags: LifecycleFlags): IView<T> | null {
+    let view: IView<T> | null;
 
     if (this.value) {
       view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
@@ -91,7 +100,7 @@ export class If {
   }
 
   /** @internal */
-  public ensureView(view: IView | null, factory: IViewFactory, flags: LifecycleFlags): IView {
+  public ensureView(view: IView<T> | null, factory: IViewFactory<T>, flags: LifecycleFlags): IView<T> {
     if (view === null) {
       view = factory.create();
     }
@@ -102,20 +111,23 @@ export class If {
   }
 }
 
-export interface Else extends ICustomAttribute {}
+export interface Else<T extends INode = INode> extends ICustomAttribute<T> {}
 
 @templateController('else')
 @inject(IViewFactory)
-export class Else {
-  public static register: IRegistry['register'];
+export class Else<T extends INode = INode> implements Else<T> {
+  public static readonly register: IRegistry['register'];
+  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static readonly kind: ICustomAttributeResource;
+  public static readonly description: AttributeDefinition;
 
-  private factory: IViewFactory;
+  private factory: IViewFactory<T>;
 
-  constructor(factory: IViewFactory) {
+  constructor(factory: IViewFactory<T>) {
     this.factory = factory;
   }
 
-  public link(ifBehavior: If): void {
+  public link(ifBehavior: If<T>): void {
     ifBehavior.elseFactory = this.factory;
   }
 }

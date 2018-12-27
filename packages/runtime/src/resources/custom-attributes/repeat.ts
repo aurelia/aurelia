@@ -1,23 +1,27 @@
 import { IIndexable, inject, IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
-import { IRenderLocation } from '../../dom';
+import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
+import { INode, IRenderLocation } from '../../dom';
 import { IBindScope, IRenderable, IView, IViewFactory, State } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { SetterObserver } from '../../observation/setter-observer';
 import { bindable } from '../../templating/bindable';
-import { ICustomAttribute, templateController } from '../custom-attribute';
+import { ICustomAttribute, ICustomAttributeResource, templateController } from '../custom-attribute';
 
-export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}
+export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {}
 
 @inject(IRenderLocation, IRenderable, IViewFactory)
 @templateController('repeat')
-export class Repeat<T extends ObservedCollection = IObservedArray> {
-  public static register: IRegistry['register'];
+export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements Repeat<C, T> {
+  public static readonly register: IRegistry['register'];
+  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static readonly kind: ICustomAttributeResource;
+  public static readonly description: AttributeDefinition;
 
-  @bindable public items: T;
+  @bindable public items: C;
 
   public $scope: IScope;
   public $observers: { items: SetterObserver };
@@ -25,13 +29,17 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public forOf: ForOfStatement;
   public hasPendingInstanceMutation: boolean;
   public local: string;
-  public location: IRenderLocation;
+  public location: IRenderLocation<T>;
   public observer: CollectionObserver | null;
-  public renderable: IRenderable;
-  public factory: IViewFactory;
-  public views: IView[];
+  public renderable: IRenderable<T>;
+  public factory: IViewFactory<T>;
+  public views: IView<T>[];
 
-  constructor(location: IRenderLocation, renderable: IRenderable, factory: IViewFactory) {
+  constructor(
+    location: IRenderLocation<T>,
+    renderable: IRenderable<T>,
+    factory: IViewFactory<T>
+  ) {
     this.factory = factory;
     this.hasPendingInstanceMutation = false;
     this.location = location;
@@ -87,7 +95,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   }
 
   // called by SetterObserver (sync)
-  public itemsChanged(newValue: T, oldValue: T, flags: LifecycleFlags): void {
+  public itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void {
     this.checkCollectionObserver();
     this.processViews(null, flags | LifecycleFlags.updateTargetInstance);
   }

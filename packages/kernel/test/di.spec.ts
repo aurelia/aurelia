@@ -814,8 +814,10 @@ describe(`The Factory class`, () => {
       const container = new Container();
       class Foo {public bar; public baz; }
       const sut = Factory.create(Foo);
-      sut.registerTransformer(foo => ({...foo,  bar: 1}));
-      sut.registerTransformer(foo => ({...foo,  baz: 2}));
+      // tslint:disable-next-line:prefer-object-spread
+      sut.registerTransformer(foo => Object.assign(foo, { bar: 1 }));
+      // tslint:disable-next-line:prefer-object-spread
+      sut.registerTransformer(foo => Object.assign(foo, { baz: 2 }));
       const foo = sut.construct(container);
       expect(foo.bar).to.equal(1);
       expect(foo.baz).to.equal(2);

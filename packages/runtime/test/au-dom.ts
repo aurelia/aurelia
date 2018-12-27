@@ -606,6 +606,7 @@ export const AuDOMConfiguration = {
     container.register(
       RuntimeConfiguration,
       AuTextRenderer as unknown as IRegistry,
+      Registration.singleton(IDOM, AuDOM),
       Registration.singleton(IDOMInitializer, AuDOMInitializer),
       Registration.singleton(IProjectorLocator, AuProjectorLocator),
       Registration.singleton(ITargetAccessorLocator, AuObserverLocator),

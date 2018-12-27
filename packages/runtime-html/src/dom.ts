@@ -374,15 +374,19 @@ export class HTMLDOMInitializer implements IDOMInitializer {
    * If no argument is provided, uses the default global `document` variable.
    * (this will throw an error in non-browser environments).
    */
-  public initialize(config: ISinglePageApp<Node>): IDOM {
+  public initialize(config?: ISinglePageApp<Node>): IDOM {
     if (this.container.has(IDOM, false)) {
       return this.container.get(IDOM);
     }
     let dom: IDOM;
-    if (config.dom !== undefined) {
-      dom = config.dom;
-    } else if (config.host.ownerDocument !== null) {
-      dom = new HTMLDOM(config.host.ownerDocument);
+    if (config !== undefined) {
+      if (config.dom !== undefined) {
+        dom = config.dom;
+      } else if (config.host.ownerDocument !== null) {
+        dom = new HTMLDOM(config.host.ownerDocument);
+      } else {
+        dom = new HTMLDOM(document);
+      }
     } else {
       dom = new HTMLDOM(document);
     }

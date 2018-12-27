@@ -530,7 +530,7 @@ export class AuDOMInitializer implements IDOMInitializer {
     this.container = container;
   }
 
-  public initialize(config: ISinglePageApp<AuNode>): AuDOM {
+  public initialize(config?: ISinglePageApp<AuNode>): AuDOM {
     if (this.container.has(IDOM, false)) {
       return this.container.get(IDOM) as AuDOM;
     }

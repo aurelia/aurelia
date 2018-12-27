@@ -103,5 +103,5 @@ export class Aurelia {
 export const IDOMInitializer = DI.createInterface<IDOMInitializer>().noDefault();
 
 export interface IDOMInitializer {
-  initialize(config: ISinglePageApp): IDOM;
+  initialize(config?: ISinglePageApp): IDOM;
 }

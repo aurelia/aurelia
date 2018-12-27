@@ -5,6 +5,7 @@
     "lib": ["esnext"],
     "types": [
       "./asserts",
+      "node",
       "mocha",
       "chai",
       "sinon",

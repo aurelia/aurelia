@@ -28,9 +28,9 @@ import {
   State,
   SubscriberFlags
 } from '../../src/index';
-import { createScopeForTest } from '../shared';
 import {
   _,
+  createScopeForTest,
   createObserverLocator,
   eachCartesianJoinFactory,
   ensureNotCalled,

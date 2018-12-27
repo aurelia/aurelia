@@ -5,10 +5,7 @@ import {
   ICustomAttribute,
   templateController
 } from '../../src/index';
-import {
-  defineComponentLifecycleMock,
-  IComponentLifecycleMock
-} from '../mock';
+import { defineComponentLifecycleMock, IComponentLifecycleMock } from '../_doubles/mock-component-lifecycle';
 
 export type CustomAttribute = Writable<ICustomAttribute> & IComponentLifecycleMock;
 

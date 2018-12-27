@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { hydrateCustomElement } from '../behavior-assistance';
 import { DOM, IViewFactory, customElement, ITemplateDefinition, LifecycleFlags, IAttach, Lifecycle, RenderPlan, Compose, CustomElementResource, IDOM } from '../../../../src/index';
-import { ViewFactoryFake } from '../fakes/view-factory-fake';
+import { FakeViewFactory } from '../fakes/view-factory-fake';
 
 const dom = new DOM(<any>document);
 
@@ -268,7 +268,7 @@ describe('The "compose" custom element', () => {
   }
 
   function createViewFactory(lifecycle: Lifecycle): IViewFactory {
-    return new ViewFactoryFake(lifecycle);
+    return new FakeViewFactory(lifecycle);
   }
 
   function createPotentialRenderable(lifecycle: Lifecycle): RenderPlan {

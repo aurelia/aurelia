@@ -1,6 +1,6 @@
 import { ICustomElement, IRenderable } from '../../src/index';
 
-export class RenderableFake implements IRenderable {
+export class FakeRenderable implements IRenderable {
   public $context: IRenderable['$context'] = null;
   public $nodes: IRenderable['$nodes'] = null;
   public $lifecycle: IRenderable['$lifecycle'] = null;

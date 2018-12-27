@@ -25,14 +25,14 @@ import {
   ToViewBindingInstruction,
   TwoWayBindingInstruction
 } from '../src/index';
-import { AuDOM, AuDOMConfiguration, AuNode } from './au-dom';
+import { AuDOMConfiguration, AuNode } from './au-dom';
 import { _ } from './util';
 
 describe('Renderer', () => {
   function setup() {
     const container = AuDOMConfiguration.createContainer();
     ParserRegistration.register(container as any);
-    const dom = container.get<AuDOM>(IDOM);
+    const dom = container.get(IDOM);
     const renderable: IRenderable = { $bindableHead: null, $bindableTail: null, $attachableHead: null, $attachableTail: null, $context: null, $nodes: null, $scope: null };
     container.register(Registration.instance(IRenderable, renderable));
     const target = AuNode.createMarker();

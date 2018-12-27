@@ -366,6 +366,9 @@ export class AuDOM implements IDOM<AuNode> {
   public removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void {
     return;
   }
+  public setAttribute(node: AuNode, name: string, value: unknown): void {
+    (node as Record<string, unknown>)[name] = value;
+  }
 }
 
 export class AuProjectorLocator implements IProjectorLocator {

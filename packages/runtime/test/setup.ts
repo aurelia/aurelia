@@ -64,5 +64,7 @@ chai.use(function(_chai, utils) {
 
 Error.stackTraceLimit = Infinity;
 
-const tests = require.context('.', true, /\.spec/);
+const tests = require.context('.', true, /view\.spec/);
 tests.keys().forEach(tests);
+// const tests = require.context('.', true, /\.spec/);
+// tests.keys().forEach(tests);

@@ -17,10 +17,10 @@ import {
   RuntimeConfiguration,
   SetterObserver
 } from '../../src/index';
-import { createScopeForTest } from '../shared';
 import {
   _,
   createObserverLocator,
+  createScopeForTest,
   eachCartesianJoinFactory,
   massReset,
   massRestore,

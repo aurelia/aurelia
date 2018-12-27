@@ -62,15 +62,13 @@ import {
   Unary,
   ValueConverter
 } from '../../src/index';
-import {
-  MockBindingBehavior,
-  MockServiceLocator,
-  MockSignaler,
-  MockTracingExpression,
-  MockValueConverter
-} from '../mock';
-import { createScopeForTest } from '../shared';
-import { createObserverLocator } from '../util';
+
+import { MockBindingBehavior } from '../_doubles/mock-binding-behavior';
+import { MockServiceLocator } from '../_doubles/mock-service-locator';
+import { MockSignaler } from '../_doubles/mock-signaler';
+import { MockTracingExpression } from '../_doubles/mock-tracing-expression';
+import { MockValueConverter } from '../_doubles/mock-value-converter';
+import { createObserverLocator, createScopeForTest } from '../util';
 
 const $false = PrimitiveLiteral.$false;
 const $true = PrimitiveLiteral.$true;
@@ -99,7 +97,6 @@ function throwsOn<TExpr extends IsBindingBehavior>(expr: TExpr, method: keyof TE
 const $num1 = new PrimitiveLiteral(1);
 const $str1 = new PrimitiveLiteral('1');
 
-
 describe('AST', () => {
 
   const AccessThisList: [string, AccessThis][] = [
@@ -108,7 +105,7 @@ describe('AST', () => {
     [`$parent.$parent`,   new AccessThis(2)]
   ];
   const AccessScopeList: [string, AccessScope][] = [
-    ...AccessThisList.map(([input, expr]) => <[string, any]>[`${input}.a`, new AccessScope('a', expr.ancestor)]),
+    ...AccessThisList.map(([input, expr]) => [`${input}.a`, new AccessScope('a', expr.ancestor)] as [string, any]),
     [`$this.$parent`,     new AccessScope('$parent')],
     [`$parent.$this`,     new AccessScope('$this', 1)],
     [`a`,                 new AccessScope('a')]
@@ -164,35 +161,35 @@ describe('AST', () => {
   // 2. parseMemberExpression.MemberExpression [ AssignmentExpression ]
   const SimpleAccessKeyedList: [string, IsLeftHandSide][] = [
     ...AccessScopeList
-      .map(([input, expr]) => <[string, any]>[`${input}[b]`, new AccessKeyed(expr, new AccessScope('b'))])
+      .map(([input, expr]) => [`${input}[b]`, new AccessKeyed(expr, new AccessScope('b'))] as [string, any])
   ];
   // 3. parseMemberExpression.MemberExpression . IdentifierName
   const SimpleAccessMemberList: [string, IsLeftHandSide][] = [
     ...AccessScopeList
-      .map(([input, expr]) => <[string, any]>[`${input}.b`, new AccessMember(expr, 'b')])
+      .map(([input, expr]) => [`${input}.b`, new AccessMember(expr, 'b')] as [string, any])
   ];
   // 4. parseMemberExpression.MemberExpression TemplateLiteral
   const SimpleTaggedTemplateList: [string, IsLeftHandSide][] = [
     ...AccessScopeList
-      .map(([input, expr]) => <[string, any]>[`${input}\`\``, new TaggedTemplate([''], [''], expr, [])]),
+      .map(([input, expr]) => [`${input}\`\``, new TaggedTemplate([''], [''], expr, [])] as [string, any]),
 
     ...AccessScopeList
-      .map(([input, expr]) => <[string, any]>[`${input}\`\${a}\``, new TaggedTemplate(['', ''], ['', ''], expr, [new AccessScope('a')])])
+      .map(([input, expr]) => [`${input}\`\${a}\``, new TaggedTemplate(['', ''], ['', ''], expr, [new AccessScope('a')])] as [string, any])
   ];
   // 1. parseCallExpression.MemberExpression Arguments (this one doesn't technically fit the spec here)
   const SimpleCallFunctionList: [string, IsLeftHandSide][] = [
     ...AccessScopeList
-      .map(([input, expr]) => <[string, any]>[`${input}()`, new CallFunction(expr, [])])
+      .map(([input, expr]) => [`${input}()`, new CallFunction(expr, [])] as [string, any])
   ];
   // 2. parseCallExpression.MemberExpression Arguments
   const SimpleCallScopeList: [string, IsLeftHandSide][] = [
     ...AccessScopeList
-      .map(([input, expr]) => <[string, any]>[`${input}()`, new CallScope((<any>expr).name, [], expr.ancestor)])
+      .map(([input, expr]) => [`${input}()`, new CallScope((expr as any).name, [], expr.ancestor)] as [string, any])
   ];
   // 3. parseCallExpression.MemberExpression Arguments
   const SimpleCallMemberList: [string, IsLeftHandSide][] = [
     ...AccessScopeList
-      .map(([input, expr]) => <[string, any]>[`${input}.b()`, new CallMember(expr, 'b', [])])
+      .map(([input, expr]) => [`${input}.b()`, new CallMember(expr, 'b', [])] as [string, any])
   ];
   // concatenation of 1-3 of MemberExpression and 1-3 of CallExpression
   const SimpleLeftHandSideList: [string, IsLeftHandSide][] = [
@@ -729,7 +726,7 @@ describe('AST', () => {
       }
     });
     describe('evaluate() throws when returned converter is nil', () => {
-      const locator = { get(){ return null; } };
+      const locator = { get() { return null; } };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, () => {
           throwsOn(expr, 'evaluate', 'Code 205', null, null, locator);
@@ -748,7 +745,7 @@ describe('AST', () => {
       }
     });
     describe('assign() throws when returned converter is null', () => {
-      const locator = { get(){ return null; } };
+      const locator = { get() { return null; } };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, null`, () => {
           throwsOn(expr, 'assign', 'Code 205', null, null, locator);
@@ -784,7 +781,7 @@ describe('AST', () => {
     });
 
     describe('connect() throws when returned converter is null', () => {
-      const locator = { get(){ return null; } };
+      const locator = { get() { return null; } };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, () => {
           throwsOn(expr, 'connect', 'Code 205', null, {}, { locator, observeProperty: () => {} });
@@ -855,7 +852,7 @@ describe('AST', () => {
     });
 
     describe('bind() throws when returned behavior is null', () => {
-      const locator = { get(){ return null; } };
+      const locator = { get() { return null; } };
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, () => {
           throwsOn(expr, 'bind', 'Code 203', null, {}, { locator, observeProperty: () => {} });
@@ -865,7 +862,7 @@ describe('AST', () => {
 
     describe('bind() throws when returned behavior is already present', () => {
       const behavior = {};
-      const locator = { get(){ return behavior; } };
+      const locator = { get() { return behavior; } };
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, () => {
           throwsOn(expr, 'bind', 'Code 204', null, {}, { [expr.behaviorKey]: behavior, locator, observeProperty: () => {} });
@@ -1147,7 +1144,7 @@ describe('AccessMember', () => {
           expect(binding.observeProperty.callCount).to.equal(1);
         });
       })
-    )
+    );
   });
 
   describe('observes even if object does not / cannot have the property', () => {
@@ -1173,7 +1170,7 @@ describe('AccessMember', () => {
           expect(binding.observeProperty.callCount).to.equal(2);
         });
       })
-    )
+    );
   });
 });
 
@@ -1514,7 +1511,7 @@ describe('Binary', () => {
   });
 
   describe('performs \'in\'', () => {
-    const tests: { expr: Binary, expected: boolean }[] = [
+    const tests: { expr: Binary; expected: boolean }[] = [
       { expr: new Binary('in', new PrimitiveLiteral('foo'), new ObjectLiteral(['foo'], [$null])), expected: true },
       { expr: new Binary('in', new PrimitiveLiteral('foo'), new ObjectLiteral(['bar'], [$null])), expected: false },
       { expr: new Binary('in', new PrimitiveLiteral(1), new ObjectLiteral(['1'], [$null])), expected: true },
@@ -1542,7 +1539,7 @@ describe('Binary', () => {
   describe('performs \'instanceof\'', () => {
     class Foo {}
     class Bar extends Foo {}
-    const tests: { expr: Binary, expected: boolean }[] = [
+    const tests: { expr: Binary; expected: boolean }[] = [
       {
         expr: new Binary(
           'instanceof',
@@ -1765,11 +1762,11 @@ class Test {
 
   public makeString = (cooked: string[], a: any, b: any): string => {
     return cooked[0] + a + cooked[1] + b + cooked[2] + this.value;
-  };
+  }
 }
 
 describe('LiteralTemplate', () => {
-  const tests: { expr: Template | TaggedTemplate, expected: string, ctx: any }[] = [
+  const tests: { expr: Template | TaggedTemplate; expected: string; ctx: any }[] = [
     { expr: $tpl, expected: '', ctx: {} },
     { expr: new Template(['foo']), expected: 'foo', ctx: {} },
     { expr: new Template(['foo', 'baz'], [new PrimitiveLiteral('bar')]), expected: 'foobarbaz', ctx: {} },
@@ -1853,7 +1850,7 @@ describe('LiteralTemplate', () => {
 
 describe('Unary', () => {
   describe('performs \'typeof\'', () => {
-    const tests: { expr: Unary, expected: string }[] = [
+    const tests: { expr: Unary; expected: string }[] = [
       { expr: new Unary('typeof', new PrimitiveLiteral('foo')), expected: 'string' },
       { expr: new Unary('typeof', new PrimitiveLiteral(1)), expected: 'number' },
       { expr: new Unary('typeof', $null), expected: 'object' },
@@ -2043,7 +2040,7 @@ describe('BindingBehavior', () => {
 
       const expr = sut.expression as any as MockTracingExpression;
 
-      let callCount = ($kind & ExpressionKind.HasBind) > 0 ? 2 : 1;
+      const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 2 : 1;
       expect(expr.calls.length).to.equal(callCount);
       expect(expr.calls[callCount - 1].length).to.equal(4);
       expect(expr.calls[callCount - 1][0]).to.equal('evaluate');
@@ -2067,7 +2064,7 @@ describe('BindingBehavior', () => {
 
       const expr = sut.expression as any as MockTracingExpression;
 
-      let callCount = ($kind & ExpressionKind.HasBind) > 0 ? 3 : 2;
+      const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 3 : 2;
       expect(expr.calls.length).to.equal(callCount);
       expect(expr.calls[callCount - 1].length).to.equal(4);
       expect(expr.calls[callCount - 1][0]).to.equal('connect');
@@ -2090,7 +2087,7 @@ describe('BindingBehavior', () => {
 
       const expr = sut.expression as any as MockTracingExpression;
 
-      let callCount = ($kind & ExpressionKind.HasBind) > 0 ? 4 : 3;
+      const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 4 : 3;
       expect(expr.calls.length).to.equal(callCount);
       expect(expr.calls[callCount - 1].length).to.equal(5);
       expect(expr.calls[callCount - 1][0]).to.equal('assign');
@@ -2115,7 +2112,7 @@ describe('BindingBehavior', () => {
 
       const expr = sut.expression as any as MockTracingExpression;
 
-      let callCount = ($kind & ExpressionKind.HasBind) > 0 ? 5 : 4;
+      const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 5 : 4;
       expect(expr.calls.length).to.equal(callCount);
       expect(expr.calls[callCount - 1].length).to.equal(4);
       expect(expr.calls[callCount - 1][0]).to.equal('evaluate');
@@ -2144,7 +2141,7 @@ describe('BindingBehavior', () => {
 
       const expr = sut.expression as any as MockTracingExpression;
 
-      let callCount = ($kind & ExpressionKind.HasBind) > 0 ? 6 : 5;
+      const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 6 : 5;
       if ($kind & ExpressionKind.HasUnbind) {
         expect(expr.calls.length).to.equal(callCount);
         expect(expr.calls[callCount - 1].length).to.equal(4);
@@ -2533,7 +2530,7 @@ describe('ValueConverter', () => {
         unbind();
       });
     }
-  )
+  );
 });
 
 describe('helper functions', () => {

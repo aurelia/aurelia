@@ -5,7 +5,7 @@ import {
   LifecycleFlags,
   Signaler
 } from '../../src/index';
-import { MockPropertySubscriber } from '../mock';
+import { MockPropertySubscriber } from '../_doubles/mock-subscriber';
 
 describe('ISignaler', () => {
   type $1 = [string, ISignaler, MockPropertySubscriber[]];

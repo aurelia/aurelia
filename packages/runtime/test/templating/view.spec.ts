@@ -290,28 +290,90 @@ describe('View', () => {
       const { relBeforeDetach1, relBeforeEndDetach1, relAfterDetach1, relBeforeDetach2, relBeforeEndDetach2, relAfterDetach2 } = relSpec;
       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
-      let expectedText1: string;
-      let expectedText2: string;
+      let firstBindInitialValue: string;
+      let firstBindFinalValue: string;
+      let secondBindInitialValue: string;
+      let secondBindFinalValue: string;
 
-      if (bindTwice && newScopeForSecondBind && !lockScope1) {
-        expectedText1 = duplicateBindValue.repeat(1 + childCount);
+      /**
+       * Notes on binding assertions
+       *
+       * There are 3 values the text binding can get:
+       * - propValue1 (assigned on first bind operation)
+       * - propValue2 (assigned on second bind operation)
+       * - duplicatedBindValue (assigned on the duplicated bind on both the first and second bind operations)
+       *
+       * And there are 4 booleans affecting the bind operations:
+       * - lockScope1 (perform `lockScope` on the first bind operation)
+       * - lockScope2 (perform `lockScope` on the second bind operation)
+       * - bindTwice (binds a second time on each bind operation, resulting in a total of 4 bind operations)
+       * - newScopeForSecondBind (creates a new scope for both the second and duplicated bind operations)
+       *
+       * If `newScopeForSecondBind` is true, a new scope is created with a new binding context that
+       * holds the appropriate value. If it is false, the appropriate value is instead assigned directly
+       * to the binding context on the existing scope.
+       *
+       * These combinations effectively test (almost) every possible scenario regarding binding a view:
+       *
+       * 1 During first bind, binding a view that is already bound (applies to `bindTwice` scenarios):
+       *   1.3 And the scope is locked, then nothing will happen regardless of the new scope you pass in.
+       *   1.2 And pass a different scope, then the view is unbound and bound again with the new scope.
+       *   1.1 And pass the same scope, then nothing will happen (changes in bindingContext will not propagate)
+       *
+       * The assigned value during first bind is stored in variable `firstBindFinalValue`
+       *
+       * 2 During second bind, binding a view that is not yet bound
+       *   2.1 And the scope was locked during first bind
+       *       2.1.1 And the scope is locked again during second bind, then any value/scope will propagate
+       *       2.1.2 And the scope is not locked during second bind
+       *             2.1.2.1 And pass a different scope, then nothing will happen regardless of the new scope
+       *             2.1.2.2 And assign a new value on the same scope, then that new value will propagate
+       *   2.2 And the scope was not locked during first bind, then any value/scope will propagate
+       *
+       * The assigned value during second bind is stored in variable `secondBindInitialValue`
+       *
+       * 3 During second bind, binding a view that is already bound (applies to `bindTwice` scenarios)
+       *   3.1 And the scope was locked during either first or second bind, then nothing will happen regardless of scope/value
+       *   3.2 And the scope was neither locked during first nor second bind
+       *       3.2.1 And pass in a different scope, then the view is unbound and bound again with the new scope
+       *       3.2.2 And pass in the same scope, then nothing will happen
+       */
+      firstBindInitialValue = propValue1;
+
+      if (bindTwice) {
+        if (lockScope1) { // 1.1
+          firstBindFinalValue = firstBindInitialValue;
+        } else if (newScopeForSecondBind) { // 1.2
+          firstBindFinalValue = duplicateBindValue;
+        } else { // 1.3
+          firstBindFinalValue = firstBindInitialValue;
+        }
       } else {
-        expectedText1 = propValue1.repeat(1 + childCount);
+        firstBindFinalValue = firstBindInitialValue;
       }
-      if (lockScope1 && !lockScope2) {
-        if (newScopeForSecondBind) {
-          expectedText2 = propValue1.repeat(1 + childCount);
-        } else {
-          expectedText2 = propValue2.repeat(1 + childCount);
+
+      if (lockScope1) { // 2.1
+        if (lockScope2) { // 2.1.1
+          secondBindInitialValue = propValue2;
+        } else if (newScopeForSecondBind) { // 2.1.2.1
+          secondBindInitialValue = firstBindFinalValue;
+        } else { // 2.1.2.2
+          secondBindInitialValue = propValue2;
+        }
+      } else { // 2.2
+        secondBindInitialValue = propValue2;
+      }
+
+      if (bindTwice) {
+        if (lockScope1 || lockScope2) { // 3.1
+          secondBindFinalValue = secondBindInitialValue;
+        } else if (newScopeForSecondBind) { // 3.2.1
+          secondBindFinalValue = duplicateBindValue;
+        } else { // 3.2.2
+          secondBindFinalValue = secondBindInitialValue;
         }
       } else {
-        if (!bindTwice || lockScope2) {
-          expectedText2 = propValue2.repeat(1 + childCount);
-        } else if (newScopeForSecondBind && !lockScope2) {
-          expectedText2 = duplicateBindValue.repeat(1 + childCount);
-        } else {
-          expectedText2 = propValue2.repeat(1 + childCount);
-        }
+        secondBindFinalValue = secondBindInitialValue;
       }
 
       // common stuff
@@ -392,6 +454,9 @@ describe('View', () => {
       sut.hold(location);
 
       runBindLifecycle(lifecycle, sut, bindFlags1, scope1);
+
+      expect(sut.$nodes.childNodes[0].textContent).to.equal(firstBindInitialValue, 'sut.$nodes.childNodes[0].textContent #1');
+
       if (bindTwice) {
         let newScope: Scope;
         if (newScopeForSecondBind) {
@@ -403,6 +468,8 @@ describe('View', () => {
         runBindLifecycle(lifecycle, sut, bindFlags1, newScope);
       }
 
+      expect(sut.$nodes.childNodes[0].textContent).to.equal(firstBindFinalValue, 'sut.$nodes.childNodes[0].textContent #2');
+
       // - Round 1 - attach
 
       runAttachLifecycle(lifecycle, sut, attachFlags1);
@@ -410,14 +477,14 @@ describe('View', () => {
         runAttachLifecycle(lifecycle, sut, attachFlags1);
       }
 
-      expect(host.textContent).to.equal(expectedText1, 'host.textContent #1');
+      expect(host.textContent).to.equal(firstBindFinalValue.repeat(1 + childCount), 'host.textContent #1');
 
       // - Round 1 - detach
 
       lifecycle.beginDetach();
       if (relBeforeDetach1) {
         sut.release(detachFlags1);
-        expect(host.textContent).to.equal(expectedText1, 'host.textContent #2');
+        expect(host.textContent).to.equal(firstBindFinalValue.repeat(1 + childCount), 'host.textContent #2');
       }
       sut.$detach(detachFlags1);
       if (relBeforeEndDetach1) {
@@ -475,6 +542,9 @@ describe('View', () => {
       sut.hold(location);
 
       runBindLifecycle(lifecycle, sut, bindFlags2, scope2);
+
+      expect(sut.$nodes.childNodes[0].textContent).to.equal(secondBindInitialValue, 'sut.$nodes.childNodes[0].textContent #3');
+
       if (bindTwice) {
         let newScope: Scope;
         if (newScopeForSecondBind) {
@@ -486,6 +556,8 @@ describe('View', () => {
         runBindLifecycle(lifecycle, sut, bindFlags2, newScope);
       }
 
+      expect(sut.$nodes.childNodes[0].textContent).to.equal(secondBindFinalValue, 'sut.$nodes.childNodes[0].textContent #4');
+
       // Round 2 - attach
 
       runAttachLifecycle(lifecycle, sut, attachFlags2);
@@ -493,14 +565,14 @@ describe('View', () => {
         runAttachLifecycle(lifecycle, sut, attachFlags2);
       }
 
-      expect(host.textContent).to.equal(expectedText2, 'host.textContent #5');
+      expect(host.textContent).to.equal(secondBindFinalValue.repeat(1 + childCount), 'host.textContent #5');
 
       // Round 2 - detach
 
       lifecycle.beginDetach();
       if (relBeforeDetach2) {
         sut.release(detachFlags2);
-        expect(host.textContent).to.equal(expectedText2, 'host.textContent #6');
+        expect(host.textContent).to.equal(secondBindFinalValue.repeat(1 + childCount), 'host.textContent #6');
       }
       sut.$detach(detachFlags2);
       if (relBeforeEndDetach2) {

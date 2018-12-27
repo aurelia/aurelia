@@ -17,6 +17,7 @@ import {
   IObserverLocator,
   IRenderable,
   IRenderLocation,
+  IScope,
   ITemplate,
   IView,
   Lifecycle,
@@ -147,6 +148,27 @@ describe(`ViewFactory`, () => {
 //   addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
 // }
 describe('View', () => {
+  function runBindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LifecycleFlags, scope: IScope): void {
+    lifecycle.beginBind();
+    view.$bind(flags, scope);
+    lifecycle.endBind(flags);
+  }
+  function runUnbindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LifecycleFlags): void {
+    lifecycle.beginUnbind();
+    view.$unbind(flags);
+    lifecycle.endUnbind(flags);
+  }
+  function runAttachLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LifecycleFlags): void {
+    lifecycle.beginAttach();
+    view.$attach(flags);
+    lifecycle.endAttach(flags);
+  }
+  function runDetachLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LifecycleFlags): void {
+    lifecycle.beginDetach();
+    view.$detach(flags);
+    lifecycle.endDetach(flags);
+  }
+
   interface Spec {
     t: string;
   }
@@ -369,9 +391,7 @@ describe('View', () => {
       }
       sut.hold(location);
 
-      lifecycle.beginBind();
-      sut.$bind(bindFlags1, scope1);
-      lifecycle.endBind(bindFlags1);
+      runBindLifecycle(lifecycle, sut, bindFlags1, scope1);
       if (bindTwice) {
         let newScope: Scope;
         if (newScopeForSecondBind) {
@@ -380,20 +400,14 @@ describe('View', () => {
           scope1.bindingContext[propName] = duplicateBindValue;
           newScope = scope1;
         }
-        lifecycle.beginBind();
-        sut.$bind(bindFlags1, newScope);
-        lifecycle.endBind(bindFlags1);
+        runBindLifecycle(lifecycle, sut, bindFlags1, newScope);
       }
 
       // - Round 1 - attach
 
-      lifecycle.beginAttach();
-      sut.$attach(attachFlags1);
-      lifecycle.endAttach(attachFlags1);
+      runAttachLifecycle(lifecycle, sut, attachFlags1);
       if (attachTwice) {
-        lifecycle.beginAttach();
-        sut.$attach(attachFlags1);
-        lifecycle.endAttach(attachFlags1);
+        runAttachLifecycle(lifecycle, sut, attachFlags1);
       }
 
       expect(host.textContent).to.equal(expectedText1, 'host.textContent #1');
@@ -441,13 +455,9 @@ describe('View', () => {
 
       // - Round 1 - unbind
 
-      lifecycle.beginUnbind();
-      sut.$unbind(unbindFlags1);
-      lifecycle.endUnbind(unbindFlags1);
+      runUnbindLifecycle(lifecycle, sut, unbindFlags1);
       if (unbindTwice) {
-        lifecycle.beginUnbind();
-        sut.$unbind(unbindFlags1);
-        lifecycle.endUnbind(unbindFlags1);
+        runUnbindLifecycle(lifecycle, sut, unbindFlags1);
       }
 
       // Round 2 - bind
@@ -464,9 +474,7 @@ describe('View', () => {
       }
       sut.hold(location);
 
-      lifecycle.beginBind();
-      sut.$bind(bindFlags2, scope2);
-      lifecycle.endBind(bindFlags2);
+      runBindLifecycle(lifecycle, sut, bindFlags2, scope2);
       if (bindTwice) {
         let newScope: Scope;
         if (newScopeForSecondBind) {
@@ -475,20 +483,14 @@ describe('View', () => {
           scope2.bindingContext[propName] = duplicateBindValue;
           newScope = scope2;
         }
-        lifecycle.beginBind();
-        sut.$bind(bindFlags2, newScope);
-        lifecycle.endBind(bindFlags2);
+        runBindLifecycle(lifecycle, sut, bindFlags2, newScope);
       }
 
       // Round 2 - attach
 
-      lifecycle.beginAttach();
-      sut.$attach(attachFlags2);
-      lifecycle.endAttach(attachFlags2);
+      runAttachLifecycle(lifecycle, sut, attachFlags2);
       if (attachTwice) {
-        lifecycle.beginAttach();
-        sut.$attach(attachFlags2);
-        lifecycle.endAttach(attachFlags2);
+        runAttachLifecycle(lifecycle, sut, attachFlags2);
       }
 
       expect(host.textContent).to.equal(expectedText2, 'host.textContent #5');
@@ -536,13 +538,9 @@ describe('View', () => {
 
       // Round 2 - unbind
 
-      lifecycle.beginUnbind();
-      sut.$unbind(unbindFlags2);
-      lifecycle.endUnbind(unbindFlags2);
+      runUnbindLifecycle(lifecycle, sut, unbindFlags2);
       if (unbindTwice) {
-        lifecycle.beginUnbind();
-        sut.$unbind(unbindFlags2);
-        lifecycle.endUnbind(unbindFlags2);
+        runUnbindLifecycle(lifecycle, sut, unbindFlags2);
       }
     });
 

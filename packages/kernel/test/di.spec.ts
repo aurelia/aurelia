@@ -16,7 +16,7 @@ import {
   ResolverStrategy,
   singleton,
   transient
-} from '../../src/index';
+} from '../src/index';
 import { _ } from './util';
 
 // tslint:disable:no-unnecessary-field-initialization

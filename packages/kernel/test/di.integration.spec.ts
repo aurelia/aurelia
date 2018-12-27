@@ -6,7 +6,7 @@ import {
   inject,
   InterfaceSymbol,
   Registration
-} from '../../src/index';
+} from '../src/index';
 
 describe('DI.createInterface() -> container.get()', () => {
   let container: IContainer;

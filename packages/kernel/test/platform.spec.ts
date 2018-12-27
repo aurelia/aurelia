@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { PLATFORM } from './../../src/platform';
+import { PLATFORM } from '../src/index';
 import { _ } from './util';
 
 // tslint:disable:no-typeof-undefined

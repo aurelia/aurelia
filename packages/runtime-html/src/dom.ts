@@ -110,6 +110,9 @@ export class HTMLDOM implements IDOM {
   public removeEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | EventListenerOptions): void {
     (publisher || this.doc).removeEventListener(eventName, subscriber, options);
   }
+  public setAttribute(node: Element, name: string, value: unknown): void {
+    node.setAttribute(name, value as string);
+  }
 }
 
 /**

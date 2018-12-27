@@ -63,6 +63,7 @@ export interface IDOM<T extends INode = INode> {
   registerElementResolver(container: IContainer, resolver: IResolver): void;
   remove(node: T): void;
   removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
+  setAttribute(node: T, name: string, value: unknown): void;
 }
 
 // This is an implementation of INodeSequence that represents "no DOM" to render.

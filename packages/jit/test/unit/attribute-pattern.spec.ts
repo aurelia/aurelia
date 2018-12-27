@@ -1,5 +1,10 @@
 import { expect } from 'chai';
-import { SyntaxInterpreter, attributePattern, IAttributePattern, ISyntaxInterpreter, AttributePatternDefinition } from '../../src/attribute-pattern';
+import {
+  attributePattern,
+  IAttributePattern,
+  ISyntaxInterpreter,
+  AttributePatternDefinition
+} from '../../src/index';
 import { DI } from '@aurelia/kernel';
 
 describe('@attributePattern', () => {

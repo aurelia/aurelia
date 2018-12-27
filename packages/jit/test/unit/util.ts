@@ -1,6 +1,4 @@
-import { Unparser, Serializer } from './../../../debug/src/binding/unparser';
-import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
-import { h } from '../../../../scripts/test-lib-dom';
+import { Unparser, Serializer } from '../../../debug/src/binding/unparser';
 import { expect } from 'chai';
 
 export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
@@ -24,6 +22,3 @@ export function verifyASTEqual(actual: any, expected: any, errors?: string[], pa
     }
   }
 }
-
-
-export { _, h, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };

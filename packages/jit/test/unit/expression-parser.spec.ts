@@ -1,15 +1,45 @@
-import { BindingIdentifier, ArrayBindingPattern, ObjectBindingPattern } from './../../../runtime/src/binding/ast';
-import { AccessKeyed, AccessMember, AccessScope, AccessThis,
-  Assign, Binary, BindingBehavior, CallFunction,
-  CallMember, CallScope, Conditional,
-  ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate, IsUnary, IsPrimary, BinaryOperator, UnaryOperator, BindingType, Interpolation, ForOfStatement } from '../../../runtime/src';
-import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
+import {
+  latin1IdentifierStartChars,
+  latin1IdentifierPartChars,
+  otherBMPIdentifierPartChars
+} from './unicode';
 import { expect } from 'chai';
-import { parseCore, parse,  ParserState, Access, Precedence } from '../../../jit/src'
-import { verifyASTEqual, eachCartesianJoinFactory } from './util';
-import { eachCartesianJoin } from '../../../../scripts/test-lib';
-import { ExpressionKind } from '@aurelia/runtime';
+import {
+  parseExpression,
+  parse,
+  ParserState,
+  Access,
+  Precedence
+} from '../../../jit/src'
+import { verifyASTEqual } from './util';
+import {
+  ExpressionKind,
+  BindingIdentifier,
+  ArrayBindingPattern,
+  ObjectBindingPattern,
+  AccessKeyed,
+  AccessMember,
+  AccessScope,
+  AccessThis,
+  Assign,
+  Binary,
+  BindingBehavior,
+  CallFunction,
+  CallMember,
+  CallScope,
+  Conditional,
+  ArrayLiteral,
+  ObjectLiteral,
+  PrimitiveLiteral,
+  Template,
+  Unary,
+  ValueConverter,
+  TaggedTemplate,
+  BinaryOperator,
+  BindingType,
+  Interpolation,
+  ForOfStatement
+} from '@aurelia/runtime';
 
 
 const binaryMultiplicative: BinaryOperator[] = ['*', '%', '/'];
@@ -39,7 +69,6 @@ const $parent = AccessThis.$parent;
 const $a = new AccessScope('a');
 const $b = new AccessScope('b');
 const $c = new AccessScope('c');
-const $str1 = new PrimitiveLiteral('1');
 const $num0 = new PrimitiveLiteral(0);
 const $num1 = new PrimitiveLiteral(1);
 
@@ -96,7 +125,7 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
   let error: Error = null;
   let actual: any = null;
   try {
-    actual = parseCore(expr, <any>bindingType);
+    actual = parseExpression(expr, <any>bindingType);
   } catch (e) {
     error = e;
   }
@@ -780,7 +809,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexStringLiteralList', () => {
     for (const [input, expected] of ComplexStringLiteralList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -800,7 +829,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexNumberList', () => {
     for (const [input, expected] of ComplexNumberList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -839,7 +868,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexTemplateLiteralList', () => {
     for (const [input, expected] of ComplexTemplateLiteralList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -873,7 +902,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexArrayLiteralList', () => {
     for (const [input, expected] of ComplexArrayLiteralList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -916,7 +945,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexObjectLiteralList', () => {
     for (const [input, expected] of ComplexObjectLiteralList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -928,7 +957,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexAccessKeyedList', () => {
     for (const [input, expected] of ComplexAccessKeyedList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -948,7 +977,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexAccessMemberList', () => {
     for (const [input, expected] of ComplexAccessMemberList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -985,7 +1014,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexTaggedTemplateList', () => {
     for (const [input, expected] of ComplexTaggedTemplateList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -999,7 +1028,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexCallFunctionList', () => {
     for (const [input, expected] of ComplexCallFunctionList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1013,7 +1042,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexCallScopeList', () => {
     for (const [input, expected] of ComplexCallScopeList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1027,7 +1056,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexCallMemberList', () => {
     for (const [input, expected] of ComplexCallMemberList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1047,7 +1076,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexUnaryList', () => {
     for (const [input, expected] of ComplexUnaryList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1071,7 +1100,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexMultiplicativeList', () => {
     for (const [input, expected] of ComplexMultiplicativeList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1093,7 +1122,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexAdditiveList', () => {
     for (const [input, expected] of ComplexAdditiveList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1115,7 +1144,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexRelationalList', () => {
     for (const [input, expected] of ComplexRelationalList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1137,7 +1166,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexEqualityList', () => {
     for (const [input, expected] of ComplexEqualityList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1157,7 +1186,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexLogicalANDList', () => {
     for (const [input, expected] of ComplexLogicalANDList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1177,7 +1206,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexLogicalORList', () => {
     for (const [input, expected] of ComplexLogicalORList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1191,7 +1220,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexConditionalList', () => {
     for (const [input, expected] of ComplexConditionalList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1208,7 +1237,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexAssignList', () => {
     for (const [input, expected] of ComplexAssignList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1228,7 +1257,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexValueConverterList', () => {
     for (const [input, expected] of ComplexValueConverterList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1247,7 +1276,7 @@ describe('ExpressionParser', () => {
   describe('parse ComplexBindingBehaviorList', () => {
     for (const [input, expected] of ComplexBindingBehaviorList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+        verifyASTEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1304,7 +1333,7 @@ describe('ExpressionParser', () => {
 
     for (const [input, expected] of ForOfStatements) {
       it(input, () => {
-        verifyASTEqual(parseCore(input, <any>BindingType.ForCommand), expected);
+        verifyASTEqual(parseExpression(input, <any>BindingType.ForCommand), expected);
       });
     }
   });
@@ -1345,7 +1374,7 @@ describe('ExpressionParser', () => {
   describe('parse Interpolation', () => {
     for (const [input, expected] of InterpolationList) {
       it(input, () => {
-        verifyASTEqual(parseCore(input, <any>BindingType.Interpolation), expected);
+        verifyASTEqual(parseExpression(input, <any>BindingType.Interpolation), expected);
       });
     }
   });
@@ -1353,7 +1382,7 @@ describe('ExpressionParser', () => {
   describe('parse unicode IdentifierStart', () => {
     for (const char of latin1IdentifierStartChars) {
       it(char, () => {
-        verifyASTEqual(parseCore(char), new AccessScope(char, 0));
+        verifyASTEqual(parseExpression(char), new AccessScope(char, 0));
       });
     }
   });
@@ -1362,7 +1391,7 @@ describe('ExpressionParser', () => {
     for (const char of latin1IdentifierPartChars) {
       it(char, () => {
         const identifier = `$${char}`;
-        verifyASTEqual(parseCore(identifier), new AccessScope(identifier, 0));
+        verifyASTEqual(parseExpression(identifier), new AccessScope(identifier, 0));
       });
     }
   });
@@ -1529,7 +1558,7 @@ describe('ExpressionParser', () => {
       });
     }
 
-    for (const [input] of SimpleIsBindingBehaviorList.filter(([i, e]) => !e.ancestor)) {
+    for (const [input] of SimpleIsBindingBehaviorList.filter(([, e]) => !e.ancestor)) {
       it(`throw Code 151 (UnexpectedForOf) on "${input} of"`, () => {
         verifyResultOrError(`${input} of`, null, 'Code 151');
       });
@@ -1546,6 +1575,4 @@ describe('ExpressionParser', () => {
   });
 });
 
-function unicodeEscape(str: any): any {
-    return str.replace(/[\s\S]/g, (c: any) => `\\u${('0000' + c.charCodeAt().toString(16)).slice(-4)}`);
-}
+

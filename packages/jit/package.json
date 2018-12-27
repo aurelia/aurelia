@@ -31,6 +31,8 @@
     "lint": "cross-env tslint --project tsconfig-test.json -e \"test/**\" -t stylish",
     "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit --browsers=ChromeHeadlessOpt --single-run --coverage",
     "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit --browsers=FirefoxHeadless --single-run --coverage",
+    "test-node": "cross-env TS_NODE_PROJECT=\"test/tsconfig.json\" mocha test/setup-node.ts test/**/*.spec.ts -c -R progress -r ts-node/register -r source-map-support/register --recursive --globals expect",
+    "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit --browsers=ChromeHeadlessOpt --coverage",
     "test:watch:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit --browsers=ChromeHeadlessOpt --coverage --reporter=mocha",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit --browsers=ChromeDebugging",

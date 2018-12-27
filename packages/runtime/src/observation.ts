@@ -2,40 +2,39 @@ import { IDisposable, IIndexable } from '@aurelia/kernel';
 import { ILifecycle } from './lifecycle';
 
 export enum LifecycleFlags {
-  none                      = 0b0_0000_00000000000000_000_00,
-  mustEvaluate              = 0b0_0001_00000000000000_000_00,
-  mutation                  = 0b0_0000_00000000000000_000_11,
-  isCollectionMutation      = 0b0_0000_00000000000000_000_01,
-  isInstanceMutation        = 0b0_0000_00000000000000_000_10,
-  update                    = 0b0_0000_00000000000000_111_00,
-  updateTargetObserver      = 0b0_0000_00000000000000_001_00,
-  updateTargetInstance      = 0b0_0000_00000000000000_010_00,
-  updateSourceExpression    = 0b0_0000_00000000000000_100_00,
-  from                      = 0b0_0000_11111111111111_000_00,
-  fromFlush                 = 0b0_0000_00000000000011_000_00,
-  fromAsyncFlush            = 0b0_0000_00000000000001_000_00,
-  fromSyncFlush             = 0b0_0000_00000000000010_000_00,
-  fromStartTask             = 0b0_0000_00000000000100_000_00,
-  fromStopTask              = 0b0_0000_00000000001000_000_00,
-  fromBind                  = 0b0_0000_00000000010000_000_00,
-  fromUnbind                = 0b0_0000_00000000100000_000_00,
-  fromAttach                = 0b0_0000_00000001000000_000_00,
-  fromDetach                = 0b0_0000_00000010000000_000_00,
-  fromCache                 = 0b0_0000_00000100000000_000_00,
-  fromCreate                = 0b0_0000_00001000000000_000_00,
-  fromDOMEvent              = 0b0_0000_00010000000000_000_00,
-  fromObserverSetter        = 0b0_0000_00100000000000_000_00,
-  fromBindableHandler       = 0b0_0000_01000000000000_000_00,
-  fromLifecycleTask         = 0b0_0000_10000000000000_000_00,
-  parentUnmountQueued       = 0b0_0010_00000000000000_000_00,
+  none                      = 0b0_0000_0000000000000_000_00,
+  mustEvaluate              = 0b0_0001_0000000000000_000_00,
+  mutation                  = 0b0_0000_0000000000000_000_11,
+  isCollectionMutation      = 0b0_0000_0000000000000_000_01,
+  isInstanceMutation        = 0b0_0000_0000000000000_000_10,
+  update                    = 0b0_0000_0000000000000_111_00,
+  updateTargetObserver      = 0b0_0000_0000000000000_001_00,
+  updateTargetInstance      = 0b0_0000_0000000000000_010_00,
+  updateSourceExpression    = 0b0_0000_0000000000000_100_00,
+  from                      = 0b0_0000_1111111111111_000_00,
+  fromFlush                 = 0b0_0000_0000000000011_000_00,
+  fromAsyncFlush            = 0b0_0000_0000000000001_000_00,
+  fromSyncFlush             = 0b0_0000_0000000000010_000_00,
+  fromStartTask             = 0b0_0000_0000000000100_000_00,
+  fromStopTask              = 0b0_0000_0000000001000_000_00,
+  fromBind                  = 0b0_0000_0000000010000_000_00,
+  fromUnbind                = 0b0_0000_0000000100000_000_00,
+  fromAttach                = 0b0_0000_0000001000000_000_00,
+  fromDetach                = 0b0_0000_0000010000000_000_00,
+  fromCache                 = 0b0_0000_0000100000000_000_00,
+  fromDOMEvent              = 0b0_0000_0001000000000_000_00,
+  fromObserverSetter        = 0b0_0000_0010000000000_000_00,
+  fromBindableHandler       = 0b0_0000_0100000000000_000_00,
+  fromLifecycleTask         = 0b0_0000_1000000000000_000_00,
+  parentUnmountQueued       = 0b0_0010_0000000000000_000_00,
   // this flag is for the synchronous flush before detach (no point in updating the
   // DOM if it's about to be detached)
-  doNotUpdateDOM            = 0b0_0100_00000000000000_000_00,
-  isTraversingParentScope   = 0b0_1000_00000000000000_000_00,
+  doNotUpdateDOM            = 0b0_0100_0000000000000_000_00,
+  isTraversingParentScope   = 0b0_1000_0000000000000_000_00,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation
   // callbacks outside of $bind
-  persistentBindingFlags    = 0b1_0000_00000000000000_000_00,
-  allowParentScopeTraversal = 0b1_0000_00000000000000_000_00,
+  persistentBindingFlags    = 0b1_0000_0000000000000_000_00,
+  allowParentScopeTraversal = 0b1_0000_0000000000000_000_00,
 }
 
 export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
@@ -56,7 +55,6 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   if (flags & LifecycleFlags.fromAttach) { flagNames.push('fromAttach'); }
   if (flags & LifecycleFlags.fromDetach) { flagNames.push('fromDetach'); }
   if (flags & LifecycleFlags.fromCache) { flagNames.push('fromCache'); }
-  if (flags & LifecycleFlags.fromCreate) { flagNames.push('fromCreate'); }
   if (flags & LifecycleFlags.fromDOMEvent) { flagNames.push('fromDOMEvent'); }
   if (flags & LifecycleFlags.fromObserverSetter) { flagNames.push('fromObserverSetter'); }
   if (flags & LifecycleFlags.fromBindableHandler) { flagNames.push('fromBindableHandler'); }

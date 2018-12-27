@@ -117,6 +117,7 @@ export class View<T extends INode = INode> implements IView<T> {
     if (Tracer.enabled) { Tracer.enter('View.lockScope', slice.call(arguments)); }
     this.$scope = scope;
     this.$bind = lockedBind;
+    this.$unbind = lockedUnbind;
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -200,6 +201,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 }
 
 function lockedBind<T extends INode = INode>(this: View<T>, flags: LifecycleFlags): void {
+  if (Tracer.enabled) { Tracer.enter(`View.lockedBind`, slice.call(arguments)); }
   if (this.$state & State.isBound) {
     if (Tracer.enabled) { Tracer.leave(); }
     return;
@@ -216,6 +218,27 @@ function lockedBind<T extends INode = INode>(this: View<T>, flags: LifecycleFlag
   this.$state |= State.isBound;
   if (Tracer.enabled) { Tracer.leave(); }
 }
+
+function lockedUnbind<T extends INode = INode>(this: IView<T>, flags: LifecycleFlags): void {
+  if (Tracer.enabled) { Tracer.enter(`View.lockedUnbind`, slice.call(arguments)); }
+  if (this.$state & State.isBound) {
+    // add isUnbinding flag
+    this.$state |= State.isUnbinding;
+
+    flags |= LifecycleFlags.fromUnbind;
+
+    let current = this.$bindableTail;
+    while (current !== null) {
+      current.$unbind(flags);
+      current = current.$prevBind;
+    }
+
+    // remove isBound and isUnbinding flags
+    this.$state &= ~(State.isBound | State.isUnbinding);
+  }
+  if (Tracer.enabled) { Tracer.leave(); }
+}
+
 
 ((proto: IView): void => {
   proto.$bind = $bindView;

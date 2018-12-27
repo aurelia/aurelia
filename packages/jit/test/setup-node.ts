@@ -6,4 +6,3 @@ chai.should();
 chai.use(sinonChai);
 
 Error.stackTraceLimit = Infinity;
-

@@ -33,13 +33,15 @@ import {
   parseExpression,
   ParserState,
   Precedence
-} from '../../../jit/src';
+} from '../src/index';
 import {
   latin1IdentifierPartChars,
   latin1IdentifierStartChars,
   otherBMPIdentifierPartChars
 } from './unicode';
 import { verifyASTEqual } from './util';
+
+// tslint:disable:no-invalid-template-strings
 
 const binaryMultiplicative: BinaryOperator[] = ['*', '%', '/'];
 const binaryAdditive: BinaryOperator[] = ['+', '-'];
@@ -812,9 +814,9 @@ describe('ExpressionParser', () => {
   // Verify different floating point notations and parsing numbers that are outside the "safe" integer range
   const ComplexNumberList: [string, any][] = [
     ['9007199254740992',                                                  new PrimitiveLiteral(9007199254740992)],
-    ['0.9007199254740992',                                                new PrimitiveLiteral(.9007199254740992)],
-    ['.9007199254740992',                                                 new PrimitiveLiteral(.9007199254740992)],
-    ['.90071992547409929007199254740992',                                 new PrimitiveLiteral(.90071992547409929007199254740992)],
+    ['0.9007199254740992',                                                new PrimitiveLiteral(0.9007199254740992)],
+    ['.9007199254740992',                                                 new PrimitiveLiteral(0.9007199254740992)],
+    ['.90071992547409929007199254740992',                                 new PrimitiveLiteral(0.90071992547409929007199254740992)],
     ['9007199254740992.9007199254740992',                                 new PrimitiveLiteral(9007199254740992.9007199254740992)],
     ['9007199254740992.90071992547409929007199254740992',                 new PrimitiveLiteral(9007199254740992.90071992547409929007199254740992)],
     ['90071992547409929007199254740992',                                  new PrimitiveLiteral(90071992547409929007199254740992)],

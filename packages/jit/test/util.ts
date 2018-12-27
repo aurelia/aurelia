@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Serializer, Unparser } from '../../../debug/src/binding/unparser';
+import { Serializer, Unparser } from '../../debug/src/index';
 
 export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
   if (expected === null) {

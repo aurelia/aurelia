@@ -5,7 +5,7 @@ import {
   AttributePatternDefinition,
   IAttributePattern,
   ISyntaxInterpreter
-} from '../../src/index';
+} from '../src/index';
 
 describe('@attributePattern', () => {
   for (const [defs, tests] of [
@@ -145,6 +145,7 @@ describe('@attributePattern', () => {
           let receivedRawValue: string;
           let receivedParts: string[];
           @attributePattern(...defs)
+          // @ts-ignore
           class ThePattern {}
           for (const { pattern } of defs) {
             ThePattern.prototype[pattern] = (rawName, rawValue, parts) => {

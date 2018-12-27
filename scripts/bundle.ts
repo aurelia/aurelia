@@ -199,7 +199,7 @@ async function createBundle(): Promise<void> {
 
     log(`${logPrefix} creating iife full bundle`);
 
-    const jitPkg = project.packages.find(p => p.name === 'jit');
+    const jitPkg = project.packages.find(p => p.name === 'jit-html');
 
     const bundle = await rollup.rollup({
       input: join(jitPkg.src, 'index.full.ts'),
@@ -220,7 +220,7 @@ async function createBundle(): Promise<void> {
       ]
     });
 
-    const fullBundle = jitPkg.iife.replace('jit', 'au.bundle');
+    const fullBundle = jitPkg.iife.replace('jit-html', 'au.bundle');
     log(`${logPrefix} writing iife - ${fullBundle}`);
 
     await bundle.write({

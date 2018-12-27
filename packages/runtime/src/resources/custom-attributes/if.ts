@@ -96,7 +96,7 @@ export class If {
       view = factory.create();
     }
 
-    view.hold(this.location, flags);
+    view.hold(this.location);
 
     return view;
   }

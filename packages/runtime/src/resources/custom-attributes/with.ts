@@ -23,7 +23,7 @@ export class With {
 
     this.factory = factory;
     this.currentView = this.factory.create();
-    this.currentView.hold(location, LifecycleFlags.fromCreate);
+    this.currentView.hold(location);
   }
 
   public valueChanged(this: With): void {

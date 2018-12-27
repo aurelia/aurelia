@@ -17,7 +17,7 @@ export class Replaceable {
     this.factory = factory;
 
     this.currentView = this.factory.create();
-    this.currentView.hold(location, LifecycleFlags.fromCreate);
+    this.currentView.hold(location);
   }
 
   public binding(flags: LifecycleFlags): void {

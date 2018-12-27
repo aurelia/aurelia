@@ -27,7 +27,7 @@ export interface INodeSequence<T extends INode = INode> extends INode {
   /**
    * Insert this sequence as a sibling before refNode
    */
-  insertBefore(refNode: T): void;
+  insertBefore(refNode: T | IRenderLocation<T>): void;
 
   /**
    * Append this sequence as a child to parent

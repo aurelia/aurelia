@@ -17,7 +17,11 @@ export interface INodeSequence<T extends INode = INode> extends INode {
   /**
    * The nodes of this sequence.
    */
-  childNodes: ArrayLike<T>;
+  readonly childNodes: ArrayLike<T>;
+
+  readonly firstChild: T;
+
+  readonly lastChild: T;
 
   /**
    * Find all instruction targets in this sequence.
@@ -66,6 +70,8 @@ export interface IDOM<T extends INode = INode> {
 // the explicit idea of "no view".
 const emptySequence: INodeSequence = {
   childNodes: PLATFORM.emptyArray,
+  firstChild: null,
+  lastChild: null,
   findTargets(): ArrayLike<INode> { return PLATFORM.emptyArray; },
   insertBefore(refNode: INode): void { /*do nothing*/ },
   appendTo(parent: INode): void { /*do nothing*/ },

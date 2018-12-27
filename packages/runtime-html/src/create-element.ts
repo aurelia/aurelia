@@ -4,6 +4,7 @@ import {
   HydrateElementInstruction,
   ICustomElementType,
   IDOM,
+  INode,
   IRenderContext,
   IRenderingEngine,
   ITemplate,
@@ -17,23 +18,28 @@ import { SetAttributeInstruction } from './instructions';
 
 const slice = Array.prototype.slice;
 
-export function createElement(dom: IDOM, tagOrType: string | Constructable, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
+export function createElement<T extends INode = Node>(dom: IDOM<T>, tagOrType: string | Constructable, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T> {
   if (typeof tagOrType === 'string') {
     return createElementForTag(dom, tagOrType, props, children);
   } else {
-    return createElementForType(dom, tagOrType as ICustomElementType, props, children);
+    return createElementForType(dom, tagOrType as ICustomElementType<T>, props, children);
   }
 }
 
-export class RenderPlan {
-  private readonly dom: IDOM;
+export class RenderPlan<T extends INode = Node> {
+  private readonly dom: IDOM<T>;
   private readonly dependencies: ReadonlyArray<IRegistry>;
   private readonly instructions: HTMLTargetedInstruction[][];
-  private readonly node: Node;
+  private readonly node: T;
 
   private lazyDefinition: TemplateDefinition;
 
-  constructor(dom: IDOM, node: Node, instructions: HTMLTargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>) {
+  constructor(
+    dom: IDOM<T>,
+    node: T,
+    instructions: HTMLTargetedInstruction[][],
+    dependencies: ReadonlyArray<IRegistry>
+  ) {
     this.dom = dom;
     this.dependencies = dependencies;
     this.instructions = instructions;
@@ -45,7 +51,7 @@ export class RenderPlan {
       buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies));
   }
 
-  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate {
+  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType<T>): ITemplate<T> {
     return engine.getElementTemplate(this.dom, this.definition, Type);
   }
 
@@ -58,19 +64,19 @@ export class RenderPlan {
   }
 
   /** @internal */
-  public mergeInto(parent: Node, instructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
+  public mergeInto(parent: T, instructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
     this.dom.appendChild(parent, this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
   }
 }
 
-function createElementForTag(dom: IDOM, tagName: string, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan {
+function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T> {
   if (Tracer.enabled) { Tracer.enter('createElementForTag', slice.call(arguments)); }
   const instructions: HTMLTargetedInstruction[] = [];
   const allInstructions: HTMLTargetedInstruction[][] = [];
   const dependencies: IRegistry[] = [];
-  const element = dom.createElement(tagName) as HTMLElement;
+  const element = dom.createElement(tagName);
   let hasInstructions = false;
 
   if (props) {
@@ -82,13 +88,13 @@ function createElementForTag(dom: IDOM, tagName: string, props?: Record<string, 
           hasInstructions = true;
           instructions.push(value);
         } else {
-          element.setAttribute(to, value);
+          dom.setAttribute(element, to, value);
         }
       });
   }
 
   if (hasInstructions) {
-    element.className = 'au';
+    dom.makeTarget(element);
     allInstructions.push(instructions);
   }
 
@@ -100,7 +106,7 @@ function createElementForTag(dom: IDOM, tagName: string, props?: Record<string, 
   return new RenderPlan(dom, element, allInstructions, dependencies);
 }
 
-function createElementForType(dom: IDOM, Type: ICustomElementType, props?: object, children?: ArrayLike<unknown>): RenderPlan {
+function createElementForType<T extends INode>(dom: IDOM<T>, Type: ICustomElementType<T>, props?: object, children?: ArrayLike<unknown>): RenderPlan<T> {
   if (Tracer.enabled) { Tracer.enter('createElementForType', slice.call(arguments)); }
   const tagName = Type.description.name;
   const instructions: HTMLTargetedInstruction[] = [];
@@ -108,9 +114,9 @@ function createElementForType(dom: IDOM, Type: ICustomElementType, props?: objec
   const dependencies: IRegistry[] = [];
   const childInstructions: HTMLTargetedInstruction[] = [];
   const bindables = Type.description.bindables;
-  const element = dom.createElement(tagName) as HTMLElement;
+  const element = dom.createElement(tagName);
 
-  element.className = 'au';
+  dom.makeTarget(element);
 
   if (!dependencies.includes(Type)) {
     dependencies.push(Type);
@@ -146,22 +152,22 @@ function createElementForType(dom: IDOM, Type: ICustomElementType, props?: objec
   }
 
   if (Tracer.enabled) { Tracer.leave(); }
-  return new RenderPlan(dom, element, allInstructions, dependencies);
+  return new RenderPlan<T>(dom, element, allInstructions, dependencies);
 }
 
-function addChildren(dom: IDOM, parent: Node, children: ArrayLike<unknown>, allInstructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
+function addChildren<T extends INode>(dom: IDOM<T>, parent: T, children: ArrayLike<unknown>, allInstructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {
     const current = children[i];
 
     switch (typeof current) {
       case 'string':
-        parent.appendChild(dom.createTextNode(current) as Text);
+        dom.appendChild(parent, dom.createTextNode(current));
         break;
       case 'object':
         if (dom.isNodeInstance(current)) {
-          parent.appendChild(current as Node);
+          dom.appendChild(parent, current);
         } else if ('mergeInto' in (current as RenderPlan)) {
-          (current as RenderPlan).mergeInto(parent, allInstructions, dependencies);
+          (current as RenderPlan<T>).mergeInto(parent, allInstructions, dependencies);
         }
     }
   }

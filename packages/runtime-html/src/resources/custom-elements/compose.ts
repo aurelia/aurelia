@@ -4,8 +4,10 @@ import {
   CompositionCoordinator,
   customElement,
   ICustomElement,
+  ICustomElementResource,
   IDOM,
   IHydrateElementInstruction,
+  INode,
   IRenderable,
   IRenderingEngine,
   ITargetedInstruction,
@@ -25,25 +27,38 @@ const composeSource: ITemplateDefinition = {
 
 const composeProps = ['subject', 'composing'];
 
-type Subject = IViewFactory | IView | RenderPlan | Constructable | TemplateDefinition;
+export type Subject<T extends INode = Node> = IViewFactory<T> | IView<T> | RenderPlan<T> | Constructable | TemplateDefinition;
 
-export interface Compose extends ICustomElement {}
+/** @internal */
+export interface Compose<T extends INode = Node> extends ICustomElement<T> {}
+
 @customElement(composeSource)
 @inject(IDOM, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator)
-export class Compose {
-  public static register: IRegistry['register'];
+export class Compose<T extends INode = Node> implements Compose<T> {
+  public static readonly register: IRegistry['register'];
+  public static readonly kind: ICustomElementResource<Node>;
+  public static readonly description: TemplateDefinition;
+  public static readonly containerless: TemplateDefinition['containerless'];
+  public static readonly shadowOptions: TemplateDefinition['shadowOptions'];
+  public static readonly bindables: TemplateDefinition['bindables'];
 
-  @bindable public subject: Subject | Promise<Subject> | null;
+  @bindable public subject: Subject<T> | Promise<Subject<T>> | null;
   @bindable public composing: boolean;
 
   private dom: IDOM;
   private coordinator: CompositionCoordinator;
-  private lastSubject: Subject | Promise<Subject> | null;
+  private lastSubject: Subject<T> | Promise<Subject<T>> | null;
   private properties: Record<string, TargetedInstruction>;
-  private renderable: IRenderable;
+  private renderable: IRenderable<T>;
   private renderingEngine: IRenderingEngine;
 
-  constructor(dom: IDOM, renderable: IRenderable, instruction: Immutable<IHydrateElementInstruction>, renderingEngine: IRenderingEngine, coordinator: CompositionCoordinator) {
+  constructor(
+    dom: IDOM<T>,
+    renderable: IRenderable<T>,
+    instruction: Immutable<IHydrateElementInstruction>,
+    renderingEngine: IRenderingEngine,
+    coordinator: CompositionCoordinator
+  ) {
     this.dom = dom;
     this.subject = null;
     this.composing = false;
@@ -93,11 +108,11 @@ export class Compose {
     this.coordinator.caching(flags);
   }
 
-  public subjectChanged(newValue: Subject | Promise<Subject>, previousValue: Subject | Promise<Subject>, flags: LifecycleFlags): void {
+  public subjectChanged(newValue: Subject<T> | Promise<Subject<T>>, previousValue: Subject<T> | Promise<Subject<T>>, flags: LifecycleFlags): void {
     this.startComposition(newValue, previousValue, flags);
   }
 
-  private startComposition(subject: Subject | Promise<Subject> | null, _previousSubject: Subject | Promise<Subject> | null, flags: LifecycleFlags): void {
+  private startComposition(subject: Subject<T> | Promise<Subject<T>> | null, _previousSubject: Subject<T> | Promise<Subject<T>> | null, flags: LifecycleFlags): void {
     if (this.lastSubject === subject) {
       return;
     }
@@ -105,16 +120,16 @@ export class Compose {
     this.lastSubject = subject;
 
     if (subject instanceof Promise) {
-      subject = subject.then(x => this.resolveView(x, flags)) as Promise<IView> | null;
+      subject = subject.then(x => this.resolveView(x, flags)) as Promise<IView<T>> | null;
     } else {
       subject = this.resolveView(subject, flags);
     }
 
     this.composing = true;
-    this.coordinator.compose(subject as IView | Promise<IView>, flags);
+    this.coordinator.compose(subject as IView<T> | Promise<IView<T>>, flags);
   }
 
-  private resolveView(subject: Subject | null, flags: LifecycleFlags): IView | null {
+  private resolveView(subject: Subject<T> | null, flags: LifecycleFlags): IView<T> | null {
     const view = this.provideViewFor(subject);
 
     if (view) {
@@ -126,7 +141,7 @@ export class Compose {
     return null;
   }
 
-  private provideViewFor(subject: Subject | null): IView | null {
+  private provideViewFor(subject: Subject<T> | null): IView<T> | null {
     if (!subject) {
       return null;
     }
@@ -139,7 +154,7 @@ export class Compose {
       return subject.createView(
         this.renderingEngine,
         this.renderable.$context
-      );
+      ) as IView<T>;
     }
 
     if ('create' in subject) { // IViewFactory
@@ -151,7 +166,7 @@ export class Compose {
         this.dom,
         subject,
         this.renderable.$context
-      ).create();
+      ).create() as IView<T>;
     }
 
     // Constructable (Custom Element Constructor)
@@ -163,6 +178,6 @@ export class Compose {
     ).createView(
       this.renderingEngine,
       this.renderable.$context
-    );
+    ) as IView<T>;
   }
 }

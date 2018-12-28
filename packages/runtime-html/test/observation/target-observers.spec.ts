@@ -1,21 +1,26 @@
+
+import { Registration } from '@aurelia/kernel';
 import {
-  XLinkAttributeAccessor,
-  DataAttributeAccessor,
-  StyleAttributeAccessor,
-  Lifecycle,
+  IDOM,
+  ILifecycle,
+  IObserverLocator,
+  LifecycleFlags
+} from '@aurelia/runtime';
+import { expect } from 'chai';
+import { spy } from 'sinon';
+import {
+  AttributeNSAccessor,
   ClassAttributeAccessor,
-  LifecycleFlags,
-  DOM
-} from "../../src/index";
+  DataAttributeAccessor,
+  HTMLDOM,
+  HTMLRuntimeConfiguration,
+  StyleAttributeAccessor
+} from '../../src';
+import { CSS_PROPERTIES } from '../css-properties';
 import {
   createElement,
   globalAttributeNames
-} from "../util";
-import { expect } from "chai";
-import { CSS_PROPERTIES } from "../css-properties";
-import { spy } from "sinon";
-
-const dom = new DOM(<any>document);
+} from '../util';
 
 function createSvgUseElement(name: string, value: string) {
   return createElement(`<svg>
@@ -31,10 +36,20 @@ function createSvgUseElement(name: string, value: string) {
 </svg>`).lastElementChild;
 }
 
-describe('XLinkAttributeAccessor', () => {
-  let sut: XLinkAttributeAccessor;
-  let el: Element;
-  let lifecycle: Lifecycle;
+function setup() {
+  const container = HTMLRuntimeConfiguration.createContainer();
+  const dom = new HTMLDOM(document);
+  Registration.instance(IDOM, dom).register(container, IDOM);
+  const lifecycle = container.get(ILifecycle);
+  const observerLocator = container.get(IObserverLocator);
+
+  return { container, lifecycle, observerLocator };
+}
+
+describe('AttributeNSAccessor', () => {
+  let sut: AttributeNSAccessor;
+  let el: HTMLElement;
+  let lifecycle: ILifecycle;
 
   const tests = [
     { name: 'href', value: '#shape1' },
@@ -48,9 +63,10 @@ describe('XLinkAttributeAccessor', () => {
   describe('getValue()', () => {
     for (const { name, value } of tests) {
       it(`returns ${value} for xlink:${name}`, () => {
-        el = createSvgUseElement(name, value);
-        lifecycle = new Lifecycle();
-        sut = new XLinkAttributeAccessor(dom, lifecycle, el, `xlink:${name}`, name);
+        const { lifecycle: $lifecycle } = setup();
+        lifecycle = $lifecycle;
+        el = createSvgUseElement(name, value) as HTMLElement;
+        sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, name, 'http://www.w3.org/1999/xlink');
         const actual = sut.getValue();
         expect(actual).to.equal(value);
       });
@@ -60,9 +76,10 @@ describe('XLinkAttributeAccessor', () => {
   describe('setValue()', () => {
     for (const { name, value } of tests) {
       it(`sets xlink:${name} to foo`, () => {
-        el = createSvgUseElement(name, value);
-        lifecycle = new Lifecycle();
-        sut = new XLinkAttributeAccessor(dom, lifecycle, el, `xlink:${name}`, name);
+        el = createSvgUseElement(name, value) as HTMLElement;
+        const { lifecycle: $lifecycle } = setup();
+        lifecycle = $lifecycle;
+        sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, name, 'http://www.w3.org/1999/xlink');
         sut.setValue('foo', LifecycleFlags.none);
         expect(sut.getValue()).not.to.equal('foo');
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -75,8 +92,8 @@ describe('XLinkAttributeAccessor', () => {
 
 describe('DataAttributeAccessor', () => {
   let sut: DataAttributeAccessor;
-  let el: Element;
-  let lifecycle: Lifecycle;
+  let el: HTMLElement;
+  let lifecycle: ILifecycle;
 
   const valueArr = [undefined, null, '', 'foo'];
   describe('getValue()', () => {
@@ -84,8 +101,9 @@ describe('DataAttributeAccessor', () => {
       for (const value of valueArr.filter(v => v !== null && v !== undefined)) {
         it(`returns "${value}" for attribute "${name}"`, () => {
           el = createElement(`<div ${name}="${value}"></div>`);
-          lifecycle = new Lifecycle();
-          sut = new DataAttributeAccessor(dom, lifecycle, el, name);
+          const { lifecycle: $lifecycle } = setup();
+          lifecycle = $lifecycle;
+          sut = new DataAttributeAccessor(lifecycle, el, name);
           const actual = sut.getValue();
           expect(actual).to.equal(value);
         });
@@ -98,9 +116,10 @@ describe('DataAttributeAccessor', () => {
       for (const value of valueArr) {
         it(`sets attribute "${name}" to "${value}"`, () => {
           el = createElement(`<div></div>`);
-          lifecycle = new Lifecycle();
+          const { lifecycle: $lifecycle } = setup();
+          lifecycle = $lifecycle;
           const expected = value !== null && value !== undefined ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(dom, lifecycle, el, name);
+          sut = new DataAttributeAccessor(lifecycle, el, name);
           sut.setValue(value, LifecycleFlags.none);
           if (value !== null && value !== undefined) {
             expect(el.outerHTML).not.to.equal(expected);
@@ -118,7 +137,7 @@ describe('StyleAccessor', () => {
 
   let sut: StyleAttributeAccessor;
   let el: HTMLElement;
-  let lifecycle: Lifecycle;
+  let lifecycle: ILifecycle;
 
   // TODO: this is just quick-n-dirty; remove redundant tests and add missing tests
   for (const propName of propNames) {
@@ -126,9 +145,10 @@ describe('StyleAccessor', () => {
     const value = values[0];
     const rule = `${propName}:${value}`;
     it(`setValue - style="${rule}"`, () => {
-      el = <HTMLElement>createElement('<div></div>');
-      lifecycle = new Lifecycle();
-      sut = new StyleAttributeAccessor(dom, lifecycle, el);
+      el = createElement('<div></div>') as HTMLElement;
+      const { lifecycle: $lifecycle } = setup();
+      lifecycle = $lifecycle;
+      sut = new StyleAttributeAccessor(lifecycle, el);
       sut._setProperty = spy();
 
       sut.setValue(rule, LifecycleFlags.none);
@@ -140,20 +160,20 @@ describe('StyleAccessor', () => {
   }
 
   it(`getValue - style="display: block;"`, () => {
-    el = <HTMLElement>createElement(`<div style="display: block;"></div>`);
-    lifecycle = new Lifecycle();
-    sut = new StyleAttributeAccessor(dom, lifecycle, el);
+    el = createElement(`<div style="display: block;"></div>`) as HTMLElement;
+    const { lifecycle: $lifecycle } = setup();
+    lifecycle = $lifecycle;
+    sut = new StyleAttributeAccessor(lifecycle, el);
 
     const actual = sut.getValue();
     expect(actual).to.equal('display: block;');
   });
 });
 
-
 describe('ClassAccessor', () => {
   let sut: ClassAttributeAccessor;
-  let el: Element;
-  let lifecycle: Lifecycle;
+  let el: HTMLElement;
+  let lifecycle: ILifecycle;
   let initialClassList: string;
 
   const markupArr = [
@@ -169,12 +189,13 @@ describe('ClassAccessor', () => {
       beforeEach(() => {
         el = createElement(markup);
         initialClassList = el.classList.toString();
-        lifecycle = new Lifecycle();
-        sut = new ClassAttributeAccessor(dom, lifecycle, el);
+        const { lifecycle: $lifecycle } = setup();
+        lifecycle = $lifecycle;
+        sut = new ClassAttributeAccessor(lifecycle, el);
       });
 
       it(`setValue("${classList}") updates ${markup}`, () => {
-        sut.setValue(classList);
+        sut.setValue(classList, LifecycleFlags.none);
         expect(el.classList.toString()).to.equal(initialClassList);
         lifecycle.processFlushQueue(LifecycleFlags.none);
         const updatedClassList = el.classList.toString();
@@ -204,7 +225,7 @@ describe('ClassAccessor', () => {
             expect(secondUpdatedClassList).to.contain(cls);
           }
         });
-      };
+      }
     }
   }
 });

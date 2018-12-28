@@ -1,22 +1,30 @@
 import {
-  ValueAttributeObserver,
-  IObserverLocator,
-  ILifecycle,
-  LifecycleFlags,
+  DI,
+  Registration
+} from '@aurelia/kernel';
+import {
   Binding,
   IBindingTargetObserver,
+  IDOM,
+  ILifecycle,
+  IObserverLocator,
   IPropertySubscriber,
-  Lifecycle,
-  DOM,
-  IDOM
-} from '../../src/index';
-import { createElement, _ } from '../unit/util';
+  LifecycleFlags
+} from '@aurelia/runtime';
 import { expect } from 'chai';
-import { spy, SinonSpy } from 'sinon';
-import { DI, Registration } from '../../../kernel/src/index';
-
-const dom = new DOM(<any>document);
-const domRegistration = Registration.instance(IDOM, dom);
+import {
+  SinonSpy,
+  spy
+} from 'sinon';
+import {
+  HTMLDOM,
+  HTMLRuntimeConfiguration,
+  ValueAttributeObserver
+} from '../../src/index';
+import {
+  _,
+  createElement
+} from '../util';
 
 describe('ValueAttributeObserver', () => {
   const eventDefaults = { bubbles: true };
@@ -39,17 +47,18 @@ describe('ValueAttributeObserver', () => {
     ]) {
     describe(`setValue() - type="${inputType}"`, () => {
       function setup(hasSubscriber: boolean) {
-        const container = DI.createContainer();
-        container.register(domRegistration);
-        const lifecycle = container.get(ILifecycle) as Lifecycle;
+        const container = HTMLRuntimeConfiguration.createContainer();
+        const dom = new HTMLDOM(document);
+        Registration.instance(IDOM, dom).register(container, IDOM);
+        const lifecycle = container.get(ILifecycle);
         const observerLocator = container.get(IObserverLocator);
 
-        const el = <HTMLInputElement>createElement(`<input type="${inputType}"/>`);
+        const el = createElement(`<input type="${inputType}"/>`) as HTMLInputElement;
         document.body.appendChild(el);
 
-        const sut = <ValueAttributeObserver>observerLocator.getObserver(el, 'value');
+        const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
 
-        let subscriber: IPropertySubscriber = { handleChange: spy() };
+        const subscriber: IPropertySubscriber = { handleChange: spy() };
         if (hasSubscriber) {
           sut.subscribe(subscriber);
         }
@@ -97,7 +106,7 @@ describe('ValueAttributeObserver', () => {
                 expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LifecycleFlags.fromSyncFlush | LifecycleFlags.updateTargetInstance);
               }
               if (hasSubscriber) {
-                expect((<SinonSpy>subscriber.handleChange).getCalls().length).to.equal(callCount);
+                expect((subscriber.handleChange as SinonSpy).getCalls().length).to.equal(callCount);
               }
 
               tearDown({ sut, lifecycle, el });
@@ -109,16 +118,18 @@ describe('ValueAttributeObserver', () => {
 
     describe(`handleEvent() - type="${inputType}"`, () => {
       function setup() {
-        const container = DI.createContainer();
-        container.register(domRegistration);
-        const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+        const container = HTMLRuntimeConfiguration.createContainer();
+        const dom = new HTMLDOM(document);
+        Registration.instance(IDOM, dom).register(container, IDOM);
+        const lifecycle = container.get(ILifecycle);
+        const observerLocator = container.get(IObserverLocator);
 
-        const el = <HTMLInputElement>createElement(`<input type="${inputType}"/>`);
+        const el = createElement(`<input type="${inputType}"/>`) as HTMLInputElement;
         document.body.appendChild(el);
 
-        const sut = <ValueAttributeObserver>observerLocator.getObserver(el, 'value');
+        const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
 
-        let subscriber: IPropertySubscriber = { handleChange: spy() };
+        const subscriber: IPropertySubscriber = { handleChange: spy() };
         sut.subscribe(subscriber);
 
         return { container, observerLocator, el, sut, subscriber };
@@ -138,8 +149,8 @@ describe('ValueAttributeObserver', () => {
               const { sut, el, subscriber } = setup();
 
               // TODO: only setting input.value to null sets it to empty string. Setting it to undefined actually coerces to 'undefined'. This should work consistently in both directions
-              const expectedValueBefore = valueBefore === null ? '' : valueBefore+'';
-              const expectedValueAfter = valueAfter === null ? '' : valueAfter+'';
+              const expectedValueBefore = valueBefore === null ? '' : valueBefore + '';
+              const expectedValueAfter = valueAfter === null ? '' : valueAfter + '';
               let callCount = 0;
 
               el.value = valueBefore;
@@ -159,7 +170,7 @@ describe('ValueAttributeObserver', () => {
                 callCount++;
                 expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LifecycleFlags.updateSourceExpression | LifecycleFlags.fromDOMEvent);
               }
-              expect((<SinonSpy>subscriber.handleChange).getCalls().length).to.equal(callCount);
+              expect((subscriber.handleChange as SinonSpy).getCalls().length).to.equal(callCount);
 
               tearDown({ sut, el });
             });

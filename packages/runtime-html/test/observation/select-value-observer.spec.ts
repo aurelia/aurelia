@@ -1,32 +1,29 @@
-import { IObserverLocator, ILifecycle, SelectValueObserver, LifecycleFlags, DOM, IDOM } from '../../src/index';
-import { createElement, _, eachCartesianJoin, eachCartesianJoinFactory, h, verifyEqual } from '../unit/util';
+import { DI, Registration } from '@aurelia/kernel';
+import { IDOM, ILifecycle, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { spy, SinonSpy } from 'sinon';
-import { DI, Primitive, Registration } from '../../../kernel/src/index';
-
-
-const dom = new DOM(<any>document);
-const domRegistration = Registration.instance(IDOM, dom);
-
-const eventDefaults = { bubbles: true };
+import { spy } from 'sinon';
+import { HTMLDOM, HTMLRuntimeConfiguration, SelectValueObserver } from '../../src/index';
+import { _, createElement, h, verifyEqual } from '../util';
 
 type Anything = any;
 
 // TODO: need many more tests here, this is just preliminary
 describe('SelectValueObserver', () => {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
-    const container = DI.createContainer();
-    container.register(domRegistration);
-    const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+    const container = HTMLRuntimeConfiguration.createContainer();
+    const dom = new HTMLDOM(document);
+    Registration.instance(IDOM, dom).register(container, IDOM);
     const lifecycle = container.get(ILifecycle);
+    const observerLocator = container.get(IObserverLocator);
+
     const optionElements = options.map(o => `<option value="${o}">${o}</option>`).join('\n');
     const markup = `<select ${multiple ? 'multiple' : ''}>\n${optionElements}\n</select>`;
-    const el = <HTMLSelectElement>createElement(markup);
-    const sut = <SelectValueObserver>observerLocator.getObserver(el, 'value');
+    const el = createElement(markup) as HTMLSelectElement;
+    const sut = observerLocator.getObserver(el, 'value') as SelectValueObserver;
     sut.setValue(initialValue, LifecycleFlags.none);
     lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    return { lifecycle, el, sut };
+    return { lifecycle, el, sut, dom };
   }
 
   describe('setValue()', () => {
@@ -37,7 +34,7 @@ describe('SelectValueObserver', () => {
       for (const initial of initialArr) {
         for (const next of nextArr) {
           it(`sets 'value' from "${initial}" to "${next}"`, () => {
-            const { lifecycle, el, sut } = createFixture(initial, values);
+            const { lifecycle, el } = createFixture(initial, values);
 
             lifecycle.processFlushQueue(LifecycleFlags.none);
             expect(el.value).to.equal(initial);
@@ -54,30 +51,15 @@ describe('SelectValueObserver', () => {
 
   describe('bind()', () => {
 
-    it('creates node mutation observer', () => {
-      for (const isMultiple of [true, false]) {
-        const { sut } = createFixture([], [], isMultiple);
-        sut.bind();
-        const nodeObserver = sut['nodeObserver'];
-        expect(nodeObserver).not.to.equal(undefined);
-        expect(nodeObserver).to.be.instanceOf(
-          dom.createNodeObserver(document.createElement('div'), () => {}, { childList: true }).constructor,
-          'It should have created instance from the same class with other node observer'
-        );
-      }
-    });
-
-    it('uses private method handleNodeChange as callback', (done) => {
+    it('uses private method handleNodeChange as callback', async () => {
       for (const isMultiple of [true, false]) {
         const { el, sut } = createFixture([], [], isMultiple);
         const callbackSpy = spy(sut, 'handleNodeChange');
         sut.bind();
         expect(callbackSpy.calledOnce).to.equal(false);
         el.appendChild(document.createElement('option'));
-        Promise.resolve()
-          .then(() => expect(callbackSpy.calledOnce).to.be.true)
-          .catch(ex => expect(ex).to.be.undefined)
-          .then(() => done());
+        await Promise.resolve();
+        expect(callbackSpy).to.have.been.calledOnce;
       }
     });
   });
@@ -85,7 +67,7 @@ describe('SelectValueObserver', () => {
   describe('unbind()', () => {
     it('disconnect node observer', () => {
       for (const isMultiple of [true, false]) {
-        const { el, sut } = createFixture([], [], isMultiple);
+        const { sut } = createFixture([], [], isMultiple);
         let count = 0;
         sut['nodeObserver'] = { disconnect() { count++; } } as Anything;
         sut.unbind();
@@ -95,7 +77,7 @@ describe('SelectValueObserver', () => {
     });
     it('unsubscribes array observer', () => {
       for (const isMultiple of [true, false]) {
-        const { el, sut } = createFixture([], [], isMultiple);
+        const { sut } = createFixture([], [], isMultiple);
         let count = 0;
         sut['nodeObserver'] = { disconnect() { } } as Anything;
         sut['arrayObserver'] = {
@@ -224,8 +206,8 @@ describe('SelectValueObserver', () => {
         it('synchronizes with array', () => {
           const { sut } = createMutiSelectSut([], [
             optgroup({},
-              option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
-              option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
+                     option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
+                     option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
             ),
             option({ text: 'C', value: 'CC' })
           ]);
@@ -247,20 +229,22 @@ describe('SelectValueObserver', () => {
       type SelectValidChild = HTMLOptionElement | HTMLOptGroupElement;
 
       function createMutiSelectSut(initialValue: Anything[], options: SelectValidChild[]) {
-        const container = DI.createContainer();
-        container.register(domRegistration);
-        const observerLocator = <IObserverLocator>container.get(IObserverLocator);
-        // const lifecycle = <ILifecycle>container.get(ILifecycle);
+        const container = HTMLRuntimeConfiguration.createContainer();
+        const dom = new HTMLDOM(document);
+        Registration.instance(IDOM, dom).register(container, IDOM);
+        const lifecycle = container.get(ILifecycle);
+        const observerLocator = container.get(IObserverLocator);
+
         const el = select(...options);
-        const sut = <SelectValueObserver>observerLocator.getObserver(el, 'value');
+        const sut = observerLocator.getObserver(el, 'value') as SelectValueObserver;
         sut.oldValue = sut.currentValue = initialValue;
-        return { el, sut }
+        return { el, sut };
       }
 
       function select(...options: SelectValidChild[]): HTMLSelectElement {
         return h('select',
-          { multiple: true },
-          ...options
+                 { multiple: true },
+                 ...options
         );
       }
     });

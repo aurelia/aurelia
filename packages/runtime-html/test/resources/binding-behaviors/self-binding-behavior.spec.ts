@@ -1,6 +1,7 @@
-import { IExpression, IObserverLocator, Binding, LifecycleFlags, IScope, BindingMode, SelfBindingBehavior, IsBindingBehavior } from '../../src/index';
-import { IContainer, DI } from '../../../kernel/src/index';
+import { DI, IContainer } from '@aurelia/kernel';
+import { Binding, BindingMode, IObserverLocator, IsBindingBehavior, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
+import { SelfBindingBehavior } from '../../../src/index';
 
 describe('SelfBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;
@@ -8,7 +9,7 @@ describe('SelfBindingBehavior', () => {
   let targetProperty: string;
   let mode: BindingMode;
   let observerLocator: IObserverLocator;
-  let container: IContainer = DI.createContainer();
+  const container: IContainer = DI.createContainer();
   let sut: SelfBindingBehavior;
   let binding: Binding;
   let flags: LifecycleFlags;
@@ -17,10 +18,10 @@ describe('SelfBindingBehavior', () => {
 
   beforeEach(() => {
     sut = new SelfBindingBehavior();
-    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, <any>container);
-    originalCallSource = binding['callSource'] = function(){};
+    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container as any);
+    originalCallSource = binding['callSource'] = function() {};
     binding['targetEvent'] = 'foo';
-    sut.bind(flags, scope, <any>binding);
+    sut.bind(flags, scope, binding as any);
   });
 
   // TODO: test properly (different binding types)
@@ -31,7 +32,7 @@ describe('SelfBindingBehavior', () => {
   });
 
   it('unbind() should revert the original behavior', () => {
-    sut.unbind(flags, scope, <any>binding);
+    sut.unbind(flags, scope, binding as any);
     expect(binding['selfEventCallSource']).to.equal(null);
     expect(binding['callSource'] === originalCallSource).to.equal(true);
   });

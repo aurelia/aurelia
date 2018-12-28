@@ -2,30 +2,16 @@ import { PLATFORM, Registration } from '@aurelia/kernel';
 import {
   AccessScope,
   BindingMode,
-  CallBindingInstruction,
-  CallScope,
   DelegationStrategy,
-  FromViewBindingInstruction,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
   IDOMInitializer,
   Interpolation,
   InterpolationBinding,
-  IPropertyBindingInstruction,
   IRenderable,
   IRenderContext,
   IRenderer,
-  IRenderingEngine,
-  LetBindingInstruction,
-  LetElementInstruction,
-  OneTimeBindingInstruction,
-  RefBindingInstruction,
-  SetPropertyInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction
-} from '@aurelia/runtime';
+  IRenderingEngine} from '@aurelia/runtime';
 import { expect } from 'chai';
-import { SinonSpy, spy } from 'sinon';
+import { spy } from 'sinon';
 import { ParserRegistration } from '../../jit/src/index';
 import {
   CaptureBindingInstruction,
@@ -102,31 +88,6 @@ describe('Renderer', () => {
     }
   });
 
-  describe('handles IPropertyBindingInstruction', () => {
-    for (const Instruction of [OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction] as any[]) {
-      for (const to of ['foo', 'bar']) {
-        for (const from of ['foo', new AccessScope('foo')]) {
-          const instruction = new (Instruction as any)(from, to) as IPropertyBindingInstruction;
-          it(_`instruction=${instruction}`, () => {
-            const { sut, dom, renderable, target, wrapper, renderContext } = setup();
-
-            sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
-
-            expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
-            expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
-            const bindable = renderable.$bindableHead as InterpolationBinding;
-            expect(bindable.target).to.equal(target);
-            expect(bindable.sourceExpression['name']).to.equal('foo');
-            expect(bindable.mode).to.equal(instruction.mode);
-            expect(bindable.targetProperty).to.equal(to);
-
-            tearDown({ wrapper });
-          });
-        }
-      }
-    }
-  });
-
   describe('handles IListenerBindingInstruction', () => {
     for (const Instruction of [TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction] as any[]) {
       for (const to of ['foo', 'bar']) {
@@ -153,47 +114,6 @@ describe('Renderer', () => {
     }
   });
 
-  describe('handles ICallBindingInstruction', () => {
-    for (const to of ['foo', 'bar']) {
-      for (const from of ['foo()', new CallScope('foo', [])] as any[]) {
-        const instruction = new CallBindingInstruction(from, to) as any;
-        it(_`instruction=${instruction}`, () => {
-          const { sut, dom, renderable, target, wrapper, renderContext } = setup();
-
-          sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
-
-          expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
-          expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
-          const bindable = renderable.$bindableHead as InterpolationBinding;
-          expect(bindable.targetObserver['obj']).to.equal(target);
-          expect(bindable.targetObserver['propertyKey']).to.equal(to);
-          expect(bindable.sourceExpression['name']).to.equal('foo');
-
-          tearDown({ wrapper });
-        });
-      }
-    }
-  });
-
-  describe('handles IRefBindingInstruction', () => {
-    for (const from of ['foo', new AccessScope('foo')] as any[]) {
-      const instruction = new RefBindingInstruction(from) as any;
-      it(_`instruction=${instruction}`, () => {
-        const { sut, dom, renderable, target, wrapper, renderContext } = setup();
-
-        sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
-
-        expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
-        expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
-        const bindable = renderable.$bindableHead as InterpolationBinding;
-        expect(bindable.target).to.equal(target);
-        expect(bindable.sourceExpression['name']).to.equal('foo');
-
-        tearDown({ wrapper });
-      });
-    }
-  });
-
   describe('handles IStyleBindingInstruction', () => {
     for (const to of ['foo', 'bar']) {
       for (const from of ['foo', new AccessScope('foo')] as any[]) {
@@ -217,24 +137,6 @@ describe('Renderer', () => {
     }
   });
 
-  describe('handles ISetPropertyInstruction', () => {
-    for (const to of ['foo', 'bar']) {
-      for (const value of ['foo', 42, {}] as any[]) {
-        const instruction = new SetPropertyInstruction(value, to) as any;
-        it(_`instruction=${instruction}`, () => {
-          const { sut, dom, renderable, target, wrapper, renderContext } = setup();
-
-          sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
-
-          expect(renderable.$bindableHead).to.equal(undefined, 'renderable.$bindableHead');
-          expect(target[to]).to.equal(value);
-
-          tearDown({ wrapper });
-        });
-      }
-    }
-  });
-
   describe('handles ISetAttributeInstruction', () => {
     for (const to of ['id', 'accesskey', 'slot', 'tabindex']) {
       for (const value of ['foo', 42, null] as any[]) {
@@ -244,85 +146,12 @@ describe('Renderer', () => {
 
           sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
 
-          expect(renderable.$bindableHead).to.equal(undefined, 'renderable.$bindableHead');
+          expect(renderable.$bindableHead).to.equal(null, 'renderable.$bindableHead');
           expect(target.getAttribute(to)).to.equal(value + '');
 
           tearDown({ wrapper });
         });
       }
     }
-  });
-
-  describe('handles IHydrateElementInstruction', () => {
-    for (const res of ['foo', 'bar']) {
-      for (const instructions of [[], [{type: 'i'}, {type: 'i'}]] as any[]) {
-        const instruction = new HydrateElementInstruction(res, instructions) as any;
-        it(_`instruction=${instruction}`, () => {
-          const { sut, dom, renderable, target, wrapper, renderContext } = setup();
-
-          sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
-
-          expect(renderContext.beginComponentOperation).to.have.been.calledWith(renderable, target, instruction, null, null, target, true);
-          expect(renderContext.get).to.have.been.calledWith(`custom-element:${res}`);
-          const operation = (renderContext.beginComponentOperation as SinonSpy).getCalls()[0].returnValue;
-          expect(operation.dispose).to.have.been.called;
-
-          tearDown({ wrapper });
-        });
-      }
-    }
-  });
-
-  describe('handles IHydrateAttributeInstruction', () => {
-    for (const res of ['if', 'else', 'repeat']) {
-      for (const instructions of [[], [new SetPropertyInstruction('bar', 'foo')]] as any[]) {
-        const instruction = new HydrateAttributeInstruction(res, instructions) as any;
-        it(_`instruction=${instruction}`, () => {
-          const { sut, dom, renderable, target, wrapper, renderContext, renderingEngine } = setup();
-
-          sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
-
-          expect(renderContext.beginComponentOperation).to.have.been.calledWith(renderable, target, instruction);
-          expect(renderContext.get).to.have.been.calledWith(`custom-attribute:${res}`);
-          const component = (renderContext.get as SinonSpy).getCalls()[0].returnValue;
-          expect(component.$hydrate).to.have.been.calledWith(renderingEngine);
-          if (instructions.length) {
-            expect(component.foo).to.equal('bar');
-          }
-          expect(renderable.$bindableHead).to.equal(component);
-          expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
-          expect(renderable.$attachableHead).to.equal(component);
-          expect(renderable.$attachableHead).to.equal(renderable.$attachableTail);
-
-          tearDown({ wrapper });
-        });
-      }
-    }
-  });
-
-  describe('<let/>', () => {
-
-    describe('ILetElementInstruction', () => {
-      for (const to of ['processedFoo', 'processedPoo']) {
-        for (const value of ['foo', new AccessScope('foo')] as any[]) {
-          const instruction = new LetElementInstruction(
-            [new LetBindingInstruction(value, to)],
-            Math.random() > .4
-          ) as any;
-          it(_`instruction=${instruction}`, () => {
-            const { sut, dom, renderable, target, wrapper, renderContext } = setup();
-
-            sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
-
-            expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
-            expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
-
-            expect(document.contains(target)).to.equal(false);
-
-            tearDown({ wrapper });
-          });
-        }
-      }
-    });
   });
 });

@@ -7,44 +7,43 @@ import {
   PLATFORM,
   Writable
 } from '@aurelia/kernel';
-import { expect } from 'chai';
-import { spy } from 'sinon';
 import {
-  IRenderContext,
-  INodeSequence,
-  IRenderable,
-  INode,
-  TemplatePartDefinitions,
+  AccessMember,
+  AccessScope,
+  addAttachable,
   addBindable,
   Binding,
   BindingMode,
-  AccessMember,
-  AccessScope,
-  ObserverLocator,
-  If,
   CompositionCoordinator,
-  addAttachable,
-  State,
   Else,
-  IRenderingEngine,
-  ITemplate,
-  IViewFactory,
-  IRenderer,
-  IDOM,
-  ITemplateDefinition,
-  ICustomElementType,
+  ExpressionKind,
   IAttributeDefinition,
+  IBinding,
   ICustomAttribute,
   ICustomElement,
-  ILifecycle,
-  LifecycleFlags,
+  ICustomElementType,
+  IDOM,
   IExpression,
-  ExpressionKind,
+  If,
+  ILifecycle,
+  INode,
+  INodeSequence,
+  IRenderable,
+  IRenderContext,
+  IRenderer,
+  IRenderingEngine,
   IScope,
-  IBinding,
-  ISignaler
+  ISignaler,
+  ITemplate,
+  ITemplateDefinition,
+  IViewFactory,
+  LifecycleFlags,
+  ObserverLocator,
+  State,
+  TemplatePartDefinitions
 } from '@aurelia/runtime';
-
+import { expect } from 'chai';
+import { spy } from 'sinon';
 
 export class MockContext {
   public log: any[] = [];
@@ -63,6 +62,31 @@ export class MockNodeSequence implements INodeSequence {
     this.firstChild = fragment.firstChild;
     this.lastChild = fragment.lastChild;
     this.childNodes = PLATFORM.toArray(fragment.childNodes);
+  }
+
+  public static createSimpleMarker(): MockNodeSequence {
+    const fragment = document.createDocumentFragment();
+    const marker = document.createElement('au-m');
+    marker.classList.add('au');
+    fragment.appendChild(marker);
+    return new MockNodeSequence(fragment);
+  }
+
+  public static createRenderLocation(): MockNodeSequence {
+    const fragment = document.createDocumentFragment();
+    const location = document.createComment('au-loc');
+    fragment.appendChild(location);
+    return new MockNodeSequence(fragment);
+  }
+
+  public static createTextBindingMarker(): MockNodeSequence {
+    const fragment = document.createDocumentFragment();
+    const marker = document.createElement('au-m');
+    marker.classList.add('au');
+    const textNode = document.createTextNode('');
+    fragment.appendChild(marker);
+    fragment.appendChild(textNode);
+    return new MockNodeSequence(fragment);
   }
 
   public findTargets(): ArrayLike<Node> {
@@ -93,31 +117,6 @@ export class MockNodeSequence implements INodeSequence {
         current = next;
       }
     }
-  }
-
-  public static createSimpleMarker(): MockNodeSequence {
-    const fragment = document.createDocumentFragment();
-    const marker = document.createElement('au-m');
-    marker.classList.add('au');
-    fragment.appendChild(marker);
-    return new MockNodeSequence(fragment);
-  }
-
-  public static createRenderLocation(): MockNodeSequence {
-    const fragment = document.createDocumentFragment();
-    const location = document.createComment('au-loc');
-    fragment.appendChild(location);
-    return new MockNodeSequence(fragment);
-  }
-
-  public static createTextBindingMarker(): MockNodeSequence {
-    const fragment = document.createDocumentFragment();
-    const marker = document.createElement('au-m');
-    marker.classList.add('au');
-    const textNode = document.createTextNode('');
-    fragment.appendChild(marker);
-    fragment.appendChild(textNode);
-    return new MockNodeSequence(fragment);
   }
 }
 
@@ -166,11 +165,10 @@ export class MockTextNodeTemplate {
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockTextNodeSequence();
+    const nodes = (renderable as Writable<IRenderable>).$nodes = new MockTextNodeSequence();
     addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
   }
 }
-
 
 const expressions = {
   if: new AccessMember(new AccessScope('item'), 'if'),
@@ -187,17 +185,17 @@ export class MockIfTextNodeTemplate {
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
+    const nodes = (renderable as Writable<IRenderable>).$nodes = MockNodeSequence.createRenderLocation();
 
     const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
-    const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, this.container), this.lifecycle);
+    const factory = new ViewFactory(null, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
 
     const sut = new If(factory, nodes.firstChild, new CompositionCoordinator(this.lifecycle));
 
-    (<any>sut)['$isAttached'] = false;
-    (<any>sut)['$scope'] = null;
+    (sut as any)['$isAttached'] = false;
+    (sut as any)['$scope'] = null;
 
-    const behavior = RuntimeBehavior.create(<any>If);
+    const behavior = RuntimeBehavior.create(If as any);
     behavior.applyTo(sut, this.lifecycle);
 
     addAttachable(renderable, sut);
@@ -216,40 +214,40 @@ export class MockIfElseTextNodeTemplate {
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const ifNodes = (<Writable<IRenderable>>renderable).$nodes = MockNodeSequence.createRenderLocation();
+    const ifNodes = (renderable as Writable<IRenderable>).$nodes = MockNodeSequence.createRenderLocation();
 
     const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
-    const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator, this.container), this.lifecycle);
+    const ifFactory = new ViewFactory(null, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
 
     const ifSut = new If(ifFactory, ifNodes.firstChild, new CompositionCoordinator(this.lifecycle));
 
-    (<any>ifSut)['$isAttached'] = false;
-    (<any>ifSut)['$state'] = State.none;
-    (<any>ifSut)['$scope'] = null;
+    (ifSut as any)['$isAttached'] = false;
+    (ifSut as any)['$state'] = State.none;
+    (ifSut as any)['$scope'] = null;
 
-    const ifBehavior = RuntimeBehavior.create(<any>If);
+    const ifBehavior = RuntimeBehavior.create(If as any);
     ifBehavior.applyTo(ifSut, this.lifecycle);
 
     addAttachable(renderable, ifSut);
     addBindable(renderable, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, this.container));
     addBindable(renderable, ifSut);
 
-    const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator, this.container), this.lifecycle);
+    const elseFactory = new ViewFactory(null, new MockTextNodeTemplate(expressions.else, observerLocator, this.container) as any, this.lifecycle);
 
     const elseSut = new Else(elseFactory);
 
-    elseSut.link(<any>renderable.$attachableTail);
+    elseSut.link(renderable.$attachableTail as any);
 
-    (<any>elseSut)['$isAttached'] = false;
-    (<any>elseSut)['$state'] = State.none;
-    (<any>elseSut)['$scope'] = null;
+    (elseSut as any)['$isAttached'] = false;
+    (elseSut as any)['$state'] = State.none;
+    (elseSut as any)['$scope'] = null;
 
-    const elseBehavior = RuntimeBehavior.create(<any>Else);
-    elseBehavior.applyTo(<any>elseSut, this.lifecycle);
+    const elseBehavior = RuntimeBehavior.create(Else as any);
+    elseBehavior.applyTo(elseSut as any, this.lifecycle);
 
-    addAttachable(renderable, <any>elseSut);
+    addAttachable(renderable, elseSut as any);
     addBindable(renderable, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, this.container));
-    addBindable(renderable, <any>elseSut);
+    addBindable(renderable, elseSut as any);
   }
 }
 
@@ -286,7 +284,6 @@ export class MockRenderingEngine implements IRenderingEngine {
     this.trace(`applyRuntimeBehavior`, type, instance);
     this.runtimeBehaviorApplicator(type, instance);
   }
-
 
   public trace(fnName: keyof MockRenderingEngine, ...args: any[]): void {
     this.calls.push([fnName, ...args]);
@@ -442,7 +439,7 @@ export function defineComponentLifecycleMock() {
         }
       }
       if (lastCall.length > args.length + 1) {
-        this.fail(`expected "${name}" to have been called with ${args.length} arguments, but it was called with ${lastCall.length - 1} arguments instead (last argument is: ${lastCall[lastCall.length - 1]})`)
+        this.fail(`expected "${name}" to have been called with ${args.length} arguments, but it was called with ${lastCall.length - 1} arguments instead (last argument is: ${lastCall[lastCall.length - 1]})`);
       }
     }
     public verifyNoFurtherCalls(): void {
@@ -454,7 +451,7 @@ export function defineComponentLifecycleMock() {
     private fail(message: string) {
       throw new Error(`ComponentLifecycleMock: ${message}`);
     }
-  }
+  };
 }
 
 export type IComponentLifecycleMock = InstanceType<ReturnType<typeof defineComponentLifecycleMock>>;
@@ -473,17 +470,17 @@ export class MockPropertySubscriber {
 
 export class MockExpression implements IExpression {
   public $kind = ExpressionKind.AccessScope;
+  public connect = spy();
+  public assign = spy();
+  public bind = spy();
+  public unbind = spy();
+  public accept = spy();
   constructor(public value?: any) {
     this.evaluate = spy(this, 'evaluate');
   }
-  evaluate() {
+  public evaluate() {
     return this.value;
   }
-  connect = spy();
-  assign = spy();
-  bind = spy();
-  unbind = spy();
-  accept = spy();
 }
 
 export class MockBindingBehavior {

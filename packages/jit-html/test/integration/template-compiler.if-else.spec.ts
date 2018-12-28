@@ -1,8 +1,21 @@
-import { Constructable, IContainer } from '@aurelia/kernel';
-import { Aurelia, ICustomElementType, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import {
+  Constructable,
+  IContainer
+} from '@aurelia/kernel';
+import {
+  Aurelia,
+  ICustomElementType,
+  ILifecycle,
+  LifecycleFlags
+} from '@aurelia/runtime';
 import { expect } from 'chai';
-import { cleanup, defineCustomElement, setupAndStart, tearDown } from './prepare';
 import { baseSuite } from './template-compiler.base';
+import {
+  cleanup,
+  defineCustomElement,
+  setupAndStart,
+  tearDown
+} from './util';
 
 const spec = 'template-compiler.if-else';
 
@@ -84,7 +97,7 @@ suite.addActionSlot('act')
 
   expect(host.textContent).to.equal('1');
 
-  component.show = false;
+  component['show'] = false;
 
   expect(host.textContent).to.equal('1');
 

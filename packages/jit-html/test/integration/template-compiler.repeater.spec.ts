@@ -1,8 +1,14 @@
-import { IContainer, PLATFORM } from '@aurelia/kernel';
-import { Aurelia, ILifecycle } from '@aurelia/runtime';
+import {
+  IContainer,
+  PLATFORM
+} from '@aurelia/kernel';
+import {
+  Aurelia,
+  ILifecycle
+} from '@aurelia/runtime';
 import { expect } from 'chai';
-import { defineCustomElement, tearDown } from './prepare';
 import { baseSuite } from './template-compiler.base';
+import { defineCustomElement } from './util';
 
 const spec = 'template-compiler.repeater';
 

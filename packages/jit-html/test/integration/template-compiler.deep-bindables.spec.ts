@@ -1,8 +1,16 @@
-import { Constructable, DI, IContainer } from '@aurelia/kernel';
-import { Aurelia, bindable, ICustomElementType, ILifecycle } from '@aurelia/runtime';
+import {
+  Constructable,
+  IContainer
+} from '@aurelia/kernel';
+import {
+  Aurelia,
+  bindable,
+  ICustomElementType,
+  ILifecycle
+} from '@aurelia/runtime';
 import { expect } from 'chai';
-import { defineCustomElement } from './prepare';
 import { baseSuite } from './template-compiler.base';
+import { defineCustomElement } from './util';
 
 const spec = 'template-compiler.deep-bindables';
 

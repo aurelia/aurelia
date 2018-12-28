@@ -1,10 +1,16 @@
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, IDOM, ILifecycle, IRenderingEngine, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
+import {
+  Aurelia,
+  IDOM,
+  ILifecycle,
+  IRenderingEngine,
+  LifecycleFlags,
+  TemplateDefinition
+} from '@aurelia/runtime';
 import { RenderPlan } from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { defineCustomElement } from './prepare';
 import { baseSuite } from './template-compiler.base';
-import { trimFull } from './util';
+import { defineCustomElement, trimFull } from './util';
 
 const spec = 'template-compiler.compose';
 
@@ -35,10 +41,10 @@ suite.addDataSlot('f') // subject + expected text
   .addData('02').setFactory(ctx => {
     const msg = ctx.h = 'Hello!';
     ctx.g = 'sub';
-    return new Promise(resolve => resolve({
+    return Promise.resolve({
       template: `<template>${msg}</template>`,
       build: { required: true, compiler: 'default' }
-    }));
+    });
   })
   // Raw Template (promise with delay)
   .addData('03').setFactory(ctx => {

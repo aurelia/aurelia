@@ -1,11 +1,38 @@
-import { IAttributeParser, ResourceModel } from '@aurelia/jit';
-import { RuntimeCompilationResources, Tracer } from '@aurelia/kernel';
-import { Aurelia, CustomElementResource, IExpressionParser, ILifecycle, INodeSequence, ISignaler, LifecycleFlags } from '@aurelia/runtime';
-import { HTMLDOM, NodeSequenceFactory } from '@aurelia/runtime-html';
+import {
+  IAttributeParser,
+  ResourceModel
+} from '@aurelia/jit';
+import {
+  Registration,
+  RuntimeCompilationResources,
+  Tracer
+} from '@aurelia/kernel';
+import {
+  Aurelia,
+  CustomElementResource,
+  IDOM,
+  IExpressionParser,
+  ILifecycle,
+  INodeSequence,
+  ISignaler,
+  LifecycleFlags
+} from '@aurelia/runtime';
+import {
+  HTMLDOM,
+  NodeSequenceFactory
+} from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { HTMLJitConfiguration, stringifyTemplateDefinition, TemplateBinder } from '../../src/index';
-import { disableTracing, enableTracing, SymbolTraceWriter } from '../unit/util';
-import { defineCustomElement } from './prepare';
+import {
+  HTMLJitConfiguration,
+  stringifyTemplateDefinition,
+  TemplateBinder
+} from '../../src/index';
+import {
+  disableTracing,
+  enableTracing,
+  SymbolTraceWriter
+} from '../unit/util';
+import { defineCustomElement } from './util';
 
 const spec = 'template-compiler.kitchen-sink';
 
@@ -865,6 +892,9 @@ describe(spec, () => {
 
   it('render hook', async () => {
 
+    const container = HTMLJitConfiguration.createContainer();
+    const dom = new HTMLDOM(document);
+    Registration.instance(IDOM, dom).register(container, IDOM);
     const App = CustomElementResource.define({
       name: 'app',
       template: `<template></template>`
@@ -875,7 +905,6 @@ describe(spec, () => {
       }
     });
 
-    const container = HTMLJitConfiguration.createContainer();
 
     const au = new Aurelia(container);
 
@@ -1186,7 +1215,7 @@ describe('xml node compiler tests', () => {
       const exprParser = container.get(IExpressionParser) as IExpressionParser;
       const binder = new TemplateBinder(new HTMLDOM(document), resources, attrParser, exprParser);
 
-      const result = binder.bind(fakeSurrogate);
+      const result = binder.bind(fakeSurrogate as any);
       expect(result.physicalNode).to.equal(fakeSurrogate);
     });
   }

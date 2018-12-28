@@ -1,9 +1,26 @@
-import { Aurelia, bindable, Binding, customElement, ILifecycle, InterpolationBinding, LifecycleFlags, PropertyAccessor, SetterObserver } from '@aurelia/runtime';
+import {
+  Aurelia,
+  bindable,
+  Binding,
+  customElement,
+  ILifecycle,
+  InterpolationBinding,
+  LifecycleFlags,
+  PropertyAccessor,
+  SelfObserver,
+  SetterObserver
+} from '@aurelia/runtime';
 import { ElementPropertyAccessor } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import { HTMLJitConfiguration } from '../../src';
-import { cleanup, createCustomElement, setupAndStart, tearDown, TestConfiguration } from './prepare';
-import { h } from './util';
+import { TestConfiguration } from './resources';
+import {
+  cleanup,
+  createCustomElement,
+  h,
+  setupAndStart,
+  tearDown
+} from './util';
 
 // TemplateCompiler - custom element integration
 describe('template-compiler.custom-elements', () => {
@@ -207,7 +224,7 @@ describe('template-compiler.custom-elements', () => {
         case 1: // foo1 -> foo2
           cur = current.$bindableHead;
           expect(cur).to.be.instanceof(Binding);
-          expect(cur._observer0).be.instanceof(Observer);
+          expect(cur._observer0).be.instanceof(SelfObserver);
           expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
@@ -232,13 +249,13 @@ describe('template-compiler.custom-elements', () => {
         case 4: // foo2 -> foo3-5
           cur = current.$bindableHead;
           expect(cur).to.be.instanceof(Binding);
-          expect(cur._observer0).be.instanceof(Observer);
+          expect(cur._observer0).be.instanceof(SelfObserver);
           expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
           cur = cur.$nextBind;
           expect(cur).to.be.instanceof(Binding);
-          expect(cur._observer0).be.instanceof(Observer);
+          expect(cur._observer0).be.instanceof(SelfObserver);
           expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 

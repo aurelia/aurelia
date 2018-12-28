@@ -1,5 +1,9 @@
 import { expect } from 'chai';
-import { cleanup, setupAndStart, tearDown } from './prepare';
+import {
+  cleanup,
+  setupAndStart,
+  tearDown
+} from './util';
 
 // TemplateCompiler - Binding Resources integration
 describe('template-compiler.binding-resources', () => {

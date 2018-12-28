@@ -1,9 +1,13 @@
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, bindable, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import {
+  Aurelia,
+  bindable,
+  ILifecycle,
+  LifecycleFlags
+} from '@aurelia/runtime';
 import { expect } from 'chai';
-import { defineCustomElement } from './prepare';
 import { baseSuite } from './template-compiler.base';
-import { trimFull } from './util';
+import { defineCustomElement, trimFull } from './util';
 
 const spec = 'template-compiler.repeater-if-else';
 

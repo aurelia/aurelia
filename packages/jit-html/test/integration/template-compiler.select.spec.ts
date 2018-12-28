@@ -2,8 +2,13 @@ import { Primitive } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { SelectValueObserver } from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { cleanup, setup, setupAndStart, tearDown } from './prepare';
-import { h } from './util';
+import {
+  cleanup,
+  h,
+  setup,
+  setupAndStart,
+  tearDown
+} from './util';
 
 // TemplateCompiler - <select/> Integration
 describe('template-compiler.select', () => {
@@ -250,6 +255,7 @@ describe('template-compiler.select', () => {
   //toViewBinding - select single
   it('03.', () => {
     const { au, lifecycle, host, component } = setupAndStart(
+      // @ts-ignore
       template(null,
                select(
           { 'value.to-view': 'selectedValue' },
@@ -269,13 +275,15 @@ describe('template-compiler.select', () => {
   //twoWayBinding - select single
   it('04.', () => {
     const { au, lifecycle, host, component } = setupAndStart(
+      // @ts-ignore
       h('template',
         null,
         h('select',
           { 'value.two-way': 'selectedValue' },
           ...[1, 2].map(v => h('option', { value: v }))
         )
-      ), null
+      ),
+      null
     );
     expect(component.selectedValue).to.equal(undefined);
     host.firstChild.childNodes.item(1)['selected'] = true;

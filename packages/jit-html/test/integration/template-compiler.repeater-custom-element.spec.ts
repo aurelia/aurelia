@@ -1,7 +1,17 @@
-import { Aurelia, bindable, customElement, CustomElementResource, LifecycleFlags } from '@aurelia/runtime';
+import {
+  Aurelia,
+  bindable,
+  customElement,
+  CustomElementResource,
+  LifecycleFlags
+} from '@aurelia/runtime';
 import { expect } from 'chai';
 import { HTMLJitConfiguration } from '../../src/index';
-import { setup, setupAndStart, tearDown } from './prepare';
+import {
+  setup,
+  setupAndStart,
+  tearDown
+} from './util';
 
 const spec = 'template-compiler.repeater-custom-element';
 
@@ -211,13 +221,13 @@ describe(spec, () => {
     expect(childrenChangedCount).to.equal(0);
 
     expect(childrenCount).to.equal(1100);
-    expect(component.$children.length).to.equal(10);
+    expect(component['$children'].length).to.equal(10);
 
-    component.cnt = 11;
+    component['cnt'] = 11;
 
     await Promise.resolve();
 
-    expect(component.$children.length).to.equal(11);
+    expect(component['$children'].length).to.equal(11);
     expect(childrenChangedCount).to.equal(110);
     expect(childrenCount).to.equal(1100 + 110 * 2 + 11 * 2);
 

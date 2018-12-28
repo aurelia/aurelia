@@ -1,7 +1,12 @@
 import { LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { cleanup, setupAndStart, tearDown } from './prepare';
+import {
+  cleanup,
+  setupAndStart,
+  setupWithDocumentAndStart,
+  tearDown
+} from './util';
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands', () => {
@@ -191,7 +196,7 @@ describe('template-compiler.binding-commands', () => {
 
   // delegate - button
   it('19.', () => {
-    const { au, lifecycle, host, component } = setupAndStart(`<template><button click.delegate="doStuff()"></button></template>`, null);
+    const { au, lifecycle, host, component } = setupWithDocumentAndStart(`<template><button click.delegate="doStuff()"></button></template>`, null);
     component.doStuff = spy();
     host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }));
     expect(component.doStuff).to.have.been.called;
@@ -200,7 +205,7 @@ describe('template-compiler.binding-commands', () => {
 
   // capture - button
   it('20.', () => {
-    const { au, lifecycle, host, component } = setupAndStart(`<template><button click.capture="doStuff()"></button></template>`, null);
+    const { au, lifecycle, host, component } = setupWithDocumentAndStart(`<template><button click.capture="doStuff()"></button></template>`, null);
     component.doStuff = spy();
     host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }));
     expect(component.doStuff).to.have.been.called;

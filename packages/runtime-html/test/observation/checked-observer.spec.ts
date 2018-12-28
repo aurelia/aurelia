@@ -1,23 +1,11 @@
-import {
-  CheckedObserver,
-  IObserverLocator,
-  ILifecycle,
-  LifecycleFlags,
-  Binding,
-  IBindingTargetObserver,
-  IPropertySubscriber,
-  enableArrayObservation,
-  Lifecycle,
-  DOM,
-  IDOM
-} from '../../src/index';
-import { createElement, _ } from '../unit/util';
-import { expect } from 'chai';
-import { spy, SinonSpy } from 'sinon';
-import { DI, Registration } from '../../../kernel/src/index';
 
-const dom = new DOM(<any>document);
-const domRegistration = Registration.instance(IDOM, dom);
+import { DI, Registration } from '@aurelia/kernel';
+import { Binding, enableArrayObservation, IBindingTargetObserver, IDOM, ILifecycle, IObserverLocator, IPropertySubscriber, LifecycleFlags } from '@aurelia/runtime';
+import { Lifecycle } from '@aurelia/runtime/src';
+import { expect } from 'chai';
+import { spy } from 'sinon';
+import { CheckedObserver, HTMLDOM, HTMLRuntimeConfiguration } from '../../src/index';
+import { _, createElement } from '../util';
 
 type ObservedInputElement = HTMLInputElement & {
   $observers: Record<string, IBindingTargetObserver>;
@@ -30,24 +18,26 @@ type TwoWayBinding = Binding & { targetObserver: IBindingTargetObserver };
 const eventDefaults = { bubbles: true };
 
 describe('CheckedObserver', () => {
+
   before(() => {
     enableArrayObservation();
   })
 
   describe('setValue() - primitive - type="checkbox"', () => {
     function setup(hasSubscriber: boolean) {
-      const container = DI.createContainer();
-      container.register(domRegistration);
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+      const container = HTMLRuntimeConfiguration.createContainer();
+      const dom = new HTMLDOM(document);
+      Registration.instance(IDOM, dom).register(container, IDOM);
+      const lifecycle = container.get(ILifecycle);
+      const observerLocator = container.get(IObserverLocator);
 
-      const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
+      const el = createElement(`<input type="checkbox"/>`);
       document.body.appendChild(el);
 
-      const sut = <CheckedObserver>observerLocator.getObserver(el, 'checked');
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
       observerLocator.getObserver(el, 'value');
 
-      let subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sut.subscribe(subscriber);
       }
@@ -106,16 +96,17 @@ describe('CheckedObserver', () => {
 
   describe('handleEvent() - primitive - type="checkbox"', () => {
     function setup() {
-      const container = DI.createContainer();
-      container.register(domRegistration);
-      const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+      const container = HTMLRuntimeConfiguration.createContainer();
+      const dom = new HTMLDOM(document);
+      Registration.instance(IDOM, dom).register(container, IDOM);
+      const observerLocator = container.get(IObserverLocator);
 
-      const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
+      const el = createElement(`<input type="checkbox"/>`);
       document.body.appendChild(el);
 
-      const sut = <CheckedObserver>observerLocator.getObserver(el, 'checked');
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
 
-      let subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: IPropertySubscriber = { handleChange: spy() };
       sut.subscribe(subscriber);
 
       return { container, observerLocator, el, sut, subscriber };
@@ -159,26 +150,28 @@ describe('CheckedObserver', () => {
 
   describe('setValue() - primitive - type="radio"', () => {
     function setup(hasSubscriber: boolean) {
-      const container = DI.createContainer();
-      container.register(domRegistration);
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = <IObserverLocator>container.get(IObserverLocator);
-      const elA = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="A"/>`);
-      const elB = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="B"/>`);
-      const elC = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="C"/>`);
+      const container = HTMLRuntimeConfiguration.createContainer();
+      const dom = new HTMLDOM(document);
+      Registration.instance(IDOM, dom).register(container, IDOM);
+      const lifecycle = container.get(ILifecycle);
+      const observerLocator = container.get(IObserverLocator);
+
+      const elA = createElement(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
+      const elB = createElement(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
+      const elC = createElement(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
       document.body.appendChild(elA);
       document.body.appendChild(elB);
       document.body.appendChild(elC);
-      const sutA = <CheckedObserver>observerLocator.getObserver(elA, 'checked');
-      const sutB = <CheckedObserver>observerLocator.getObserver(elB, 'checked');
-      const sutC = <CheckedObserver>observerLocator.getObserver(elC, 'checked');
+      const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
+      const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
+      const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
       observerLocator.getObserver(elA, 'value');
       observerLocator.getObserver(elB, 'value');
       observerLocator.getObserver(elC, 'value');
 
-      let subscriberA: IPropertySubscriber = { handleChange: spy() };
-      let subscriberB: IPropertySubscriber = { handleChange: spy() };
-      let subscriberC: IPropertySubscriber = { handleChange: spy() };
+      const subscriberA: IPropertySubscriber = { handleChange: spy() };
+      const subscriberB: IPropertySubscriber = { handleChange: spy() };
+      const subscriberC: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sutA.subscribe(subscriberA);
         sutB.subscribe(subscriberB);
@@ -255,22 +248,24 @@ describe('CheckedObserver', () => {
 
   describe('handleEvent() - primitive - type="radio"', () => {
     function setup() {
-      const container = DI.createContainer();
-      container.register(domRegistration);
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = <IObserverLocator>container.get(IObserverLocator);
-      const elA = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="A"/>`);
-      const elB = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="B"/>`);
-      const elC = <ObservedInputElement>createElement(`<input name="foo" type="radio" value="C"/>`);
+      const container = HTMLRuntimeConfiguration.createContainer();
+      const dom = new HTMLDOM(document);
+      Registration.instance(IDOM, dom).register(container, IDOM);
+      const lifecycle = container.get(ILifecycle);
+      const observerLocator = container.get(IObserverLocator);
+
+      const elA = createElement(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
+      const elB = createElement(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
+      const elC = createElement(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
       document.body.appendChild(elA);
       document.body.appendChild(elB);
       document.body.appendChild(elC);
-      const sutA = <CheckedObserver>observerLocator.getObserver(elA, 'checked');
-      const sutB = <CheckedObserver>observerLocator.getObserver(elB, 'checked');
-      const sutC = <CheckedObserver>observerLocator.getObserver(elC, 'checked');
-      let subscriberA: IPropertySubscriber = { handleChange: spy() };
-      let subscriberB: IPropertySubscriber = { handleChange: spy() };
-      let subscriberC: IPropertySubscriber = { handleChange: spy() };
+      const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
+      const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
+      const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
+      const subscriberA: IPropertySubscriber = { handleChange: spy() };
+      const subscriberB: IPropertySubscriber = { handleChange: spy() };
+      const subscriberC: IPropertySubscriber = { handleChange: spy() };
       sutA.subscribe(subscriberA);
       sutB.subscribe(subscriberB);
       sutC.subscribe(subscriberC);
@@ -333,19 +328,20 @@ describe('CheckedObserver', () => {
 
   describe('setValue() - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
-      const container = DI.createContainer();
-      container.register(domRegistration);
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+      const container = HTMLRuntimeConfiguration.createContainer();
+      const dom = new HTMLDOM(document);
+      Registration.instance(IDOM, dom).register(container, IDOM);
+      const lifecycle = container.get(ILifecycle);
+      const observerLocator = container.get(IObserverLocator);
 
-      const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
+      const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
       document.body.appendChild(el);
 
-      const sut = <CheckedObserver>observerLocator.getObserver(el, 'checked');
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
       observerLocator.getObserver(el, prop);
 
-      let subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sut.subscribe(subscriber);
       }
@@ -408,19 +404,20 @@ describe('CheckedObserver', () => {
 
   describe('mutate collection - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
-      const container = DI.createContainer();
-      container.register(domRegistration);
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+      const container = HTMLRuntimeConfiguration.createContainer();
+      const dom = new HTMLDOM(document);
+      Registration.instance(IDOM, dom).register(container, IDOM);
+      const lifecycle = container.get(ILifecycle);
+      const observerLocator = container.get(IObserverLocator);
 
-      const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
+      const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
       document.body.appendChild(el);
 
-      const sut = <CheckedObserver>observerLocator.getObserver(el, 'checked');
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
       observerLocator.getObserver(el, prop);
 
-      let subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sut.subscribe(subscriber);
       }
@@ -474,17 +471,19 @@ describe('CheckedObserver', () => {
 
   describe('handleEvent() - array - type="checkbox"', () => {
     function setup(value: any, prop: string) {
-      const container = DI.createContainer();
-      container.register(domRegistration);
-      const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+      const container = HTMLRuntimeConfiguration.createContainer();
+      const dom = new HTMLDOM(document);
+      Registration.instance(IDOM, dom).register(container, IDOM);
+      const lifecycle = container.get(ILifecycle);
+      const observerLocator = container.get(IObserverLocator);
 
-      const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
+      const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
       document.body.appendChild(el);
 
-      const sut = <CheckedObserver>observerLocator.getObserver(el, 'checked');
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
 
-      let subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: IPropertySubscriber = { handleChange: spy() };
       sut.subscribe(subscriber);
 
       return { value, container, observerLocator, el, sut, subscriber };
@@ -513,7 +512,7 @@ describe('CheckedObserver', () => {
                 el.dispatchEvent(new Event(event, eventDefaults));
                 let actual = sut.getValue();
                 if (checkedBefore) {
-                  expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value+'' : '') : value); // TODO: maybe we should coerce value in the observer
+                  expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value + '' : '') : value); // TODO: maybe we should coerce value in the observer
                 } else {
                   expect(actual).to.equal(array);
                 }
@@ -522,7 +521,7 @@ describe('CheckedObserver', () => {
                 el.dispatchEvent(new Event(event, eventDefaults));
                 actual = sut.getValue();
                 if (checkedAfter) {
-                  expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value+'' : '') : value); // TODO: maybe we should coerce value in the observer
+                  expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value + '' : '') : value); // TODO: maybe we should coerce value in the observer
                 } else {
                   expect(actual).to.equal(array);
                 }
@@ -539,18 +538,19 @@ describe('CheckedObserver', () => {
 
   describe('SelectValueObserver.setValue() - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
-      const container = DI.createContainer();
-      container.register(domRegistration);
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+      const container = HTMLRuntimeConfiguration.createContainer();
+      const dom = new HTMLDOM(document);
+      Registration.instance(IDOM, dom).register(container, IDOM);
+      const lifecycle = container.get(ILifecycle);
+      const observerLocator = container.get(IObserverLocator);
 
-      const el = <ObservedInputElement>createElement(`<input type="checkbox"/>`);
+      const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
       document.body.appendChild(el);
 
-      const sut = <CheckedObserver>observerLocator.getObserver(el, 'checked');
-      const valueOrModelObserver = <IBindingTargetObserver>observerLocator.getObserver(el, prop);
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+      const valueOrModelObserver = observerLocator.getObserver(el, prop) as IBindingTargetObserver;
 
-      let subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sut.subscribe(subscriber);
       }

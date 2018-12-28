@@ -1,16 +1,17 @@
-import { HTMLDOM, ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, EventSubscriber, EventManager, createElement } from '../../src/index';
+import { DelegationStrategy } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { DelegationStrategy } from '@aurelia/runtime';
+import { createElement, DelegateOrCaptureSubscription, EventManager, EventSubscriber, HTMLDOM, ListenerTracker, TriggerSubscription } from '../../src/index';
+import { _ } from '../util';
 
-const dom = new HTMLDOM(<any>document);
+const dom = new HTMLDOM(document);
 
 const CAPTURING_PHASE = 1;
 const AT_TARGET = 2;
 const BUBBLING_PHASE = 3;
 
-function eventPropertiesShallowClone<T extends Event>(e: T): T & { instance: T, target: Node } {
-  return <any>{
+function eventPropertiesShallowClone<T extends Event>(e: T): T & { instance: T; target: Node } {
+  return {
     bubbles: e.bubbles,
     cancelable: e.cancelable,
     cancelBubble: e.cancelBubble,
@@ -18,7 +19,7 @@ function eventPropertiesShallowClone<T extends Event>(e: T): T & { instance: T, 
     currentTarget: e.currentTarget,
     deepPath: e.deepPath,
     defaultPrevented: e.defaultPrevented,
-    detail: (<any>e).detail,
+    detail: (e as any).detail,
     eventPhase: e.eventPhase,
     srcElement: e.srcElement,
     target: e.target,
@@ -27,15 +28,15 @@ function eventPropertiesShallowClone<T extends Event>(e: T): T & { instance: T, 
     isTrusted: e.isTrusted,
     returnValue: e.returnValue,
     instance: e
-  };
+  } as any;
 }
 
 describe('ListenerTracker', () => {
   function setup(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean, bubbles: boolean) {
-    const handlerPath: Array<ReturnType<typeof eventPropertiesShallowClone>> = [];
+    const handlerPath: ReturnType<typeof eventPropertiesShallowClone>[] = [];
     const handler = function (e: UIEvent) {
       handlerPath.push(eventPropertiesShallowClone(e));
-    }
+    };
     if (listener === null) {
       listener = handler;
     } else {
@@ -158,7 +159,7 @@ describe('ListenerTracker', () => {
 
 describe('DelegateOrCaptureSubscription', () => {
   function setup(eventName: string) {
-    const entry = <ListenerTracker><any>{ decrement: spy() };
+    const entry = { decrement: spy() } as any as ListenerTracker;
     const lookup = {};
     const callback = spy();
     const sut = new DelegateOrCaptureSubscription(entry, lookup, eventName, callback);
@@ -205,7 +206,7 @@ describe('TriggerSubscription', () => {
     document.body.removeChild(el);
   }
 
-  for(const bubbles of [true, false]) {
+  for (const bubbles of [true, false]) {
     for (const eventName of ['foo', 'bar']) {
       for (const listener of [null, { handleEvent: null }]) {
         it(_`dispose() removes the event listener (eventName=${eventName}, bubbles=${bubbles}, listener=${listener})`, () => {
@@ -252,7 +253,7 @@ describe('EventSubscriber', () => {
         cancelable: true,
         view: window
       });
-    })
+    });
 
     const sut = new EventSubscriber(dom, eventNames);
 
@@ -263,7 +264,7 @@ describe('EventSubscriber', () => {
     document.body.removeChild(el);
   }
 
-  for(const bubbles of [true, false]) {
+  for (const bubbles of [true, false]) {
     for (const eventNames of [['foo', 'bar', 'baz'], ['click', 'change', 'input']]) {
       for (const listenerObj of [null, { handleEvent: null }]) {
         it(_`subscribe() adds the event listener (eventNames=${eventNames}, bubbles=${bubbles}, listenerObj=${listenerObj})`, () => {
@@ -303,121 +304,121 @@ describe('EventSubscriber', () => {
 
 describe('EventManager', () => {
 
-  it(`initializes with correct default element configurations`, () => {
-    const sut = new EventManager();
-    const lookup = sut.elementHandlerLookup;
+  // it(`initializes with correct default element configurations`, () => {
+  //   const sut = new EventManager();
+  //   const lookup = sut.elementHandlerLookup;
 
-    expect(lookup['INPUT']['value'].length).to.equal(2);
-    expect(lookup['INPUT']['value']).to.include('change');
-    expect(lookup['INPUT']['value']).to.include('input');
+  //   expect(lookup['INPUT']['value'].length).to.equal(2);
+  //   expect(lookup['INPUT']['value']).to.include('change');
+  //   expect(lookup['INPUT']['value']).to.include('input');
 
-    expect(lookup['INPUT']['checked'].length).to.equal(2);
-    expect(lookup['INPUT']['checked']).to.include('change');
-    expect(lookup['INPUT']['checked']).to.include('input');
+  //   expect(lookup['INPUT']['checked'].length).to.equal(2);
+  //   expect(lookup['INPUT']['checked']).to.include('change');
+  //   expect(lookup['INPUT']['checked']).to.include('input');
 
-    expect(lookup['INPUT']['files'].length).to.equal(2);
-    expect(lookup['INPUT']['files']).to.include('change');
-    expect(lookup['INPUT']['files']).to.include('input');
+  //   expect(lookup['INPUT']['files'].length).to.equal(2);
+  //   expect(lookup['INPUT']['files']).to.include('change');
+  //   expect(lookup['INPUT']['files']).to.include('input');
 
-    expect(lookup['TEXTAREA']['value'].length).to.equal(2);
-    expect(lookup['TEXTAREA']['value']).to.include('change');
-    expect(lookup['TEXTAREA']['value']).to.include('input');
+  //   expect(lookup['TEXTAREA']['value'].length).to.equal(2);
+  //   expect(lookup['TEXTAREA']['value']).to.include('change');
+  //   expect(lookup['TEXTAREA']['value']).to.include('input');
 
-    expect(lookup['SELECT']['value'].length).to.equal(1);
-    expect(lookup['SELECT']['value']).to.include('change');
+  //   expect(lookup['SELECT']['value'].length).to.equal(1);
+  //   expect(lookup['SELECT']['value']).to.include('change');
 
-    expect(lookup['content editable']['value'].length).to.equal(5);
-    expect(lookup['content editable']['value']).to.include('change');
-    expect(lookup['content editable']['value']).to.include('input');
-    expect(lookup['content editable']['value']).to.include('blur');
-    expect(lookup['content editable']['value']).to.include('keyup');
-    expect(lookup['content editable']['value']).to.include('paste');
+  //   expect(lookup['content editable']['value'].length).to.equal(5);
+  //   expect(lookup['content editable']['value']).to.include('change');
+  //   expect(lookup['content editable']['value']).to.include('input');
+  //   expect(lookup['content editable']['value']).to.include('blur');
+  //   expect(lookup['content editable']['value']).to.include('keyup');
+  //   expect(lookup['content editable']['value']).to.include('paste');
 
-    expect(lookup['scrollable element']['scrollTop'].length).to.equal(1);
-    expect(lookup['scrollable element']['scrollTop']).to.include('scroll');
-    expect(lookup['scrollable element']['scrollLeft'].length).to.equal(1);
-    expect(lookup['scrollable element']['scrollLeft']).to.include('scroll');
-  });
+  //   expect(lookup['scrollable element']['scrollTop'].length).to.equal(1);
+  //   expect(lookup['scrollable element']['scrollTop']).to.include('scroll');
+  //   expect(lookup['scrollable element']['scrollLeft'].length).to.equal(1);
+  //   expect(lookup['scrollable element']['scrollLeft']).to.include('scroll');
+  // });
 
-  it(`registerElementConfiguration() registers the configuration`, () => {
-    const sut = new EventManager();
-    sut.registerElementConfiguration({
-      tagName: 'FOO',
-      properties: {
-        bar: ['baz']
-      }
-    });
+  // it(`registerElementConfiguration() registers the configuration`, () => {
+  //   const sut = new EventManager();
+  //   sut.registerElementConfiguration({
+  //     tagName: 'FOO',
+  //     properties: {
+  //       bar: ['baz']
+  //     }
+  //   });
 
-    const lookup = sut.elementHandlerLookup;
-    expect(lookup['FOO']['bar'].length).to.equal(1);
-    expect(lookup['FOO']['bar']).to.include('baz');
-  });
+  //   const lookup = sut.elementHandlerLookup;
+  //   expect(lookup['FOO']['bar'].length).to.equal(1);
+  //   expect(lookup['FOO']['bar']).to.include('baz');
+  // });
 
-  it(`registerElementConfiguration() does not register configuration from higher up the prototype chain`, () => {
-    const sut = new EventManager();
-    class ElementProperties {
-      public bar: string[];
-      constructor() {
-        this.bar = ['baz']
-      }
-    }
-    ElementProperties.prototype['qux'] = ['quux'];
-    sut.registerElementConfiguration({
-      tagName: 'FOO',
-      properties: <any>new ElementProperties()
-    });
+  // it(`registerElementConfiguration() does not register configuration from higher up the prototype chain`, () => {
+  //   const sut = new EventManager();
+  //   class ElementProperties {
+  //     public bar: string[];
+  //     constructor() {
+  //       this.bar = ['baz'];
+  //     }
+  //   }
+  //   ElementProperties.prototype['qux'] = ['quux'];
+  //   sut.registerElementConfiguration({
+  //     tagName: 'FOO',
+  //     properties: new ElementProperties() as any
+  //   });
 
-    const lookup = sut.elementHandlerLookup;
-    expect(lookup['FOO']['bar'].length).to.equal(1);
-    expect(lookup['FOO']['bar']).to.include('baz');
-  });
+  //   const lookup = sut.elementHandlerLookup;
+  //   expect(lookup['FOO']['bar'].length).to.equal(1);
+  //   expect(lookup['FOO']['bar']).to.include('baz');
+  // });
 
-  describe(`getElementHandler()`, () => {
-    const sut = new EventManager();
-    const lookup = sut.elementHandlerLookup;
+  // describe(`getElementHandler()`, () => {
+  //   const sut = new EventManager();
+  //   const lookup = sut.elementHandlerLookup;
 
-    for (let tagName in lookup) {
-      let expectedEventNames: string[];
-      let propertyNames: string[];
-      switch (tagName) {
-        case 'content editable':
-          tagName = 'div';
-          propertyNames = ['textContent', 'innerHTML'];
-          expectedEventNames = ['change', 'input', 'blur', 'keyup', 'paste'];
-          break;
-        case 'scrollable element':
-          tagName = 'div';
-          propertyNames = ['scrollTop', 'scrollLeft'];
-          expectedEventNames = ['scroll'];
-          break;
-        default:
-          propertyNames = Object.keys(lookup[tagName]);
-      }
-      for (const propertyName of propertyNames) {
-        if (expectedEventNames === undefined) {
-          expectedEventNames = lookup[tagName][propertyName];
-        }
-        it(_`tagName=${tagName}, propertyName=${propertyName} returns handler with eventNames=${expectedEventNames}`, () => {
-          const handler = sut.getElementHandler(dom, createElement(`<${tagName}></${tagName}>`), propertyName);
-          expect(handler['events']).to.deep.equal(expectedEventNames);
-        })
-      }
-    }
+  //   for (let tagName in lookup) {
+  //     let expectedEventNames: string[];
+  //     let propertyNames: string[];
+  //     switch (tagName) {
+  //       case 'content editable':
+  //         tagName = 'div';
+  //         propertyNames = ['textContent', 'innerHTML'];
+  //         expectedEventNames = ['change', 'input', 'blur', 'keyup', 'paste'];
+  //         break;
+  //       case 'scrollable element':
+  //         tagName = 'div';
+  //         propertyNames = ['scrollTop', 'scrollLeft'];
+  //         expectedEventNames = ['scroll'];
+  //         break;
+  //       default:
+  //         propertyNames = Object.keys(lookup[tagName]);
+  //     }
+  //     for (const propertyName of propertyNames) {
+  //       if (expectedEventNames === undefined) {
+  //         expectedEventNames = lookup[tagName][propertyName];
+  //       }
+  //       it(_`tagName=${tagName}, propertyName=${propertyName} returns handler with eventNames=${expectedEventNames}`, () => {
+  //         const handler = sut.getElementHandler(dom, createElement(`<${tagName}></${tagName}>`), propertyName);
+  //         expect(handler['events']).to.deep.equal(expectedEventNames);
+  //       });
+  //     }
+  //   }
 
-    it(`returns null if the target does not have a tagName`, () => {
-      const text = document.createTextNode('asdf');
-      const handler = sut.getElementHandler(dom, text, 'textContent');
-      expect(handler).to.equal(null);
-    });
+  //   it(`returns null if the target does not have a tagName`, () => {
+  //     const text = document.createTextNode('asdf');
+  //     const handler = sut.getElementHandler(dom, text, 'textContent');
+  //     expect(handler).to.equal(null);
+  //   });
 
-    it(`returns null if the property does not exist in the configuration`, () => {
-      const el = createElement('<input></input>');
-      let handler = sut.getElementHandler(dom, el, 'value');
-      expect(handler).not.to.equal(null);
-      handler = sut.getElementHandler(dom, el, 'value1');
-      expect(handler).to.equal(null);
-    });
-  });
+  //   it(`returns null if the property does not exist in the configuration`, () => {
+  //     const el = createElement('<input></input>');
+  //     let handler = sut.getElementHandler(dom, el, 'value');
+  //     expect(handler).not.to.equal(null);
+  //     handler = sut.getElementHandler(dom, el, 'value1');
+  //     expect(handler).to.equal(null);
+  //   });
+  // });
 
   describe('addEventListener()', () => {
     function setup(
@@ -429,22 +430,22 @@ describe('EventManager', () => {
       strategy: DelegationStrategy,
       shadow: string) {
 
-      const childHandlerPath: Array<ReturnType<typeof eventPropertiesShallowClone>> = [];
-      const parentHandlerPath: Array<ReturnType<typeof eventPropertiesShallowClone>> = [];
+      const childHandlerPath: ReturnType<typeof eventPropertiesShallowClone>[] = [];
+      const parentHandlerPath: ReturnType<typeof eventPropertiesShallowClone>[] = [];
       const childHandler = function (e: UIEvent) {
         childHandlerPath.push(eventPropertiesShallowClone(e));
         if (stopPropagation) {
           e.stopPropagation();
         }
         return returnValue;
-      }
+      };
       const parentHandler = function (e: UIEvent) {
         parentHandlerPath.push(eventPropertiesShallowClone(e));
         if (stopPropagation) {
           e.stopPropagation();
         }
         return returnValue;
-      }
+      };
       let childListener: EventListenerOrEventListenerObject;
       let parentListener: EventListenerOrEventListenerObject;
       if (listener === null) {
@@ -463,7 +464,7 @@ describe('EventManager', () => {
       const childSubscription = sut.addEventListener(dom, childEl, eventName, childListener, strategy);
       parentEl.appendChild(childEl);
       if (shadow !== null) {
-        const shadowRoot = wrapper.attachShadow(<any>{ mode: shadow });
+        const shadowRoot = wrapper.attachShadow({ mode: shadow } as any);
         shadowRoot.appendChild(parentEl);
       } else {
         wrapper.appendChild(parentEl);
@@ -516,7 +517,6 @@ describe('EventManager', () => {
                       case DelegationStrategy.none:
                         expect(parentSubscription).to.be.instanceof(TriggerSubscription);
                         expect(childSubscription).to.be.instanceof(TriggerSubscription);
-                        break;
                     }
 
                     childEl.dispatchEvent(event);
@@ -573,7 +573,6 @@ describe('EventManager', () => {
                         } else {
                           expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
                         }
-                        break;
                     }
 
                     childHandlerPath.splice(0);
@@ -610,10 +609,9 @@ describe('EventManager', () => {
                         expect(parentHandlerPath[0].eventPhase).to.equal(AT_TARGET, 'eventPhase');
                         expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
                         expect(parentHandlerPath[0].currentTarget).to.equal(parentEl);
-                        break;
                     }
 
-                    tearDown({ wrapper, parentSubscription, childSubscription })
+                    tearDown({ wrapper, parentSubscription, childSubscription });
                   });
                 }
               }

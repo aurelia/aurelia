@@ -1,13 +1,3 @@
 {
-  "extends": "../../../tslint.json",
-  "linterOptions": {
-    "exclude": []
-  },
-  "rules": {
-    "no-implicit-dependencies": false,
-    "typedef": false,
-    "mocha-no-side-effect-code": false,
-    "no-any": false,
-    "no-big-function": false
-  }
+  "extends": "../../tslint-test.json"
 }

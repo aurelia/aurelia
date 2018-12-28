@@ -1,5 +1,4 @@
 import * as chai from 'chai';
-import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { State } from '../src/index';
 
@@ -64,7 +63,6 @@ chai.use(function(_chai, utils) {
 
 Error.stackTraceLimit = Infinity;
 
-const tests = require.context('.', true, /view\.spec/);
-tests.keys().forEach(tests);
-// const tests = require.context('.', true, /\.spec/);
-// tests.keys().forEach(tests);
+const testContext = require.context('.', true, /\.spec\.ts$/);
+testContext.keys().forEach(testContext);
+

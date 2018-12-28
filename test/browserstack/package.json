@@ -15,8 +15,10 @@
   },
   "dependencies": {
     "@aurelia/jit": "../../packages/jit",
+    "@aurelia/jit-html": "file:../../packages/jit-html",
     "@aurelia/kernel": "../../packages/kernel",
-    "@aurelia/runtime": "../../packages/runtime"
+    "@aurelia/runtime": "../../packages/runtime",
+    "@aurelia/runtime-html": "file:../../packages/runtime-html"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

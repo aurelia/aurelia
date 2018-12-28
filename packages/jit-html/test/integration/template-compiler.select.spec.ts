@@ -1,10 +1,10 @@
 import { Primitive } from "@aurelia/kernel";
-import { SelectValueObserver, Lifecycle } from '../../../runtime/src/index';;
 import { tearDown, cleanup } from "./prepare";
 import { expect } from "chai";
 import { h } from "./util";
 import { setupAndStart, setup } from "./prepare";
-import { LifecycleFlags } from '../../../runtime/src/index';
+import { SelectValueObserver } from '@aurelia/runtime-html';
+import { LifecycleFlags } from '@aurelia/runtime';
 
 // TemplateCompiler - <select/> Integration
 describe('template-compiler.select', () => {
@@ -168,13 +168,13 @@ describe('template-compiler.select', () => {
       component.selectedValues = [];
       lifecycle.processFlushQueue(LifecycleFlags.none);
       options.forEach(option => {
-        expect(option.selected).to.be.false;
+        expect(option.selected).to.equal(false);
       });
 
       // expect no state changes after flushing
       lifecycle.processFlushQueue(LifecycleFlags.none);
       options.forEach(option => {
-        expect(option.selected).to.be.false;
+        expect(option.selected).to.equal(false);
       });
 
       tearDown(au, lifecycle, host);
@@ -225,7 +225,7 @@ describe('template-compiler.select', () => {
       component.selectedValues = [];
       lifecycle.processFlushQueue(LifecycleFlags.none);
       options.forEach(option => {
-        expect(option.selected).to.be.false;
+        expect(option.selected).to.equal(false);
       });
 
       [].forEach.call(select3.options, (option: HTMLOptionElement) => {
@@ -263,7 +263,7 @@ describe('template-compiler.select', () => {
     expect(host.firstElementChild['value']).to.equal('1');
     lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.firstElementChild['value']).to.equal('2');
-    expect(host.firstElementChild.childNodes.item(1)['selected']).to.be.true;
+    expect(host.firstElementChild.childNodes.item(1)['selected']).to.equal(true);
     tearDown(au, lifecycle, host);
   });
 
@@ -278,9 +278,9 @@ describe('template-compiler.select', () => {
         )
       ), null
     );
-    expect(component.selectedValue).to.be.undefined;
+    expect(component.selectedValue).to.equal(undefined);
     host.firstChild.childNodes.item(1)['selected'] = true;
-    expect(component.selectedValue).to.be.undefined;
+    expect(component.selectedValue).to.equal(undefined);
     host.firstChild.dispatchEvent(new CustomEvent('change'));
     expect(component.selectedValue).to.equal('2');
     tearDown(au, lifecycle, host);

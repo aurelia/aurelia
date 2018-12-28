@@ -18,7 +18,7 @@ describe(`createElement() creates element based on tag`, () => {
         expect(node.getAttribute('foo')).to.equal('bar');
 
         expect(actual['instructions'].length).to.equal(0);
-        expect(node.getAttribute('class')).to.be.null;
+        expect(node.getAttribute('class')).to.equal(null);
       });
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
@@ -28,7 +28,7 @@ describe(`createElement() creates element based on tag`, () => {
           const node = actual['node'] as Element;
 
           expect(actual['instructions'].length).to.equal(0);
-          expect(node.getAttribute('class')).to.be.null;
+          expect(node.getAttribute('class')).to.equal(null);
         });
       });
 
@@ -64,7 +64,7 @@ describe(`createElement() creates element based on tag`, () => {
           const node = actual['node'] as Element;
 
           expect(actual['instructions'].length).to.equal(0);
-          expect(node.getAttribute('class')).to.be.null;
+          expect(node.getAttribute('class')).to.equal(null);
 
           expect(node.textContent).to.equal(expected);
         });
@@ -89,8 +89,8 @@ describe(`createElement() creates element based on type`, () => {
         const node = actual['node'] as Element;
         const instruction = (<any>actual['instructions'][0][0]) as HydrateElementInstruction
 
-        expect(node.getAttribute('title')).to.be.null;
-        expect(node.getAttribute('foo')).to.be.null;
+        expect(node.getAttribute('title')).to.equal(null);
+        expect(node.getAttribute('foo')).to.equal(null);
 
         expect(actual['instructions'].length).to.equal(1);
         expect(actual['instructions'][0].length).to.equal(1);

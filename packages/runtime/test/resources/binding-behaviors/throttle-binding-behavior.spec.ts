@@ -39,7 +39,7 @@ describe('ThrottleBindingBehavior', () => {
     expect(binding['throttledMethod'].originalName).to.equal('updateTarget');
     expect(binding.updateTarget === originalFn).to.equal(false);
     expect(typeof binding.updateTarget).to.equal('function');
-    expect(binding['throttleState']).not.to.be.null;
+    expect(binding['throttleState']).not.to.equal(null);
     expect(typeof binding['throttleState']).to.equal('object');
   });
 
@@ -48,6 +48,6 @@ describe('ThrottleBindingBehavior', () => {
     expect(binding['throttledMethod']).to.equal(null);
     expect(binding.updateTarget === originalFn).to.equal(true);
     expect(typeof binding.updateTarget).to.equal('function');
-    expect(binding['throttleState']).to.be.null;
+    expect(binding['throttleState']).to.equal(null);
   });
 });

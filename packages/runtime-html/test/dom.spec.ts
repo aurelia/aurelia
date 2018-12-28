@@ -16,7 +16,7 @@ function verifyThrows(call: Function): void {
   } catch(e) {
     err = e;
   }
-  expect(err instanceof Error).to.be.true;
+  expect(err instanceof Error).to.equal(true);
 }
 
 function verifyDoesNotThrow(call: Function): void {
@@ -26,7 +26,7 @@ function verifyDoesNotThrow(call: Function): void {
   } catch(e) {
     err = e;
   }
-  expect(err).to.be.undefined;
+  expect(err).to.equal(undefined);
 }
 
 const dom = new DOM(<any>document);
@@ -162,7 +162,7 @@ describe('dom', () => {
       const cb = spy();
       const node = dom.createElement('div');
       const observer = dom.createNodeObserver(node, cb, { characterData: true });
-      expect(observer instanceof MutationObserver).to.be.true;
+      expect(observer instanceof MutationObserver).to.equal(true);
     });
 
     it('should observe changes to the childNodes', done => {
@@ -189,12 +189,12 @@ describe('dom', () => {
 
   //   it('should return true if ShadowDOM is available', () => {
   //     HTMLElement.prototype.attachShadow = <any>function(){};
-  //     expect(dom.platformSupportsShadowDOM()).to.be.true;
+  //     expect(dom.platformSupportsShadowDOM()).to.equal(true);
   //   });
 
   //   it('should return false if ShadowDOM is NOT available', () => {
   //     HTMLElement.prototype.attachShadow = undefined;
-  //     expect(dom.platformSupportsShadowDOM()).to.be.false;
+  //     expect(dom.platformSupportsShadowDOM()).to.equal(false);
   //   });
   // });
 
@@ -212,13 +212,13 @@ describe('dom', () => {
   //   it('should enable SlotEmulation when no options provided', () => {
   //     const node = dom.createElement('div');
   //     const actual: any = dom.createElementViewHost(node);
-  //     expect(actual.$usingSlotEmulation).to.be.true;
+  //     expect(actual.$usingSlotEmulation).to.equal(true);
   //   });
 
   //   it('should enable SlotEmulation when options are provided', () => {
   //     const node = dom.createElement('div');
   //     const actual: any = dom.createElementViewHost(node, <any>{});
-  //     expect(actual.$usingSlotEmulation).to.be.true;
+  //     expect(actual.$usingSlotEmulation).to.equal(true);
   //   });
   // });
 
@@ -236,7 +236,7 @@ describe('dom', () => {
   //   it('should enable SlotEmulation when no options provided', () => {
   //     const node = dom.createElement('div');
   //     const actual: any = dom.createElementViewHost(node);
-  //     expect(actual.$usingSlotEmulation).to.be.true;
+  //     expect(actual.$usingSlotEmulation).to.equal(true);
   //   });
 
   //   it('should NOT attachShadow when no options provided', () => {
@@ -248,7 +248,7 @@ describe('dom', () => {
   //   it('should NOT enable SlotEmulation when options are provided', () => {
   //     const node = dom.createElement('div');
   //     const actual: any = dom.createElementViewHost(node, <any>{});
-  //     expect(actual.$usingSlotEmulation).to.be.undefined;
+  //     expect(actual.$usingSlotEmulation).to.equal(undefined);
   //   });
 
   //   it('should attachShadow when options are provided', () => {
@@ -289,21 +289,21 @@ describe('dom', () => {
   //     const node: any = dom.createElement('div');
   //     const expected = node.$component = {};
   //     const actual = dom.getCustomElementForNode(node);
-  //     expect(actual === expected).to.be.true;
+  //     expect(actual === expected).to.equal(true);
   //   });
 
   //   it(`should return null if node.$component is null`, () => {
   //     const node: any = dom.createElement('div');
   //     node.$component = null;
   //     const actual = dom.getCustomElementForNode(node);
-  //     expect(actual).to.be.null;
+  //     expect(actual).to.equal(null);
   //   });
 
   //   it(`should return null if node.$component is undefined`, () => {
   //     const node: any = dom.createElement('div');
   //     node.$component = undefined;
   //     const actual = dom.getCustomElementForNode(node);
-  //     expect(actual).to.be.null;
+  //     expect(actual).to.equal(null);
   //   });
   // });
 
@@ -312,20 +312,20 @@ describe('dom', () => {
   //     const node: any = dom.createElement('div');
   //     node.$usingSlotEmulation = true;
   //     const actual = dom.isUsingSlotEmulation(node);
-  //     expect(actual).to.be.true;
+  //     expect(actual).to.equal(true);
   //   });
 
   //   it('should return false if node.$usingSlotEmulation is false', () => {
   //     const node: any = dom.createElement('div');
   //     node.$usingSlotEmulation = false;
   //     const actual = dom.isUsingSlotEmulation(node);
-  //     expect(actual).to.be.false;
+  //     expect(actual).to.equal(false);
   //   });
 
   //   it('should return false if node.$usingSlotEmulation is unset', () => {
   //     const node: any = dom.createElement('div');
   //     const actual = dom.isUsingSlotEmulation(node);
-  //     expect(actual).to.be.false;
+  //     expect(actual).to.equal(false);
   //   });
   // });
 
@@ -343,7 +343,7 @@ describe('dom', () => {
     for (const node of nodes) {
       it(`should return true if the value is of type ${Object.prototype.toString.call(node)}`, () => {
         const actual = dom.isNodeInstance(node);
-        expect(actual).to.be.true;
+        expect(actual).to.equal(true);
       });
     }
 
@@ -354,7 +354,7 @@ describe('dom', () => {
     for (const nonNode of nonNodes) {
       it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, () => {
         const actual = dom.isNodeInstance(nonNode);
-        expect(actual).to.be.false;
+        expect(actual).to.equal(false);
       });
     }
   });
@@ -367,7 +367,7 @@ describe('dom', () => {
   //   for (const node of nodes) {
   //     it(`should return true if the value is of type ${Object.prototype.toString.call(node)}`, () => {
   //       const actual = dom.isElementNodeType(node);
-  //       expect(actual).to.be.true;
+  //       expect(actual).to.equal(true);
   //     });
   //   }
 
@@ -382,7 +382,7 @@ describe('dom', () => {
   //   for (const nonNode of nonNodes) {
   //     it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, () => {
   //       const actual = dom.isElementNodeType(nonNode);
-  //       expect(actual).to.be.false;
+  //       expect(actual).to.equal(false);
   //     });
   //   }
   // });
@@ -394,7 +394,7 @@ describe('dom', () => {
   //   for (const node of nodes) {
   //     it(`should return true if the value is of type ${Object.prototype.toString.call(node)}`, () => {
   //       const actual = dom.isTextNodeType(node);
-  //       expect(actual).to.be.true;
+  //       expect(actual).to.equal(true);
   //     });
   //   }
 
@@ -410,7 +410,7 @@ describe('dom', () => {
   //   for (const nonNode of nonNodes) {
   //     it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, () => {
   //       const actual = dom.isTextNodeType(nonNode);
-  //       expect(actual).to.be.false;
+  //       expect(actual).to.equal(false);
   //     });
   //   }
   // });
@@ -443,7 +443,7 @@ describe('dom', () => {
       const childNodeNew = dom.createElement('div');
       node.appendChild(childNodeOld);
       dom.replaceNode(childNodeNew, childNodeOld);
-      expect(node.firstChild === childNodeNew).to.be.true;
+      expect(node.firstChild === childNodeNew).to.equal(true);
     });
   });
 
@@ -452,7 +452,7 @@ describe('dom', () => {
       const node = dom.createElement('div');
       const childNode = dom.createElement('div');
       dom.appendChild(node, childNode);
-      expect(node.firstChild === childNode).to.be.true;
+      expect(node.firstChild === childNode).to.equal(true);
     });
   });
 
@@ -465,9 +465,9 @@ describe('dom', () => {
       node.appendChild(refNode1);
       node.appendChild(refNode2);
       dom.insertBefore(childNode, refNode2);
-      expect(node.childNodes.item(0) === refNode1).to.be.true;
-      expect(node.childNodes.item(1) === childNode).to.be.true;
-      expect(node.childNodes.item(2) === refNode2).to.be.true;
+      expect(node.childNodes.item(0) === refNode1).to.equal(true);
+      expect(node.childNodes.item(1) === childNode).to.equal(true);
+      expect(node.childNodes.item(2) === refNode2).to.equal(true);
     });
   });
 
@@ -495,7 +495,7 @@ describe('dom', () => {
       node.setAttribute('foo', 'bar');
       dom.removeAttribute(node, 'foo');
       const actual = dom.getAttribute(node, 'foo');
-      expect(actual).to.be.null;
+      expect(actual).to.equal(null);
     });
   });
 
@@ -504,14 +504,14 @@ describe('dom', () => {
       const node = dom.createElement('div');
       node.classList.add('foo');
       const actual = dom.hasClass(node, 'foo');
-      expect(actual).to.be.true;
+      expect(actual).to.equal(true);
     });
 
     it('should return false if the node does NOT have the specified class', () => {
       const node = dom.createElement('div');
       node.classList.add('foo');
       const actual = dom.hasClass(node, 'bar');
-      expect(actual).to.be.false;
+      expect(actual).to.equal(false);
     });
   });
 
@@ -530,7 +530,7 @@ describe('dom', () => {
       node.classList.add('foo');
       dom.removeClass(node, 'foo');
       const actual = node.classList.item(0);
-      expect(actual).to.be.null;
+      expect(actual).to.equal(null);
     });
   });
 
@@ -588,20 +588,20 @@ describe('dom', () => {
   //     it('should return true if the textNode contains all whitespace', () => {
   //       const node = document.createTextNode(whitespace);
   //       const actual = dom.isAllWhitespace(node);
-  //       expect(actual).to.be.true;
+  //       expect(actual).to.equal(true);
   //     });
 
   //     it('should return false if the textNode contains all whitespace but is set to treatAsNonWhitespace', () => {
   //       const node = document.createTextNode(whitespace);
   //       dom.treatAsNonWhitespace(node);
   //       const actual = dom.isAllWhitespace(node);
-  //       expect(actual).to.be.false;
+  //       expect(actual).to.equal(false);
   //     });
 
   //     it('should return false if the textNode contains any non-whitespace', () => {
   //       const node = document.createTextNode(whitespace + 'foo');
   //       const actual = dom.isAllWhitespace(node);
-  //       expect(actual).to.be.false;
+  //       expect(actual).to.equal(false);
   //     });
   //   }
   // });
@@ -617,13 +617,13 @@ describe('dom', () => {
     it('should replace the provided node with two comment nodes', () => {
       const {node, childNode} = createTestNodes();
       const location = dom.convertToRenderLocation(childNode);
-      expect(location instanceof Comment).to.be.true;
-      expect(location.$start instanceof Comment).to.be.true;
-      expect(childNode === location).to.be.false;
+      expect(location instanceof Comment).to.equal(true);
+      expect(location.$start instanceof Comment).to.equal(true);
+      expect(childNode === location).to.equal(false);
       expect(node.childNodes.length).to.equal(2);
-      expect(node.firstChild === location).to.be.false;
-      expect(node.firstChild === location.$start).to.be.true;
-      expect(node.lastChild === location).to.be.true;
+      expect(node.firstChild === location).to.equal(false);
+      expect(node.firstChild === location.$start).to.equal(true);
+      expect(node.lastChild === location).to.equal(true);
     });
   });
 
@@ -649,7 +649,7 @@ describe('FragmentNodeSequence', () => {
   //     sut = new TemplateView(fragment);
   //     const child = dom.createElement('div');
   //     sut.appendChild(child);
-  //     expect(fragment.firstChild === child).to.be.true;
+  //     expect(fragment.firstChild === child).to.equal(true);
   //   });
   // });
 
@@ -661,8 +661,8 @@ describe('FragmentNodeSequence', () => {
         const fragment = createFragment(node, 0, 1, width);
         sut = new FragmentNodeSequence(dom, fragment);
         expect(sut.childNodes.length).to.equal(width);
-        expect(sut.childNodes[0] === sut.firstChild).to.be.true;
-        expect(sut.childNodes[width - 1] === sut.lastChild).to.be.true;
+        expect(sut.childNodes[0] === sut.firstChild).to.equal(true);
+        expect(sut.childNodes[width - 1] === sut.lastChild).to.equal(true);
       });
     }
   });
@@ -706,13 +706,13 @@ describe('FragmentNodeSequence', () => {
           sut.insertBefore(ref2);
           expect(parent.childNodes.length).to.equal(width + 2);
           expect(fragment.childNodes.length).to.equal(0);
-          expect(parent.childNodes.item(0) === ref1).to.be.true;
+          expect(parent.childNodes.item(0) === ref1).to.equal(true);
           let i = 0;
           while (i < width) {
-            expect(parent.childNodes.item(i + 1) === sut.childNodes[i]).to.be.true;
+            expect(parent.childNodes.item(i + 1) === sut.childNodes[i]).to.equal(true);
             i++;
           }
-          expect(parent.childNodes.item(width + 1) === ref2).to.be.true;
+          expect(parent.childNodes.item(width + 1) === ref2).to.equal(true);
           expect(fragment.childNodes.length).to.equal(0);
         });
       }
@@ -732,7 +732,7 @@ describe('FragmentNodeSequence', () => {
           expect(fragment.childNodes.length).to.equal(0);
           let i = 0;
           while (i < width) {
-            expect(parent.childNodes.item(i) === sut.childNodes[i]).to.be.true;
+            expect(parent.childNodes.item(i) === sut.childNodes[i]).to.equal(true);
             i++;
           }
         });

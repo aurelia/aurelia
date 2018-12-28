@@ -96,7 +96,7 @@ describe('template-compiler.binding-commands', () => {
   it('10.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.two-way="message"></template>`, null);
     host.firstChild['value'] = 'hello!';
-    expect(component.message).to.be.undefined;
+    expect(component.message).to.equal(undefined);
     host.firstChild.dispatchEvent(new CustomEvent('change'));
     expect(component.message).to.equal('hello!');
     tearDown(au, lifecycle, host);
@@ -105,9 +105,9 @@ describe('template-compiler.binding-commands', () => {
   // twoWayBinding - input.value - jsonValueConverter
   it('11.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.two-way="message | json"></template>`, null);
-    expect(component.message).to.be.undefined;
+    expect(component.message).to.equal(undefined);
     host.firstChild['value'] = '{"foo":"bar"}';
-    expect(component.message).to.be.undefined;
+    expect(component.message).to.equal(undefined);
     host.firstChild.dispatchEvent(new CustomEvent('change'));
     expect(component.message).to.deep.equal({ foo: 'bar' });
     component.message = { bar: 'baz' };
@@ -151,9 +151,9 @@ describe('template-compiler.binding-commands', () => {
   // twoWayBindingBehavior - input.value
   it('15.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.one-time="message & twoWay"></template>`, null);
-    expect(component.message).to.be.undefined;
+    expect(component.message).to.equal(undefined);
     host.firstChild['value'] = 'hello!';
-    expect(component.message).to.be.undefined;
+    expect(component.message).to.equal(undefined);
     host.firstChild.dispatchEvent(new CustomEvent('change'));
     expect(component.message).to.equal('hello!');
     tearDown(au, lifecycle, host);
@@ -162,22 +162,22 @@ describe('template-compiler.binding-commands', () => {
   // toViewBinding - input checkbox
   it('16.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input checked.to-view="checked" type="checkbox"></template>`, null);
-    expect(host.firstChild['checked']).to.be.false;
+    expect(host.firstChild['checked']).to.equal(false);
     component.checked = true;
-    expect(host.firstChild['checked']).to.be.false;
+    expect(host.firstChild['checked']).to.equal(false);
     lifecycle.processFlushQueue(LifecycleFlags.none);
-    expect(host.firstChild['checked']).to.be.true;
+    expect(host.firstChild['checked']).to.equal(true);
     tearDown(au, lifecycle, host);
   });
 
   // twoWayBinding - input checkbox
   it('17.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input checked.two-way="checked" type="checkbox"></template>`, null);
-    expect(component.checked).to.be.undefined;
+    expect(component.checked).to.equal(undefined);
     host.firstChild['checked'] = true;
-    expect(component.checked).to.be.undefined;
+    expect(component.checked).to.equal(undefined);
     host.firstChild.dispatchEvent(new CustomEvent('change'));
-    expect(component.checked).to.be.true;
+    expect(component.checked).to.equal(true);
     tearDown(au, lifecycle, host);
   });
 

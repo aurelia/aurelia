@@ -78,7 +78,7 @@ describe('TemplateCompiler', () => {
 
     it('set hasSlots to true <slot/>', () => {
       const definition = compileWith('<template><slot></slot></template>', []);
-      expect(definition.hasSlots).to.be.true;
+      expect(definition.hasSlots).to.equal(true);
 
       // test this with nested slot inside template controller
     });
@@ -379,7 +379,7 @@ describe('TemplateCompiler', () => {
         describe('[to-view-model]', () => {
           it('understands [to-view-model]', () => {
             const { instructions } = compileWith(`<template><let to-view-model></let></template>`);
-            expect((instructions[0][0] as any).toViewModel).to.be.true;
+            expect((instructions[0][0] as any).toViewModel).to.equal(true);
           });
 
           it('ignores [to-view-model] order', () => {

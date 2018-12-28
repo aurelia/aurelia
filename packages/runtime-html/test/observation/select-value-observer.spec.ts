@@ -59,7 +59,7 @@ describe('SelectValueObserver', () => {
         const { sut } = createFixture([], [], isMultiple);
         sut.bind();
         const nodeObserver = sut['nodeObserver'];
-        expect(nodeObserver).not.to.be.undefined;
+        expect(nodeObserver).not.to.equal(undefined);
         expect(nodeObserver).to.be.instanceOf(
           dom.createNodeObserver(document.createElement('div'), () => {}, { childList: true }).constructor,
           'It should have created instance from the same class with other node observer'
@@ -72,7 +72,7 @@ describe('SelectValueObserver', () => {
         const { el, sut } = createFixture([], [], isMultiple);
         const callbackSpy = spy(sut, 'handleNodeChange');
         sut.bind();
-        expect(callbackSpy.calledOnce).to.be.false;
+        expect(callbackSpy.calledOnce).to.equal(false);
         el.appendChild(document.createElement('option'));
         Promise.resolve()
           .then(() => expect(callbackSpy.calledOnce).to.be.true)
@@ -90,7 +90,7 @@ describe('SelectValueObserver', () => {
         sut['nodeObserver'] = { disconnect() { count++; } } as Anything;
         sut.unbind();
         expect(count).to.equal(1);
-        expect(sut['nodeObserver']).to.be.null;
+        expect(sut['nodeObserver']).to.equal(null);
       }
     });
     it('unsubscribes array observer', () => {
@@ -106,7 +106,7 @@ describe('SelectValueObserver', () => {
         } as Anything;
         sut.unbind();
         expect(count).to.equal(1);
-        expect(sut['arrayObserver']).to.be.null;
+        expect(sut['arrayObserver']).to.equal(null);
       }
     });
   });
@@ -146,7 +146,7 @@ describe('SelectValueObserver', () => {
           option({ text: 'C' })
         ]);
         const currentValue = sut.currentValue as any;
-        expect(currentValue).to.be.null;
+        expect(currentValue).to.equal(null);
         sut.synchronizeValue();
         expect(currentValue).to.equal(sut.currentValue);
       });
@@ -158,7 +158,7 @@ describe('SelectValueObserver', () => {
           option({ text: 'C' })
         ]);
         const currentValue = sut.currentValue as any;
-        expect(currentValue).to.be.undefined;
+        expect(currentValue).to.equal(undefined);
         sut.synchronizeValue();
         expect(currentValue).to.equal(sut.currentValue);
       });

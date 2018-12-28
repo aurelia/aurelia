@@ -194,7 +194,7 @@ describe('template-compiler.custom-elements', () => {
           cur = current.$bindableHead;
           expect(cur).to.be.instanceof(Binding);
           expect(cur._observer0).be.instanceof(SetterObserver);
-          expect(cur._observer1).to.be.undefined;
+          expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
           cur = cur.$nextBind;
@@ -212,13 +212,13 @@ describe('template-compiler.custom-elements', () => {
           cur = current.$bindableHead;
           expect(cur).to.be.instanceof(Binding);
           expect(cur._observer0).be.instanceof(Observer);
-          expect(cur._observer1).to.be.undefined;
+          expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
           cur = cur.$nextBind;
           expect(cur).to.be.instanceof(Binding);
           expect(cur._observer0).be.instanceof(SetterObserver);
-          expect(cur._observer1).to.be.undefined;
+          expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
           cur = cur.$nextBind;
@@ -237,13 +237,13 @@ describe('template-compiler.custom-elements', () => {
           cur = current.$bindableHead;
           expect(cur).to.be.instanceof(Binding);
           expect(cur._observer0).be.instanceof(Observer);
-          expect(cur._observer1).to.be.undefined;
+          expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
           cur = cur.$nextBind;
           expect(cur).to.be.instanceof(Binding);
           expect(cur._observer0).be.instanceof(Observer);
-          expect(cur._observer1).to.be.undefined;
+          expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
           cur = cur.$nextBind;

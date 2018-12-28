@@ -25,14 +25,14 @@ describe('SelfBindingBehavior', () => {
 
   // TODO: test properly (different binding types)
   it('bind()   should apply the correct behavior', () => {
-    expect(binding['selfEventCallSource'] === originalCallSource).to.be.true;
-    expect(binding['callSource'] === originalCallSource).to.be.false;
+    expect(binding['selfEventCallSource'] === originalCallSource).to.equal(true);
+    expect(binding['callSource'] === originalCallSource).to.equal(false);
     expect(typeof binding['callSource']).to.equal('function');
   });
 
   it('unbind() should revert the original behavior', () => {
     sut.unbind(flags, scope, <any>binding);
-    expect(binding['selfEventCallSource']).to.be.null;
-    expect(binding['callSource'] === originalCallSource).to.be.true;
+    expect(binding['selfEventCallSource']).to.equal(null);
+    expect(binding['callSource'] === originalCallSource).to.equal(true);
   });
 });

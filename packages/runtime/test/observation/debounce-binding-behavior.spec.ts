@@ -39,7 +39,7 @@ describe('DebounceBindingBehavior', () => {
     expect(binding['debouncedMethod'].originalName).to.equal('handleChange');
     expect(binding.handleChange === originalFn).to.equal(false);
     expect(typeof binding.handleChange).to.equal('function');
-    expect(binding['debounceState']).not.to.be.null;
+    expect(binding['debounceState']).not.to.equal(null);
     expect(typeof binding['debounceState']).to.equal('object');
   });
 
@@ -48,6 +48,6 @@ describe('DebounceBindingBehavior', () => {
     expect(binding['debouncedMethod']).to.equal(null);
     expect(binding.handleChange === originalFn).to.equal(true);
     expect(typeof binding.handleChange).to.equal('function');
-    expect(binding['debounceState']).to.be.null;
+    expect(binding['debounceState']).to.equal(null);
   });
 });

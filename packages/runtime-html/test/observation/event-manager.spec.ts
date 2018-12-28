@@ -171,7 +171,7 @@ describe('DelegateOrCaptureSubscription', () => {
       const { sut, lookup, callback, entry } = setup(eventName);
       expect(lookup[eventName]).to.equal(callback);
       sut.dispose();
-      expect(lookup[eventName]).to.be.null;
+      expect(lookup[eventName]).to.equal(null);
       expect(entry.decrement).to.have.been.calledOnce;
     });
   }
@@ -407,15 +407,15 @@ describe('EventManager', () => {
     it(`returns null if the target does not have a tagName`, () => {
       const text = document.createTextNode('asdf');
       const handler = sut.getElementHandler(dom, text, 'textContent');
-      expect(handler).to.be.null;
+      expect(handler).to.equal(null);
     });
 
     it(`returns null if the property does not exist in the configuration`, () => {
       const el = createElement('<input></input>');
       let handler = sut.getElementHandler(dom, el, 'value');
-      expect(handler).not.to.be.null;
+      expect(handler).not.to.equal(null);
       handler = sut.getElementHandler(dom, el, 'value1');
-      expect(handler).to.be.null;
+      expect(handler).to.equal(null);
     });
   });
 

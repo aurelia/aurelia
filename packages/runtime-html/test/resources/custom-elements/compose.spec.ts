@@ -73,7 +73,7 @@ describe('The "compose" custom element', () => {
 
           runAttachLifecycle(lifecycle, element, parent);
 
-          expect(attachCalled).to.be.true;
+          expect(attachCalled).to.equal(true);
         }, done);
 
         element.subject = value;
@@ -109,7 +109,7 @@ describe('The "compose" custom element', () => {
 
           element.$bind(LifecycleFlags.fromBind);
 
-          expect(bindCalled).to.be.true;
+          expect(bindCalled).to.equal(true);
         }, done);
 
         element.subject = value;
@@ -128,7 +128,7 @@ describe('The "compose" custom element', () => {
           runAttachLifecycle(lifecycle, element, parent);
           runDetachLifecycle(lifecycle, element);
 
-          expect(detachCalled).to.be.true;
+          expect(detachCalled).to.equal(true);
         }, done);
 
         element.subject = value;
@@ -147,7 +147,7 @@ describe('The "compose" custom element', () => {
           element.$bind(LifecycleFlags.fromBind);
           element.$unbind(LifecycleFlags.fromUnbind);
 
-          expect(unbindCalled).to.be.true;
+          expect(unbindCalled).to.equal(true);
         }, done);
 
         element.subject = value;
@@ -215,8 +215,8 @@ describe('The "compose" custom element', () => {
           view1.$unbind = function() { unbindCalled = true; };
 
           waitForCompositionEnd(element, () => {
-            expect(unbindCalled).to.be.true;
-            expect(detachCalled).to.be.true;
+            expect(unbindCalled).to.equal(true);
+            expect(detachCalled).to.equal(true);
             if (location.previousSibling !== location.$start) {
               throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
                 location.previousSibling && location.previousSibling.textContent || "NULL"

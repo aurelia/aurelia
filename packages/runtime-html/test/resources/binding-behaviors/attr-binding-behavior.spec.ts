@@ -24,9 +24,9 @@ describe('AttrBindingBehavior', () => {
   });
 
   it('bind()   should put a DataAttributeObserver on the binding', () => {
-    expect(binding.targetObserver instanceof DataAttributeAccessor).to.be.true;
-    expect(binding.targetObserver['obj'] === target).to.be.true;
-    expect(binding.targetObserver['propertyKey'] === targetProperty).to.be.true;
+    expect(binding.targetObserver instanceof DataAttributeAccessor).to.equal(true);
+    expect(binding.targetObserver['obj'] === target).to.equal(true);
+    expect(binding.targetObserver['propertyKey'] === targetProperty).to.equal(true);
   });
 
   // it('unbind() should clear the DataAttributeObserver from the binding', () => {

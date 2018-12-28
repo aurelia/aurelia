@@ -1,6 +1,6 @@
 export * from './binding/listener';
 
-export * from './observation/event-manager';
+export * from './observation/attribute-ns-accessor';
 export * from './observation/checked-observer';
 export * from './observation/class-attribute-accessor';
 export * from './observation/data-attribute-accessor';

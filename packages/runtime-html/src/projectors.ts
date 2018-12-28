@@ -108,7 +108,9 @@ export class ContainerlessProjector implements IElementProjector<Node> {
   }
 
   public subscribeToChildrenChange(callback: () => void): void {
-    // Do nothing since this scenario will never have children.
+    // TODO: add a way to dispose/disconnect
+    const observer = new MutationObserver(callback);
+    observer.observe(this.host, childObserverOptions);
   }
 
   public provideEncapsulationSource(): Node {

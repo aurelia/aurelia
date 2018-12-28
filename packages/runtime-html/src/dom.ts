@@ -95,6 +95,7 @@ export class HTMLDOM implements IDOM {
     (node as Element).className = 'au';
   }
   public registerElementResolver(container: IContainer, resolver: IResolver): void {
+    container.registerResolver(INode, resolver);
     container.registerResolver(Node, resolver);
     container.registerResolver(Element, resolver);
     container.registerResolver(HTMLElement, resolver);

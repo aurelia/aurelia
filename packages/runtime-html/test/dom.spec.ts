@@ -1,6 +1,7 @@
-import { spy } from 'sinon';
+import { INode, NodeSequence } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { DOM, INode, FragmentNodeSequence, NodeSequenceFactory, NodeSequence } from '../../src/index';
+import { spy } from 'sinon';
+import { FragmentNodeSequence, HTMLDOM, NodeSequenceFactory } from '../src/index';
 
 function wrap(inner: string, tag: string): string {
   if (tag.length === 0) {
@@ -13,7 +14,7 @@ function verifyThrows(call: Function): void {
   let err;
   try {
     call();
-  } catch(e) {
+  } catch (e) {
     err = e;
   }
   expect(err instanceof Error).to.equal(true);
@@ -23,15 +24,14 @@ function verifyDoesNotThrow(call: Function): void {
   let err;
   try {
     call();
-  } catch(e) {
+  } catch (e) {
     err = e;
   }
   expect(err).to.equal(undefined);
 }
 
-const dom = new DOM(<any>document);
-
 describe('NodeSequenceFactory', () => {
+  const dom = new HTMLDOM(document);
 
   describe('createNodeSequenceFactory', () => {
     const textArr = ['', 'text', '#text'];
@@ -41,7 +41,7 @@ describe('NodeSequenceFactory', () => {
     for (const text of textArr) {
 
       for (const elements of elementsArr) {
-        let elementsMarkup = elements.map(e => wrap(text, e)).join('');
+        const elementsMarkup = elements.map(e => wrap(text, e)).join('');
 
         for (const wrapper of wrapperArr) {
           const markup = wrap(elementsMarkup, wrapper);
@@ -52,7 +52,7 @@ describe('NodeSequenceFactory', () => {
             if (markup.length === 0) {
               expect(view).to.equal(NodeSequence.empty);
             } else {
-              const fragment = <DocumentFragment>view['fragment'];
+              const fragment = view['fragment'] as DocumentFragment;
               let parsedMarkup = '';
               const childCount = fragment.childNodes.length;
               let i = 0;
@@ -103,9 +103,10 @@ describe('NodeSequenceFactory', () => {
       });
     }
   });
-})
+});
 
 describe('dom', () => {
+  const dom = new HTMLDOM(document);
   // reset dom after each test to make sure self-optimizations do not affect test outcomes
   const DOMBackup = Object.create(null);
   // reset document after each test to clear any spies
@@ -157,26 +158,26 @@ describe('dom', () => {
     }
   });
 
-  describe('createChildObserver (no slot emulation)', () => {
-    it('should return a MutationObserver', () => {
-      const cb = spy();
-      const node = dom.createElement('div');
-      const observer = dom.createNodeObserver(node, cb, { characterData: true });
-      expect(observer instanceof MutationObserver).to.equal(true);
-    });
+  // describe('createChildObserver (no slot emulation)', () => {
+  //   it('should return a MutationObserver', () => {
+  //     const cb = spy();
+  //     const node = dom.createElement('div');
+  //     const observer = dom.createNodeObserver(node, cb, { characterData: true });
+  //     expect(observer instanceof MutationObserver).to.equal(true);
+  //   });
 
-    it('should observe changes to the childNodes', done => {
-      const cb = spy();
-      const node = dom.createElement('div');
-      const child = dom.createElement('div');
-      dom.createNodeObserver(node, cb, { childList: true });
-      node.appendChild(child);
-      Promise.resolve().then(() => {
-        expect(cb).to.have.been.calledOnce;
-        done();
-      });
-    });
-  });
+  //   it('should observe changes to the childNodes', done => {
+  //     const cb = spy();
+  //     const node = dom.createElement('div');
+  //     const child = dom.createElement('div');
+  //     dom.createNodeObserver(node, cb, { childList: true });
+  //     node.appendChild(child);
+  //     Promise.resolve().then(() => {
+  //       expect(cb).to.have.been.calledOnce;
+  //       done();
+  //     });
+  //   });
+  // });
 
   // describe('platformSupportsShadowDOM', () => {
   //   let attachShadow;
@@ -436,16 +437,16 @@ describe('dom', () => {
     });
   });
 
-  describe('replaceNode', () => {
-    it('should replace the childNode with another childNode', () => {
-      const node = dom.createElement('div');
-      const childNodeOld = dom.createElement('div');
-      const childNodeNew = dom.createElement('div');
-      node.appendChild(childNodeOld);
-      dom.replaceNode(childNodeNew, childNodeOld);
-      expect(node.firstChild === childNodeNew).to.equal(true);
-    });
-  });
+  // describe('replaceNode', () => {
+  //   it('should replace the childNode with another childNode', () => {
+  //     const node = dom.createElement('div');
+  //     const childNodeOld = dom.createElement('div');
+  //     const childNodeNew = dom.createElement('div');
+  //     node.appendChild(childNodeOld);
+  //     dom.replaceNode(childNodeNew, childNodeOld);
+  //     expect(node.firstChild === childNodeNew).to.equal(true);
+  //   });
+  // });
 
   describe('appendChild', () => {
     it('should append the childNode to the given parent', () => {
@@ -471,68 +472,68 @@ describe('dom', () => {
     });
   });
 
-  describe('getAttribute', () => {
-    it('should return the specified attribute', () => {
-      const node = dom.createElement('div');
-      node.setAttribute('foo', 'bar');
-      const actual = dom.getAttribute(node, 'foo');
-      expect(actual).to.equal('bar');
-    });
-  });
+  // describe('getAttribute', () => {
+  //   it('should return the specified attribute', () => {
+  //     const node = dom.createElement('div');
+  //     node.setAttribute('foo', 'bar');
+  //     const actual = dom.getAttribute(node, 'foo');
+  //     expect(actual).to.equal('bar');
+  //   });
+  // });
 
-  describe('setAttribute', () => {
-    it('should set the specified attribute to the specified value', () => {
-      const node = dom.createElement('div');
-      dom.setAttribute(node, 'foo', 'bar');
-      const actual = dom.getAttribute(node, 'foo');
-      expect(actual).to.equal('bar');
-    });
-  });
+  // describe('setAttribute', () => {
+  //   it('should set the specified attribute to the specified value', () => {
+  //     const node = dom.createElement('div');
+  //     dom.setAttribute(node, 'foo', 'bar');
+  //     const actual = dom.getAttribute(node, 'foo');
+  //     expect(actual).to.equal('bar');
+  //   });
+  // });
 
-  describe('removeAttribute', () => {
-    it('should remove the specified attribute', () => {
-      const node = dom.createElement('div');
-      node.setAttribute('foo', 'bar');
-      dom.removeAttribute(node, 'foo');
-      const actual = dom.getAttribute(node, 'foo');
-      expect(actual).to.equal(null);
-    });
-  });
+  // describe('removeAttribute', () => {
+  //   it('should remove the specified attribute', () => {
+  //     const node = dom.createElement('div');
+  //     node.setAttribute('foo', 'bar');
+  //     dom.removeAttribute(node, 'foo');
+  //     const actual = dom.getAttribute(node, 'foo');
+  //     expect(actual).to.equal(null);
+  //   });
+  // });
 
-  describe('hasClass', () => {
-    it('should return true if the node has the specified class', () => {
-      const node = dom.createElement('div');
-      node.classList.add('foo');
-      const actual = dom.hasClass(node, 'foo');
-      expect(actual).to.equal(true);
-    });
+  // describe('hasClass', () => {
+  //   it('should return true if the node has the specified class', () => {
+  //     const node = dom.createElement('div');
+  //     node.classList.add('foo');
+  //     const actual = dom.hasClass(node, 'foo');
+  //     expect(actual).to.equal(true);
+  //   });
 
-    it('should return false if the node does NOT have the specified class', () => {
-      const node = dom.createElement('div');
-      node.classList.add('foo');
-      const actual = dom.hasClass(node, 'bar');
-      expect(actual).to.equal(false);
-    });
-  });
+  //   it('should return false if the node does NOT have the specified class', () => {
+  //     const node = dom.createElement('div');
+  //     node.classList.add('foo');
+  //     const actual = dom.hasClass(node, 'bar');
+  //     expect(actual).to.equal(false);
+  //   });
+  // });
 
-  describe('addClass', () => {
-    it('should add the specified class', () => {
-      const node = dom.createElement('div');
-      dom.addClass(node, 'foo');
-      const actual = node.classList.item(0);
-      expect(actual).to.equal('foo');
-    });
-  });
+  // describe('addClass', () => {
+  //   it('should add the specified class', () => {
+  //     const node = dom.createElement('div');
+  //     dom.addClass(node, 'foo');
+  //     const actual = node.classList.item(0);
+  //     expect(actual).to.equal('foo');
+  //   });
+  // });
 
-  describe('removeClass', () => {
-    it('should remove the specified class', () => {
-      const node = dom.createElement('div');
-      node.classList.add('foo');
-      dom.removeClass(node, 'foo');
-      const actual = node.classList.item(0);
-      expect(actual).to.equal(null);
-    });
-  });
+  // describe('removeClass', () => {
+  //   it('should remove the specified class', () => {
+  //     const node = dom.createElement('div');
+  //     node.classList.add('foo');
+  //     dom.removeClass(node, 'foo');
+  //     const actual = node.classList.item(0);
+  //     expect(actual).to.equal(null);
+  //   });
+  // });
 
   describe('addEventListener', () => {
     it('should add the specified eventListener to the node if the node is specified', done => {
@@ -543,7 +544,7 @@ describe('dom', () => {
       setTimeout(() => {
         expect(eventListener).to.have.been.calledOnce;
         done();
-      }, 0);
+      },         0);
     });
 
     it('should add the specified eventListener to the document if the node is NOT specified', done => {
@@ -553,7 +554,7 @@ describe('dom', () => {
       setTimeout(() => {
         expect(eventListener).to.have.been.calledOnce;
         done();
-      }, 0);
+      },         0);
     });
   });
 
@@ -567,7 +568,7 @@ describe('dom', () => {
       setTimeout(() => {
         expect(eventListener).not.to.have.been.called;
         done();
-      }, 0);
+      },         0);
     });
 
     it('should remove the specified eventListener from the document if the node is NOT specified', done => {
@@ -578,7 +579,7 @@ describe('dom', () => {
       setTimeout(() => {
         expect(eventListener).not.to.have.been.called;
         done();
-      }, 0);
+      },         0);
     });
   });
 
@@ -628,7 +629,7 @@ describe('dom', () => {
   });
 
   describe('registerElementResolver', () => {
-    const keys = [INode, Element, HTMLElement, SVGElement];
+    const keys = [INode, Node, Element, HTMLElement, SVGElement];
     for (const key of keys) {
       it(`should register the resolver for type ${Object.prototype.toString.call(key)}`, () => {
         const mockContainer: any = { registerResolver: spy() };
@@ -641,6 +642,7 @@ describe('dom', () => {
 });
 
 describe('FragmentNodeSequence', () => {
+  const dom = new HTMLDOM(document);
   let sut: FragmentNodeSequence;
 
   // describe('appendChild', () => {
@@ -703,6 +705,7 @@ describe('FragmentNodeSequence', () => {
           const ref2 = dom.createElement('div');
           parent.appendChild(ref1);
           parent.appendChild(ref2);
+          // @ts-ignore
           sut.insertBefore(ref2);
           expect(parent.childNodes.length).to.equal(width + 2);
           expect(fragment.childNodes.length).to.equal(0);
@@ -777,7 +780,7 @@ function appendTree(root: HTMLElement, node: HTMLElement, level: number, depth: 
   }
 }
 
-function appendChildren(parent: HTMLElement, child: HTMLElement, count: number): Array<HTMLElement> {
+function appendChildren(parent: HTMLElement, child: HTMLElement, count: number): HTMLElement[] {
   const children = new Array(count);
   let i = 0;
   while (i < count) {

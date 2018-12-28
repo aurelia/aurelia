@@ -61,5 +61,5 @@ chai.use(function(_chai, utils) {
   }
 });
 
-const testContext = require.context('.', true, /\.spec\.ts$/);
+const testContext = require.context('.', true, /spec\.ts$/);
 testContext.keys().forEach(testContext);

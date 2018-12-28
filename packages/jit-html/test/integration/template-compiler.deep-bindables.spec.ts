@@ -1,8 +1,8 @@
-import { expect } from "chai";
-import { defineCustomElement } from "./prepare";
-import { ILifecycle, bindable, Aurelia, ICustomElementType } from '../../../runtime/src/index';
-import { baseSuite } from "./template-compiler.base";
-import { IContainer, Constructable, DI } from "@aurelia/kernel";
+import { Constructable, DI, IContainer } from '@aurelia/kernel';
+import { Aurelia, bindable, ICustomElementType, ILifecycle } from '@aurelia/runtime';
+import { expect } from 'chai';
+import { defineCustomElement } from './prepare';
+import { baseSuite } from './template-compiler.base';
 
 const spec = 'template-compiler.deep-bindables';
 
@@ -144,7 +144,7 @@ for (const suite of [nonWrappedBasic, wrappedBasic]) {
       au.app({ host, component }).start();
 
       expect(host.textContent).to.equal('undefined'.repeat(12));
-    })
+    });
 
   suite.addActionSlot('teardown')
     .addAction(null, ctx => {
@@ -263,7 +263,7 @@ duplicated.addActionSlot('act')
     au.app({ host, component }).start();
 
     expect(host.textContent).to.equal('undefined'.repeat(1124 * 3));
-  })
+  });
 
 duplicated.load();
 duplicated.run();
@@ -277,7 +277,7 @@ staticTemplateCtrl.addActionSlot('static template controller')
   .addAction('prepend if+repeat', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
     for (const el of [fooA_el, fooB_el, fooC_el]) {
-      let attributes = [];
+      const attributes = [];
       while (el.attributes[0]) {
         attributes.push(el.attributes[0]);
         el.removeAttribute(el.attributes[0].name);
@@ -293,7 +293,7 @@ staticTemplateCtrl.addActionSlot('static template controller')
   .addAction('prepend if', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
     for (const el of [fooA_el, fooB_el, fooC_el]) {
-      let attributes = [];
+      const attributes = [];
       while (el.attributes[0]) {
         attributes.push(el.attributes[0]);
         el.removeAttribute(el.attributes[0].name);
@@ -308,7 +308,7 @@ staticTemplateCtrl.addActionSlot('static template controller')
   .addAction('prepend repeat', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
     for (const el of [fooA_el, fooB_el, fooC_el]) {
-      let attributes = [];
+      const attributes = [];
       while (el.attributes[0]) {
         attributes.push(el.attributes[0]);
         el.removeAttribute(el.attributes[0].name);
@@ -344,7 +344,7 @@ staticTemplateCtrl.addActionSlot('act')
   .addAction(null, ctx => {
     const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
-    const component = <any>new app();
+    const component = new app();
     component.$1 = '1';
     component.$2 = '2';
     component.$3 = '3';
@@ -352,7 +352,7 @@ staticTemplateCtrl.addActionSlot('act')
     au.app({ host, component }).start();
 
     expect(host.textContent).to.equal('123'.repeat(4));
-  })
+  });
 
 staticTemplateCtrl.load();
 staticTemplateCtrl.run();
@@ -366,7 +366,7 @@ boundTemplateCtrl.addActionSlot('bound template controller')
   .addAction('prepend if+repeat', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
     for (const el of [fooA_el, fooB_el, fooC_el]) {
-      let attributes = [];
+      const attributes = [];
       while (el.attributes[0]) {
         attributes.push(el.attributes[0]);
         el.removeAttribute(el.attributes[0].name);
@@ -384,7 +384,7 @@ boundTemplateCtrl.addActionSlot('bound template controller')
   .addAction('prepend repeat', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
     for (const el of [fooA_el, fooB_el, fooC_el]) {
-      let attributes = [];
+      const attributes = [];
       while (el.attributes[0]) {
         attributes.push(el.attributes[0]);
         el.removeAttribute(el.attributes[0].name);
@@ -400,7 +400,7 @@ boundTemplateCtrl.addActionSlot('bound template controller')
   .addAction('prepend if', ctx => {
     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
     for (const el of [fooA_el, fooB_el, fooC_el]) {
-      let attributes = [];
+      const attributes = [];
       while (el.attributes[0]) {
         attributes.push(el.attributes[0]);
         el.removeAttribute(el.attributes[0].name);
@@ -441,7 +441,7 @@ boundTemplateCtrl.addActionSlot('act')
   .addAction('1', ctx => {
     const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
-    const component = <any>new app();
+    const component = new app();
     component.$1 = '1';
     component.$2 = '2';
     component.$3 = '3';
@@ -463,7 +463,7 @@ boundTemplateCtrl.addActionSlot('act')
     au.app({ host, component }).start();
 
     expect(host.textContent).to.equal('123');
-  })
+  });
 
 boundTemplateCtrl.load();
 boundTemplateCtrl.run();

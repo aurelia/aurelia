@@ -1,32 +1,31 @@
-import { PLATFORM, IContainer } from "@aurelia/kernel";
-import { expect } from "chai";
-import { tearDown, defineCustomElement } from "./prepare";
-import { baseSuite } from "./template-compiler.base";
-import { Aurelia, ILifecycle } from '../../../runtime/src/index';
-import { LifecycleFlags } from '../../../runtime/src/index';
+import { IContainer, PLATFORM } from '@aurelia/kernel';
+import { Aurelia, ILifecycle } from '@aurelia/runtime';
+import { expect } from 'chai';
+import { defineCustomElement, tearDown } from './prepare';
+import { baseSuite } from './template-compiler.base';
 
 const spec = 'template-compiler.repeater';
 
 const suite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, [string, string, string, (component: any) => void], string>(spec);
 
 suite.addDataSlot('e')
-  .addData('01').setValue([`[a,b,c]`,             `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}])
-  .addData('02').setValue([`[c,b,a]|sort`,        `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}])
+  .addData('01').setValue([`[a,b,c]`,             `\${item}`,               `123`,    c => {c.a = 1; c.b = 2; c.c = 3; }])
+  .addData('02').setValue([`[c,b,a]|sort`,        `\${item}`,               `123`,    c => {c.a = 1; c.b = 2; c.c = 3; }])
   .addData('03').setValue([`[1+1,2+1,3+1]`,       `\${item}`,               `234`,    PLATFORM.noop])
   .addData('04').setValue([`[1,2,3]`,             `\${item}`,               `123`,    PLATFORM.noop])
   .addData('05').setValue([`[3,2,1]|sort`,        `\${item}`,               `123`,    PLATFORM.noop])
   .addData('06').setValue([`[{i:1},{i:2},{i:3}]`, `\${item.i}`,             `123`,    PLATFORM.noop])
   .addData('07').setValue([`[[1],[2],[3]]`,       `\${item[0]}`,            `123`,    PLATFORM.noop])
-  .addData('08').setValue([`[[a],[b],[c]]`,       `\${item[0]}`,            `123`,    c => {c.a=1;c.b=2;c.c=3}])
+  .addData('08').setValue([`[[a],[b],[c]]`,       `\${item[0]}`,            `123`,    c => {c.a = 1; c.b = 2; c.c = 3; }])
   .addData('09').setValue([`3`,                   `\${item}`,               `012`,    PLATFORM.noop])
   .addData('10').setValue([`null`,                `\${item}`,               ``,       PLATFORM.noop])
   .addData('11').setValue([`undefined`,           `\${item}`,               ``,       PLATFORM.noop])
-  .addData('12').setValue([`items`,               `\${item}`,               `123`,    c=>c.items=['1','2','3']])
-  .addData('13').setValue([`items|sort`,          `\${item}`,               `123`,    c=>c.items=['3','2','1']])
-  .addData('14').setValue([`items`,               `\${item.i}`,             `123`,    c=>c.items=[{i:1},{i:2},{i:3}]])
-  .addData('15').setValue([`items|sort:'i'`,      `\${item.i}`,             `123`,    c=>c.items=[{i:3},{i:2},{i:1}]])
-  .addData('16').setValue([`items`,               `\${item}`,               `123`,    c=>c.items=new Set(['1','2','3'])])
-  .addData('17').setValue([`items`,               `\${item[0]}\${item[1]}`, `1a2b3c`, c=>c.items=new Map([['1','a'],['2','b'],['3','c']])]);
+  .addData('12').setValue([`items`,               `\${item}`,               `123`,    c => c.items = ['1', '2', '3']])
+  .addData('13').setValue([`items|sort`,          `\${item}`,               `123`,    c => c.items = ['3', '2', '1']])
+  .addData('14').setValue([`items`,               `\${item.i}`,             `123`,    c => c.items = [{i: 1}, {i: 2}, {i: 3}]])
+  .addData('15').setValue([`items|sort:'i'`,      `\${item.i}`,             `123`,    c => c.items = [{i: 3}, {i: 2}, {i: 1}]])
+  .addData('16').setValue([`items`,               `\${item}`,               `123`,    c => c.items = new Set(['1', '2', '3'])])
+  .addData('17').setValue([`items`,               `\${item[0]}\${item[1]}`, `1a2b3c`, c => c.items = new Map([['1', 'a'], ['2', 'b'], ['3', 'c']])]);
 
 suite.addDataSlot('f')
   .addData('01').setFactory(({e: [items, tpl]}) => `<template><div repeat.for="item of ${items}">${tpl}</div></template>`)
@@ -43,7 +42,7 @@ suite.addActionSlot('setup')
     class App {}
     const $App = defineCustomElement('app', markup, App);
     const component = new $App();
-    initialize(component)
+    initialize(component);
 
     au.app({ component, host }).start();
 

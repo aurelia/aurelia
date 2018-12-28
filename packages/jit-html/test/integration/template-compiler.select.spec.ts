@@ -1,10 +1,9 @@
-import { Primitive } from "@aurelia/kernel";
-import { tearDown, cleanup } from "./prepare";
-import { expect } from "chai";
-import { h } from "./util";
-import { setupAndStart, setup } from "./prepare";
-import { SelectValueObserver } from '@aurelia/runtime-html';
+import { Primitive } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
+import { SelectValueObserver } from '@aurelia/runtime-html';
+import { expect } from 'chai';
+import { cleanup, setup, setupAndStart, tearDown } from './prepare';
+import { h } from './util';
 
 // TemplateCompiler - <select/> Integration
 describe('template-compiler.select', () => {
@@ -32,7 +31,7 @@ describe('template-compiler.select', () => {
           </select>
         </template>`,
         class App {
-          selectedValue: string = '2';
+          public selectedValue: string = '2';
         }
       );
       au.app({ host, component }).start();
@@ -81,7 +80,7 @@ describe('template-compiler.select', () => {
           </select>
         </template>`,
         class App {
-          selectedValue: string = '2';
+          public selectedValue: string = '2';
         }
       );
       au.app({ host, component }).start();
@@ -148,7 +147,7 @@ describe('template-compiler.select', () => {
           </select>
         </template>`,
         class App {
-          selectedValues: Primitive[] = ['1', 2, '2', 3, '3']
+          public selectedValues: Primitive[] = ['1', 2, '2', 3, '3'];
         }
       );
       const select1 = host.querySelector('#select1') as HTMLSelectElement;
@@ -205,7 +204,7 @@ describe('template-compiler.select', () => {
           </select>
         </template>`,
         class App {
-          selectedValues: Primitive[] = []
+          public selectedValues: Primitive[] = [];
         }
       );
       const select1 = host.querySelector('#select1') as HTMLSelectElement;
@@ -251,14 +250,14 @@ describe('template-compiler.select', () => {
   //toViewBinding - select single
   it('03.', () => {
     const { au, lifecycle, host, component } = setupAndStart(
-      <any>template(null,
-        select(
+      template(null,
+               select(
           { 'value.to-view': 'selectedValue' },
-          ...[1,2].map(v => option({ value: v }))
+          ...[1, 2].map(v => option({ value: v }))
         )
       ), null
     );
-   expect(host.firstElementChild['value']).to.equal('1');
+    expect(host.firstElementChild['value']).to.equal('1');
     component.selectedValue = '2';
     expect(host.firstElementChild['value']).to.equal('1');
     lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -270,11 +269,11 @@ describe('template-compiler.select', () => {
   //twoWayBinding - select single
   it('04.', () => {
     const { au, lifecycle, host, component } = setupAndStart(
-      <any>h('template',
+      h('template',
         null,
         h('select',
           { 'value.two-way': 'selectedValue' },
-          ...[1,2].map(v => h('option', { value: v }))
+          ...[1, 2].map(v => h('option', { value: v }))
         )
       ), null
     );

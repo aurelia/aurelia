@@ -1,7 +1,7 @@
-import { expect } from "chai";
-import { tearDown, setupAndStart, cleanup } from "./prepare";
-import { spy } from "sinon";
-import { LifecycleFlags } from '../../../runtime/src/index';
+import { LifecycleFlags } from '@aurelia/runtime';
+import { expect } from 'chai';
+import { spy } from 'sinon';
+import { cleanup, setupAndStart, tearDown } from './prepare';
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands', () => {
@@ -31,7 +31,7 @@ describe('template-compiler.binding-commands', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div style.bind="foo"></div></template>`, null);
     component.foo = 'color: green;';
     lifecycle.processFlushQueue(LifecycleFlags.none);
-    expect((<HTMLElement>host.firstElementChild).style.cssText).to.equal('color: green;');
+    expect((host.firstElementChild as HTMLElement).style.cssText).to.equal('color: green;');
     tearDown(au, lifecycle, host);
   });
 
@@ -40,7 +40,7 @@ describe('template-compiler.binding-commands', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div style="\${foo}"></div></template>`, null);
     component.foo = 'color: green;';
     lifecycle.processFlushQueue(LifecycleFlags.none);
-    expect((<HTMLElement>host.firstElementChild).style.cssText).to.equal('color: green;');
+    expect((host.firstElementChild as HTMLElement).style.cssText).to.equal('color: green;');
     tearDown(au, lifecycle, host);
   });
 
@@ -49,7 +49,7 @@ describe('template-compiler.binding-commands', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div class.bind="foo"></div></template>`, null);
     component.foo = 'foo bar';
     lifecycle.processFlushQueue(LifecycleFlags.none);
-    expect((<HTMLElement>host.firstElementChild).classList.toString()).to.equal('au foo bar');
+    expect((host.firstElementChild as HTMLElement).classList.toString()).to.equal('au foo bar');
     tearDown(au, lifecycle, host);
   });
 
@@ -58,7 +58,7 @@ describe('template-compiler.binding-commands', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><div class="\${foo}"></div></template>`, null);
     component.foo = 'foo bar';
     lifecycle.processFlushQueue(LifecycleFlags.none);
-    expect((<HTMLElement>host.firstElementChild).classList.toString()).to.equal('\${foo} au foo bar'); // TODO: fix this
+    expect((host.firstElementChild as HTMLElement).classList.toString()).to.equal('\${foo} au foo bar'); // TODO: fix this
     tearDown(au, lifecycle, host);
   });
 
@@ -135,7 +135,6 @@ describe('template-compiler.binding-commands', () => {
     tearDown(au, lifecycle, host);
   });
 
-
   // fromViewBindingBehavior - input.value
   it('14.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><input value.one-time="message & fromView"></template>`, null);
@@ -202,7 +201,7 @@ describe('template-compiler.binding-commands', () => {
   // capture - button
   it('20.', () => {
     const { au, lifecycle, host, component } = setupAndStart(`<template><button click.capture="doStuff()"></button></template>`, null);
-    component.doStuff = spy()
+    component.doStuff = spy();
     host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }));
     expect(component.doStuff).to.have.been.called;
     tearDown(au, lifecycle, host);

@@ -1,9 +1,8 @@
+import { Constructable, IContainer } from '@aurelia/kernel';
+import { Aurelia, ICustomElementType, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { tearDown, setupAndStart, cleanup, defineCustomElement } from './prepare';
+import { cleanup, defineCustomElement, setupAndStart, tearDown } from './prepare';
 import { baseSuite } from './template-compiler.base';
-import { IContainer, Constructable } from '../../../kernel/src/index';;
-import { Aurelia, ICustomElementType, ILifecycle } from '../../../runtime/src/index';
-import { LifecycleFlags } from '../../../runtime/src/index';
 
 const spec = 'template-compiler.if-else';
 
@@ -41,7 +40,7 @@ describe(spec, () => {
 
 });
 
-type TApp = Constructable<{ ifText: string; elseText: string; show: boolean; }> & ICustomElementType;
+type TApp = Constructable<{ ifText: string; elseText: string; show: boolean }> & ICustomElementType;
 const suite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, InstanceType<TApp>>(spec);
 
 suite.addDataSlot('e').addData('app').setFactory(ctx => {

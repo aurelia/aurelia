@@ -1,13 +1,9 @@
-import { expect } from "chai";
-import { tearDown, createCustomElement, setupAndStart, TestConfiguration, cleanup } from "./prepare";
-import { customElement, bindable, Aurelia, Binding, SetterObserver, PropertyAccessor, Observer } from '../../../runtime/src/index';;
-import { DI } from "@aurelia/kernel";
-import { HTMLJitConfiguration } from "../../src/index";
-import { h } from "./util";
-import { InterpolationBinding } from "../../../runtime/src/binding/interpolation-binding";
-import { ILifecycle } from '../../../runtime/src/index';
-import { LifecycleFlags } from '../../../runtime/src/index';
-import { ElementPropertyAccessor } from '../../../runtime-html/src';
+import { Aurelia, bindable, Binding, customElement, ILifecycle, InterpolationBinding, LifecycleFlags, PropertyAccessor, SetterObserver } from '@aurelia/runtime';
+import { ElementPropertyAccessor } from '@aurelia/runtime-html';
+import { expect } from 'chai';
+import { HTMLJitConfiguration } from '../../src';
+import { cleanup, createCustomElement, setupAndStart, tearDown, TestConfiguration } from './prepare';
+import { h } from './util';
 
 // TemplateCompiler - custom element integration
 describe('template-compiler.custom-elements', () => {
@@ -84,13 +80,13 @@ describe('template-compiler.custom-elements', () => {
       @bindable()
       public value: any;
       public value1: any;
-      private valueChanged(newValue: any): void {
-        this.value1 = newValue+'1';
-      }
       public bound(): void {
         expect(this.value).to.equal('w00t');
         expect(this.value1).to.equal('w00t1');
         boundCalls++;
+      }
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue + '1';
       }
     }
 
@@ -99,9 +95,6 @@ describe('template-compiler.custom-elements', () => {
       @bindable()
       public value: any;
       public value1: any;
-      private valueChanged(newValue: any): void {
-        this.value1 = newValue+'1';
-      }
       @bindable()
       public value2: any;
       public bound(): void {
@@ -109,6 +102,9 @@ describe('template-compiler.custom-elements', () => {
         expect(this.value1).to.equal('w00t1');
         expect(this.value2).to.equal('w00t1');
         boundCalls++;
+      }
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue + '1';
       }
     }
 
@@ -119,14 +115,14 @@ describe('template-compiler.custom-elements', () => {
       public value1: any;
       @bindable()
       public value2: any;
-      private valueChanged(newValue: any): void {
-        this.value1 = newValue+'1';
-      }
       public bound(): void {
         expect(this.value).to.equal('w00t');
         expect(this.value1).to.equal('w00t1');
         expect(this.value2).to.equal('w00t1');
         boundCalls++;
+      }
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue + '1';
       }
     }
 
@@ -137,14 +133,14 @@ describe('template-compiler.custom-elements', () => {
       public value1: any;
       @bindable()
       public value2: any;
-      private valueChanged(newValue: any): void {
-        this.value1 = newValue+'1';
-      }
       public bound(): void {
         expect(this.value).to.equal('w00t');
         expect(this.value1).to.equal('w00t1');
         expect(this.value2).to.equal('w00t1');
         boundCalls++;
+      }
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue + '1';
       }
     }
 
@@ -155,14 +151,14 @@ describe('template-compiler.custom-elements', () => {
       public value1: any;
       @bindable()
       public value2: any;
-      private valueChanged(newValue: any): void {
-        this.value1 = newValue+'1';
-      }
       public bound(): void {
         expect(this.value).to.equal('w00t');
         expect(this.value1).to.equal('w00t1');
         expect(this.value2).to.equal('w00t1');
         boundCalls++;
+      }
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue + '1';
       }
     }
 
@@ -170,7 +166,7 @@ describe('template-compiler.custom-elements', () => {
     const container = HTMLJitConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle);
     container.register(...customElementCtors);
-    container.register(TestConfiguration)
+    container.register(TestConfiguration);
     const host = document.createElement('app');
     document.body.appendChild(host);
     const au = new Aurelia(container);

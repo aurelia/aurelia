@@ -1,7 +1,7 @@
-import { TestSuite } from "../../../../scripts/test-suite";
-import { Aurelia, ILifecycle } from '../../../runtime/src/index';
-import { HTMLJitConfiguration } from "../../src/index";
-import { TestConfiguration } from "./prepare";
+import { Aurelia, ILifecycle } from '@aurelia/runtime';
+import { TestSuite } from '../../../../scripts/test-suite';
+import { HTMLJitConfiguration } from '../../src/index';
+import { TestConfiguration } from './prepare';
 
 const app = document.createElement('app') as Node;
 const createApp = app.cloneNode.bind(app, false);

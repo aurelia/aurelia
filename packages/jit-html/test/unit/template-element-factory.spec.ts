@@ -1,15 +1,14 @@
-import {
-  HTMLDOM
-} from '../../../runtime-html/src/index';
+
+import { HTMLDOM } from '@aurelia/runtime-html';
+import { expect } from 'chai';
 import {
   HTMLTemplateElementFactory
 } from '../../src/index';
-import { expect } from 'chai';
 
 describe('HTMLTemplateElementFactory', () => {
 
   it('template-wrapped markup string', () => {
-    const sut = new HTMLTemplateElementFactory(<any>new HTMLDOM(<any>document));
+    const sut = new HTMLTemplateElementFactory(new HTMLDOM(document));
     const markup = `<template><div class="au">foo</div></template>`;
 
     const expectedHTML = markup;
@@ -19,7 +18,7 @@ describe('HTMLTemplateElementFactory', () => {
   });
 
   it('non-template-wrapped markup string', () => {
-    const sut = new HTMLTemplateElementFactory(<any>new HTMLDOM(<any>document));
+    const sut = new HTMLTemplateElementFactory(new HTMLDOM(document));
     const markup = `<div class="au">foo</div>`;
 
     const expectedHTML = `<template>${markup}</template>`;
@@ -29,7 +28,7 @@ describe('HTMLTemplateElementFactory', () => {
   });
 
   it('double template-wrapped markup string', () => {
-    const sut = new HTMLTemplateElementFactory(<any>new HTMLDOM(<any>document));
+    const sut = new HTMLTemplateElementFactory(new HTMLDOM(document));
     const markup = `<template><div class="au">foo</div></template>`.repeat(2);
 
     const expectedHTML = `<template>${markup}</template>`;
@@ -39,7 +38,7 @@ describe('HTMLTemplateElementFactory', () => {
   });
 
   it('double non-template-wrapped markup string', () => {
-    const sut = new HTMLTemplateElementFactory(<any>new HTMLDOM(<any>document));
+    const sut = new HTMLTemplateElementFactory(new HTMLDOM(document));
     const markup = `<div class="au">foo</div>`.repeat(2);
 
     const expectedHTML = `<template>${markup}</template>`;
@@ -49,33 +48,33 @@ describe('HTMLTemplateElementFactory', () => {
   });
 
   it('template node', () => {
-    const sut = new HTMLTemplateElementFactory(<any>new HTMLDOM(<any>document));
+    const sut = new HTMLTemplateElementFactory(new HTMLDOM(document));
     const markup = `<div class="au">foo</div>`;
     const template = document.createElement('template');
     template.innerHTML = markup;
     const node = template;
 
-    const expectedHTML = `<template>${markup}</template>`
+    const expectedHTML = `<template>${markup}</template>`;
     const actualHTML = sut.createTemplate(node).outerHTML;
 
     expect(actualHTML).to.equal(expectedHTML);
   });
 
   it('non-template node', () => {
-    const sut = new HTMLTemplateElementFactory(<any>new HTMLDOM(<any>document));
+    const sut = new HTMLTemplateElementFactory(new HTMLDOM(document));
     const markup = `<div class="au">foo</div>`;
     const template = document.createElement('template');
     template.innerHTML = markup;
     const node = template.content.firstElementChild;
 
-    const expectedHTML = `<template>${markup}</template>`
+    const expectedHTML = `<template>${markup}</template>`;
     const actualHTML = sut.createTemplate(node).outerHTML;
 
     expect(actualHTML).to.equal(expectedHTML);
   });
 
   it('template node with parent', () => {
-    const sut = new HTMLTemplateElementFactory(<any>new HTMLDOM(<any>document));
+    const sut = new HTMLTemplateElementFactory(new HTMLDOM(document));
     const markup = `<template><div class="au">foo</div></template>`;
     const template = document.createElement('template');
     template.innerHTML = markup;

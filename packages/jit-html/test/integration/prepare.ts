@@ -1,8 +1,8 @@
 
-import { HTMLJitConfiguration } from "../../src/index";
-import { expect } from "chai";
-import { valueConverter, customElement, bindable, CustomElementResource, IObserverLocator, Aurelia, Lifecycle, ILifecycle, INode, IDOM } from "../../../runtime/src/index";
-import { IContainer, DI, Constructable, PLATFORM, Registration } from "../../../kernel/src/index";
+import { Constructable, IContainer, PLATFORM } from '@aurelia/kernel';
+import { Aurelia, bindable, customElement, CustomElementResource, ILifecycle, INode, IObserverLocator, valueConverter } from '@aurelia/runtime';
+import { expect } from 'chai';
+import { HTMLJitConfiguration } from '../../src/index';
 
 export function cleanup(): void {
   const body = document.body;
@@ -41,7 +41,6 @@ export class JsonValueConverter {
   }
 }
 
-
 @customElement({
   name: 'name-tag',
   template: '<template>${name}</template>',
@@ -53,7 +52,7 @@ export class JsonValueConverter {
 class NameTag {
 
   @bindable()
-  name: string;
+  public name: string;
 }
 
 const globalResources: any[] = [
@@ -66,7 +65,7 @@ export const TestConfiguration = {
   register(container: IContainer) {
     container.register(...globalResources);
   }
-}
+};
 
 const buildRequired = { required: true, compiler: 'default' };
 
@@ -75,9 +74,9 @@ export function defineCustomElement<T>(name: string, markupOrNode: string | INod
     name,
     template: markupOrNode,
     build: buildRequired,
-    dependencies: <any>dependencies,
+    dependencies: dependencies,
     instructions: []
-  }, $class);
+  },                                  $class);
 }
 
 export function createCustomElement(markup: string | IElement, $class: Constructable | null, ...dependencies: Function[]): { [key: string]: any } {
@@ -88,7 +87,7 @@ export function createCustomElement(markup: string | IElement, $class: Construct
     build: { required: true, compiler: 'default' },
     instructions: [],
     surrogates: []
-  }, $class === null ? class App { } : $class))();
+  },                                       $class === null ? class App { } : $class))();
 }
 
 export function stringify(o) {
@@ -96,7 +95,7 @@ export function stringify(o) {
   const result = JSON.stringify(o, function(key, value) {
     if (typeof value === 'object' && value !== null) {
       if (value instanceof Node) {
-        return value['innerHTML']
+        return value['innerHTML'];
       }
       if (cache.indexOf(value) !== -1) {
         try {
@@ -118,7 +117,7 @@ export function setupAndStart(template: string, $class: Constructable | null, ..
   container.register(...registrations);
   const lifecycle = container.get<ILifecycle>(ILifecycle);
   const observerLocator = container.get<IObserverLocator>(IObserverLocator);
-  container.register(TestConfiguration)
+  container.register(TestConfiguration);
   const host = document.createElement('app');
   document.body.appendChild(host);
   const au = new Aurelia(container);
@@ -132,7 +131,7 @@ export function setup(template: string, $class: Constructable | null, ...registr
   container.register(...registrations);
   const lifecycle = container.get<ILifecycle>(ILifecycle);
   const observerLocator = container.get<IObserverLocator>(IObserverLocator);
-  container.register(TestConfiguration)
+  container.register(TestConfiguration);
   const host = document.createElement('app');
   document.body.appendChild(host);
   const au = new Aurelia(container);

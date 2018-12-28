@@ -1,10 +1,9 @@
-import { expect } from "chai";
-import { defineCustomElement } from "./prepare";
-import { ILifecycle, bindable, Aurelia } from '../../../runtime/src/index';;
-import { baseSuite } from "./template-compiler.base";
-import { IContainer } from "@aurelia/kernel";
-import { trimFull } from "./util";
-import { LifecycleFlags } from '../../../runtime/src/index';
+import { IContainer } from '@aurelia/kernel';
+import { Aurelia, bindable, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import { expect } from 'chai';
+import { defineCustomElement } from './prepare';
+import { baseSuite } from './template-compiler.base';
+import { trimFull } from './util';
 
 const spec = 'template-compiler.repeater-if-else';
 
@@ -188,11 +187,11 @@ parentSuite.addDataSlot('f') // Template (custom element)
           </div>
         </div>
       </div>
-    </template>`)
+    </template>`);
 
 parentSuite.addDataSlot('g') // Items (initial)
   .addData('01').setFactory(c => [[{if: 1,   else: 2},   {if: 3,   else: 4}                                              ], '13',   '24'])
-  .addData('02').setFactory(c => [[{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}, {if: 'g', else: 'h'}], 'aceg', 'bdfh'])
+  .addData('02').setFactory(c => [[{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}, {if: 'g', else: 'h'}], 'aceg', 'bdfh']);
 
 parentSuite.addDataSlot('h') // Markup (app)
   .addData('01').setValue(
@@ -227,7 +226,7 @@ parentSuite.addDataSlot('h') // Markup (app)
       </div>
       <foo else repeat.for="i of count" items.bind="items" display.bind="display">
       </foo>
-    </template>`)
+    </template>`);
 // // TODO: doesn't remove all nodes it needs to remove (or something), renders too much
 //   .addData('06').setValue(
 //     `<template>
@@ -246,7 +245,7 @@ parentSuite.addDataSlot('h') // Markup (app)
 
 parentSuite.addDataSlot('i') // count
   .addData('01').setValue(1)
-  .addData('02').setValue(3)
+  .addData('02').setValue(3);
 
 parentSuite.addActionSlot('setup')
   .addAction(null, ctx => {
@@ -332,7 +331,6 @@ mutations.addActionSlot('mutate') // Tests/assertions
     expect(trimFull(host.textContent)).to.equal((ifText.split('').reverse().join('')).repeat(count));
   });
 
-
 removals.addActionSlot('remove')
   // assign an item less
   .addAction('01', ctx => {
@@ -369,7 +367,6 @@ removals.addActionSlot('remove')
     expect(trimFull(host.textContent)).to.equal(ifText.slice(0, -1).repeat(count));
   });
 
-
 additions.addActionSlot('add')
   // assign an item more
   .addAction('01', ctx => {
@@ -377,7 +374,7 @@ additions.addActionSlot('add')
     component.items = component.items.slice().concat({if: 'x', else: 'y'});
     lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal((elseText+'y').repeat(count));
+    expect(trimFull(host.textContent)).to.equal((elseText + 'y').repeat(count));
   })
   // assign an item more + swap the if/else
   .addAction('02', ctx => {
@@ -404,7 +401,7 @@ additions.addActionSlot('add')
     lifecycle.processFlushQueue(LifecycleFlags.none);
 
     expect(trimFull(host.textContent)).to.equal((ifText + '5').repeat(count));
-  })
+  });
 
 for (const suite of [mutations, removals, additions]) {
   suite.addActionSlot('teardown')

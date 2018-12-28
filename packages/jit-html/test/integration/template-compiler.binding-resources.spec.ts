@@ -1,7 +1,5 @@
-import { setupAndStart, tearDown, cleanup } from './prepare';
 import { expect } from 'chai';
-import { Lifecycle } from '../../../runtime/src/index';
-import { LifecycleFlags } from '../../../runtime/src/index';
+import { cleanup, setupAndStart, tearDown } from './prepare';
 
 // TemplateCompiler - Binding Resources integration
 describe('template-compiler.binding-resources', () => {
@@ -16,19 +14,19 @@ describe('template-compiler.binding-resources', () => {
     setTimeout(() => {
       expect(host.firstChild['value']).to.equal('');
       component.message = 'hello!!';
-    }, 25);
+    },         25);
     setTimeout(() => {
       expect(host.firstChild['value']).to.equal('');
       component.message = 'hello!!!';
-    }, 50);
+    },         50);
     setTimeout(() => {
       expect(host.firstChild['value']).to.equal('');
-    }, 75);
+    },         75);
     setTimeout(() => {
       expect(host.firstChild['value']).to.equal('hello!!!');
       tearDown(au, lifecycle, host);
       done();
-    }, 175);
+    },         175);
   });
 
   // TODO: fix throttle

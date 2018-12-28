@@ -1,20 +1,40 @@
-import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
-import { h } from '../../../../scripts/test-lib-dom';
+import {
+  IAttributeSymbol,
+  INodeSymbol,
+  ISymbol
+} from '@aurelia/jit';
+import {
+  ITraceInfo,
+  PLATFORM,
+  Tracer
+} from '@aurelia/kernel';
+import {
+  stringifyLifecycleFlags,
+  TargetedInstructionType
+} from '@aurelia/runtime';
+import { HTMLTargetedInstructionType } from '@aurelia/runtime-html';
+import {
+  _,
+  eachCartesianJoin,
+  eachCartesianJoinFactory,
+  ensureNotCalled,
+  htmlStringify,
+  jsonStringify,
+  massReset,
+  massRestore,
+  massSpy,
+  massStub,
+  padRight,
+  stringify,
+  verifyEqual
+} from '../../../../scripts/test-lib';
+import {
+  createElement,
+  h
+} from '../../../../scripts/test-lib-dom';
 import {
   Tracer as DebugTracer
 } from '../../../debug/src/index';
-import {
-  Tracer, ITraceInfo, PLATFORM
-} from '../../../kernel/src/index';
-import {
-  ISymbol, INodeSymbol, IAttributeSymbol
-} from '../../../jit/src/index';
-import {
-  stringifyLifecycleFlags, TargetedInstructionType
-} from '../../../runtime/src/index';
-import { HTMLTargetedInstructionType } from '../../../runtime-html/src/index';
-
-
 
 export const SymbolTraceWriter = {
   write(info: ITraceInfo): void {
@@ -34,7 +54,7 @@ export const SymbolTraceWriter = {
           if (p === null) {
             output += 'null';
           } else {
-            if ((<ISymbol>p).kind) {
+            if ((p as ISymbol).kind) {
               const symbol = p as INodeSymbol | IAttributeSymbol;
               if ('attr' in symbol) {
                 output += `attr: ${symbol.attr.name}=${symbol.attr.value}`;
@@ -46,7 +66,7 @@ export const SymbolTraceWriter = {
             } else {
               if ('outerHTML' in (p as HTMLElement)) {
                 const el = p as HTMLElement;
-                output += `${Object.getPrototypeOf(el).constructor.name}=${el.outerHTML}`
+                output += `${Object.getPrototypeOf(el).constructor.name}=${el.outerHTML}`;
               } else {
                 output += `[Object ${Object.getPrototypeOf(p).constructor.name || 'anonymous'}]`;
               }
@@ -168,7 +188,7 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
     }
   }
   if (path === 'instruction' && errors.some(e => e[0] === 'W')) {
-    throw new Error('Failed assertion: binding instruction mismatch\n  - '+errors.join('\n  - '));
+    throw new Error('Failed assertion: binding instruction mismatch\n  - ' + errors.join('\n  - '));
   }
 }
 

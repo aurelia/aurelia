@@ -44,7 +44,12 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
     this.host = host;
 
     let shadowOptions: ShadowRootInit;
-    if (definition.shadowOptions !== undefined) {
+    if (
+      definition.shadowOptions !== undefined &&
+      definition.shadowOptions !== null &&
+      typeof definition.shadowOptions === 'object' &&
+      'mode' in definition.shadowOptions
+    ) {
       shadowOptions = definition.shadowOptions as unknown as ShadowRootInit;
     } else {
       shadowOptions = defaultShadowOptions;
@@ -55,7 +60,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
-    return this.host.childNodes;
+    return this.shadowRoot.childNodes;
   }
 
   public subscribeToChildrenChange(callback: () => void): void {
@@ -70,7 +75,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
 
   public project(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector.project', slice.call(arguments)); }
-    nodes.appendTo(this.host);
+    nodes.appendTo(this.shadowRoot);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 

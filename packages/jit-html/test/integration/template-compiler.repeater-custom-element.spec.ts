@@ -7,6 +7,7 @@ import {
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { HTMLJitConfiguration } from '../../src/index';
+import { getVisibleText } from '../util';
 import {
   setup,
   setupAndStart,
@@ -215,8 +216,8 @@ describe(spec, () => {
 
     au.start();
 
-    expect(host.textContent.length).to.equal(1110);
-    expect(host.textContent).to.equal('a'.repeat(1110));
+    expect(getVisibleText(au, host).length).to.equal(1110);
+    expect(getVisibleText(au, host)).to.equal('a'.repeat(1110));
 
     expect(childrenChangedCount).to.equal(0);
 
@@ -232,7 +233,7 @@ describe(spec, () => {
     expect(childrenCount).to.equal(1100 + 110 * 2 + 11 * 2);
 
     au.stop();
-    expect(host.textContent).to.equal('');
+    expect(getVisibleText(au, host)).to.equal('');
   });
 
 });

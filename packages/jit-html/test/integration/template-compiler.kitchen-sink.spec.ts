@@ -32,6 +32,7 @@ import {
   enableTracing,
   SymbolTraceWriter
 } from '../unit/util';
+import { getVisibleText } from '../util';
 import { defineCustomElement } from './util';
 
 const spec = 'template-compiler.kitchen-sink';
@@ -1233,16 +1234,16 @@ describe('generated.template-compiler.static (with tracing)', function () {
   function verify(au, host, expected, description) {
       au.start();
       const outerHtmlAfterStart1 = host.outerHTML;
-      expect(host.textContent).to.equal(expected, 'after start #1');
+      expect(getVisibleText(au, host)).to.equal(expected, 'after start #1');
       au.stop();
       const outerHtmlAfterStop1 = host.outerHTML;
-      expect(host.textContent).to.equal('', 'after stop #1');
+      expect(getVisibleText(au, host)).to.equal('', 'after stop #1');
       au.start();
       const outerHtmlAfterStart2 = host.outerHTML;
-      expect(host.textContent).to.equal(expected, 'after start #2');
+      expect(getVisibleText(au, host)).to.equal(expected, 'after start #2');
       au.stop();
       const outerHtmlAfterStop2 = host.outerHTML;
-      expect(host.textContent).to.equal('', 'after stop #2');
+      expect(getVisibleText(au, host)).to.equal('', 'after stop #2');
       expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, 'outerHTML after start #1 / #2');
       expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, 'outerHTML after stop #1 / #2');
 

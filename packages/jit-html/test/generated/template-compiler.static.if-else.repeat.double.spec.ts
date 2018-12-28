@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { CustomElementResource, Aurelia } from "../../../runtime/src/index";
 import { HTMLJitConfiguration } from "../../src/index";
+import { getVisibleText } from "../util";
 
 describe("generated.template-compiler.static.if-else.repeat.double", function () {
     function setup() {
@@ -12,16 +13,16 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     function verify(au, host, expected) {
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(host.textContent).to.equal(expected, "after start #1");
+        expect(getVisibleText(au, host)).to.equal(expected, "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
-        expect(host.textContent).to.equal("", "after stop #1");
+        expect(getVisibleText(au, host)).to.equal("", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(host.textContent).to.equal(expected, "after start #2");
+        expect(getVisibleText(au, host)).to.equal(expected, "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
-        expect(host.textContent).to.equal("", "after stop #2");
+        expect(getVisibleText(au, host)).to.equal("", "after stop #2");
         expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     }

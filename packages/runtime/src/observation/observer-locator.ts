@@ -170,13 +170,16 @@ export class ObserverLocator implements IObserverLocator {
       return new PrimitiveObserver(obj as unknown as Primitive, propertyName) as IBindingTargetAccessor;
     }
 
+    let isNode = false;
     if (this.targetObserverLocator.handles(obj)) {
       const observer = this.targetObserverLocator.getObserver(this.lifecycle, this, obj, propertyName);
       if (observer !== null) {
         return observer;
       }
-      // TODO: use MutationObserver
-      return this.dirtyChecker.createProperty(obj, propertyName);
+      if (observer !== null) {
+        return observer;
+      }
+      isNode = true;
     }
 
     const tag = toStringTag.call(obj);
@@ -211,6 +214,10 @@ export class ObserverLocator implements IObserverLocator {
       const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
       if (adapterObserver) {
         return adapterObserver;
+      }
+      if (isNode) {
+        // TODO: use MutationObserver
+        return this.dirtyChecker.createProperty(obj, propertyName);
       }
 
       return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);

@@ -1,42 +1,44 @@
 import {
-  ObserverLocator,
-  DOM,
-  ILifecycle,
-  IEventManager,
-  IDirtyChecker,
-  ISVGAnalyzer,
-  DataAttributeAccessor,
-  PrimitiveObserver,
-  ClassAttributeAccessor,
-  StyleAttributeAccessor,
-  SelectValueObserver,
-  ValueAttributeObserver,
-  CheckedObserver,
-  XLinkAttributeAccessor,
-  DirtyCheckProperty,
-  CustomSetterObserver,
-  SetterObserver,
+  Registration,
+  Reporter
+} from '@aurelia/kernel';
+import {
   CollectionLengthObserver,
+  CustomSetterObserver,
+  IDOM,
+  IObserverLocator,
+  PrimitiveObserver,
   PropertyAccessor,
-  ElementPropertyAccessor
-} from '../../src/index';
+  SetterObserver
+} from '@aurelia/runtime';
 import { expect } from 'chai';
-import { DI } from '@aurelia/kernel';
+import { spy } from 'sinon';
+import {
+  DirtyCheckProperty
+} from '../../../runtime/src/index';
+import {
+  AttributeNSAccessor,
+  CheckedObserver,
+  ClassAttributeAccessor,
+  DataAttributeAccessor,
+  ElementPropertyAccessor,
+  HTMLDOM,
+  HTMLRuntimeConfiguration,
+  SelectValueObserver,
+  StyleAttributeAccessor,
+  ValueAttributeObserver
+} from '../../src/index';
 import {
   _,
   createElement
 } from '../util';
-import { spy } from 'sinon';
-import { Reporter } from '@aurelia/kernel';
 
 describe('ObserverLocator', () => {
   function setup() {
-    const container = DI.createContainer();
-    const lifecycle = container.get(ILifecycle);
-    const em = container.get(IEventManager);
-    const dc = container.get(IDirtyChecker);
-    const sa = container.get(ISVGAnalyzer);
-    const sut = new ObserverLocator(new DOM(<any>document), lifecycle, em, dc, sa);
+    const container = HTMLRuntimeConfiguration.createContainer();
+    const dom = new HTMLDOM(document);
+    Registration.instance(IDOM, dom).register(container, IDOM);
+    const sut = container.get(IObserverLocator);
 
     return { sut };
   }
@@ -51,7 +53,7 @@ describe('ObserverLocator', () => {
     `<input model="foo"></input>`,
     `<div xlink:type="foo"></div>`,
   ]) {
-    const el = <Element>createElement(markup);
+    const el = createElement(markup) as Element;
     const attr = el.attributes[0];
     const { sut } = setup();
     const expected = sut.getObserver(el, attr.name);
@@ -61,27 +63,62 @@ describe('ObserverLocator', () => {
     });
   }
 
+  // TODO: really need to verify all of this stuff with spec
+  // for (const markup of [
+  //   `<a href="foo"></a>`,
+  //   `<img src="foo"></img>`,
+  //   `<div _:=""></div>`,
+  //   `<div _4:=""></div>`,
+  //   `<div a:=""></div>`,
+  //   `<div _:a=""></div>`,
+  //   `<div _4:a=""></div>`,
+  //   `<div a:a=""></div>`,
+  //   `<div data-=""></div>`,
+  //   `<div data-a=""></div>`,
+  //   `<div aria-=""></div>`,
+  //   `<div aria-a=""></div>`,
+  // ]) {
+  //   it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, () => {
+  //     const el = createElement(markup) as Element;
+  //     const attr = el.attributes[0];
+  //     const { sut } = setup();
+  //     const actual = sut.getAccessor(el, attr.name);
+  //     expect(actual.constructor.name).to.equal(DataAttributeAccessor.name);
+  //     expect(actual).to.be.instanceof(DataAttributeAccessor);
+  //   });
+  // }
   for (const markup of [
     `<a href="foo"></a>`,
     `<img src="foo"></img>`,
-    `<div _:=""></div>`,
-    `<div _4:=""></div>`,
-    `<div a:=""></div>`,
-    `<div _:a=""></div>`,
-    `<div _4:a=""></div>`,
-    `<div a:a=""></div>`,
     `<div data-=""></div>`,
     `<div data-a=""></div>`,
     `<div aria-=""></div>`,
     `<div aria-a=""></div>`,
   ]) {
     it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, () => {
-      const el = <Element>createElement(markup);
+      const el = createElement(markup) as Element;
       const attr = el.attributes[0];
       const { sut } = setup();
       const actual = sut.getAccessor(el, attr.name);
       expect(actual.constructor.name).to.equal(DataAttributeAccessor.name);
       expect(actual).to.be.instanceof(DataAttributeAccessor);
+    });
+  }
+  for (const markup of [
+    `<div _:=""></div>`,
+    `<div _4:=""></div>`,
+    `<div a:=""></div>`,
+    `<div _:a=""></div>`,
+    `<div _4:a=""></div>`,
+    `<div a:a=""></div>`
+  ]) {
+    it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, () => {
+      const el = createElement(markup) as Element;
+      const attr = el.attributes[0];
+      const { sut } = setup();
+      const actual = sut.getAccessor(el, attr.name);
+      expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
+      expect(actual).to.be.instanceof(ElementPropertyAccessor);
     });
   }
 
@@ -100,7 +137,7 @@ describe('ObserverLocator', () => {
     `<div ariaa=""></div>`,
   ]) {
     it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, () => {
-      const el = <Element>createElement(markup);
+      const el = createElement(markup) as Element;
       const attr = el.attributes[0];
       const { sut } = setup();
       const actual = sut.getAccessor(el, attr.name);
@@ -117,10 +154,10 @@ describe('ObserverLocator', () => {
     expect(actual).to.be.instanceof(PropertyAccessor);
   });
 
-  for (const obj of <any[]>[
+  for (const obj of [
     undefined, null, true, false, '', 'foo',
     Number.MAX_VALUE, Number.MAX_SAFE_INTEGER, Number.MIN_VALUE, Number.MIN_SAFE_INTEGER, 0, +Infinity, -Infinity, NaN
-  ]) {
+  ] as any[]) {
     it(_`getObserver() - ${obj} - returns PrimitiveObserver`, () => {
       const { sut } = setup();
       if (obj === null || obj === undefined) {
@@ -158,7 +195,7 @@ describe('ObserverLocator', () => {
     { markup: `<input checked="true"></input>`, ctor: CheckedObserver },
     { markup: `<input files=""></input>`, ctor: ValueAttributeObserver },
     { markup: `<textarea value=""></textarea>`, ctor: ValueAttributeObserver },
-    { markup: `<div xlink:type=""></div>`, ctor: XLinkAttributeAccessor },
+    { markup: `<div xlink:type=""></div>`, ctor: AttributeNSAccessor },
     { markup: `<div role=""></div>`, ctor: DataAttributeAccessor },
     { markup: `<div data-=""></div>`, ctor: DataAttributeAccessor },
     { markup: `<div data-a=""></div>`, ctor: DataAttributeAccessor },
@@ -166,7 +203,7 @@ describe('ObserverLocator', () => {
     { markup: `<div aria-a=""></div>`, ctor: DataAttributeAccessor }
   ]) {
     it(_`getObserver() - ${markup} - returns ${ctor.name}`, () => {
-      const el = <Element>createElement(markup);
+      const el = createElement(markup) as Element;
       const attr = el.attributes[0];
       const { sut } = setup();
       const actual = sut.getObserver(el, attr.name);
@@ -186,24 +223,24 @@ describe('ObserverLocator', () => {
                   for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
                     const { sut } = setup();
                     const obj = {};
-                    const dummyObserver = <any>{};
+                    const dummyObserver = {} as any;
                     if (hasAdapterObserver) {
                       if (adapterIsDefined) {
-                        sut.addAdapter({getObserver() { return dummyObserver }});
+                        sut.addAdapter({getObserver() { return dummyObserver; }});
                       } else {
-                        sut.addAdapter({getObserver() { return null }});
+                        sut.addAdapter({getObserver() { return null; }});
                       }
                     }
-                    const descriptor = <PropertyDescriptor>{ configurable, enumerable };
+                    const descriptor = { configurable, enumerable } as PropertyDescriptor;
                     if (hasGetter) {
-                      function getter() {};
+                      function getter() {}
                       if (hasGetObserver) {
                         getter['getObserver'] = () => dummyObserver;
                       }
                       descriptor.get = getter;
                     }
                     if (hasSetter) {
-                      function setter() {};
+                      function setter() {}
                       descriptor.set = setter;
                     }
                     if (hasOverrides) {
@@ -260,12 +297,12 @@ describe('ObserverLocator', () => {
         for (const property of Object.keys(descriptors)) {
           const { sut } = setup();
           const obj = document.createElement('div');
-          const dummyObserver = <any>{};
+          const dummyObserver = {} as any;
           if (hasAdapterObserver) {
             if (adapterIsDefined) {
-              sut.addAdapter({getObserver() { return dummyObserver }});
+              sut.addAdapter({getObserver() { return dummyObserver; }});
             } else {
-              sut.addAdapter({getObserver() { return null }});
+              sut.addAdapter({getObserver() { return null; }});
             }
           }
           it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
@@ -296,7 +333,7 @@ describe('ObserverLocator', () => {
     const obj = {};
     const write = Reporter.write;
     Reporter.write = spy();
-    Object.defineProperty(obj, '$observers', { value: undefined })
+    Object.defineProperty(obj, '$observers', { value: undefined });
     sut.getObserver(obj, 'foo');
     expect(Reporter.write).to.have.been.calledWith(0);
     Reporter.write = write;

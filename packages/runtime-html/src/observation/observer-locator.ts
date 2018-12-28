@@ -29,44 +29,46 @@ const xmlNS = 'http://www.w3.org/XML/1998/namespace';
 const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
 
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
-const nsAttributes = {
-  'xlink:actuate': ['actuate', xlinkNS],
-  'xlink:arcrole': ['arcrole', xlinkNS],
-  'xlink:href': ['href', xlinkNS],
-  'xlink:role': ['role', xlinkNS],
-  'xlink:show': ['show', xlinkNS],
-  'xlink:title': ['title', xlinkNS],
-  'xlink:type': ['type', xlinkNS],
-  'xml:lang': ['lang', xmlNS],
-  'xml:space': ['space', xmlNS],
-  'xmlns': ['xmlns', xmlnsNS],
-  'xmlns:xlink': ['xlink', xmlnsNS]
-};
+const nsAttributes = (function (o: Record<string, [string, string]>): typeof o {
+  o['xlink:actuate'] = ['actuate', xlinkNS];
+  o['xlink:arcrole'] = ['arcrole', xlinkNS];
+  o['xlink:href'] = ['href', xlinkNS];
+  o['xlink:role'] = ['role', xlinkNS];
+  o['xlink:show'] = ['show', xlinkNS];
+  o['xlink:title'] = ['title', xlinkNS];
+  o['xlink:type'] = ['type', xlinkNS];
+  o['xml:lang'] = ['lang', xmlNS];
+  o['xml:space'] = ['space', xmlNS];
+  o['xmlns'] = ['xmlns', xmlnsNS];
+  o['xmlns:xlink'] = ['xlink', xmlnsNS];
+  return o;
+})(Object.create(null));
 
 const inputEvents = ['change', 'input'];
 const selectEvents = ['change'];
 const contentEvents = ['change', 'input', 'blur', 'keyup', 'paste'];
 const scrollEvents = ['scroll'];
 
-const overrideProps = {
-  'class': true,
-  'style': true,
-  'css': true,
-  'checked': true,
-  'value': true,
-  'model': true,
-  'xlink:actuate': true,
-  'xlink:arcrole': true,
-  'xlink:href': true,
-  'xlink:role': true,
-  'xlink:show': true,
-  'xlink:title': true,
-  'xlink:type': true,
-  'xml:lang': true,
-  'xml:space': true,
-  'xmlns': true,
-  'xmlns:xlink': true
-};
+const overrideProps = (function (o: Record<string, boolean>): typeof o {
+  o['class'] = true;
+  o['style'] = true;
+  o['css'] = true;
+  o['checked'] = true;
+  o['value'] = true;
+  o['model'] = true;
+  o['xlink:actuate'] = true;
+  o['xlink:arcrole'] = true;
+  o['xlink:href'] = true;
+  o['xlink:role'] = true;
+  o['xlink:show'] = true;
+  o['xlink:title'] = true;
+  o['xlink:type'] = true;
+  o['xml:lang'] = true;
+  o['xml:space'] = true;
+  o['xmlns'] = true;
+  o['xmlns:xlink'] = true;
+  return o;
+})(Object.create(null));
 
 @inject(IDOM)
 export class TargetObserverLocator implements ITargetObserverLocator {
@@ -99,10 +101,18 @@ export class TargetObserverLocator implements ITargetObserverLocator {
         return new StyleAttributeAccessor(lifecycle, obj as HTMLElement);
       case 'model':
         return new SetterObserver(obj, propertyName);
+      case 'role':
+        return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
       default:
         if (nsAttributes[propertyName] !== undefined) {
           const nsProps = nsAttributes[propertyName];
           return new AttributeNSAccessor(lifecycle, obj as HTMLElement, propertyName, nsProps[0], nsProps[1]);
+        }
+        const prefix = propertyName.slice(0, 5);
+        // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
+        // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
+        if (prefix === 'aria-' || prefix === 'data-') {
+          return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
         }
     }
     return null;

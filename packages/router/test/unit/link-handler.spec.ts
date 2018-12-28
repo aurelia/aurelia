@@ -1,13 +1,13 @@
-import { LinkHandler } from './../../src/link-handler';
 import { expect } from 'chai';
-import { spy, SinonSpy } from 'sinon';
+import { spy } from 'sinon';
+import { LinkHandler } from './../../src/index';
 
 describe('LinkHandler', () => {
   let linkHandler;
-  let callback = ((info) => { });
+  const callback = ((info) => { });
   class MockDocument {
-    addEventListener(event, handler, preventDefault) {}
-    removeEventListener(handler) {}
+    public addEventListener(event, handler, preventDefault) {}
+    public removeEventListener(handler) {}
   }
 
   beforeEach(() => {
@@ -45,7 +45,7 @@ describe('LinkHandler', () => {
     let err;
     try {
       linkHandler.activate({ callback: callback});
-    } catch(e) {
+    } catch (e) {
       err = e;
     }
     expect(err.message).to.contain('LinkHandler has already been activated');

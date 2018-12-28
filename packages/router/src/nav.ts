@@ -1,5 +1,10 @@
-export interface NavRoute {
-  components: string | Object;
+import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
+import { NavRoute } from './nav-route';
+import { Router } from './router';
+
+export interface INavRoute {
+  components: string | ICustomElementType | Object;
+  link?: string;
   title: string;
   children?: NavRoute[];
   meta?: Object;
@@ -9,12 +14,27 @@ export class Nav {
   public name: string;
   public routes: NavRoute[] = [];
 
-  constructor(name: string) {
+  public router: Router;
+
+  constructor(router: Router, name: string) {
+    this.router = router;
     this.name = name;
   }
 
-  // TODO: Deal with non-string components
-  public addRoutes(routes: NavRoute[]): void {
-    this.routes.push(...routes);
+  public addRoutes(routes: INavRoute[]): void {
+    for (const route of routes) {
+      this.addRoute(this.routes, route);
+    }
+  }
+
+  public addRoute(routes: NavRoute[], route: INavRoute): void {
+    const newRoute = new NavRoute(this, route);
+    routes.push(newRoute);
+    if (route.children) {
+      newRoute.children = [];
+      for (const child of route.children) {
+        this.addRoute(newRoute.children, child);
+      }
+    }
   }
 }

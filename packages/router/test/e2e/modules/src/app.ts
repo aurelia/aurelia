@@ -5,7 +5,8 @@ import { Router } from '../../../../../router';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';
 import { AppState } from './app-state';
-import { Inbox } from './components/inbox';
+import { Calendar } from './components/calendar';
+import { Email } from './components/email';
 import { About } from './components/about';
 
 @inject(Router, AppState)
@@ -22,7 +23,6 @@ export class App {
 
   constructor(private router: Router, private appState: AppState) {
     this.abcComponent;
-    debugger;
     this.configureRouter();
   }
 
@@ -46,24 +46,43 @@ export class App {
     this.updateTitle();
     console.log('ROUTER', this.router);
 
-    // this.router.addNav('top', [
-    //   {
-    //     components: 'email',
-    //     title: 'Email',
-    //     children: [
-    //       {
-    //         components: Inbox,
-    //         title: 'Inbox',
-    //       },
-    //       {
-    //         components: About,
-    //         title: 'About',
-    //       },
-    //     ],
-    //     meta: {},
-    //   },
-
-    // ]);
+    this.router.addNav('top-menu', [
+      {
+        components: Email,
+        title: 'Email',
+        children: [
+          {
+            components: [Email, 'inbox@email-content'],
+            title: 'Inbox',
+          },
+          {
+            components: [Email, { component: About, viewport: 'email-content' }],
+            title: 'About',
+          },
+          {
+            components: [Email, { component: 'contacts@email-content' }],
+            title: 'Contacts',
+          },
+        ],
+      },
+      {
+        components: Calendar,
+        title: 'Calendar',
+      },
+      {
+        title: 'Root',
+        children: [
+          {
+            components: Email,
+            title: 'Email',
+          },
+          {
+            components: Calendar,
+            title: 'Calendar',
+          },
+        ],
+      }
+    ]);
   }
 
   pathCallback(instruction) {

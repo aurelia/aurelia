@@ -2,7 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
-import { Nav, NavRoute } from './nav';
+import { INavRoute, Nav } from './nav';
 import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 
@@ -51,6 +51,7 @@ export class Router {
   public linkHandler: LinkHandler;
 
   public navs: Object = {};
+  public activeComponents: string[] = [];
 
   private options: IRouterOptions;
   private isActive: boolean = false;
@@ -408,10 +409,10 @@ export class Router {
     this.historyBrowser.forward();
   }
 
-  public addNav(name: string, routes: NavRoute[]): void {
+  public addNav(name: string, routes: INavRoute[]): void {
     let nav = this.navs[name];
     if (!nav) {
-      nav = this.navs[name] = new Nav(name);
+      nav = this.navs[name] = new Nav(this, name);
     }
     nav.addRoutes(routes);
   }
@@ -467,6 +468,7 @@ export class Router {
     viewportStates = this.removeStateDuplicates(viewportStates);
     let fullViewportStates = this.rootScope.viewportStates(true);
     fullViewportStates = this.removeStateDuplicates(fullViewportStates);
+    this.activeComponents = fullViewportStates;
     fullViewportStates.unshift(this.separators.clear);
     this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling), fullViewportStates.join(this.separators.sibling));
   }

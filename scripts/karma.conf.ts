@@ -81,7 +81,7 @@ export default function(config: IKarmaConfig): void {
         alias: {
           ...project.packages.reduce(
             (alias, p) => {
-              alias[p.name.npm] = p.src;
+              alias[p.name.npm] = p.src.path;
               return alias;
             },
             {}

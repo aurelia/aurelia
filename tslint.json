@@ -233,6 +233,7 @@
       "check-separator",
       "check-type"
     ],
+    "newline-per-chained-call": false,
 
   /**
     * Controversial/Configurable rules.

@@ -1,15 +1,12 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
-import { DOM, IDOM } from './dom';
-import { IDocument, INode } from './dom.interfaces';
+import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './observation';
-import { CustomElementResource, ICustomElement, ICustomElementType } from './resources/custom-element';
-import { IRenderingEngine } from './templating/lifecycle-render';
+import { IRenderingEngine } from './rendering-engine';
+import { CustomElementResource, ICustomElement, ICustomElementType, IProjectorLocator } from './resources/custom-element';
 
-declare var document: IDocument;
-
-export interface ISinglePageApp {
+export interface ISinglePageApp<THost extends INode = INode> {
   dom?: IDOM;
-  host: unknown;
+  host: THost;
   component: unknown;
 }
 
@@ -49,28 +46,21 @@ export class Aurelia {
     } else {
       component = componentOrType as ICustomElement;
     }
-    if (!this.container.has(IDOM, false)) {
-      if (config.dom !== undefined) {
-        this.useDOM(config.dom);
-      } else if (host.ownerDocument !== null) {
-        this.useDOM(host.ownerDocument);
-      } else {
-        this.useDOM();
-      }
-    }
+    const domInitializer = this.container.get(IDOMInitializer);
+    const dom = domInitializer.initialize(config);
 
     const startTask = () => {
       host.$au = this;
       if (!this.components.includes(component)) {
         this._root = component;
         this.components.push(component);
-        const dom = this.container.get(IDOM);
         const re = this.container.get(IRenderingEngine);
-        component.$hydrate(dom, re, host);
+        const pl = this.container.get(IProjectorLocator);
+        component.$hydrate(dom, pl, re, host);
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
-      component.$attach(LifecycleFlags.fromStartTask | LifecycleFlags.fromAttach, host);
+      component.$attach(LifecycleFlags.fromStartTask | LifecycleFlags.fromAttach);
     };
 
     this.startTasks.push(startTask);
@@ -107,40 +97,11 @@ export class Aurelia {
     }
     return this;
   }
-
-  /**
-   * Use the supplied `dom` directly for this `Aurelia` instance.
-   */
-  public useDOM(dom: IDOM): this;
-  /**
-   * Create a new HTML `DOM` backed by the supplied `document`.
-   */
-  public useDOM(document: IDocument): this;
-  /**
-   * Either create a new HTML `DOM` backed by the supplied `document` or uses the supplied `DOM` directly.
-   *
-   * If no argument is provided, uses the default global `document` variable.
-   * (this will throw an error in non-browser environments).
-   */
-  public useDOM(domOrDocument?: IDOM | IDocument): this;
-  public useDOM(domOrDocument?: IDOM | IDocument): this {
-    let dom: IDOM;
-    if (domOrDocument === undefined) {
-      dom = new DOM(document);
-    } else if (quacksLikeDOM(domOrDocument)) {
-      dom = domOrDocument;
-    } else {
-      dom = new DOM(domOrDocument);
-    }
-    Registration
-      .instance(IDOM, dom)
-      .register(this.container, IDOM);
-    return this;
-  }
 }
+(PLATFORM.global as typeof PLATFORM.global & {Aurelia: unknown}).Aurelia = Aurelia;
 
-function quacksLikeDOM(potentialDOM: unknown): potentialDOM is IDOM {
-  return 'convertToRenderLocation' in (potentialDOM as object);
+export const IDOMInitializer = DI.createInterface<IDOMInitializer>().noDefault();
+
+export interface IDOMInitializer {
+  initialize(config?: ISinglePageApp): IDOM;
 }
-
-(PLATFORM.global as {Aurelia: unknown}).Aurelia = Aurelia;

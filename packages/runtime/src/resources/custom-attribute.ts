@@ -17,6 +17,7 @@ import {
   customAttributeName,
   IAttributeDefinition
 } from '../definitions';
+import { INode } from '../dom';
 import {
   Hooks,
   IAttach,
@@ -26,6 +27,7 @@ import {
   IRenderable
 } from '../lifecycle';
 import { IChangeTracker } from '../observation';
+import { IRenderingEngine } from '../rendering-engine';
 import {
   $attachAttribute,
   $cacheAttribute,
@@ -35,32 +37,29 @@ import {
   $bindAttribute,
   $unbindAttribute
 } from '../templating/lifecycle-bind';
-import {
-  $hydrateAttribute,
-  IRenderingEngine
-} from '../templating/lifecycle-render';
+import { $hydrateAttribute } from '../templating/lifecycle-render';
 
 type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
-export interface ICustomAttributeType extends
-  IResourceType<IAttributeDefinition, ICustomAttribute>,
+export interface ICustomAttributeType<T extends INode = INode> extends
+  IResourceType<IAttributeDefinition, ICustomAttribute<T>>,
   CustomAttributeStaticProperties { }
 
-export interface ICustomAttribute extends
+export interface ICustomAttribute<T extends INode = INode> extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
   IBindScope,
   ILifecycleUnbindAfterDetach,
   IAttach,
-  IRenderable {
+  IRenderable<T> {
 
   $hydrate(renderingEngine: IRenderingEngine): void;
 }
 
-export interface ICustomAttributeResource extends
-  IResourceKind<IAttributeDefinition, ICustomAttribute, Class<ICustomAttribute> & CustomAttributeStaticProperties> {
+export interface ICustomAttributeResource<T extends INode = INode> extends
+  IResourceKind<IAttributeDefinition, ICustomAttribute<T>, Class<ICustomAttribute<T>> & CustomAttributeStaticProperties> {
 }
 
 /** @internal */
@@ -82,6 +81,7 @@ export function registerAttribute(this: ICustomAttributeType, container: IContai
  */
 export function customAttribute(name: string): CustomAttributeDecorator;
 export function customAttribute(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator;
 export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator {
   return target => CustomAttributeResource.define(nameOrDefinition, target);
 }
@@ -93,6 +93,7 @@ export function customAttribute(nameOrDefinition: string | IAttributeDefinition)
  */
 export function templateController(name: string): CustomAttributeDecorator;
 export function templateController(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
 export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return target => CustomAttributeResource.define(
     typeof nameOrDefinition === 'string'

@@ -1,23 +1,31 @@
 import { inject, IRegistry } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom.interfaces';
+import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
+import { INode, IRenderLocation } from '../../dom';
 import { IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
-import { ICustomAttribute, templateController } from '../custom-attribute';
+import { ICustomAttribute, ICustomAttributeResource, templateController } from '../custom-attribute';
 
-export interface Replaceable extends ICustomAttribute {}
+export interface Replaceable<T extends INode = INode> extends ICustomAttribute<T> {}
+
 @templateController('replaceable')
 @inject(IViewFactory, IRenderLocation)
-export class Replaceable {
-  public static register: IRegistry['register'];
+export class Replaceable<T extends INode = INode> implements Replaceable<T> {
+  public static readonly register: IRegistry['register'];
+  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static readonly kind: ICustomAttributeResource;
+  public static readonly description: AttributeDefinition;
 
-  private currentView: IView;
-  private factory: IViewFactory;
+  private currentView: IView<T>;
+  private factory: IViewFactory<T>;
 
-  constructor(factory: IViewFactory, location: IRenderLocation) {
+  constructor(
+    factory: IViewFactory<T>,
+    location: IRenderLocation<T>
+  ) {
     this.factory = factory;
 
     this.currentView = this.factory.create();
-    this.currentView.hold(location, LifecycleFlags.fromCreate);
+    this.currentView.hold(location);
   }
 
   public binding(flags: LifecycleFlags): void {

@@ -1,10 +1,8 @@
-import { MockBrowserHistoryLocation } from './../mock/browser-history-location.mock';
-import { ViewportCustomElement } from '../../src/resources/viewport';
-import { Router } from '../../src/index';
+import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { DI } from '../../../kernel/src';
-import { CustomElementResource, Aurelia, DOM } from '../../../runtime/src';
-import { BasicConfiguration } from '../../../jit/src';
+import { HTMLJitConfiguration } from '../../../jit-html/src/index';
+import { Router, ViewportCustomElement } from '../../src/index';
+import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
 
 describe('Router', () => {
   it('can be created', function () {
@@ -78,7 +76,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    let historyLength = router.historyBrowser.history.length;
+    const historyLength = router.historyBrowser.history.length;
     router.goto('foo@left');
     await Promise.resolve();
     await Promise.resolve();
@@ -240,7 +238,7 @@ describe('Router', () => {
     await Promise.resolve();
     expect(host.textContent).to.contain('foo');
 
-    (<any>host).getElementsByTagName('SPAN')[0].click();
+    (host as any).getElementsByTagName('SPAN')[0].click();
     await Promise.resolve();
     await Promise.resolve();
     expect(host.textContent).to.contain('Viewport: baz');
@@ -272,7 +270,7 @@ describe('Router', () => {
     console.log(host.innerHTML);
     expect(host.textContent).to.contain('Viewport: foo');
 
-    (<any>host).getElementsByTagName('SPAN')[0].click();
+    (host as any).getElementsByTagName('SPAN')[0].click();
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -309,49 +307,48 @@ describe('Router', () => {
 
 let quxCantLeave = 2;
 
-let setup = async (): Promise<{ au, container, host, router }> => {
-  const container = DI.createContainer();
-  container.register(<any>BasicConfiguration);
-  const App = (<any>CustomElementResource).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-  const Foo = (<any>CustomElementResource).define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
-  const Bar = (<any>CustomElementResource).define({ name: 'bar', template: '<template>Viewport: bar<au-viewport name="bar"></au-viewport></template>' });
-  const Baz = (<any>CustomElementResource).define({ name: 'baz', template: '<template>Viewport: baz<au-viewport name="baz"></au-viewport></template>' });
-  const Qux = (<any>CustomElementResource).define({ name: 'qux', template: '<template>Viewport: qux<au-viewport name="qux"></au-viewport></template>' }, class {
-    canEnter() { return true; }
-    canLeave() { if (quxCantLeave > 0) { quxCantLeave--; return false; } else { return true; } }
-    enter() { return true; }
-    leave() { return true; }
+const setup = async (): Promise<{ au; container; host; router }> => {
+  const container = HTMLJitConfiguration.createContainer();
+  const App = CustomElementResource.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' }, class {});
+  const Foo = CustomElementResource.define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' }, class {});
+  const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Viewport: bar<au-viewport name="bar"></au-viewport></template>' }, class {});
+  const Baz = CustomElementResource.define({ name: 'baz', template: '<template>Viewport: baz<au-viewport name="baz"></au-viewport></template>' }, class {});
+  const Qux = CustomElementResource.define({ name: 'qux', template: '<template>Viewport: qux<au-viewport name="qux"></au-viewport></template>' }, class {
+    public canEnter() { return true; }
+    public canLeave() { if (quxCantLeave > 0) { quxCantLeave--; return false; } else { return true; } }
+    public enter() { return true; }
+    public leave() { return true; }
   });
-  const Quux = (<any>CustomElementResource).define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
-  const Corge = (<any>CustomElementResource).define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport></template>' });
-  container.register(<any>ViewportCustomElement);
+  const Quux = (CustomElementResource as any).define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
+  const Corge = (CustomElementResource as any).define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport></template>' });
+  container.register(ViewportCustomElement as any);
   container.register(Foo, Bar, Baz, Qux, Quux, Corge);
-  const au = new Aurelia(<any>container);
+  const au = new Aurelia(container as any);
   const host = document.createElement('div');
-  document.body.appendChild(<any>host);
+  document.body.appendChild(host as any);
   const component = new App();
   au.app({ component, host });
   au.start();
 
-  container.register(<any>Router);
+  container.register(Router as any);
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
   mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-  router.historyBrowser.history = <any>mockBrowserHistoryLocation;
-  router.historyBrowser.location = <any>mockBrowserHistoryLocation;
+  router.historyBrowser.history = mockBrowserHistoryLocation as any;
+  router.historyBrowser.location = mockBrowserHistoryLocation as any;
   router.activate();
   await Promise.resolve();
-  return { au, container, host, router }
-}
+  return { au, container, host, router };
+};
 
-let teardown = async (host, router, count) => {
+const teardown = async (host, router, count) => {
   // await freshState(router, count);
   document.body.removeChild(host);
   router.deactivate();
-}
+};
 
 let throttleCounter = 0;
-let freshState = async (router, count) => {
+const freshState = async (router, count) => {
   throttleCounter += (count * 2) + 2;
   router.goto('-');
   await Promise.resolve();
@@ -360,10 +357,10 @@ let freshState = async (router, count) => {
   if (throttleCounter >= 9) {
     await wait();
   }
-}
-let wait = async () => {
+};
+const wait = async () => {
   await new Promise((resolve) => {
     setTimeout(resolve, 500);
     throttleCounter = 0;
   });
-}
+};

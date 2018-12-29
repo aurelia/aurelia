@@ -2,7 +2,7 @@ import { IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
-import { IBinding, IBindingTarget } from './binding';
+import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;
@@ -16,9 +16,9 @@ export class Ref implements IBinding {
 
   public locator: IServiceLocator;
   public sourceExpression: IsBindingBehavior;
-  public target: IBindingTarget;
+  public target: Object;
 
-  constructor(sourceExpression: IsBindingBehavior, target: IBindingTarget, locator: IServiceLocator) {
+  constructor(sourceExpression: IsBindingBehavior, target: Object, locator: IServiceLocator) {
     this.$nextBind = null;
     this.$prevBind = null;
     this.$state = State.none;

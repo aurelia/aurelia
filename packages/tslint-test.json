@@ -1,0 +1,15 @@
+{
+  "extends": "../tslint.json",
+  "linterOptions": {
+    "exclude": []
+  },
+  "rules": {
+    "mocha-no-side-effect-code": false,
+    "no-any": false,
+    "no-big-function": false,
+    "no-empty": false,
+    "no-implicit-dependencies": false,
+    "no-invalid-template-strings": false,
+    "typedef": false
+  }
+}

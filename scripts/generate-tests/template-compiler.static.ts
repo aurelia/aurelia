@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { PropertyDeclaration, Statement } from 'typescript';
+import { PropertyDeclaration, Statement, createBinary, SyntaxKind } from 'typescript';
 import { PLATFORM } from '../../packages/kernel/src/index';
 import project from '../project';
 import {
@@ -21,7 +21,7 @@ import {
 } from './util';
 
 function outFile(suffix: string): string {
-  return join(`${project.path}`, 'packages', 'jit', 'test', 'generated', `template-compiler.${suffix}.spec.ts`);
+  return join(`${project.path}`, 'packages', 'jit-html', 'test', 'generated', `template-compiler.${suffix}.spec.ts`);
 }
 
 interface Identifiable {
@@ -854,7 +854,7 @@ function $$test(markup: string, expectedText: string, properties: PropertyDeclar
     $expression(`${ids.map(i => i.id).join(' ')} _`),
     $functionExpr([
       $$const(['au', 'host'], $call('setup')),
-      null,
+      undefined,
       ...resources,
       $$const('App', $call('CustomElementResource.define', [
         $expression({ name: 'app', template: `<template>${markup}</template>` }),
@@ -873,9 +873,9 @@ function generateAndEmit(): void {
     const tests = testsRecord[suffix];
     const nodes = [
       $$import('chai', 'expect'),
-      $$import('../../../kernel/src/index', 'DI'),
-      $$import('../../../runtime/src/index', 'CustomElementResource', 'Aurelia', 'BindingMode'),
-      $$import('../../src/index', 'BasicConfiguration'),
+      $$import('../../../runtime/src/index', 'CustomElementResource', 'Aurelia'),
+      $$import('../../src/index', 'HTMLJitConfiguration'),
+      $$import('../util', 'getVisibleText'),
       null,
       $$functionExpr('describe', [
         $expression(`generated.template-compiler.${suffix}`),
@@ -883,8 +883,7 @@ function generateAndEmit(): void {
           $$functionDecl(
             'setup',
             [
-              $$const('container', $call('DI.createContainer')),
-              $$call('container.register', ['BasicConfiguration']),
+              $$const('container', $call('HTMLJitConfiguration.createContainer')),
               $$new('au', 'Aurelia', ['container']),
               $$const('host', $call('document.createElement', [$expression('div')])),
               $$return({ au: 'au', host: 'host' })
@@ -896,17 +895,17 @@ function generateAndEmit(): void {
             [
               $$call('au.start'),
               $$const('outerHtmlAfterStart1', $access('host.outerHTML')),
-              $$call([$call('expect', [$access('host.textContent')]), 'to.equal'], ['expected', $expression('after start #1')]),
+              $$call([$call('expect', [$call('getVisibleText', ['au', 'host'])]), 'to.equal'], ['expected', $expression('after start #1')]),
               $$call('au.stop'),
               $$const('outerHtmlAfterStop1', $access('host.outerHTML')),
-              $$call([$call('expect', [$access('host.textContent')]), 'to.equal'], [$expression(''), $expression('after stop #1')]),
+              $$call([$call('expect', [$call('getVisibleText', ['au', 'host'])]), 'to.equal'], [$expression(''), $expression('after stop #1')]),
 
               $$call('au.start'),
               $$const('outerHtmlAfterStart2', $access('host.outerHTML')),
-              $$call([$call('expect', [$access('host.textContent')]), 'to.equal'], ['expected', $expression('after start #2')]),
+              $$call([$call('expect', [$call('getVisibleText', ['au', 'host'])]), 'to.equal'], ['expected', $expression('after start #2')]),
               $$call('au.stop'),
               $$const('outerHtmlAfterStop2', $access('host.outerHTML')),
-              $$call([$call('expect', [$access('host.textContent')]), 'to.equal'], [$expression(''), $expression('after stop #2')]),
+              $$call([$call('expect', [$call('getVisibleText', ['au', 'host'])]), 'to.equal'], [$expression(''), $expression('after stop #2')]),
               // Verify that starting/stopping multiple times results in the exact same html each time
               $$call([$call('expect', ['outerHtmlAfterStart1']), 'to.equal'], ['outerHtmlAfterStart2', $expression('outerHTML after start #1 / #2')]),
               $$call([$call('expect', ['outerHtmlAfterStop1']), 'to.equal'], ['outerHtmlAfterStop2', $expression('outerHTML after stop #1 / #2')])

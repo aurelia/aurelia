@@ -1,6 +1,7 @@
 import * as karma from 'karma';
 import * as webpack from 'webpack';
 import project from './project';
+import * as path from 'path';
 
 export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
   transpileOnly?: boolean;
@@ -77,13 +78,18 @@ export default function(config: IKarmaConfig): void {
           ...packages.map(p => p.src),
           project.node_modules.path
         ],
-        alias: project.packages.reduce(
-          (alias, p) => {
-            alias[p.scopedName] = p.src;
-            return alias;
-          },
-          {}
-        )
+        alias: {
+          ...project.packages.reduce(
+            (alias, p) => {
+              alias[p.scopedName] = p.src;
+              return alias;
+            },
+            {}
+          ),
+          'test-lib': path.join(project.scripts.path, 'test-lib'),
+          'test-lib-dom': path.join(project.scripts.path, 'test-lib-dom'),
+          'test-suite': path.join(project.scripts.path, 'test-suite')
+        }
       },
       devtool: browsers.indexOf('ChromeDebugging') > -1 ? 'eval-source-map' : 'inline-source-map',
       module: {

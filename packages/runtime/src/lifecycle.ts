@@ -14,7 +14,7 @@ import {
 } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
-import { INode, INodeSequence, IRenderLocation } from './dom.interfaces';
+import { INode, INodeSequence, IRenderLocation } from './dom';
 import { IChangeTracker, IScope, LifecycleFlags } from './observation';
 
 const slice = Array.prototype.slice;
@@ -28,7 +28,8 @@ export const enum State {
   isMounted             = 0b000000010000,
   isDetaching           = 0b000000100000,
   isUnbinding           = 0b000001000000,
-  isCached              = 0b000010000000
+  isCached              = 0b000010000000,
+  isContainerless       = 0b000100000000
 }
 
 export const enum Hooks {
@@ -75,21 +76,21 @@ export interface IAttachables {
 /**
  * An object containing the necessary information to render something for display.
  */
-export interface IRenderable extends IBindables, IAttachables, IState {
+export interface IRenderable<T extends INode = INode> extends IBindables, IAttachables, IState {
 
   /**
    * The (dependency) context of this instance.
    *
    * Contains any dependencies required by this instance or its children.
    */
-  readonly $context: IRenderContext;
+  readonly $context: IRenderContext<T>;
 
   /**
    * The nodes that represent the visible aspect of this instance.
    *
    * Typically this will be a sequence of `DOM` nodes contained in a `DocumentFragment`
    */
-  readonly $nodes: INodeSequence;
+  readonly $nodes: INodeSequence<T>;
 
   /**
    * The binding scope that the `$bindables` of this instance will be bound to.
@@ -101,33 +102,51 @@ export interface IRenderable extends IBindables, IAttachables, IState {
 
 export const IRenderable = DI.createInterface<IRenderable>().noDefault();
 
-export interface IRenderContext extends IServiceLocator {
-  createChild(): IRenderContext;
-  render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IRenderable, target: INode, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable;
+export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
+  createChild(): IRenderContext<T>;
+  render(renderable: IRenderable<T>, targets: ArrayLike<Object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
+  beginComponentOperation(renderable: IRenderable<T>, target: Object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 
-export interface IView extends IBindScope, IRenderable, IAttach, IMountable {
-  readonly cache: IViewCache;
+export interface IView<T extends INode = INode> extends IBindScope, IRenderable<T>, IAttach, IMountable {
+  readonly cache: IViewCache<T>;
   readonly isFree: boolean;
-  readonly location: IRenderLocation;
+  readonly location: IRenderLocation<T>;
 
-  hold(location: IRenderLocation, flags: LifecycleFlags): void;
+  /**
+   * Reserves this `IView` for mounting at a particular `IRenderLocation`.
+   * Also marks this `IView` such that it cannot be returned to the cache until
+   * it is released again.
+   *
+   * @param location The RenderLocation before which the view will be appended to the DOM.
+   */
+  hold(location: IRenderLocation<T>): void;
+
+  /**
+   * Marks this `IView` such that it can be returned to the cache when it is unmounted.
+   *
+   * If this `IView` is not currently attached, it will be unmounted immediately.
+   *
+   * @param flags The `LifecycleFlags` to pass to the unmount operation (only effective
+   * if the view is already in detached state).
+   *
+   * @returns Whether this `IView` can/will be returned to cache
+   */
   release(flags: LifecycleFlags): boolean;
 
   lockScope(scope: IScope): void;
 }
 
-export interface IViewCache {
+export interface IViewCache<T extends INode = INode> {
   readonly isCaching: boolean;
   setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
-  canReturnToCache(view: IView): boolean;
-  tryReturnToCache(view: IView): boolean;
+  canReturnToCache(view: IView<T>): boolean;
+  tryReturnToCache(view: IView<T>): boolean;
 }
 
-export interface IViewFactory extends IViewCache {
+export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
-  create(): IView;
+  create(): IView<T>;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>().noDefault();
@@ -259,7 +278,7 @@ export interface ILifecycleAttaching extends IHooks, IState {
    * This is the time to add any (sync or async) tasks (e.g. animations) to the lifecycle that need to happen before
    * the nodes are added to the DOM.
    */
-  attaching?(flags: LifecycleFlags, encapsulationSource?: INode): void;
+  attaching?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleAttached extends IHooks, IState {
@@ -354,7 +373,7 @@ export interface ILifecycleCache {
 export interface ICachable extends ILifecycleCache { }
 
 export interface ILifecycleAttach {
-  $attach(flags: LifecycleFlags, encapsulationSource?: INode): void;
+  $attach(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleDetach {
@@ -469,6 +488,11 @@ export interface IFlushLifecycle {
 }
 
 export interface IBindLifecycle extends IFlushLifecycle {
+  processConnectQueue(flags: LifecycleFlags): void;
+  processPatchQueue(flags: LifecycleFlags): void;
+  processBindQueue(flags: LifecycleFlags): void;
+  processUnbindQueue(flags: LifecycleFlags): void;
+
   /**
    * Open up / expand a bind batch for enqueueing `bound` callbacks.
    *
@@ -538,6 +562,9 @@ export interface IBindLifecycle extends IFlushLifecycle {
 }
 
 export interface IAttachLifecycle extends IFlushLifecycle {
+  processAttachQueue(flags: LifecycleFlags): void;
+  processDetachQueue(flags: LifecycleFlags): void;
+
   /**
    * Open up / expand an attach batch for enqueueing `$mount` and `attached` callbacks.
    *
@@ -632,9 +659,6 @@ export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {
 }
 
 export const ILifecycle = DI.createInterface<ILifecycle>().withDefault(x => x.singleton(Lifecycle));
-export const IFlushLifecycle = ILifecycle as InterfaceSymbol<IFlushLifecycle>;
-export const IBindLifecycle = ILifecycle as InterfaceSymbol<IBindLifecycle>;
-export const IAttachLifecycle = ILifecycle as InterfaceSymbol<IAttachLifecycle>;
 
 /** @internal */
 export class Lifecycle implements ILifecycle {

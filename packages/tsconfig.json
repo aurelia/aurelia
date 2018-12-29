@@ -3,9 +3,11 @@
   "references": [
     { "path": "kernel" },
     { "path": "runtime" },
+    { "path": "runtime-html" },
     { "path": "validation" },
     { "path": "router" },
     { "path": "jit" },
+    { "path": "jit-html" },
     { "path": "debug" },
     { "path": "testing" },
     { "path": "aot" },

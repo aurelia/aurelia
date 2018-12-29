@@ -1,87 +1,42 @@
-import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
-import {
-  AttrBindingBehavior,
-  Compose,
-  DebounceBindingBehavior,
-  Else,
-  FromViewBindingBehavior,
-  HtmlRenderer,
-  If,
-  ITemplateCompiler,
-  OneTimeBindingBehavior,
-  Repeat,
-  Replaceable,
-  SanitizeValueConverter,
-  SelfBindingBehavior,
-  SignalBindingBehavior,
-  ThrottleBindingBehavior,
-  ToViewBindingBehavior,
-  TwoWayBindingBehavior,
-  UpdateTriggerBindingBehavior,
-  With
-} from '@aurelia/runtime';
-import {
-  DotSeparatedAttributePattern,
-  RefAttributePattern
-} from './attribute-pattern';
+import { DI, IContainer, IRegistry } from '@aurelia/kernel';
+import { DotSeparatedAttributePattern, RefAttributePattern } from './attribute-pattern';
 import {
   CallBindingCommand,
-  CaptureBindingCommand,
   DefaultBindingCommand,
-  DelegateBindingCommand,
   ForBindingCommand,
   FromViewBindingCommand,
   OneTimeBindingCommand,
   ToViewBindingCommand,
-  TriggerBindingCommand,
   TwoWayBindingCommand
 } from './binding-command';
 import { ParserRegistration } from './expression-parser';
-import { TemplateCompiler } from './template-compiler';
 
-export const GlobalResources: IRegistry[] = [
-  Compose,
-  If,
-  Else,
-  Repeat,
-  Replaceable,
-  With,
-  SanitizeValueConverter,
-  AttrBindingBehavior,
-  DebounceBindingBehavior,
-  OneTimeBindingBehavior,
-  ToViewBindingBehavior,
-  FromViewBindingBehavior,
-  SelfBindingBehavior,
-  SignalBindingBehavior,
-  ThrottleBindingBehavior,
-  TwoWayBindingBehavior,
-  UpdateTriggerBindingBehavior
-];
-
-export const DefaultBindingLanguage: IRegistry[] = [
-  DefaultBindingCommand,
-  OneTimeBindingCommand,
-  ToViewBindingCommand,
-  FromViewBindingCommand,
-  TwoWayBindingCommand,
-  TriggerBindingCommand,
-  DelegateBindingCommand,
-  CaptureBindingCommand,
-  CallBindingCommand,
-  ForBindingCommand,
+export const BasicBindingSyntax: IRegistry[] = [
   DotSeparatedAttributePattern,
   RefAttributePattern
 ];
 
-export const BasicConfiguration = {
+export const BasicBindingLanguage: IRegistry[] = [
+  CallBindingCommand,
+  DefaultBindingCommand,
+  ForBindingCommand,
+  FromViewBindingCommand,
+  OneTimeBindingCommand,
+  ToViewBindingCommand,
+  TwoWayBindingCommand
+];
+
+export const JitConfiguration = {
   register(container: IContainer): void {
     container.register(
       ParserRegistration,
-      HtmlRenderer,
-      Registration.singleton(ITemplateCompiler, TemplateCompiler),
-      ...GlobalResources,
-      ...DefaultBindingLanguage
+      ...BasicBindingSyntax,
+      ...BasicBindingLanguage
     );
+  },
+  createContainer(): IContainer {
+    const container = DI.createContainer();
+    container.register(JitConfiguration);
+    return container;
   }
 };

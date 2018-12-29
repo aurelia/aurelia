@@ -1,5 +1,4 @@
 import { Tracer, Writable } from '@aurelia/kernel';
-import { INode } from '../dom.interfaces';
 import { Hooks, IView, State } from '../lifecycle';
 import { LifecycleFlags } from '../observation';
 import { ICustomAttribute } from '../resources/custom-attribute';
@@ -9,7 +8,7 @@ const slice = Array.prototype.slice;
 
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
-export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, encapsulationSource?: INode): void {
+export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$attachAttribute`, slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     if (Tracer.enabled) { Tracer.leave(); }
@@ -24,7 +23,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
   const hooks = this.$hooks;
 
   if (hooks & Hooks.hasAttaching) {
-    this.attaching(flags, encapsulationSource);
+    this.attaching(flags);
   }
 
   // add isAttached flag, remove isAttaching flag
@@ -40,7 +39,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
 
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
-export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags, encapsulationSource?: INode): void {
+export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$attachElement`, slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     if (Tracer.enabled) { Tracer.leave(); }
@@ -53,15 +52,14 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
   flags |= LifecycleFlags.fromAttach;
 
   const hooks = this.$hooks;
-  encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource === undefined ? this.$host : encapsulationSource);
 
   if (hooks & Hooks.hasAttaching) {
-    this.attaching(flags, encapsulationSource);
+    this.attaching(flags);
   }
 
   let current = this.$attachableHead;
   while (current !== null) {
-    current.$attach(flags, encapsulationSource);
+    current.$attach(flags);
     current = current.$nextAttach;
   }
 
@@ -79,7 +77,7 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
 }
 
 /** @internal */
-export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encapsulationSource?: INode): void {
+export function $attachView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$attachView`, slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     if (Tracer.enabled) { Tracer.leave(); }
@@ -91,7 +89,7 @@ export function $attachView(this: Writable<IView>, flags: LifecycleFlags, encaps
 
   let current = this.$attachableHead;
   while (current !== null) {
-    current.$attach(flags, encapsulationSource);
+    current.$attach(flags);
     current = current.$nextAttach;
   }
 

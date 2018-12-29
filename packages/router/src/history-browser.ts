@@ -70,7 +70,7 @@ export class HistoryBrowser {
   public goto(path: string, title?: string, data?: Object): void {
     this.activeEntry = {
       path: path,
-      fullStatePath: path,
+      fullStatePath: null,
       title: title,
       data: data,
     };
@@ -81,7 +81,7 @@ export class HistoryBrowser {
     this.isReplacing = true;
     this.activeEntry = {
       path: path,
-      fullStatePath: path,
+      fullStatePath: null,
       title: title,
       data: data,
     };
@@ -144,7 +144,14 @@ export class HistoryBrowser {
     });
   }
 
-  public replacePath(path: string, fullStatePath: string): void {
+  public replacePath(path: string, fullStatePath: string, entry: INavigationInstruction): void {
+    if (entry.index !== this.currentEntry.index) {
+      // TODO: Store unresolved in localStorage to set if we should ever navigate back to it
+      // tslint:disable-next-line:no-console
+      console.warn('replacePath: entry not matching currentEntry', entry, this.currentEntry);
+      return;
+    }
+
     const newHash = `#/${path}`;
     const { pathname, search, hash } = this.location;
     // tslint:disable-next-line:possible-timing-attack
@@ -233,7 +240,7 @@ export class HistoryBrowser {
         // TODO: max history length of 50, find better new index
         historyEntry = {
           path: path,
-          fullStatePath: path,
+          fullStatePath: null,
           index: this.history.length - this.historyOffset,
         };
         this.historyEntries = this.historyEntries.slice(0, historyEntry.index);

@@ -1,4 +1,4 @@
-import { inject, IRegistry } from '@aurelia/kernel';
+import { IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { IView, IViewFactory } from '../../lifecycle';
@@ -8,8 +8,9 @@ import { ICustomAttribute, ICustomAttributeResource, templateController } from '
 export interface Replaceable<T extends INode = INode> extends ICustomAttribute<T> {}
 
 @templateController('replaceable')
-@inject(IViewFactory, IRenderLocation)
 export class Replaceable<T extends INode = INode> implements Replaceable<T> {
+  public static readonly inject: ReadonlyArray<Function> = [IViewFactory, IRenderLocation];
+
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];
   public static readonly kind: ICustomAttributeResource;

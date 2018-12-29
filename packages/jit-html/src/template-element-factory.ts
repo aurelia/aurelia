@@ -1,4 +1,4 @@
-import { DI, inject, InterfaceSymbol } from '@aurelia/kernel';
+import { DI, InterfaceSymbol } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**
@@ -40,8 +40,9 @@ export const ITemplateElementFactory: InterfaceSymbol<ITemplateElementFactory> =
  *
  * @internal
  */
-@inject(IDOM)
 export class HTMLTemplateElementFactory implements ITemplateElementFactory {
+  public static readonly inject: ReadonlyArray<Function> = [IDOM];
+
   private dom: IDOM;
   private template: HTMLTemplateElement;
 

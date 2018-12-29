@@ -1,4 +1,4 @@
-import { inject, IRegistry, Reporter } from '@aurelia/kernel';
+import { IRegistry, Reporter } from '@aurelia/kernel';
 import { Binding, bindingBehavior, BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
@@ -18,8 +18,9 @@ export type UpdateTriggerableBinding = Binding & {
 };
 
 @bindingBehavior('updateTrigger')
-@inject(IObserverLocator)
 export class UpdateTriggerBindingBehavior {
+  public static readonly inject: ReadonlyArray<Function> = [IObserverLocator];
+
   public static register: IRegistry['register'];
 
   private observerLocator: IObserverLocator;

@@ -1,6 +1,5 @@
 import {
   IContainer,
-  inject,
   IRegistry,
   Tracer
 } from '@aurelia/kernel';
@@ -32,10 +31,11 @@ import { IEventManager } from './observation/event-manager';
 
 const slice = Array.prototype.slice;
 
-@inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(HTMLTargetedInstructionType.textBinding)
 /** @internal */
 export class TextBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
 
@@ -62,10 +62,11 @@ export class TextBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IExpressionParser, IEventManager)
 @instructionRenderer(HTMLTargetedInstructionType.listenerBinding)
 /** @internal */
 export class ListenerBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IEventManager];
+
   private parser: IExpressionParser;
   private eventManager: IEventManager;
 
@@ -93,10 +94,11 @@ export class SetAttributeRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(HTMLTargetedInstructionType.stylePropertyBinding)
 /** @internal */
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
 

@@ -1,4 +1,4 @@
-import { inject, IRegistry } from '@aurelia/kernel';
+import { IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
@@ -9,8 +9,9 @@ import { ICustomAttribute, ICustomAttributeResource, templateController } from '
 export interface If<T extends INode = INode> extends ICustomAttribute<T> {}
 
 @templateController('if')
-@inject(IViewFactory, IRenderLocation, CompositionCoordinator)
 export class If<T extends INode = INode> implements If<T> {
+  public static readonly inject: ReadonlyArray<Function> = [IViewFactory, IRenderLocation, CompositionCoordinator];
+
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];
   public static readonly kind: ICustomAttributeResource;
@@ -114,8 +115,9 @@ export class If<T extends INode = INode> implements If<T> {
 export interface Else<T extends INode = INode> extends ICustomAttribute<T> {}
 
 @templateController('else')
-@inject(IViewFactory)
 export class Else<T extends INode = INode> implements Else<T> {
+  public static readonly inject: ReadonlyArray<Function> = [IViewFactory];
+
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];
   public static readonly kind: ICustomAttributeResource;

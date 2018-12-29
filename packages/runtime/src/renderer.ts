@@ -2,7 +2,6 @@ import {
   all,
   Class,
   IContainer,
-  inject,
   IRegistry,
   IResolver,
   Registration,
@@ -85,8 +84,9 @@ export function instructionRenderer<TType extends string>(instructionType: TType
 }
 
 /* @internal */
-@inject(all(IInstructionRenderer))
 export class Renderer implements IRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [all(IInstructionRenderer)];
+
   public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer>;
 
   constructor(instructionRenderers: IInstructionRenderer[]) {
@@ -173,10 +173,11 @@ export class SetPropertyRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IRenderingEngine)
 @instructionRenderer(TargetedInstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
+
   private renderingEngine: IRenderingEngine;
 
   constructor(renderingEngine: IRenderingEngine) {
@@ -206,10 +207,11 @@ export class CustomElementRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IRenderingEngine)
 @instructionRenderer(TargetedInstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
+
   private renderingEngine: IRenderingEngine;
 
   constructor(renderingEngine: IRenderingEngine) {
@@ -238,10 +240,11 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IRenderingEngine)
 @instructionRenderer(TargetedInstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
+
   private renderingEngine: IRenderingEngine;
 
   constructor(renderingEngine: IRenderingEngine) {
@@ -275,10 +278,11 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.hydrateLetElement)
 /** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
 
@@ -302,10 +306,11 @@ export class LetElementRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.callBinding)
 /** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
 
@@ -323,10 +328,11 @@ export class CallBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IExpressionParser)
 @instructionRenderer(TargetedInstructionType.refBinding)
 /** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IExpressionParser];
+
   private parser: IExpressionParser;
 
   constructor(parser: IExpressionParser) {
@@ -342,10 +348,11 @@ export class RefBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.interpolation)
 /** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
 
@@ -368,10 +375,11 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.propertyBinding)
 /** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
 
@@ -389,10 +397,11 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@inject(IExpressionParser, IObserverLocator)
 @instructionRenderer(TargetedInstructionType.iteratorBinding)
 /** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
 

@@ -1,4 +1,4 @@
-import { inject, IRegistry } from '@aurelia/kernel';
+import { IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
@@ -10,8 +10,9 @@ import { ICustomAttribute, ICustomAttributeResource, templateController } from '
 export interface With<T extends INode = INode> extends ICustomAttribute<T> {}
 
 @templateController('with')
-@inject(IViewFactory, IRenderLocation)
 export class With<T extends INode = INode> implements With<T>  {
+  public static readonly inject: ReadonlyArray<Function> = [IViewFactory, IRenderLocation];
+
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];
   public static readonly kind: ICustomAttributeResource;

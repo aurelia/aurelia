@@ -6,7 +6,6 @@ import {
   IIndexable,
   Immutable,
   ImmutableArray,
-  inject,
   IRegistry,
   IResolver,
   IResourceDescriptions,
@@ -143,9 +142,10 @@ export interface IRenderingEngine {
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>().withDefault(x => x.singleton(RenderingEngine));
 
-@inject(IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler))
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
+  public static readonly inject: ReadonlyArray<Function> = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
+
   private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
   private compilers: Record<string, ITemplateCompiler>;
   private container: IContainer;

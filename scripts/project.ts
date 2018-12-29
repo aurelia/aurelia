@@ -34,31 +34,49 @@ export default {
     'path': join(rootPath, 'node_modules')
   },
   'packages': lernaJson.packages.map(p => {
-    const name = p.split('/')[1];
-    const path = join(packagesPath, name);
-    const changelog = {
-      path: join(path, 'CHANGELOG.md')
-    };
-    const src = join(path, 'src');
-    const test = {
-      path: join(path, 'test'),
-      setup: join(path, 'test', 'setup.ts'),
-      tsconfig: join(path, 'test', 'tsconfig.json')
-    };
+    const kebabName = p.split('/')[1];
+    const camelName = PLATFORM.camelCase(kebabName);
+
+    const path = join(packagesPath, kebabName);
     const node_modules = join(path, 'node_modules');
-    const scopedName = `@aurelia/${name}`;
-    const coverage = join(rootPath, 'coverage', name);
-    const jsName = PLATFORM.camelCase(name);
-    const namespace = `au`;
-    const fullName = `${namespace}.${jsName}`;
-    const dist = join(path, 'dist');
-    const umd = join(dist, `index.umd.js`);
-    const es6 = join(dist, `index.es6.js`);
-    const system = join(dist, `index.system.js`);
-    const amd = join(dist, `index.amd.js`);
-    const cjs = join(dist, `index.cjs.js`);
-    const iife = join(rootPath, 'dist', `${name}.js`);
-    return { name, jsName, namespace, fullName, path, changelog, iife, umd, es6, system, amd, cjs, src, test, node_modules, dist, scopedName, coverage };
+    const coverage = join(rootPath, 'coverage', kebabName);
+    const tsconfig = join(path, 'tsconfig.json');
+    const changelog = join(path, 'CHANGELOG.md');
+
+    const srcPath = join(path, 'src');
+    const src = {
+      path: srcPath,
+      entry: join(srcPath, 'index.ts'),
+      entryFull: join(srcPath, 'index.full.ts')
+    };
+
+    const testPath = join(path, 'test');
+    const test = {
+      path: testPath,
+      setup: join(testPath, 'setup.ts'),
+      tsconfig: join(testPath, 'tsconfig.json')
+    };
+
+    const distPath = join(path, 'dist');
+    const dist = {
+      path: distPath,
+      umd: join(distPath, `index.umd.js`),
+      esm: join(distPath, `index.es6.js`),
+      system: join(distPath, `index.system.js`),
+      amd: join(distPath, `index.amd.js`),
+      cjs: join(distPath, `index.cjs.js`),
+      iife: join(distPath, `index.iife.js`),
+      iifeFull: join(distPath, `index.iife.full.js`)
+    };
+
+    const name = {
+      kebab: kebabName,
+      camel: camelName,
+      npm: `@aurelia/${kebabName}`,
+      namespace: 'au',
+      iife: `au.${camelName}`,
+    }
+    return { path, node_modules, coverage, tsconfig, changelog, src, test, dist, name };
   }),
   'scripts': {
     'path': join(rootPath, 'scripts'),

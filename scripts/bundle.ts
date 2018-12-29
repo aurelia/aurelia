@@ -16,13 +16,13 @@ async function sortByDependencies(packages: any[]) {
   const visited = {};
 
   async function visit(current) {
-    const json = await loadPackageJson('packages', current.name);
+    const json = await loadPackageJson('packages', current.name.kebab);
     const depNames = Object.keys(json.dependencies || {});
-    current.deps = packages.filter(p => depNames.indexOf(p.scopedName) !== -1);
+    current.deps = packages.filter(p => depNames.indexOf(p.name.npm) !== -1);
 
-    visited[current.name] = true;
+    visited[current.name.kebab] = true;
     for (const dep of current.deps) {
-      if (!visited[dep.name]) {
+      if (!visited[dep.name.kebab]) {
         await visit(dep);
       }
     }
@@ -37,6 +37,24 @@ async function sortByDependencies(packages: any[]) {
   return sorted;
 }
 
+const formatDefinitions: [
+  { format: 'esm',    $exports: 'auto',  name: 'camel'  },
+  { format: 'system', $exports: 'auto',  name: 'camel'  },
+  { format: 'cjs',    $exports: 'auto',  name: 'camel'  },
+  { format: 'umd',    $exports: 'named', name: 'camel'  },
+  { format: 'amd',    $exports: 'named', name: 'camel'  },
+  { format: 'iife',   $exports: 'named', name: 'iife' }
+] = [
+  { format: 'esm',    $exports: 'auto',  name: 'camel'  },
+  { format: 'system', $exports: 'auto',  name: 'camel'  },
+  { format: 'cjs',    $exports: 'auto',  name: 'camel'  },
+  { format: 'umd',    $exports: 'named', name: 'camel'  },
+  { format: 'amd',    $exports: 'named', name: 'camel'  },
+  { format: 'iife',   $exports: 'named', name: 'iife' }
+];
+
+const iife_full_packages = ['jit-html'];
+
 async function createBundle(): Promise<void> {
   const args = process.argv.slice(2);
 
@@ -44,202 +62,87 @@ async function createBundle(): Promise<void> {
   let packages = project.packages.slice();
   if (args.length > 1) {
     const filter = args[1].split(',');
-    packages = packages.filter(p => filter.indexOf(p.name) !== -1);
+    packages = packages.filter(p => filter.indexOf(p.name.camel) !== -1);
   }
   packages = await sortByDependencies(packages);
+
+  const globals: rollup.GlobalsOption = {
+    'tslib': 'tslib'
+  };
+  for (const pkg of packages) {
+    globals[pkg.name.npm] = pkg.name.camel;
+  }
+  const write_iife = outputs.indexOf('iife') !== -1;
 
   const count = packages.length;
   let cur = 0;
   for (const pkg of packages) {
-    const logPrefix = c.grey(`[${++cur}/${count}] ${pkg.scopedName}`);
-    log(`${logPrefix} creating bundle`);
+    const logPrefix = c.grey(`[${++cur}/${count}] ${pkg.name.npm}`);
 
-    const bundle = await rollup.rollup({
-      input: join(pkg.src, 'index.ts'),
-      plugins: [
-        resolve({
-          jsnext: true // use the jsnext:main field from our packages package.json files to resolve dependencies
-        }),
-        typescript2({
-          tsconfig: join(pkg.path, 'tsconfig.json'),
-          typescript: ts, // ensure we're using the same typescript (3.x) for rollup as for regular builds etc
-          tsconfigOverride: {
-            module: 'esnext',
-            stripInternal: true,
-            emitDeclarationOnly: false,
-            composite: false,
-            declaration: false,
-            declarationMap: false,
-            sourceMap: true
-          }
-        })
-      ],
-      // mark all packages that are not *this* package as external so they don't get included in the bundle
-      // include tslib in the bundles since only __decorate is really used by multiple packages (we can figure out a way to deduplicate that later on if need be)
-      external: project.packages.filter(p => p.name !== pkg.name).map(p => p.scopedName)
-    });
+    const external = packages.filter(p => p !== pkg).map(p => p.name.npm);
+    const plugins = [
+      resolve({jsnext: true }), // use the jsnext:main field from our packages package.json files to resolve dependencies
+      typescript2({
+        tsconfig: pkg.tsconfig,
+        typescript: ts, // ensure we're using the same typescript (3.x) for rollup as for regular builds etc
+        tsconfigOverride: {
+          module: 'esnext',
+          stripInternal: true,
+          emitDeclarationOnly: false,
+          composite: false,
+          declaration: false,
+          declarationMap: false,
+          sourceMap: true
+        }
+      })
+    ];
+
+    log(`${logPrefix} creating standalone bundle`);
+
+    const standaloneBundle = await rollup.rollup({ input: pkg.src.entry, plugins, external });
 
     //'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd'
-    if (outputs.indexOf('esm') === -1) {
-      log(`${logPrefix} skipping esm`);
-    } else {
-      log(`${logPrefix} writing esm - ${pkg.es6}`);
 
-      await bundle.write({
-        file: pkg.es6,
-        name: pkg.jsName,
-        format: 'esm',
-        sourcemap: true
-      });
+    for (const { format, $exports, name } of formatDefinitions) {
+      if (outputs.indexOf(format) === -1) {
+        log(`${logPrefix} skipping ${format}`);
+      } else {
+        log(`${logPrefix} writing ${format} - ${pkg.dist[format]}`);
+
+        const options: rollup.OutputOptions = {
+          file: pkg.dist[format],
+          name: pkg.name[name],
+          format,
+          sourcemap: true
+        };
+        if ($exports === 'named') {
+          options.exports = 'named';
+          options.globals = globals;
+        }
+        await standaloneBundle.write(options);
+      }
     }
 
-    if (outputs.indexOf('system') === -1) {
-      log(`${logPrefix} skipping system`);
-    } else {
-      log(`${logPrefix} writing system - ${pkg.system}`);
+    if (write_iife && iife_full_packages.indexOf(pkg.name.kebab) !== -1) {
+      log(`${logPrefix} creating iife full bundle`);
 
-      await bundle.write({
-        file: pkg.system,
-        name: pkg.jsName,
-        format: 'system',
-        sourcemap: true
-      });
-    }
+      const fullBundle = await rollup.rollup({ input: pkg.src.entryFull, plugins });
 
-    if (outputs.indexOf('cjs') === -1) {
-      log(`${logPrefix} skipping cjs`);
-    } else {
-      log(`${logPrefix} writing cjs - ${pkg.cjs}`);
+      log(`${logPrefix} writing iife - ${pkg.dist.iifeFull}`);
 
-      await bundle.write({
-        file: pkg.cjs,
-        name: pkg.jsName,
-        format: 'cjs',
-        sourcemap: true
-      });
-    }
-
-    if (outputs.indexOf('umd') === -1) {
-      log(`${logPrefix} skipping umd`);
-    } else {
-      log(`${logPrefix} writing umd - ${pkg.umd}`);
-
-      await bundle.write({
-        file: pkg.umd,
-        exports: 'named',
-        name: pkg.jsName,
-        globals: {
-          ...project.packages.reduce(
-            (g, packg) => {
-              g[packg.scopedName] = packg.jsName;
-              return g;
-            },
-            {}
-          ),
-          'tslib': 'tslib'
-        },
-        format: 'umd',
-        sourcemap: true
-      });
-    }
-
-    if (outputs.indexOf('amd') === -1) {
-      log(`${logPrefix} skipping amd`);
-    } else {
-      log(`${logPrefix} writing amd - ${pkg.amd}`);
-
-      await bundle.write({
-        file: pkg.amd,
-        exports: 'named',
-        name: pkg.jsName,
-        globals: {
-          ...project.packages.reduce(
-            (g, packg) => {
-              g[packg.scopedName] = packg.jsName;
-              return g;
-            },
-            {}
-          ),
-          'tslib': 'tslib'
-        },
-        format: 'amd',
-        sourcemap: true
-      });
-    }
-
-    if (outputs.indexOf('iife') === -1) {
-      log(`${logPrefix} skipping iife`);
-    } else {
-      log(`${logPrefix} writing iife - ${pkg.iife}`);
-
-      await bundle.write({
-        file: pkg.iife,
-        exports: 'named',
-        name: pkg.fullName,
-        globals: {
-          ...project.packages.reduce(
-            (g, packg) => {
-              g[packg.scopedName] = packg.fullName;
-              return g;
-            },
-            {}
-          ),
-          'tslib': 'tslib'
-        },
+      const options: rollup.OutputOptions = {
+        file: pkg.dist.iifeFull,
+        name: pkg.name.namespace,
         format: 'iife',
-        sourcemap: false
-      });
+        sourcemap: false,
+        exports: 'named',
+        globals
+      };
+
+      await fullBundle.write(options);
     }
 
     log(`${logPrefix} ${c.greenBright('done')}`);
-  }
-
-  if (outputs.indexOf('iife') !== -1) {
-    const logPrefix = c.grey(`au.bundle.js`);
-
-    log(`${logPrefix} creating iife full bundle`);
-
-    const jitPkg = project.packages.find(p => p.name === 'jit-html');
-
-    const bundle = await rollup.rollup({
-      input: join(jitPkg.src, 'index.full.ts'),
-      plugins: [
-        resolve({ jsnext: true }),
-        typescript2({
-          tsconfig: join(jitPkg.path, 'tsconfig.json'),
-          typescript: ts,
-          tsconfigOverride: {
-            module: 'esnext',
-            stripInternal: true,
-            emitDeclarationOnly: false,
-            composite: false,
-            declaration: false,
-            declarationMap: false
-          }
-        })
-      ]
-    });
-
-    const fullBundle = jitPkg.iife.replace('jit-html', 'au.bundle');
-    log(`${logPrefix} writing iife - ${fullBundle}`);
-
-    await bundle.write({
-      file: fullBundle,
-      exports: 'named',
-      name: 'au',
-      globals: {
-        ...project.packages.reduce(
-          (g, packg) => {
-            g[packg.scopedName] = packg.fullName;
-            return g;
-          },
-          {}
-        ),
-        'tslib': 'tslib'
-      },
-      format: 'iife',
-      sourcemap: false
-    });
   }
 }
 

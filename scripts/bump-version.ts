@@ -20,20 +20,20 @@ export function getCurrentVersion(): {major: string; minor: string; patch: strin
 
 export async function updateDependencyVersions(newVersion: string): Promise<void> {
   const aureliaRegExp = /^@aurelia/;
-  for (const { name, scopedName } of project.packages) {
-    log(`updating dependencies for ${c.magentaBright(scopedName)}`);
-    const pkg = await loadPackageJson('packages', name);
+  for (const { name } of project.packages) {
+    log(`updating dependencies for ${c.magentaBright(name.npm)}`);
+    const pkg = await loadPackageJson('packages', name.kebab);
     pkg.version = newVersion;
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
       for (const depName in deps) {
         if (aureliaRegExp.test(depName)) {
-          log(`  dep ${scopedName} ${c.yellow(deps[depName])} -> ${c.greenBright(newVersion)}`);
+          log(`  dep ${name.npm} ${c.yellow(deps[depName])} -> ${c.greenBright(newVersion)}`);
           deps[depName] = newVersion;
         }
       }
     }
-    await savePackageJson(pkg, 'packages', name);
+    await savePackageJson(pkg, 'packages', name.kebab);
   }
   const lernaJson = JSON.parse(readFileSync(project['lerna.json'].path, { encoding: 'utf8' }));
   lernaJson.version = newVersion;

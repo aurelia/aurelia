@@ -143,7 +143,7 @@ export class Router {
     }
 
     let clearViewports: boolean = false;
-    if (instruction.isBack || instruction.isForward) {
+    if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
       instruction.path = instruction.fullStatePath;
     }
     const path = instruction.path;
@@ -243,8 +243,8 @@ export class Router {
       componentViewports = remaining.componentViewports;
       viewportsRemaining = remaining.viewportsRemaining;
     }
-    // TODO: Make sure replace paths isn't called on wrong (later) navigation
-    this.replacePaths();
+
+    this.replacePaths(instruction);
 
     this.processingNavigation = null;
 
@@ -313,7 +313,7 @@ export class Router {
     while (route.redirect) {
       const redirectRoute: IRoute = this.findRoute({
         path: route.redirect,
-        fullStatePath: route.redirect,
+        fullStatePath: null, // TODO: This might not be right
         data: data,
       });
       if (redirectRoute) {
@@ -332,7 +332,7 @@ export class Router {
     if (path.startsWith('/')) {
       path = path.substr(1);
     }
-    let sections: string[] = path.split(this.separators.sibling);
+    const sections: string[] = path.split(this.separators.sibling);
 
     // TODO: Remove this once multi level recursiveness is fixed
     // Expand with instances for all containing views
@@ -489,13 +489,13 @@ export class Router {
     return unique;
   }
 
-  private replacePaths(): void {
+  private replacePaths(instruction: INavigationInstruction): void {
     let viewportStates = this.rootScope.viewportStates();
     viewportStates = this.removeStateDuplicates(viewportStates);
     let fullViewportStates = this.rootScope.viewportStates(true);
     fullViewportStates = this.removeStateDuplicates(fullViewportStates);
     this.activeComponents = fullViewportStates;
     fullViewportStates.unshift(this.separators.clear);
-    this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling), fullViewportStates.join(this.separators.sibling));
+    this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling), fullViewportStates.join(this.separators.sibling), instruction);
   }
 }

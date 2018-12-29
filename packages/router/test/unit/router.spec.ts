@@ -276,6 +276,17 @@ describe('Router', () => {
 
     await teardown(host, router, 1);
   });
+
+  it('does not update fullStatePath on wrong history entry', async function () {
+    this.timeout(40000);
+    const { host, router } = await setup();
+
+    router.goto('/foo@left');
+    router.goto('/bar@left');
+    router.goto('/baz@left');
+
+    await teardown(host, router, 4);
+  });
 });
 
 let quxCantLeave = 2;

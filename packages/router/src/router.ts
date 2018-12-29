@@ -57,6 +57,9 @@ export class Router {
   private isActive: boolean = false;
   private isRedirecting: boolean = false;
 
+  private pendingNavigations: INavigationInstruction[] = [];
+  private processingNavigation: INavigationInstruction = null;
+
   constructor(public container: IContainer) {
     this.historyBrowser = new HistoryBrowser();
     this.linkHandler = new LinkHandler();
@@ -71,7 +74,7 @@ export class Router {
     this.options = {
       ...{
         callback: (navigationInstruction) => {
-          this.historyCallback(navigationInstruction).catch(error => { throw error; });
+          this.historyCallback(navigationInstruction);
         }
       }, ...options
     };
@@ -117,12 +120,25 @@ export class Router {
     this.historyBrowser.setHash(href);
   }
 
-  public async historyCallback(instruction: INavigationInstruction): Promise<void> {
+  public historyCallback(instruction: INavigationInstruction): void {
+    this.pendingNavigations.push(instruction);
+    this.processNavigations().catch(error => { throw error; });
+  }
+
+  public async processNavigations(): Promise<void> {
+    if (this.processingNavigation !== null || !this.pendingNavigations.length) {
+      return Promise.resolve();
+    }
+
+    const instruction: INavigationInstruction = this.pendingNavigations.shift();
+    this.processingNavigation = instruction;
+
     if (this.options.reportCallback) {
       this.options.reportCallback(instruction);
     }
 
     if (instruction.isCancel) {
+      this.processingNavigation = null;
       return Promise.resolve();
     }
 
@@ -146,6 +162,7 @@ export class Router {
         route = this.resolveRedirect(route, instruction.data);
         this.isRedirecting = true;
         this.historyBrowser.redirect(route.path, route.title, instruction.data);
+        this.processingNavigation = null;
         return Promise.resolve();
       }
 
@@ -159,6 +176,7 @@ export class Router {
     }
 
     if (!views && !Object.keys(views).length && !clearViewports) {
+      this.processingNavigation = null;
       return Promise.resolve();
     }
 
@@ -204,11 +222,13 @@ export class Router {
       let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
       if (results.findIndex((value) => value === false) >= 0) {
         this.historyBrowser.cancel();
+        this.processingNavigation = null;
         return Promise.resolve();
       }
       results = await Promise.all(changedViewports.map((value) => value.canEnter()));
       if (results.findIndex((value) => value === false) >= 0) {
         this.historyBrowser.cancel();
+        this.processingNavigation = null;
         return Promise.resolve();
       }
       results = await Promise.all(changedViewports.map((value) => value.loadContent()));
@@ -225,6 +245,12 @@ export class Router {
     }
     // TODO: Make sure replace paths isn't called on wrong (later) navigation
     this.replacePaths();
+
+    this.processingNavigation = null;
+
+    if (this.pendingNavigations.length) {
+      this.processNavigations().catch(error => { throw error; });
+    }
   }
 
   // public view(views: Object, title?: string, data?: Object): Promise<void> {

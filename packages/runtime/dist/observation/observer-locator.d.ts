@@ -1,30 +1,37 @@
-import { IDOM } from '../dom';
 import { ILifecycle } from '../lifecycle';
-import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet, IOverrideContext } from '../observation';
+import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
-import { IEventManager } from './event-manager';
-import { ISVGAnalyzer } from './svg-analyzer';
 export interface IObjectObservationAdapter {
-    getObserver(object: IObservable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
+    getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }
 export interface IObserverLocator {
-    getObserver(obj: IObservable, propertyName: string): AccessorOrObserver;
-    getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
+    getObserver(obj: unknown, propertyName: string): AccessorOrObserver;
+    getAccessor(obj: unknown, propertyName: string): IBindingTargetAccessor;
     addAdapter(adapter: IObjectObservationAdapter): void;
     getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
     getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
     getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
 }
 export declare const IObserverLocator: import("@aurelia/kernel").InterfaceSymbol<IObserverLocator>;
+export interface ITargetObserverLocator {
+    getObserver(lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
+    overridesAccessor(obj: unknown, propertyName: string): boolean;
+    handles(obj: unknown): boolean;
+}
+export declare const ITargetObserverLocator: import("@aurelia/kernel").InterfaceSymbol<ITargetObserverLocator>;
+export interface ITargetAccessorLocator {
+    getAccessor(lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor;
+    handles(obj: unknown): boolean;
+}
+export declare const ITargetAccessorLocator: import("@aurelia/kernel").InterfaceSymbol<ITargetAccessorLocator>;
 export declare class ObserverLocator implements IObserverLocator {
-    private dom;
     private adapters;
     private dirtyChecker;
-    private eventManager;
     private lifecycle;
-    private svgAnalyzer;
-    constructor(dom: IDOM, lifecycle: ILifecycle, eventManager: IEventManager, dirtyChecker: IDirtyChecker, svgAnalyzer: ISVGAnalyzer);
-    getObserver(obj: IObservable | IBindingContext | IOverrideContext, propertyName: string): AccessorOrObserver;
+    private targetObserverLocator;
+    private targetAccessorLocator;
+    constructor(lifecycle: ILifecycle, dirtyChecker: IDirtyChecker, targetObserverLocator: ITargetObserverLocator, targetAccessorLocator: ITargetAccessorLocator);
+    getObserver(obj: unknown, propertyName: string): AccessorOrObserver;
     addAdapter(adapter: IObjectObservationAdapter): void;
     getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
     getArrayObserver(observedArray: IObservedArray): ICollectionObserver<CollectionKind.array>;

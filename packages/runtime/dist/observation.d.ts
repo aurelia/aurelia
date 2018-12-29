@@ -1,7 +1,7 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
 export declare enum LifecycleFlags {
     none = 0,
-    mustEvaluate = 524288,
+    mustEvaluate = 262144,
     mutation = 3,
     isCollectionMutation = 1,
     isInstanceMutation = 2,
@@ -9,7 +9,7 @@ export declare enum LifecycleFlags {
     updateTargetObserver = 4,
     updateTargetInstance = 8,
     updateSourceExpression = 16,
-    from = 524256,
+    from = 262112,
     fromFlush = 96,
     fromAsyncFlush = 32,
     fromSyncFlush = 64,
@@ -20,18 +20,22 @@ export declare enum LifecycleFlags {
     fromAttach = 2048,
     fromDetach = 4096,
     fromCache = 8192,
-    fromCreate = 16384,
-    fromDOMEvent = 32768,
-    fromObserverSetter = 65536,
-    fromBindableHandler = 131072,
-    fromLifecycleTask = 262144,
-    parentUnmountQueued = 1048576,
-    doNotUpdateDOM = 2097152,
-    isTraversingParentScope = 4194304,
-    persistentBindingFlags = 8388608,
-    allowParentScopeTraversal = 8388608
+    fromDOMEvent = 16384,
+    fromObserverSetter = 32768,
+    fromBindableHandler = 65536,
+    fromLifecycleTask = 131072,
+    parentUnmountQueued = 524288,
+    doNotUpdateDOM = 1048576,
+    isTraversingParentScope = 2097152,
+    persistentBindingFlags = 4194304,
+    allowParentScopeTraversal = 4194304
 }
 export declare function stringifyLifecycleFlags(flags: LifecycleFlags): string;
+export declare enum DelegationStrategy {
+    none = 0,
+    capturing = 1,
+    bubbling = 2
+}
 /**
  * Describes a type that tracks changes and can flush those changes in some way
  */
@@ -51,6 +55,7 @@ export interface IAccessor<TValue = unknown> {
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).
  */
 export interface IBindingTargetAccessor<TObj = any, TProp = keyof TObj, TValue = unknown> extends IDisposable, IAccessor<TValue>, IPropertyChangeTracker<TObj, TProp> {
+    isDOMObserver?: boolean;
 }
 /**
  * Describes a target observer for from-view or two-way bindings.
@@ -192,6 +197,7 @@ export interface IBatchedSubscribable<T extends MutationKind> {
  * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
  */
 export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj> extends IDisposable, IAccessor<TObj[TProp]>, IPropertyChangeTracker<TObj, TProp>, ISubscriberCollection<MutationKind.instance> {
+    observing: boolean;
 }
 /**
  * An any-typed property observer

@@ -1,1 +1,1 @@
-{"version":3,"file":"platform.d.ts","sourceRoot":"","sources":["packages/kernel/src/platform.ts"],"names":[],"mappings":"AASA,eAAO,MAAM,QAAQ;;;;;;;;;;CA6EpB,CAAC"}
+{"version":3,"file":"platform.d.ts","sourceRoot":"","sources":["packages/kernel/src/platform.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,aAAa,EAAE,0BAA0B,EAAE,MAAM,cAAc,CAAC;AAqJzE,eAAO,MAAM,QAAQ;;;;;;;;;;;;;;CA2EpB,CAAC"}

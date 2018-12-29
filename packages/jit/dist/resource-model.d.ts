@@ -1,5 +1,5 @@
 import { IResourceDescriptions } from '@aurelia/kernel';
-import { BindingMode, IElement } from '@aurelia/runtime';
+import { BindingMode } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IBindingCommand } from './binding-command';
 /**
@@ -19,7 +19,7 @@ export declare class ResourceModel {
      *
      * @returns The resource information if the element exists, or `null` if it does not exist.
      */
-    getElementInfo(element: IElement): ElementInfo | null;
+    getElementInfo(name: string): ElementInfo | null;
     /**
      * Retrieve information about a custom attribute resource.
      *

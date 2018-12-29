@@ -1,9 +1,9 @@
 import { Class, IRegistry, IResourceDefinition, IResourceKind, IResourceType } from '@aurelia/kernel';
-import { AttributeInstruction, BindingType } from '@aurelia/runtime';
-import { BindingSymbol, PlainAttributeSymbol } from './template-binder';
+import { AttributeInstruction, BindingMode, BindingType, ITargetedInstruction } from '@aurelia/runtime';
+import { BindingSymbol, PlainAttributeSymbol } from './semantic-model';
 export interface IBindingCommand {
     bindingType: BindingType;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    compile(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
 }
 export interface IBindingCommandDefinition extends IResourceDefinition {
 }
@@ -15,6 +15,8 @@ declare type BindingCommandDecorator = <TProto, TClass>(target: Class<TProto, TC
 export declare function bindingCommand(name: string): BindingCommandDecorator;
 export declare function bindingCommand(definition: IBindingCommandDefinition): BindingCommandDecorator;
 export declare const BindingCommandResource: IBindingCommandResource;
+export declare function getTarget(binding: PlainAttributeSymbol | BindingSymbol, camelCase: boolean): string;
+export declare function getMode(binding: PlainAttributeSymbol | BindingSymbol): BindingMode;
 export interface OneTimeBindingCommand extends IBindingCommand {
 }
 export declare class OneTimeBindingCommand implements IBindingCommand {
@@ -56,30 +58,6 @@ export declare class DefaultBindingCommand implements IBindingCommand {
     $2: typeof ToViewBindingCommand.prototype.compile;
     $4: typeof FromViewBindingCommand.prototype.compile;
     $6: typeof TwoWayBindingCommand.prototype.compile;
-    constructor();
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
-}
-export interface TriggerBindingCommand extends IBindingCommand {
-}
-export declare class TriggerBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.TriggerCommand;
-    constructor();
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
-}
-export interface DelegateBindingCommand extends IBindingCommand {
-}
-export declare class DelegateBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.DelegateCommand;
-    constructor();
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
-}
-export interface CaptureBindingCommand extends IBindingCommand {
-}
-export declare class CaptureBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.CaptureCommand;
     constructor();
     compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }

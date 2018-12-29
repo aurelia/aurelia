@@ -2,7 +2,7 @@ import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IBindScope, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { IsBindingBehavior } from './ast';
-import { IBinding, IBindingTarget } from './binding';
+import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 export interface Ref extends IConnectableBinding {
 }
@@ -13,8 +13,8 @@ export declare class Ref implements IBinding {
     $scope: IScope;
     locator: IServiceLocator;
     sourceExpression: IsBindingBehavior;
-    target: IBindingTarget;
-    constructor(sourceExpression: IsBindingBehavior, target: IBindingTarget, locator: IServiceLocator);
+    target: Object;
+    constructor(sourceExpression: IsBindingBehavior, target: Object, locator: IServiceLocator);
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(obj: IIndexable, propertyName: string): void;

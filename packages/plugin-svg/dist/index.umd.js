@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/runtime')) :
-  typeof define === 'function' && define.amd ? define(['exports', '@aurelia/runtime'], factory) :
-  (global = global || self, factory(global.pluginSvg = {}, global.runtime));
-}(this, function (exports, runtime) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/runtime-html')) :
+  typeof define === 'function' && define.amd ? define(['exports', '@aurelia/runtime-html'], factory) :
+  (global = global || self, factory(global.pluginSvg = {}, global.runtimeHtml));
+}(this, function (exports, runtimeHtml) { 'use strict';
 
   const svgElements = {
       'a': ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
@@ -221,7 +221,7 @@
       delete svgElements.glyphRef;
   }
   function register(container) {
-      container.registerTransformer(runtime.ISVGAnalyzer, analyzer => {
+      container.registerTransformer(runtimeHtml.ISVGAnalyzer, analyzer => {
           return Object.assign({}, analyzer, { isStandardSvgAttribute(node, attributeName) {
                   // Using very HTML-specific code here since you won't install this module
                   // unless you are actually running in a browser, using HTML,

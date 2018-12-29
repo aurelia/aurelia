@@ -3,7 +3,6 @@ import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IExpression } from './ast';
-import { IBindingTarget } from './binding';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export interface LetBinding extends IConnectableBinding {
 }
@@ -16,7 +15,7 @@ export declare class LetBinding implements IPartialConnectableBinding {
     locator: IServiceLocator;
     observerLocator: IObserverLocator;
     sourceExpression: IExpression;
-    target: IBindingTarget;
+    target: Object;
     targetProperty: string;
     private toViewModel;
     constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel?: boolean);

@@ -3,7 +3,7 @@ import { IBindScope, State } from '../lifecycle';
 import { IBindingTargetAccessor, IScope, LifecycleFlags } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IExpression, Interpolation } from './ast';
-import { IBinding, IBindingTarget } from './binding';
+import { IBinding } from './binding';
 import { BindingMode } from './binding-mode';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export declare class MultiInterpolationBinding implements IBinding {
@@ -16,9 +16,9 @@ export declare class MultiInterpolationBinding implements IBinding {
     locator: IServiceLocator;
     mode: BindingMode;
     parts: InterpolationBinding[];
-    target: IBindingTarget;
+    target: Object;
     targetProperty: string;
-    constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, locator: IServiceLocator);
+    constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: Object, targetProperty: string, mode: BindingMode, locator: IServiceLocator);
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
 }
@@ -33,10 +33,10 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     mode: BindingMode;
     observerLocator: IObserverLocator;
     sourceExpression: IExpression;
-    target: IBindingTarget;
+    target: Object;
     targetProperty: string;
     targetObserver: IBindingTargetAccessor;
-    constructor(sourceExpression: IExpression, interpolation: Interpolation, target: IBindingTarget, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
+    constructor(sourceExpression: IExpression, interpolation: Interpolation, target: Object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope): void;

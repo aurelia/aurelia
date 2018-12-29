@@ -1,13 +1,6 @@
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
-import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateDefinition, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType } from './definitions';
-import { INode } from './dom.interfaces';
-import { DelegationStrategy } from './observation/event-manager';
-export declare class TextBindingInstruction implements ITextBindingInstruction {
-    type: TargetedInstructionType.textBinding;
-    from: string | Interpolation;
-    constructor(from: string | Interpolation);
-}
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction, ITemplateDefinition, TargetedInstructionType } from './definitions';
 export declare class InterpolationInstruction implements IInterpolationInstruction {
     type: TargetedInstructionType.interpolation;
     from: string | Interpolation;
@@ -52,30 +45,6 @@ export declare class IteratorBindingInstruction implements IIteratorBindingInstr
     to: string;
     constructor(from: string | ForOfStatement, to: string);
 }
-export declare class TriggerBindingInstruction implements IListenerBindingInstruction {
-    type: TargetedInstructionType.listenerBinding;
-    from: string | IsBindingBehavior;
-    preventDefault: true;
-    strategy: DelegationStrategy.none;
-    to: string;
-    constructor(from: string | IsBindingBehavior, to: string);
-}
-export declare class DelegateBindingInstruction implements IListenerBindingInstruction {
-    type: TargetedInstructionType.listenerBinding;
-    from: string | IsBindingBehavior;
-    preventDefault: false;
-    strategy: DelegationStrategy.bubbling;
-    to: string;
-    constructor(from: string | IsBindingBehavior, to: string);
-}
-export declare class CaptureBindingInstruction implements IListenerBindingInstruction {
-    type: TargetedInstructionType.listenerBinding;
-    from: string | IsBindingBehavior;
-    preventDefault: false;
-    strategy: DelegationStrategy.capturing;
-    to: string;
-    constructor(from: string | IsBindingBehavior, to: string);
-}
 export declare class CallBindingInstruction implements ICallBindingInstruction {
     type: TargetedInstructionType.callBinding;
     from: string | IsBindingBehavior;
@@ -87,45 +56,32 @@ export declare class RefBindingInstruction implements IRefBindingInstruction {
     from: string | IsBindingBehavior;
     constructor(from: string | IsBindingBehavior);
 }
-export declare class StylePropertyBindingInstruction implements IStylePropertyBindingInstruction {
-    type: TargetedInstructionType.stylePropertyBinding;
-    from: string | IsBindingBehavior;
-    to: string;
-    constructor(from: string | IsBindingBehavior, to: string);
-}
 export declare class SetPropertyInstruction implements ISetPropertyInstruction {
     type: TargetedInstructionType.setProperty;
     to: string;
     value: unknown;
     constructor(value: unknown, to: string);
 }
-export declare class SetAttributeInstruction implements ITargetedInstruction {
-    type: TargetedInstructionType.setAttribute;
-    to: string;
-    value: string;
-    constructor(value: string, to: string);
-}
 export declare class HydrateElementInstruction implements IHydrateElementInstruction {
     type: TargetedInstructionType.hydrateElement;
-    contentOverride?: INode;
-    instructions: TargetedInstruction[];
+    instructions: ITargetedInstruction[];
     parts?: Record<string, ITemplateDefinition>;
     res: string;
-    constructor(res: string, instructions: TargetedInstruction[], parts?: Record<string, ITemplateDefinition>, contentOverride?: INode);
+    constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, ITemplateDefinition>);
 }
 export declare class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
     type: TargetedInstructionType.hydrateAttribute;
-    instructions: TargetedInstruction[];
+    instructions: ITargetedInstruction[];
     res: string;
-    constructor(res: string, instructions: TargetedInstruction[]);
+    constructor(res: string, instructions: ITargetedInstruction[]);
 }
 export declare class HydrateTemplateController implements IHydrateTemplateController {
     type: TargetedInstructionType.hydrateTemplateController;
     def: ITemplateDefinition;
-    instructions: TargetedInstruction[];
+    instructions: ITargetedInstruction[];
     link?: boolean;
     res: string;
-    constructor(def: ITemplateDefinition, res: string, instructions: TargetedInstruction[], link?: boolean);
+    constructor(def: ITemplateDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean);
 }
 export declare class LetElementInstruction implements IHydrateLetElementInstruction {
     type: TargetedInstructionType.hydrateLetElement;

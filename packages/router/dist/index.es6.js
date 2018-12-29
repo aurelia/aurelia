@@ -1,5 +1,27 @@
-import { inject, IContainer } from '@aurelia/kernel';
-import { CustomElementResource, IRenderingEngine, IDOM, LifecycleFlags, Aurelia } from '@aurelia/runtime';
+import { PLATFORM, inject, IContainer } from '@aurelia/kernel';
+import { CustomElementResource, IDOM, IProjectorLocator, IRenderingEngine, LifecycleFlags, Aurelia, bindable, customElement } from '@aurelia/runtime';
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+
+function __decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
 
 class HistoryBrowser {
     constructor() {
@@ -242,28 +264,6 @@ class HistoryBrowser {
     }
 }
 
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-
-function __decorate(decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-
 /**
  * Class responsible for handling interactions that should trigger navigation.
  */
@@ -437,8 +437,10 @@ class Viewport {
             }
         }
         const host = this.element;
-        const renderingEngine = this.router.container.get(IRenderingEngine);
-        const dom = this.router.container.get(IDOM);
+        const container = this.router.container;
+        const dom = container.get(IDOM);
+        const projectorLocator = container.get(IProjectorLocator);
+        const renderingEngine = container.get(IRenderingEngine);
         if (this.component) {
             if (this.component.leave) {
                 this.component.leave(this.instruction, this.nextInstruction);
@@ -450,9 +452,9 @@ class Viewport {
             if (this.nextComponent.enter) {
                 this.nextComponent.enter(this.nextInstruction, this.instruction);
             }
-            this.nextComponent.$hydrate(dom, renderingEngine, host);
+            this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host);
             this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
-            this.nextComponent.$attach(LifecycleFlags.fromStartTask, host);
+            this.nextComponent.$attach(LifecycleFlags.fromStartTask);
             this.content = this.nextContent;
             this.instruction = this.nextInstruction;
             this.component = this.nextComponent;
@@ -527,7 +529,7 @@ class Viewport {
     }
     async wait(time = 0) {
         await new Promise((resolve) => {
-            setTimeout(resolve, time);
+            PLATFORM.global.setTimeout(resolve, time);
         });
     }
 }
@@ -1181,5 +1183,36 @@ Router = __decorate([
     inject(IContainer)
 ], Router);
 
-export { HistoryBrowser, Router, Viewport };
+let ViewportCustomElement = class ViewportCustomElement {
+    constructor(router, element) {
+        this.router = router;
+        this.element = element;
+        this.name = 'default';
+    }
+    attached() {
+        const options = { scope: this.element.hasAttribute('scope') };
+        if (this.usedBy && this.usedBy.length) {
+            options.usedBy = this.usedBy;
+        }
+        this.viewport = this.router.addViewport(this.name, this.element, options);
+    }
+    unbound() {
+        this.router.removeViewport(this.viewport);
+    }
+};
+__decorate([
+    bindable
+], ViewportCustomElement.prototype, "name", void 0);
+__decorate([
+    bindable
+], ViewportCustomElement.prototype, "scope", void 0);
+__decorate([
+    bindable
+], ViewportCustomElement.prototype, "usedBy", void 0);
+ViewportCustomElement = __decorate([
+    inject(Router, Element),
+    customElement({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' })
+], ViewportCustomElement);
+
+export { ViewportCustomElement, HistoryBrowser, LinkHandler, Router, Scope, Viewport };
 //# sourceMappingURL=index.es6.js.map

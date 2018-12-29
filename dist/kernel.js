@@ -2,32 +2,147 @@ this.au = this.au || {};
 this.au.kernel = (function (exports) {
   'use strict';
 
+  const $global = (function () {
+      // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
+      // tslint:disable:no-typeof-undefined
+      if (typeof global !== 'undefined') {
+          return global;
+      }
+      if (typeof self !== 'undefined') {
+          return self;
+      }
+      if (typeof window !== 'undefined') {
+          return window;
+      }
+      // tslint:enable:no-typeof-undefined
+      try {
+          // Not all environments allow eval and Function. Use only as a last resort:
+          // tslint:disable-next-line:no-function-constructor-with-string-args function-constructor
+          return new Function('return this')();
+      }
+      catch (_a) {
+          // If all fails, give up and create an object.
+          // tslint:disable-next-line:no-object-literal-type-assertion
+          return {};
+      }
+      // @ts-ignore 2683
+  }).call(undefined);
+  // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
+  const $now = (function () {
+      let getNanoSeconds;
+      let hrtime;
+      let loadTime;
+      let moduleLoadTime;
+      let nodeLoadTime;
+      let upTime;
+      if (($global.performance !== undefined && $global.performance !== null) && $global.performance.now) {
+          const $performance = $global.performance;
+          return function () {
+              return $performance.now();
+          };
+      }
+      else if (($global.process !== undefined && $global.process !== null) && $global.process.hrtime) {
+          const now = function () {
+              return (getNanoSeconds() - nodeLoadTime) / 1e6;
+          };
+          hrtime = $global.process.hrtime;
+          getNanoSeconds = function () {
+              let hr;
+              hr = hrtime();
+              return hr[0] * 1e9 + hr[1];
+          };
+          moduleLoadTime = getNanoSeconds();
+          upTime = $global.process.uptime() * 1e9;
+          nodeLoadTime = moduleLoadTime - upTime;
+          return now;
+      }
+      else if (Date.now) {
+          const now = function () {
+              return Date.now() - loadTime;
+          };
+          loadTime = Date.now();
+          return now;
+      }
+      else {
+          const now = function () {
+              return new Date().getTime() - loadTime;
+          };
+          loadTime = new Date().getTime();
+          return now;
+      }
+  })();
+  // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js
+  const $raf = (function () {
+      const vendors = ['moz', 'webkit'];
+      const suffix = 'AnimationFrame';
+      let raf = $global[`request${suffix}`];
+      let caf = $global[`cancel${suffix}`] || $global[`cancelRequest${suffix}`];
+      for (let i = 0; !raf && i < vendors.length; ++i) {
+          raf = $global[`${vendors[i]}Request${suffix}`];
+          caf = $global[`${vendors[i]}Cancel${suffix}`] || $global[`${vendors[i]}CancelRequest${suffix}`];
+      }
+      // Some versions of FF have rAF but not cAF
+      if (!raf || !caf) {
+          let last = 0;
+          let id = 0;
+          const queue = [];
+          const frameDuration = 1000 / 60;
+          raf = function (callback) {
+              let _now;
+              let next;
+              if (queue.length === 0) {
+                  _now = $now();
+                  next = Math.max(0, frameDuration - (_now - last));
+                  last = next + _now;
+                  setTimeout(function () {
+                      const cp = queue.slice(0);
+                      // Clear queue here to prevent callbacks from appending listeners to the current frame's queue
+                      queue.length = 0;
+                      for (let i = 0; i < cp.length; ++i) {
+                          if (!cp[i].cancelled) {
+                              try {
+                                  cp[i].callback(last);
+                              }
+                              catch (e) {
+                                  setTimeout(function () { throw e; }, 0);
+                              }
+                          }
+                      }
+                  }, Math.round(next));
+              }
+              queue.push({
+                  handle: ++id,
+                  callback: callback,
+                  cancelled: false
+              });
+              return id;
+          };
+          caf = function (handle) {
+              for (let i = 0; i < queue.length; ++i) {
+                  if (queue[i].handle === handle) {
+                      queue[i].cancelled = true;
+                  }
+              }
+          };
+      }
+      const $$raf = function (callback) {
+          return raf.call($global, callback);
+      };
+      $$raf.cancel = function () {
+          caf.apply($global, arguments);
+      };
+      $global.requestAnimationFrame = raf;
+      $global.cancelAnimationFrame = caf;
+      return $$raf;
+  })();
   const camelCaseLookup = {};
   const kebabCaseLookup = {};
   const PLATFORM = {
-      global: (function () {
-          // Workers don’t have `window`, only `self`
-          // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
-          // tslint:disable-next-line:no-typeof-undefined
-          if (typeof self !== 'undefined') {
-              return self;
-          }
-          // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
-          // tslint:disable-next-line:no-typeof-undefined
-          if (typeof global !== 'undefined') {
-              return global;
-          }
-          // Not all environments allow eval and Function
-          // Use only as a last resort:
-          // tslint:disable-next-line:no-function-constructor-with-string-args
-          return new Function('return this')();
-      })(),
+      global: $global,
       emptyArray: Object.freeze([]),
       emptyObject: Object.freeze({}),
       noop() { return; },
-      now() {
-          return performance.now();
-      },
+      now: $now,
       camelCase(input) {
           // benchmark: http://jsben.ch/qIz4Z
           let value = camelCaseLookup[input];
@@ -76,7 +191,21 @@ this.au.kernel = (function (exports) {
           return arr;
       },
       requestAnimationFrame(callback) {
-          return requestAnimationFrame(callback);
+          return $raf(callback);
+      },
+      clearInterval(handle) {
+          return $global.clearInterval(handle);
+      },
+      clearTimeout(handle) {
+          return $global.clearTimeout(handle);
+      },
+      // tslint:disable-next-line:no-any
+      setInterval(handler, timeout, ...args) {
+          return $global.setInterval(handler, timeout, ...args);
+      },
+      // tslint:disable-next-line:no-any
+      setTimeout(handler, timeout, ...args) {
+          return $global.setTimeout(handler, timeout, ...args);
       }
   };
 
@@ -127,6 +256,7 @@ this.au.kernel = (function (exports) {
       disableLiveLogging() { return; }
   };
 
+  const slice = Array.prototype.slice;
   // Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
   // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
   // https://rbuckton.github.io/reflect-metadata/
@@ -397,15 +527,24 @@ this.au.kernel = (function (exports) {
           return new Factory(Type, invoker, dependencies);
       }
       construct(container, dynamicDependencies) {
+          if (Tracer.enabled) {
+              Tracer.enter(`Factory.construct`, slice.call(arguments).concat(this.Type));
+          }
           const transformers = this.transformers;
           let instance = dynamicDependencies !== undefined
               ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
               : this.invoker.invoke(container, this.Type, this.dependencies);
           if (transformers === null) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return instance;
           }
           for (let i = 0, ii = transformers.length; i < ii; ++i) {
               instance = transformers[i](instance);
+          }
+          if (Tracer.enabled) {
+              Tracer.leave();
           }
           return instance;
       }
@@ -513,8 +652,14 @@ this.au.kernel = (function (exports) {
                   : false;
       }
       get(key) {
+          if (Tracer.enabled) {
+              Tracer.enter(`Container.get`, slice.call(arguments));
+          }
           validateKey(key);
           if (key.resolve) {
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return key.resolve(this, this);
           }
           let current = this;
@@ -523,11 +668,17 @@ this.au.kernel = (function (exports) {
               if (resolver === undefined) {
                   if (current.parent === null) {
                       resolver = this.jitRegister(key, current);
+                      if (Tracer.enabled) {
+                          Tracer.leave();
+                      }
                       return resolver.resolve(current, this);
                   }
                   current = current.parent;
               }
               else {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return resolver.resolve(current, this);
               }
           }

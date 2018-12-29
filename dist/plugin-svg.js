@@ -1,5 +1,5 @@
 this.au = this.au || {};
-this.au.pluginSvg = (function (exports, runtime) {
+this.au.pluginSvg = (function (exports, runtimeHtml) {
   'use strict';
 
   const svgElements = {
@@ -219,7 +219,7 @@ this.au.pluginSvg = (function (exports, runtime) {
       delete svgElements.glyphRef;
   }
   function register(container) {
-      container.registerTransformer(runtime.ISVGAnalyzer, analyzer => {
+      container.registerTransformer(runtimeHtml.ISVGAnalyzer, analyzer => {
           return Object.assign({}, analyzer, { isStandardSvgAttribute(node, attributeName) {
                   // Using very HTML-specific code here since you won't install this module
                   // unless you are actually running in a browser, using HTML,
@@ -238,4 +238,4 @@ this.au.pluginSvg = (function (exports, runtime) {
 
   return exports;
 
-}({}, au.runtime));
+}({}, au.runtimeHtml));

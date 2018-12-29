@@ -1,15 +1,19 @@
 import { IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
-import { IRenderLocation } from '../../dom.interfaces';
+import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
+import { INode, IRenderLocation } from '../../dom';
 import { IRenderable, IView, IViewFactory } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
-import { SetterObserver } from '../../observation/property-observation';
-import { ICustomAttribute } from '../custom-attribute';
-export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {
+import { SetterObserver } from '../../observation/setter-observer';
+import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
+export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {
 }
-export declare class Repeat<T extends ObservedCollection = IObservedArray> {
-    static register: IRegistry['register'];
-    items: T;
+export declare class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements Repeat<C, T> {
+    static readonly register: IRegistry['register'];
+    static readonly bindables: IAttributeDefinition['bindables'];
+    static readonly kind: ICustomAttributeResource;
+    static readonly description: AttributeDefinition;
+    items: C;
     $scope: IScope;
     $observers: {
         items: SetterObserver;
@@ -17,18 +21,18 @@ export declare class Repeat<T extends ObservedCollection = IObservedArray> {
     forOf: ForOfStatement;
     hasPendingInstanceMutation: boolean;
     local: string;
-    location: IRenderLocation;
+    location: IRenderLocation<T>;
     observer: CollectionObserver | null;
-    renderable: IRenderable;
-    factory: IViewFactory;
-    views: IView[];
-    constructor(location: IRenderLocation, renderable: IRenderable, factory: IViewFactory);
+    renderable: IRenderable<T>;
+    factory: IViewFactory<T>;
+    views: IView<T>[];
+    constructor(location: IRenderLocation<T>, renderable: IRenderable<T>, factory: IViewFactory<T>);
     binding(flags: LifecycleFlags): void;
     bound(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;
     unbound(flags: LifecycleFlags): void;
-    itemsChanged(newValue: T, oldValue: T, flags: LifecycleFlags): void;
+    itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void;
     handleBatchedChange(indexMap: number[] | null): void;
     private processViews;
     private checkCollectionObserver;

@@ -1,19 +1,21 @@
+/// <reference types="node" />
+/// <reference types="webpack-env" />
 export interface IPerformance {
     now(): number;
 }
 export declare type ITimerHandler = string | Function;
 export interface IWindowOrWorkerGlobalScope {
+    process?: NodeJS.Process;
     readonly performance: IPerformance;
     clearInterval(handle?: number): void;
     clearTimeout(handle?: number): void;
     setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
     setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
+    requestAnimationFrame(callback: IFrameRequestCallback): number;
+    cancelAnimationFrame(handle: number): void;
 }
 export interface IFrameRequestCallback {
     (time: number): void;
-}
-export interface IWindow extends IWindowOrWorkerGlobalScope {
-    requestAnimationFrame(callback: IFrameRequestCallback): number;
 }
 export interface ICallable {
     call(...args: unknown[]): unknown;

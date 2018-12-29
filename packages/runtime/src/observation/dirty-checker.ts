@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { DI, PLATFORM } from '@aurelia/kernel';
 import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { propertyObserver } from './property-observer';
 
@@ -39,7 +39,7 @@ export class DirtyChecker {
   }
 
   public scheduleDirtyCheck(): void {
-    setTimeout(() => { this.check(); }, this.checkDelay);
+    PLATFORM.global.setTimeout(() => { this.check(); }, this.checkDelay);
   }
 
   public check(): void {

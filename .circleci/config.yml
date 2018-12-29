@@ -395,6 +395,12 @@ jobs:
             - store_artifacts:
                 path: ~/repo/coverage
 
+  unit_test_node:
+    executor: docker-circleci
+    steps:
+      - first_attach_workspace
+      - run: npm run test-node
+
   # Requires bundle_packages
   e2e_browserstack:
     executor: docker-circleci
@@ -459,6 +465,10 @@ workflows:
           <<: *filter_ignore_develop_release
           requires:
             - build_packages
+      - unit_test_node:
+          <<: *filter_ignore_develop_release
+          requires:
+            - bundle_packages
       - publish_local:
           <<: *filter_ignore_develop_release
           requires:
@@ -536,6 +546,10 @@ workflows:
           <<: *filter_only_tag
           requires:
             - build_packages
+      - unit_test_node:
+          <<: *filter_ignore_develop_release
+          requires:
+            - bundle_packages
       - publish_local:
           <<: *filter_ignore_develop_release
           requires:
@@ -701,6 +715,9 @@ workflows:
       - bundle_packages:
           requires:
             - build_packages
+      - unit_test_node:
+          requires:
+            - bundle_packages
       - e2e_browserstack:
           requires:
             - bundle_packages

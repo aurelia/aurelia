@@ -2,10 +2,6 @@ import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
 import { BindableSource, IBindableDescription } from '../definitions';
 
-type WithBindables = { bindables: Record<string, IBindableDescription> };
-type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>
-  (target: T, prop: string) => void;
-
 /**
  * Decorator: Specifies custom behavior for a bindable property.
  * @param config The overrides
@@ -71,3 +67,7 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
   config = (configOrTarget || {}) as IBindableDescription;
   return decorator as BindableDecorator;
 }
+
+export type WithBindables = { bindables: Record<string, IBindableDescription> };
+export type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>
+  (target: T, prop: string) => void;

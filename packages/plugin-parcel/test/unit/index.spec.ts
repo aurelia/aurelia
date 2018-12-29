@@ -3,7 +3,7 @@ import { expect } from 'chai';
 
 describe('index', () => {
   it('placeholder should be null', () => {
-    expect(placeholder).to.be.null;
+    expect(placeholder).to.equal(null);
   });
 });
 

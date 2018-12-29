@@ -7,7 +7,7 @@
     "build": "rimraf dist && parcel build index.html",
     "copypackages": "copyfiles -u 7 ../../../../../packages/*/*.tgz .",
     "renamepackages": "rname -r \"(?<name>[a-z\\-]+)(?<version>-\\d.\\d.\\d)\" --noindex aurelia*.tgz \"{{name}}\"",
-    "installpackages": "npm i --save ./aurelia-kernel.tgz ./aurelia-runtime.tgz ./aurelia-debug.tgz ./aurelia-jit.tgz",
+    "installpackages": "npm i --save ./aurelia-kernel.tgz ./aurelia-runtime.tgz ./aurelia-runtime-html.tgz ./aurelia-debug.tgz ./aurelia-jit.tgz ./aurelia-jit-html.tgz",
     "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {},

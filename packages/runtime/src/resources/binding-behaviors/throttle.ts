@@ -1,12 +1,8 @@
-import { IRegistry, IWindow } from '@aurelia/kernel';
+import { IRegistry, PLATFORM } from '@aurelia/kernel';
 import { Binding, IBinding } from '../../binding/binding';
 import { BindingMode } from '../../binding/binding-mode';
 import { IScope, LifecycleFlags } from '../../observation';
 import { bindingBehavior } from '../binding-behavior';
-
-// defaults to nodejs setTimeout/clearTimeout type otherwise
-declare var setTimeout: IWindow['setTimeout'];
-declare var clearTimeout: IWindow['clearTimeout'];
 
 export type ThrottleableBinding = IBinding & {
   throttledMethod: ((value: unknown) => unknown) & { originalName: string };
@@ -24,7 +20,7 @@ export function throttle(this: ThrottleableBinding, newValue: unknown): void {
   const elapsed = +new Date() - state.last;
 
   if (elapsed >= state.delay) {
-    clearTimeout(state.timeoutId);
+    PLATFORM.global.clearTimeout(state.timeoutId);
     state.timeoutId = -1;
     state.last = +new Date();
     this.throttledMethod(newValue);
@@ -34,8 +30,7 @@ export function throttle(this: ThrottleableBinding, newValue: unknown): void {
   state.newValue = newValue;
 
   if (state.timeoutId === -1) {
-    // To disambiguate between "number" and "NodeJS.Timer" we cast it to an unknown, so we can subsequently cast it to number.
-    const timeoutId: unknown = setTimeout(
+    const timeoutId = PLATFORM.global.setTimeout(
       () => {
         state.timeoutId = -1;
         state.last = +new Date();
@@ -43,7 +38,7 @@ export function throttle(this: ThrottleableBinding, newValue: unknown): void {
       },
       state.delay - elapsed
     );
-    state.timeoutId = timeoutId as number;
+    state.timeoutId = timeoutId;
   }
 }
 
@@ -86,7 +81,7 @@ export class ThrottleBindingBehavior {
     const methodToRestore = binding.throttledMethod.originalName;
     binding[methodToRestore] = binding.throttledMethod;
     binding.throttledMethod = null;
-    clearTimeout(binding.throttleState.timeoutId);
+    PLATFORM.global.clearTimeout(binding.throttleState.timeoutId);
     binding.throttleState = null;
   }
 }

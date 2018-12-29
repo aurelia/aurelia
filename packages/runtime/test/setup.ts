@@ -1,8 +1,6 @@
 import * as chai from 'chai';
-import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { State } from "../src";
-
+import { State } from '../src/index';
 
 chai.should();
 chai.use(sinonChai);
@@ -65,10 +63,6 @@ chai.use(function(_chai, utils) {
 
 Error.stackTraceLimit = Infinity;
 
-const unitTests: any = (require as any).context('./unit', true, /\.spec/);
-unitTests.keys().forEach(unitTests);
-
-const integrationTests: any = (require as any).context('./integration', true, /\.spec/);
-integrationTests.keys().forEach(integrationTests);
-
+const testContext = require.context('.', true, /\.spec\.ts$/);
+testContext.keys().forEach(testContext);
 

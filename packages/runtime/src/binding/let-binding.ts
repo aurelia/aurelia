@@ -3,7 +3,6 @@ import { IBindScope, ILifecycle, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IExpression } from './ast';
-import { IBindingTarget } from './binding';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;
@@ -21,7 +20,7 @@ export class LetBinding implements IPartialConnectableBinding {
   public locator: IServiceLocator;
   public observerLocator: IObserverLocator;
   public sourceExpression: IExpression;
-  public target: IBindingTarget;
+  public target: Object;
   public targetProperty: string;
 
   private toViewModel: boolean;

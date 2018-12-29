@@ -7,8 +7,10 @@
     "serve": "http-server -c-1 -p 9000 ."
   },
   "dependencies": {
+    "@aurelia/jit-html": "dev",
     "@aurelia/jit": "dev",
     "@aurelia/kernel": "dev",
+    "@aurelia/runtime-html": "dev",
     "@aurelia/runtime": "dev",
     "requirejs": "latest",
     "text": "github:requirejs/text#latest"

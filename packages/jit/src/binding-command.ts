@@ -15,22 +15,20 @@ import {
   BindingMode,
   BindingType,
   CallBindingInstruction,
-  CaptureBindingInstruction,
-  DelegateBindingInstruction,
   ForOfStatement,
   FromViewBindingInstruction,
   IsBindingBehavior,
+  ITargetedInstruction,
   IteratorBindingInstruction,
   OneTimeBindingInstruction,
   ToViewBindingInstruction,
-  TriggerBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
-import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from './template-binder';
+import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from './semantic-model';
 
 export interface IBindingCommand {
   bindingType: BindingType;
-  compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+  compile(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
 }
 
 export interface IBindingCommandDefinition extends IResourceDefinition { }
@@ -81,7 +79,7 @@ export const BindingCommandResource: IBindingCommandResource = {
   define
 };
 
-function getTarget(binding: PlainAttributeSymbol | BindingSymbol, camelCase: boolean): string {
+export function getTarget(binding: PlainAttributeSymbol | BindingSymbol, camelCase: boolean): string {
   if (binding.flags & SymbolFlags.isBinding) {
     return (binding as BindingSymbol).bindable.propName;
   } else if (camelCase) {
@@ -91,7 +89,7 @@ function getTarget(binding: PlainAttributeSymbol | BindingSymbol, camelCase: boo
   }
 }
 
-function getMode(binding: PlainAttributeSymbol | BindingSymbol): BindingMode {
+export function getMode(binding: PlainAttributeSymbol | BindingSymbol): BindingMode {
   if (binding.flags & SymbolFlags.isBinding) {
     return (binding as BindingSymbol).bindable.mode;
   } else {
@@ -195,54 +193,6 @@ export class DefaultBindingCommand implements IBindingCommand {
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     return this[modeToProperty[getMode(binding)]](binding);
-  }
-}
-
-export interface TriggerBindingCommand extends IBindingCommand {}
-
-@bindingCommand('trigger')
-export class TriggerBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.TriggerCommand;
-
-  constructor() {
-    this.bindingType = BindingType.TriggerCommand;
-  }
-
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new TriggerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
-  }
-}
-
-export interface DelegateBindingCommand extends IBindingCommand {}
-
-@bindingCommand('delegate')
-export class DelegateBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.DelegateCommand;
-
-  constructor() {
-    this.bindingType = BindingType.DelegateCommand;
-  }
-
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new DelegateBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
-  }
-}
-
-export interface CaptureBindingCommand extends IBindingCommand {}
-
-@bindingCommand('capture')
-export class CaptureBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.CaptureCommand;
-
-  constructor() {
-    this.bindingType = BindingType.CaptureCommand;
-  }
-
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new CaptureBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
 

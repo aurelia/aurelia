@@ -1,4 +1,5 @@
 import {
+  Constructable,
   DI,
   Immutable,
   IRegistry,
@@ -10,10 +11,7 @@ import {
 } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
-import { IShadowRootInit } from './dom.interfaces';
-import { DelegationStrategy } from './observation/event-manager';
-import { CustomElementConstructor, ICustomElement } from './resources/custom-element';
-import { ICustomElementHost } from './templating/lifecycle-render';
+import { CustomElementHost, ICustomElement } from './resources/custom-element';
 
 /** @internal */
 export const customElementName = 'custom-element';
@@ -22,8 +20,8 @@ export function customElementKey(name: string): string {
   return `${customElementName}:${name}`;
 }
 /** @internal */
-export function customElementBehavior(node: ICustomElementHost): ICustomElement | null {
-  return node.$customElement === undefined ? null : node.$customElement;
+export function customElementBehavior(node: unknown): ICustomElement | null {
+  return (node as CustomElementHost).$customElement === undefined ? null : (node as CustomElementHost).$customElement;
 }
 
 /** @internal */
@@ -32,6 +30,8 @@ export const customAttributeName = 'custom-attribute';
 export function customAttributeKey(name: string): string {
   return `${customAttributeName}:${name}`;
 }
+
+export type IElementHydrationOptions = { parts?: Record<string, TemplateDefinition> };
 
 export type BindableSource = Omit<IBindableDescription, 'property'>;
 
@@ -42,25 +42,28 @@ export interface IBindableDescription {
   property?: string;
 }
 
+/**
+ * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
+ * into the `Renderer`.
+ *
+ * Additional instruction types can be added as long as they are 2 characters long and do not clash with existing ones.
+ *
+ * By convention, the instruction types for a particular runtime start with the same first letter, and the second letter
+ * starts counting from letter `a`. The standard runtime instruction types all start with the letter `r`.
+ */
 export const enum TargetedInstructionType {
-  textBinding = 'a',
-  interpolation = 'b',
-  propertyBinding = 'c',
-  iteratorBinding = 'd',
-  listenerBinding = 'e',
-  callBinding = 'f',
-  refBinding = 'g',
-  stylePropertyBinding = 'h',
-  setProperty = 'i',
-  setAttribute = 'j',
-  hydrateElement = 'k',
-  hydrateAttribute = 'l',
-  hydrateTemplateController = 'm',
-  hydrateLetElement = 'n',
-  letBinding = 'o'
+  hydrateElement = 'ra',
+  hydrateAttribute = 'rb',
+  hydrateTemplateController = 'rc',
+  hydrateLetElement = 'rd',
+  setProperty = 're',
+  interpolation = 'rf',
+  propertyBinding = 'rg',
+  callBinding = 'rh',
+  letBinding = 'ri',
+  refBinding = 'rj',
+  iteratorBinding = 'rk',
 }
-
-const instructionTypeValues = 'abcdefghijklmno';
 
 export interface IBuildInstruction {
   required: boolean;
@@ -70,13 +73,13 @@ export interface IBuildInstruction {
 export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: unknown;
-  instructions?: TargetedInstruction[][];
+  instructions?: ITargetedInstruction[][];
   dependencies?: IRegistry[];
   build?: IBuildInstruction;
-  surrogates?: TargetedInstruction[];
+  surrogates?: ITargetedInstruction[];
   bindables?: Record<string, IBindableDescription>;
   containerless?: boolean;
-  shadowOptions?: IShadowRootInit;
+  shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
 }
 
@@ -95,13 +98,14 @@ export interface IAttributeDefinition extends IResourceDefinition {
 
 export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
 
+export type InstructionTypeName = string;
+
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>();
 export interface ITargetedInstruction {
-  type: TargetedInstructionType;
+  type: InstructionTypeName;
 }
 
 export type NodeInstruction =
-  ITextBindingInstruction |
   IHydrateElementInstruction |
   IHydrateTemplateController |
   IHydrateLetElementInstruction;
@@ -110,12 +114,9 @@ export type AttributeInstruction =
   IInterpolationInstruction |
   IPropertyBindingInstruction |
   IIteratorBindingInstruction |
-  IListenerBindingInstruction |
   ICallBindingInstruction |
   IRefBindingInstruction |
-  IStylePropertyBindingInstruction |
   ISetPropertyInstruction |
-  ISetAttributeInstruction |
   ILetBindingInstruction |
   IHydrateAttributeInstruction;
 
@@ -126,18 +127,7 @@ export type InstructionRow = [TargetedInstruction, ...AttributeInstruction[]];
 
 export function isTargetedInstruction(value: unknown): value is TargetedInstruction {
   const type = (value as { type?: string }).type;
-  return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
-}
-
-export interface ITextBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.textBinding;
-  from: string | Interpolation;
-}
-
-export interface IInterpolationInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.interpolation;
-  from: string | Interpolation;
-  to: string;
+  return typeof type === 'string' && type.length === 2;
 }
 
 export interface IInterpolationInstruction extends ITargetedInstruction {
@@ -160,14 +150,6 @@ export interface IIteratorBindingInstruction extends ITargetedInstruction {
   to: string;
 }
 
-export interface IListenerBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.listenerBinding;
-  from: string | IsBindingBehavior;
-  to: string;
-  strategy: DelegationStrategy;
-  preventDefault: boolean;
-}
-
 export interface ICallBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.callBinding;
   from: string | IsBindingBehavior;
@@ -179,41 +161,29 @@ export interface IRefBindingInstruction extends ITargetedInstruction {
   from: string | IsBindingBehavior;
 }
 
-export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.stylePropertyBinding;
-  from: string | IsBindingBehavior;
-  to: string;
-}
-
 export interface ISetPropertyInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setProperty;
   value: unknown;
   to: string;
 }
 
-export interface ISetAttributeInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.setAttribute;
-  value: string;
-  to: string;
-}
-
 export interface IHydrateElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: string;
-  instructions: TargetedInstruction[];
+  instructions: ITargetedInstruction[];
   parts?: Record<string, ITemplateDefinition>;
 }
 
 export interface IHydrateAttributeInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateAttribute;
   res: string;
-  instructions: TargetedInstruction[];
+  instructions: ITargetedInstruction[];
 }
 
 export interface IHydrateTemplateController extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateTemplateController;
   res: string;
-  instructions: TargetedInstruction[];
+  instructions: ITargetedInstruction[];
   def: ITemplateDefinition;
   link?: boolean;
 }
@@ -288,6 +258,12 @@ const templateDefinitionArrays = [
   'surrogates'
 ];
 
+export type CustomElementConstructor = Constructable & {
+  containerless?: TemplateDefinition['containerless'];
+  shadowOptions?: TemplateDefinition['shadowOptions'];
+  bindables?: TemplateDefinition['bindables'];
+};
+
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor,
   name: string): TemplateDefinition;
@@ -305,9 +281,9 @@ export function buildTemplateDefinition(
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
-  instructions?: ReadonlyArray<ReadonlyArray<TargetedInstruction>> | null,
+  instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null,
   dependencies?: ReadonlyArray<unknown> | null,
-  surrogates?: ReadonlyArray<TargetedInstruction> | null,
+  surrogates?: ReadonlyArray<ITargetedInstruction> | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null): TemplateDefinition;
@@ -319,9 +295,9 @@ export function buildTemplateDefinition(
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
-  instructions?: ReadonlyArray<ReadonlyArray<TargetedInstruction>> | null,
+  instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null,
   dependencies?: ReadonlyArray<IRegistry> | null,
-  surrogates?: ReadonlyArray<TargetedInstruction> | null,
+  surrogates?: ReadonlyArray<ITargetedInstruction> | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null): TemplateDefinition {
@@ -336,7 +312,7 @@ export function buildTemplateDefinition(
     case 10: if (containerless !== null) def.containerless = containerless;
     case 9: if (surrogates !== null) def.surrogates = PLATFORM.toArray(surrogates);
     case 8: if (dependencies !== null) def.dependencies = PLATFORM.toArray(dependencies);
-    case 7: if (instructions !== null) def.instructions = PLATFORM.toArray(instructions) as TargetedInstruction[][];
+    case 7: if (instructions !== null) def.instructions = PLATFORM.toArray(instructions) as ITargetedInstruction[][];
     case 6: if (bindables !== null) def.bindables = { ...bindables };
     case 5: if (build !== null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build };
     case 4: if (cache !== null) def.cache = cache;
@@ -350,7 +326,7 @@ export function buildTemplateDefinition(
           def.containerless = ctor.containerless;
         }
         if (ctor['shadowOptions']) {
-          def.shadowOptions = ctor.shadowOptions;
+          def.shadowOptions = ctor.shadowOptions as unknown as { mode: 'open' | 'closed' };
         }
       }
       if (typeof nameOrDef === 'string') {

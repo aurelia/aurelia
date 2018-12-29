@@ -60,7 +60,7 @@ describe(`Select App - `, () => {
         AppPage.setSelectByIndex(0); // deselect first element before starting loop
         for (let i = 0; i < 10; ++i) {
           AppPage.setSelectByIndex(i);
-          expect(AppPage.option(i).isSelected()).to.be.true;
+          expect(AppPage.option(i).isSelected()).to.equal(true);
         }
       });
 
@@ -69,7 +69,7 @@ describe(`Select App - `, () => {
         for (let i = 0; i < 10; ++i) {
           AppPage.setSelectByIndex(i);
           AppPage.setSelectByIndex(i);
-          expect(AppPage.option(i).isSelected()).to.be.false;
+          expect(AppPage.option(i).isSelected()).to.equal(false);
         }
 
         expect(AppPage.options.filter(o => o.isSelected()).length).to.equal(0);

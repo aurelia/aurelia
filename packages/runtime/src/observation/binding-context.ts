@@ -9,7 +9,7 @@ import {
   ObserversLookup,
   PropertyObserver
 } from '../observation';
-import { SetterObserver } from './property-observation';
+import { SetterObserver } from './setter-observer';
 
 const slice = Array.prototype.slice;
 
@@ -60,8 +60,24 @@ export class BindingContext implements IBindingContext {
     }
   }
 
+  /**
+   * Create a new synthetic `BindingContext` for use in a `Scope`.
+   * @param obj Optional. An existing object or `BindingContext` to (shallow) clone (own) properties from.
+   */
   public static create(obj?: IIndexable): BindingContext;
+  /**
+   * Create a new synthetic `BindingContext` for use in a `Scope`.
+   * @param key The name of the only property to initialize this `BindingContext` with.
+   * @param value The value of the only property to initialize this `BindingContext` with.
+   */
   public static create(key: string, value: BindingContextValue): BindingContext;
+  /**
+   * Create a new synthetic `BindingContext` for use in a `Scope`.
+   *
+   * This overload signature is simply the combined signatures of the other two, and can be used
+   * to keep strong typing in situations where the arguments are dynamic.
+   */
+  public static create(keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext;
   public static create(keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext {
     return new BindingContext(keyOrObj, value);
   }
@@ -150,7 +166,35 @@ export class Scope implements IScope {
     this.parentScope = null;
   }
 
-  public static create(bc: IBindingContext | IBindScope, oc: IOverrideContext | null): Scope {
+  /**
+   * Create a new `Scope` backed by the provided `BindingContext` and a new standalone `OverrideContext`.
+   *
+   * Use this overload when the scope is for the root component, in a unit test,
+   * or when you simply want to prevent binding expressions from traversing up the scope.
+   * @param bc The `BindingContext` to back the `Scope` with.
+   */
+  public static create(bc: IBindingContext | IBindScope): Scope;
+  /**
+   * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
+   *
+   * @param bc The `BindingContext` to back the `Scope` with.
+   * @param oc The `OverrideContext` to back the `Scope` with.
+   * If a binding expression attempts to access a property that does not exist on the `BindingContext`
+   * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
+   * it finds the property.
+   */
+  public static create(bc: IBindingContext | IBindScope, oc: IOverrideContext): Scope;
+  /**
+   * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
+   *
+   * Use this overload when the scope is for the root component, in a unit test,
+   * or when you simply want to prevent binding expressions from traversing up the scope.
+   *
+   * @param bc The `BindingContext` to back the `Scope` with.
+   * @param oc null. This overload is functionally equivalent to not passing this argument at all.
+   */
+  public static create(bc: IBindingContext | IBindScope, oc: null): Scope;
+  public static create(bc: IBindingContext | IBindScope, oc?: IOverrideContext | null): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope.create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
     return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc) : oc);

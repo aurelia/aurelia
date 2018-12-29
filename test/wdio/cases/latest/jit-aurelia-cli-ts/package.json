@@ -8,8 +8,10 @@
   },
   "dependencies": {
     "@aurelia/debug": "latest",
+    "@aurelia/jit-html": "latest",
     "@aurelia/jit": "latest",
     "@aurelia/kernel": "latest",
+    "@aurelia/runtime-html": "latest",
     "@aurelia/runtime": "latest",
     "requirejs": "latest",
     "text": "github:requirejs/text#latest"

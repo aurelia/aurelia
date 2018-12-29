@@ -269,7 +269,7 @@ Foo.register(container);
   }
 };
 
-export const IContainer = DI.createInterface<IContainer>().noDefault();
+export const IContainer = DI.createInterface<IContainer>('IContainer').noDefault();
 export const IServiceLocator = IContainer as InterfaceSymbol<IServiceLocator>;
 
 function createResolver(

@@ -65,7 +65,7 @@ export interface IElementProjector<T extends INode = INode> {
   subscribeToChildrenChange(callback: () => void): void;
 }
 
-export const IProjectorLocator = DI.createInterface<IProjectorLocator>().noDefault();
+export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();
 
 export interface IProjectorLocator<T extends INode = INode> {
   getElementProjector(dom: IDOM<T>, $component: ICustomElement<T>, host: CustomElementHost<T>, def: TemplateDefinition): IElementProjector<T>;

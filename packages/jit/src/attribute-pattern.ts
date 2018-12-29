@@ -296,7 +296,7 @@ export interface ISyntaxInterpreter {
   interpret(value: string): Interpretation;
 }
 
-export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>().withDefault(x => x.singleton(SyntaxInterpreter));
+export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISyntaxInterpreter').withDefault(x => x.singleton(SyntaxInterpreter));
 
 /** @internal */
 export class SyntaxInterpreter {
@@ -453,7 +453,7 @@ export interface IAttributePatternHandler {
   [pattern: string]: (rawName: string, rawValue: string, parts: ReadonlyArray<string>) => AttrSyntax;
 }
 
-export const IAttributePattern = DI.createInterface<IAttributePattern>().noDefault();
+export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();
 
 type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<IAttributePattern | IAttributePatternHandler>, TClass> & Partial<IRegistry>;
 type DecoratedAttributePattern<TProto, TClass> =  Class<TProto & IAttributePattern | IAttributePatternHandler, TClass> & IRegistry;

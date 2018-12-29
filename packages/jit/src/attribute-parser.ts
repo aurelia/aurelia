@@ -6,8 +6,7 @@ export interface IAttributeParser {
   parse(name: string, value: string): AttrSyntax;
 }
 
-export const IAttributeParser = DI.createInterface<IAttributeParser>()
-  .withDefault(x => x.singleton(AttributeParser));
+export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
 
 /** @internal */
 export class AttributeParser implements IAttributeParser {

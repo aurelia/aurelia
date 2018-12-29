@@ -10,7 +10,7 @@ export interface ISignaler {
   removeSignalListener(name: Signal, listener: IPropertySubscriber): void;
 }
 
-export const ISignaler = DI.createInterface<ISignaler>().withDefault(x => x.singleton(Signaler));
+export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(x => x.singleton(Signaler));
 
 /** @internal */
 export class Signaler implements ISignaler {

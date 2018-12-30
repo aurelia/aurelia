@@ -1,26 +1,32 @@
 import { expect } from 'chai';
-import { match, SinonMatcher, spy } from 'sinon';
+import {
+  match,
+  SinonMatcher,
+  spy
+} from 'sinon';
 import {
   classInvokers,
   Container,
-  DI,
   Factory,
   fallbackInvoker,
+  invokeWithDynamicDependencies,
+  Resolver,
+  ResolverStrategy
+} from '../src/di';
+import {
+  DI,
   IContainer,
   IDefaultableInterfaceSymbol,
   inject,
-  invokeWithDynamicDependencies,
   PLATFORM,
   Registration,
-  Resolver,
-  ResolverStrategy,
   singleton,
   transient
 } from '../src/index';
 import { _ } from './util';
 
-// tslint:disable:no-unnecessary-field-initialization
-// tslint:disable:no-empty
+//tslint:disable:no-unnecessary-field-initialization
+//tslint:disable:no-empty
 
 function assertIsMutableArray(arr: any[], length: number): void {
   expect(Array.isArray(arr)).to.equal(true);

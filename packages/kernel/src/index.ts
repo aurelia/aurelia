@@ -1,4 +1,4 @@
-import {
+export {
   all,
   DI,
   IContainer,
@@ -19,7 +19,7 @@ import {
   singleton,
   transient
 } from './di';
-import {
+export {
   Class,
   Constructable,
   Diff,
@@ -56,14 +56,14 @@ import {
   ValuesOf,
   Writable
 } from './interfaces';
-import { PLATFORM } from './platform';
-import {
+export { PLATFORM } from './platform';
+export {
   ITraceInfo,
   ITraceWriter,
   Reporter,
   Tracer
 } from './reporter';
-import {
+export {
   IResourceDefinition,
   IResourceDescriptions,
   IResourceKind,
@@ -72,72 +72,3 @@ import {
   ResourcePartDescription,
   RuntimeCompilationResources
 } from './resource';
-
-export {
-  all,
-  DI,
-  IContainer,
-  IDefaultableInterfaceSymbol,
-  IFactory,
-  inject,
-  InterfaceSymbol,
-  IRegistration,
-  IRegistry,
-  IResolver,
-  IServiceLocator,
-  Key,
-  lazy,
-  optional,
-  RegisterSelf,
-  Registration,
-  ResolveCallback,
-  singleton,
-  transient,
-  Class,
-  Constructable,
-  Diff,
-  ICallable,
-  IDisposable,
-  IFrameRequestCallback,
-  IIndexable,
-  Immutable,
-  ImmutableArray,
-  ImmutableObject,
-  Injectable,
-  IPerformance,
-  ITimerHandler,
-  IWindowOrWorkerGlobalScope,
-  KnownKeys,
-  NoInfer,
-  Omit,
-  OptionalKnownKeys,
-  OptionalValuesOf,
-  Overwrite,
-  Param0,
-  Param1,
-  Param2,
-  Param3,
-  Pick2,
-  Pick3,
-  Primitive,
-  Public,
-  Purify,
-  RequiredKnownKeys,
-  RequiredValuesOf,
-  StrictPrimitive,
-  Unwrap,
-  ValuesOf,
-  Writable,
-  PLATFORM,
-  ITraceInfo,
-  ITraceWriter,
-  Reporter,
-  Tracer,
-  IResourceDefinition,
-  IResourceDescriptions,
-  IResourceKind,
-  IResourceType,
-  ResourceDescription,
-  ResourcePartDescription,
-  RuntimeCompilationResources
-};

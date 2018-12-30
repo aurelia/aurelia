@@ -1,3 +1,4 @@
-export * from './binding/unparser';
-export * from './configuration';
-export * from './reporter';
+export {
+  DebugConfiguration,
+  TraceConfiguration
+} from './configuration';

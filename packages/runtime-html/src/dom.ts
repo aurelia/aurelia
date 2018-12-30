@@ -122,6 +122,7 @@ export class HTMLDOM implements IDOM {
  * - the previous element is an `au-m` node
  * - text is the actual text node
  */
+/** @internal */
 export class TextNodeSequence implements INodeSequence {
   public dom: HTMLDOM;
   public firstChild: Text;
@@ -288,10 +289,12 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
+/** @internal */
 export interface NodeSequenceFactory {
   createNodeSequence(): INodeSequence;
 }
 
+/** @internal */
 export class NodeSequenceFactory implements NodeSequenceFactory {
   private readonly dom: IDOM;
   private readonly deepClone: boolean;
@@ -360,6 +363,7 @@ export class AuMarker implements INode {
   proto.nodeType = NodeType.Element;
 })(AuMarker.prototype as Writable<AuMarker>);
 
+/** @internal */
 export class HTMLDOMInitializer implements IDOMInitializer {
   public static inject: unknown[] = [IContainer];
 
@@ -396,6 +400,7 @@ export class HTMLDOMInitializer implements IDOMInitializer {
   }
 }
 
+/** @internal */
 export class HTMLTemplateFactory implements ITemplateFactory {
   public static inject: unknown[] = [IDOM];
 

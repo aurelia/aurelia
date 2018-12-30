@@ -17,7 +17,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from '@aurelia/jit';
-import { inject, IResourceDescriptions, PLATFORM } from '@aurelia/kernel';
+import { IResourceDescriptions, PLATFORM } from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
@@ -57,8 +57,9 @@ const buildNotRequired: IBuildInstruction = Object.freeze({
  *
  * @internal
  */
-@inject(ITemplateElementFactory, IAttributeParser, IExpressionParser)
 export class TemplateCompiler implements ITemplateCompiler {
+  public static readonly inject: ReadonlyArray<Function> = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
+
   private factory: ITemplateElementFactory;
   private attrParser: IAttributeParser;
   private exprParser: IExpressionParser;

@@ -1,6 +1,4 @@
 import { Class, Constructable, DI, IContainer, Registration } from '@aurelia/kernel';
-import { parseExpression } from '../../jit/src/index';
-import { HTMLJitConfiguration } from '../../jit-html/src/index';
 import {
   BindingType,
   CustomElementResource,
@@ -15,20 +13,22 @@ import {
   INode,
   Interpolation,
 
+  IProjectorLocator,
+
   IRenderingEngine,
 
   IsBindingBehavior,
 
   ITemplateDefinition,
-
   IteratorBindingInstruction,
-  LifecycleFlags,
 
-  ToViewBindingInstruction,
-  IProjectorLocator
+  LifecycleFlags,
+  ToViewBindingInstruction
 
 } from '@aurelia/runtime';
-import { TextBindingInstruction, HTMLTargetedInstruction } from '../src/index';
+import { HTMLJitConfiguration } from '../../jit-html/src/index';
+import { parseExpression } from '../../jit/src/index';
+import { HTMLTargetedInstruction, TextBindingInstruction } from '../src/index';
 
 
 export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;

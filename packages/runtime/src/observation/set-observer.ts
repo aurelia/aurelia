@@ -1,98 +1,113 @@
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedSet, LifecycleFlags } from '../observation';
-import { nativePush, nativeSplice } from './array-observer';
 import { collectionObserver } from './collection-observer';
 
 const proto = Set.prototype;
-export const nativeAdd = proto.add; // TODO: probably want to make these internal again
-export const nativeClear = proto.clear;
-export const nativeDelete = proto.delete;
+
+const $add = proto.add;
+const $clear = proto.clear;
+const $delete = proto.delete;
+
+const native = { add: $add, clear: $clear, delete: $delete };
+const methods = ['add', 'clear', 'delete'];
 
 // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
 // fortunately, add/delete/clear are easy to reconstruct for the indexMap
 
-// https://tc39.github.io/ecma262/#sec-set.prototype.add
-function observeAdd(this: IObservedSet, value: unknown): ReturnType<typeof nativeAdd> {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativeAdd.call(this, value);
-  }
-  const oldSize = this.size;
-  nativeAdd.call(this, value);
-  const newSize = this.size;
-  if (newSize === oldSize) {
+const observe = {
+  // https://tc39.github.io/ecma262/#sec-set.prototype.add
+  add: function(this: IObservedSet, value: unknown): ReturnType<typeof $add> {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $add.call(this, value);
+    }
+    const oldSize = this.size;
+    $add.call(this, value);
+    const newSize = this.size;
+    if (newSize === oldSize) {
+      return this;
+    }
+    o.indexMap[oldSize] = -2;
+    o.callSubscribers('add', arguments, LifecycleFlags.isCollectionMutation);
     return this;
-  }
-  o.indexMap[oldSize] = -2;
-  o.callSubscribers('add', arguments, LifecycleFlags.isCollectionMutation);
-  return this;
-}
-
-// https://tc39.github.io/ecma262/#sec-set.prototype.clear
-function observeClear(this: IObservedSet): ReturnType<typeof nativeClear>  {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativeClear.call(this);
-  }
-  const size = this.size;
-  if (size > 0) {
-    const indexMap = o.indexMap;
+  },
+  // https://tc39.github.io/ecma262/#sec-set.prototype.clear
+  clear: function(this: IObservedSet): ReturnType<typeof $clear>  {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $clear.call(this);
+    }
+    const size = this.size;
+    if (size > 0) {
+      const indexMap = o.indexMap;
+      let i = 0;
+      for (const entry of this.keys()) {
+        if (indexMap[i] > -1) {
+        indexMap.deletedItems.push(entry);
+        }
+        i++;
+      }
+      $clear.call(this);
+      indexMap.length = 0;
+      o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
+    }
+    return undefined;
+  },
+  // https://tc39.github.io/ecma262/#sec-set.prototype.delete
+  delete: function(this: IObservedSet, value: unknown): ReturnType<typeof $delete> {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $delete.call(this, value);
+    }
+    const size = this.size;
+    if (size === 0) {
+      return false;
+    }
     let i = 0;
+    const indexMap = o.indexMap;
     for (const entry of this.keys()) {
-      if (indexMap[i] > -1) {
-        nativePush.call(indexMap.deletedItems, entry);
+      if (entry === value) {
+        if (indexMap[i] > -1) {
+          indexMap.deletedItems.push(entry);
+        }
+        indexMap.splice(i, 1);
+        return $delete.call(this, value);
       }
       i++;
     }
-    nativeClear.call(this);
-    indexMap.length = 0;
-    o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
-  }
-  return undefined;
-}
-
-// https://tc39.github.io/ecma262/#sec-set.prototype.delete
-function observeDelete(this: IObservedSet, value: unknown): ReturnType<typeof nativeDelete> {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativeDelete.call(this, value);
-  }
-  const size = this.size;
-  if (size === 0) {
+    o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
     return false;
   }
-  let i = 0;
-  const indexMap = o.indexMap;
-  for (const entry of this.keys()) {
-    if (entry === value) {
-      if (indexMap[i] > -1) {
-        nativePush.call(indexMap.deletedItems, entry);
-      }
-      nativeSplice.call(indexMap, i, 1);
-      return nativeDelete.call(this, value);
-    }
-    i++;
-  }
-  o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
-  return false;
-}
+};
 
-for (const observe of [observeAdd, observeClear, observeDelete]) {
-  Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+const descriptorProps = {
+  writable: true,
+  enumerable: false,
+  configurable: true
+};
+
+const def = Object.defineProperty;
+
+for (const method of methods) {
+  def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 
 export function enableSetObservation(): void {
-  if (proto.add['observing'] !== true) proto.add = observeAdd;
-  if (proto.clear['observing'] !== true) proto.clear = observeClear;
-  if (proto.delete['observing'] !== true) proto.delete = observeDelete;
+  for (const method of methods) {
+    if (proto[method].observing !== true) {
+      def(proto, method, { ...descriptorProps, value: observe[method] });
+    }
+  }
 }
 
 enableSetObservation();
 
 export function disableSetObservation(): void {
-  if (proto.add['observing'] === true) proto.add = nativeAdd;
-  if (proto.clear['observing'] === true) proto.clear = nativeClear;
-  if (proto.delete['observing'] === true) proto.delete = nativeDelete;
+  for (const method of methods) {
+    if (proto[method].observing === true) {
+      def(proto, method, { ...descriptorProps, value: native[method] });
+    }
+  }
 }
 
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}

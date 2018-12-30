@@ -282,7 +282,12 @@ commands:
             git stash pop
             git add packages/\*/dist/* dist --force
       - run:
-          name: "Commit dist folders"
+          name: "Replace package.json refs and add them"
+          command: |
+            npm run replace-package-refs:rollup
+            git add .
+      - run:
+          name: "Commit dist folders and package.jsons"
           command: git commit --allow-empty -m "<< parameters.message >>"
 
   do_git_push:
@@ -461,14 +466,14 @@ workflows:
           <<: *filter_ignore_develop_release
           requires:
             - install_root
+      - unit_test_node:
+          <<: *filter_ignore_develop_release
+          requires:
+            - build_packages
       - bundle_packages:
           <<: *filter_ignore_develop_release
           requires:
             - build_packages
-      - unit_test_node:
-          <<: *filter_ignore_develop_release
-          requires:
-            - bundle_packages
       - publish_local:
           <<: *filter_ignore_develop_release
           requires:
@@ -481,13 +486,6 @@ workflows:
           <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
-          attach: true
-          requires:
-            - bundle_packages
-      - e2e_wdio:
-          <<: *filter_ignore_develop_release
-          name: jit-browserify-ts
-          path: "local/jit-browserify-ts"
           attach: true
           requires:
             - bundle_packages
@@ -542,14 +540,14 @@ workflows:
           <<: *filter_only_tag
           requires:
             - install_root
+      - unit_test_node:
+          <<: *filter_only_tag
+          requires:
+            - build_packages
       - bundle_packages:
           <<: *filter_only_tag
           requires:
             - build_packages
-      - unit_test_node:
-          <<: *filter_ignore_develop_release
-          requires:
-            - bundle_packages
       - publish_local:
           <<: *filter_ignore_develop_release
           requires:
@@ -578,10 +576,6 @@ workflows:
           <<: *filter_only_release
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-browserify-ts
-          path: "local/jit-browserify-ts"
       - e2e_wdio:
           <<: *filter_only_release
           name: jit-fuse-box-ts
@@ -712,12 +706,12 @@ workflows:
       - lint_packages:
           requires:
             - install_root
+      - unit_test_node:
+          requires:
+            - build_packages
       - bundle_packages:
           requires:
             - build_packages
-      - unit_test_node:
-          requires:
-            - bundle_packages
       - e2e_browserstack:
           requires:
             - bundle_packages

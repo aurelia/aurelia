@@ -2,7 +2,7 @@ import { IRegistry, PLATFORM } from '@aurelia/kernel';
 import { Binding, IBinding } from '../../binding/binding';
 import { BindingMode } from '../../binding/binding-mode';
 import { IScope, LifecycleFlags } from '../../observation';
-import { bindingBehavior } from '../binding-behavior';
+import { BindingBehaviorResource } from '../binding-behavior';
 
 export type ThrottleableBinding = IBinding & {
   throttledMethod: ((value: unknown) => unknown) & { originalName: string };
@@ -42,7 +42,6 @@ export function throttle(this: ThrottleableBinding, newValue: unknown): void {
   }
 }
 
-@bindingBehavior('throttle')
 export class ThrottleBindingBehavior {
   public static register: IRegistry['register'];
 
@@ -85,3 +84,4 @@ export class ThrottleBindingBehavior {
     binding.throttleState = null;
   }
 }
+BindingBehaviorResource.define('throttle', ThrottleBindingBehavior);

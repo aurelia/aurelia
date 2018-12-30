@@ -16,6 +16,7 @@ import {
   SinonSpy,
   spy
 } from 'sinon';
+import { Lifecycle } from '../../../runtime/src/lifecycle';
 import {
   HTMLDOM,
   HTMLRuntimeConfiguration,
@@ -50,7 +51,8 @@ describe('ValueAttributeObserver', () => {
         const container = HTMLRuntimeConfiguration.createContainer();
         const dom = new HTMLDOM(document);
         Registration.instance(IDOM, dom).register(container, IDOM);
-        const lifecycle = container.get(ILifecycle);
+        //@ts-ignore
+        const lifecycle = container.get(ILifecycle) as Lifecycle;
         const observerLocator = container.get(IObserverLocator);
 
         const el = createElement(`<input type="${inputType}"/>`) as HTMLInputElement;

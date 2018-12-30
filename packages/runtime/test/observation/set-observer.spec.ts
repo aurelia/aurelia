@@ -4,12 +4,10 @@ import {
   disableSetObservation,
   enableSetObservation,
   IndexMap,
-  Lifecycle,
   LifecycleFlags,
-  nativeAdd,
-  nativeSetDelete,
   SetObserver
 } from '../../src/index';
+import { Lifecycle } from '../../src/lifecycle';
 import {
   SpySubscriber,
   stringify
@@ -282,12 +280,12 @@ function synchronize(oldSet: Set<any>, indexMap: IndexMap, newSet: Set<any>): vo
   }
 
   for (const entry of indexMap.deletedItems) {
-    nativeSetDelete.call(oldSet, entry);
+    oldSet.delete(entry);
   }
   let i = 0;
   for (const entry of newSet.keys()) {
     if (indexMap[i] === -2) {
-      nativeAdd.call(oldSet, entry);
+      oldSet.add(entry);
     }
     i++;
   }

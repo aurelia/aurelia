@@ -1,10 +1,10 @@
 {
   "name": "@aurelia/plugin-parcel",
   "version": "0.3.0",
-  "main": "dist/index.umd.js",
-  "module": "dist/index.es6.js",
-  "jsnext:main": "dist/index.es6.js",
-  "browser": "dist/index.umd.js",
+  "main": "dist/build/index.js",
+  "module": "dist/build/index.js",
+  "jsnext:main": "dist/build/index.js",
+  "browser": "dist/build/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -36,7 +36,7 @@
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=plugin-parcel --browsers=ChromeDebugging",
     "test:debugger:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=plugin-parcel --browsers=ChromeDebugging --reporter=mocha",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm plugin-parcel",
+    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system plugin-parcel",
     "dev": "tsc -b -w",
     "publish:local": "npm pack"
   },

@@ -3,8 +3,6 @@ import {
   IContainer,
   IDisposable,
   Immutable,
-  inject,
-  InterfaceSymbol,
   IResolver,
   IServiceLocator,
   Omit,
@@ -100,7 +98,7 @@ export interface IRenderable<T extends INode = INode> extends IBindables, IAttac
   readonly $scope: IScope;
 }
 
-export const IRenderable = DI.createInterface<IRenderable>().noDefault();
+export const IRenderable = DI.createInterface<IRenderable>('IRenderable').noDefault();
 
 export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
   createChild(): IRenderContext<T>;
@@ -149,7 +147,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   create(): IView<T>;
 }
 
-export const IViewFactory = DI.createInterface<IViewFactory>().noDefault();
+export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
 
 export interface ILifecycleCreated extends IHooks, IState {
   /**
@@ -658,7 +656,7 @@ export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {
   finishTask(task: ILifecycleTask): void;
 }
 
-export const ILifecycle = DI.createInterface<ILifecycle>().withDefault(x => x.singleton(Lifecycle));
+export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
 
 /** @internal */
 export class Lifecycle implements ILifecycle {
@@ -1275,8 +1273,9 @@ export class Lifecycle implements ILifecycle {
   }
 }
 
-@inject(ILifecycle)
 export class CompositionCoordinator {
+  public static readonly inject: ReadonlyArray<Function> = [ILifecycle];
+
   public readonly $lifecycle: ILifecycle;
 
   public onSwapComplete: () => void;

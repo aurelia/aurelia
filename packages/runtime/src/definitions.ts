@@ -100,7 +100,7 @@ export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | nu
 
 export type InstructionTypeName = string;
 
-export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>();
+export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('createInterface').noDefault();
 export interface ITargetedInstruction {
   type: InstructionTypeName;
 }

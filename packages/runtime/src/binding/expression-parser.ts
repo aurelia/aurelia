@@ -21,8 +21,7 @@ export interface IExpressionParser {
   parse(expression: string, bindingType: BindingType): BindingExpression;
 }
 
-export const IExpressionParser = DI.createInterface<IExpressionParser>()
-  .withDefault(x => x.singleton(ExpressionParser));
+export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
 
 /** @internal */
 export class ExpressionParser implements IExpressionParser {

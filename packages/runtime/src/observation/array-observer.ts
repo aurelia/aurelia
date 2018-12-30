@@ -1,173 +1,6 @@
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
-const proto = Array.prototype;
-export const nativePush = proto.push; // TODO: probably want to make these internal again
-export const nativeUnshift = proto.unshift;
-export const nativePop = proto.pop;
-export const nativeShift = proto.shift;
-export const nativeSplice = proto.splice;
-export const nativeReverse = proto.reverse;
-export const nativeSort = proto.sort;
-
-// https://tc39.github.io/ecma262/#sec-array.prototype.push
-function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativePush.apply(this, arguments);
-  }
-  const len = this.length;
-  const argCount = arguments.length;
-  if (argCount === 0) {
-    return len;
-  }
-  this.length = o.indexMap.length = len + argCount;
-  let i = len;
-  while (i < this.length) {
-    this[i] = arguments[i - len];
-    o.indexMap[i] = - 2;
-    i++;
-  }
-  o.callSubscribers('push', arguments, LifecycleFlags.isCollectionMutation);
-  return this.length;
-}
-
-// https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift>  {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativeUnshift.apply(this, arguments);
-  }
-  const argCount = arguments.length;
-  const inserts = new Array(argCount);
-  let i = 0;
-  while (i < argCount) {
-    inserts[i++] = - 2;
-  }
-  nativeUnshift.apply(o.indexMap, inserts);
-  const len = nativeUnshift.apply(this, arguments);
-  o.callSubscribers('unshift', arguments, LifecycleFlags.isCollectionMutation);
-  return len;
-}
-
-// https://tc39.github.io/ecma262/#sec-array.prototype.pop
-function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativePop.call(this);
-  }
-  const indexMap = o.indexMap;
-  const element = nativePop.call(this);
-  // only mark indices as deleted if they actually existed in the original array
-  const index = indexMap.length - 1;
-  if (indexMap[index] > -1) {
-    nativePush.call(indexMap.deletedItems, element);
-  }
-  nativePop.call(indexMap);
-  o.callSubscribers('pop', arguments, LifecycleFlags.isCollectionMutation);
-  return element;
-}
-
-// https://tc39.github.io/ecma262/#sec-array.prototype.shift
-function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativeShift.call(this);
-  }
-  const indexMap = o.indexMap;
-  const element = nativeShift.call(this);
-  // only mark indices as deleted if they actually existed in the original array
-  if (indexMap[0] > -1) {
-    nativePush.call(indexMap.deletedItems, element);
-  }
-  nativeShift.call(indexMap);
-  o.callSubscribers('shift', arguments, LifecycleFlags.isCollectionMutation);
-  return element;
-}
-
-// https://tc39.github.io/ecma262/#sec-array.prototype.splice
-function observeSplice(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof nativeSplice> {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativeSplice.apply(this, arguments);
-  }
-  const indexMap = o.indexMap;
-  if (deleteCount > 0) {
-    let i = isNaN(start) ? 0 : start;
-    const to = i + deleteCount;
-    while (i < to) {
-      if (indexMap[i] > -1) {
-        nativePush.call(indexMap.deletedItems, this[i]);
-      }
-      i++;
-    }
-  }
-  const argCount = arguments.length;
-  if (argCount > 2) {
-    const itemCount = argCount - 2;
-    const inserts = new Array(itemCount);
-    let i = 0;
-    while (i < itemCount) {
-      inserts[i++] = - 2;
-    }
-    nativeSplice.call(indexMap, start, deleteCount, ...inserts);
-  } else if (argCount === 2) {
-    nativeSplice.call(indexMap, start, deleteCount);
-  }
-  const deleted = nativeSplice.apply(this, arguments);
-  o.callSubscribers('splice', arguments, LifecycleFlags.isCollectionMutation);
-  return deleted;
-}
-
-// https://tc39.github.io/ecma262/#sec-array.prototype.reverse
-function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativeReverse.call(this);
-  }
-  const len = this.length;
-  const middle = (len / 2) | 0;
-  let lower = 0;
-  // tslint:disable:no-statements-same-line
-  while (lower !== middle) {
-    const upper = len - lower - 1;
-    const lowerValue = this[lower];  const lowerIndex = o.indexMap[lower];
-    const upperValue = this[upper];  const upperIndex = o.indexMap[upper];
-    this[lower] = upperValue;        o.indexMap[lower] = upperIndex;
-    this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
-    lower++;
-  }
-  // tslint:enable:no-statements-same-line
-  o.callSubscribers('reverse', arguments, LifecycleFlags.isCollectionMutation);
-  return this;
-}
-
-// https://tc39.github.io/ecma262/#sec-array.prototype.sort
-// https://github.com/v8/v8/blob/master/src/js/array.js
-function observeSort(this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
-  const o = this.$observer;
-  if (o === undefined) {
-    return nativeSort.call(this, compareFn);
-  }
-  const len = this.length;
-  if (len < 2) {
-    return this;
-  }
-  quickSort(this, o.indexMap, 0, len, preSortCompare);
-  let i = 0;
-  while (i < len) {
-    if (this[i] === undefined) {
-      break;
-    }
-    i++;
-  }
-  if (compareFn === undefined || typeof compareFn !== 'function'/*spec says throw a TypeError, should we do that too?*/) {
-    compareFn = sortCompare;
-  }
-  quickSort(this, o.indexMap, 0, i, compareFn);
-  o.callSubscribers('sort', arguments, LifecycleFlags.isCollectionMutation);
-  return this;
-}
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {
@@ -303,30 +136,202 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
   }
 }
 
-for (const observe of [observePush, observeUnshift, observePop, observeShift, observeSplice, observeReverse, observeSort]) {
-  Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+const proto = Array.prototype;
+
+const $push = proto.push;
+const $unshift = proto.unshift;
+const $pop = proto.pop;
+const $shift = proto.shift;
+const $splice = proto.splice;
+const $reverse = proto.reverse;
+const $sort = proto.sort;
+
+const native = { push: $push, unshift: $unshift, pop: $pop, shift: $shift, splice: $splice, reverse: $reverse, sort: $sort };
+const methods = ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'];
+
+const observe = {
+  // https://tc39.github.io/ecma262/#sec-array.prototype.push
+  push: function(this: IObservedArray): ReturnType<typeof Array.prototype.push> {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $push.apply(this, arguments);
+    }
+    const len = this.length;
+    const argCount = arguments.length;
+    if (argCount === 0) {
+      return len;
+    }
+    this.length = o.indexMap.length = len + argCount;
+    let i = len;
+    while (i < this.length) {
+      this[i] = arguments[i - len];
+      o.indexMap[i] = - 2;
+      i++;
+    }
+    o.callSubscribers('push', arguments, LifecycleFlags.isCollectionMutation);
+    return this.length;
+  },
+  // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
+  unshift: function(this: IObservedArray): ReturnType<typeof Array.prototype.unshift>  {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $unshift.apply(this, arguments);
+    }
+    const argCount = arguments.length;
+    const inserts = new Array(argCount);
+    let i = 0;
+    while (i < argCount) {
+      inserts[i++] = - 2;
+    }
+    $unshift.apply(o.indexMap, inserts);
+    const len = $unshift.apply(this, arguments);
+    o.callSubscribers('unshift', arguments, LifecycleFlags.isCollectionMutation);
+    return len;
+  },
+  // https://tc39.github.io/ecma262/#sec-array.prototype.pop
+  pop: function(this: IObservedArray): ReturnType<typeof Array.prototype.pop> {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $pop.call(this);
+    }
+    const indexMap = o.indexMap;
+    const element = $pop.call(this);
+    // only mark indices as deleted if they actually existed in the original array
+    const index = indexMap.length - 1;
+    if (indexMap[index] > -1) {
+      $pop.call(indexMap.deletedItems, element);
+    }
+    $pop.call(indexMap);
+    o.callSubscribers('pop', arguments, LifecycleFlags.isCollectionMutation);
+    return element;
+  },
+  // https://tc39.github.io/ecma262/#sec-array.prototype.shift
+  shift: function(this: IObservedArray): ReturnType<typeof Array.prototype.shift> {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $shift.call(this);
+    }
+    const indexMap = o.indexMap;
+    const element = $shift.call(this);
+    // only mark indices as deleted if they actually existed in the original array
+    if (indexMap[0] > -1) {
+      $shift.call(indexMap.deletedItems, element);
+    }
+    $shift.call(indexMap);
+    o.callSubscribers('shift', arguments, LifecycleFlags.isCollectionMutation);
+    return element;
+  },
+  // https://tc39.github.io/ecma262/#sec-array.prototype.splice
+  splice: function(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof Array.prototype.splice> {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $splice.apply(this, arguments);
+    }
+    const indexMap = o.indexMap;
+    if (deleteCount > 0) {
+      let i = isNaN(start) ? 0 : start;
+      const to = i + deleteCount;
+      while (i < to) {
+        if (indexMap[i] > -1) {
+          $splice.call(indexMap.deletedItems, this[i]);
+        }
+        i++;
+      }
+    }
+    const argCount = arguments.length;
+    if (argCount > 2) {
+      const itemCount = argCount - 2;
+      const inserts = new Array(itemCount);
+      let i = 0;
+      while (i < itemCount) {
+        inserts[i++] = - 2;
+      }
+      $splice.call(indexMap, start, deleteCount, ...inserts);
+    } else if (argCount === 2) {
+      $splice.call(indexMap, start, deleteCount);
+    }
+    const deleted = $splice.apply(this, arguments);
+    o.callSubscribers('splice', arguments, LifecycleFlags.isCollectionMutation);
+    return deleted;
+  },
+  // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
+  reverse: function(this: IObservedArray): ReturnType<typeof Array.prototype.reverse> {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $reverse.call(this);
+    }
+    const len = this.length;
+    const middle = (len / 2) | 0;
+    let lower = 0;
+    // tslint:disable:no-statements-same-line
+    while (lower !== middle) {
+      const upper = len - lower - 1;
+      const lowerValue = this[lower];  const lowerIndex = o.indexMap[lower];
+      const upperValue = this[upper];  const upperIndex = o.indexMap[upper];
+      this[lower] = upperValue;        o.indexMap[lower] = upperIndex;
+      this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
+      lower++;
+    }
+    // tslint:enable:no-statements-same-line
+    o.callSubscribers('reverse', arguments, LifecycleFlags.isCollectionMutation);
+    return this;
+  },
+  // https://tc39.github.io/ecma262/#sec-array.prototype.sort
+  // https://github.com/v8/v8/blob/master/src/js/array.js
+  sort: function(this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
+    const o = this.$observer;
+    if (o === undefined) {
+      return $sort.call(this, compareFn);
+    }
+    const len = this.length;
+    if (len < 2) {
+      return this;
+    }
+    quickSort(this, o.indexMap, 0, len, preSortCompare);
+    let i = 0;
+    while (i < len) {
+      if (this[i] === undefined) {
+        break;
+      }
+      i++;
+    }
+    if (compareFn === undefined || typeof compareFn !== 'function'/*spec says throw a TypeError, should we do that too?*/) {
+      compareFn = sortCompare;
+    }
+    quickSort(this, o.indexMap, 0, i, compareFn);
+    o.callSubscribers('sort', arguments, LifecycleFlags.isCollectionMutation);
+    return this;
+  }
+};
+
+const descriptorProps = {
+  writable: true,
+  enumerable: false,
+  configurable: true
+};
+
+const def = Object.defineProperty;
+
+for (const method of methods) {
+  def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 
 export function enableArrayObservation(): void {
-  if (proto.push['observing'] !== true) proto.push = observePush;
-  if (proto.unshift['observing'] !== true) proto.unshift = observeUnshift;
-  if (proto.pop['observing'] !== true) proto.pop = observePop;
-  if (proto.shift['observing'] !== true) proto.shift = observeShift;
-  if (proto.splice['observing'] !== true) proto.splice = observeSplice;
-  if (proto.reverse['observing'] !== true) proto.reverse = observeReverse;
-  if (proto.sort['observing'] !== true) proto.sort = observeSort;
+  for (const method of methods) {
+    if (proto[method].observing !== true) {
+      def(proto, method, { ...descriptorProps, value: observe[method] });
+    }
+  }
 }
 
 enableArrayObservation();
 
 export function disableArrayObservation(): void {
-  if (proto.push['observing'] === true) proto.push = nativePush;
-  if (proto.unshift['observing'] === true) proto.unshift = nativeUnshift;
-  if (proto.pop['observing'] === true) proto.pop = nativePop;
-  if (proto.shift['observing'] === true) proto.shift = nativeShift;
-  if (proto.splice['observing'] === true) proto.splice = nativeSplice;
-  if (proto.reverse['observing'] === true) proto.reverse = nativeReverse;
-  if (proto.sort['observing'] === true) proto.sort = nativeSort;
+  for (const method of methods) {
+    if (proto[method].observing === true) {
+      def(proto, method, { ...descriptorProps, value: native[method] });
+    }
+  }
 }
 
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}

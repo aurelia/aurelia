@@ -8,9 +8,9 @@ import {
   IRenderLocation,
   ITargetedInstruction,
   IViewFactory,
-  TemplateDefinition,
-  ViewFactory
+  TemplateDefinition
 } from '../src/index';
+import { ViewFactory } from '../src/templating/view';
 import { AuDOM, AuDOMConfiguration, AuNode, AuNodeSequenceFactory } from './au-dom';
 
 describe(`CompiledTemplate`, () => {

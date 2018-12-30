@@ -4,12 +4,10 @@ import {
   disableMapObservation,
   enableMapObservation,
   IndexMap,
-  Lifecycle,
   LifecycleFlags,
-  MapObserver,
-  nativeMapDelete,
-  nativeSet
+  MapObserver
 } from '../../src/index';
+import { Lifecycle } from '../../src/lifecycle';
 import {
   SpySubscriber,
   stringify
@@ -282,12 +280,12 @@ function synchronize(oldMap: Map<any, any>, indexMap: IndexMap, newMap: Map<any,
   }
 
   for (const entry of indexMap.deletedItems) {
-    nativeMapDelete.call(oldMap, entry);
+    oldMap.delete(entry);
   }
   let i = 0;
   for (const entry of newMap.keys()) {
     if (indexMap[i] === -2) {
-      nativeSet.call(oldMap, entry, entry);
+      oldMap.set(entry, entry);
     }
     i++;
   }

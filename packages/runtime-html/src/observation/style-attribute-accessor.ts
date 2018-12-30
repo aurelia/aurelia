@@ -1,4 +1,4 @@
-import { IBindingTargetAccessor, IDOM, ILifecycle, targetObserver } from '@aurelia/runtime';
+import { IBindingTargetAccessor, ILifecycle, targetObserver } from '@aurelia/runtime';
 
 export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLElement, 'style', string | Record<string, string>> {}
 

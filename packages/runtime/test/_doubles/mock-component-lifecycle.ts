@@ -1,5 +1,6 @@
 import { Immutable } from '@aurelia/kernel';
-import { ILifecycle, INode, ITemplateDefinition, Lifecycle, LifecycleFlags, State } from '../../src/index';
+import { ILifecycle, INode, ITemplateDefinition, LifecycleFlags, State } from '../../src/index';
+import { Lifecycle } from '../../src/lifecycle';
 
 export type IComponentLifecycleMock = InstanceType<ReturnType<typeof defineComponentLifecycleMock>>;
 

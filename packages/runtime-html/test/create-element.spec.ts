@@ -1,7 +1,24 @@
-import { CustomElementResource, HydrateElementInstruction, ICustomElementType, INode, TargetedInstruction, TargetedInstructionType } from '@aurelia/runtime';
+import {
+  CustomElementResource,
+  HydrateElementInstruction,
+  ICustomElementType,
+  INode,
+  TargetedInstruction,
+  TargetedInstructionType
+} from '@aurelia/runtime';
 import { expect } from 'chai';
-import { createElement as sut, HTMLDOM, RenderPlan, HTMLTargetedInstructionType } from '../src/index';
-import { _, createElement, eachCartesianJoin, eachCartesianJoinFactory } from './util';
+import {
+  createElement as sut,
+  HTMLDOM,
+  HTMLTargetedInstructionType,
+  RenderPlan
+} from '../src/index';
+import {
+  _,
+  createElement,
+  eachCartesianJoin,
+  eachCartesianJoinFactory
+} from './util';
 
 
 describe(`createElement() creates element based on tag`, () => {

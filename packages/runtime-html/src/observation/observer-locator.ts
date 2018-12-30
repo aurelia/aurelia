@@ -1,5 +1,4 @@
 
-import { IContainer, inject, Registration } from '@aurelia/kernel';
 import {
   IBindingTargetAccessor,
   IBindingTargetObserver,
@@ -70,8 +69,9 @@ const overrideProps = (function (o: Record<string, boolean>): typeof o {
   return o;
 })(Object.create(null));
 
-@inject(IDOM)
 export class TargetObserverLocator implements ITargetObserverLocator {
+  public static readonly inject: ReadonlyArray<Function> = [IDOM];
+
   private readonly dom: IDOM;
 
   constructor(dom: IDOM) {
@@ -127,8 +127,9 @@ export class TargetObserverLocator implements ITargetObserverLocator {
   }
 }
 
-@inject(IDOM)
 export class TargetAccessorLocator implements ITargetAccessorLocator {
+  public static readonly inject: ReadonlyArray<Function> = [IDOM];
+
   private readonly dom: IDOM;
 
   constructor(dom: IDOM) {

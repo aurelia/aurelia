@@ -6,8 +6,7 @@ export interface IDirtyChecker {
   createProperty(obj: IObservable, propertyName: string): IBindingTargetAccessor;
 }
 
-export const IDirtyChecker = DI.createInterface<IDirtyChecker>()
-  .withDefault(x => x.singleton(DirtyChecker));
+export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
 
 /** @internal */
 export class DirtyChecker {
@@ -60,6 +59,7 @@ export class DirtyChecker {
   }
 }
 
+/** @internal */
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
 /** @internal */

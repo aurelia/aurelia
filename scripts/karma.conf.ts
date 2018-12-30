@@ -56,7 +56,7 @@ export default function(config: IKarmaConfig): void {
   }
   let packages = project.packages;
   if (config.package && config.package.length) {
-    packages = packages.filter(p => config.package.split(',').indexOf(p.name) > -1);
+    packages = packages.filter(p => config.package.split(',').indexOf(p.name.kebab) > -1);
   }
 
   const options: IKarmaConfigOptions = {
@@ -75,13 +75,13 @@ export default function(config: IKarmaConfig): void {
       resolve: {
         extensions: ['.ts', '.js'],
         modules: [
-          ...packages.map(p => p.src),
+          ...packages.map(p => p.src.path),
           project.node_modules.path
         ],
         alias: {
           ...project.packages.reduce(
             (alias, p) => {
-              alias[p.scopedName] = p.src;
+              alias[p.name.npm] = p.src.path;
               return alias;
             },
             {}

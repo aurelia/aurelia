@@ -216,8 +216,7 @@ export interface IEventManager {
   addEventListener(dom: IDOM, target: Node, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
 
-export const IEventManager = DI.createInterface<IEventManager>()
-  .withDefault(x => x.singleton(EventManager));
+export const IEventManager = DI.createInterface<IEventManager>('IEventManager').withDefault(x => x.singleton(EventManager));
 
 /** @internal */
 export class EventManager implements IEventManager {

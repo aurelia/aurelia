@@ -3,7 +3,7 @@ import { HTMLDOM } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import {
   HTMLTemplateElementFactory
-} from '../../src/index';
+} from '../../src/template-element-factory';
 
 describe('HTMLTemplateElementFactory', () => {
 

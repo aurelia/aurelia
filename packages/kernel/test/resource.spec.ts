@@ -1,5 +1,6 @@
 import { expect } from 'chai';
-import { Container, RuntimeCompilationResources } from '../src/index'
+import { Container } from '../src/di';
+import { RuntimeCompilationResources } from '../src/index'
 
 describe('RuntimeCompilationResources', () => {
 

@@ -98,11 +98,9 @@ export function getMode(binding: PlainAttributeSymbol | BindingSymbol): BindingM
 }
 
 export interface OneTimeBindingCommand extends IBindingCommand {}
-
-@bindingCommand('one-time')
 export class OneTimeBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.OneTimeCommand;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.OneTimeCommand;
 
   constructor() {
     this.bindingType = BindingType.OneTimeCommand;
@@ -112,13 +110,12 @@ export class OneTimeBindingCommand implements IBindingCommand {
     return new OneTimeBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
+BindingCommandResource.define('one-time', OneTimeBindingCommand);
 
 export interface ToViewBindingCommand extends IBindingCommand {}
-
-@bindingCommand('to-view')
 export class ToViewBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.ToViewCommand;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.ToViewCommand;
 
   constructor() {
     this.bindingType = BindingType.ToViewCommand;
@@ -128,13 +125,12 @@ export class ToViewBindingCommand implements IBindingCommand {
     return new ToViewBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
+BindingCommandResource.define('to-view', ToViewBindingCommand);
 
 export interface FromViewBindingCommand extends IBindingCommand {}
-
-@bindingCommand('from-view')
 export class FromViewBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.FromViewCommand;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.FromViewCommand;
 
   constructor() {
     this.bindingType = BindingType.FromViewCommand;
@@ -144,13 +140,12 @@ export class FromViewBindingCommand implements IBindingCommand {
     return new FromViewBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
+BindingCommandResource.define('from-view', FromViewBindingCommand);
 
 export interface TwoWayBindingCommand extends IBindingCommand {}
-
-@bindingCommand('two-way')
 export class TwoWayBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.TwoWayCommand;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.TwoWayCommand;
 
   constructor() {
     this.bindingType = BindingType.TwoWayCommand;
@@ -160,6 +155,7 @@ export class TwoWayBindingCommand implements IBindingCommand {
     return new TwoWayBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
+BindingCommandResource.define('two-way', TwoWayBindingCommand);
 
 // Not bothering to throw on non-existing modes, should never happen anyway.
 // Keeping all array elements of the same type for better optimizeability.
@@ -173,15 +169,13 @@ const commandToMode = {
 };
 
 export interface DefaultBindingCommand extends IBindingCommand {}
-
-@bindingCommand('bind')
 export class DefaultBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.BindCommand;
-  public $1: typeof OneTimeBindingCommand.prototype.compile;
-  public $2: typeof ToViewBindingCommand.prototype.compile;
-  public $4: typeof FromViewBindingCommand.prototype.compile;
-  public $6: typeof TwoWayBindingCommand.prototype.compile;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.BindCommand;
+  public readonly $1: typeof OneTimeBindingCommand.prototype.compile;
+  public readonly $2: typeof ToViewBindingCommand.prototype.compile;
+  public readonly $4: typeof FromViewBindingCommand.prototype.compile;
+  public readonly $6: typeof TwoWayBindingCommand.prototype.compile;
 
   constructor() {
     this.bindingType = BindingType.BindCommand;
@@ -195,13 +189,12 @@ export class DefaultBindingCommand implements IBindingCommand {
     return this[modeToProperty[getMode(binding)]](binding);
   }
 }
+BindingCommandResource.define('bind', DefaultBindingCommand);
 
 export interface CallBindingCommand extends IBindingCommand {}
-
-@bindingCommand('call')
 export class CallBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.CallCommand;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.CallCommand;
 
   constructor() {
     this.bindingType = BindingType.CallCommand;
@@ -211,11 +204,12 @@ export class CallBindingCommand implements IBindingCommand {
     return new CallBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, true));
   }
 }
+BindingCommandResource.define('call', CallBindingCommand);
 
-@bindingCommand('for')
+export interface ForBindingCommand extends IBindingCommand {}
 export class ForBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.ForCommand;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.ForCommand;
 
   constructor() {
     this.bindingType = BindingType.ForCommand;
@@ -225,3 +219,4 @@ export class ForBindingCommand implements IBindingCommand {
     return new IteratorBindingInstruction(binding.expression as ForOfStatement, getTarget(binding, false));
   }
 }
+BindingCommandResource.define('for', ForBindingCommand);

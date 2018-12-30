@@ -15,7 +15,7 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import {
   DirtyCheckProperty
-} from '../../../runtime/src/index';
+} from '../../../runtime/src/observation/dirty-checker';
 import {
   AttributeNSAccessor,
   CheckedObserver,

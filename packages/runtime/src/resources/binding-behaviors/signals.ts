@@ -1,16 +1,16 @@
-import { inject, IRegistry, Reporter } from '@aurelia/kernel';
+import { IRegistry, Reporter } from '@aurelia/kernel';
 import { Binding } from '../../binding/binding';
 import { IScope, LifecycleFlags } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
-import { bindingBehavior } from '../binding-behavior';
+import { BindingBehaviorResource } from '../binding-behavior';
 
 export type SignalableBinding = Binding & {
   signal: string | string[];
 };
 
-@bindingBehavior('signal')
-@inject(ISignaler)
 export class SignalBindingBehavior {
+  public static readonly inject: ReadonlyArray<Function> = [ISignaler];
+
   public static register: IRegistry['register'];
 
   private signaler: ISignaler;
@@ -59,3 +59,4 @@ export class SignalBindingBehavior {
     }
   }
 }
+BindingBehaviorResource.define('signal', SignalBindingBehavior);

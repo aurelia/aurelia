@@ -27,7 +27,7 @@ const $global: IWindowOrWorkerGlobalScope = (function(): IWindowOrWorkerGlobalSc
     return {} as IWindowOrWorkerGlobalScope;
   }
   // @ts-ignore 2683
-}).call(this);
+})();
 
 // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
 const $now = (function(): () => number {

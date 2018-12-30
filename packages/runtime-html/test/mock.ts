@@ -38,12 +38,23 @@ import {
   ITemplateDefinition,
   IViewFactory,
   LifecycleFlags,
-  ObserverLocator,
   State,
   TemplatePartDefinitions
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
+import {
+ Lifecycle
+} from '../../runtime/src/lifecycle';
+import {
+  ObserverLocator
+} from '../../runtime/src/observation/observer-locator';
+import {
+  RuntimeBehavior
+} from '../../runtime/src/rendering-engine';
+import {
+  ViewFactory
+} from '../../runtime/src/templating/view';
 
 export class MockContext {
   public log: any[] = [];
@@ -190,6 +201,7 @@ export class MockIfTextNodeTemplate {
     const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
     const factory = new ViewFactory(null, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
 
+    //@ts-ignore
     const sut = new If(factory, nodes.firstChild, new CompositionCoordinator(this.lifecycle));
 
     (sut as any)['$isAttached'] = false;
@@ -219,6 +231,7 @@ export class MockIfElseTextNodeTemplate {
     const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
     const ifFactory = new ViewFactory(null, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
 
+    //@ts-ignore
     const ifSut = new If(ifFactory, ifNodes.firstChild, new CompositionCoordinator(this.lifecycle));
 
     (ifSut as any)['$isAttached'] = false;
@@ -234,6 +247,7 @@ export class MockIfElseTextNodeTemplate {
 
     const elseFactory = new ViewFactory(null, new MockTextNodeTemplate(expressions.else, observerLocator, this.container) as any, this.lifecycle);
 
+    //@ts-ignore
     const elseSut = new Else(elseFactory);
 
     elseSut.link(renderable.$attachableTail as any);
@@ -263,11 +277,13 @@ export class MockRenderingEngine implements IRenderingEngine {
     this.calls = [];
   }
 
+    //@ts-ignore
   public getElementTemplate(dom: IDOM, definition: Immutable<Required<ITemplateDefinition>>, componentType?: ICustomElementType): ITemplate {
     this.trace(`getElementTemplate`, definition, componentType);
     return this.elementTemplate;
   }
 
+    //@ts-ignore
   public getViewFactory(dom: IDOM, source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
     this.trace(`getViewFactory`, source, parentContext);
     return this.viewFactory;
@@ -297,6 +313,7 @@ export function defineComponentLifecycleMock() {
     public calls: [keyof ComponentLifecycleMock, ...any[]][] = [];
 
     constructor() {
+      // @ts-ignore
       this.$lifecycle = new Lifecycle();
     }
 

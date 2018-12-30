@@ -1,4 +1,4 @@
-import { all, DI, inject } from '@aurelia/kernel';
+import { all, DI } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 import { IAttributePattern, IAttributePatternHandler, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
 
@@ -6,12 +6,12 @@ export interface IAttributeParser {
   parse(name: string, value: string): AttrSyntax;
 }
 
-export const IAttributeParser = DI.createInterface<IAttributeParser>()
-  .withDefault(x => x.singleton(AttributeParser));
+export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
 
 /** @internal */
-@inject(ISyntaxInterpreter, all(IAttributePattern))
 export class AttributeParser implements IAttributeParser {
+  public static readonly inject: ReadonlyArray<Function> = [ISyntaxInterpreter, all(IAttributePattern)];
+
   private interpreter: ISyntaxInterpreter;
   private cache: Record<string, Interpretation>;
   private patterns: Record<string, IAttributePatternHandler>;

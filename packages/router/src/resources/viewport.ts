@@ -1,11 +1,10 @@
-import { inject } from '@aurelia/kernel';
-import { bindable, customElement } from '@aurelia/runtime';
+import { bindable, CustomElementResource, INode } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
-@inject(Router, Element)
-@customElement({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' })
 export class ViewportCustomElement {
+  public static readonly inject: ReadonlyArray<Function> = [Router, INode];
+
   @bindable public name: string = 'default';
   @bindable public scope: boolean;
   @bindable public usedBy: string;
@@ -25,3 +24,5 @@ export class ViewportCustomElement {
     this.router.removeViewport(this.viewport);
   }
 }
+// tslint:disable-next-line:no-invalid-template-strings
+CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' }, ViewportCustomElement);

@@ -100,7 +100,7 @@ export class Aurelia {
 }
 (PLATFORM.global as typeof PLATFORM.global & {Aurelia: unknown}).Aurelia = Aurelia;
 
-export const IDOMInitializer = DI.createInterface<IDOMInitializer>().noDefault();
+export const IDOMInitializer = DI.createInterface<IDOMInitializer>('IDOMInitializer').noDefault();
 
 export interface IDOMInitializer {
   initialize(config?: ISinglePageApp): IDOM;

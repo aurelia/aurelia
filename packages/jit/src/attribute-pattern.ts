@@ -296,7 +296,7 @@ export interface ISyntaxInterpreter {
   interpret(value: string): Interpretation;
 }
 
-export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>().withDefault(x => x.singleton(SyntaxInterpreter));
+export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISyntaxInterpreter').withDefault(x => x.singleton(SyntaxInterpreter));
 
 /** @internal */
 export class SyntaxInterpreter {
@@ -453,7 +453,7 @@ export interface IAttributePatternHandler {
   [pattern: string]: (rawName: string, rawValue: string, parts: ReadonlyArray<string>) => AttrSyntax;
 }
 
-export const IAttributePattern = DI.createInterface<IAttributePattern>().noDefault();
+export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();
 
 type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<IAttributePattern | IAttributePatternHandler>, TClass> & Partial<IRegistry>;
 type DecoratedAttributePattern<TProto, TClass> =  Class<TProto & IAttributePattern | IAttributePatternHandler, TClass> & IRegistry;
@@ -477,11 +477,6 @@ export function attributePattern(...patternDefs: AttributePatternDefinition[]): 
 }
 
 export interface DotSeparatedAttributePattern extends IAttributePattern {}
-
-@attributePattern(
-  { pattern: 'PART.PART', symbols: '.' },
-  { pattern: 'PART.PART.PART', symbols: '.' }
-)
 export class DotSeparatedAttributePattern implements DotSeparatedAttributePattern {
   public static register: IRegistry['register'];
 
@@ -493,13 +488,12 @@ export class DotSeparatedAttributePattern implements DotSeparatedAttributePatter
     return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
   }
 }
+attributePattern(
+  { pattern: 'PART.PART', symbols: '.' },
+  { pattern: 'PART.PART.PART', symbols: '.' }
+)(DotSeparatedAttributePattern);
 
 export interface RefAttributePattern extends IAttributePattern {}
-
-@attributePattern(
-  { pattern: 'ref', symbols: '' },
-  { pattern: 'ref.PART', symbols: '.' }
-)
 export class RefAttributePattern implements RefAttributePattern {
   public static register: IRegistry['register'];
 
@@ -511,10 +505,12 @@ export class RefAttributePattern implements RefAttributePattern {
     return new AttrSyntax(rawName, rawValue, 'ref', parts[1]);
   }
 }
+attributePattern(
+  { pattern: 'ref', symbols: '' },
+  { pattern: 'ref.PART', symbols: '.' }
+)(RefAttributePattern)
 
 export interface ColonPrefixedBindAttributePattern extends IAttributePattern {}
-
-@attributePattern({ pattern: ':PART', symbols: ':' })
 export class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttributePattern  {
   public static register: IRegistry['register'];
 
@@ -522,10 +518,9 @@ export class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttri
     return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
   }
 }
+attributePattern({ pattern: ':PART', symbols: ':' })(ColonPrefixedBindAttributePattern)
 
 export interface AtPrefixedTriggerAttributePattern extends IAttributePattern {}
-
-@attributePattern({ pattern: '@PART', symbols: '@' })
 export class AtPrefixedTriggerAttributePattern implements AtPrefixedTriggerAttributePattern  {
   public static register: IRegistry['register'];
 
@@ -533,3 +528,4 @@ export class AtPrefixedTriggerAttributePattern implements AtPrefixedTriggerAttri
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
   }
 }
+attributePattern({ pattern: '@PART', symbols: '@' })(AtPrefixedTriggerAttributePattern)

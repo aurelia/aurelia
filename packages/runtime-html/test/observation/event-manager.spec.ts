@@ -1,7 +1,15 @@
 import { DelegationStrategy } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createElement, DelegateOrCaptureSubscription, EventManager, EventSubscriber, HTMLDOM, ListenerTracker, TriggerSubscription } from '../../src/index';
+import {
+  DelegateOrCaptureSubscription,
+  EventSubscriber,
+  HTMLDOM,
+  IManagedEvent,
+  ListenerTracker,
+  TriggerSubscription
+} from '../../src/index';
+import { EventManager } from '../../src/observation/event-manager';
 import { _ } from '../util';
 
 const dom = new HTMLDOM(document);
@@ -10,7 +18,7 @@ const CAPTURING_PHASE = 1;
 const AT_TARGET = 2;
 const BUBBLING_PHASE = 3;
 
-function eventPropertiesShallowClone<T extends Event>(e: T): T & { instance: T; target: Node } {
+function eventPropertiesShallowClone<T extends IManagedEvent>(e: T): T & { instance: T; target: Node } {
   return {
     bubbles: e.bubbles,
     cancelable: e.cancelable,

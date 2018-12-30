@@ -6,7 +6,6 @@ import {
   IIndexable,
   Immutable,
   ImmutableArray,
-  inject,
   IRegistry,
   IResolver,
   IResourceDescriptions,
@@ -51,7 +50,7 @@ export interface ITemplateCompiler {
   compile(dom: IDOM, definition: ITemplateDefinition, resources: IResourceDescriptions, viewCompileFlags?: ViewCompileFlags): TemplateDefinition;
 }
 
-export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>().noDefault();
+export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
 
 export enum ViewCompileFlags {
   none        = 0b0_001,
@@ -63,7 +62,7 @@ export interface ITemplateFactory<T extends INode = INode> {
   create(parentRenderContext: IRenderContext<T>, definition: TemplateDefinition): ITemplate<T>;
 }
 
-export const ITemplateFactory = DI.createInterface<ITemplateFactory>().noDefault();
+export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateFactory').noDefault();
 
 // The basic template abstraction that allows consumers to create
 // instances of an INodeSequence on-demand. Templates are contextual in that they are, in the very least,
@@ -124,14 +123,14 @@ export interface IInstructionRenderer<TType extends InstructionTypeName = Instru
   render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
 }
 
-export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>().noDefault();
+export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
 
 export interface IRenderer {
   instructionRenderers: Record<string, IInstructionRenderer>;
   render(dom: IDOM, context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
 }
 
-export const IRenderer = DI.createInterface<IRenderer>().noDefault();
+export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
 
 export interface IRenderingEngine {
   getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, componentType?: ICustomElementType<T>): ITemplate<T>;
@@ -141,11 +140,12 @@ export interface IRenderingEngine {
   applyRuntimeBehavior<T extends INode = INode>(Type: ICustomElementType<T>, instance: ICustomElement<T>): void;
 }
 
-export const IRenderingEngine = DI.createInterface<IRenderingEngine>().withDefault(x => x.singleton(RenderingEngine));
+export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRenderingEngine').withDefault(x => x.singleton(RenderingEngine));
 
-@inject(IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler))
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
+  public static readonly inject: ReadonlyArray<Function> = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
+
   private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
   private compilers: Record<string, ITemplateCompiler>;
   private container: IContainer;

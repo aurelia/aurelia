@@ -1,7 +1,8 @@
 import { INode, NodeSequence } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { FragmentNodeSequence, HTMLDOM, NodeSequenceFactory } from '../src/index';
+import { FragmentNodeSequence, NodeSequenceFactory } from '../src/dom';
+import { HTMLDOM } from '../src/index';
 
 function wrap(inner: string, tag: string): string {
   if (tag.length === 0) {

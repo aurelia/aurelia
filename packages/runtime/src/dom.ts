@@ -2,9 +2,9 @@ import { DI, IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
 
 export interface INode extends Object {}
 
-export const INode = DI.createInterface<INode>().noDefault();
+export const INode = DI.createInterface<INode>('INode').noDefault();
 
-export const IRenderLocation = DI.createInterface<IRenderLocation>().noDefault();
+export const IRenderLocation = DI.createInterface<IRenderLocation>('IRenderLocation').noDefault();
 export interface IRenderLocation<T extends INode = INode> extends INode {
   $start?: IRenderLocation<T>;
   $nodes?: INodeSequence<T> | Readonly<{}>;
@@ -44,7 +44,7 @@ export interface INodeSequence<T extends INode = INode> extends INode {
   remove(): void;
 }
 
-export const IDOM = DI.createInterface<IDOM>().noDefault();
+export const IDOM = DI.createInterface<IDOM>('IDOM').noDefault();
 
 export interface IDOM<T extends INode = INode> {
   addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;

@@ -7,7 +7,7 @@ module.exports = function(env, { mode }) {
     entry: './src/startup.ts',
     devtool: production ? 'source-map' : 'eval-source-map',
     resolve: {
-      extensions: ['.ts'],
+      extensions: ['.ts', '.js'],
       modules: ['src', 'node_modules']
     },
     devServer: {

@@ -50,11 +50,9 @@ export class Viewport {
     this.nextContent = content as ICustomElementType;
     this.nextInstruction = instruction;
 
-    if (this.content !== content || instruction.isRefresh) {
+    if (this.content !== content || this.instruction.search !== instruction.search || instruction.isRefresh) {
       return true;
     }
-
-    // Add comparisons against path and data here
 
     return false;
   }

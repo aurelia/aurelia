@@ -298,13 +298,10 @@ export class HistoryBrowser {
   }
 
   private getSearch(): string {
-    const search = this.location.search.substr(1) || '';
-    let hash = this.location.hash.substr(1) || '';
+    const hash = this.location.hash.substr(1) || '';
     const hashSearches = hash.split('?');
     hashSearches.shift();
-    hash = hashSearches.shift() || '';
-
-    return search + (search.length && hash.length ? '&' : '') + hash;
+    return hashSearches.shift() || '';
   }
 
   private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags): void {

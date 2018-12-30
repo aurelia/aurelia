@@ -50,7 +50,7 @@ export class Viewport {
     this.nextContent = content as ICustomElementType;
     this.nextInstruction = instruction;
 
-    if (this.content !== content || this.instruction.search !== instruction.search || instruction.isRefresh) {
+    if (this.content !== content || this.instruction.query !== instruction.query || instruction.isRefresh) {
       return true;
     }
 

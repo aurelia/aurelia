@@ -3,7 +3,7 @@ export interface IHistoryEntry {
   fullStatePath: string;
   index?: number;
   title?: string;
-  search?: string;
+  query?: string;
   data?: Object;
 }
 
@@ -244,7 +244,7 @@ export class HistoryBrowser {
           path: path,
           fullStatePath: null,
           index: this.history.length - this.historyOffset,
-          search: search,
+          query: search,
         };
         this.historyEntries = this.historyEntries.slice(0, historyEntry.index);
         this.historyEntries.push(historyEntry);

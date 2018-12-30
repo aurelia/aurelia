@@ -496,9 +496,9 @@ export class Router {
     fullViewportStates = this.removeStateDuplicates(fullViewportStates);
     this.activeComponents = fullViewportStates;
     fullViewportStates.unshift(this.separators.clear);
-    const search = (instruction.search && instruction.search.length ? `?${instruction.search}` : '');
-    this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling) + search,
-                                    fullViewportStates.join(this.separators.sibling) + search,
+    const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
+    this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling) + query,
+                                    fullViewportStates.join(this.separators.sibling) + query,
                                     instruction);
   }
 }

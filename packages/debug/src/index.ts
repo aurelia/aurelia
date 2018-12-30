@@ -1,3 +1,8 @@
-export * from './binding/unparser';
-export * from './configuration';
-export * from './reporter';
+export {
+  Serializer,
+  Unparser
+} from './binding/unparser';
+export {
+  DebugConfiguration,
+  TraceConfiguration
+} from './configuration';

@@ -18,10 +18,12 @@ import {
   LifecycleFlags
 } from '@aurelia/runtime';
 import {
-  HTMLDOM,
-  NodeSequenceFactory
+  HTMLDOM
 } from '@aurelia/runtime-html';
 import { expect } from 'chai';
+import {
+  NodeSequenceFactory
+} from '../../../runtime-html/src/dom';
 import {
   HTMLJitConfiguration,
   stringifyTemplateDefinition,

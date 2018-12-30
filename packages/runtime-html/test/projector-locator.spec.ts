@@ -1,7 +1,7 @@
-import { PLATFORM } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { ContainerlessProjector, HostProjector, HTMLDOM, HTMLProjectorLocator, ShadowDOMProjector } from '../src/index';
+import { HTMLDOM, } from '../src/index';
+import { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '../src/projectors';
 
 describe(`determineProjector`, () => {
   const dom = new HTMLDOM(document);

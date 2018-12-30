@@ -29,7 +29,6 @@ const composeProps = ['subject', 'composing'];
 
 export type Subject<T extends INode = Node> = IViewFactory<T> | IView<T> | RenderPlan<T> | Constructable | TemplateDefinition;
 
-/** @internal */
 export interface Compose<T extends INode = Node> extends ICustomElement<T> {}
 export class Compose<T extends INode = Node> implements Compose<T> {
   public static readonly inject: ReadonlyArray<Function> = [IDOM, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator];

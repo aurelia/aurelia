@@ -208,14 +208,16 @@ const iife_full_packages = ['jit-html'];
 
 async function createBundle(): Promise<void> {
   const args = process.argv.slice(2);
+  console.log(args);
 
   const outputs = args[0].split(',');
   let packages = project.packages.slice();
   packages = await sortByDependencies(packages);
-  if (args.length > 1) {
+  if (args.length > 1 && args[1] !== 'all') {
     const filter = args[1].split(',');
     packages = packages.filter(p => filter.indexOf(p.name.kebab) !== -1);
   }
+  const minify = args.length > 2;
 
   const globals: rollup.GlobalsOption = {
     'tslib': 'tslib'
@@ -284,7 +286,7 @@ async function createBundle(): Promise<void> {
         }
         await standaloneBundle.write(options);
 
-        if ($minify) {
+        if (minify && $minify) {
           if (minifiedBundle === null) {
             log(`${logPrefix} creating minified bundle`);
             minifiedBundle = await rollup.rollup({
@@ -331,19 +333,21 @@ async function createBundle(): Promise<void> {
 
       await fullBundle.write(options);
 
-      log(`${logPrefix} creating iife full minified bundle`);
-      const minifiedFullBundle = await rollup.rollup({
-        input: pkg.src.entryFull,
-        plugins: [...plugins, terser(terserOpts)]
-      });
+      if (minify) {
+        log(`${logPrefix} creating iife full minified bundle`);
+        const minifiedFullBundle = await rollup.rollup({
+          input: pkg.src.entryFull,
+          plugins: [...plugins, terser(terserOpts)]
+        });
 
-      file = `${file.slice(0, -3)}.min.js`;
+        file = `${file.slice(0, -3)}.min.js`;
 
-      log(`${logPrefix} writing iife - ${file}`);
-      options.file = file;
-      options.sourcemap = false;
+        log(`${logPrefix} writing iife - ${file}`);
+        options.file = file;
+        options.sourcemap = false;
 
-      await minifiedFullBundle.write(options);
+        await minifiedFullBundle.write(options);
+      }
     }
 
     log(`${logPrefix} ${c.greenBright('done')}`);

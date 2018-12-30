@@ -15,7 +15,7 @@
     "clean": "rimraf packages/*/dist dist",
     "bundle:dist": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm,system",
     "postbundle:dist": "rimraf .rpt2_cache packages/*/dist/.rpt2_cache",
-    "bundle:all": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm,system,iife",
+    "bundle:all": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm,system,iife all min",
     "postbundle:all": "rimraf .rpt2_cache packages/*/dist/.rpt2_cache dist/.rpt2_cache",
     "upload-dist:dev": "ts-node -P scripts/tsconfig.json scripts/upload-dist.ts dev",
     "upload-dist:latest": "ts-node -P scripts/tsconfig.json scripts/upload-dist.ts latest",

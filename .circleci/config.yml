@@ -491,13 +491,6 @@ workflows:
             - bundle_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
-          name: jit-browserify-ts
-          path: "local/jit-browserify-ts"
-          attach: true
-          requires:
-            - bundle_packages
-      - e2e_wdio:
-          <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
           path: "local/jit-fuse-box-ts"
           attach: true
@@ -583,10 +576,6 @@ workflows:
           <<: *filter_only_release
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-browserify-ts
-          path: "local/jit-browserify-ts"
       - e2e_wdio:
           <<: *filter_only_release
           name: jit-fuse-box-ts

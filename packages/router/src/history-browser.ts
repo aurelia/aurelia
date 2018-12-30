@@ -3,6 +3,7 @@ export interface IHistoryEntry {
   fullStatePath: string;
   index?: number;
   title?: string;
+  search?: string;
   data?: Object;
 }
 
@@ -183,6 +184,7 @@ export class HistoryBrowser {
 
   public pathChanged = (): void => {
     const path: string = this.getPath();
+    const search: string = this.getSearch();
     // tslint:disable-next-line:no-console
     console.log('path changed to', path, this.activeEntry, this.currentEntry);
 
@@ -242,6 +244,7 @@ export class HistoryBrowser {
           path: path,
           fullStatePath: null,
           index: this.history.length - this.historyOffset,
+          search: search,
         };
         this.historyEntries = this.historyEntries.slice(0, historyEntry.index);
         this.historyEntries.push(historyEntry);
@@ -272,7 +275,8 @@ export class HistoryBrowser {
   }
 
   private getPath(): string {
-    return this.location.hash.substr(1);
+    const hash = this.location.hash.substr(1);
+    return hash.split('?')[0];
   }
   private setPath(path: string, replace: boolean = false): void {
     // More checks, such as parameters, needed
@@ -291,6 +295,16 @@ export class HistoryBrowser {
       this.history.pushState({}, null, `${pathname}${search}${hash}`);
     }
     this.pathChanged();
+  }
+
+  private getSearch(): string {
+    const search = this.location.search.substr(1) || '';
+    let hash = this.location.hash.substr(1) || '';
+    const hashSearches = hash.split('?');
+    hashSearches.shift();
+    hash = hashSearches.shift() || '';
+
+    return search + (search.length && hash.length ? '&' : '') + hash;
   }
 
   private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags): void {

@@ -27,12 +27,10 @@ import {
   ValueConverter
 } from '@aurelia/runtime';
 import { expect } from 'chai';
+import { Access, Precedence } from '../src/common';
+import { parse, ParserState } from '../src/expression-parser';
 import {
-  Access,
-  parse,
-  parseExpression,
-  ParserState,
-  Precedence
+  parseExpression
 } from '../src/index';
 import {
   latin1IdentifierPartChars,

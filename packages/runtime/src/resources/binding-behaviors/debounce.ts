@@ -2,7 +2,7 @@ import { IRegistry, PLATFORM } from '@aurelia/kernel';
 import { Binding, IBinding } from '../../binding/binding';
 import { BindingMode } from '../../binding/binding-mode';
 import { IScope, LifecycleFlags } from '../../observation';
-import { bindingBehavior } from '../binding-behavior';
+import { BindingBehaviorResource } from '../binding-behavior';
 
 export type DebounceableBinding = IBinding & {
   debouncedMethod: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) & { originalName: string };
@@ -48,7 +48,6 @@ export function debounceCall(this: DebounceableBinding, newValue: unknown, oldVa
 
 const fromView = BindingMode.fromView;
 
-@bindingBehavior('debounce')
 export class DebounceBindingBehavior {
   public static register: IRegistry['register'];
 
@@ -94,3 +93,4 @@ export class DebounceBindingBehavior {
     binding.debounceState = null;
   }
 }
+BindingBehaviorResource.define('debounce', DebounceBindingBehavior);

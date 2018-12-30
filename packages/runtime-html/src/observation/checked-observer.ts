@@ -3,7 +3,6 @@ import {
   IBatchedCollectionSubscriber,
   IBindingTargetObserver,
   ICollectionObserver,
-  IDOM,
   ILifecycle,
   IObserverLocator,
   IPropertySubscriber,

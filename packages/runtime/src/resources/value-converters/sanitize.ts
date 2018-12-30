@@ -1,5 +1,5 @@
 import { DI, IRegistry } from '@aurelia/kernel';
-import { valueConverter } from '../value-converter';
+import { ValueConverterResource } from '../value-converter';
 
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 
@@ -21,7 +21,6 @@ export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer').withDefau
 /**
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
-@valueConverter('sanitize')
 export class SanitizeValueConverter {
   public static readonly inject: ReadonlyArray<Function> = [ISanitizer];
 
@@ -45,3 +44,4 @@ export class SanitizeValueConverter {
     return this.sanitizer.sanitize(untrustedMarkup);
   }
 }
+ValueConverterResource.define('sanitize', SanitizeValueConverter);

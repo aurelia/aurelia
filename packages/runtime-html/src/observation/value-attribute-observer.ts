@@ -1,4 +1,4 @@
-import { IBindingTargetObserver, IDOM, ILifecycle, INode, IPropertySubscriber, LifecycleFlags, targetObserver } from '@aurelia/runtime';
+import { IBindingTargetObserver, ILifecycle, IPropertySubscriber, LifecycleFlags, targetObserver } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 
 const inputValueDefaults = {
@@ -28,8 +28,7 @@ const inputValueDefaults = {
 
 const handleEventFlags = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
 
-export interface ValueAttributeObserver extends
-  IBindingTargetObserver<Node, string> { }
+export interface ValueAttributeObserver extends IBindingTargetObserver<Node, string> { }
 
 @targetObserver('')
 export class ValueAttributeObserver implements ValueAttributeObserver {

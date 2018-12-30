@@ -2,7 +2,7 @@ import { Constructable, Immutable, IRegistry } from '@aurelia/kernel';
 import {
   bindable,
   CompositionCoordinator,
-  customElement,
+  CustomElementResource,
   ICustomElement,
   ICustomElementResource,
   IDOM,
@@ -31,8 +31,6 @@ export type Subject<T extends INode = Node> = IViewFactory<T> | IView<T> | Rende
 
 /** @internal */
 export interface Compose<T extends INode = Node> extends ICustomElement<T> {}
-
-@customElement(composeSource)
 export class Compose<T extends INode = Node> implements Compose<T> {
   public static readonly inject: ReadonlyArray<Function> = [IDOM, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator];
 
@@ -182,3 +180,4 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     ) as IView<T>;
   }
 }
+CustomElementResource.define(composeSource, Compose);

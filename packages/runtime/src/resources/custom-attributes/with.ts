@@ -5,11 +5,9 @@ import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
 import { IBindingContext, LifecycleFlags } from '../../observation';
 import { Scope } from '../../observation/binding-context';
 import { bindable } from '../../templating/bindable';
-import { ICustomAttribute, ICustomAttributeResource, templateController } from '../custom-attribute';
+import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
 export interface With<T extends INode = INode> extends ICustomAttribute<T> {}
-
-@templateController('with')
 export class With<T extends INode = INode> implements With<T>  {
   public static readonly inject: ReadonlyArray<Function> = [IViewFactory, IRenderLocation];
 
@@ -62,3 +60,4 @@ export class With<T extends INode = INode> implements With<T>  {
     this.currentView.$bind(flags, scope);
   }
 }
+CustomAttributeResource.define({ name: 'with', isTemplateController: true }, With);

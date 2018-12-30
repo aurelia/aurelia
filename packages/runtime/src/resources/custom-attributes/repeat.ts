@@ -9,11 +9,9 @@ import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { SetterObserver } from '../../observation/setter-observer';
 import { bindable } from '../../templating/bindable';
-import { ICustomAttribute, ICustomAttributeResource, templateController } from '../custom-attribute';
+import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
 export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {}
-
-@templateController('repeat')
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements Repeat<C, T> {
   public static readonly inject: ReadonlyArray<Function> = [IRenderLocation, IRenderable, IViewFactory];
 
@@ -199,3 +197,4 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 }
+CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);

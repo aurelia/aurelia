@@ -1,5 +1,5 @@
 import {
-  bindingCommand,
+  BindingCommandResource,
   BindingSymbol,
   getTarget,
   IBindingCommand,
@@ -15,11 +15,9 @@ import {
 } from '@aurelia/runtime-html';
 
 export interface TriggerBindingCommand extends IBindingCommand {}
-
-@bindingCommand('trigger')
 export class TriggerBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.TriggerCommand;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.TriggerCommand;
 
   constructor() {
     this.bindingType = BindingType.TriggerCommand;
@@ -29,13 +27,12 @@ export class TriggerBindingCommand implements IBindingCommand {
     return new TriggerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
+BindingCommandResource.define('trigger', TriggerBindingCommand);
 
 export interface DelegateBindingCommand extends IBindingCommand {}
-
-@bindingCommand('delegate')
 export class DelegateBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.DelegateCommand;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.DelegateCommand;
 
   constructor() {
     this.bindingType = BindingType.DelegateCommand;
@@ -45,13 +42,12 @@ export class DelegateBindingCommand implements IBindingCommand {
     return new DelegateBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
+BindingCommandResource.define('delegate', DelegateBindingCommand);
 
 export interface CaptureBindingCommand extends IBindingCommand {}
-
-@bindingCommand('capture')
 export class CaptureBindingCommand implements IBindingCommand {
-  public static register: IRegistry['register'];
-  public bindingType: BindingType.CaptureCommand;
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.CaptureCommand;
 
   constructor() {
     this.bindingType = BindingType.CaptureCommand;
@@ -61,3 +57,4 @@ export class CaptureBindingCommand implements IBindingCommand {
     return new CaptureBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
+BindingCommandResource.define('capture', CaptureBindingCommand);

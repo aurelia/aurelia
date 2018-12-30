@@ -12,7 +12,7 @@ import { readFileSync } from 'fs';
 
 const log = createLogger('bundle');
 
-async function getTerserOptions(file: string) {
+async function getTerserOptions() {
   log('Finding exported identifiers to exclude from mangling');
 
   // What happens here is we parse all the index.ts files and tell the minifier not to mangle any of those identifiers either if they are classes or properties,
@@ -37,7 +37,7 @@ async function getTerserOptions(file: string) {
 
   const exclusions = new Set<string>(names);
   const result = Array.from(exclusions).sort();
-  log(`Detected the following exports:\n  ${result.join(' ')}`);
+  //log(`Detected the following exports:\n  ${result.join(' ')}`);
   const knownProperties = project.packages.map(p => p.name.camel).concat(
     'au', '$au',
     'host', 'component',
@@ -189,19 +189,19 @@ async function sortByDependencies(packages: any[]) {
 }
 
 const formatDefinitions: [
-  { $format: 'esm',    $exports: 'auto',  $name: 'camel', $minify: false },
-  { $format: 'system', $exports: 'auto',  $name: 'camel', $minify: false },
-  { $format: 'cjs',    $exports: 'auto',  $name: 'camel', $minify: false },
-  { $format: 'umd',    $exports: 'named', $name: 'camel', $minify: false },
-  { $format: 'amd',    $exports: 'named', $name: 'camel', $minify: false },
-  { $format: 'iife',   $exports: 'named', $name: 'iife',  $minify: true  }
+  { $format: 'esm',    $exports: 'auto',  $name: 'camel', $minify: true },
+  { $format: 'system', $exports: 'auto',  $name: 'camel', $minify: true },
+  { $format: 'cjs',    $exports: 'auto',  $name: 'camel', $minify: true },
+  { $format: 'umd',    $exports: 'named', $name: 'camel', $minify: true },
+  { $format: 'amd',    $exports: 'named', $name: 'camel', $minify: true },
+  { $format: 'iife',   $exports: 'named', $name: 'iife',  $minify: true }
 ] = [
-  { $format: 'esm',    $exports: 'auto',  $name: 'camel', $minify: false },
-  { $format: 'system', $exports: 'auto',  $name: 'camel', $minify: false },
-  { $format: 'cjs',    $exports: 'auto',  $name: 'camel', $minify: false },
-  { $format: 'umd',    $exports: 'named', $name: 'camel', $minify: false },
-  { $format: 'amd',    $exports: 'named', $name: 'camel', $minify: false },
-  { $format: 'iife',   $exports: 'named', $name: 'iife',  $minify: true  }
+  { $format: 'esm',    $exports: 'auto',  $name: 'camel', $minify: true },
+  { $format: 'system', $exports: 'auto',  $name: 'camel', $minify: true },
+  { $format: 'cjs',    $exports: 'auto',  $name: 'camel', $minify: true },
+  { $format: 'umd',    $exports: 'named', $name: 'camel', $minify: true },
+  { $format: 'amd',    $exports: 'named', $name: 'camel', $minify: true },
+  { $format: 'iife',   $exports: 'named', $name: 'iife',  $minify: true }
 ];
 
 const iife_full_packages = ['jit-html'];
@@ -224,6 +224,7 @@ async function createBundle(): Promise<void> {
     globals[pkg.name.npm] = pkg.name.camel;
   }
   const write_iife = outputs.indexOf('iife') !== -1;
+  const terserOpts = await getTerserOptions();
 
 
   const count = packages.length;
@@ -234,6 +235,7 @@ async function createBundle(): Promise<void> {
     const external = project.packages.filter(p => p.name.npm !== pkg.name.npm).map(p => p.name.npm);
     const plugins = [
       replace({
+        // We're just replacing `Tracer.enabled` with `false` and let dead code elimination take care of the rest
         'Tracer.enabled': 'false'
       }),
       resolve({ jsnext: true }), // use the jsnext:main field from our packages package.json files to resolve dependencies
@@ -285,7 +287,6 @@ async function createBundle(): Promise<void> {
         if ($minify) {
           if (minifiedBundle === null) {
             log(`${logPrefix} creating minified bundle`);
-            const terserOpts = await getTerserOptions(file);
             minifiedBundle = await rollup.rollup({
               input: pkg.src.entry,
               plugins: [...plugins, terser(terserOpts)],
@@ -299,7 +300,7 @@ async function createBundle(): Promise<void> {
             file,
             name,
             format,
-            sourcemap: true
+            sourcemap: false
           };
           if ($exports === 'named') {
             options.exports = 'named';
@@ -331,7 +332,6 @@ async function createBundle(): Promise<void> {
       await fullBundle.write(options);
 
       log(`${logPrefix} creating iife full minified bundle`);
-      const terserOpts = await getTerserOptions(file);
       const minifiedFullBundle = await rollup.rollup({
         input: pkg.src.entryFull,
         plugins: [...plugins, terser(terserOpts)]
@@ -341,6 +341,7 @@ async function createBundle(): Promise<void> {
 
       log(`${logPrefix} writing iife - ${file}`);
       options.file = file;
+      options.sourcemap = false;
 
       await minifiedFullBundle.write(options);
     }

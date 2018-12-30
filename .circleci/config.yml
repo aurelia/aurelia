@@ -466,14 +466,14 @@ workflows:
           <<: *filter_ignore_develop_release
           requires:
             - install_root
+      - unit_test_node:
+          <<: *filter_ignore_develop_release
+          requires:
+            - build_packages
       - bundle_packages:
           <<: *filter_ignore_develop_release
           requires:
             - build_packages
-      - unit_test_node:
-          <<: *filter_ignore_develop_release
-          requires:
-            - bundle_packages
       - publish_local:
           <<: *filter_ignore_develop_release
           requires:
@@ -547,14 +547,14 @@ workflows:
           <<: *filter_only_tag
           requires:
             - install_root
+      - unit_test_node:
+          <<: *filter_only_tag
+          requires:
+            - build_packages
       - bundle_packages:
           <<: *filter_only_tag
           requires:
             - build_packages
-      - unit_test_node:
-          <<: *filter_ignore_develop_release
-          requires:
-            - bundle_packages
       - publish_local:
           <<: *filter_ignore_develop_release
           requires:
@@ -717,12 +717,12 @@ workflows:
       - lint_packages:
           requires:
             - install_root
+      - unit_test_node:
+          requires:
+            - build_packages
       - bundle_packages:
           requires:
             - build_packages
-      - unit_test_node:
-          requires:
-            - bundle_packages
       - e2e_browserstack:
           requires:
             - bundle_packages

@@ -11,31 +11,18 @@ export * from './binding/ref';
 export {
   ArrayObserver,
   enableArrayObservation,
-  disableArrayObservation,
-  nativePush,
-  nativePop,
-  nativeShift,
-  nativeUnshift,
-  nativeSplice,
-  nativeReverse,
-  nativeSort
-} from './observation/array-observer'; // TODO: do this differently, not let this be ugly, etc, etc
+  disableArrayObservation
+} from './observation/array-observer';
 export {
   MapObserver,
   enableMapObservation,
-  disableMapObservation,
-  nativeSet,
-  nativeDelete as nativeMapDelete,
-  nativeClear as nativeMapClear
-} from './observation/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
+  disableMapObservation
+} from './observation/map-observer';
 export {
   SetObserver,
   enableSetObservation,
-  disableSetObservation,
-  nativeAdd,
-  nativeDelete as nativeSetDelete,
-  nativeClear as nativeSetClear
-} from './observation/set-observer'; // TODO: do this differently, not let this be ugly, etc, etc
+  disableSetObservation
+} from './observation/set-observer';
 export * from './observation/binding-context';
 export * from './observation/collection-observer';
 export * from './observation/computed-observer';

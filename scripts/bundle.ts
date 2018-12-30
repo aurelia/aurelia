@@ -2,39 +2,53 @@ import { c, createLogger } from './logger';
 import { loadPackageJson } from './package.json';
 import project from './project';
 import resolve from 'rollup-plugin-node-resolve';
+import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 import typescript2 from 'rollup-plugin-typescript2';
 import * as rollup from 'rollup';
 import ts from 'typescript';
-import { readFile } from 'fs';
+import { readFileSync } from 'fs';
 
 
 const log = createLogger('bundle');
 
 async function getTerserOptions(file: string) {
-  const content = await new Promise<string>((resolve, reject) => {
-    readFile(file, (err, data) => {
-      if (err) {
-        reject(err);
-      }
-      const str = data.toString('utf8');
-      resolve(str);
-    })
-  });
   log('Finding exported identifiers to exclude from mangling');
-  const prefixes = project.packages.map(p => p.name.camel).concat('au', 'exports');
-  const regex = new RegExp(`(?:${prefixes.join('|')})\\.([a-zA-Z$_][a-zA-Z0-9$_]+)\\s*=`, 'g');
-  const exclusions = new Set<string>();
-  let m: RegExpExecArray;
 
-  do {
-    m = regex.exec(content);
-    if (m !== null) {
-      exclusions.add(m[1]);
-    }
-  } while (m !== null)
+  // What happens here is we parse all the index.ts files and tell the minifier not to mangle any of those identifiers either if they are classes or properties,
+  // and we manually add some of the surface level api properties that are known to break the framework if they are mangled.
+  // This is not foolproof however, and we should parse the generated .d.ts files and tell the minifier not to mangle any of the class names, functions, constants, properties, etc
+  // that are present there so the public API stays untouched, but it should be able to mangle anything else without breaking stuff
+  const names = [
+    ...project.packages
+    .map(pkg => ts.createSourceFile(pkg.src.entry, readFileSync(pkg.src.entry, { encoding: 'utf8' }), ts.ScriptTarget.ES2018))
+    .reduce((acc, cur) => {
+      acc.push(...cur.statements.filter(s => ts.isExportDeclaration(s)) as ts.ExportDeclaration[]);
+      return acc;
+    }, [] as ts.ExportDeclaration[])
+    .reduce((acc, cur) => {
+      if (cur.exportClause && ts.isNamedExports(cur.exportClause)) {
+        acc.push(...cur.exportClause.elements);
+      }
+      return acc;
+    }, [] as ts.ExportSpecifier[])
+    .map(specifier => specifier.name.text)
+  ];
+
+  const exclusions = new Set<string>(names);
   const result = Array.from(exclusions).sort();
-  log(`Detected the following exports:\n  ${result.join('\n  ')}`);
+  log(`Detected the following exports:\n  ${result.join(' ')}`);
+  const knownProperties = project.packages.map(p => p.name.camel).concat(
+    'au', '$au',
+    'host', 'component',
+    'cache', 'template', 'instructions', 'dependencies', 'build', 'surrogates', 'bindables', 'containerless', 'shadowOptions', 'hasSlots',
+    'defaultBindingMode', 'aliases', 'isTemplateController', 'hasDynamicOptiopns',
+    'type', 'from', 'to', 'mode', 'oneTime', 'value', 'res', 'parts', 'def', 'link', 'toViewModel', 'required', 'compiler', 'preventDefault', 'strategy',
+    'dom', 'firstChild', 'lastChild', 'childNodes', 'targets',
+    'shadowRoot', '$customElement',
+    '$hooks', '$state', '$lifecycle', '$context', '$nodes', '$scope', 'name'
+  );
+  result.push(...knownProperties);
 
   const terserOpts = {
     parse: {
@@ -60,12 +74,10 @@ async function getTerserOptions(file: string) {
       ecma: 8,
       evaluate: true,
       expression: false,
-      global_defs: {
-        'Tracer.enabled': false
-      },
+      global_defs: null,
       hoist_funs: true,
       hoist_props: true,
-      hoist_vars: false,
+      hoist_vars: true,
       if_return: true,
       inline: true,
       join_vars: true,
@@ -79,17 +91,17 @@ async function getTerserOptions(file: string) {
       passes: 2,
       properties: true,
       pure_funcs: null,
-      pure_getters: 'strict',
+      pure_getters: true,
       reduce_funcs: true,
       reduce_vars: true,
       sequences: true,
-      side_effects: false,
+      side_effects: true,
       switches: true,
       toplevel: false,
       top_retain: null,
       typeofs: true,
       unsafe: true,
-      unsafe_arrows: true,
+      unsafe_arrows: false,
       unsafe_comps: true,
       unsafe_Function: true,
       unsafe_math: true,
@@ -105,7 +117,7 @@ async function getTerserOptions(file: string) {
       keep_classnames: false,
       keep_fnames: false,
       module: false,
-      reserved: [],
+      reserved: result,
       toplevel: false,
       safari10: false,
       properties: {
@@ -221,6 +233,9 @@ async function createBundle(): Promise<void> {
 
     const external = project.packages.filter(p => p.name.npm !== pkg.name.npm).map(p => p.name.npm);
     const plugins = [
+      replace({
+        'Tracer.enabled': 'false'
+      }),
       resolve({ jsnext: true }), // use the jsnext:main field from our packages package.json files to resolve dependencies
       typescript2({
         tsconfig: pkg.tsconfig,

@@ -59,6 +59,7 @@ export class DirtyChecker {
   }
 }
 
+/** @internal */
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
 /** @internal */

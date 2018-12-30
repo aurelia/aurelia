@@ -4,10 +4,10 @@ import {
   disableSetObservation,
   enableSetObservation,
   IndexMap,
-  Lifecycle,
   LifecycleFlags,
   SetObserver
 } from '../../src/index';
+import { Lifecycle } from '../../src/lifecycle';
 import {
   SpySubscriber,
   stringify

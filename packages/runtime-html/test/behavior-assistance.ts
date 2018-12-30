@@ -19,7 +19,7 @@ import {
 } from '@aurelia/runtime';
 import {
   InstanceProvider
-} from '../../runtime/src/index';
+} from '../../runtime/src/rendering-engine';
 import {
   FakeView
 } from '../../runtime/test/_doubles/fake-view';

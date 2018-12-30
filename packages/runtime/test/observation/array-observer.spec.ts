@@ -5,9 +5,9 @@ import {
   disableArrayObservation,
   enableArrayObservation,
   IndexMap,
-  Lifecycle,
   LifecycleFlags
 } from '../../src/index';
+import { Lifecycle } from '../../src/lifecycle';
 import {
   SpySubscriber,
   stringify

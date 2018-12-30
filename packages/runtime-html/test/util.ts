@@ -1,3 +1,11 @@
+import {
+  CustomElementResource,
+  ICustomElement,
+  IScope,
+  ITemplateDefinition,
+  OverrideContext,
+  Scope
+} from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import {
@@ -17,16 +25,8 @@ import {
   verifyEqual
 } from '../../../scripts/test-lib';
 import {
-  IScope,
-  Scope,
-  OverrideContext,
-  ITemplateDefinition,
-  ICustomElement,
-  CustomElementResource
-} from '@aurelia/runtime';
-import {
-  h,
-  createElement
+  createElement,
+  h
 } from '../../../scripts/test-lib-dom';
 
 /**

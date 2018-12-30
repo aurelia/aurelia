@@ -4,10 +4,10 @@ import {
   disableMapObservation,
   enableMapObservation,
   IndexMap,
-  Lifecycle,
   LifecycleFlags,
   MapObserver
 } from '../../src/index';
+import { Lifecycle } from '../../src/lifecycle';
 import {
   SpySubscriber,
   stringify

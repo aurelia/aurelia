@@ -282,7 +282,12 @@ commands:
             git stash pop
             git add packages/\*/dist/* dist --force
       - run:
-          name: "Commit dist folders"
+          name: "Replace package.json refs and add them"
+          command: |
+            npm run replace-package-refs:rollup
+            git add .
+      - run:
+          name: "Commit dist folders and package.jsons"
           command: git commit --allow-empty -m "<< parameters.message >>"
 
   do_git_push:

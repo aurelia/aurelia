@@ -9,7 +9,7 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "lib": ["esnext"],
-    "module": "umd",
+    "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
     "stripInternal": true,

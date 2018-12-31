@@ -1051,9 +1051,17 @@ describe(`The Container class`, () => {
   });
 
   describe(`createChild()`, () => {
-    it(`creates a child with same config and sut as parent`, () => {
+    it(`creates a child with same config and sut as parent, and copies over the resourceLookup`, () => {
+      const obj = {};
+      Registration.instance('foo', obj).register(sut, 'foo');
+      expect(sut['resourceLookup'].foo.state).to.equal(obj);
+      expect(sut['configuration'].resourceLookup.foo.state).to.equal(obj);
       const actual = sut.createChild();
-      expect(actual['configuration']).to.equal(sut['configuration']);
+      expect(actual['configuration']).not.to.equal(sut['configuration']);
+      expect(actual['configuration'].factories).to.equal(sut['configuration'].factories);
+      expect(actual['configuration'].resourceLookup).not.to.equal(sut['configuration'].resourceLookup);
+      expect(actual['configuration'].resourceLookup).to.deep.equal(sut['configuration'].resourceLookup);
+      expect(actual['configuration'].resourceLookup.foo.state).to.equal(obj);
       expect(actual['parent']).to.equal(sut);
       expect(sut['parent']).to.equal(null);
     });

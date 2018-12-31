@@ -1,7 +1,7 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './observation';
-import { IRenderingEngine } from './rendering-engine';
+import { ExposedContext, IRenderingEngine } from './rendering-engine';
 import { CustomElementResource, ICustomElement, ICustomElementType, IProjectorLocator } from './resources/custom-element';
 
 export interface ISinglePageApp<THost extends INode = INode> {
@@ -56,7 +56,7 @@ export class Aurelia {
         this.components.push(component);
         const re = this.container.get(IRenderingEngine);
         const pl = this.container.get(IProjectorLocator);
-        component.$hydrate(dom, pl, re, host);
+        component.$hydrate(dom, pl, re, host, this.container as ExposedContext);
       }
 
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);

@@ -136,7 +136,7 @@ export class Viewport {
       if (this.nextComponent.enter) {
         this.nextComponent.enter(this.nextInstruction, this.instruction);
       }
-      this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host);
+      this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host, null);
       this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
       this.nextComponent.$attach(LifecycleFlags.fromStartTask);
 

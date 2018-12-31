@@ -88,11 +88,11 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
 
   private definition: TemplateDefinition;
 
-  constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, parentRenderContext: IRenderContext<T>) {
+  constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
     this.dom = dom;
     this.definition = definition;
     this.factory = factory;
-    this.renderContext = createRenderContext(dom, parentRenderContext, definition.dependencies);
+    this.renderContext = renderContext;
   }
 
   public render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions): void {
@@ -127,14 +127,32 @@ export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('II
 
 export interface IRenderer {
   instructionRenderers: Record<string, IInstructionRenderer>;
-  render(dom: IDOM, context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
+  render(
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IRenderable,
+    targets: ArrayLike<INode>,
+    templateDefinition: TemplateDefinition,
+    host?: INode,
+    parts?: TemplatePartDefinitions
+  ): void;
 }
 
 export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
 
 export interface IRenderingEngine {
-  getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, componentType?: ICustomElementType<T>): ITemplate<T>;
-  getViewFactory<T extends INode = INode>(dom: IDOM<T>, source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext<T>): IViewFactory<T>;
+  getElementTemplate<T extends INode = INode>(
+    dom: IDOM<T>,
+    definition: TemplateDefinition,
+    parentContext: IRenderContext<T> | null,
+    componentType: ICustomElementType<T> | null
+  ): ITemplate<T>;
+
+  getViewFactory<T extends INode = INode>(
+    dom: IDOM<T>,
+    source: Immutable<ITemplateDefinition>,
+    parentContext: IRenderContext<T> | null
+  ): IViewFactory<T>;
 
   applyRuntimeBehavior<T extends INode = INode>(Type: ICustomAttributeType<T>, instance: ICustomAttribute<T>): void;
   applyRuntimeBehavior<T extends INode = INode>(Type: ICustomElementType<T>, instance: ICustomElement<T>): void;
@@ -171,7 +189,12 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  public getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, componentType?: ICustomElementType<T>): ITemplate<T> {
+  public getElementTemplate<T extends INode = INode>(
+    dom: IDOM<T>,
+    definition: TemplateDefinition,
+    parentContext: IRenderContext<T> | null,
+    componentType: ICustomElementType<T> | null
+  ): ITemplate<T> {
     if (!definition) {
       return null;
     }
@@ -179,12 +202,7 @@ export class RenderingEngine implements IRenderingEngine {
     let found = this.templateLookup.get(definition);
 
     if (!found) {
-      found = this.templateFromSource(dom, definition);
-
-      //If the element has a view, support Recursive Components by adding self to own view template container.
-      if (found.renderContext !== null && componentType) {
-        componentType.register(found.renderContext as ExposedContext);
-      }
+      found = this.templateFromSource(dom, definition, parentContext, componentType);
 
       this.templateLookup.set(definition, found);
     }
@@ -192,7 +210,11 @@ export class RenderingEngine implements IRenderingEngine {
     return found as ITemplate<T>;
   }
 
-  public getViewFactory<T extends INode = INode>(dom: IDOM<T>, definition: Immutable<ITemplateDefinition>, parentContext?: IRenderContext<T>): IViewFactory<T> {
+  public getViewFactory<T extends INode = INode>(
+    dom: IDOM<T>,
+    definition: Immutable<ITemplateDefinition>,
+    parentContext: IRenderContext<T> | null
+  ): IViewFactory<T> {
     if (!definition) {
       return null;
     }
@@ -201,7 +223,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     if (!factory) {
       const validSource = buildTemplateDefinition(null, definition);
-      const template = this.templateFromSource(dom, validSource, parentContext);
+      const template = this.templateFromSource(dom, validSource, parentContext, null);
       factory = new ViewFactory(validSource.name, template, this.lifecycle);
       factory.setCacheSize(validSource.cache, true);
       this.viewFactoryLookup.set(definition, factory);
@@ -221,29 +243,43 @@ export class RenderingEngine implements IRenderingEngine {
     found.applyTo(instance, this.lifecycle);
   }
 
-  private templateFromSource(dom: IDOM, definition: TemplateDefinition, parentContext?: IRenderContext): ITemplate {
-    parentContext = parentContext || this.container as ExposedContext;
+  private templateFromSource(
+    dom: IDOM,
+    definition: TemplateDefinition,
+    parentContext: IRenderContext | null,
+    componentType: ICustomElementType | null
+  ): ITemplate {
+    if (parentContext === null) {
+      parentContext = this.container as ExposedContext;
+    }
 
-    if (definition && definition.template) {
+    if (definition.template !== null) {
+      const renderContext = createRenderContext(dom, parentContext, definition.dependencies, componentType) as ExposedContext;
+
       if (definition.build.required) {
         const compilerName = definition.build.compiler || defaultCompilerName;
         const compiler = this.compilers[compilerName];
 
-        if (!compiler) {
+        if (compiler === undefined) {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(dom, definition as ITemplateDefinition, new RuntimeCompilationResources(parentContext as ExposedContext), ViewCompileFlags.surrogate);
+        definition = compiler.compile(dom, definition as ITemplateDefinition, new RuntimeCompilationResources(renderContext), ViewCompileFlags.surrogate);
       }
 
-      return this.templateFactory.create(parentContext, definition);
+      return this.templateFactory.create(renderContext, definition);
     }
 
     return noViewTemplate;
   }
 }
 
-export function createRenderContext(dom: IDOM, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext {
+export function createRenderContext(
+  dom: IDOM,
+  parentRenderContext: IRenderContext,
+  dependencies: ImmutableArray<IRegistry>,
+  componentType: ICustomElementType | null
+): IRenderContext {
   const context = parentRenderContext.createChild() as ExposedContext;
   const renderableProvider = new InstanceProvider();
   const elementProvider = new InstanceProvider();
@@ -263,11 +299,16 @@ export function createRenderContext(dom: IDOM, parentRenderContext: IRenderConte
     context.register(...dependencies);
   }
 
+  //If the element has a view, support Recursive Components by adding self to own view template container.
+  if (componentType) {
+    componentType.register(context);
+  }
+
   context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     renderer.render(dom, this, renderable, targets, templateDefinition, host, parts);
   };
 
-  context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
+  context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory: IViewFactory | null, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);

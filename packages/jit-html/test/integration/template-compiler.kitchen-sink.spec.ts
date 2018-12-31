@@ -1224,6 +1224,39 @@ describe('xml node compiler tests', () => {
   }
 });
 
+describe('dependency injection', () => {
+
+  it('register local dependencies ', () => {
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: 'bar'
+      },
+      null
+    );
+    const App = CustomElementResource.define(
+      {
+        name: 'app',
+        template: '<foo></foo>',
+        dependencies: [Foo]
+      },
+      null
+    );
+
+    const container = HTMLJitConfiguration.createContainer();
+    const au = new Aurelia(container);
+
+    const host = document.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+  });
+});
+
 describe('generated.template-compiler.static (with tracing)', function () {
   function setup() {
       enableTracing();

@@ -192,7 +192,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
     const projectorLocator = context.get(IProjectorLocator);
     const childInstructions = instruction.instructions;
 
-    component.$hydrate(dom, projectorLocator, this.renderingEngine, target, instruction as IElementHydrationOptions);
+    component.$hydrate(dom, projectorLocator, this.renderingEngine, target, context, instruction as IElementHydrationOptions);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];

@@ -26,7 +26,8 @@ import {
   ILifecycleHooks,
   ILifecycleUnbindAfterDetach,
   IMountable,
-  IRenderable
+  IRenderable,
+  IRenderContext
 } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IRenderingEngine } from '../rendering-engine';
@@ -89,7 +90,15 @@ export interface ICustomElement<T extends INode = INode> extends
 
   readonly $projector: IElementProjector;
   readonly $host: CustomElementHost;
-  $hydrate(dom: IDOM, projectorLocator: IProjectorLocator, renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+
+  $hydrate(
+    dom: IDOM,
+    projectorLocator: IProjectorLocator,
+    renderingEngine: IRenderingEngine,
+    host: INode,
+    parentContext: IRenderContext | null,
+    options?: IElementHydrationOptions
+  ): void;
 }
 
 export interface ICustomElementResource<T extends INode = INode> extends

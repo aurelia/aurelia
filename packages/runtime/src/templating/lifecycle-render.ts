@@ -1,7 +1,7 @@
 import { PLATFORM, Tracer, Writable } from '@aurelia/kernel';
 import { IElementHydrationOptions, TemplateDefinition } from '../definitions';
 import { IDOM, INode } from '../dom';
-import { Hooks } from '../lifecycle';
+import { Hooks, IRenderContext } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { IRenderingEngine, ITemplate } from '../rendering-engine';
 import { ICustomAttribute, ICustomAttributeType } from '../resources/custom-attribute';
@@ -10,7 +10,7 @@ import { ICustomElement, ICustomElementType, IProjectorLocator } from '../resour
 const slice = Array.prototype.slice;
 
 export interface IElementTemplateProvider {
-  getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType): ITemplate;
+  getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType | null, parentContext: IRenderContext | null): ITemplate;
 }
 
 export interface ILifecycleRender {
@@ -37,11 +37,14 @@ export interface ILifecycleRender {
    * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
-  render?(host: INode, parts: Record<string, TemplateDefinition>): IElementTemplateProvider | void;
+  render?(host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void;
 }
 
 /** @internal */
-export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEngine: IRenderingEngine): void {
+export function $hydrateAttribute(
+  this: Writable<ICustomAttribute>,
+  renderingEngine: IRenderingEngine
+): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice.call(arguments)); }
   const Type = this.constructor as ICustomAttributeType;
 
@@ -54,7 +57,15 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, renderingEng
 }
 
 /** @internal */
-export function $hydrateElement(this: Writable<ICustomElement>, dom: IDOM, projectorLocator: IProjectorLocator, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+export function $hydrateElement(
+  this: Writable<ICustomElement>,
+  dom: IDOM,
+  projectorLocator: IProjectorLocator,
+  renderingEngine: IRenderingEngine,
+  host: INode,
+  parentContext: IRenderContext | null,
+  options: IElementHydrationOptions = PLATFORM.emptyObject
+): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice.call(arguments)); }
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
@@ -66,14 +77,14 @@ export function $hydrateElement(this: Writable<ICustomElement>, dom: IDOM, proje
   renderingEngine.applyRuntimeBehavior(Type, this);
 
   if (this.$hooks & Hooks.hasRender) {
-    const result = this.render(host, options.parts);
+    const result = this.render(host, options.parts, parentContext);
 
     if (result && 'getElementTemplate' in result) {
-      const template = result.getElementTemplate(renderingEngine, Type);
+      const template = result.getElementTemplate(renderingEngine, Type, parentContext);
       template.render(this, host, options.parts);
     }
   } else {
-    const template = renderingEngine.getElementTemplate(dom, description, Type);
+    const template = renderingEngine.getElementTemplate(dom, description, parentContext, Type);
     template.render(this, host, options.parts);
   }
 

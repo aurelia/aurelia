@@ -32,14 +32,16 @@
       },
       "args": [
         "${workspaceRoot}/packages/runtime/test/setup-node.ts",
-        "${workspaceRoot}/packages/runtime/test/**/if.spec.ts", // remember to change this to the file you want to debug (and you may need to remove this comment as well for VS Code's json parser)
+        "${workspaceRoot}/packages/runtime/test/**/custom-element.dependencies.spec.ts", // remember to change this to the file you want to debug (and you may need to remove this comment as well for VS Code's json parser)
         "-c",
         "-R",
         "progress",
         "-r",
+        "source-map-support/register",
+        "-r",
         "ts-node/register",
         "-r",
-        "source-map-support/register",
+        "esm",
         "--recursive",
         "--globals",
         "expect",

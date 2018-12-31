@@ -1,160 +1,155 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, Registration } from '@aurelia/kernel';
 import {
   Aurelia,
+  CustomElementResource,
   IDOM,
   ILifecycle,
+  IObserverLocator,
   IRenderingEngine,
-  LifecycleFlags,
-  TemplateDefinition
-} from '@aurelia/runtime';
-import { RenderPlan } from '@aurelia/runtime-html';
+  LifecycleFlags} from '@aurelia/runtime';
+import { HTMLDOM, RenderPlan } from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { baseSuite } from './template-compiler.base';
-import { defineCustomElement, trimFull } from './util';
+import { HTMLJitConfiguration } from '../../src/index';
+import { eachCartesianJoin } from '../unit/util';
+import { trimFull } from './util';
 
+const build = { required: true, compiler: 'default' };
 const spec = 'template-compiler.compose';
 
-const suite = baseSuite.clone<
-    /*a*/IContainer,
-    /*b*/Aurelia,
-    /*c*/ILifecycle,
-    /*d*/HTMLElement, // host
-    /*e*/any, // component
-    /*f*/any, // subject
-    /*g*/string, // subject bindable prop
-    /*h*/string, // expected text
-    /*i*/string // app markup
-  >(spec);
+describe(spec, () => {
+  function setup(): SpecContext {
+    const container = HTMLJitConfiguration.createContainer();
+    const dom = new HTMLDOM(document);
+    Registration.instance(IDOM, dom).register(container, IDOM);
+    const au = new Aurelia(container);
+    const host = dom.createElement('div');
+    const lifecycle = container.get(ILifecycle);
+    const re = container.get(IRenderingEngine);
+    const observerLocator = container.get(IObserverLocator);
 
-// compose
-suite.addDataSlot('f') // subject + expected text
-  // Raw Template
-  .addData('01').setFactory(ctx => {
-    const msg = ctx.h = 'Hello!';
-    ctx.g = 'sub';
-    return {
-      template: `<template>${msg}</template>`,
-      build: { required: true, compiler: 'default' }
-    };
-  })
-  // Raw Template (promise)
-  .addData('02').setFactory(ctx => {
-    const msg = ctx.h = 'Hello!';
-    ctx.g = 'sub';
-    return Promise.resolve({
-      template: `<template>${msg}</template>`,
-      build: { required: true, compiler: 'default' }
-    });
-  })
-  // Raw Template (promise with delay)
-  .addData('03').setFactory(ctx => {
-    const msg = ctx.h = 'Hello!';
-    ctx.g = 'sub';
-    return Promise.resolve().then(() => {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve({
-              template: `<template>${msg}</template>`,
-              build: { required: true, compiler: 'default' }
-          });
-        },         50);
-      });
-    });
-  })
-  // IViewFactory
-  .addData('04').setFactory(ctx => {
-    const msg = ctx.h = 'Hello!';
-    ctx.g = 'sub';
-    const engine = ctx.a.get(IRenderingEngine);
-    const dom = ctx.a.get(IDOM);
-    return engine.getViewFactory(dom, {
-      template: `<template>${msg}</template>`,
-      build: { required: true, compiler: 'default' }
-    } as TemplateDefinition);
-  })
-  // IView
-  .addData('05').setFactory(ctx => {
-    const msg = ctx.h = 'Hello!';
-    ctx.g = 'sub';
-    const engine = ctx.a.get(IRenderingEngine);
-    const dom = ctx.a.get(IDOM);
-    return engine.getViewFactory(dom, {
-      template: `<template>${msg}</template>`,
-      build: { required: true, compiler: 'default' }
-    } as TemplateDefinition).create();
-  })
-  // RenderPlan
-  .addData('06').setFactory(ctx => {
-    const dom = ctx.a.get(IDOM);
-    const msg = ctx.h = 'Hello!';
-    ctx.g = 'sub';
-    return new RenderPlan(dom, `<div>${msg}</div>`, [], []);
-  })
-  // Raw Template (inline)
-  .addData('07').setFactory(ctx => {
-    const msg = ctx.h = 'Hello!';
-    ctx.g = `{
-      template: '<template>${msg}</template>',
-      build: { required: true, compiler: 'default' }
-    }`;
-  });
+    return { container, dom, au, host, lifecycle, re, observerLocator };
+  }
 
-suite.addDataSlot('i') // app markup
-  .addData('01').setFactory(ctx =>
-    `<template>
-      <au-compose subject.bind="${ctx.g}"></au-compose>
-    </template>`)
-  .addData('02').setFactory(ctx =>
-    `<template>
-      <template as-element="au-compose" subject.bind="${ctx.g}"></template>
-    </template>`)
-  .addData('03').setFactory(ctx =>
-    `<template>
-      <au-compose repeat.for="i of 1" subject.bind="${ctx.g}"></au-compose>
-    </template>`)
-  .addData('04').setFactory(ctx =>
-    `<template>
-      <au-compose if.bind="true" subject.bind="${ctx.g}"></au-compose>
-    </template>`)
-  .addData('05').setFactory(ctx =>
-    `<template>
-      <div if.bind="false"></div>
-      <au-compose else subject.bind="${ctx.g}"></au-compose>
-    </template>`)
-  .addData('06').setFactory(ctx =>
-    `<template>
-      <au-compose if.bind="true" repeat.for="i of 1" subject.bind="${ctx.g}"></au-compose>
-    </template>`)
-  .addData('07').setFactory(ctx =>
-    `<template>
-      <au-compose if.bind="true" repeat.for="i of 1" subject.bind="${ctx.g}"></au-compose>
-    </template>`)
-  .addData('08').setFactory(ctx =>
-    `<template>
-      <au-compose subject.bind="${ctx.g}" if.bind="true" repeat.for="i of 1"></au-compose>
-    </template>`)
-  .addData('09').setFactory(ctx =>
-    `<template>
-      <au-compose if.bind="true" subject.bind="${ctx.g}" repeat.for="i of 1"></au-compose>
-    </template>`);
+  interface SpecContext {
+    container: IContainer;
+    dom: IDOM;
+    au: Aurelia;
+    host: HTMLElement;
+    lifecycle: ILifecycle;
+    re: IRenderingEngine;
+    observerLocator: IObserverLocator;
+  }
+  interface Spec {
+    t: string;
+  }
+  interface SubjectSpec extends Spec {
+    expectedText: string;
+    createSubject(ctx: SpecContext): any;
+  }
+  interface TemplateSpec extends Spec {
+    template: string;
+  }
 
-suite.addActionSlot('test')
-  .addAsyncAction(null, async ctx => {
-    const { a: container, b: au, c: lifecycle, d: host, f: subject, g: prop, h: expected, i: markup } = ctx;
-    class App { public sub = null; }
-    const $App = defineCustomElement('app', markup, App);
-    const component = new $App();
-    component.sub = subject;
-    au.app({ host, component }).start();
-    lifecycle.processFlushQueue(LifecycleFlags.none);
-    if (subject instanceof Promise) {
-      expect(trimFull(host.textContent)).to.equal('');
-      await subject;
-      expect(trimFull(host.textContent)).to.equal(expected);
-    } else {
-      expect(trimFull(host.textContent)).to.equal(expected);
+  const subjectSpecs: SubjectSpec[] = [
+    {
+      t: '1',
+      createSubject: () => ({ template: `<template>Hello!</template>`, build }),
+      expectedText: 'Hello!'
+    },
+    {
+      t: '2',
+      createSubject: () => Promise.resolve({ template: `<template>Hello!</template>`, build }),
+      expectedText: 'Hello!'
+    },
+    {
+      t: '3',
+      createSubject: () => Promise.resolve().then(() => {
+        return new Promise(resolve => {
+          setTimeout(() => { resolve({ template: `<template>Hello!</template>`, build }); }, 50);
+        });
+      }),
+      expectedText: 'Hello!'
+    },
+    {
+      t: '4',
+      // @ts-ignore
+      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, { name: 'cmp', template: `<template>Hello!</template>`, build }, ctx.container),
+      expectedText: 'Hello!'
+    },
+    {
+      t: '5',
+      // @ts-ignore
+      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, {  name: 'cmp', template: `<template>Hello!</template>`, build }, ctx.container).create(),
+      expectedText: 'Hello!'
+    },
+    {
+      t: '6',
+      createSubject: ctx => new RenderPlan(ctx.dom, `<div>Hello!</div>`, [], []),
+      expectedText: 'Hello!'
     }
-  });
+  ];
 
-suite.load();
-suite.run();
+  const templateSpecs: TemplateSpec[] = [
+    {
+      t: '1',
+      template: `<template><au-compose subject.bind="sub"></au-compose></template>`
+    },
+    {
+      t: '2',
+      template: `<template><template as-element="au-compose" subject.bind="sub"></template></template>`
+    },
+    {
+      t: '3',
+      template: `<template><au-compose repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+    },
+    {
+      t: '4',
+      template: `<template><au-compose if.bind="true" subject.bind="sub"></au-compose></template>`
+    },
+    {
+      t: '5',
+      template: `<template><div if.bind="false"></div><au-compose else subject.bind="sub"></au-compose></template>`
+    },
+    {
+      t: '6',
+      template: `<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+    },
+    {
+      t: '7',
+      template: `<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+    },
+    {
+      t: '8',
+      template: `<template><au-compose subject.bind="sub" if.bind="true" repeat.for="i of 1"></au-compose></template>`
+    },
+    {
+      t: '9',
+      template: `<template><au-compose if.bind="true" subject.bind="sub" repeat.for="i of 1"></au-compose></template>`
+    },
+  ];
+
+  eachCartesianJoin([subjectSpecs, templateSpecs], (subjectSpec, templateSpec) => {
+    const { createSubject, expectedText } = subjectSpec;
+    const { template } = templateSpec;
+
+    it(`verify au-compose behavior - subjectSpec ${subjectSpec.t}, templateSpec ${templateSpec.t}`, async () => {
+      const ctx = setup();
+      const subject = createSubject(ctx);
+      const { au, host, lifecycle } = ctx;
+
+      class App { public sub: any = null; }
+      CustomElementResource.define({ name: 'app', template }, App);
+      const component = new App();
+      component.sub = subject;
+      au.app({ host, component }).start();
+      lifecycle.processFlushQueue(LifecycleFlags.none);
+      if (subject instanceof Promise) {
+        expect(trimFull(host.textContent)).to.equal('');
+        await subject;
+        expect(trimFull(host.textContent)).to.equal(expectedText);
+      } else {
+        expect(trimFull(host.textContent)).to.equal(expectedText);
+      }
+    });
+  });
+});

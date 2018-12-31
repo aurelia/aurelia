@@ -52,7 +52,7 @@ export class RenderPlan<T extends INode = Node> {
   }
 
   public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType<T>): ITemplate<T> {
-    return engine.getElementTemplate(this.dom, this.definition, Type);
+    return engine.getElementTemplate(this.dom, this.definition, null, Type);
   }
 
   public createView(engine: IRenderingEngine, parentContext?: IRenderContext): IView {

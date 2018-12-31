@@ -1,4 +1,5 @@
 import { customElement } from '../../../../../../runtime';
+import { inject } from '../../../../../..//kernel';
 import { ContactList } from '../contact-list';
 
 @customElement({
@@ -6,12 +7,12 @@ import { ContactList } from '../contact-list';
 <p>Id: \${contact.id}</p>
 <p>Name: \${contact.name}</p>
 </template>` })
+@inject(ContactList)
 export class Contact {
   static parameters = ['id'];
 
   public contact = {};
-  public contactList;
-  constructor() { this.contactList = new ContactList(); }
+  constructor(private contactList: ContactList) { }
 
   enter(parameters) {
     if (parameters.id) {

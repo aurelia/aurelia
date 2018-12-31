@@ -55,12 +55,15 @@ export class Scope {
 
     // Configured viewport is ruling
     for (const viewportPart in this.scopeViewportParts) {
-      const component = viewportPart.split(this.router.separators.viewport).shift();
+      const parameters = viewportPart.split(this.router.separators.parameters);
+      const componentViewportPart = parameters.shift();
+      const component = componentViewportPart.split(this.router.separators.viewport).shift();
+      const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
       for (const name in this.availableViewports) {
         const viewport: Viewport = this.availableViewports[name];
         // TODO: Also check if (resolved) component wants a specific viewport
         if (viewport && viewport.wantComponent(component)) {
-          const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, component, viewport);
+          const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, componentParameters, viewport);
           componentViewports.push(...found.componentViewports);
           viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
           this.availableViewports[name] = null;
@@ -72,8 +75,11 @@ export class Scope {
 
     // Next in line is specified viewport
     for (const viewportPart in this.scopeViewportParts) {
-      const parts = viewportPart.split(this.router.separators.viewport);
+      const parameters = viewportPart.split(this.router.separators.parameters);
+      const componentViewportPart = parameters.shift();
+      const parts = componentViewportPart.split(this.router.separators.viewport);
       const component = parts.shift();
+      const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
       let name = parts.shift();
       if (!name || !name.length || name.startsWith('?')) {
         continue;
@@ -89,7 +95,7 @@ export class Scope {
       }
       const viewport = this.availableViewports[name];
       if (viewport && viewport.acceptComponent(component)) {
-        const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, component, viewport);
+        const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, componentParameters, viewport);
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[name] = null;
@@ -99,7 +105,10 @@ export class Scope {
 
     // Finally, only one accepting viewport left?
     for (const viewportPart in this.scopeViewportParts) {
-      const component = viewportPart.split(this.router.separators.viewport).shift();
+      const parameters = viewportPart.split(this.router.separators.parameters);
+      const componentViewportPart = parameters.shift();
+      const component = componentViewportPart.split(this.router.separators.viewport).shift();
+      const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
       const remainingViewports = [];
       for (const name in this.availableViewports) {
         const viewport: Viewport = this.availableViewports[name];
@@ -109,7 +118,7 @@ export class Scope {
       }
       if (remainingViewports.length === 1) {
         const viewport = remainingViewports.shift();
-        const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, component, viewport);
+        const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, componentParameters, viewport);
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[viewport.name] = null;

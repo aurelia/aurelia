@@ -287,16 +287,190 @@ describe('Router', () => {
 
     await teardown(host, router, 4);
   });
+
+  it('parses parameters after viewport', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/bar@left=123');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [123]');
+
+    router.goto('/bar@left=456');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [456]');
+
+    await teardown(host, router, 1);
+  });
+
+  it('parses named parameters after viewport', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/bar@left=id=123');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [123]');
+
+    router.goto('/bar@left=id=456');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [456]');
+
+    await teardown(host, router, 1);
+  });
+
+  it('parses parameters after viewport individually', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/bar@left=123');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [123]');
+
+    router.goto('/bar@right=456');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [123]');
+    expect(host.textContent).to.contain('Parameter id: [456]');
+
+    await teardown(host, router, 1);
+  });
+
+  it('parses parameters without viewport', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/corge@left');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: corge');
+
+    router.goto('/baz=123');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: baz');
+    expect(host.textContent).to.contain('Parameter id: [123]');
+
+    await teardown(host, router, 1);
+  });
+
+  it('parses named parameters without viewport', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/corge@left');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: corge');
+
+    router.goto('/baz=id=123');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: baz');
+    expect(host.textContent).to.contain('Parameter id: [123]');
+
+    await teardown(host, router, 1);
+  });
+
+  it('parses multiple parameters after viewport', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/bar@left=123&OneTwoThree');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [123]');
+    expect(host.textContent).to.contain('Parameter name: [OneTwoThree]');
+
+    router.goto('/bar@left=456&FourFiveSix');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [456]');
+    expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
+
+    await teardown(host, router, 1);
+  });
+
+  it('parses multiple name parameters after viewport', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/bar@left=id=123&name=OneTwoThree');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [123]');
+    expect(host.textContent).to.contain('Parameter name: [OneTwoThree]');
+
+    router.goto('/bar@left=name=FourFiveSix&id=456');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [456]');
+    expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
+
+    await teardown(host, router, 1);
+  });
+
+  it('parses querystring', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/bar@left?id=123');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [123]');
+
+    router.goto('/bar@left?id=456&name=FourFiveSix');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [456]');
+    expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
+
+    await teardown(host, router, 1);
+  });
+
+  it('overrides querystring with parameter', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    router.goto('/bar@left=456?id=123');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [456]');
+
+    router.goto('/bar@left=456&FourFiveSix?id=123&name=OneTwoThree');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [456]');
+    expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
+
+    router.goto('/bar@left=name=SevenEightNine&id=789?id=123&name=OneTwoThree');
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: bar');
+    expect(host.textContent).to.contain('Parameter id: [789]');
+    expect(host.textContent).to.contain('Parameter name: [SevenEightNine]');
+
+    await teardown(host, router, 1);
+  });
+
 });
 
 let quxCantLeave = 2;
 
 const setup = async (): Promise<{ au; container; host; router }> => {
   const container = HTMLJitConfiguration.createContainer();
-  const App = CustomElementResource.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' }, class {});
-  const Foo = CustomElementResource.define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' }, class {});
-  const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Viewport: bar<au-viewport name="bar"></au-viewport></template>' }, class {});
-  const Baz = CustomElementResource.define({ name: 'baz', template: '<template>Viewport: baz<au-viewport name="baz"></au-viewport></template>' }, class {});
+  const App = (CustomElementResource as any).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+  const Foo = (CustomElementResource as any).define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
+  const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {
+    public static parameters = ['id', 'name'];
+    public id = 'no id';
+    public name = 'no name';
+    public enter(params) { if (params.id) { this.id = params.id; } if (params.name) { this.name = params.name; } }
+  });
+  const Baz = CustomElementResource.define({ name: 'baz', template: '<template>Viewport: baz Parameter id: [${id}] <au-viewport name="baz"></au-viewport></template>' }, class {
+    public static parameters = ['id'];
+    public id = 'no id';
+    public enter(params) { if (params.id) { this.id = params.id; } }
+  });
   const Qux = CustomElementResource.define({ name: 'qux', template: '<template>Viewport: qux<au-viewport name="qux"></au-viewport></template>' }, class {
     public canEnter() { return true; }
     public canLeave() { if (quxCantLeave > 0) { quxCantLeave--; return false; } else { return true; } }

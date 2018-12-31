@@ -3,6 +3,7 @@ import { Aurelia, ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
+import { IParsedQuery, parseQuery } from './parser';
 import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 
@@ -153,6 +154,10 @@ export class Router {
         instruction.path = path.substr(1);
       }
     }
+
+    const parsedQuery: IParsedQuery = parseQuery(instruction.query);
+    instruction.parameters = parsedQuery.parameters;
+    instruction.parameterList = parsedQuery.list;
 
     let title;
     let views: Object;
@@ -349,8 +354,6 @@ export class Router {
     let index = 0;
     while (sections.length) {
       const view = sections.shift();
-      // TODO: implement parameters
-      // As a = part at the end of the view!
       const scopes = view.split(this.separators.scope);
       const leaf = scopes.pop();
       const parts = leaf.split(this.separators.viewport);
@@ -497,8 +500,9 @@ export class Router {
     this.activeComponents = fullViewportStates;
     fullViewportStates.unshift(this.separators.clear);
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
-    this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling) + query,
-                                    fullViewportStates.join(this.separators.sibling) + query,
-                                    instruction);
+    this.historyBrowser.replacePath(
+      viewportStates.join(this.separators.sibling) + query,
+      fullViewportStates.join(this.separators.sibling) + query,
+      instruction);
   }
 }

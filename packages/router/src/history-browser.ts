@@ -4,6 +4,8 @@ export interface IHistoryEntry {
   index?: number;
   title?: string;
   query?: string;
+  parameters?: Object;
+  parameterList?: string[];
   data?: Object;
 }
 

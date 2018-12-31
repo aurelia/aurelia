@@ -13,7 +13,6 @@ scalar-2: &working_dir ~/repo
 # # # # # # # # # # # # # # # #
 map-1: &package_globs
   paths:
-    - dist
     - packages/*/dist
     - packages/*/node_modules
     - packages/*/*.tgz
@@ -261,11 +260,11 @@ commands:
           name: "Cleanup unwanted files"
           command: |
             ./node_modules/.bin/lerna clean -y
-            rm -rf dist/*.map dist/*.ts dist/*/ packages/*/dist/build/**
+            rm -rf packages/*/dist/build/**
       - run:
           name: "Stash dist folders"
           command: |
-            git add packages/\*/dist/* dist --force
+            git add packages/\*/dist/* --force
             git stash
 
   do_git_commit_dist:
@@ -277,10 +276,10 @@ commands:
       - run:
           name: "Overwrite existing with stashed dist folders"
           command: |
-            rm -rf packages/*/dist dist
+            rm -rf packages/*/dist
             git add .
             git stash pop
-            git add packages/\*/dist/* dist --force
+            git add packages/\*/dist/* --force
       - run:
           name: "Replace package.json refs and add them"
           command: |

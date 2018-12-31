@@ -9,6 +9,7 @@ import { Game } from './components/game';
 import { Lobby } from './components/lobby';
 import { About } from './components/about';
 import { Contacts } from './components/contacts';
+import { Contact } from './components/contact';
 import { Board } from './components/board';
 import { Inventory } from './components/inventory';
 
@@ -22,6 +23,7 @@ container.register(BasicConfiguration,
   <any>Lobby,
   <any>About,
   <any>Contacts,
+  <any>Contact,
   <any>Board,
   <any>Inventory,
 );

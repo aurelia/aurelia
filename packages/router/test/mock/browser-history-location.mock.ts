@@ -17,23 +17,24 @@ export class MockBrowserHistoryLocation {
 
   get pathname(): string {
     const parts = this.parts;
-    parts.shift();
+    // parts.shift();
     return <string>parts.shift();
   }
   get search(): string {
     const parts = this.parts;
-    if (parts.shift()) {
-      parts.shift();
-    }
+    // if (parts.shift()) {
+    //   parts.shift();
+    // }
     parts.shift();
     const part: string = <string>parts.shift();
     return part !== undefined ? `?${part}` : '';
   }
   get hash(): string {
     const parts = this.parts;
-    if (!parts.shift()) {
-      parts.shift();
-    }
+    // if (!parts.shift()) {
+    //   parts.shift();
+    // }
+    parts.shift();
     parts.shift();
     const part: string = <string>parts.shift();
     return part !== undefined ? `#${part}` : '';
@@ -43,34 +44,48 @@ export class MockBrowserHistoryLocation {
       value = value.substr(1);
     }
     const parts = this.parts;
-    const hashFirst = parts.shift();
+    // const hashFirst = parts.shift();
     let path = parts.shift();
-    if (hashFirst) {
-      parts.shift();
-      path += `#${value}`;
+    // if (hashFirst) {
+    //   parts.shift();
+    //   path += `#${value}`;
+    //   const part = parts.shift();
+    //   if (part !== undefined) {
+    //     path += `?${part}`;
+    //   }
+    // } else {
       const part = parts.shift();
       if (part !== undefined) {
         path += `?${part}`;
       }
-    } else {
-      const part = parts.shift();
-      if (part !== undefined) {
-        path += `?${part}`;
-      }
       parts.shift();
       path += `#${value}`;
-    }
+    // }
 
     this.pushState({}, null, <string>path);
     this.notifyChange();
   }
 
   // TODO: Fix a better split
-  private get parts(): (string | boolean)[] {
-    const parts: (string | boolean)[] = this.path.split(/[#?]/);
-    let search = this.path.indexOf('?') >= 0 ? this.path.indexOf('?') : 99999;
-    let hash = this.path.indexOf('#') >= 0 ? this.path.indexOf('#') : 99999;
-    parts.unshift(hash < search);
+  private get parts(): string[] {
+    const parts = [];
+    const ph = this.path.split('#');
+    if (ph.length > 1) {
+      parts.unshift(ph.pop());
+    } else {
+      parts.unshift(undefined);
+    }
+    const pq = ph[0].split('?');
+    if (pq.length > 1) {
+      parts.unshift(pq.pop());
+    } else {
+      parts.unshift(undefined);
+    }
+    parts.unshift(pq[0]);
+    // const parts: (string | boolean)[] = this.path.split(/[#?]/);
+    // let search = this.path.indexOf('?') >= 0 ? this.path.indexOf('?') : 99999;
+    // let hash = this.path.indexOf('#') >= 0 ? this.path.indexOf('#') : 99999;
+    // parts.unshift(hash < search);
     return parts;
   }
 

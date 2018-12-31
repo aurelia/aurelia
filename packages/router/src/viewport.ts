@@ -1,9 +1,14 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
+import { mergeParameters } from './parser';
 import { Router } from './router';
 import { Scope } from './scope';
-import { IViewportOptions } from './viewport';
+import { IRouteableCustomElement, IViewportOptions } from './viewport';
+
+export interface IRouteableCustomElementType extends ICustomElementType {
+  parameters?: string[];
+}
 
 export interface IRouteableCustomElement extends ICustomElement {
   canEnter?: Function;
@@ -19,8 +24,10 @@ export interface IViewportOptions {
 }
 
 export class Viewport {
-  public content: ICustomElementType;
-  public nextContent: ICustomElementType;
+  public content: IRouteableCustomElementType;
+  public nextContent: IRouteableCustomElementType;
+  public parameters: string;
+  public nextParameters: string;
 
   public instruction: INavigationInstruction;
   public nextInstruction: INavigationInstruction;
@@ -34,12 +41,16 @@ export class Viewport {
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
+    let parameters;
     this.clear = false;
     if (typeof content === 'string') {
       if (content === this.router.separators.clear) {
         this.clear = true;
         content = null;
       } else {
+        const cp = content.split(this.router.separators.parameters);
+        content = cp.shift();
+        parameters = cp.length ? cp.join(this.router.separators.parameters) : null;
         const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(content));
         if (resolver !== null) {
           content = resolver.getFactory(this.router.container).Type as ICustomElementType;
@@ -49,8 +60,9 @@ export class Viewport {
 
     this.nextContent = content as ICustomElementType;
     this.nextInstruction = instruction;
+    this.nextParameters = parameters;
 
-    if (this.content !== content || this.instruction.query !== instruction.query || instruction.isRefresh) {
+    if (this.content !== content || this.parameters !== parameters || !this.instruction || this.instruction.query !== instruction.query || instruction.isRefresh) {
       return true;
     }
 
@@ -132,23 +144,27 @@ export class Viewport {
 
     if (this.nextComponent) {
       if (this.nextComponent.enter) {
-        this.nextComponent.enter(this.nextInstruction, this.instruction);
+        const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, this.nextContent.parameters);
+        this.nextInstruction.parameters = merged.parameters;
+        this.nextInstruction.parameterList = merged.list;
+        this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
       }
       this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host);
       this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
       this.nextComponent.$attach(LifecycleFlags.fromStartTask);
 
       this.content = this.nextContent;
+      this.parameters = this.nextParameters;
       this.instruction = this.nextInstruction;
       this.component = this.nextComponent;
     }
 
     if (this.clear) {
-      this.content = this.component = null;
+      this.content = this.parameters = this.component = null;
       this.instruction = this.nextInstruction;
     }
 
-    this.nextContent = this.nextInstruction = this.nextComponent = null;
+    this.nextContent = this.nextParameters = this.nextInstruction = this.nextComponent = null;
 
     return Promise.resolve(true);
   }
@@ -157,16 +173,17 @@ export class Viewport {
     if (this.content) {
       const component = this.content.description.name;
       const newScope: string = this.scope ? this.router.separators.ownsScope : '';
+      const parameters = this.parameters ? this.router.separators.parameters + this.parameters : '';
       if (full || newScope.length || this.options.forceDescription) {
-        return `${component}${this.router.separators.viewport}${this.name}${newScope}`;
+        return `${component}${this.router.separators.viewport}${this.name}${newScope}${parameters}`;
       }
       const viewports = {};
       viewports[component] = component;
       const found = this.owningScope.findViewports(viewports);
       if (!found) {
-        return `${component}${this.router.separators.viewport}${this.name}${newScope}`;
+        return `${component}${this.router.separators.viewport}${this.name}${newScope}${parameters}`;
       }
-      return component;
+      return `${component}${parameters}`;
     }
   }
 

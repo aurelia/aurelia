@@ -480,21 +480,28 @@ workflows:
       - e2e_browserstack:
           <<: *filter_only_master
           requires:
-            - bundle_packages
+            - build_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
           attach: true
           requires:
-            - bundle_packages
+            - build_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
           path: "local/jit-fuse-box-ts"
           attach: true
           requires:
-            - bundle_packages
+            - build_packages
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-webpack-ts
+          path: "local/jit-webpack-ts"
+          attach: true
+          requires:
+            - build_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
@@ -502,13 +509,6 @@ workflows:
           attach: true
           requires:
             - publish_local
-      - e2e_wdio:
-          <<: *filter_ignore_develop_release
-          name: jit-webpack-ts
-          path: "local/jit-webpack-ts"
-          attach: true
-          requires:
-            - bundle_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-iife-inline
@@ -547,12 +547,12 @@ workflows:
           <<: *filter_only_tag
           requires:
             - build_packages
-      - publish_local:
-          <<: *filter_ignore_develop_release
-          requires:
-            - bundle_packages
       - e2e_browserstack:
           <<: *filter_only_tag
+          requires:
+            - build_packages
+      - publish_local:
+          <<: *filter_ignore_develop_release
           requires:
             - bundle_packages
       - merge_and_dist:
@@ -561,6 +561,7 @@ workflows:
             - lint_packages
             - unit_test_chrome
             - unit_test_firefox
+            - bundle_packages
             - publish_local
             - e2e_browserstack
           from: $CIRCLE_TAG
@@ -713,11 +714,12 @@ workflows:
             - build_packages
       - e2e_browserstack:
           requires:
-            - bundle_packages
+            - build_packages
       - merge_and_dist:
           requires:
             - lint_packages
             - unit_test_chrome
             - unit_test_firefox
+            - bundle_packages
             - e2e_browserstack
           to: "develop"

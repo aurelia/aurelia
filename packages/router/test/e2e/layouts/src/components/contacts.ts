@@ -1,5 +1,6 @@
-import { ContactList } from './../contact-list';
 import { customElement } from '../../../../../../runtime';
+import { inject } from '../../../../../..//kernel';
+import { ContactList } from './../contact-list';
 
 @customElement({
   name: 'contacts', template: `<template>CONTACTS <input>
@@ -8,10 +9,9 @@ import { customElement } from '../../../../../../runtime';
 </ul>
 <au-viewport name="contact" used-by="contact"></au-viewport>
 </template>` })
+@inject(ContactList)
 export class Contacts {
-  public contactList;
-
-  constructor() { this.contactList = new ContactList(); }
+  constructor(private contactList: ContactList) { }
 
   get contacts() { return this.contactList.allContacts(); }
 }

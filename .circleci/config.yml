@@ -283,7 +283,7 @@ commands:
       - run:
           name: "Replace package.json refs and add them"
           command: |
-            npm run replace-package-refs:rollup
+            npm run change-package-refs:rollup
             git add .
       - run:
           name: "Commit dist folders and package.jsons"

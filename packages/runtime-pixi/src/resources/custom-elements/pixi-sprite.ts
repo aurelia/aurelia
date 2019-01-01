@@ -183,17 +183,17 @@ for (const prop of directProps) {
     if (this.$state & State.isBound && this.sprite !== null && newValue) {
       this.sprite[prop] = newValue;
     }
-  }
+  };
 }
 for (const prop of pointProps) {
   PixiSprite.prototype[`${prop}XChanged`] = function(this: PixiSprite, newValue: unknown): void {
     if (this.$state & State.isBound && this.sprite !== null && newValue) {
       this.sprite[prop].x = newValue;
     }
-  }
+  };
   PixiSprite.prototype[`${prop}YChanged`] = function(this: PixiSprite, newValue: unknown): void {
     if (this.$state & State.isBound && this.sprite !== null && newValue) {
       this.sprite[prop].y = newValue;
     }
-  }
+  };
 }

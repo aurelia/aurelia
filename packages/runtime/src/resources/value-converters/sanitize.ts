@@ -26,7 +26,7 @@ export class SanitizeValueConverter {
 
   public static register: IRegistry['register'];
 
-  private sanitizer: ISanitizer;
+  private readonly sanitizer: ISanitizer;
 
   constructor(sanitizer: ISanitizer) {
     this.sanitizer = sanitizer;

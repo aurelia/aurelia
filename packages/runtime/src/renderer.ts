@@ -178,7 +178,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 export class CustomElementRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
 
-  private renderingEngine: IRenderingEngine;
+  private readonly renderingEngine: IRenderingEngine;
 
   constructor(renderingEngine: IRenderingEngine) {
     this.renderingEngine = renderingEngine;
@@ -212,7 +212,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
 export class CustomAttributeRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
 
-  private renderingEngine: IRenderingEngine;
+  private readonly renderingEngine: IRenderingEngine;
 
   constructor(renderingEngine: IRenderingEngine) {
     this.renderingEngine = renderingEngine;
@@ -245,7 +245,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 export class TemplateControllerRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
 
-  private renderingEngine: IRenderingEngine;
+  private readonly renderingEngine: IRenderingEngine;
 
   constructor(renderingEngine: IRenderingEngine) {
     this.renderingEngine = renderingEngine;
@@ -283,8 +283,8 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 export class LetElementRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -311,8 +311,8 @@ export class LetElementRenderer implements IInstructionRenderer {
 export class CallBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -333,7 +333,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
 export class RefBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser];
 
-  private parser: IExpressionParser;
+  private readonly parser: IExpressionParser;
 
   constructor(parser: IExpressionParser) {
     this.parser = parser;
@@ -353,8 +353,8 @@ export class RefBindingRenderer implements IInstructionRenderer {
 export class InterpolationBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -380,8 +380,8 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 export class PropertyBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -402,8 +402,8 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 export class IteratorBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;

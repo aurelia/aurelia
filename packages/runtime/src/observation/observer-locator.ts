@@ -68,11 +68,11 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 export class ObserverLocator implements IObserverLocator {
   public static readonly inject: ReadonlyArray<Function> = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
 
-  private adapters: IObjectObservationAdapter[];
-  private dirtyChecker: IDirtyChecker;
-  private lifecycle: ILifecycle;
-  private targetObserverLocator: ITargetObserverLocator;
-  private targetAccessorLocator: ITargetAccessorLocator;
+  private readonly adapters: IObjectObservationAdapter[];
+  private readonly dirtyChecker: IDirtyChecker;
+  private readonly lifecycle: ILifecycle;
+  private readonly targetObserverLocator: ITargetObserverLocator;
+  private readonly targetAccessorLocator: ITargetAccessorLocator;
 
   constructor(
     lifecycle: ILifecycle,

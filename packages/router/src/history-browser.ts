@@ -300,10 +300,10 @@ export class HistoryBrowser {
   }
 
   private getSearch(): string {
-    const hash = this.location.hash.substr(1) || '';
+    const hash = this.location.hash.substr(1);
     const hashSearches = hash.split('?');
     hashSearches.shift();
-    return hashSearches.shift() || '';
+    return hashSearches.length > 0 ?  hashSearches.shift() : '';
   }
 
   private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags): void {

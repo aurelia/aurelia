@@ -287,7 +287,7 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null): TemplateDefinition;
-  // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
+// tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | Immutable<ITemplateDefinition> | null,

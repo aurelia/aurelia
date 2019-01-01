@@ -1289,8 +1289,6 @@ export class Lifecycle implements ILifecycle {
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
-
-  private
 }
 
 export class CompositionCoordinator {
@@ -1479,8 +1477,8 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
   /** @internal */
   public owner: Lifecycle;
 
+  private readonly tasks: ILifecycleTask[];
   private resolve: () => void;
-  private tasks: ILifecycleTask[];
   private waiter: Promise<void>;
 
   constructor() {
@@ -1573,7 +1571,7 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
 export class PromiseSwap implements ILifecycleTask<IView> {
   public done: boolean;
 
-  private coordinator: CompositionCoordinator;
+  private readonly coordinator: CompositionCoordinator;
   private isCancelled: boolean;
   private promise: Promise<IView>;
 
@@ -1668,8 +1666,8 @@ export class PromiseTask<T = void> implements ILifecycleTask<T> {
   public done: boolean;
 
   private isCancelled: boolean;
-  private promise: Promise<T>;
-  private callback: (result?: T) => void;
+  private readonly promise: Promise<T>;
+  private readonly callback: (result?: T) => void;
 
   constructor(promise: Promise<T>, callback: (result?: T) => void) {
     this.done = false;

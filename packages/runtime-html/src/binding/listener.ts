@@ -32,9 +32,10 @@ export class Listener implements IBinding {
   public target: Node;
   public targetEvent: string;
 
-  private eventManager: IEventManager;
+  private readonly eventManager: IEventManager;
   private handler: IDisposable;
 
+  // tslint:disable-next-line:parameters-max-number
   constructor(
     dom: IDOM,
     targetEvent: string,

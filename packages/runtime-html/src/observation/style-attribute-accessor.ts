@@ -53,7 +53,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
             this._setProperty(style, value);
           }
         }
-      } else if ((newValue as string).length) {
+      } else if (newValue.length) {
         const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
         let pair: RegExpExecArray;
         while ((pair = rx.exec(newValue)) !== null) {

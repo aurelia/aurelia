@@ -126,6 +126,7 @@ export class Router {
     this.processNavigations().catch(error => { throw error; });
   }
 
+  // TODO: Reduce complexity (currently at 46)
   public async processNavigations(): Promise<void> {
     if (this.processingNavigation !== null || !this.pendingNavigations.length) {
       return Promise.resolve();

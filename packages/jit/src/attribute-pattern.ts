@@ -107,8 +107,8 @@ export class Interpretation {
     }
   }
   private _pattern: string;
-  private currentRecord: Record<string, string>;
-  private partsRecord: Record<string, string[]>;
+  private readonly currentRecord: Record<string, string>;
+  private readonly partsRecord: Record<string, string[]>;
 
   constructor() {
     this._pattern = '';
@@ -226,8 +226,8 @@ export interface ISegment {
 /** @internal */
 export class StaticSegment implements ISegment {
   public text: string;
-  private len: number;
-  private specs: CharSpec[];
+  private readonly len: number;
+  private readonly specs: CharSpec[];
 
   constructor(text: string) {
     this.text = text;
@@ -249,7 +249,7 @@ export class StaticSegment implements ISegment {
 /** @internal */
 export class DynamicSegment implements ISegment {
   public text: string;
-  private spec: CharSpec;
+  private readonly spec: CharSpec;
 
   constructor(symbols: string) {
     this.text = 'PART';
@@ -264,7 +264,7 @@ export class DynamicSegment implements ISegment {
 /** @internal */
 export class SymbolSegment implements ISegment {
   public text: string;
-  private spec: CharSpec;
+  private readonly spec: CharSpec;
 
   constructor(text: string) {
     this.text = text;
@@ -301,7 +301,7 @@ export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISynta
 /** @internal */
 export class SyntaxInterpreter {
   public rootState: State;
-  private initialStates: State[];
+  private readonly initialStates: State[];
 
   constructor() {
     this.rootState = new State(null);
@@ -508,7 +508,7 @@ export class RefAttributePattern implements RefAttributePattern {
 attributePattern(
   { pattern: 'ref', symbols: '' },
   { pattern: 'ref.PART', symbols: '.' }
-)(RefAttributePattern)
+)(RefAttributePattern);
 
 export interface ColonPrefixedBindAttributePattern extends IAttributePattern {}
 export class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttributePattern  {
@@ -518,7 +518,7 @@ export class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttri
     return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
   }
 }
-attributePattern({ pattern: ':PART', symbols: ':' })(ColonPrefixedBindAttributePattern)
+attributePattern({ pattern: ':PART', symbols: ':' })(ColonPrefixedBindAttributePattern);
 
 export interface AtPrefixedTriggerAttributePattern extends IAttributePattern {}
 export class AtPrefixedTriggerAttributePattern implements AtPrefixedTriggerAttributePattern  {
@@ -528,4 +528,4 @@ export class AtPrefixedTriggerAttributePattern implements AtPrefixedTriggerAttri
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
   }
 }
-attributePattern({ pattern: '@PART', symbols: '@' })(AtPrefixedTriggerAttributePattern)
+attributePattern({ pattern: '@PART', symbols: '@' })(AtPrefixedTriggerAttributePattern);

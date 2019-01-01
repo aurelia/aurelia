@@ -12,9 +12,9 @@ export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttribute
 export class AttributeParser implements IAttributeParser {
   public static readonly inject: ReadonlyArray<Function> = [ISyntaxInterpreter, all(IAttributePattern)];
 
-  private interpreter: ISyntaxInterpreter;
-  private cache: Record<string, Interpretation>;
-  private patterns: Record<string, IAttributePatternHandler>;
+  private readonly interpreter: ISyntaxInterpreter;
+  private readonly cache: Record<string, Interpretation>;
+  private readonly patterns: Record<string, IAttributePatternHandler>;
 
   constructor(interpreter: ISyntaxInterpreter, attrPatterns: IAttributePattern[]) {
     this.interpreter = interpreter;

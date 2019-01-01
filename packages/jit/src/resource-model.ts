@@ -15,11 +15,10 @@ import { BindingCommandResource, IBindingCommand } from './binding-command';
  * binding commands, optimized for consumption by the template compiler.
  */
 export class ResourceModel {
-
-  private resources: IResourceDescriptions;
-  private elementLookup: Record<string, ElementInfo>;
-  private attributeLookup: Record<string, AttrInfo>;
-  private commandLookup: Record<string, IBindingCommand>;
+  private readonly resources: IResourceDescriptions;
+  private readonly elementLookup: Record<string, ElementInfo>;
+  private readonly attributeLookup: Record<string, AttrInfo>;
+  private readonly commandLookup: Record<string, IBindingCommand>;
 
   constructor(resources: IResourceDescriptions) {
     this.resources = resources;

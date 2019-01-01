@@ -1172,6 +1172,24 @@ export class Lifecycle implements ILifecycle {
       this.unmountTail = requestor;
       ++this.unmountCount;
     }
+    // this is a temporary solution until a cleaner method surfaces.
+    // if an item being queued for unmounting is already in the mount queue,
+    // remove it from the mount queue (this can occur in some very exotic situations
+    // and should be dealt with in a less hacky way)
+    if ((requestor as ILifecycleMount & ILifecycleUnmount).$nextMount !== null) {
+      let current = this.mountHead as ILifecycleMount & ILifecycleUnmount;
+      let next = current.$nextMount as ILifecycleMount & ILifecycleUnmount;
+      while (next !== requestor) {
+        current = next;
+        next = current.$nextMount as ILifecycleMount & ILifecycleUnmount;
+      }
+      current.$nextMount = next.$nextMount;
+      next.$nextMount = null;
+      if (this.mountTail === next) {
+        this.mountTail = this;
+      }
+      --this.mountCount;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -1271,6 +1289,8 @@ export class Lifecycle implements ILifecycle {
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
+
+  private
 }
 
 export class CompositionCoordinator {

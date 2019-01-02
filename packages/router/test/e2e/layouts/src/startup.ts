@@ -1,5 +1,4 @@
-import { DI } from '../../../../../kernel';
-import { BasicConfiguration } from '../../../../../jit';
+import { HTMLJitConfiguration } from '../../../../../jit-html/src/index';
 import { Aurelia, CustomElementResource } from '../../../../../runtime';
 import { App } from './app';
 import { ViewportCustomElement } from '../../../../../router';
@@ -13,8 +12,8 @@ import { Contact } from './components/contact';
 import { Board } from './components/board';
 import { Inventory } from './components/inventory';
 
-const container = DI.createContainer();
-container.register(BasicConfiguration,
+const container = HTMLJitConfiguration.createContainer();
+container.register(
   <any>ViewportCustomElement,
   <any>NavCustomElement,
   <any>App,

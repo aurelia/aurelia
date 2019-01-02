@@ -1,4 +1,3 @@
-export * from './resources/viewport';
 export * from './history-browser';
 export * from './link-handler';
 export * from './nav';

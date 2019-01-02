@@ -28,7 +28,7 @@
           return {};
       }
       // @ts-ignore 2683
-  }).call(undefined);
+  })();
   // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
   const $now = (function () {
       let getNanoSeconds;
@@ -258,7 +258,6 @@
       disableLiveLogging() { return; }
   };
 
-  const slice = Array.prototype.slice;
   // Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
   // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
   // https://rbuckton.github.io/reflect-metadata/
@@ -425,7 +424,7 @@
           return target;
       }
   };
-  const IContainer = DI.createInterface().noDefault();
+  const IContainer = DI.createInterface('IContainer').noDefault();
   const IServiceLocator = IContainer;
   function createResolver(getter) {
       return function (key) {
@@ -529,24 +528,15 @@
           return new Factory(Type, invoker, dependencies);
       }
       construct(container, dynamicDependencies) {
-          if (Tracer.enabled) {
-              Tracer.enter(`Factory.construct`, slice.call(arguments).concat(this.Type));
-          }
           const transformers = this.transformers;
           let instance = dynamicDependencies !== undefined
               ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
               : this.invoker.invoke(container, this.Type, this.dependencies);
           if (transformers === null) {
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
               return instance;
           }
           for (let i = 0, ii = transformers.length; i < ii; ++i) {
               instance = transformers[i](instance);
-          }
-          if (Tracer.enabled) {
-              Tracer.leave();
           }
           return instance;
       }
@@ -573,6 +563,7 @@
           this.resolvers = new Map();
           this.configuration = configuration;
           this.factories = configuration.factories || (configuration.factories = new Map());
+          this.resourceLookup = configuration.resourceLookup || (configuration.resourceLookup = Object.create(null));
           this.resolvers.set(IContainer, containerResolver);
       }
       register(...params) {
@@ -603,6 +594,9 @@
           const result = resolvers.get(key);
           if (result === undefined) {
               resolvers.set(key, resolver);
+              if (typeof key === 'string') {
+                  this.resourceLookup[key] = resolver;
+              }
           }
           else if (result instanceof Resolver && result.strategy === 4 /* array */) {
               result.state.push(resolver);
@@ -654,14 +648,8 @@
                   : false;
       }
       get(key) {
-          if (Tracer.enabled) {
-              Tracer.enter(`Container.get`, slice.call(arguments));
-          }
           validateKey(key);
           if (key.resolve) {
-              if (Tracer.enabled) {
-                  Tracer.leave();
-              }
               return key.resolve(this, this);
           }
           let current = this;
@@ -670,17 +658,11 @@
               if (resolver === undefined) {
                   if (current.parent === null) {
                       resolver = this.jitRegister(key, current);
-                      if (Tracer.enabled) {
-                          Tracer.leave();
-                      }
                       return resolver.resolve(current, this);
                   }
                   current = current.parent;
               }
               else {
-                  if (Tracer.enabled) {
-                      Tracer.leave();
-                  }
                   return resolver.resolve(current, this);
               }
           }
@@ -711,7 +693,9 @@
           return factory;
       }
       createChild() {
-          const child = new Container(this.configuration);
+          const config = this.configuration;
+          const childConfig = { factories: config.factories, resourceLookup: Object.assign({}, config.resourceLookup) };
+          const child = new Container(childConfig);
           child.parent = this;
           return child;
       }
@@ -857,7 +841,11 @@
       }
       find(kind, name) {
           const key = kind.keyFrom(name);
-          const resolver = this.context.getResolver(key, false);
+          const resourceLookup = this.context.resourceLookup;
+          let resolver = resourceLookup[key];
+          if (resolver === undefined) {
+              resolver = resourceLookup[key] = this.context.getResolver(key, false);
+          }
           if (resolver !== null && resolver.getFactory) {
               const factory = resolver.getFactory(this.context);
               if (factory !== null) {
@@ -869,31 +857,29 @@
       }
       create(kind, name) {
           const key = kind.keyFrom(name);
-          if (this.context.has(key, false)) {
-              const instance = this.context.get(key);
+          const resourceLookup = this.context.resourceLookup;
+          let resolver = resourceLookup[key];
+          if (resolver === undefined) {
+              resolver = resourceLookup[key] = this.context.getResolver(key, false);
+          }
+          if (resolver !== null) {
+              const instance = resolver.resolve(this.context, this.context);
               return instance === undefined ? null : instance;
           }
           return null;
       }
   }
 
+  exports.all = all;
   exports.DI = DI;
   exports.IContainer = IContainer;
-  exports.IServiceLocator = IServiceLocator;
   exports.inject = inject;
-  exports.transient = transient;
-  exports.singleton = singleton;
-  exports.all = all;
+  exports.IServiceLocator = IServiceLocator;
   exports.lazy = lazy;
   exports.optional = optional;
-  exports.Resolver = Resolver;
-  exports.Factory = Factory;
-  exports.Container = Container;
   exports.Registration = Registration;
-  exports.validateKey = validateKey;
-  exports.classInvokers = classInvokers;
-  exports.fallbackInvoker = fallbackInvoker;
-  exports.invokeWithDynamicDependencies = invokeWithDynamicDependencies;
+  exports.singleton = singleton;
+  exports.transient = transient;
   exports.PLATFORM = PLATFORM;
   exports.Reporter = Reporter;
   exports.Tracer = Tracer;

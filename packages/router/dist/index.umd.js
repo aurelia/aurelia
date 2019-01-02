@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/kernel'), require('@aurelia/runtime')) :
-    typeof define === 'function' && define.amd ? define(['exports', '@aurelia/kernel', '@aurelia/runtime'], factory) :
-    (global = global || self, factory(global.router = {}, global.kernel, global.runtime));
-}(this, function (exports, kernel, runtime) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/runtime'), require('@aurelia/kernel')) :
+    typeof define === 'function' && define.amd ? define(['exports', '@aurelia/runtime', '@aurelia/kernel'], factory) :
+    (global = global || self, factory(global.router = {}, global.runtime, global.kernel));
+}(this, function (exports, runtime, kernel) { 'use strict';
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation. All rights reserved.
@@ -455,7 +455,7 @@
                 if (this.nextComponent.enter) {
                     this.nextComponent.enter(this.nextInstruction, this.instruction);
                 }
-                this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host);
+                this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host, null);
                 this.nextComponent.$bind(runtime.LifecycleFlags.fromStartTask | runtime.LifecycleFlags.fromBind, null);
                 this.nextComponent.$attach(runtime.LifecycleFlags.fromStartTask);
                 this.content = this.nextContent;
@@ -816,7 +816,7 @@
         }
     }
 
-    exports.Router = class Router {
+    class Router {
         constructor(container) {
             this.container = container;
             this.routes = [];
@@ -1181,12 +1181,10 @@
             fullViewportStates.unshift(this.separators.clear);
             this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling), fullViewportStates.join(this.separators.sibling));
         }
-    };
-    exports.Router = __decorate([
-        kernel.inject(kernel.IContainer)
-    ], exports.Router);
+    }
+    Router.inject = [kernel.IContainer];
 
-    exports.ViewportCustomElement = class ViewportCustomElement {
+    class ViewportCustomElement {
         constructor(router, element) {
             this.router = router;
             this.element = element;
@@ -1202,23 +1200,24 @@
         unbound() {
             this.router.removeViewport(this.viewport);
         }
-    };
+    }
+    ViewportCustomElement.inject = [Router, runtime.INode];
     __decorate([
         runtime.bindable
-    ], exports.ViewportCustomElement.prototype, "name", void 0);
+    ], ViewportCustomElement.prototype, "name", void 0);
     __decorate([
         runtime.bindable
-    ], exports.ViewportCustomElement.prototype, "scope", void 0);
+    ], ViewportCustomElement.prototype, "scope", void 0);
     __decorate([
         runtime.bindable
-    ], exports.ViewportCustomElement.prototype, "usedBy", void 0);
-    exports.ViewportCustomElement = __decorate([
-        kernel.inject(exports.Router, Element),
-        runtime.customElement({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' })
-    ], exports.ViewportCustomElement);
+    ], ViewportCustomElement.prototype, "usedBy", void 0);
+    // tslint:disable-next-line:no-invalid-template-strings
+    runtime.CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' }, ViewportCustomElement);
 
+    exports.ViewportCustomElement = ViewportCustomElement;
     exports.HistoryBrowser = HistoryBrowser;
     exports.LinkHandler = LinkHandler;
+    exports.Router = Router;
     exports.Scope = Scope;
     exports.Viewport = Viewport;
 

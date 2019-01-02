@@ -1,7 +1,7 @@
-import { IContainer, Immutable, ImmutableArray, IRegistry, IResourceDescriptions } from '@aurelia/kernel';
+import { Immutable, ImmutableArray, IRegistry, IResourceDescriptions } from '@aurelia/kernel';
 import { InstructionTypeName, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { IDOM, INode, INodeSequenceFactory } from './dom';
-import { ILifecycle, IRenderable, IRenderContext, IViewFactory } from './lifecycle';
+import { IRenderable, IRenderContext, IViewFactory } from './lifecycle';
 import { IAccessor, ISubscribable, ISubscriberCollection, MutationKind } from './observation';
 import { ICustomAttribute, ICustomAttributeType } from './resources/custom-attribute';
 import { ICustomElement, ICustomElementType } from './resources/custom-element';
@@ -29,7 +29,7 @@ export declare class CompiledTemplate<T extends INode = INode> implements ITempl
     readonly renderContext: IRenderContext<T>;
     readonly dom: IDOM<T>;
     private definition;
-    constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, parentRenderContext: IRenderContext<T>);
+    constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>);
     render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions): void;
 }
 export interface IInstructionTypeClassifier<TType extends string = string> {
@@ -45,27 +45,13 @@ export interface IRenderer {
 }
 export declare const IRenderer: import("@aurelia/kernel").InterfaceSymbol<IRenderer>;
 export interface IRenderingEngine {
-    getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, componentType?: ICustomElementType<T>): ITemplate<T>;
-    getViewFactory<T extends INode = INode>(dom: IDOM<T>, source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext<T>): IViewFactory<T>;
+    getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, parentContext: IRenderContext<T> | null, componentType: ICustomElementType<T> | null): ITemplate<T>;
+    getViewFactory<T extends INode = INode>(dom: IDOM<T>, source: Immutable<ITemplateDefinition>, parentContext: IRenderContext<T> | null): IViewFactory<T>;
     applyRuntimeBehavior<T extends INode = INode>(Type: ICustomAttributeType<T>, instance: ICustomAttribute<T>): void;
     applyRuntimeBehavior<T extends INode = INode>(Type: ICustomElementType<T>, instance: ICustomElement<T>): void;
 }
 export declare const IRenderingEngine: import("@aurelia/kernel").InterfaceSymbol<IRenderingEngine>;
-export declare class RenderingEngine implements IRenderingEngine {
-    private behaviorLookup;
-    private compilers;
-    private container;
-    private templateFactory;
-    private viewFactoryLookup;
-    private lifecycle;
-    private templateLookup;
-    constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]);
-    getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, componentType?: ICustomElementType<T>): ITemplate<T>;
-    getViewFactory<T extends INode = INode>(dom: IDOM<T>, definition: Immutable<ITemplateDefinition>, parentContext?: IRenderContext<T>): IViewFactory<T>;
-    applyRuntimeBehavior(Type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement): void;
-    private templateFromSource;
-}
-export declare function createRenderContext(dom: IDOM, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>): IRenderContext;
+export declare function createRenderContext(dom: IDOM, parentRenderContext: IRenderContext, dependencies: ImmutableArray<IRegistry>, componentType: ICustomElementType | null): IRenderContext;
 export interface IChildrenObserver extends IAccessor, ISubscribable<MutationKind.instance>, ISubscriberCollection<MutationKind.instance> {
 }
 //# sourceMappingURL=rendering-engine.d.ts.map

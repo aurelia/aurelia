@@ -1,6 +1,5 @@
 import { ILifecycle } from '../lifecycle';
-import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet } from '../observation';
-import { IDirtyChecker } from './dirty-checker';
+import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservedArray, IObservedMap, IObservedSet } from '../observation';
 export interface IObjectObservationAdapter {
     getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }
@@ -24,23 +23,5 @@ export interface ITargetAccessorLocator {
     handles(obj: unknown): boolean;
 }
 export declare const ITargetAccessorLocator: import("@aurelia/kernel").InterfaceSymbol<ITargetAccessorLocator>;
-export declare class ObserverLocator implements IObserverLocator {
-    private adapters;
-    private dirtyChecker;
-    private lifecycle;
-    private targetObserverLocator;
-    private targetAccessorLocator;
-    constructor(lifecycle: ILifecycle, dirtyChecker: IDirtyChecker, targetObserverLocator: ITargetObserverLocator, targetAccessorLocator: ITargetAccessorLocator);
-    getObserver(obj: unknown, propertyName: string): AccessorOrObserver;
-    addAdapter(adapter: IObjectObservationAdapter): void;
-    getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
-    getArrayObserver(observedArray: IObservedArray): ICollectionObserver<CollectionKind.array>;
-    getMapObserver(observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>;
-    getSetObserver(observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>;
-    private getOrCreateObserversLookup;
-    private createObserversLookup;
-    private getAdapterObserver;
-    private createPropertyObserver;
-}
 export declare function getCollectionObserver(lifecycle: ILifecycle, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver;
 //# sourceMappingURL=observer-locator.d.ts.map

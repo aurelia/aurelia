@@ -3,12 +3,14 @@ import { IDOM, IExpressionParser, IInstructionRenderer, IObserverLocator, IRende
 import { IListenerBindingInstruction, ISetAttributeInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction } from './definitions';
 import { IEventManager } from './observation/event-manager';
 export declare class TextBindingRenderer implements IInstructionRenderer {
+    static readonly inject: ReadonlyArray<Function>;
     private parser;
     private observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: ChildNode, instruction: ITextBindingInstruction): void;
 }
 export declare class ListenerBindingRenderer implements IInstructionRenderer {
+    static readonly inject: ReadonlyArray<Function>;
     private parser;
     private eventManager;
     constructor(parser: IExpressionParser, eventManager: IEventManager);
@@ -18,6 +20,7 @@ export declare class SetAttributeRenderer implements IInstructionRenderer {
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: ISetAttributeInstruction): void;
 }
 export declare class StylePropertyBindingRenderer implements IInstructionRenderer {
+    static readonly inject: ReadonlyArray<Function>;
     private parser;
     private observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);

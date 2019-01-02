@@ -6,6 +6,7 @@ export declare type SignalableBinding = Binding & {
     signal: string | string[];
 };
 export declare class SignalBindingBehavior {
+    static readonly inject: ReadonlyArray<Function>;
     static register: IRegistry['register'];
     private signaler;
     constructor(signaler: ISignaler);

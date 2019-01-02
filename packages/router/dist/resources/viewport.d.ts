@@ -3,6 +3,7 @@ import { Viewport } from '../viewport';
 export declare class ViewportCustomElement {
     private router;
     private element;
+    static readonly inject: ReadonlyArray<Function>;
     name: string;
     scope: boolean;
     usedBy: string;

@@ -1,4 +1,4 @@
-import { PLATFORM, DI, Registration, Reporter, inject, all } from '@aurelia/kernel';
+import { PLATFORM, DI, Registration, Reporter, all } from '@aurelia/kernel';
 import { OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, IExpressionParser, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, CustomElementResource, CustomAttributeResource } from '@aurelia/runtime';
 
 class AttrSyntax {
@@ -8,28 +8,6 @@ class AttrSyntax {
         this.target = target;
         this.command = command;
     }
-}
-
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-
-function __decorate(decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 
 /** @internal */
@@ -251,7 +229,7 @@ class SegmentTypes {
         this.symbols = 0;
     }
 }
-const ISyntaxInterpreter = DI.createInterface().withDefault(x => x.singleton(SyntaxInterpreter));
+const ISyntaxInterpreter = DI.createInterface('ISyntaxInterpreter').withDefault(x => x.singleton(SyntaxInterpreter));
 /** @internal */
 class SyntaxInterpreter {
     constructor() {
@@ -390,7 +368,7 @@ function validatePrototype(handler, patternDefs) {
         }
     }
 }
-const IAttributePattern = DI.createInterface().noDefault();
+const IAttributePattern = DI.createInterface('IAttributePattern').noDefault();
 function attributePattern(...patternDefs) {
     return function decorator(target) {
         const proto = target.prototype;
@@ -405,49 +383,40 @@ function attributePattern(...patternDefs) {
         return target;
     };
 }
-let DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
+class DotSeparatedAttributePattern {
     ['PART.PART'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
     }
     ['PART.PART.PART'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
     }
-};
-DotSeparatedAttributePattern = __decorate([
-    attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })
-], DotSeparatedAttributePattern);
-let RefAttributePattern = class RefAttributePattern {
+}
+attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })(DotSeparatedAttributePattern);
+class RefAttributePattern {
     ['ref'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, 'ref', null);
     }
     ['ref.PART'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, 'ref', parts[1]);
     }
-};
-RefAttributePattern = __decorate([
-    attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'ref.PART', symbols: '.' })
-], RefAttributePattern);
-let ColonPrefixedBindAttributePattern = class ColonPrefixedBindAttributePattern {
+}
+attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'ref.PART', symbols: '.' })(RefAttributePattern);
+class ColonPrefixedBindAttributePattern {
     [':PART'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
     }
-};
-ColonPrefixedBindAttributePattern = __decorate([
-    attributePattern({ pattern: ':PART', symbols: ':' })
-], ColonPrefixedBindAttributePattern);
-let AtPrefixedTriggerAttributePattern = class AtPrefixedTriggerAttributePattern {
+}
+attributePattern({ pattern: ':PART', symbols: ':' })(ColonPrefixedBindAttributePattern);
+class AtPrefixedTriggerAttributePattern {
     ['@PART'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
     }
-};
-AtPrefixedTriggerAttributePattern = __decorate([
-    attributePattern({ pattern: '@PART', symbols: '@' })
-], AtPrefixedTriggerAttributePattern);
+}
+attributePattern({ pattern: '@PART', symbols: '@' })(AtPrefixedTriggerAttributePattern);
 
-const IAttributeParser = DI.createInterface()
-    .withDefault(x => x.singleton(AttributeParser));
+const IAttributeParser = DI.createInterface('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
 /** @internal */
-let AttributeParser = class AttributeParser {
+class AttributeParser {
     constructor(interpreter, attrPatterns) {
         this.interpreter = interpreter;
         this.cache = {};
@@ -473,10 +442,8 @@ let AttributeParser = class AttributeParser {
             return this.patterns[pattern][pattern](name, value, interpretation.parts);
         }
     }
-};
-AttributeParser = __decorate([
-    inject(ISyntaxInterpreter, all(IAttributePattern))
-], AttributeParser);
+}
+AttributeParser.inject = [ISyntaxInterpreter, all(IAttributePattern)];
 
 function register(container) {
     const resourceKey = BindingCommandResource.keyFrom(this.description.name);
@@ -524,50 +491,42 @@ function getMode(binding) {
         return commandToMode[binding.syntax.command];
     }
 }
-let OneTimeBindingCommand = class OneTimeBindingCommand {
+class OneTimeBindingCommand {
     constructor() {
         this.bindingType = 49 /* OneTimeCommand */;
     }
     compile(binding) {
         return new OneTimeBindingInstruction(binding.expression, getTarget(binding, false));
     }
-};
-OneTimeBindingCommand = __decorate([
-    bindingCommand('one-time')
-], OneTimeBindingCommand);
-let ToViewBindingCommand = class ToViewBindingCommand {
+}
+BindingCommandResource.define('one-time', OneTimeBindingCommand);
+class ToViewBindingCommand {
     constructor() {
         this.bindingType = 50 /* ToViewCommand */;
     }
     compile(binding) {
         return new ToViewBindingInstruction(binding.expression, getTarget(binding, false));
     }
-};
-ToViewBindingCommand = __decorate([
-    bindingCommand('to-view')
-], ToViewBindingCommand);
-let FromViewBindingCommand = class FromViewBindingCommand {
+}
+BindingCommandResource.define('to-view', ToViewBindingCommand);
+class FromViewBindingCommand {
     constructor() {
         this.bindingType = 51 /* FromViewCommand */;
     }
     compile(binding) {
         return new FromViewBindingInstruction(binding.expression, getTarget(binding, false));
     }
-};
-FromViewBindingCommand = __decorate([
-    bindingCommand('from-view')
-], FromViewBindingCommand);
-let TwoWayBindingCommand = class TwoWayBindingCommand {
+}
+BindingCommandResource.define('from-view', FromViewBindingCommand);
+class TwoWayBindingCommand {
     constructor() {
         this.bindingType = 52 /* TwoWayCommand */;
     }
     compile(binding) {
         return new TwoWayBindingInstruction(binding.expression, getTarget(binding, false));
     }
-};
-TwoWayBindingCommand = __decorate([
-    bindingCommand('two-way')
-], TwoWayBindingCommand);
+}
+BindingCommandResource.define('two-way', TwoWayBindingCommand);
 // Not bothering to throw on non-existing modes, should never happen anyway.
 // Keeping all array elements of the same type for better optimizeability.
 const modeToProperty = ['', '$1', '$2', '', '$4', '', '$6'];
@@ -578,7 +537,7 @@ const commandToMode = {
     'from-view': BindingMode.fromView,
     'two-way': BindingMode.twoWay,
 };
-let DefaultBindingCommand = class DefaultBindingCommand {
+class DefaultBindingCommand {
     constructor() {
         this.bindingType = 53 /* BindCommand */;
         this.$1 = OneTimeBindingCommand.prototype.compile;
@@ -589,32 +548,26 @@ let DefaultBindingCommand = class DefaultBindingCommand {
     compile(binding) {
         return this[modeToProperty[getMode(binding)]](binding);
     }
-};
-DefaultBindingCommand = __decorate([
-    bindingCommand('bind')
-], DefaultBindingCommand);
-let CallBindingCommand = class CallBindingCommand {
+}
+BindingCommandResource.define('bind', DefaultBindingCommand);
+class CallBindingCommand {
     constructor() {
         this.bindingType = 153 /* CallCommand */;
     }
     compile(binding) {
         return new CallBindingInstruction(binding.expression, getTarget(binding, true));
     }
-};
-CallBindingCommand = __decorate([
-    bindingCommand('call')
-], CallBindingCommand);
-let ForBindingCommand = class ForBindingCommand {
+}
+BindingCommandResource.define('call', CallBindingCommand);
+class ForBindingCommand {
     constructor() {
         this.bindingType = 539 /* ForCommand */;
     }
     compile(binding) {
         return new IteratorBindingInstruction(binding.expression, getTarget(binding, false));
     }
-};
-ForBindingCommand = __decorate([
-    bindingCommand('for')
-], ForBindingCommand);
+}
+BindingCommandResource.define('for', ForBindingCommand);
 
 /** @internal */
 function unescapeCode(code) {
@@ -1987,5 +1940,5 @@ class TextSymbol {
     }
 }
 
-export { AttrSyntax, IAttributeParser, AttributeParser, CharSpec, Interpretation, State, StaticSegment, DynamicSegment, SymbolSegment, SegmentTypes, ISyntaxInterpreter, SyntaxInterpreter, IAttributePattern, attributePattern, DotSeparatedAttributePattern, RefAttributePattern, ColonPrefixedBindAttributePattern, AtPrefixedTriggerAttributePattern, bindingCommand, BindingCommandResource, getTarget, getMode, OneTimeBindingCommand, ToViewBindingCommand, FromViewBindingCommand, TwoWayBindingCommand, DefaultBindingCommand, CallBindingCommand, ForBindingCommand, unescapeCode, BasicBindingSyntax, BasicBindingLanguage, JitConfiguration, ParserRegistration, ParserState, parseExpression, parse, ResourceModel, BindableInfo, ElementInfo, AttrInfo, TemplateControllerSymbol, ReplacePartSymbol, CustomAttributeSymbol, PlainAttributeSymbol, BindingSymbol, CustomElementSymbol, LetElementSymbol, PlainElementSymbol, TextSymbol };
+export { AttrSyntax, IAttributeParser, AtPrefixedTriggerAttributePattern, attributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, IAttributePattern, Interpretation, ISyntaxInterpreter, RefAttributePattern, bindingCommand, BindingCommandResource, CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, getMode, getTarget, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, JitConfiguration, ParserRegistration, parseExpression, ResourceModel, BindableInfo, ElementInfo, AttrInfo, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, ReplacePartSymbol, TemplateControllerSymbol, TextSymbol };
 //# sourceMappingURL=index.es6.js.map

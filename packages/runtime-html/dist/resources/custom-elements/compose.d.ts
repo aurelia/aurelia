@@ -1,8 +1,11 @@
 import { Constructable, Immutable, IRegistry } from '@aurelia/kernel';
-import { CompositionCoordinator, ICustomElementResource, IDOM, IHydrateElementInstruction, INode, IRenderable, IRenderingEngine, IView, IViewFactory, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
+import { CompositionCoordinator, ICustomElement, ICustomElementResource, IDOM, IHydrateElementInstruction, INode, IRenderable, IRenderingEngine, IView, IViewFactory, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { RenderPlan } from '../../create-element';
 export declare type Subject<T extends INode = Node> = IViewFactory<T> | IView<T> | RenderPlan<T> | Constructable | TemplateDefinition;
+export interface Compose<T extends INode = Node> extends ICustomElement<T> {
+}
 export declare class Compose<T extends INode = Node> implements Compose<T> {
+    static readonly inject: ReadonlyArray<Function>;
     static readonly register: IRegistry['register'];
     static readonly kind: ICustomElementResource<Node>;
     static readonly description: TemplateDefinition;

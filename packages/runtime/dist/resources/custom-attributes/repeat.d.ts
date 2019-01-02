@@ -9,6 +9,7 @@ import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute'
 export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {
 }
 export declare class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements Repeat<C, T> {
+    static readonly inject: ReadonlyArray<Function>;
     static readonly register: IRegistry['register'];
     static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;

@@ -63,7 +63,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
 }
 export declare type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
 export declare type InstructionTypeName = string;
-export declare const ITargetedInstruction: import("@aurelia/kernel").IDefaultableInterfaceSymbol<ITargetedInstruction>;
+export declare const ITargetedInstruction: import("@aurelia/kernel").InterfaceSymbol<ITargetedInstruction>;
 export interface ITargetedInstruction {
     type: InstructionTypeName;
 }

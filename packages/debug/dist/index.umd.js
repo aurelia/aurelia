@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/runtime'), require('@aurelia/kernel')) :
-  typeof define === 'function' && define.amd ? define(['exports', '@aurelia/runtime', '@aurelia/kernel'], factory) :
-  (global = global || self, factory(global.debug = {}, global.runtime, global.kernel));
-}(this, function (exports, AST, kernel) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/kernel'), require('@aurelia/runtime')) :
+  typeof define === 'function' && define.amd ? define(['exports', '@aurelia/kernel', '@aurelia/runtime'], factory) :
+  (global = global || self, factory(global.debug = {}, global.kernel, global.runtime));
+}(this, function (exports, kernel, AST) { 'use strict';
 
   const astTypeMap = [
       { type: AST.AccessKeyed, name: 'AccessKeyed' },
@@ -264,140 +264,6 @@
               args[i].accept(this);
           }
           this.text += ')';
-      }
-  }
-  /** @internal */
-  class Serializer {
-      static serialize(expr) {
-          const visitor = new Serializer();
-          if (expr === null || expr === undefined || typeof expr.accept !== 'function') {
-              return `${expr}`;
-          }
-          return expr.accept(visitor);
-      }
-      visitAccessMember(expr) {
-          return `{"type":"AccessMember","name":${expr.name},"object":${expr.object.accept(this)}}`;
-      }
-      visitAccessKeyed(expr) {
-          return `{"type":"AccessKeyed","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
-      }
-      visitAccessThis(expr) {
-          return `{"type":"AccessThis","ancestor":${expr.ancestor}}`;
-      }
-      visitAccessScope(expr) {
-          return `{"type":"AccessScope","name":"${expr.name}","ancestor":${expr.ancestor}}`;
-      }
-      visitArrayLiteral(expr) {
-          return `{"type":"ArrayLiteral","elements":${this.serializeExpressions(expr.elements)}}`;
-      }
-      visitObjectLiteral(expr) {
-          return `{"type":"ObjectLiteral","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
-      }
-      visitPrimitiveLiteral(expr) {
-          return `{"type":"PrimitiveLiteral","value":${serializePrimitive(expr.value)}}`;
-      }
-      visitCallFunction(expr) {
-          return `{"type":"CallFunction","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
-      }
-      visitCallMember(expr) {
-          return `{"type":"CallMember","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
-      }
-      visitCallScope(expr) {
-          return `{"type":"CallScope","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
-      }
-      visitTemplate(expr) {
-          return `{"type":"Template","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
-      }
-      visitTaggedTemplate(expr) {
-          return `{"type":"TaggedTemplate","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
-      }
-      visitUnary(expr) {
-          return `{"type":"Unary","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
-      }
-      visitBinary(expr) {
-          return `{"type":"Binary","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
-      }
-      visitConditional(expr) {
-          return `{"type":"Conditional","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
-      }
-      visitAssign(expr) {
-          return `{"type":"Assign","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
-      }
-      visitValueConverter(expr) {
-          return `{"type":"ValueConverter","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
-      }
-      visitBindingBehavior(expr) {
-          return `{"type":"BindingBehavior","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
-      }
-      visitArrayBindingPattern(expr) {
-          return `{"type":"ArrayBindingPattern","elements":${this.serializeExpressions(expr.elements)}}`;
-      }
-      visitObjectBindingPattern(expr) {
-          return `{"type":"ObjectBindingPattern","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
-      }
-      visitBindingIdentifier(expr) {
-          return `{"type":"BindingIdentifier","name":"${expr.name}"}`;
-      }
-      visitHtmlLiteral(expr) { throw new Error('visitHtmlLiteral'); }
-      visitForOfStatement(expr) {
-          return `{"type":"ForOfStatement","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
-      }
-      visitInterpolation(expr) {
-          return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
-      }
-      serializeExpressions(args) {
-          let text = '[';
-          for (let i = 0, ii = args.length; i < ii; ++i) {
-              if (i !== 0) {
-                  text += ',';
-              }
-              text += args[i].accept(this);
-          }
-          text += ']';
-          return text;
-      }
-  }
-  function serializePrimitives(values) {
-      let text = '[';
-      for (let i = 0, ii = values.length; i < ii; ++i) {
-          if (i !== 0) {
-              text += ',';
-          }
-          text += serializePrimitive(values[i]);
-      }
-      text += ']';
-      return text;
-  }
-  function serializePrimitive(value) {
-      if (typeof value === 'string') {
-          return `"\\"${escapeString(value)}\\""`;
-      }
-      else if (value === null || value === undefined) {
-          return `"${value}"`;
-      }
-      else {
-          return `${value}`;
-      }
-  }
-  function escapeString(str) {
-      let ret = '';
-      for (let i = 0, ii = str.length; i < ii; ++i) {
-          ret += escape(str.charAt(i));
-      }
-      return ret;
-  }
-  function escape(ch) {
-      switch (ch) {
-          case '\b': return '\\b';
-          case '\t': return '\\t';
-          case '\n': return '\\n';
-          case '\v': return '\\v';
-          case '\f': return '\\f';
-          case '\r': return '\\r';
-          case '\"': return '\\"';
-          case '\'': return '\\\'';
-          case '\\': return '\\\\';
-          default: return ch;
       }
   }
 
@@ -717,14 +583,8 @@
       }
   };
 
-  exports.enableImprovedExpressionDebugging = enableImprovedExpressionDebugging;
-  exports.adoptDebugMethods = adoptDebugMethods;
-  exports.Unparser = Unparser;
-  exports.Serializer = Serializer;
   exports.DebugConfiguration = DebugConfiguration;
   exports.TraceConfiguration = TraceConfiguration;
-  exports.Reporter = Reporter;
-  exports.Tracer = Tracer;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

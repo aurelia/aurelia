@@ -20,58 +20,60 @@ export declare function getMode(binding: PlainAttributeSymbol | BindingSymbol): 
 export interface OneTimeBindingCommand extends IBindingCommand {
 }
 export declare class OneTimeBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.OneTimeCommand;
+    static readonly register: IRegistry['register'];
+    readonly bindingType: BindingType.OneTimeCommand;
     constructor();
     compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface ToViewBindingCommand extends IBindingCommand {
 }
 export declare class ToViewBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.ToViewCommand;
+    static readonly register: IRegistry['register'];
+    readonly bindingType: BindingType.ToViewCommand;
     constructor();
     compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface FromViewBindingCommand extends IBindingCommand {
 }
 export declare class FromViewBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.FromViewCommand;
+    static readonly register: IRegistry['register'];
+    readonly bindingType: BindingType.FromViewCommand;
     constructor();
     compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface TwoWayBindingCommand extends IBindingCommand {
 }
 export declare class TwoWayBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.TwoWayCommand;
+    static readonly register: IRegistry['register'];
+    readonly bindingType: BindingType.TwoWayCommand;
     constructor();
     compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface DefaultBindingCommand extends IBindingCommand {
 }
 export declare class DefaultBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.BindCommand;
-    $1: typeof OneTimeBindingCommand.prototype.compile;
-    $2: typeof ToViewBindingCommand.prototype.compile;
-    $4: typeof FromViewBindingCommand.prototype.compile;
-    $6: typeof TwoWayBindingCommand.prototype.compile;
+    static readonly register: IRegistry['register'];
+    readonly bindingType: BindingType.BindCommand;
+    readonly $1: typeof OneTimeBindingCommand.prototype.compile;
+    readonly $2: typeof ToViewBindingCommand.prototype.compile;
+    readonly $4: typeof FromViewBindingCommand.prototype.compile;
+    readonly $6: typeof TwoWayBindingCommand.prototype.compile;
     constructor();
     compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
 export interface CallBindingCommand extends IBindingCommand {
 }
 export declare class CallBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.CallCommand;
+    static readonly register: IRegistry['register'];
+    readonly bindingType: BindingType.CallCommand;
     constructor();
     compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }
+export interface ForBindingCommand extends IBindingCommand {
+}
 export declare class ForBindingCommand implements IBindingCommand {
-    static register: IRegistry['register'];
-    bindingType: BindingType.ForCommand;
+    static readonly register: IRegistry['register'];
+    readonly bindingType: BindingType.ForCommand;
     constructor();
     compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
 }

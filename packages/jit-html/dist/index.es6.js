@@ -1,65 +1,36 @@
-import { getTarget, bindingCommand, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, JitConfiguration } from '@aurelia/jit';
+import { getTarget, BindingCommandResource, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, JitConfiguration } from '@aurelia/jit';
 import { TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, TextBindingInstruction, SetAttributeInstruction, HTMLRuntimeConfiguration } from '@aurelia/runtime-html';
-import { Tracer, PLATFORM, DI, inject, Registration } from '@aurelia/kernel';
+import { PLATFORM, DI, Registration } from '@aurelia/kernel';
 import { BindingMode, IDOM, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser, ITemplateCompiler } from '@aurelia/runtime';
 
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-
-function __decorate(decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-
-let TriggerBindingCommand = class TriggerBindingCommand {
+class TriggerBindingCommand {
     constructor() {
         this.bindingType = 86 /* TriggerCommand */;
     }
     compile(binding) {
         return new TriggerBindingInstruction(binding.expression, getTarget(binding, false));
     }
-};
-TriggerBindingCommand = __decorate([
-    bindingCommand('trigger')
-], TriggerBindingCommand);
-let DelegateBindingCommand = class DelegateBindingCommand {
+}
+BindingCommandResource.define('trigger', TriggerBindingCommand);
+class DelegateBindingCommand {
     constructor() {
         this.bindingType = 88 /* DelegateCommand */;
     }
     compile(binding) {
         return new DelegateBindingInstruction(binding.expression, getTarget(binding, false));
     }
-};
-DelegateBindingCommand = __decorate([
-    bindingCommand('delegate')
-], DelegateBindingCommand);
-let CaptureBindingCommand = class CaptureBindingCommand {
+}
+BindingCommandResource.define('delegate', DelegateBindingCommand);
+class CaptureBindingCommand {
     constructor() {
         this.bindingType = 87 /* CaptureCommand */;
     }
     compile(binding) {
         return new CaptureBindingInstruction(binding.expression, getTarget(binding, false));
     }
-};
-CaptureBindingCommand = __decorate([
-    bindingCommand('capture')
-], CaptureBindingCommand);
+}
+BindingCommandResource.define('capture', CaptureBindingCommand);
 
-const slice = Array.prototype.slice;
 const invalidSurrogateAttribute = {
     'id': true,
     'part': true,
@@ -83,9 +54,6 @@ class TemplateBinder {
         this.partName = null;
     }
     bind(node) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.bind', slice.call(arguments));
-        }
         const surrogateSave = this.surrogate;
         const parentManifestRootSave = this.parentManifestRoot;
         const manifestRootSave = this.manifestRoot;
@@ -118,29 +86,17 @@ class TemplateBinder {
         this.parentManifestRoot = parentManifestRootSave;
         this.manifestRoot = manifestRootSave;
         this.manifest = manifestSave;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
         return manifest;
     }
     bindManifest(parentManifest, node) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.bindManifest', slice.call(arguments));
-        }
         switch (node.nodeName) {
             case 'LET':
                 // let cannot have children and has some different processing rules, so return early
                 this.bindLetElement(parentManifest, node);
-                if (Tracer.enabled) {
-                    Tracer.leave();
-                }
                 return;
             case 'SLOT':
                 // slot requires no compilation
                 this.surrogate.hasSlots = true;
-                if (Tracer.enabled) {
-                    Tracer.leave();
-                }
                 return;
         }
         // nodes are processed bottom-up so we need to store the manifests before traversing down and
@@ -180,9 +136,6 @@ class TemplateBinder {
         this.parentManifestRoot = parentManifestRootSave;
         this.manifestRoot = manifestRootSave;
         this.manifest = manifestSave;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     bindLetElement(parentManifest, node) {
         const symbol = new LetElementSymbol(this.dom, node);
@@ -208,9 +161,6 @@ class TemplateBinder {
         node.parentNode.replaceChild(symbol.marker, node);
     }
     bindAttributes(node, parentManifest) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.bindAttributes', slice.call(arguments));
-        }
         const { parentManifestRoot, manifestRoot, manifest } = this;
         // This is the top-level symbol for the current depth.
         // If there are no template controllers or replace-parts, it is always the manifest itself.
@@ -271,14 +221,8 @@ class TemplateBinder {
             partOwner.parts.push(replacePart);
             processReplacePart(this.dom, replacePart, manifestProxy);
         }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     bindChildNodes(node) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.bindChildNodes', slice.call(arguments));
-        }
         let childNode;
         if (node.nodeName === 'TEMPLATE') {
             childNode = node.content.firstChild;
@@ -308,14 +252,8 @@ class TemplateBinder {
                     childNode = childNode.firstChild;
             }
         }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     bindText(node) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.bindText', slice.call(arguments));
-        }
         const interpolation = this.exprParser.parse(node.wholeText, 2048 /* Interpolation */);
         if (interpolation !== null) {
             const symbol = new TextSymbol(this.dom, node, interpolation);
@@ -325,15 +263,9 @@ class TemplateBinder {
         while (node.nextSibling !== null && node.nextSibling.nodeType === 3 /* Text */) {
             node = node.nextSibling;
         }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
         return node;
     }
     declareTemplateController(attrSyntax, attrInfo) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.declareTemplateController', slice.call(arguments));
-        }
         let symbol;
         // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
         const command = this.resources.getBindingCommand(attrSyntax);
@@ -349,15 +281,9 @@ class TemplateBinder {
             symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
             this.partName = null;
         }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
         return symbol;
     }
     bindCustomAttribute(attrSyntax, attrInfo) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.bindCustomAttribute', slice.call(arguments));
-        }
         const command = this.resources.getBindingCommand(attrSyntax);
         let symbol;
         if (command === null && attrInfo.hasDynamicOptions) {
@@ -376,14 +302,8 @@ class TemplateBinder {
         }
         this.manifest.attributes.push(symbol);
         this.manifest.isTarget = true;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     bindMultiAttribute(symbol, attrInfo, value) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.bindMultiAttribute', slice.call(arguments));
-        }
         const attributes = parseMultiAttributeBinding(value);
         let attr;
         for (let i = 0, ii = attributes.length; i < ii; ++i) {
@@ -399,18 +319,9 @@ class TemplateBinder {
             }
             symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
         }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     bindPlainAttribute(attrSyntax) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.bindPlainAttribute', slice.call(arguments));
-        }
         if (attrSyntax.rawValue.length === 0) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         const command = this.resources.getBindingCommand(attrSyntax);
@@ -441,26 +352,14 @@ class TemplateBinder {
             // are on the surrogate element
             manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
         }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     declareReplacePart(node) {
-        if (Tracer.enabled) {
-            Tracer.enter('TemplateBinder.declareReplacePart', slice.call(arguments));
-        }
         const name = node.getAttribute('replace-part');
         if (name === null) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return null;
         }
         node.removeAttribute('replace-part');
         const symbol = new ReplacePartSymbol(name);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
         return symbol;
     }
 }
@@ -586,13 +485,13 @@ function scanAttributeValue(state) {
 // For some reason rollup complains about `DI.createInterface<ITemplateElementFactory>().noDefault()` with this message:
 // "semantic error TS2742 The inferred type of 'ITemplateElementFactory' cannot be named without a reference to '@aurelia/jit/node_modules/@aurelia/kernel'. This is likely not portable. A type annotation is necessary"
 // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
-const ITemplateElementFactory = DI.createInterface().noDefault();
+const ITemplateElementFactory = DI.createInterface('ITemplateElementFactory').noDefault();
 /**
  * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
  *
  * @internal
  */
-let HTMLTemplateElementFactory = class HTMLTemplateElementFactory {
+class HTMLTemplateElementFactory {
     constructor(dom) {
         this.dom = dom;
         this.template = dom.createTemplate();
@@ -626,10 +525,8 @@ let HTMLTemplateElementFactory = class HTMLTemplateElementFactory {
         }
         return input;
     }
-};
-HTMLTemplateElementFactory = __decorate([
-    inject(IDOM)
-], HTMLTemplateElementFactory);
+}
+HTMLTemplateElementFactory.inject = [IDOM];
 
 const buildNotRequired = Object.freeze({
     required: false,
@@ -640,7 +537,7 @@ const buildNotRequired = Object.freeze({
  *
  * @internal
  */
-let TemplateCompiler = class TemplateCompiler {
+class TemplateCompiler {
     constructor(factory, attrParser, exprParser) {
         this.factory = factory;
         this.attrParser = attrParser;
@@ -859,10 +756,8 @@ let TemplateCompiler = class TemplateCompiler {
         }
         return parts;
     }
-};
-TemplateCompiler = __decorate([
-    inject(ITemplateElementFactory, IAttributeParser, IExpressionParser)
-], TemplateCompiler);
+}
+TemplateCompiler.inject = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
 
 const HTMLBindingLanguage = [
     TriggerBindingCommand,
@@ -992,5 +887,5 @@ function stringifyTemplateDefinition(def, depth) {
     return output;
 }
 
-export { TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, HTMLBindingLanguage, HTMLJitConfiguration, stringifyDOM, stringifyInstructions, stringifyTemplateDefinition, TemplateBinder, TemplateCompiler, ITemplateElementFactory, HTMLTemplateElementFactory };
+export { TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, HTMLJitConfiguration, stringifyDOM, stringifyInstructions, stringifyTemplateDefinition, TemplateBinder, ITemplateElementFactory };
 //# sourceMappingURL=index.es6.js.map

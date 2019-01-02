@@ -1,9 +1,10 @@
 import { TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
+import { IRenderContext } from '../lifecycle';
 import { IRenderingEngine, ITemplate } from '../rendering-engine';
 import { ICustomElementType } from '../resources/custom-element';
 export interface IElementTemplateProvider {
-    getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType): ITemplate;
+    getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType | null, parentContext: IRenderContext | null): ITemplate;
 }
 export interface ILifecycleRender {
     /**
@@ -29,6 +30,6 @@ export interface ILifecycleRender {
      * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
      * which can happen many times per instance), though it can happen many times per type (once for each instance)
      */
-    render?(host: INode, parts: Record<string, TemplateDefinition>): IElementTemplateProvider | void;
+    render?(host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void;
 }
 //# sourceMappingURL=lifecycle-render.d.ts.map

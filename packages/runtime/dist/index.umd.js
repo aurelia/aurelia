@@ -112,6 +112,8 @@
       }
       return flagNames.join('|');
   }
+  /** @internal */
+  var SubscriberFlags;
   (function (SubscriberFlags) {
       SubscriberFlags[SubscriberFlags["None"] = 0] = "None";
       SubscriberFlags[SubscriberFlags["Subscriber0"] = 1] = "Subscriber0";
@@ -119,7 +121,7 @@
       SubscriberFlags[SubscriberFlags["Subscriber2"] = 4] = "Subscriber2";
       SubscriberFlags[SubscriberFlags["SubscribersRest"] = 8] = "SubscribersRest";
       SubscriberFlags[SubscriberFlags["Any"] = 15] = "Any";
-  })(exports.SubscriberFlags || (exports.SubscriberFlags = {}));
+  })(SubscriberFlags || (SubscriberFlags = {}));
   (function (DelegationStrategy) {
       DelegationStrategy[DelegationStrategy["none"] = 0] = "none";
       DelegationStrategy[DelegationStrategy["capturing"] = 1] = "capturing";
@@ -532,7 +534,6 @@
       propertyObserver()
   ], exports.SetterObserver);
 
-  const slice = Array.prototype.slice;
   var RuntimeError;
   (function (RuntimeError) {
       RuntimeError[RuntimeError["UndefinedScope"] = 250] = "UndefinedScope";
@@ -543,15 +544,9 @@
   /** @internal */
   class InternalObserversLookup {
       getOrCreate(obj, key) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('InternalObserversLookup.getOrCreate', slice.call(arguments));
-          }
           let observer = this[key];
           if (observer === undefined) {
               observer = this[key] = new exports.SetterObserver(obj, key);
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
           return observer;
       }
@@ -578,9 +573,6 @@
           return new BindingContext(keyOrObj, value);
       }
       static get(scope, name, ancestor, flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('BindingContext.get', slice.call(arguments));
-          }
           if (scope === undefined) {
               throw kernel.Reporter.error(250 /* UndefinedScope */);
           }
@@ -592,16 +584,10 @@
               // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
               while (ancestor > 0) {
                   if (overrideContext.parentOverrideContext === null) {
-                      if (kernel.Tracer.enabled) {
-                          kernel.Tracer.leave();
-                      }
                       return undefined;
                   }
                   ancestor--;
                   overrideContext = overrideContext.parentOverrideContext;
-              }
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
               }
               return name in overrideContext ? overrideContext : overrideContext.bindingContext;
           }
@@ -610,9 +596,6 @@
               overrideContext = overrideContext.parentOverrideContext;
           }
           if (overrideContext) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               // we located a context with the property.  return it.
               return name in overrideContext ? overrideContext : overrideContext.bindingContext;
           }
@@ -624,9 +607,6 @@
                   // tell the scope to return null if the name could not be found
                   | exports.LifecycleFlags.isTraversingParentScope);
               if (result !== null) {
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return result;
               }
           }
@@ -634,26 +614,14 @@
           // if this is a parent scope traversal, to ensure we fall back to the
           // correct level)
           if (flags & exports.LifecycleFlags.isTraversingParentScope) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return null;
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
           return scope.bindingContext || scope.overrideContext;
       }
       getObservers() {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('BindingContext.getObservers', slice.call(arguments));
-          }
           let observers = this.$observers;
           if (observers === undefined) {
               this.$observers = observers = new InternalObserversLookup();
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
           return observers;
       }
@@ -665,35 +633,17 @@
           this.parentScope = null;
       }
       static create(bc, oc) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Scope.create', slice.call(arguments));
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc) : oc);
       }
       static fromOverride(oc) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Scope.fromOverride', slice.call(arguments));
-          }
           if (oc === null || oc === undefined) {
               throw kernel.Reporter.error(252 /* NilOverrideContext */);
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
           return new Scope(oc.bindingContext, oc);
       }
       static fromParent(ps, bc) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Scope.fromParent', slice.call(arguments));
-          }
           if (ps === null || ps === undefined) {
               throw kernel.Reporter.error(253 /* NilParentScope */);
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
           return new Scope(bc, OverrideContext.create(bc, ps.overrideContext));
       }
@@ -705,30 +655,18 @@
           this.parentOverrideContext = parentOverrideContext;
       }
       static create(bc, poc) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('OverrideContext.create', slice.call(arguments));
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return new OverrideContext(bc, poc === undefined ? null : poc);
       }
       getObservers() {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('OverrideContext.getObservers', slice.call(arguments));
-          }
           let observers = this.$observers;
           if (observers === undefined) {
               this.$observers = observers = new InternalObserversLookup();
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
           return observers;
       }
   }
 
-  const ISignaler = kernel.DI.createInterface().withDefault(x => x.singleton(Signaler));
+  const ISignaler = kernel.DI.createInterface('ISignaler').withDefault(x => x.singleton(Signaler));
   /** @internal */
   class Signaler {
       constructor() {
@@ -1876,7 +1814,6 @@
       BindingMode[BindingMode["default"] = 8] = "default";
   })(exports.BindingMode || (exports.BindingMode = {}));
 
-  const slice$1 = Array.prototype.slice;
   (function (State) {
       State[State["none"] = 0] = "none";
       State[State["isBinding"] = 1] = "isBinding";
@@ -1903,10 +1840,10 @@
       Hooks[Hooks["hasRender"] = 1024] = "hasRender";
       Hooks[Hooks["hasCaching"] = 2048] = "hasCaching";
   })(exports.Hooks || (exports.Hooks = {}));
-  const IRenderable = kernel.DI.createInterface().noDefault();
-  const IViewFactory = kernel.DI.createInterface().noDefault();
+  const IRenderable = kernel.DI.createInterface('IRenderable').noDefault();
+  const IViewFactory = kernel.DI.createInterface('IViewFactory').noDefault();
   const marker = Object.freeze(Object.create(null));
-  const ILifecycle = kernel.DI.createInterface().withDefault(x => x.singleton(Lifecycle));
+  const ILifecycle = kernel.DI.createInterface('ILifecycle').withDefault(x => x.singleton(Lifecycle));
   /** @internal */
   class Lifecycle {
       constructor() {
@@ -1985,9 +1922,6 @@
           }
       }
       enqueueFlush(requestor) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.enqueueFlush', slice$1.call(arguments));
-          }
           // Queue a flush() callback; the depth is just for debugging / testing purposes and has
           // no effect on execution. flush() will automatically be invoked when the promise resolves,
           // or it can be manually invoked synchronously.
@@ -2000,15 +1934,9 @@
               this.flushTail = requestor;
               ++this.flushCount;
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return this.flushed;
       }
       processFlushQueue(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.processFlushQueue', slice$1.call(arguments));
-          }
           flags |= exports.LifecycleFlags.fromSyncFlush;
           // flush callbacks may lead to additional flush operations, so keep looping until
           // the flush head is back to `this` (though this will typically happen in the first iteration)
@@ -2032,23 +1960,11 @@
                   break;
               }
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       beginBind() {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.beginBind', slice$1.call(arguments));
-          }
           ++this.bindDepth;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       enqueueBound(requestor) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.enqueueBound', slice$1.call(arguments));
-          }
           // build a standard singly linked list for bound callbacks
           if (requestor.$nextBound === null) {
               requestor.$nextBound = marker;
@@ -2056,14 +1972,8 @@
               this.boundTail = requestor;
               ++this.boundCount;
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       enqueueConnect(requestor) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.enqueueConnect', slice$1.call(arguments));
-          }
           // enqueue connect and patch calls in separate lists so that they can be invoked
           // independently from eachother
           // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path
@@ -2082,14 +1992,8 @@
               this.patchTail = requestor;
               ++this.patchCount;
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       processConnectQueue(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.processConnectQueue', slice$1.call(arguments));
-          }
           // connects cannot lead to additional connects, so we don't need to loop here
           if (this.connectCount > 0) {
               this.connectCount = 0;
@@ -2103,14 +2007,8 @@
                   current = next;
               } while (current !== marker);
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       processPatchQueue(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.processPatchQueue', slice$1.call(arguments));
-          }
           // flush before patching, but only if this is the initial bind;
           // no DOM is attached yet so we can safely let everything propagate
           if (flags & exports.LifecycleFlags.fromStartTask) {
@@ -2130,37 +2028,19 @@
                   current = next;
               } while (current !== marker);
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       endBind(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.endBind', slice$1.call(arguments));
-          }
           // close / shrink a bind batch
           if (--this.bindDepth === 0) {
               if (this.task !== null && !this.task.done) {
                   this.task.owner = this;
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return this.task;
               }
               this.processBindQueue(flags);
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return LifecycleTask.done;
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
       }
       processBindQueue(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.processBindQueue', slice$1.call(arguments));
-          }
           // flush before processing bound callbacks, but only if this is the initial bind;
           // no DOM is attached yet so we can safely let everything propagate
           if (flags & exports.LifecycleFlags.fromStartTask) {
@@ -2180,24 +2060,12 @@
                   current = next;
               } while (current !== marker);
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       beginUnbind() {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.beginUnbind', slice$1.call(arguments));
-          }
           // open up / expand an unbind batch; the very first caller will close it again with endUnbind
           ++this.unbindDepth;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       enqueueUnbound(requestor) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.enqueueUnbound', slice$1.call(arguments));
-          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for unbound callbacks
@@ -2207,37 +2075,19 @@
               this.unboundTail = requestor;
               ++this.unboundCount;
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       endUnbind(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.endUnbind', slice$1.call(arguments));
-          }
           // close / shrink an unbind batch
           if (--this.unbindDepth === 0) {
               if (this.task !== null && !this.task.done) {
                   this.task.owner = this;
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return this.task;
               }
               this.processUnbindQueue(flags);
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return LifecycleTask.done;
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
       }
       processUnbindQueue(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.processUnbindQueue', slice$1.call(arguments));
-          }
           // unbound callbacks may lead to additional unbind operations, so keep looping until
           // the unbound head is back to `this` (though this will typically happen in the first iteration)
           while (this.unboundCount > 0) {
@@ -2252,24 +2102,12 @@
                   current = next;
               } while (current !== marker);
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       beginAttach() {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.beginAttach', slice$1.call(arguments));
-          }
           // open up / expand an attach batch; the very first caller will close it again with endAttach
           ++this.attachDepth;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       enqueueMount(requestor) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.enqueueMount', slice$1.call(arguments));
-          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for mount callbacks
@@ -2279,14 +2117,8 @@
               this.mountTail = requestor;
               ++this.mountCount;
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       enqueueAttached(requestor) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.enqueueAttached', slice$1.call(arguments));
-          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for attached callbacks
@@ -2296,37 +2128,19 @@
               this.attachedTail = requestor;
               ++this.attachedCount;
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       endAttach(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.endAttach', slice$1.call(arguments));
-          }
           // close / shrink an attach batch
           if (--this.attachDepth === 0) {
               if (this.task !== null && !this.task.done) {
                   this.task.owner = this;
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return this.task;
               }
               this.processAttachQueue(flags);
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return LifecycleTask.done;
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
       }
       processAttachQueue(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.processAttachQueue', slice$1.call(arguments));
-          }
           // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
           // and the DOM is updated
           this.processFlushQueue(flags | exports.LifecycleFlags.fromSyncFlush);
@@ -2363,24 +2177,12 @@
                   currentAttached = nextAttached;
               } while (currentAttached !== marker);
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       beginDetach() {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.beginDetach', slice$1.call(arguments));
-          }
           // open up / expand a detach batch; the very first caller will close it again with endDetach
           ++this.detachDepth;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       enqueueUnmount(requestor) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.enqueueUnmount', slice$1.call(arguments));
-          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for unmount callbacks
@@ -2390,14 +2192,26 @@
               this.unmountTail = requestor;
               ++this.unmountCount;
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
+          // this is a temporary solution until a cleaner method surfaces.
+          // if an item being queued for unmounting is already in the mount queue,
+          // remove it from the mount queue (this can occur in some very exotic situations
+          // and should be dealt with in a less hacky way)
+          if (requestor.$nextMount !== null) {
+              let current = this.mountHead;
+              let next = current.$nextMount;
+              while (next !== requestor) {
+                  current = next;
+                  next = current.$nextMount;
+              }
+              current.$nextMount = next.$nextMount;
+              next.$nextMount = null;
+              if (this.mountTail === next) {
+                  this.mountTail = this;
+              }
+              --this.mountCount;
           }
       }
       enqueueDetached(requestor) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.enqueueDetached', slice$1.call(arguments));
-          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for detached callbacks
@@ -2407,14 +2221,8 @@
               this.detachedTail = requestor;
               ++this.detachedCount;
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       enqueueUnbindAfterDetach(requestor) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.enqueueUnbindAfterDetach', slice$1.call(arguments));
-          }
           // This method is idempotent; adding the same item more than once has the same effect as
           // adding it once.
           // build a standard singly linked list for unbindAfterDetach callbacks
@@ -2424,14 +2232,8 @@
               this.unbindAfterDetachTail = requestor;
               ++this.unbindAfterDetachCount;
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       endDetach(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.endDetach', slice$1.call(arguments));
-          }
           // close / shrink a detach batch
           if (--this.detachDepth === 0) {
               if (this.task !== null && !this.task.done) {
@@ -2439,19 +2241,10 @@
                   return this.task;
               }
               this.processDetachQueue(flags);
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return LifecycleTask.done;
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
       }
       processDetachQueue(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Lifecycle.processDetachQueue', slice$1.call(arguments));
-          }
           // flush before unmounting to ensure batched collection changes propagate to the repeaters,
           // which may lead to additional unmount operations
           this.processFlushQueue(flags | exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.doNotUpdateDOM);
@@ -2493,12 +2286,9 @@
               } while (currentUnbind !== marker);
               this.endUnbind(flags);
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   }
-  exports.CompositionCoordinator = class CompositionCoordinator {
+  class CompositionCoordinator {
       constructor($lifecycle) {
           this.$lifecycle = $lifecycle;
           this.onSwapComplete = kernel.PLATFORM.noop;
@@ -2632,10 +2422,8 @@
               this.swapTask = LifecycleTask.done;
           }
       }
-  };
-  exports.CompositionCoordinator = __decorate([
-      kernel.inject(ILifecycle)
-  ], exports.CompositionCoordinator);
+  }
+  CompositionCoordinator.inject = [ILifecycle];
   const LifecycleTask = {
       done: {
           done: true,
@@ -2823,8 +2611,6 @@
       }
   }
 
-  // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
-  const slice$2 = Array.prototype.slice;
   const slotNames = [];
   const versionSlotNames = [];
   let lastSlot = -1;
@@ -2868,9 +2654,6 @@
   }
   /** @internal */
   function observeProperty(obj, propertyName) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.observeProperty`, slice$2.call(arguments));
-      }
       const observer = this.observerLocator.getObserver(obj, propertyName);
       /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
        *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -2880,9 +2663,6 @@
        * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
        */
       this.addObserver(observer);
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function unobserve(all) {
@@ -2927,7 +2707,6 @@
       return target === undefined ? connectableDecorator : connectableDecorator(target);
   }
 
-  const slice$3 = Array.prototype.slice;
   // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
   const { oneTime, toView, fromView } = exports.BindingMode;
   // pre-combining flags for bitwise checks is a minor perf tweak
@@ -2957,13 +2736,7 @@
           this.sourceExpression.assign(flags | exports.LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
       }
       handleChange(newValue, _previousValue, flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Binding.handleChange', slice$3.call(arguments));
-          }
           if (!(this.$state & 2 /* isBound */)) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           const sourceExpression = this.sourceExpression;
@@ -2986,31 +2759,19 @@
                   sourceExpression.connect(flags, $scope, this);
                   this.unobserve(false);
               }
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           if (flags & exports.LifecycleFlags.updateSourceExpression) {
               if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
                   this.updateSource(newValue, flags);
               }
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           throw kernel.Reporter.error(15, exports.LifecycleFlags[flags]);
       }
       $bind(flags, scope) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Binding.$bind', slice$3.call(arguments));
-          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return;
               }
               this.$unbind(flags | exports.LifecycleFlags.fromBind);
@@ -3052,18 +2813,9 @@
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       $unbind(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Binding.$unbind', slice$3.call(arguments));
-          }
           if (!(this.$state & 2 /* isBound */)) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           // add isUnbinding flag
@@ -3085,32 +2837,17 @@
           this.unobserve(true);
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       connect(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Binding.connect', slice$3.call(arguments));
-          }
           if (this.$state & 2 /* isBound */) {
               flags |= this.persistentFlags;
               this.sourceExpression.connect(flags | exports.LifecycleFlags.mustEvaluate, this.$scope, this);
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       patch(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Binding.patch', slice$3.call(arguments));
-          }
           if (this.$state & 2 /* isBound */) {
               flags |= this.persistentFlags;
               this.updateTarget(this.sourceExpression.evaluate(flags | exports.LifecycleFlags.mustEvaluate, this.$scope, this.locator), flags);
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
       }
   };
@@ -3118,7 +2855,6 @@
       connectable()
   ], exports.Binding);
 
-  const slice$4 = Array.prototype.slice;
   class Call {
       constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
           this.$nextBind = null;
@@ -3129,29 +2865,17 @@
           this.targetObserver = observerLocator.getObserver(target, targetProperty);
       }
       callSource(args) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Call.callSource', slice$4.call(arguments));
-          }
           const overrideContext = this.$scope.overrideContext;
           Object.assign(overrideContext, args);
           const result = this.sourceExpression.evaluate(exports.LifecycleFlags.mustEvaluate, this.$scope, this.locator);
           for (const prop in args) {
               delete overrideContext[prop];
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return result;
       }
       $bind(flags, scope) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Call.$bind', slice$4.call(arguments));
-          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return;
               }
               this.$unbind(flags | exports.LifecycleFlags.fromBind);
@@ -3167,18 +2891,9 @@
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       $unbind(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Call.$unbind', slice$4.call(arguments));
-          }
           if (!(this.$state & 2 /* isBound */)) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           // add isUnbinding flag
@@ -3191,9 +2906,6 @@
           this.targetObserver.setValue(null, flags);
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       observeProperty(obj, propertyName) {
           return;
@@ -3203,8 +2915,7 @@
       }
   }
 
-  const IExpressionParser = kernel.DI.createInterface()
-      .withDefault(x => x.singleton(ExpressionParser));
+  const IExpressionParser = kernel.DI.createInterface('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
   /** @internal */
   class ExpressionParser {
       constructor() {
@@ -3438,7 +3149,6 @@
       connectable()
   ], exports.InterpolationBinding);
 
-  const slice$5 = Array.prototype.slice;
   exports.LetBinding = class LetBinding {
       constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
           this.$nextBind = null;
@@ -3454,13 +3164,7 @@
           this.toViewModel = toViewModel;
       }
       handleChange(_newValue, _previousValue, flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('LetBinding.handleChange', slice$5.call(arguments));
-          }
           if (!(this.$state & 2 /* isBound */)) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           if (flags & exports.LifecycleFlags.updateTargetInstance) {
@@ -3470,22 +3174,13 @@
               if (newValue !== previousValue) {
                   target[targetProperty] = newValue;
               }
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           throw kernel.Reporter.error(15, flags);
       }
       $bind(flags, scope) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('LetBinding.$bind', slice$5.call(arguments));
-          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return;
               }
               this.$unbind(flags | exports.LifecycleFlags.fromBind);
@@ -3504,18 +3199,9 @@
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       $unbind(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('LetBinding.$unbind', slice$5.call(arguments));
-          }
           if (!(this.$state & 2 /* isBound */)) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           // add isUnbinding flag
@@ -3528,16 +3214,12 @@
           this.unobserve(true);
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
   exports.LetBinding = __decorate([
       connectable()
   ], exports.LetBinding);
 
-  const slice$6 = Array.prototype.slice;
   class Ref {
       constructor(sourceExpression, target, locator) {
           this.$nextBind = null;
@@ -3548,14 +3230,8 @@
           this.target = target;
       }
       $bind(flags, scope) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Ref.$bind', slice$6.call(arguments));
-          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return;
               }
               this.$unbind(flags | exports.LifecycleFlags.fromBind);
@@ -3571,18 +3247,9 @@
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       $unbind(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Ref.$unbind', slice$6.call(arguments));
-          }
           if (!(this.$state & 2 /* isBound */)) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           // add isUnbinding flag
@@ -3597,9 +3264,6 @@
           this.$scope = null;
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       observeProperty(obj, propertyName) {
           return;
@@ -3609,11 +3273,7 @@
       }
   }
 
-  const slice$7 = Array.prototype.slice;
   function setValue(newValue, flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.setValue`, slice$7.call(arguments));
-      }
       const currentValue = this.currentValue;
       newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
       if (currentValue !== newValue) {
@@ -3624,27 +3284,15 @@
           }
           else {
               this.currentFlags = flags;
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return this.lifecycle.enqueueFlush(this);
           }
-      }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
       }
       return Promise.resolve();
   }
   function flush(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.flush`, slice$7.call(arguments));
-      }
       if (this.isDOMObserver && (flags & exports.LifecycleFlags.doNotUpdateDOM)) {
           // re-queue the change so it will still propagate on flush when it's attached again
           this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return;
       }
       const currentValue = this.currentValue;
@@ -3653,9 +3301,6 @@
       if (this.oldValue !== currentValue) {
           this.setValueCore(currentValue, this.currentFlags | flags | exports.LifecycleFlags.updateTargetInstance);
           this.oldValue = this.currentValue;
-      }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
       }
   }
   function dispose$1() {
@@ -3681,19 +3326,12 @@
       };
   }
 
-  const slice$8 = Array.prototype.slice;
   function flush$1() {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.flush`, slice$8.call(arguments));
-      }
       this.callBatchedSubscribers(this.indexMap);
       if (!!this.lengthObserver) {
           this.lengthObserver.patch(exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.updateTargetInstance);
       }
       this.resetIndexMap();
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   function dispose$2() {
       this.collection.$observer = undefined;
@@ -3769,171 +3407,6 @@
       targetObserver()
   ], exports.CollectionLengthObserver);
 
-  const proto = Array.prototype;
-  const nativePush = proto.push; // TODO: probably want to make these internal again
-  const nativeUnshift = proto.unshift;
-  const nativePop = proto.pop;
-  const nativeShift = proto.shift;
-  const nativeSplice = proto.splice;
-  const nativeReverse = proto.reverse;
-  const nativeSort = proto.sort;
-  // https://tc39.github.io/ecma262/#sec-array.prototype.push
-  function observePush() {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativePush.apply(this, arguments);
-      }
-      const len = this.length;
-      const argCount = arguments.length;
-      if (argCount === 0) {
-          return len;
-      }
-      this.length = o.indexMap.length = len + argCount;
-      let i = len;
-      while (i < this.length) {
-          this[i] = arguments[i - len];
-          o.indexMap[i] = -2;
-          i++;
-      }
-      o.callSubscribers('push', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return this.length;
-  }
-  // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-  function observeUnshift() {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeUnshift.apply(this, arguments);
-      }
-      const argCount = arguments.length;
-      const inserts = new Array(argCount);
-      let i = 0;
-      while (i < argCount) {
-          inserts[i++] = -2;
-      }
-      nativeUnshift.apply(o.indexMap, inserts);
-      const len = nativeUnshift.apply(this, arguments);
-      o.callSubscribers('unshift', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return len;
-  }
-  // https://tc39.github.io/ecma262/#sec-array.prototype.pop
-  function observePop() {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativePop.call(this);
-      }
-      const indexMap = o.indexMap;
-      const element = nativePop.call(this);
-      // only mark indices as deleted if they actually existed in the original array
-      const index = indexMap.length - 1;
-      if (indexMap[index] > -1) {
-          nativePush.call(indexMap.deletedItems, element);
-      }
-      nativePop.call(indexMap);
-      o.callSubscribers('pop', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return element;
-  }
-  // https://tc39.github.io/ecma262/#sec-array.prototype.shift
-  function observeShift() {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeShift.call(this);
-      }
-      const indexMap = o.indexMap;
-      const element = nativeShift.call(this);
-      // only mark indices as deleted if they actually existed in the original array
-      if (indexMap[0] > -1) {
-          nativePush.call(indexMap.deletedItems, element);
-      }
-      nativeShift.call(indexMap);
-      o.callSubscribers('shift', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return element;
-  }
-  // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-  function observeSplice(start, deleteCount) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeSplice.apply(this, arguments);
-      }
-      const indexMap = o.indexMap;
-      if (deleteCount > 0) {
-          let i = isNaN(start) ? 0 : start;
-          const to = i + deleteCount;
-          while (i < to) {
-              if (indexMap[i] > -1) {
-                  nativePush.call(indexMap.deletedItems, this[i]);
-              }
-              i++;
-          }
-      }
-      const argCount = arguments.length;
-      if (argCount > 2) {
-          const itemCount = argCount - 2;
-          const inserts = new Array(itemCount);
-          let i = 0;
-          while (i < itemCount) {
-              inserts[i++] = -2;
-          }
-          nativeSplice.call(indexMap, start, deleteCount, ...inserts);
-      }
-      else if (argCount === 2) {
-          nativeSplice.call(indexMap, start, deleteCount);
-      }
-      const deleted = nativeSplice.apply(this, arguments);
-      o.callSubscribers('splice', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return deleted;
-  }
-  // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
-  function observeReverse() {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeReverse.call(this);
-      }
-      const len = this.length;
-      const middle = (len / 2) | 0;
-      let lower = 0;
-      // tslint:disable:no-statements-same-line
-      while (lower !== middle) {
-          const upper = len - lower - 1;
-          const lowerValue = this[lower];
-          const lowerIndex = o.indexMap[lower];
-          const upperValue = this[upper];
-          const upperIndex = o.indexMap[upper];
-          this[lower] = upperValue;
-          o.indexMap[lower] = upperIndex;
-          this[upper] = lowerValue;
-          o.indexMap[upper] = lowerIndex;
-          lower++;
-      }
-      // tslint:enable:no-statements-same-line
-      o.callSubscribers('reverse', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return this;
-  }
-  // https://tc39.github.io/ecma262/#sec-array.prototype.sort
-  // https://github.com/v8/v8/blob/master/src/js/array.js
-  function observeSort(compareFn) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeSort.call(this, compareFn);
-      }
-      const len = this.length;
-      if (len < 2) {
-          return this;
-      }
-      quickSort(this, o.indexMap, 0, len, preSortCompare);
-      let i = 0;
-      while (i < len) {
-          if (this[i] === undefined) {
-              break;
-          }
-          i++;
-      }
-      if (compareFn === undefined || typeof compareFn !== 'function' /*spec says throw a TypeError, should we do that too?*/) {
-          compareFn = sortCompare;
-      }
-      quickSort(this, o.indexMap, 0, i, compareFn);
-      o.callSubscribers('sort', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return this;
-  }
   // https://tc39.github.io/ecma262/#sec-sortcompare
   function sortCompare(x, y) {
       if (x === y) {
@@ -4092,41 +3565,198 @@
           }
       }
   }
-  for (const observe of [observePush, observeUnshift, observePop, observeShift, observeSplice, observeReverse, observeSort]) {
-      Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+  const proto = Array.prototype;
+  const $push = proto.push;
+  const $unshift = proto.unshift;
+  const $pop = proto.pop;
+  const $shift = proto.shift;
+  const $splice = proto.splice;
+  const $reverse = proto.reverse;
+  const $sort = proto.sort;
+  const native = { push: $push, unshift: $unshift, pop: $pop, shift: $shift, splice: $splice, reverse: $reverse, sort: $sort };
+  const methods = ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'];
+  const observe = {
+      // https://tc39.github.io/ecma262/#sec-array.prototype.push
+      push: function () {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $push.apply(this, arguments);
+          }
+          const len = this.length;
+          const argCount = arguments.length;
+          if (argCount === 0) {
+              return len;
+          }
+          this.length = o.indexMap.length = len + argCount;
+          let i = len;
+          while (i < this.length) {
+              this[i] = arguments[i - len];
+              o.indexMap[i] = -2;
+              i++;
+          }
+          o.callSubscribers('push', arguments, exports.LifecycleFlags.isCollectionMutation);
+          return this.length;
+      },
+      // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
+      unshift: function () {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $unshift.apply(this, arguments);
+          }
+          const argCount = arguments.length;
+          const inserts = new Array(argCount);
+          let i = 0;
+          while (i < argCount) {
+              inserts[i++] = -2;
+          }
+          $unshift.apply(o.indexMap, inserts);
+          const len = $unshift.apply(this, arguments);
+          o.callSubscribers('unshift', arguments, exports.LifecycleFlags.isCollectionMutation);
+          return len;
+      },
+      // https://tc39.github.io/ecma262/#sec-array.prototype.pop
+      pop: function () {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $pop.call(this);
+          }
+          const indexMap = o.indexMap;
+          const element = $pop.call(this);
+          // only mark indices as deleted if they actually existed in the original array
+          const index = indexMap.length - 1;
+          if (indexMap[index] > -1) {
+              $pop.call(indexMap.deletedItems, element);
+          }
+          $pop.call(indexMap);
+          o.callSubscribers('pop', arguments, exports.LifecycleFlags.isCollectionMutation);
+          return element;
+      },
+      // https://tc39.github.io/ecma262/#sec-array.prototype.shift
+      shift: function () {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $shift.call(this);
+          }
+          const indexMap = o.indexMap;
+          const element = $shift.call(this);
+          // only mark indices as deleted if they actually existed in the original array
+          if (indexMap[0] > -1) {
+              $shift.call(indexMap.deletedItems, element);
+          }
+          $shift.call(indexMap);
+          o.callSubscribers('shift', arguments, exports.LifecycleFlags.isCollectionMutation);
+          return element;
+      },
+      // https://tc39.github.io/ecma262/#sec-array.prototype.splice
+      splice: function (start, deleteCount) {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $splice.apply(this, arguments);
+          }
+          const indexMap = o.indexMap;
+          if (deleteCount > 0) {
+              let i = isNaN(start) ? 0 : start;
+              const to = i + deleteCount;
+              while (i < to) {
+                  if (indexMap[i] > -1) {
+                      $splice.call(indexMap.deletedItems, this[i]);
+                  }
+                  i++;
+              }
+          }
+          const argCount = arguments.length;
+          if (argCount > 2) {
+              const itemCount = argCount - 2;
+              const inserts = new Array(itemCount);
+              let i = 0;
+              while (i < itemCount) {
+                  inserts[i++] = -2;
+              }
+              $splice.call(indexMap, start, deleteCount, ...inserts);
+          }
+          else if (argCount === 2) {
+              $splice.call(indexMap, start, deleteCount);
+          }
+          const deleted = $splice.apply(this, arguments);
+          o.callSubscribers('splice', arguments, exports.LifecycleFlags.isCollectionMutation);
+          return deleted;
+      },
+      // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
+      reverse: function () {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $reverse.call(this);
+          }
+          const len = this.length;
+          const middle = (len / 2) | 0;
+          let lower = 0;
+          // tslint:disable:no-statements-same-line
+          while (lower !== middle) {
+              const upper = len - lower - 1;
+              const lowerValue = this[lower];
+              const lowerIndex = o.indexMap[lower];
+              const upperValue = this[upper];
+              const upperIndex = o.indexMap[upper];
+              this[lower] = upperValue;
+              o.indexMap[lower] = upperIndex;
+              this[upper] = lowerValue;
+              o.indexMap[upper] = lowerIndex;
+              lower++;
+          }
+          // tslint:enable:no-statements-same-line
+          o.callSubscribers('reverse', arguments, exports.LifecycleFlags.isCollectionMutation);
+          return this;
+      },
+      // https://tc39.github.io/ecma262/#sec-array.prototype.sort
+      // https://github.com/v8/v8/blob/master/src/js/array.js
+      sort: function (compareFn) {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $sort.call(this, compareFn);
+          }
+          const len = this.length;
+          if (len < 2) {
+              return this;
+          }
+          quickSort(this, o.indexMap, 0, len, preSortCompare);
+          let i = 0;
+          while (i < len) {
+              if (this[i] === undefined) {
+                  break;
+              }
+              i++;
+          }
+          if (compareFn === undefined || typeof compareFn !== 'function' /*spec says throw a TypeError, should we do that too?*/) {
+              compareFn = sortCompare;
+          }
+          quickSort(this, o.indexMap, 0, i, compareFn);
+          o.callSubscribers('sort', arguments, exports.LifecycleFlags.isCollectionMutation);
+          return this;
+      }
+  };
+  const descriptorProps = {
+      writable: true,
+      enumerable: false,
+      configurable: true
+  };
+  const def = Object.defineProperty;
+  for (const method of methods) {
+      def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
   }
   function enableArrayObservation() {
-      if (proto.push['observing'] !== true)
-          proto.push = observePush;
-      if (proto.unshift['observing'] !== true)
-          proto.unshift = observeUnshift;
-      if (proto.pop['observing'] !== true)
-          proto.pop = observePop;
-      if (proto.shift['observing'] !== true)
-          proto.shift = observeShift;
-      if (proto.splice['observing'] !== true)
-          proto.splice = observeSplice;
-      if (proto.reverse['observing'] !== true)
-          proto.reverse = observeReverse;
-      if (proto.sort['observing'] !== true)
-          proto.sort = observeSort;
+      for (const method of methods) {
+          if (proto[method].observing !== true) {
+              def(proto, method, Object.assign({}, descriptorProps, { value: observe[method] }));
+          }
+      }
   }
   enableArrayObservation();
   function disableArrayObservation() {
-      if (proto.push['observing'] === true)
-          proto.push = nativePush;
-      if (proto.unshift['observing'] === true)
-          proto.unshift = nativeUnshift;
-      if (proto.pop['observing'] === true)
-          proto.pop = nativePop;
-      if (proto.shift['observing'] === true)
-          proto.shift = nativeShift;
-      if (proto.splice['observing'] === true)
-          proto.splice = nativeSplice;
-      if (proto.reverse['observing'] === true)
-          proto.reverse = nativeReverse;
-      if (proto.sort['observing'] === true)
-          proto.sort = nativeSort;
+      for (const method of methods) {
+          if (proto[method].observing === true) {
+              def(proto, method, Object.assign({}, descriptorProps, { value: native[method] }));
+          }
+      }
   }
   exports.ArrayObserver = class ArrayObserver {
       constructor(lifecycle, array) {
@@ -4144,103 +3774,111 @@
   }
 
   const proto$1 = Map.prototype;
-  const nativeSet = proto$1.set; // TODO: probably want to make these internal again
-  const nativeClear = proto$1.clear;
-  const nativeDelete = proto$1.delete;
+  const $set = proto$1.set;
+  const $clear = proto$1.clear;
+  const $delete = proto$1.delete;
+  const native$1 = { set: $set, clear: $clear, delete: $delete };
+  const methods$1 = ['set', 'clear', 'delete'];
   // note: we can't really do much with Map due to the internal data structure not being accessible so we're just using the native calls
   // fortunately, map/delete/clear are easy to reconstruct for the indexMap
-  // https://tc39.github.io/ecma262/#sec-map.prototype.map
-  function observeSet(key, value) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeSet.call(this, key, value);
-      }
-      const oldSize = this.size;
-      nativeSet.call(this, key, value);
-      const newSize = this.size;
-      if (newSize === oldSize) {
-          let i = 0;
-          for (const entry of this.entries()) {
-              if (entry[0] === key) {
-                  if (entry[1] !== value) {
-                      o.indexMap[i] = -2;
+  const observe$1 = {
+      // https://tc39.github.io/ecma262/#sec-map.prototype.map
+      set: function (key, value) {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $set.call(this, key, value);
+          }
+          const oldSize = this.size;
+          $set.call(this, key, value);
+          const newSize = this.size;
+          if (newSize === oldSize) {
+              let i = 0;
+              for (const entry of this.entries()) {
+                  if (entry[0] === key) {
+                      if (entry[1] !== value) {
+                          o.indexMap[i] = -2;
+                      }
+                      return this;
                   }
-                  return this;
+                  i++;
               }
-              i++;
+              return this;
           }
+          o.indexMap[oldSize] = -2;
+          o.callSubscribers('set', arguments, exports.LifecycleFlags.isCollectionMutation);
           return this;
-      }
-      o.indexMap[oldSize] = -2;
-      o.callSubscribers('set', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return this;
-  }
-  // https://tc39.github.io/ecma262/#sec-map.prototype.clear
-  function observeClear() {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeClear.call(this);
-      }
-      const size = this.size;
-      if (size > 0) {
-          const indexMap = o.indexMap;
+      },
+      // https://tc39.github.io/ecma262/#sec-map.prototype.clear
+      clear: function () {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $clear.call(this);
+          }
+          const size = this.size;
+          if (size > 0) {
+              const indexMap = o.indexMap;
+              let i = 0;
+              for (const entry of this.keys()) {
+                  if (indexMap[i] > -1) {
+                      indexMap.deletedItems.push(entry);
+                  }
+                  i++;
+              }
+              $clear.call(this);
+              indexMap.length = 0;
+              o.callSubscribers('clear', arguments, exports.LifecycleFlags.isCollectionMutation);
+          }
+          return undefined;
+      },
+      // https://tc39.github.io/ecma262/#sec-map.prototype.delete
+      delete: function (value) {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $delete.call(this, value);
+          }
+          const size = this.size;
+          if (size === 0) {
+              return false;
+          }
           let i = 0;
+          const indexMap = o.indexMap;
           for (const entry of this.keys()) {
-              if (indexMap[i] > -1) {
-                  nativePush.call(indexMap.deletedItems, entry);
+              if (entry === value) {
+                  if (indexMap[i] > -1) {
+                      indexMap.deletedItems.push(entry);
+                  }
+                  indexMap.splice(i, 1);
+                  return $delete.call(this, value);
               }
               i++;
           }
-          nativeClear.call(this);
-          indexMap.length = 0;
-          o.callSubscribers('clear', arguments, exports.LifecycleFlags.isCollectionMutation);
-      }
-      return undefined;
-  }
-  // https://tc39.github.io/ecma262/#sec-map.prototype.delete
-  function observeDelete(value) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeDelete.call(this, value);
-      }
-      const size = this.size;
-      if (size === 0) {
+          o.callSubscribers('delete', arguments, exports.LifecycleFlags.isCollectionMutation);
           return false;
       }
-      let i = 0;
-      const indexMap = o.indexMap;
-      for (const entry of this.keys()) {
-          if (entry === value) {
-              if (indexMap[i] > -1) {
-                  nativePush.call(indexMap.deletedItems, entry);
-              }
-              nativeSplice.call(indexMap, i, 1);
-              return nativeDelete.call(this, value);
-          }
-          i++;
-      }
-      o.callSubscribers('delete', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return false;
-  }
-  for (const observe of [observeSet, observeClear, observeDelete]) {
-      Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+  };
+  const descriptorProps$1 = {
+      writable: true,
+      enumerable: false,
+      configurable: true
+  };
+  const def$1 = Object.defineProperty;
+  for (const method of methods$1) {
+      def$1(observe$1[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
   }
   function enableMapObservation() {
-      if (proto$1.set['observing'] !== true)
-          proto$1.set = observeSet;
-      if (proto$1.clear['observing'] !== true)
-          proto$1.clear = observeClear;
-      if (proto$1.delete['observing'] !== true)
-          proto$1.delete = observeDelete;
+      for (const method of methods$1) {
+          if (proto$1[method].observing !== true) {
+              def$1(proto$1, method, Object.assign({}, descriptorProps$1, { value: observe$1[method] }));
+          }
+      }
   }
   enableMapObservation();
   function disableMapObservation() {
-      if (proto$1.set['observing'] === true)
-          proto$1.set = nativeSet;
-      if (proto$1.clear['observing'] === true)
-          proto$1.clear = nativeClear;
-      if (proto$1.delete['observing'] === true)
-          proto$1.delete = nativeDelete;
+      for (const method of methods$1) {
+          if (proto$1[method].observing === true) {
+              def$1(proto$1, method, Object.assign({}, descriptorProps$1, { value: native$1[method] }));
+          }
+      }
   }
   exports.MapObserver = class MapObserver {
       constructor(lifecycle, map) {
@@ -4258,93 +3896,101 @@
   }
 
   const proto$2 = Set.prototype;
-  const nativeAdd = proto$2.add; // TODO: probably want to make these internal again
-  const nativeClear$1 = proto$2.clear;
-  const nativeDelete$1 = proto$2.delete;
+  const $add = proto$2.add;
+  const $clear$1 = proto$2.clear;
+  const $delete$1 = proto$2.delete;
+  const native$2 = { add: $add, clear: $clear$1, delete: $delete$1 };
+  const methods$2 = ['add', 'clear', 'delete'];
   // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
   // fortunately, add/delete/clear are easy to reconstruct for the indexMap
-  // https://tc39.github.io/ecma262/#sec-set.prototype.add
-  function observeAdd(value) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeAdd.call(this, value);
-      }
-      const oldSize = this.size;
-      nativeAdd.call(this, value);
-      const newSize = this.size;
-      if (newSize === oldSize) {
+  const observe$2 = {
+      // https://tc39.github.io/ecma262/#sec-set.prototype.add
+      add: function (value) {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $add.call(this, value);
+          }
+          const oldSize = this.size;
+          $add.call(this, value);
+          const newSize = this.size;
+          if (newSize === oldSize) {
+              return this;
+          }
+          o.indexMap[oldSize] = -2;
+          o.callSubscribers('add', arguments, exports.LifecycleFlags.isCollectionMutation);
           return this;
-      }
-      o.indexMap[oldSize] = -2;
-      o.callSubscribers('add', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return this;
-  }
-  // https://tc39.github.io/ecma262/#sec-set.prototype.clear
-  function observeClear$1() {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeClear$1.call(this);
-      }
-      const size = this.size;
-      if (size > 0) {
-          const indexMap = o.indexMap;
+      },
+      // https://tc39.github.io/ecma262/#sec-set.prototype.clear
+      clear: function () {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $clear$1.call(this);
+          }
+          const size = this.size;
+          if (size > 0) {
+              const indexMap = o.indexMap;
+              let i = 0;
+              for (const entry of this.keys()) {
+                  if (indexMap[i] > -1) {
+                      indexMap.deletedItems.push(entry);
+                  }
+                  i++;
+              }
+              $clear$1.call(this);
+              indexMap.length = 0;
+              o.callSubscribers('clear', arguments, exports.LifecycleFlags.isCollectionMutation);
+          }
+          return undefined;
+      },
+      // https://tc39.github.io/ecma262/#sec-set.prototype.delete
+      delete: function (value) {
+          const o = this.$observer;
+          if (o === undefined) {
+              return $delete$1.call(this, value);
+          }
+          const size = this.size;
+          if (size === 0) {
+              return false;
+          }
           let i = 0;
+          const indexMap = o.indexMap;
           for (const entry of this.keys()) {
-              if (indexMap[i] > -1) {
-                  nativePush.call(indexMap.deletedItems, entry);
+              if (entry === value) {
+                  if (indexMap[i] > -1) {
+                      indexMap.deletedItems.push(entry);
+                  }
+                  indexMap.splice(i, 1);
+                  return $delete$1.call(this, value);
               }
               i++;
           }
-          nativeClear$1.call(this);
-          indexMap.length = 0;
-          o.callSubscribers('clear', arguments, exports.LifecycleFlags.isCollectionMutation);
-      }
-      return undefined;
-  }
-  // https://tc39.github.io/ecma262/#sec-set.prototype.delete
-  function observeDelete$1(value) {
-      const o = this.$observer;
-      if (o === undefined) {
-          return nativeDelete$1.call(this, value);
-      }
-      const size = this.size;
-      if (size === 0) {
+          o.callSubscribers('delete', arguments, exports.LifecycleFlags.isCollectionMutation);
           return false;
       }
-      let i = 0;
-      const indexMap = o.indexMap;
-      for (const entry of this.keys()) {
-          if (entry === value) {
-              if (indexMap[i] > -1) {
-                  nativePush.call(indexMap.deletedItems, entry);
-              }
-              nativeSplice.call(indexMap, i, 1);
-              return nativeDelete$1.call(this, value);
-          }
-          i++;
-      }
-      o.callSubscribers('delete', arguments, exports.LifecycleFlags.isCollectionMutation);
-      return false;
-  }
-  for (const observe of [observeAdd, observeClear$1, observeDelete$1]) {
-      Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+  };
+  const descriptorProps$2 = {
+      writable: true,
+      enumerable: false,
+      configurable: true
+  };
+  const def$2 = Object.defineProperty;
+  for (const method of methods$2) {
+      def$2(observe$2[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
   }
   function enableSetObservation() {
-      if (proto$2.add['observing'] !== true)
-          proto$2.add = observeAdd;
-      if (proto$2.clear['observing'] !== true)
-          proto$2.clear = observeClear$1;
-      if (proto$2.delete['observing'] !== true)
-          proto$2.delete = observeDelete$1;
+      for (const method of methods$2) {
+          if (proto$2[method].observing !== true) {
+              def$2(proto$2, method, Object.assign({}, descriptorProps$2, { value: observe$2[method] }));
+          }
+      }
   }
   enableSetObservation();
   function disableSetObservation() {
-      if (proto$2.add['observing'] === true)
-          proto$2.add = nativeAdd;
-      if (proto$2.clear['observing'] === true)
-          proto$2.clear = nativeClear$1;
-      if (proto$2.delete['observing'] === true)
-          proto$2.delete = nativeDelete$1;
+      for (const method of methods$2) {
+          if (proto$2[method].observing === true) {
+              def$2(proto$2, method, Object.assign({}, descriptorProps$2, { value: native$2[method] }));
+          }
+      }
   }
   exports.SetObserver = class SetObserver {
       constructor(lifecycle, observedSet) {
@@ -4582,8 +4228,7 @@
       return new Proxy(value, createGetterTraps(observerLocator, controller));
   }
 
-  const IDirtyChecker = kernel.DI.createInterface()
-      .withDefault(x => x.singleton(DirtyChecker));
+  const IDirtyChecker = kernel.DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
   /** @internal */
   class DirtyChecker {
       constructor() {
@@ -4591,7 +4236,7 @@
           this.tracked = [];
       }
       createProperty(obj, propertyName) {
-          return new exports.DirtyCheckProperty(this, obj, propertyName);
+          return new DirtyCheckProperty(this, obj, propertyName);
       }
       addProperty(property) {
           const tracked = this.tracked;
@@ -4622,7 +4267,7 @@
       }
   }
   /** @internal */
-  exports.DirtyCheckProperty = class DirtyCheckProperty {
+  let DirtyCheckProperty = class DirtyCheckProperty {
       constructor(dirtyChecker, obj, propertyKey) {
           this.obj = obj;
           this.propertyKey = propertyKey;
@@ -4656,9 +4301,9 @@
           }
       }
   };
-  exports.DirtyCheckProperty = __decorate([
+  DirtyCheckProperty = __decorate([
       propertyObserver()
-  ], exports.DirtyCheckProperty);
+  ], DirtyCheckProperty);
 
   const noop = kernel.PLATFORM.noop;
   // note: string.length is the only property of any primitive that is not a function,
@@ -4703,9 +4348,9 @@
   }
 
   const toStringTag$1 = Object.prototype.toString;
-  const IObserverLocator = kernel.DI.createInterface().noDefault();
-  const ITargetObserverLocator = kernel.DI.createInterface().noDefault();
-  const ITargetAccessorLocator = kernel.DI.createInterface().noDefault();
+  const IObserverLocator = kernel.DI.createInterface('IObserverLocator').noDefault();
+  const ITargetObserverLocator = kernel.DI.createInterface('ITargetObserverLocator').noDefault();
+  const ITargetAccessorLocator = kernel.DI.createInterface('ITargetAccessorLocator').noDefault();
   function getPropertyDescriptor(subject, name) {
       let pd = Object.getOwnPropertyDescriptor(subject, name);
       let proto = Object.getPrototypeOf(subject);
@@ -4715,7 +4360,6 @@
       }
       return pd;
   }
-  exports.ObserverLocator = 
   /** @internal */
   class ObserverLocator {
       constructor(lifecycle, dirtyChecker, targetObserverLocator, targetAccessorLocator) {
@@ -4840,11 +4484,8 @@
           }
           return new exports.SetterObserver(obj, propertyName);
       }
-  };
-  exports.ObserverLocator = __decorate([
-      kernel.inject(ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator)
-      /** @internal */
-  ], exports.ObserverLocator);
+  }
+  ObserverLocator.inject = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
   function getCollectionObserver(lifecycle, collection) {
       switch (toStringTag$1.call(collection)) {
           case '[object Array]':
@@ -4905,38 +4546,30 @@
           binding.originalMode = null;
       }
   }
-  exports.OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBehavior {
+  class OneTimeBindingBehavior extends BindingModeBehavior {
       constructor() {
           super(oneTime$2);
       }
-  };
-  exports.OneTimeBindingBehavior = __decorate([
-      bindingBehavior('oneTime')
-  ], exports.OneTimeBindingBehavior);
-  exports.ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
+  }
+  BindingBehaviorResource.define('oneTime', OneTimeBindingBehavior);
+  class ToViewBindingBehavior extends BindingModeBehavior {
       constructor() {
           super(toView$2);
       }
-  };
-  exports.ToViewBindingBehavior = __decorate([
-      bindingBehavior('toView')
-  ], exports.ToViewBindingBehavior);
-  exports.FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
+  }
+  BindingBehaviorResource.define('toView', ToViewBindingBehavior);
+  class FromViewBindingBehavior extends BindingModeBehavior {
       constructor() {
           super(fromView$1);
       }
-  };
-  exports.FromViewBindingBehavior = __decorate([
-      bindingBehavior('fromView')
-  ], exports.FromViewBindingBehavior);
-  exports.TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
+  }
+  BindingBehaviorResource.define('fromView', FromViewBindingBehavior);
+  class TwoWayBindingBehavior extends BindingModeBehavior {
       constructor() {
           super(twoWay);
       }
-  };
-  exports.TwoWayBindingBehavior = __decorate([
-      bindingBehavior('twoWay')
-  ], exports.TwoWayBindingBehavior);
+  }
+  BindingBehaviorResource.define('twoWay', TwoWayBindingBehavior);
 
   const unset = {};
   /** @internal */
@@ -4965,7 +4598,7 @@
       state.timeoutId = timeoutId;
   }
   const fromView$2 = exports.BindingMode.fromView;
-  exports.DebounceBindingBehavior = class DebounceBindingBehavior {
+  class DebounceBindingBehavior {
       bind(flags, scope, binding, delay = 200) {
           let methodToDebounce;
           let callContextToDebounce;
@@ -5003,12 +4636,10 @@
           kernel.PLATFORM.global.clearTimeout(binding.debounceState.timeoutId);
           binding.debounceState = null;
       }
-  };
-  exports.DebounceBindingBehavior = __decorate([
-      bindingBehavior('debounce')
-  ], exports.DebounceBindingBehavior);
+  }
+  BindingBehaviorResource.define('debounce', DebounceBindingBehavior);
 
-  exports.SignalBindingBehavior = class SignalBindingBehavior {
+  class SignalBindingBehavior {
       constructor(signaler) {
           this.signaler = signaler;
       }
@@ -5048,11 +4679,9 @@
               this.signaler.removeSignalListener(name, binding);
           }
       }
-  };
-  exports.SignalBindingBehavior = __decorate([
-      bindingBehavior('signal'),
-      kernel.inject(ISignaler)
-  ], exports.SignalBindingBehavior);
+  }
+  SignalBindingBehavior.inject = [ISignaler];
+  BindingBehaviorResource.define('signal', SignalBindingBehavior);
 
   /** @internal */
   function throttle(newValue) {
@@ -5075,7 +4704,7 @@
           state.timeoutId = timeoutId;
       }
   }
-  exports.ThrottleBindingBehavior = class ThrottleBindingBehavior {
+  class ThrottleBindingBehavior {
       bind(flags, scope, binding, delay = 200) {
           let methodToThrottle;
           if (binding instanceof exports.Binding) {
@@ -5111,10 +4740,8 @@
           kernel.PLATFORM.global.clearTimeout(binding.throttleState.timeoutId);
           binding.throttleState = null;
       }
-  };
-  exports.ThrottleBindingBehavior = __decorate([
-      bindingBehavior('throttle')
-  ], exports.ThrottleBindingBehavior);
+  }
+  BindingBehaviorResource.define('throttle', ThrottleBindingBehavior);
 
   /** @internal */
   const customElementName = 'custom-element';
@@ -5145,7 +4772,7 @@
       TargetedInstructionType["refBinding"] = "rj";
       TargetedInstructionType["iteratorBinding"] = "rk";
   })(exports.TargetedInstructionType || (exports.TargetedInstructionType = {}));
-  const ITargetedInstruction = kernel.DI.createInterface();
+  const ITargetedInstruction = kernel.DI.createInterface('createInterface').noDefault();
   function isTargetedInstruction(value) {
       const type = value.type;
       return typeof type === 'string' && type.length === 2;
@@ -5262,17 +4889,10 @@
       return def;
   }
 
-  const slice$9 = Array.prototype.slice;
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $attachAttribute(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$attachAttribute`, slice$9.call(arguments));
-      }
       if (this.$state & 8 /* isAttached */) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return;
       }
       const lifecycle = this.$lifecycle;
@@ -5291,20 +4911,11 @@
           lifecycle.enqueueAttached(this);
       }
       lifecycle.endAttach(flags);
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $attachElement(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$attachElement`, slice$9.call(arguments));
-      }
       if (this.$state & 8 /* isAttached */) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return;
       }
       const lifecycle = this.$lifecycle;
@@ -5329,19 +4940,10 @@
           lifecycle.enqueueAttached(this);
       }
       lifecycle.endAttach(flags);
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $attachView(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$attachView`, slice$9.call(arguments));
-      }
       if (this.$state & 8 /* isAttached */) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return;
       }
       // add isAttaching flag
@@ -5356,16 +4958,10 @@
       // add isAttached flag, remove isAttaching flag
       this.$state |= 8 /* isAttached */;
       this.$state &= ~4 /* isAttaching */;
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $detachAttribute(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$detachAttribute`, slice$9.call(arguments));
-      }
       if (this.$state & 8 /* isAttached */) {
           const lifecycle = this.$lifecycle;
           lifecycle.beginDetach();
@@ -5383,16 +4979,10 @@
           }
           lifecycle.endDetach(flags);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $detachElement(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$detachElement`, slice$9.call(arguments));
-      }
       if (this.$state & 8 /* isAttached */) {
           const lifecycle = this.$lifecycle;
           lifecycle.beginDetach();
@@ -5422,15 +5012,9 @@
           }
           lifecycle.endDetach(flags);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $detachView(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$detachView`, slice$9.call(arguments));
-      }
       if (this.$state & 8 /* isAttached */) {
           // add isDetaching flag
           this.$state |= 32 /* isDetaching */;
@@ -5450,28 +5034,16 @@
           // remove isAttached and isDetaching flags
           this.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $cacheAttribute(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$cacheAttribute`, slice$9.call(arguments));
-      }
       flags |= exports.LifecycleFlags.fromCache;
       if (this.$hooks & 2048 /* hasCaching */) {
           this.caching(flags);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $cacheElement(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$cacheElement`, slice$9.call(arguments));
-      }
       flags |= exports.LifecycleFlags.fromCache;
       if (this.$hooks & 2048 /* hasCaching */) {
           this.caching(flags);
@@ -5481,15 +5053,9 @@
           current.$cache(flags);
           current = current.$prevAttach;
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $cacheView(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$cacheView`, slice$9.call(arguments));
-      }
       flags |= exports.LifecycleFlags.fromCache;
       let current = this.$attachableTail;
       while (current !== null) {
@@ -5499,48 +5065,27 @@
   }
   /** @internal */
   function $mountElement(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$mountElement`, slice$9.call(arguments));
-      }
       if (!(this.$state & 16 /* isMounted */)) {
           this.$state |= 16 /* isMounted */;
           this.$projector.project(this.$nodes);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $unmountElement(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$unmountElement`, slice$9.call(arguments));
-      }
       if (this.$state & 16 /* isMounted */) {
           this.$state &= ~16 /* isMounted */;
           this.$projector.take(this.$nodes);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $mountView(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$mountView`, slice$9.call(arguments));
-      }
       if (!(this.$state & 16 /* isMounted */)) {
           this.$state |= 16 /* isMounted */;
           this.$nodes.insertBefore(this.location);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $unmountView(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$unmountView`, slice$9.call(arguments));
-      }
       if (this.$state & 16 /* isMounted */) {
           this.$state &= ~16 /* isMounted */;
           this.$nodes.remove();
@@ -5548,35 +5093,19 @@
               this.isFree = false;
               if (this.cache.tryReturnToCache(this)) {
                   this.$state |= 128 /* isCached */;
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return true;
               }
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return false;
-      }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
       }
       return false;
   }
 
-  const slice$a = Array.prototype.slice;
   /** @internal */
   function $bindAttribute(flags, scope) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$bindAttribute`, slice$a.call(arguments));
-      }
       flags |= exports.LifecycleFlags.fromBind;
       if (this.$state & 2 /* isBound */) {
           if (this.$scope === scope) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           this.$unbind(flags);
@@ -5597,19 +5126,10 @@
       this.$state |= 2 /* isBound */;
       this.$state &= ~1 /* isBinding */;
       lifecycle.endBind(flags);
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $bindElement(flags, parentScope) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$bindElement`, slice$a.call(arguments));
-      }
       if (this.$state & 2 /* isBound */) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return;
       }
       const scope = this.$scope;
@@ -5635,21 +5155,12 @@
       this.$state |= 2 /* isBound */;
       this.$state &= ~1 /* isBinding */;
       lifecycle.endBind(flags);
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $bindView(flags, scope) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$bindView`, slice$a.call(arguments));
-      }
       flags |= exports.LifecycleFlags.fromBind;
       if (this.$state & 2 /* isBound */) {
           if (this.$scope === scope) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           this.$unbind(flags);
@@ -5665,15 +5176,9 @@
       // add isBound flag and remove isBinding flag
       this.$state |= 2 /* isBound */;
       this.$state &= ~1 /* isBinding */;
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $unbindAttribute(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$unbindAttribute`, slice$a.call(arguments));
-      }
       if (this.$state & 2 /* isBound */) {
           const lifecycle = this.$lifecycle;
           lifecycle.beginUnbind();
@@ -5691,15 +5196,9 @@
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
           lifecycle.endUnbind(flags);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $unbindElement(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$unbindElement`, slice$a.call(arguments));
-      }
       if (this.$state & 2 /* isBound */) {
           const lifecycle = this.$lifecycle;
           lifecycle.beginUnbind();
@@ -5723,15 +5222,9 @@
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
           lifecycle.endUnbind(flags);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
   function $unbindView(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$unbindView`, slice$a.call(arguments));
-      }
       if (this.$state & 2 /* isBound */) {
           // add isUnbinding flag
           this.$state |= 64 /* isUnbinding */;
@@ -5745,31 +5238,18 @@
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
           this.$scope = null;
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
 
-  const slice$b = Array.prototype.slice;
   /** @internal */
   function $hydrateAttribute(renderingEngine) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice$b.call(arguments));
-      }
       const Type = this.constructor;
       renderingEngine.applyRuntimeBehavior(Type, this);
       if (this.$hooks & 2 /* hasCreated */) {
           this.created();
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   /** @internal */
-  function $hydrateElement(dom, projectorLocator, renderingEngine, host, options = kernel.PLATFORM.emptyObject) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice$b.call(arguments));
-      }
+  function $hydrateElement(dom, projectorLocator, renderingEngine, host, parentContext, options = kernel.PLATFORM.emptyObject) {
       const Type = this.constructor;
       const description = Type.description;
       this.$scope = Scope.create(this, null);
@@ -5777,21 +5257,18 @@
       this.$projector = projectorLocator.getElementProjector(dom, this, host, description);
       renderingEngine.applyRuntimeBehavior(Type, this);
       if (this.$hooks & 1024 /* hasRender */) {
-          const result = this.render(host, options.parts);
+          const result = this.render(host, options.parts, parentContext);
           if (result && 'getElementTemplate' in result) {
-              const template = result.getElementTemplate(renderingEngine, Type);
+              const template = result.getElementTemplate(renderingEngine, Type, parentContext);
               template.render(this, host, options.parts);
           }
       }
       else {
-          const template = renderingEngine.getElementTemplate(dom, description, Type);
+          const template = renderingEngine.getElementTemplate(dom, description, parentContext, Type);
           template.render(this, host, options.parts);
       }
       if (this.$hooks & 2 /* hasCreated */) {
           this.created();
-      }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
       }
   }
 
@@ -5898,9 +5375,9 @@
       };
   }
 
-  const INode = kernel.DI.createInterface().noDefault();
-  const IRenderLocation = kernel.DI.createInterface().noDefault();
-  const IDOM = kernel.DI.createInterface().noDefault();
+  const INode = kernel.DI.createInterface('INode').noDefault();
+  const IRenderLocation = kernel.DI.createInterface('IRenderLocation').noDefault();
+  const IDOM = kernel.DI.createInterface('IDOM').noDefault();
   // This is an implementation of INodeSequence that represents "no DOM" to render.
   // It's used in various places to avoid null and to encode
   // the explicit idea of "no view".
@@ -5966,7 +5443,7 @@
       return decorator;
   }
 
-  exports.If = class If {
+  class If {
       constructor(ifFactory, location, coordinator) {
           this.value = false;
           this.coordinator = coordinator;
@@ -6034,28 +5511,24 @@
           view.hold(this.location);
           return view;
       }
-  };
+  }
+  If.inject = [IViewFactory, IRenderLocation, CompositionCoordinator];
   __decorate([
       bindable
-  ], exports.If.prototype, "value", void 0);
-  exports.If = __decorate([
-      templateController('if'),
-      kernel.inject(IViewFactory, IRenderLocation, exports.CompositionCoordinator)
-  ], exports.If);
-  exports.Else = class Else {
+  ], If.prototype, "value", void 0);
+  CustomAttributeResource.define({ name: 'if', isTemplateController: true }, If);
+  class Else {
       constructor(factory) {
           this.factory = factory;
       }
       link(ifBehavior) {
           ifBehavior.elseFactory = this.factory;
       }
-  };
-  exports.Else = __decorate([
-      templateController('else'),
-      kernel.inject(IViewFactory)
-  ], exports.Else);
+  }
+  Else.inject = [IViewFactory];
+  CustomAttributeResource.define({ name: 'else', isTemplateController: true }, Else);
 
-  exports.Repeat = class Repeat {
+  class Repeat {
       constructor(location, renderable, factory) {
           this.factory = factory;
           this.hasPendingInstanceMutation = false;
@@ -6208,16 +5681,14 @@
               oldObserver.unsubscribeBatched(this);
           }
       }
-  };
+  }
+  Repeat.inject = [IRenderLocation, IRenderable, IViewFactory];
   __decorate([
       bindable
-  ], exports.Repeat.prototype, "items", void 0);
-  exports.Repeat = __decorate([
-      kernel.inject(IRenderLocation, IRenderable, IViewFactory),
-      templateController('repeat')
-  ], exports.Repeat);
+  ], Repeat.prototype, "items", void 0);
+  CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);
 
-  exports.Replaceable = class Replaceable {
+  class Replaceable {
       constructor(factory, location) {
           this.factory = factory;
           this.currentView = this.factory.create();
@@ -6235,13 +5706,11 @@
       unbinding(flags) {
           this.currentView.$unbind(flags);
       }
-  };
-  exports.Replaceable = __decorate([
-      templateController('replaceable'),
-      kernel.inject(IViewFactory, IRenderLocation)
-  ], exports.Replaceable);
+  }
+  Replaceable.inject = [IViewFactory, IRenderLocation];
+  CustomAttributeResource.define({ name: 'replaceable', isTemplateController: true }, Replaceable);
 
-  exports.With = class With {
+  class With {
       constructor(factory, location) {
           this.value = null;
           this.factory = factory;
@@ -6269,16 +5738,14 @@
           const scope = Scope.fromParent(this.$scope, this.value);
           this.currentView.$bind(flags, scope);
       }
-  };
+  }
+  With.inject = [IViewFactory, IRenderLocation];
   __decorate([
       bindable
-  ], exports.With.prototype, "value", void 0);
-  exports.With = __decorate([
-      templateController('with'),
-      kernel.inject(IViewFactory, IRenderLocation)
-  ], exports.With);
+  ], With.prototype, "value", void 0);
+  CustomAttributeResource.define({ name: 'with', isTemplateController: true }, With);
 
-  const IProjectorLocator = kernel.DI.createInterface().noDefault();
+  const IProjectorLocator = kernel.DI.createInterface('IProjectorLocator').noDefault();
   /** @internal */
   function registerElement(container) {
       const resourceKey = this.kind.keyFrom(this.description.name);
@@ -6387,8 +5854,7 @@
   }
 
   const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-  const ISanitizer = kernel.DI.createInterface()
-      .withDefault(x => x.singleton(class {
+  const ISanitizer = kernel.DI.createInterface('ISanitizer').withDefault(x => x.singleton(class {
       sanitize(input) {
           return input.replace(SCRIPT_REGEX, '');
       }
@@ -6396,7 +5862,7 @@
   /**
    * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
    */
-  exports.SanitizeValueConverter = class SanitizeValueConverter {
+  class SanitizeValueConverter {
       constructor(sanitizer) {
           this.sanitizer = sanitizer;
       }
@@ -6410,13 +5876,10 @@
           }
           return this.sanitizer.sanitize(untrustedMarkup);
       }
-  };
-  exports.SanitizeValueConverter = __decorate([
-      valueConverter('sanitize'),
-      kernel.inject(ISanitizer)
-  ], exports.SanitizeValueConverter);
+  }
+  SanitizeValueConverter.inject = [ISanitizer];
+  ValueConverterResource.define('sanitize', SanitizeValueConverter);
 
-  const slice$c = Array.prototype.slice;
   /** @internal */
   class View {
       constructor($lifecycle, cache) {
@@ -6445,14 +5908,8 @@
        * @param location The RenderLocation before which the view will be appended to the DOM.
        */
       hold(location) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('View.hold', slice$c.call(arguments));
-          }
           this.isFree = false;
           this.location = location;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       /**
        * Marks this `View` such that it can be returned to the cache when it is unmounted.
@@ -6465,31 +5922,16 @@
        * @returns Whether this `View` can/will be returned to cache
        */
       release(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('View.release', slice$c.call(arguments));
-          }
           this.isFree = true;
           if (this.$state & 8 /* isAttached */) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return this.cache.canReturnToCache(this);
-          }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
           }
           return !!this.$unmount(flags);
       }
       lockScope(scope) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('View.lockScope', slice$c.call(arguments));
-          }
           this.$scope = scope;
           this.$bind = lockedBind;
           this.$unbind = lockedUnbind;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   }
   /** @internal */
@@ -6551,13 +5993,7 @@
   }
   ViewFactory.maxCacheSize = 0xFFFF;
   function lockedBind(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`View.lockedBind`, slice$c.call(arguments));
-      }
       if (this.$state & 2 /* isBound */) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return;
       }
       flags |= exports.LifecycleFlags.fromBind;
@@ -6568,14 +6004,8 @@
           current = current.$nextBind;
       }
       this.$state |= 2 /* isBound */;
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   function lockedUnbind(flags) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter(`View.lockedUnbind`, slice$c.call(arguments));
-      }
       if (this.$state & 2 /* isBound */) {
           // add isUnbinding flag
           this.$state |= 64 /* isUnbinding */;
@@ -6588,9 +6018,6 @@
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   ((proto) => {
       proto.$bind = $bindView;
@@ -6602,13 +6029,13 @@
       proto.$unmount = $unmountView;
   })(View.prototype);
 
-  const ITemplateCompiler = kernel.DI.createInterface().noDefault();
+  const ITemplateCompiler = kernel.DI.createInterface('ITemplateCompiler').noDefault();
   (function (ViewCompileFlags) {
       ViewCompileFlags[ViewCompileFlags["none"] = 1] = "none";
       ViewCompileFlags[ViewCompileFlags["surrogate"] = 2] = "surrogate";
       ViewCompileFlags[ViewCompileFlags["shadowDOM"] = 4] = "shadowDOM";
   })(exports.ViewCompileFlags || (exports.ViewCompileFlags = {}));
-  const ITemplateFactory = kernel.DI.createInterface().noDefault();
+  const ITemplateFactory = kernel.DI.createInterface('ITemplateFactory').noDefault();
   // This is the main implementation of ITemplate.
   // It is used to create instances of IView based on a compiled TemplateDefinition.
   // TemplateDefinitions are hand-coded today, but will ultimately be the output of the
@@ -6616,11 +6043,11 @@
   // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
   // and create instances of it on demand.
   class CompiledTemplate {
-      constructor(dom, definition, factory, parentRenderContext) {
+      constructor(dom, definition, factory, renderContext) {
           this.dom = dom;
           this.definition = definition;
           this.factory = factory;
-          this.renderContext = createRenderContext(dom, parentRenderContext, definition.dependencies);
+          this.renderContext = renderContext;
       }
       render(renderable, host, parts) {
           const nodes = renderable.$nodes = this.factory.createNodeSequence();
@@ -6639,10 +6066,9 @@
       }
   };
   const defaultCompilerName = 'default';
-  const IInstructionRenderer = kernel.DI.createInterface().noDefault();
-  const IRenderer = kernel.DI.createInterface().noDefault();
-  const IRenderingEngine = kernel.DI.createInterface().withDefault(x => x.singleton(exports.RenderingEngine));
-  exports.RenderingEngine = 
+  const IInstructionRenderer = kernel.DI.createInterface('IInstructionRenderer').noDefault();
+  const IRenderer = kernel.DI.createInterface('IRenderer').noDefault();
+  const IRenderingEngine = kernel.DI.createInterface('IRenderingEngine').withDefault(x => x.singleton(RenderingEngine));
   /** @internal */
   class RenderingEngine {
       constructor(container, templateFactory, lifecycle, templateCompilers) {
@@ -6657,17 +6083,13 @@
               return acc;
           }, Object.create(null));
       }
-      getElementTemplate(dom, definition, componentType) {
+      getElementTemplate(dom, definition, parentContext, componentType) {
           if (!definition) {
               return null;
           }
           let found = this.templateLookup.get(definition);
           if (!found) {
-              found = this.templateFromSource(dom, definition);
-              //If the element has a view, support Recursive Components by adding self to own view template container.
-              if (found.renderContext !== null && componentType) {
-                  componentType.register(found.renderContext);
-              }
+              found = this.templateFromSource(dom, definition, parentContext, componentType);
               this.templateLookup.set(definition, found);
           }
           return found;
@@ -6679,7 +6101,7 @@
           let factory = this.viewFactoryLookup.get(definition);
           if (!factory) {
               const validSource = buildTemplateDefinition(null, definition);
-              const template = this.templateFromSource(dom, validSource, parentContext);
+              const template = this.templateFromSource(dom, validSource, parentContext, null);
               factory = new ViewFactory(validSource.name, template, this.lifecycle);
               factory.setCacheSize(validSource.cache, true);
               this.viewFactoryLookup.set(definition, factory);
@@ -6694,27 +6116,27 @@
           }
           found.applyTo(instance, this.lifecycle);
       }
-      templateFromSource(dom, definition, parentContext) {
-          parentContext = parentContext || this.container;
-          if (definition && definition.template) {
+      templateFromSource(dom, definition, parentContext, componentType) {
+          if (parentContext === null) {
+              parentContext = this.container;
+          }
+          if (definition.template !== null) {
+              const renderContext = createRenderContext(dom, parentContext, definition.dependencies, componentType);
               if (definition.build.required) {
                   const compilerName = definition.build.compiler || defaultCompilerName;
                   const compiler = this.compilers[compilerName];
-                  if (!compiler) {
+                  if (compiler === undefined) {
                       throw kernel.Reporter.error(20, compilerName);
                   }
-                  definition = compiler.compile(dom, definition, new kernel.RuntimeCompilationResources(parentContext), exports.ViewCompileFlags.surrogate);
+                  definition = compiler.compile(dom, definition, new kernel.RuntimeCompilationResources(renderContext), exports.ViewCompileFlags.surrogate);
               }
-              return this.templateFactory.create(parentContext, definition);
+              return this.templateFactory.create(renderContext, definition);
           }
           return noViewTemplate;
       }
-  };
-  exports.RenderingEngine = __decorate([
-      kernel.inject(kernel.IContainer, ITemplateFactory, ILifecycle, kernel.all(ITemplateCompiler))
-      /** @internal */
-  ], exports.RenderingEngine);
-  function createRenderContext(dom, parentRenderContext, dependencies) {
+  }
+  RenderingEngine.inject = [kernel.IContainer, ITemplateFactory, ILifecycle, kernel.all(ITemplateCompiler)];
+  function createRenderContext(dom, parentRenderContext, dependencies, componentType) {
       const context = parentRenderContext.createChild();
       const renderableProvider = new InstanceProvider();
       const elementProvider = new InstanceProvider();
@@ -6729,6 +6151,10 @@
       context.registerResolver(IRenderLocation, renderLocationProvider);
       if (dependencies) {
           context.register(...dependencies);
+      }
+      //If the element has a view, support Recursive Components by adding self to own view template container.
+      if (componentType) {
+          componentType.register(context);
       }
       context.render = function (renderable, targets, templateDefinition, host, parts) {
           renderer.render(dom, this, renderable, targets, templateDefinition, host, parts);
@@ -6800,7 +6226,7 @@
       }
   }
   /** @internal */
-  exports.ChildrenObserver = class ChildrenObserver {
+  let ChildrenObserver = class ChildrenObserver {
       constructor(lifecycle, customElement) {
           this.hasChanges = false;
           this.children = null;
@@ -6836,9 +6262,9 @@
           this.hasChanges = true;
       }
   };
-  exports.ChildrenObserver = __decorate([
+  ChildrenObserver = __decorate([
       subscriberCollection(exports.MutationKind.instance)
-  ], exports.ChildrenObserver);
+  ], ChildrenObserver);
   /** @internal */
   function findElements(nodes) {
       const components = [];
@@ -6870,7 +6296,7 @@
       }
       applyToElement(lifecycle, instance) {
           const observers = this.applyToCore(instance);
-          observers.$children = new exports.ChildrenObserver(lifecycle, instance);
+          observers.$children = new ChildrenObserver(lifecycle, instance);
           Reflect.defineProperty(instance, '$children', {
               enumerable: false,
               get: function () {
@@ -6938,7 +6364,7 @@
                   this.components.push(component);
                   const re = this.container.get(IRenderingEngine);
                   const pl = this.container.get(IProjectorLocator);
-                  component.$hydrate(dom, pl, re, host);
+                  component.$hydrate(dom, pl, re, host, this.container);
               }
               component.$bind(exports.LifecycleFlags.fromStartTask | exports.LifecycleFlags.fromBind, null);
               component.$attach(exports.LifecycleFlags.fromStartTask | exports.LifecycleFlags.fromAttach);
@@ -6973,9 +6399,8 @@
       }
   }
   kernel.PLATFORM.global.Aurelia = Aurelia;
-  const IDOMInitializer = kernel.DI.createInterface().noDefault();
+  const IDOMInitializer = kernel.DI.createInterface('IDOMInitializer').noDefault();
 
-  const slice$d = Array.prototype.slice;
   function instructionRenderer(instructionType) {
       return function decorator(target) {
           // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
@@ -6999,7 +6424,7 @@
       };
   }
   /* @internal */
-  exports.Renderer = class Renderer {
+  class Renderer {
       constructor(instructionRenderers) {
           const record = this.instructionRenderers = {};
           instructionRenderers.forEach(item => {
@@ -7007,9 +6432,6 @@
           });
       }
       render(dom, context, renderable, targets, definition, host, parts) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Renderer.render', slice$d.call(arguments));
-          }
           const targetInstructions = definition.instructions;
           const instructionRenderers = this.instructionRenderers;
           if (targets.length !== targetInstructions.length) {
@@ -7035,14 +6457,9 @@
                   instructionRenderers[current.type].render(dom, context, renderable, host, current, parts);
               }
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
-  };
-  exports.Renderer = __decorate([
-      kernel.inject(kernel.all(IInstructionRenderer))
-  ], exports.Renderer);
+  }
+  Renderer.inject = [kernel.all(IInstructionRenderer)];
   function ensureExpression(parser, srcOrExpr, bindingType) {
       if (typeof srcOrExpr === 'string') {
           return parser.parse(srcOrExpr, bindingType);
@@ -7050,9 +6467,6 @@
       return srcOrExpr;
   }
   function addBindable(renderable, bindable) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter('addBindable', slice$d.call(arguments));
-      }
       bindable.$prevBind = renderable.$bindableTail;
       bindable.$nextBind = null;
       if (renderable.$bindableTail === null) {
@@ -7062,14 +6476,8 @@
           renderable.$bindableTail.$nextBind = bindable;
       }
       renderable.$bindableTail = bindable;
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
   function addAttachable(renderable, attachable) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter('addAttachable', slice$d.call(arguments));
-      }
       attachable.$prevAttach = renderable.$attachableTail;
       attachable.$nextAttach = null;
       if (renderable.$attachableTail === null) {
@@ -7079,43 +6487,31 @@
           renderable.$attachableTail.$nextAttach = attachable;
       }
       renderable.$attachableTail = attachable;
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
   }
-  exports.SetPropertyRenderer = 
+  let SetPropertyRenderer = 
   /** @internal */
   class SetPropertyRenderer {
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('SetPropertyRenderer.render', slice$d.call(arguments));
-          }
           target[instruction.to] = instruction.value;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.SetPropertyRenderer = __decorate([
+  SetPropertyRenderer = __decorate([
       instructionRenderer("re" /* setProperty */)
       /** @internal */
-  ], exports.SetPropertyRenderer);
-  exports.CustomElementRenderer = 
+  ], SetPropertyRenderer);
+  let CustomElementRenderer = 
   /** @internal */
   class CustomElementRenderer {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('CustomElementRenderer.render', slice$d.call(arguments));
-          }
           const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
           const component = context.get(customElementKey(instruction.res));
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
           const projectorLocator = context.get(IProjectorLocator);
           const childInstructions = instruction.instructions;
-          component.$hydrate(dom, projectorLocator, this.renderingEngine, target, instruction);
+          component.$hydrate(dom, projectorLocator, this.renderingEngine, target, context, instruction);
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
               const current = childInstructions[i];
               instructionRenderers[current.type].render(dom, context, renderable, component, current);
@@ -7123,26 +6519,20 @@
           addBindable(renderable, component);
           addAttachable(renderable, component);
           operation.dispose();
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.CustomElementRenderer = __decorate([
-      kernel.inject(IRenderingEngine),
+  CustomElementRenderer.inject = [IRenderingEngine];
+  CustomElementRenderer = __decorate([
       instructionRenderer("ra" /* hydrateElement */)
       /** @internal */
-  ], exports.CustomElementRenderer);
-  exports.CustomAttributeRenderer = 
+  ], CustomElementRenderer);
+  let CustomAttributeRenderer = 
   /** @internal */
   class CustomAttributeRenderer {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('CustomAttributeRenderer.render', slice$d.call(arguments));
-          }
           const operation = context.beginComponentOperation(renderable, target, instruction);
           const component = context.get(customAttributeKey(instruction.res));
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -7155,26 +6545,20 @@
           addBindable(renderable, component);
           addAttachable(renderable, component);
           operation.dispose();
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.CustomAttributeRenderer = __decorate([
-      kernel.inject(IRenderingEngine),
+  CustomAttributeRenderer.inject = [IRenderingEngine];
+  CustomAttributeRenderer = __decorate([
       instructionRenderer("rb" /* hydrateAttribute */)
       /** @internal */
-  ], exports.CustomAttributeRenderer);
-  exports.TemplateControllerRenderer = 
+  ], CustomAttributeRenderer);
+  let TemplateControllerRenderer = 
   /** @internal */
   class TemplateControllerRenderer {
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
       }
       render(dom, context, renderable, target, instruction, parts) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('TemplateControllerRenderer.render', slice$d.call(arguments));
-          }
           const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
           const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
           const component = context.get(customAttributeKey(instruction.res));
@@ -7191,17 +6575,14 @@
           addBindable(renderable, component);
           addAttachable(renderable, component);
           operation.dispose();
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.TemplateControllerRenderer = __decorate([
-      kernel.inject(IRenderingEngine),
+  TemplateControllerRenderer.inject = [IRenderingEngine];
+  TemplateControllerRenderer = __decorate([
       instructionRenderer("rc" /* hydrateTemplateController */)
       /** @internal */
-  ], exports.TemplateControllerRenderer);
-  exports.LetElementRenderer = 
+  ], TemplateControllerRenderer);
+  let LetElementRenderer = 
   /** @internal */
   class LetElementRenderer {
       constructor(parser, observerLocator) {
@@ -7209,9 +6590,6 @@
           this.observerLocator = observerLocator;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('LetElementRenderer.render', slice$d.call(arguments));
-          }
           dom.remove(target);
           const childInstructions = instruction.instructions;
           const toViewModel = instruction.toViewModel;
@@ -7221,17 +6599,14 @@
               const bindable = new exports.LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
               addBindable(renderable, bindable);
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.LetElementRenderer = __decorate([
-      kernel.inject(IExpressionParser, IObserverLocator),
+  LetElementRenderer.inject = [IExpressionParser, IObserverLocator];
+  LetElementRenderer = __decorate([
       instructionRenderer("rd" /* hydrateLetElement */)
       /** @internal */
-  ], exports.LetElementRenderer);
-  exports.CallBindingRenderer = 
+  ], LetElementRenderer);
+  let CallBindingRenderer = 
   /** @internal */
   class CallBindingRenderer {
       constructor(parser, observerLocator) {
@@ -7239,46 +6614,34 @@
           this.observerLocator = observerLocator;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('CallBindingRenderer.render', slice$d.call(arguments));
-          }
           const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
           const bindable = new Call(expr, target, instruction.to, this.observerLocator, context);
           addBindable(renderable, bindable);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.CallBindingRenderer = __decorate([
-      kernel.inject(IExpressionParser, IObserverLocator),
+  CallBindingRenderer.inject = [IExpressionParser, IObserverLocator];
+  CallBindingRenderer = __decorate([
       instructionRenderer("rh" /* callBinding */)
       /** @internal */
-  ], exports.CallBindingRenderer);
-  exports.RefBindingRenderer = 
+  ], CallBindingRenderer);
+  let RefBindingRenderer = 
   /** @internal */
   class RefBindingRenderer {
       constructor(parser) {
           this.parser = parser;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('RefBindingRenderer.render', slice$d.call(arguments));
-          }
           const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
           const bindable = new Ref(expr, target, context);
           addBindable(renderable, bindable);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.RefBindingRenderer = __decorate([
-      kernel.inject(IExpressionParser),
+  RefBindingRenderer.inject = [IExpressionParser];
+  RefBindingRenderer = __decorate([
       instructionRenderer("rj" /* refBinding */)
       /** @internal */
-  ], exports.RefBindingRenderer);
-  exports.InterpolationBindingRenderer = 
+  ], RefBindingRenderer);
+  let InterpolationBindingRenderer = 
   /** @internal */
   class InterpolationBindingRenderer {
       constructor(parser, observerLocator) {
@@ -7286,9 +6649,6 @@
           this.observerLocator = observerLocator;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('InterpolationBindingRenderer.render', slice$d.call(arguments));
-          }
           let bindable;
           const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
           if (expr.isMulti) {
@@ -7298,17 +6658,14 @@
               bindable = new exports.InterpolationBinding(expr.firstExpression, expr, target, instruction.to, exports.BindingMode.toView, this.observerLocator, context, true);
           }
           addBindable(renderable, bindable);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.InterpolationBindingRenderer = __decorate([
-      kernel.inject(IExpressionParser, IObserverLocator),
+  InterpolationBindingRenderer.inject = [IExpressionParser, IObserverLocator];
+  InterpolationBindingRenderer = __decorate([
       instructionRenderer("rf" /* interpolation */)
       /** @internal */
-  ], exports.InterpolationBindingRenderer);
-  exports.PropertyBindingRenderer = 
+  ], InterpolationBindingRenderer);
+  let PropertyBindingRenderer = 
   /** @internal */
   class PropertyBindingRenderer {
       constructor(parser, observerLocator) {
@@ -7316,23 +6673,17 @@
           this.observerLocator = observerLocator;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('PropertyBindingRenderer.render', slice$d.call(arguments));
-          }
           const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
           const bindable = new exports.Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
           addBindable(renderable, bindable);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.PropertyBindingRenderer = __decorate([
-      kernel.inject(IExpressionParser, IObserverLocator),
+  PropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];
+  PropertyBindingRenderer = __decorate([
       instructionRenderer("rg" /* propertyBinding */)
       /** @internal */
-  ], exports.PropertyBindingRenderer);
-  exports.IteratorBindingRenderer = 
+  ], PropertyBindingRenderer);
+  let IteratorBindingRenderer = 
   /** @internal */
   class IteratorBindingRenderer {
       constructor(parser, observerLocator) {
@@ -7340,46 +6691,40 @@
           this.observerLocator = observerLocator;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('IteratorBindingRenderer.render', slice$d.call(arguments));
-          }
           const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
           const bindable = new exports.Binding(expr, target, instruction.to, exports.BindingMode.toView, this.observerLocator, context);
           addBindable(renderable, bindable);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.IteratorBindingRenderer = __decorate([
-      kernel.inject(IExpressionParser, IObserverLocator),
+  IteratorBindingRenderer.inject = [IExpressionParser, IObserverLocator];
+  IteratorBindingRenderer = __decorate([
       instructionRenderer("rk" /* iteratorBinding */)
       /** @internal */
-  ], exports.IteratorBindingRenderer);
+  ], IteratorBindingRenderer);
   const BasicRenderer = {
       register(container) {
-          container.register(exports.SetPropertyRenderer, exports.CustomElementRenderer, exports.CustomAttributeRenderer, exports.TemplateControllerRenderer, exports.LetElementRenderer, exports.CallBindingRenderer, exports.RefBindingRenderer, exports.InterpolationBindingRenderer, exports.PropertyBindingRenderer, exports.IteratorBindingRenderer);
+          container.register(SetPropertyRenderer, CustomElementRenderer, CustomAttributeRenderer, TemplateControllerRenderer, LetElementRenderer, CallBindingRenderer, RefBindingRenderer, InterpolationBindingRenderer, PropertyBindingRenderer, IteratorBindingRenderer);
       }
   };
 
   const GlobalResources = [
-      exports.If,
-      exports.Else,
-      exports.Repeat,
-      exports.Replaceable,
-      exports.With,
-      exports.SanitizeValueConverter,
-      exports.DebounceBindingBehavior,
-      exports.OneTimeBindingBehavior,
-      exports.ToViewBindingBehavior,
-      exports.FromViewBindingBehavior,
-      exports.SignalBindingBehavior,
-      exports.ThrottleBindingBehavior,
-      exports.TwoWayBindingBehavior
+      If,
+      Else,
+      Repeat,
+      Replaceable,
+      With,
+      SanitizeValueConverter,
+      DebounceBindingBehavior,
+      OneTimeBindingBehavior,
+      ToViewBindingBehavior,
+      FromViewBindingBehavior,
+      SignalBindingBehavior,
+      ThrottleBindingBehavior,
+      TwoWayBindingBehavior
   ];
   const RuntimeConfiguration = {
       register(container) {
-          container.register(BasicRenderer, kernel.Registration.singleton(IObserverLocator, exports.ObserverLocator), kernel.Registration.singleton(ILifecycle, Lifecycle), kernel.Registration.singleton(IRenderer, exports.Renderer), ...GlobalResources);
+          container.register(BasicRenderer, kernel.Registration.singleton(IObserverLocator, ObserverLocator), kernel.Registration.singleton(ILifecycle, Lifecycle), kernel.Registration.singleton(IRenderer, Renderer), ...GlobalResources);
       },
       createContainer() {
           const container = kernel.DI.createContainer();
@@ -7498,25 +6843,7 @@
       }
   }
 
-  exports.enableArrayObservation = enableArrayObservation;
-  exports.disableArrayObservation = disableArrayObservation;
-  exports.nativePush = nativePush;
-  exports.nativePop = nativePop;
-  exports.nativeShift = nativeShift;
-  exports.nativeUnshift = nativeUnshift;
-  exports.nativeSplice = nativeSplice;
-  exports.nativeReverse = nativeReverse;
-  exports.nativeSort = nativeSort;
-  exports.enableMapObservation = enableMapObservation;
-  exports.disableMapObservation = disableMapObservation;
-  exports.nativeSet = nativeSet;
-  exports.nativeMapDelete = nativeDelete;
-  exports.nativeMapClear = nativeClear;
-  exports.enableSetObservation = enableSetObservation;
-  exports.disableSetObservation = disableSetObservation;
-  exports.nativeAdd = nativeAdd;
-  exports.nativeSetDelete = nativeDelete$1;
-  exports.nativeSetClear = nativeClear$1;
+  exports.CallFunction = CallFunction;
   exports.connects = connects;
   exports.observes = observes;
   exports.callsFunction = callsFunction;
@@ -7540,7 +6867,6 @@
   exports.AccessKeyed = AccessKeyed;
   exports.CallScope = CallScope;
   exports.CallMember = CallMember;
-  exports.CallFunction = CallFunction;
   exports.Binary = Binary;
   exports.Unary = Unary;
   exports.PrimitiveLiteral = PrimitiveLiteral;
@@ -7554,140 +6880,107 @@
   exports.BindingIdentifier = BindingIdentifier;
   exports.ForOfStatement = ForOfStatement;
   exports.Interpolation = Interpolation;
-  exports.IterateForOfStatement = IterateForOfStatement;
-  exports.CountForOfStatement = CountForOfStatement;
   exports.Call = Call;
-  exports.addObserver = addObserver;
-  exports.observeProperty = observeProperty;
-  exports.unobserve = unobserve;
   exports.connectable = connectable;
   exports.IExpressionParser = IExpressionParser;
-  exports.ExpressionParser = ExpressionParser;
   exports.MultiInterpolationBinding = MultiInterpolationBinding;
   exports.Ref = Ref;
-  exports.InternalObserversLookup = InternalObserversLookup;
+  exports.enableArrayObservation = enableArrayObservation;
+  exports.disableArrayObservation = disableArrayObservation;
+  exports.enableMapObservation = enableMapObservation;
+  exports.disableMapObservation = disableMapObservation;
+  exports.enableSetObservation = enableSetObservation;
+  exports.disableSetObservation = disableSetObservation;
   exports.BindingContext = BindingContext;
   exports.Scope = Scope;
   exports.OverrideContext = OverrideContext;
   exports.collectionObserver = collectionObserver;
   exports.computed = computed;
-  exports.createComputedObserver = createComputedObserver;
-  exports.GetterController = GetterController;
   exports.IDirtyChecker = IDirtyChecker;
-  exports.DirtyChecker = DirtyChecker;
   exports.IObserverLocator = IObserverLocator;
   exports.ITargetObserverLocator = ITargetObserverLocator;
   exports.ITargetAccessorLocator = ITargetAccessorLocator;
   exports.getCollectionObserver = getCollectionObserver;
   exports.PrimitiveObserver = PrimitiveObserver;
   exports.PropertyAccessor = PropertyAccessor;
+  exports.propertyObserver = propertyObserver;
   exports.ISignaler = ISignaler;
-  exports.Signaler = Signaler;
   exports.subscriberCollection = subscriberCollection;
   exports.batchedSubscriberCollection = batchedSubscriberCollection;
   exports.targetObserver = targetObserver;
   exports.bindingBehavior = bindingBehavior;
   exports.BindingBehaviorResource = BindingBehaviorResource;
   exports.BindingModeBehavior = BindingModeBehavior;
-  exports.debounceCallSource = debounceCallSource;
-  exports.debounceCall = debounceCall;
-  exports.throttle = throttle;
-  exports.registerAttribute = registerAttribute;
+  exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
+  exports.ToViewBindingBehavior = ToViewBindingBehavior;
+  exports.FromViewBindingBehavior = FromViewBindingBehavior;
+  exports.TwoWayBindingBehavior = TwoWayBindingBehavior;
+  exports.DebounceBindingBehavior = DebounceBindingBehavior;
+  exports.SignalBindingBehavior = SignalBindingBehavior;
+  exports.ThrottleBindingBehavior = ThrottleBindingBehavior;
   exports.customAttribute = customAttribute;
-  exports.templateController = templateController;
-  exports.dynamicOptions = dynamicOptions;
   exports.CustomAttributeResource = CustomAttributeResource;
-  exports.createCustomAttributeDescription = createCustomAttributeDescription;
-  exports.IProjectorLocator = IProjectorLocator;
-  exports.registerElement = registerElement;
+  exports.dynamicOptions = dynamicOptions;
+  exports.templateController = templateController;
+  exports.If = If;
+  exports.Else = Else;
+  exports.Repeat = Repeat;
+  exports.Replaceable = Replaceable;
+  exports.With = With;
+  exports.containerless = containerless;
   exports.customElement = customElement;
   exports.CustomElementResource = CustomElementResource;
+  exports.IProjectorLocator = IProjectorLocator;
   exports.useShadowDOM = useShadowDOM;
-  exports.containerless = containerless;
   exports.valueConverter = valueConverter;
   exports.ValueConverterResource = ValueConverterResource;
   exports.ISanitizer = ISanitizer;
+  exports.SanitizeValueConverter = SanitizeValueConverter;
   exports.bindable = bindable;
-  exports.$attachAttribute = $attachAttribute;
-  exports.$attachElement = $attachElement;
-  exports.$attachView = $attachView;
-  exports.$detachAttribute = $detachAttribute;
-  exports.$detachElement = $detachElement;
-  exports.$detachView = $detachView;
-  exports.$cacheAttribute = $cacheAttribute;
-  exports.$cacheElement = $cacheElement;
-  exports.$cacheView = $cacheView;
-  exports.$mountElement = $mountElement;
-  exports.$unmountElement = $unmountElement;
-  exports.$mountView = $mountView;
-  exports.$unmountView = $unmountView;
-  exports.$bindAttribute = $bindAttribute;
-  exports.$bindElement = $bindElement;
-  exports.$bindView = $bindView;
-  exports.$unbindAttribute = $unbindAttribute;
-  exports.$unbindElement = $unbindElement;
-  exports.$unbindView = $unbindView;
-  exports.$hydrateAttribute = $hydrateAttribute;
-  exports.$hydrateElement = $hydrateElement;
-  exports.View = View;
-  exports.ViewFactory = ViewFactory;
   exports.Aurelia = Aurelia;
   exports.IDOMInitializer = IDOMInitializer;
-  exports.GlobalResources = GlobalResources;
   exports.RuntimeConfiguration = RuntimeConfiguration;
-  exports.customElementName = customElementName;
-  exports.customElementKey = customElementKey;
-  exports.customElementBehavior = customElementBehavior;
-  exports.customAttributeName = customAttributeName;
-  exports.customAttributeKey = customAttributeKey;
-  exports.ITargetedInstruction = ITargetedInstruction;
-  exports.isTargetedInstruction = isTargetedInstruction;
-  exports.buildRequired = buildRequired;
   exports.buildTemplateDefinition = buildTemplateDefinition;
+  exports.isTargetedInstruction = isTargetedInstruction;
+  exports.ITargetedInstruction = ITargetedInstruction;
   exports.INode = INode;
   exports.IRenderLocation = IRenderLocation;
   exports.IDOM = IDOM;
   exports.NodeSequence = NodeSequence;
-  exports.InterpolationInstruction = InterpolationInstruction;
-  exports.OneTimeBindingInstruction = OneTimeBindingInstruction;
-  exports.ToViewBindingInstruction = ToViewBindingInstruction;
-  exports.FromViewBindingInstruction = FromViewBindingInstruction;
-  exports.TwoWayBindingInstruction = TwoWayBindingInstruction;
-  exports.IteratorBindingInstruction = IteratorBindingInstruction;
   exports.CallBindingInstruction = CallBindingInstruction;
+  exports.FromViewBindingInstruction = FromViewBindingInstruction;
+  exports.HydrateAttributeInstruction = HydrateAttributeInstruction;
+  exports.HydrateElementInstruction = HydrateElementInstruction;
+  exports.HydrateTemplateController = HydrateTemplateController;
+  exports.InterpolationInstruction = InterpolationInstruction;
+  exports.IteratorBindingInstruction = IteratorBindingInstruction;
+  exports.LetBindingInstruction = LetBindingInstruction;
+  exports.LetElementInstruction = LetElementInstruction;
+  exports.OneTimeBindingInstruction = OneTimeBindingInstruction;
   exports.RefBindingInstruction = RefBindingInstruction;
   exports.SetPropertyInstruction = SetPropertyInstruction;
-  exports.HydrateElementInstruction = HydrateElementInstruction;
-  exports.HydrateAttributeInstruction = HydrateAttributeInstruction;
-  exports.HydrateTemplateController = HydrateTemplateController;
-  exports.LetElementInstruction = LetElementInstruction;
-  exports.LetBindingInstruction = LetBindingInstruction;
+  exports.ToViewBindingInstruction = ToViewBindingInstruction;
+  exports.TwoWayBindingInstruction = TwoWayBindingInstruction;
+  exports.AggregateLifecycleTask = AggregateLifecycleTask;
+  exports.CompositionCoordinator = CompositionCoordinator;
+  exports.ILifecycle = ILifecycle;
   exports.IRenderable = IRenderable;
   exports.IViewFactory = IViewFactory;
-  exports.ILifecycle = ILifecycle;
-  exports.Lifecycle = Lifecycle;
   exports.LifecycleTask = LifecycleTask;
-  exports.AggregateLifecycleTask = AggregateLifecycleTask;
-  exports.PromiseSwap = PromiseSwap;
   exports.PromiseTask = PromiseTask;
   exports.stringifyLifecycleFlags = stringifyLifecycleFlags;
   exports.instructionRenderer = instructionRenderer;
   exports.ensureExpression = ensureExpression;
-  exports.addBindable = addBindable;
   exports.addAttachable = addAttachable;
+  exports.addBindable = addBindable;
   exports.BasicRenderer = BasicRenderer;
-  exports.ITemplateCompiler = ITemplateCompiler;
-  exports.ITemplateFactory = ITemplateFactory;
   exports.CompiledTemplate = CompiledTemplate;
-  exports.noViewTemplate = noViewTemplate;
+  exports.createRenderContext = createRenderContext;
   exports.IInstructionRenderer = IInstructionRenderer;
   exports.IRenderer = IRenderer;
   exports.IRenderingEngine = IRenderingEngine;
-  exports.createRenderContext = createRenderContext;
-  exports.InstanceProvider = InstanceProvider;
-  exports.ViewFactoryProvider = ViewFactoryProvider;
-  exports.findElements = findElements;
-  exports.RuntimeBehavior = RuntimeBehavior;
+  exports.ITemplateCompiler = ITemplateCompiler;
+  exports.ITemplateFactory = ITemplateFactory;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

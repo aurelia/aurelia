@@ -1,7 +1,6 @@
-export * from './binding-command';
-export * from './configuration';
-export * from './debugging';
-export * from './template-binder';
-export * from './template-compiler';
-export * from './template-element-factory';
+export { TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand } from './binding-command';
+export { HTMLJitConfiguration } from './configuration';
+export { stringifyDOM, stringifyInstructions, stringifyTemplateDefinition } from './debugging';
+export { TemplateBinder } from './template-binder';
+export { ITemplateElementFactory } from './template-element-factory';
 //# sourceMappingURL=index.d.ts.map

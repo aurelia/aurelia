@@ -32,6 +32,7 @@ export interface IRouteSeparators {
 }
 export declare class Router {
     container: IContainer;
+    static readonly inject: ReadonlyArray<Function>;
     routes: IRoute[];
     viewports: Object;
     rootScope: Scope;

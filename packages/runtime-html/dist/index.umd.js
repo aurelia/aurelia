@@ -4,7 +4,6 @@
   (global = global || self, factory(global.runtimeHtml = {}, global.kernel, global.runtime));
 }(this, function (exports, kernel, runtime) { 'use strict';
 
-  const slice = Array.prototype.slice;
   class Listener {
       constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
           this.dom = dom;
@@ -20,9 +19,6 @@
           this.eventManager = eventManager;
       }
       callSource(event) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Listener.callSource', slice.call(arguments));
-          }
           const overrideContext = this.$scope.overrideContext;
           overrideContext.$event = event;
           const result = this.sourceExpression.evaluate(runtime.LifecycleFlags.mustEvaluate, this.$scope, this.locator);
@@ -30,23 +26,14 @@
           if (result !== true && this.preventDefault) {
               event.preventDefault();
           }
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
           return result;
       }
       handleEvent(event) {
           this.callSource(event);
       }
       $bind(flags, scope) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Listener.$bind', slice.call(arguments));
-          }
           if (this.$state & 2 /* isBound */) {
               if (this.$scope === scope) {
-                  if (kernel.Tracer.enabled) {
-                      kernel.Tracer.leave();
-                  }
                   return;
               }
               this.$unbind(flags | runtime.LifecycleFlags.fromBind);
@@ -62,18 +49,9 @@
           // add isBound flag and remove isBinding flag
           this.$state |= 2 /* isBound */;
           this.$state &= ~1 /* isBinding */;
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       $unbind(flags) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('Listener.$unbind', slice.call(arguments));
-          }
           if (!(this.$state & 2 /* isBound */)) {
-              if (kernel.Tracer.enabled) {
-                  kernel.Tracer.leave();
-              }
               return;
           }
           // add isUnbinding flag
@@ -87,9 +65,6 @@
           this.handler = null;
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       observeProperty(obj, propertyName) {
           return;
@@ -506,8 +481,7 @@
           this.target = this.handler = null;
       }
   }
-  const IEventManager = kernel.DI.createInterface()
-      .withDefault(x => x.singleton(EventManager));
+  const IEventManager = kernel.DI.createInterface('IEventManager').withDefault(x => x.singleton(EventManager));
   /** @internal */
   class EventManager {
       constructor() {
@@ -739,8 +713,6 @@
   exports.SelectValueObserver = __decorate([
       runtime.targetObserver()
   ], exports.SelectValueObserver);
-  exports.SelectValueObserver.prototype.handler = null;
-  exports.SelectValueObserver.prototype.observerLocator = null;
 
   exports.StyleAttributeAccessor = class StyleAttributeAccessor {
       constructor(lifecycle, obj) {
@@ -940,7 +912,7 @@
       o['xmlns:xlink'] = true;
       return o;
   })(Object.create(null));
-  exports.TargetObserverLocator = class TargetObserverLocator {
+  class TargetObserverLocator {
       constructor(dom) {
           this.dom = dom;
       }
@@ -990,11 +962,9 @@
       handles(obj) {
           return this.dom.isNodeInstance(obj);
       }
-  };
-  exports.TargetObserverLocator = __decorate([
-      kernel.inject(runtime.IDOM)
-  ], exports.TargetObserverLocator);
-  exports.TargetAccessorLocator = class TargetAccessorLocator {
+  }
+  TargetObserverLocator.inject = [runtime.IDOM];
+  class TargetAccessorLocator {
       constructor(dom) {
           this.dom = dom;
       }
@@ -1032,29 +1002,24 @@
       handles(obj) {
           return this.dom.isNodeInstance(obj);
       }
-  };
-  exports.TargetAccessorLocator = __decorate([
-      kernel.inject(runtime.IDOM)
-  ], exports.TargetAccessorLocator);
+  }
+  TargetAccessorLocator.inject = [runtime.IDOM];
 
-  const ISVGAnalyzer = kernel.DI.createInterface()
-      .withDefault(x => x.singleton(class {
+  const ISVGAnalyzer = kernel.DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(class {
       isStandardSvgAttribute(node, attributeName) {
           return false;
       }
   }));
 
-  exports.AttrBindingBehavior = class AttrBindingBehavior {
+  class AttrBindingBehavior {
       bind(flags, scope, binding) {
           binding.targetObserver = new exports.DataAttributeAccessor(binding.locator.get(runtime.ILifecycle), binding.target, binding.targetProperty);
       }
       unbind(flags, scope, binding) {
           return;
       }
-  };
-  exports.AttrBindingBehavior = __decorate([
-      runtime.bindingBehavior('attr')
-  ], exports.AttrBindingBehavior);
+  }
+  runtime.BindingBehaviorResource.define('attr', AttrBindingBehavior);
 
   /** @internal */
   function handleSelfEvent(event) {
@@ -1064,7 +1029,7 @@
       }
       return this.selfEventCallSource(event);
   }
-  exports.SelfBindingBehavior = class SelfBindingBehavior {
+  class SelfBindingBehavior {
       bind(flags, scope, binding) {
           if (!binding.callSource || !binding.targetEvent) {
               throw kernel.Reporter.error(8);
@@ -1076,12 +1041,10 @@
           binding.callSource = binding.selfEventCallSource;
           binding.selfEventCallSource = null;
       }
-  };
-  exports.SelfBindingBehavior = __decorate([
-      runtime.bindingBehavior('self')
-  ], exports.SelfBindingBehavior);
+  }
+  runtime.BindingBehaviorResource.define('self', SelfBindingBehavior);
 
-  exports.UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
+  class UpdateTriggerBindingBehavior {
       constructor(observerLocator) {
           this.observerLocator = observerLocator;
       }
@@ -1109,11 +1072,9 @@
           binding.targetObserver.handler = binding.targetObserver.originalHandler;
           binding.targetObserver.originalHandler = null;
       }
-  };
-  exports.UpdateTriggerBindingBehavior = __decorate([
-      runtime.bindingBehavior('updateTrigger'),
-      kernel.inject(runtime.IObserverLocator)
-  ], exports.UpdateTriggerBindingBehavior);
+  }
+  UpdateTriggerBindingBehavior.inject = [runtime.IObserverLocator];
+  runtime.BindingBehaviorResource.define('updateTrigger', UpdateTriggerBindingBehavior);
 
   function isHTMLTargetedInstruction(value) {
       const type = value.type;
@@ -1168,7 +1129,6 @@
       }
   }
 
-  const slice$1 = Array.prototype.slice;
   function createElement(dom, tagOrType, props, children) {
       if (typeof tagOrType === 'string') {
           return createElementForTag(dom, tagOrType, props, children);
@@ -1189,7 +1149,7 @@
               runtime.buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies));
       }
       getElementTemplate(engine, Type) {
-          return engine.getElementTemplate(this.dom, this.definition, Type);
+          return engine.getElementTemplate(this.dom, this.definition, null, Type);
       }
       createView(engine, parentContext) {
           return this.getViewFactory(engine, parentContext).create();
@@ -1205,9 +1165,6 @@
       }
   }
   function createElementForTag(dom, tagName, props, children) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter('createElementForTag', slice$1.call(arguments));
-      }
       const instructions = [];
       const allInstructions = [];
       const dependencies = [];
@@ -1233,15 +1190,9 @@
       if (children) {
           addChildren(dom, element, children, allInstructions, dependencies);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
       return new RenderPlan(dom, element, allInstructions, dependencies);
   }
   function createElementForType(dom, Type, props, children) {
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.enter('createElementForType', slice$1.call(arguments));
-      }
       const tagName = Type.description.name;
       const instructions = [];
       const allInstructions = [instructions];
@@ -1279,9 +1230,6 @@
       if (children) {
           addChildren(dom, element, children, allInstructions, dependencies);
       }
-      if (kernel.Tracer.enabled) {
-          kernel.Tracer.leave();
-      }
       return new RenderPlan(dom, element, allInstructions, dependencies);
   }
   function addChildren(dom, parent, children, allInstructions, dependencies) {
@@ -1307,7 +1255,7 @@
       containerless: true
   };
   const composeProps = ['subject', 'composing'];
-  exports.Compose = class Compose {
+  class Compose {
       constructor(dom, renderable, instruction, renderingEngine, coordinator) {
           this.dom = dom;
           this.subject = null;
@@ -1390,17 +1338,15 @@
           // Constructable (Custom Element Constructor)
           return createElement(this.dom, subject, this.properties, this.$projector.children).createView(this.renderingEngine, this.renderable.$context);
       }
-  };
+  }
+  Compose.inject = [runtime.IDOM, runtime.IRenderable, runtime.ITargetedInstruction, runtime.IRenderingEngine, runtime.CompositionCoordinator];
   __decorate([
       runtime.bindable
-  ], exports.Compose.prototype, "subject", void 0);
+  ], Compose.prototype, "subject", void 0);
   __decorate([
       runtime.bindable
-  ], exports.Compose.prototype, "composing", void 0);
-  exports.Compose = __decorate([
-      runtime.customElement(composeSource),
-      kernel.inject(runtime.IDOM, runtime.IRenderable, runtime.ITargetedInstruction, runtime.IRenderingEngine, runtime.CompositionCoordinator)
-  ], exports.Compose);
+  ], Compose.prototype, "composing", void 0);
+  runtime.CustomElementResource.define(composeSource, Compose);
 
   function isRenderLocation(node) {
       return node.textContent === 'au-end';
@@ -1504,6 +1450,7 @@
    * - the previous element is an `au-m` node
    * - text is the actual text node
    */
+  /** @internal */
   class TextNodeSequence {
       constructor(dom, text) {
           this.dom = dom;
@@ -1640,6 +1587,7 @@
           }
       }
   }
+  /** @internal */
   class NodeSequenceFactory {
       constructor(dom, markupOrNode) {
           this.dom = dom;
@@ -1688,6 +1636,7 @@
       proto.nodeName = 'AU-M';
       proto.nodeType = 1 /* Element */;
   })(AuMarker.prototype);
+  /** @internal */
   class HTMLDOMInitializer {
       constructor(container) {
           this.container = container;
@@ -1722,6 +1671,7 @@
       }
   }
   HTMLDOMInitializer.inject = [kernel.IContainer];
+  /** @internal */
   class HTMLTemplateFactory {
       constructor(dom) {
           this.dom = dom;
@@ -1732,8 +1682,7 @@
   }
   HTMLTemplateFactory.inject = [runtime.IDOM];
 
-  const slice$2 = Array.prototype.slice;
-  exports.TextBindingRenderer = 
+  let TextBindingRenderer = 
   /** @internal */
   class TextBindingRenderer {
       constructor(parser, observerLocator) {
@@ -1741,9 +1690,6 @@
           this.observerLocator = observerLocator;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('TextBindingRenderer.render', slice$2.call(arguments));
-          }
           const next = target.nextSibling;
           if (dom.isMarker(target)) {
               dom.remove(target);
@@ -1757,17 +1703,14 @@
               bindable = new runtime.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', runtime.BindingMode.toView, this.observerLocator, context, true);
           }
           runtime.addBindable(renderable, bindable);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.TextBindingRenderer = __decorate([
-      kernel.inject(runtime.IExpressionParser, runtime.IObserverLocator),
+  TextBindingRenderer.inject = [runtime.IExpressionParser, runtime.IObserverLocator];
+  TextBindingRenderer = __decorate([
       runtime.instructionRenderer("ha" /* textBinding */)
       /** @internal */
-  ], exports.TextBindingRenderer);
-  exports.ListenerBindingRenderer = 
+  ], TextBindingRenderer);
+  let ListenerBindingRenderer = 
   /** @internal */
   class ListenerBindingRenderer {
       constructor(parser, eventManager) {
@@ -1775,40 +1718,28 @@
           this.eventManager = eventManager;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('ListenerBindingRenderer.render', slice$2.call(arguments));
-          }
           const expr = runtime.ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
           const bindable = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
           runtime.addBindable(renderable, bindable);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.ListenerBindingRenderer = __decorate([
-      kernel.inject(runtime.IExpressionParser, IEventManager),
+  ListenerBindingRenderer.inject = [runtime.IExpressionParser, IEventManager];
+  ListenerBindingRenderer = __decorate([
       runtime.instructionRenderer("hb" /* listenerBinding */)
       /** @internal */
-  ], exports.ListenerBindingRenderer);
-  exports.SetAttributeRenderer = 
+  ], ListenerBindingRenderer);
+  let SetAttributeRenderer = 
   /** @internal */
   class SetAttributeRenderer {
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('SetAttributeRenderer.render', slice$2.call(arguments));
-          }
           target.setAttribute(instruction.to, instruction.value);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.SetAttributeRenderer = __decorate([
+  SetAttributeRenderer = __decorate([
       runtime.instructionRenderer("hd" /* setAttribute */)
       /** @internal */
-  ], exports.SetAttributeRenderer);
-  exports.StylePropertyBindingRenderer = 
+  ], SetAttributeRenderer);
+  let StylePropertyBindingRenderer = 
   /** @internal */
   class StylePropertyBindingRenderer {
       constructor(parser, observerLocator) {
@@ -1816,29 +1747,22 @@
           this.observerLocator = observerLocator;
       }
       render(dom, context, renderable, target, instruction) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('StylePropertyBindingRenderer.render', slice$2.call(arguments));
-          }
           const expr = runtime.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime.BindingMode.toView);
           const bindable = new runtime.Binding(expr, target.style, instruction.to, runtime.BindingMode.toView, this.observerLocator, context);
           runtime.addBindable(renderable, bindable);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   };
-  exports.StylePropertyBindingRenderer = __decorate([
-      kernel.inject(runtime.IExpressionParser, runtime.IObserverLocator),
+  StylePropertyBindingRenderer.inject = [runtime.IExpressionParser, runtime.IObserverLocator];
+  StylePropertyBindingRenderer = __decorate([
       runtime.instructionRenderer("hc" /* stylePropertyBinding */)
       /** @internal */
-  ], exports.StylePropertyBindingRenderer);
+  ], StylePropertyBindingRenderer);
   const HTMLRenderer = {
       register(container) {
-          container.register(exports.TextBindingRenderer, exports.ListenerBindingRenderer, exports.SetAttributeRenderer, exports.StylePropertyBindingRenderer);
+          container.register(TextBindingRenderer, ListenerBindingRenderer, SetAttributeRenderer, StylePropertyBindingRenderer);
       }
   };
 
-  const slice$3 = Array.prototype.slice;
   const defaultShadowOptions = {
       mode: 'open'
   };
@@ -1887,22 +1811,10 @@
           return this.shadowRoot;
       }
       project(nodes) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('ShadowDOMProjector.project', slice$3.call(arguments));
-          }
           nodes.appendTo(this.shadowRoot);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       take(nodes) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('ShadowDOMProjector.take', slice$3.call(arguments));
-          }
           nodes.remove();
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   }
   /** @internal */
@@ -1929,22 +1841,10 @@
           return this.host.getRootNode();
       }
       project(nodes) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('ContainerlessProjector.project', slice$3.call(arguments));
-          }
           nodes.insertBefore(this.host);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       take(nodes) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('ContainerlessProjector.take', slice$3.call(arguments));
-          }
           nodes.remove();
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   }
   /** @internal */
@@ -1963,34 +1863,22 @@
           return this.host.getRootNode();
       }
       project(nodes) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('HostProjector.project', slice$3.call(arguments));
-          }
           nodes.appendTo(this.host);
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
       take(nodes) {
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.enter('HostProjector.take', slice$3.call(arguments));
-          }
           nodes.remove();
-          if (kernel.Tracer.enabled) {
-              kernel.Tracer.leave();
-          }
       }
   }
 
   const HTMLRuntimeResources = [
-      exports.AttrBindingBehavior,
-      exports.SelfBindingBehavior,
-      exports.UpdateTriggerBindingBehavior,
-      exports.Compose
+      AttrBindingBehavior,
+      SelfBindingBehavior,
+      UpdateTriggerBindingBehavior,
+      Compose
   ];
   const HTMLRuntimeConfiguration = {
       register(container) {
-          container.register(...HTMLRuntimeResources, runtime.RuntimeConfiguration, HTMLRenderer, kernel.Registration.singleton(runtime.IDOMInitializer, HTMLDOMInitializer), kernel.Registration.singleton(runtime.IProjectorLocator, HTMLProjectorLocator), kernel.Registration.singleton(runtime.ITargetAccessorLocator, exports.TargetAccessorLocator), kernel.Registration.singleton(runtime.ITargetObserverLocator, exports.TargetObserverLocator), kernel.Registration.singleton(runtime.ITemplateFactory, HTMLTemplateFactory));
+          container.register(...HTMLRuntimeResources, runtime.RuntimeConfiguration, HTMLRenderer, kernel.Registration.singleton(runtime.IDOMInitializer, HTMLDOMInitializer), kernel.Registration.singleton(runtime.IProjectorLocator, HTMLProjectorLocator), kernel.Registration.singleton(runtime.ITargetAccessorLocator, TargetAccessorLocator), kernel.Registration.singleton(runtime.ITargetObserverLocator, TargetObserverLocator), kernel.Registration.singleton(runtime.ITemplateFactory, HTMLTemplateFactory));
       },
       createContainer() {
           const container = kernel.DI.createContainer();
@@ -2000,38 +1888,30 @@
   };
 
   exports.Listener = Listener;
-  exports.findOriginalEventTarget = findOriginalEventTarget;
   exports.ListenerTracker = ListenerTracker;
   exports.DelegateOrCaptureSubscription = DelegateOrCaptureSubscription;
   exports.TriggerSubscription = TriggerSubscription;
-  exports.EventSubscriber = EventSubscriber;
   exports.IEventManager = IEventManager;
-  exports.EventManager = EventManager;
+  exports.EventSubscriber = EventSubscriber;
+  exports.TargetAccessorLocator = TargetAccessorLocator;
+  exports.TargetObserverLocator = TargetObserverLocator;
   exports.ISVGAnalyzer = ISVGAnalyzer;
-  exports.handleSelfEvent = handleSelfEvent;
-  exports.HTMLRuntimeResources = HTMLRuntimeResources;
+  exports.AttrBindingBehavior = AttrBindingBehavior;
+  exports.SelfBindingBehavior = SelfBindingBehavior;
+  exports.UpdateTriggerBindingBehavior = UpdateTriggerBindingBehavior;
+  exports.Compose = Compose;
   exports.HTMLRuntimeConfiguration = HTMLRuntimeConfiguration;
   exports.createElement = createElement;
   exports.RenderPlan = RenderPlan;
   exports.isHTMLTargetedInstruction = isHTMLTargetedInstruction;
   exports.HTMLDOM = HTMLDOM;
-  exports.TextNodeSequence = TextNodeSequence;
-  exports.FragmentNodeSequence = FragmentNodeSequence;
-  exports.NodeSequenceFactory = NodeSequenceFactory;
-  exports.AuMarker = AuMarker;
-  exports.HTMLDOMInitializer = HTMLDOMInitializer;
-  exports.HTMLTemplateFactory = HTMLTemplateFactory;
   exports.HTMLRenderer = HTMLRenderer;
+  exports.CaptureBindingInstruction = CaptureBindingInstruction;
+  exports.DelegateBindingInstruction = DelegateBindingInstruction;
+  exports.SetAttributeInstruction = SetAttributeInstruction;
+  exports.StylePropertyBindingInstruction = StylePropertyBindingInstruction;
   exports.TextBindingInstruction = TextBindingInstruction;
   exports.TriggerBindingInstruction = TriggerBindingInstruction;
-  exports.DelegateBindingInstruction = DelegateBindingInstruction;
-  exports.CaptureBindingInstruction = CaptureBindingInstruction;
-  exports.StylePropertyBindingInstruction = StylePropertyBindingInstruction;
-  exports.SetAttributeInstruction = SetAttributeInstruction;
-  exports.HTMLProjectorLocator = HTMLProjectorLocator;
-  exports.ShadowDOMProjector = ShadowDOMProjector;
-  exports.ContainerlessProjector = ContainerlessProjector;
-  exports.HostProjector = HostProjector;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -1,5 +1,5 @@
-import { PLATFORM, inject, IContainer } from '@aurelia/kernel';
-import { CustomElementResource, IDOM, IProjectorLocator, IRenderingEngine, LifecycleFlags, Aurelia, bindable, customElement } from '@aurelia/runtime';
+import { CustomElementResource, IDOM, IProjectorLocator, IRenderingEngine, LifecycleFlags, Aurelia, INode, bindable } from '@aurelia/runtime';
+import { PLATFORM, IContainer } from '@aurelia/kernel';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
@@ -452,7 +452,7 @@ class Viewport {
             if (this.nextComponent.enter) {
                 this.nextComponent.enter(this.nextInstruction, this.instruction);
             }
-            this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host);
+            this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host, null);
             this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
             this.nextComponent.$attach(LifecycleFlags.fromStartTask);
             this.content = this.nextContent;
@@ -813,7 +813,7 @@ class Scope {
     }
 }
 
-let Router = class Router {
+class Router {
     constructor(container) {
         this.container = container;
         this.routes = [];
@@ -1178,12 +1178,10 @@ let Router = class Router {
         fullViewportStates.unshift(this.separators.clear);
         this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling), fullViewportStates.join(this.separators.sibling));
     }
-};
-Router = __decorate([
-    inject(IContainer)
-], Router);
+}
+Router.inject = [IContainer];
 
-let ViewportCustomElement = class ViewportCustomElement {
+class ViewportCustomElement {
     constructor(router, element) {
         this.router = router;
         this.element = element;
@@ -1199,7 +1197,8 @@ let ViewportCustomElement = class ViewportCustomElement {
     unbound() {
         this.router.removeViewport(this.viewport);
     }
-};
+}
+ViewportCustomElement.inject = [Router, INode];
 __decorate([
     bindable
 ], ViewportCustomElement.prototype, "name", void 0);
@@ -1209,10 +1208,8 @@ __decorate([
 __decorate([
     bindable
 ], ViewportCustomElement.prototype, "usedBy", void 0);
-ViewportCustomElement = __decorate([
-    inject(Router, Element),
-    customElement({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' })
-], ViewportCustomElement);
+// tslint:disable-next-line:no-invalid-template-strings
+CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' }, ViewportCustomElement);
 
 export { ViewportCustomElement, HistoryBrowser, LinkHandler, Router, Scope, Viewport };
 //# sourceMappingURL=index.es6.js.map

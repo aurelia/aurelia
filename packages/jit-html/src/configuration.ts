@@ -16,13 +16,17 @@ export const HTMLBindingLanguage: IRegistry[] = [
   CaptureBindingCommand
 ];
 
+export const HTMLTemplateCompiler: IRegistry[] = [
+  Registration.singleton(ITemplateCompiler, TemplateCompiler),
+  Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory)
+];
+
 export const HTMLJitConfiguration = {
   register(container: IContainer): void {
     container.register(
       HTMLRuntimeConfiguration,
+      ...HTMLTemplateCompiler,
       JitConfiguration,
-      Registration.singleton(ITemplateCompiler, TemplateCompiler),
-      Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory),
       ...HTMLBindingLanguage
     );
   },

@@ -9,6 +9,7 @@
     { "path": "router" },
     { "path": "jit" },
     { "path": "jit-html" },
+    { "path": "jit-pixi" },
     { "path": "debug" },
     { "path": "testing" },
     { "path": "aot" },

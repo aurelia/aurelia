@@ -69,6 +69,22 @@ export class Viewport {
     return false;
   }
 
+  public setElement(element: Element): void {
+    // First added viewport with element is always scope viewport (except for root scope)
+    if (this.scope && this.scope.parent && !this.scope.viewport) {
+      this.scope.viewport = this;
+    }
+    if (this.scope && !this.scope.element) {
+      this.scope.element = element;
+    }
+    if (!this.element) {
+      this.element = element;
+      if (!this.element.children) {
+        this.canEnter().then(() => this.loadContent()).catch(error => { throw error; });
+      }
+    }
+  }
+
   public canLeave(): Promise<boolean> {
     if (!this.component) {
       return Promise.resolve(true);

@@ -211,19 +211,20 @@ export class Scope {
       viewport = this.viewports[name] = new Viewport(this.router, name, element, this, scope, options);
     }
     if (element) {
-      // First added viewport with element is always scope viewport (except for root scope)
-      if (viewport.scope && viewport.scope.parent && !viewport.scope.viewport) {
-        viewport.scope.viewport = viewport;
-      }
-      if (viewport.scope && !viewport.scope.element) {
-        viewport.scope.element = element;
-      }
-      if (!viewport.element) {
-        viewport.element = element;
-        if (!viewport.element.children) {
-          this.renderViewport(viewport).catch(error => { throw error; });
-        }
-      }
+      viewport.setElement(element);
+      // // First added viewport with element is always scope viewport (except for root scope)
+      // if (viewport.scope && viewport.scope.parent && !viewport.scope.viewport) {
+      //   viewport.scope.viewport = viewport;
+      // }
+      // if (viewport.scope && !viewport.scope.element) {
+      //   viewport.scope.element = element;
+      // }
+      // if (!viewport.element) {
+      //   viewport.element = element;
+      //   if (!viewport.element.children) {
+      //     this.renderViewport(viewport).catch(error => { throw error; });
+      //   }
+      // }
     }
     return viewport;
   }

@@ -3,7 +3,6 @@ import {
   IBatchedCollectionSubscriber,
   IBindingTargetObserver,
   ICollectionObserver,
-  IDOM,
   ILifecycle,
   IndexMap,
   IObserverLocator,
@@ -265,6 +264,3 @@ export class SelectValueObserver implements SelectValueObserver {
     }
   }
 }
-
-SelectValueObserver.prototype.handler = null;
-SelectValueObserver.prototype.observerLocator = null;

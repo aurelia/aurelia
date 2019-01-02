@@ -20,11 +20,11 @@ import {
   IScope,
   ITemplate,
   IView,
-  Lifecycle,
   LifecycleFlags,
-  Scope,
-  ViewFactory
+  Scope
 } from '../../src/index';
+import { Lifecycle } from '../../src/lifecycle';
+import { ViewFactory } from '../../src/templating/view';
 import {
   AuDOM,
   AuDOMConfiguration,

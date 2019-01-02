@@ -1,17 +1,16 @@
-import { inject, IRegistry } from '@aurelia/kernel';
+import { IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
 import { IBindingContext, LifecycleFlags } from '../../observation';
 import { Scope } from '../../observation/binding-context';
 import { bindable } from '../../templating/bindable';
-import { ICustomAttribute, ICustomAttributeResource, templateController } from '../custom-attribute';
+import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
 export interface With<T extends INode = INode> extends ICustomAttribute<T> {}
-
-@templateController('with')
-@inject(IViewFactory, IRenderLocation)
 export class With<T extends INode = INode> implements With<T>  {
+  public static readonly inject: ReadonlyArray<Function> = [IViewFactory, IRenderLocation];
+
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];
   public static readonly kind: ICustomAttributeResource;
@@ -61,3 +60,4 @@ export class With<T extends INode = INode> implements With<T>  {
     this.currentView.$bind(flags, scope);
   }
 }
+CustomAttributeResource.define({ name: 'with', isTemplateController: true }, With);

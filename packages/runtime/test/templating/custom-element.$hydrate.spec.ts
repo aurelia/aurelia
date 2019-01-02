@@ -72,7 +72,8 @@ describe('@customElement', () => {
           {} as any,
           { getElementProjector() { return null; }} as any,
           renderingEngine,
-          host
+          host,
+          null
         );
 
         // Assert

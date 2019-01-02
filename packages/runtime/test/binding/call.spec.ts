@@ -12,11 +12,11 @@ import {
   IExpression,
   ILifecycle,
   IScope,
-  Lifecycle,
   LifecycleFlags,
   RuntimeConfiguration,
   SetterObserver
 } from '../../src/index';
+import { Lifecycle } from '../../src/lifecycle';
 import {
   _,
   createObserverLocator,

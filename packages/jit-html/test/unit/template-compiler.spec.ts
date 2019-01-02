@@ -1,12 +1,9 @@
 
 import {
-  DotSeparatedAttributePattern,
-  IAttributeParser,
   parseExpression
 } from '@aurelia/jit';
 import {
   Constructable,
-  DI,
   IContainer,
   IRegistry,
   IResourceDescriptions,
@@ -29,15 +26,12 @@ import {
   HydrateTemplateController,
   IBindableDescription,
   IDOM,
-  IExpressionParser,
   IHydrateElementInstruction,
   IHydrateTemplateController,
+  ITemplateCompiler,
   ITemplateDefinition,
-  ITemplateFactory,
   PrimitiveLiteral,
-  TargetedInstructionType as TT,
-  ViewCompileFlags,
-  ITemplateCompiler
+  TargetedInstructionType as TT
 } from '@aurelia/runtime';
 import {
   HTMLDOM,
@@ -45,16 +39,11 @@ import {
 } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import {
-  HTMLJitConfiguration,
-  HTMLTemplateElementFactory,
-  TemplateCompiler
+  HTMLJitConfiguration
 } from '../../src/index';
 import {
   createElement,
-  disableTracing,
   eachCartesianJoinFactory,
-  enableTracing,
-  SymbolTraceWriter,
   verifyBindingInstructionsEqual
 } from './util';
 
@@ -96,8 +85,7 @@ describe('TemplateCompiler', () => {
         it('compiles surrogate', () => {
           const { instructions, surrogates } = compileWith(
             `<template class="h-100"></template>`,
-            [],
-            ViewCompileFlags.surrogate
+            []
           );
           verifyInstructions(instructions, []);
           verifyInstructions(surrogates, [
@@ -108,8 +96,7 @@ describe('TemplateCompiler', () => {
         it('compiles surrogate with binding expression', () => {
           const { instructions, surrogates } = compileWith(
             `<template class.bind="base"></template>`,
-            [],
-            ViewCompileFlags.surrogate
+            []
           );
           verifyInstructions(instructions, [], 'normal');
           verifyInstructions(surrogates, [
@@ -120,8 +107,7 @@ describe('TemplateCompiler', () => {
         it('compiles surrogate with interpolation expression', () => {
           const { instructions, surrogates } = compileWith(
             `<template class="h-100 \${base}"></template>`,
-            [],
-            ViewCompileFlags.surrogate
+            []
           );
           verifyInstructions(instructions, [], 'normal');
           verifyInstructions(surrogates, [
@@ -134,8 +120,7 @@ describe('TemplateCompiler', () => {
           attrs.forEach(attr => {
             expect(() => compileWith(
               `<template ${attr}="${attr}"></template>`,
-              [],
-              ViewCompileFlags.surrogate
+              []
             )).to.throw(/Invalid surrogate attribute/);
           });
         });
@@ -407,7 +392,7 @@ describe('TemplateCompiler', () => {
       [prop: string]: any;
     }
 
-    function compileWith(markup: string | Element, extraResources: any[] = [], viewCompileFlags?: ViewCompileFlags) {
+    function compileWith(markup: string | Element, extraResources: any[] = []) {
       extraResources.forEach(e => e.register(container));
       // @ts-ignore
       return sut.compile(dom, { template: markup, instructions: [], surrogates: [] }, resources);
@@ -721,7 +706,7 @@ describe(`TemplateCompiler - combinations`, () => {
         () => BindingMode.twoWay
       ] as (() => BindingMode | undefined)[],
       [
-        ([, mode, to], [attr, value], defaultMode) => [`${attr}`,           { type: TT.setProperty, to, value }],
+        ([,, to], [attr, value]) => [`${attr}`,           { type: TT.setProperty, to, value }],
         ([, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
         ([, , to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.toView }],
         ([, , to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.oneTime }],

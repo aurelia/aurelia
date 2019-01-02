@@ -4,11 +4,11 @@ import {
   IAttach,
   If,
   IView,
-  Lifecycle,
   LifecycleFlags
 } from '../../../src/index';
+import { Lifecycle } from '../../../src/lifecycle';
 import { FakeView } from '../../_doubles/fake-view';
-import { AuNode, AuDOMConfiguration } from '../../au-dom';
+import { AuDOMConfiguration, AuNode } from '../../au-dom';
 import { createScopeForTest } from '../../util';
 import { hydrateCustomAttribute } from './template-controller-tests';
 

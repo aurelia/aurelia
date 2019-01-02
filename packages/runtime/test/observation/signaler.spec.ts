@@ -2,9 +2,9 @@ import { expect } from 'chai';
 import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import {
   ISignaler,
-  LifecycleFlags,
-  Signaler
+  LifecycleFlags
 } from '../../src/index';
+import { Signaler } from '../../src/observation/signaler';
 import { MockPropertySubscriber } from '../_doubles/mock-subscriber';
 
 describe('ISignaler', () => {

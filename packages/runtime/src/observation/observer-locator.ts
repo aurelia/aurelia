@@ -1,4 +1,4 @@
-import { DI, inject, Primitive, Reporter } from '@aurelia/kernel';
+import { DI, Primitive, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
@@ -37,20 +37,20 @@ export interface IObserverLocator {
   getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
 }
 
-export const IObserverLocator = DI.createInterface<IObserverLocator>().noDefault();
+export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').noDefault();
 
 export interface ITargetObserverLocator {
   getObserver(lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
   overridesAccessor(obj: unknown, propertyName: string): boolean;
   handles(obj: unknown): boolean;
 }
-export const ITargetObserverLocator = DI.createInterface<ITargetObserverLocator>().noDefault();
+export const ITargetObserverLocator = DI.createInterface<ITargetObserverLocator>('ITargetObserverLocator').noDefault();
 
 export interface ITargetAccessorLocator {
   getAccessor(lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor;
   handles(obj: unknown): boolean;
 }
-export const ITargetAccessorLocator = DI.createInterface<ITargetAccessorLocator>().noDefault();
+export const ITargetAccessorLocator = DI.createInterface<ITargetAccessorLocator>('ITargetAccessorLocator').noDefault();
 
 function getPropertyDescriptor(subject: object, name: string): PropertyDescriptor {
   let pd = Object.getOwnPropertyDescriptor(subject, name);
@@ -64,9 +64,10 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
   return pd;
 }
 
-@inject(ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator)
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
+  public static readonly inject: ReadonlyArray<Function> = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
+
   private adapters: IObjectObservationAdapter[];
   private dirtyChecker: IDirtyChecker;
   private lifecycle: ILifecycle;

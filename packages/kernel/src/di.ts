@@ -2,6 +2,7 @@
 import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter, Tracer } from './reporter';
+import { IResourceType } from './resource';
 
 const slice = Array.prototype.slice;
 
@@ -269,7 +270,7 @@ Foo.register(container);
   }
 };
 
-export const IContainer = DI.createInterface<IContainer>().noDefault();
+export const IContainer = DI.createInterface<IContainer>('IContainer').noDefault();
 export const IServiceLocator = IContainer as InterfaceSymbol<IServiceLocator>;
 
 function createResolver(
@@ -508,6 +509,7 @@ export class Factory implements IFactory {
 /** @internal */
 export interface IContainerConfiguration {
   factories?: Map<Function, IFactory>;
+  resourceLookup?: Record<string, IResourceType<unknown, unknown>>;
 }
 
 const containerResolver: IResolver = {
@@ -526,12 +528,14 @@ export class Container implements IContainer {
   private resolvers: Map<any, IResolver>;
   private factories: Map<Function, IFactory>;
   private configuration: IContainerConfiguration;
+  private resourceLookup: Record<string, IResolver>;
 
   constructor(configuration: IContainerConfiguration = {}) {
     this.parent = null;
     this.resolvers = new Map<any, IResolver>();
     this.configuration = configuration;
     this.factories = configuration.factories || (configuration.factories = new Map());
+    this.resourceLookup = configuration.resourceLookup || (configuration.resourceLookup = Object.create(null));
     this.resolvers.set(IContainer, containerResolver);
   }
 
@@ -565,6 +569,9 @@ export class Container implements IContainer {
 
     if (result === undefined) {
       resolvers.set(key, resolver);
+      if (typeof key === 'string') {
+        this.resourceLookup[key] = resolver;
+      }
     } else if (result instanceof Resolver && result.strategy === ResolverStrategy.array) {
       result.state.push(resolver);
     } else {
@@ -691,7 +698,9 @@ export class Container implements IContainer {
   }
 
   public createChild(): IContainer {
-    const child = new Container(this.configuration);
+    const config = this.configuration;
+    const childConfig = { factories: config.factories, resourceLookup: { ...config.resourceLookup } };
+    const child = new Container(childConfig);
     child.parent = this;
     return child;
   }

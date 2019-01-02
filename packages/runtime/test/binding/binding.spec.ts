@@ -17,7 +17,6 @@ import {
   IPropertyChangeNotifier,
   IPropertySubscriber,
   IScope,
-  Lifecycle,
   LifecycleFlags,
   ObjectLiteral,
   PrimitiveLiteral,
@@ -25,13 +24,14 @@ import {
   RuntimeConfiguration,
   Scope,
   SetterObserver,
-  State,
-  SubscriberFlags
+  State
 } from '../../src/index';
+import { Lifecycle } from '../../src/lifecycle';
+import { SubscriberFlags } from '../../src/observation';
 import {
   _,
-  createScopeForTest,
   createObserverLocator,
+  createScopeForTest,
   eachCartesianJoinFactory,
   ensureNotCalled,
   massReset,

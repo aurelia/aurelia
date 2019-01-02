@@ -1,4 +1,4 @@
-import { IContainer, inject } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -35,8 +35,9 @@ export interface IRouteSeparators {
   action: string;
 }
 
-@inject(IContainer)
 export class Router {
+  public static readonly inject: ReadonlyArray<Function> = [IContainer];
+
   public routes: IRoute[] = [];
   public viewports: Object = {};
 

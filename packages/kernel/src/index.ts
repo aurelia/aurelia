@@ -1,5 +1,74 @@
-export * from './di';
-export * from './interfaces';
-export * from './platform';
-export * from './reporter';
-export * from './resource';
+export {
+  all,
+  DI,
+  IContainer,
+  IDefaultableInterfaceSymbol,
+  IFactory,
+  inject,
+  InterfaceSymbol,
+  IRegistration,
+  IRegistry,
+  IResolver,
+  IServiceLocator,
+  Key,
+  lazy,
+  optional,
+  RegisterSelf,
+  Registration,
+  ResolveCallback,
+  singleton,
+  transient
+} from './di';
+export {
+  Class,
+  Constructable,
+  Diff,
+  ICallable,
+  IDisposable,
+  IFrameRequestCallback,
+  IIndexable,
+  Immutable,
+  ImmutableArray,
+  ImmutableObject,
+  Injectable,
+  IPerformance,
+  ITimerHandler,
+  IWindowOrWorkerGlobalScope,
+  KnownKeys,
+  NoInfer,
+  Omit,
+  OptionalKnownKeys,
+  OptionalValuesOf,
+  Overwrite,
+  Param0,
+  Param1,
+  Param2,
+  Param3,
+  Pick2,
+  Pick3,
+  Primitive,
+  Public,
+  Purify,
+  RequiredKnownKeys,
+  RequiredValuesOf,
+  StrictPrimitive,
+  Unwrap,
+  ValuesOf,
+  Writable
+} from './interfaces';
+export { PLATFORM } from './platform';
+export {
+  ITraceInfo,
+  ITraceWriter,
+  Reporter,
+  Tracer
+} from './reporter';
+export {
+  IResourceDefinition,
+  IResourceDescriptions,
+  IResourceKind,
+  IResourceType,
+  ResourceDescription,
+  ResourcePartDescription,
+  RuntimeCompilationResources
+} from './resource';

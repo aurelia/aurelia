@@ -1,4 +1,4 @@
-import { DI, Registration } from '@aurelia/kernel';
+import { Registration } from '@aurelia/kernel';
 import { IDOM, ILifecycle, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';

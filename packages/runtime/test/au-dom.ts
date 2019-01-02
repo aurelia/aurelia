@@ -52,6 +52,7 @@ import {
   TemplateDefinition,
   ToViewBindingInstruction
 } from '../src/index';
+import { TargetedInstruction } from '../dist';
 
 const slice = Array.prototype.slice;
 
@@ -121,11 +122,7 @@ export class AuNode implements INode {
     this.isMounted = isMounted;
     this._isConnected = isConnected;
     this.parentNode = null;
-    if (isMarker || isRenderLocation) {
-      this.childNodes = PLATFORM.emptyArray as AuNode[];
-    } else {
-      this.childNodes = [];
-    }
+    this.childNodes = [];
     this._textContent = '';
     this.nextSibling = null;
     this.previousSibling = null;
@@ -397,7 +394,11 @@ export class AuProjector implements IElementProjector {
 
   public project(nodes: INodeSequence): void {
     if (Tracer.enabled) { Tracer.enter('AuProjector.project', slice.call(arguments)); }
-    nodes.appendTo(this.host);
+    if (this.host.isRenderLocation) {
+      nodes.insertBefore(this.host);
+    } else {
+      nodes.appendTo(this.host);
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -649,12 +650,16 @@ export const AuDOMTest = {
       instructions: [[instruction]]
     };
   },
-  createElementDefinition(instruction: HydrateElementInstruction, name: string = instruction.res): ITemplateDefinition {
+  createElementDefinition(instructions: TargetedInstruction[][], name: string): ITemplateDefinition {
+    const template = AuNode.createTemplate();
+    instructions.forEach(row => {
+      template.appendChild(AuNode.createMarker());
+    });
     return {
       build: { required: false },
       name,
-      template: AuNode.createMarker(),
-      instructions: [[instruction]]
+      template,
+      instructions
     };
   },
   createIfInstruction(expression: string, def: ITemplateDefinition): HydrateTemplateController {

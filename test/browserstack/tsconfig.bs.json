@@ -1,13 +1,10 @@
 {
   "compilerOptions": {
-    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": ["esnext", "dom"],
-    "module": "esnext",
+    "module": "umd",
     "moduleResolution": "node",
     "outDir": "dist",
-    "rootDir": "src",
-    "target": "es2018"
-  },
-  "include": ["src"]
+    "target": "es2015"
+  }
 }

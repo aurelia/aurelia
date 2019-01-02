@@ -1,4 +1,4 @@
-import { IContainer, IRegistry } from './di';
+import { IContainer, IRegistry, IResolver } from './di';
 import { Class, Constructable, Immutable } from './interfaces';
 
 export interface IResourceDefinition {
@@ -38,7 +38,11 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
 
   public find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null {
     const key = kind.keyFrom(name);
-    const resolver = this.context.getResolver(key, false);
+    const resourceLookup = (this.context as unknown as { resourceLookup: Record<string, IResolver> }).resourceLookup;
+    let resolver = resourceLookup[key];
+    if (resolver === undefined) {
+      resolver = resourceLookup[key] = this.context.getResolver(key, false);
+    }
 
     if (resolver !== null && resolver.getFactory) {
       const factory = resolver.getFactory(this.context);
@@ -54,8 +58,13 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
 
   public create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null {
     const key = kind.keyFrom(name);
-    if (this.context.has(key, false)) {
-      const instance = this.context.get<Constructable>(key);
+    const resourceLookup = (this.context as unknown as { resourceLookup: Record<string, IResolver> }).resourceLookup;
+    let resolver = resourceLookup[key];
+    if (resolver === undefined) {
+      resolver = resourceLookup[key] = this.context.getResolver(key, false);
+    }
+    if (resolver !== null) {
+      const instance = resolver.resolve(this.context, this.context);
       return instance === undefined ? null : instance;
     }
     return null;

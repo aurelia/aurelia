@@ -26,7 +26,8 @@ import {
   ILifecycleHooks,
   ILifecycleUnbindAfterDetach,
   IMountable,
-  IRenderable
+  IRenderable,
+  IRenderContext
 } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { IRenderingEngine } from '../rendering-engine';
@@ -65,7 +66,7 @@ export interface IElementProjector<T extends INode = INode> {
   subscribeToChildrenChange(callback: () => void): void;
 }
 
-export const IProjectorLocator = DI.createInterface<IProjectorLocator>().noDefault();
+export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();
 
 export interface IProjectorLocator<T extends INode = INode> {
   getElementProjector(dom: IDOM<T>, $component: ICustomElement<T>, host: CustomElementHost<T>, def: TemplateDefinition): IElementProjector<T>;
@@ -89,7 +90,15 @@ export interface ICustomElement<T extends INode = INode> extends
 
   readonly $projector: IElementProjector;
   readonly $host: CustomElementHost;
-  $hydrate(dom: IDOM, projectorLocator: IProjectorLocator, renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
+
+  $hydrate(
+    dom: IDOM,
+    projectorLocator: IProjectorLocator,
+    renderingEngine: IRenderingEngine,
+    host: INode,
+    parentContext: IRenderContext | null,
+    options?: IElementHydrationOptions
+  ): void;
 }
 
 export interface ICustomElementResource<T extends INode = INode> extends

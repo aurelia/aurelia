@@ -27,11 +27,11 @@ import {
   IObserverLocator,
   IScope,
   ITemplateDefinition,
-  Lifecycle,
-  ObserverLocator,
   OverrideContext,
   Scope
 } from '../src/index';
+import { Lifecycle } from '../src/lifecycle';
+import { ObserverLocator } from '../src/observation/observer-locator';
 
 /**
  * Object describing a test fixture

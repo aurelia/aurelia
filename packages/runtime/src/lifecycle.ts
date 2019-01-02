@@ -3,8 +3,6 @@ import {
   IContainer,
   IDisposable,
   Immutable,
-  inject,
-  InterfaceSymbol,
   IResolver,
   IServiceLocator,
   Omit,
@@ -100,7 +98,7 @@ export interface IRenderable<T extends INode = INode> extends IBindables, IAttac
   readonly $scope: IScope;
 }
 
-export const IRenderable = DI.createInterface<IRenderable>().noDefault();
+export const IRenderable = DI.createInterface<IRenderable>('IRenderable').noDefault();
 
 export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
   createChild(): IRenderContext<T>;
@@ -149,7 +147,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   create(): IView<T>;
 }
 
-export const IViewFactory = DI.createInterface<IViewFactory>().noDefault();
+export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
 
 export interface ILifecycleCreated extends IHooks, IState {
   /**
@@ -658,7 +656,7 @@ export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {
   finishTask(task: ILifecycleTask): void;
 }
 
-export const ILifecycle = DI.createInterface<ILifecycle>().withDefault(x => x.singleton(Lifecycle));
+export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
 
 /** @internal */
 export class Lifecycle implements ILifecycle {
@@ -1174,6 +1172,24 @@ export class Lifecycle implements ILifecycle {
       this.unmountTail = requestor;
       ++this.unmountCount;
     }
+    // this is a temporary solution until a cleaner method surfaces.
+    // if an item being queued for unmounting is already in the mount queue,
+    // remove it from the mount queue (this can occur in some very exotic situations
+    // and should be dealt with in a less hacky way)
+    if ((requestor as ILifecycleMount & ILifecycleUnmount).$nextMount !== null) {
+      let current = this.mountHead as ILifecycleMount & ILifecycleUnmount;
+      let next = current.$nextMount as ILifecycleMount & ILifecycleUnmount;
+      while (next !== requestor) {
+        current = next;
+        next = current.$nextMount as ILifecycleMount & ILifecycleUnmount;
+      }
+      current.$nextMount = next.$nextMount;
+      next.$nextMount = null;
+      if (this.mountTail === next) {
+        this.mountTail = this;
+      }
+      --this.mountCount;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -1273,10 +1289,13 @@ export class Lifecycle implements ILifecycle {
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
+
+  private
 }
 
-@inject(ILifecycle)
 export class CompositionCoordinator {
+  public static readonly inject: ReadonlyArray<Function> = [ILifecycle];
+
   public readonly $lifecycle: ILifecycle;
 
   public onSwapComplete: () => void;

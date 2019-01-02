@@ -5,7 +5,8 @@ import {
 import {
   Registration,
   RuntimeCompilationResources,
-  Tracer
+  Tracer,
+  Writable
 } from '@aurelia/kernel';
 import {
   Aurelia,
@@ -15,13 +16,28 @@ import {
   ILifecycle,
   INodeSequence,
   ISignaler,
-  LifecycleFlags
+  LifecycleFlags,
+  IRenderingEngine,
+  IProjectorLocator,
+  IObserverLocator,
+  ITemplate,
+  Binding,
+  AccessScope,
+  BindingMode,
+  addBindable,
+  If,
+  CompositionCoordinator,
+  Else,
+  BindingContext,
+  Scope
 } from '@aurelia/runtime';
 import {
-  HTMLDOM,
-  NodeSequenceFactory
+  HTMLDOM
 } from '@aurelia/runtime-html';
 import { expect } from 'chai';
+import {
+  NodeSequenceFactory
+} from '../../../runtime-html/src/dom';
 import {
   HTMLJitConfiguration,
   stringifyTemplateDefinition,
@@ -32,8 +48,13 @@ import {
   enableTracing,
   SymbolTraceWriter
 } from '../unit/util';
+import {
+  AuDOMConfiguration, AuDOM, AuNode, AuNodeSequence
+} from '../../../runtime/test/au-dom';
 import { getVisibleText } from '../util';
 import { defineCustomElement } from './util';
+import { ViewFactory } from '../../../runtime/src/templating/view';
+import { RuntimeBehavior } from '../../../runtime/src/rendering-engine';
 
 const spec = 'template-compiler.kitchen-sink';
 
@@ -1222,6 +1243,39 @@ describe('xml node compiler tests', () => {
   }
 });
 
+describe('dependency injection', () => {
+
+  it('register local dependencies ', () => {
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: 'bar'
+      },
+      null
+    );
+    const App = CustomElementResource.define(
+      {
+        name: 'app',
+        template: '<foo></foo>',
+        dependencies: [Foo]
+      },
+      null
+    );
+
+    const container = HTMLJitConfiguration.createContainer();
+    const au = new Aurelia(container);
+
+    const host = document.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    expect(host.textContent).to.equal('bar');
+  });
+});
+
 describe('generated.template-compiler.static (with tracing)', function () {
   function setup() {
       enableTracing();
@@ -1419,3 +1473,150 @@ describe('generated.template-compiler.static (with tracing)', function () {
       verify(au, host, 'a', App.description);
   });
 });
+
+// commented out code left here intentionally, serves as a staring point for template controller tests
+
+// describe.only('test', () => {
+//   it.only('if', () => {
+//     enableTracing();
+//     Tracer.enableLiveLogging(SymbolTraceWriter);
+//     const container = HTMLJitConfiguration.createContainer();
+//     const dom = new HTMLDOM(document);
+//     Registration.instance(IDOM, dom).register(container, IDOM);
+//     const host = document.createElement('div');
+//     const hosthost = document.createElement('div');
+//     hosthost.appendChild(host);
+//     const App = CustomElementResource.define(
+//       {
+//         name: 'app',
+//         template: '<div if.bind="value">${ifText}</div><div else>${elseText}</div>'
+//       },
+//       class {
+//         ifText = 'foo';
+//         elseText = 'bar';
+//       }
+//     );
+//     const component = new App();
+
+//     const lifecycle = container.get(ILifecycle);
+//     const re = container.get(IRenderingEngine);
+//     const pl = container.get(IProjectorLocator);
+
+//     component.$hydrate(dom, pl, re, host, null);
+
+//     component['value'] = false;
+//     component.$bind(LifecycleFlags.none);
+
+//     component['value'] = true;
+
+//     component.$bind(LifecycleFlags.none);
+
+//     component.$attach(LifecycleFlags.none);
+
+//     disableTracing();
+//     expect(host.textContent).to.equal('bar')
+//   });
+
+//   it.only('if2', () => {
+//     enableTracing();
+//     Tracer.enableLiveLogging(SymbolTraceWriter);
+//     // common stuff
+//     const container = AuDOMConfiguration.createContainer();
+//     const dom = container.get<AuDOM>(IDOM);
+//     const observerLocator = container.get(IObserverLocator);
+//     const lifecycle = container.get(ILifecycle);
+
+//     const location = AuNode.createRenderLocation();
+//     const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
+
+//     const ifPropName = 'ifValue';
+//     const elsePropName = 'elseValue';
+//     const ifText = 'foo';
+//     const elseText = 'bar';
+
+//     const ifTemplate: ITemplate<AuNode> = {
+//       renderContext: null as any,
+//       dom: null as any,
+//       render(renderable) {
+//         const text = AuNode.createText();
+//         const wrapper = AuNode.createTemplate().appendChild(text);
+
+//         const nodes = new AuNodeSequence(dom, wrapper);
+//         const binding = new Binding(new AccessScope(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
+
+//         (renderable as Writable<typeof renderable>).$nodes = nodes;
+//         addBindable(renderable, binding);
+//       }
+//     };
+
+//     const elseTemplate: ITemplate<AuNode> = {
+//       renderContext: null as any,
+//       dom: null as any,
+//       render(renderable) {
+//         const text = AuNode.createText();
+//         const wrapper = AuNode.createTemplate().appendChild(text);
+
+//         const nodes = new AuNodeSequence(dom, wrapper);
+//         const binding = new Binding(new AccessScope(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
+
+//         (renderable as Writable<typeof renderable>).$nodes = nodes;
+//         addBindable(renderable, binding);
+//       }
+//     };
+
+//     //@ts-ignore
+//     const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, lifecycle);
+//     //@ts-ignore
+//     const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
+
+//     const sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle));
+//     const elseSut = new Else<AuNode>(elseFactory);
+//     elseSut.link(sut);
+
+//     (sut as Writable<If>).$scope = null;
+//     (elseSut as Writable<Else>).$scope = null;
+
+//     //@ts-ignore
+//     const ifBehavior = RuntimeBehavior.create(If);
+//     //@ts-ignore
+//     ifBehavior.applyTo(sut, lifecycle);
+
+//     //@ts-ignore
+//     const elseBehavior = RuntimeBehavior.create(Else);
+//     //@ts-ignore
+//     elseBehavior.applyTo(elseSut, lifecycle);
+
+
+//     let firstBindInitialNodesText: string;
+//     let firstBindFinalNodesText: string;
+//     let secondBindInitialHostsText: string;
+//     let secondBindFinalNodesText: string;
+//     let firstAttachInitialHostText: string = 'foo';
+//     let firstAttachFinalHostText: string;
+//     let secondAttachInitialHostText: string;
+//     let secondAttachFinalHostText: string;
+
+//     // -- Round 1 --
+
+//     const ctx = BindingContext.create({
+//       [ifPropName]: ifText,
+//       [elsePropName]: elseText
+//     });
+//     let scope = Scope.create(ctx);
+
+//     sut.value = false;
+
+//     sut.$bind(LifecycleFlags.none, scope);
+//     if (false) {
+//       scope = Scope.create(ctx);
+//     }
+//     sut.value = true;
+//     sut.$bind(LifecycleFlags.none, scope);
+
+//     sut.$attach(LifecycleFlags.none);
+
+//     expect(host.textContent).to.equal(firstAttachInitialHostText, 'host.textContent #1');
+//     disableTracing();
+
+//   });
+// });

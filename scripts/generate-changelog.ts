@@ -149,8 +149,8 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
   for (const pkg of project.packages) {
     let existingChangeLog = '';
-    if (existsSync(pkg.changelog.path)) {
-      const currentPkgChangelog = readFileSync(pkg.changelog.path, { encoding: 'utf8' });
+    if (existsSync(pkg.changelog)) {
+      const currentPkgChangelog = readFileSync(pkg.changelog, { encoding: 'utf8' });
       const currentPkgParts = currentPkgChangelog.split(currentAnchor);
       const existingPart = currentPkgParts[1];
       if (existingPart && existingPart.length) {
@@ -158,9 +158,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
       }
     }
 
-    const { content: newPkgChangeLog } = await getChangeLogContent(fromRevision, toRevision, pkg.path, pkg.scopedName, newVersion);
+    const { content: newPkgChangeLog } = await getChangeLogContent(fromRevision, toRevision, pkg.path, pkg.name.npm, newVersion);
     const newPkgContent = standardHeader + newPkgChangeLog + existingChangeLog;
-    writeFileSync(pkg.changelog.path, newPkgContent, { encoding: 'utf8' });
+    writeFileSync(pkg.changelog, newPkgContent, { encoding: 'utf8' });
   }
 
   return newVersion;

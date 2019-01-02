@@ -1,10 +1,9 @@
 import { IRegistry } from '@aurelia/kernel';
-import { Binding, bindingBehavior, ILifecycle, IScope, LifecycleFlags } from '@aurelia/runtime';
+import { Binding, BindingBehaviorResource, ILifecycle, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { DataAttributeAccessor } from '../../observation/data-attribute-accessor';
 
-@bindingBehavior('attr')
 export class AttrBindingBehavior {
-  public static register: IRegistry['register'];
+  public static readonly register: IRegistry['register'];
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: Binding): void {
     binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), binding.target as HTMLElement, binding.targetProperty);
@@ -14,3 +13,4 @@ export class AttrBindingBehavior {
     return;
   }
 }
+BindingBehaviorResource.define('attr', AttrBindingBehavior);

@@ -8,14 +8,14 @@ import {
   IDOM,
   ILifecycle,
   INode,
-  InstanceProvider,
   IRenderingEngine,
   IRenderLocation,
   IView,
   IViewFactory,
-  Lifecycle,
   LifecycleFlags
 } from '../../../src/index';
+import { Lifecycle } from '../../../src/lifecycle';
+import { InstanceProvider } from '../../../src/rendering-engine';
 import { FakeView } from '../../_doubles/fake-view';
 import { FakeViewFactory } from '../../_doubles/fake-view-factory';
 import { AuDOMConfiguration, AuNode } from '../../au-dom';

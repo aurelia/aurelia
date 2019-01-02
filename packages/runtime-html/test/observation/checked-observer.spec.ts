@@ -1,17 +1,35 @@
-
-import { DI, Registration } from '@aurelia/kernel';
-import { Binding, enableArrayObservation, IBindingTargetObserver, IDOM, ILifecycle, IObserverLocator, IPropertySubscriber, LifecycleFlags } from '@aurelia/runtime';
-import { Lifecycle } from '@aurelia/runtime/src';
+import {
+  Registration
+} from '@aurelia/kernel';
+import {
+  Binding,
+  enableArrayObservation,
+  IBindingTargetObserver,
+  IDOM,
+  ILifecycle,
+  IObserverLocator,
+  IPropertySubscriber,
+  LifecycleFlags
+} from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { CheckedObserver, HTMLDOM, HTMLRuntimeConfiguration } from '../../src/index';
-import { _, createElement } from '../util';
+import {
+  CheckedObserver,
+  HTMLDOM,
+  HTMLRuntimeConfiguration,
+  IInputElement
+} from '../../src/index';
+import {
+  _,
+  createElement
+} from '../util';
+import { Lifecycle } from '../../../runtime/src/lifecycle';
 
 type ObservedInputElement = HTMLInputElement & {
   $observers: Record<string, IBindingTargetObserver>;
   model: any;
   matcher: (a: any, b: any) => boolean;
-  children: HTMLCollectionOf<ObservedInputElement>
+  children: HTMLCollectionOf<ObservedInputElement>;
 };
 type TwoWayBinding = Binding & { targetObserver: IBindingTargetObserver };
 
@@ -28,10 +46,11 @@ describe('CheckedObserver', () => {
       const container = HTMLRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
-      const lifecycle = container.get(ILifecycle);
+      // @ts-ignore
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = container.get(IObserverLocator);
 
-      const el = createElement(`<input type="checkbox"/>`);
+      const el = createElement(`<input type="checkbox"/>`) as IInputElement;
       document.body.appendChild(el);
 
       const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
@@ -101,7 +120,7 @@ describe('CheckedObserver', () => {
       Registration.instance(IDOM, dom).register(container, IDOM);
       const observerLocator = container.get(IObserverLocator);
 
-      const el = createElement(`<input type="checkbox"/>`);
+      const el = createElement(`<input type="checkbox"/>`) as IInputElement;
       document.body.appendChild(el);
 
       const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
@@ -153,7 +172,8 @@ describe('CheckedObserver', () => {
       const container = HTMLRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
-      const lifecycle = container.get(ILifecycle);
+      //@ts-ignore
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = container.get(IObserverLocator);
 
       const elA = createElement(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
@@ -331,7 +351,8 @@ describe('CheckedObserver', () => {
       const container = HTMLRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
-      const lifecycle = container.get(ILifecycle);
+      //@ts-ignore
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = container.get(IObserverLocator);
 
       const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
@@ -407,7 +428,8 @@ describe('CheckedObserver', () => {
       const container = HTMLRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
-      const lifecycle = container.get(ILifecycle);
+      //@ts-ignore
+      const lifecycle = container.get(ILifecycle) as Lifecycle;
       const observerLocator = container.get(IObserverLocator);
 
       const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
@@ -510,7 +532,7 @@ describe('CheckedObserver', () => {
                 await sut.setValue(array, LifecycleFlags.none);
                 el.checked = checkedBefore;
                 el.dispatchEvent(new Event(event, eventDefaults));
-                let actual = sut.getValue();
+                let actual = sut.getValue() as IInputElement[];
                 if (checkedBefore) {
                   expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value + '' : '') : value); // TODO: maybe we should coerce value in the observer
                 } else {
@@ -519,7 +541,7 @@ describe('CheckedObserver', () => {
 
                 el.checked = checkedAfter;
                 el.dispatchEvent(new Event(event, eventDefaults));
-                actual = sut.getValue();
+                actual = sut.getValue() as IInputElement[];
                 if (checkedAfter) {
                   expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value + '' : '') : value); // TODO: maybe we should coerce value in the observer
                 } else {

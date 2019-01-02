@@ -1,4 +1,4 @@
-import { DI, inject, InterfaceSymbol } from '@aurelia/kernel';
+import { DI, InterfaceSymbol } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**
@@ -33,15 +33,16 @@ export interface ITemplateElementFactory {
 // For some reason rollup complains about `DI.createInterface<ITemplateElementFactory>().noDefault()` with this message:
 // "semantic error TS2742 The inferred type of 'ITemplateElementFactory' cannot be named without a reference to '@aurelia/jit/node_modules/@aurelia/kernel'. This is likely not portable. A type annotation is necessary"
 // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
-export const ITemplateElementFactory: InterfaceSymbol<ITemplateElementFactory> = DI.createInterface().noDefault();
+export const ITemplateElementFactory: InterfaceSymbol<ITemplateElementFactory> = DI.createInterface('ITemplateElementFactory').noDefault();
 
 /**
  * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
  *
  * @internal
  */
-@inject(IDOM)
 export class HTMLTemplateElementFactory implements ITemplateElementFactory {
+  public static readonly inject: ReadonlyArray<Function> = [IDOM];
+
   private dom: IDOM;
   private template: HTMLTemplateElement;
 

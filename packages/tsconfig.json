@@ -4,6 +4,7 @@
     { "path": "kernel" },
     { "path": "runtime" },
     { "path": "runtime-html" },
+    { "path": "runtime-pixi" },
     { "path": "validation" },
     { "path": "router" },
     { "path": "jit" },

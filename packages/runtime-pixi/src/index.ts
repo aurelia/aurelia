@@ -1,0 +1,3 @@
+export {
+  PixiRuntimeConfiguration
+} from './configuration';

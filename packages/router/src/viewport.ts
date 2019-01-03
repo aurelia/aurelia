@@ -1,4 +1,3 @@
-import { PLATFORM } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
@@ -99,9 +98,6 @@ export class Viewport {
       if (this.elementResolve) {
         this.elementResolve();
       }
-      // if (!this.element.children) {
-      //   this.canEnter().then(() => this.loadContent()).catch(error => { throw error; });
-      // }
     }
   }
 
@@ -152,30 +148,18 @@ export class Viewport {
     return result;
   }
 
-  public async loadContent(guard?: number): Promise<boolean> {
+  public async loadContent(): Promise<boolean> {
     // tslint:disable-next-line:no-console
     console.log('Viewport loadContent', this.name);
-
-    if (!this.element) {
-      // TODO: Refactor this once multi level recursiveness is fixed
-      await this.waitForElement(50);
-      if (!this.element) {
-        return Promise.resolve(false);
-      }
-    }
-
-    const host: INode = this.element as INode;
-    const container = this.router.container;
-    const dom = container.get(IDOM);
-    const projectorLocator = container.get(IProjectorLocator);
-    const renderingEngine = container.get(IRenderingEngine);
 
     if (this.component) {
       if (this.component.leave) {
         await this.component.leave(this.instruction, this.nextInstruction);
       }
-      this.component.$detach(LifecycleFlags.fromStopTask);
-      this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+      // No need to wait for next component activation
+      if (!this.nextComponent) {
+        this.removeComponent(this.component);
+      }
     }
 
     if (this.nextComponent) {
@@ -185,9 +169,20 @@ export class Viewport {
         this.nextInstruction.parameterList = merged.list;
         await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
       }
-      this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host, null);
-      this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
-      this.nextComponent.$attach(LifecycleFlags.fromStartTask);
+
+      if (!this.element) {
+        // TODO: Refactor this once multi level recursiveness is fixed
+        await this.waitForElement();
+        if (!this.element) {
+          return Promise.resolve(false);
+        }
+      }
+
+      // Only when next component activation is done
+      if (this.component) {
+        this.removeComponent(this.component);
+      }
+      this.addComponent(this.nextComponent);
 
       this.content = this.nextContent;
       this.parameters = this.nextParameters;
@@ -285,23 +280,29 @@ export class Viewport {
     this.nextComponent = this.router.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
   }
 
-  private async waitForElement(guard: number): Promise<void> {
+  private addComponent(component: ICustomElement): void {
+    const host: INode = this.element as INode;
+    const container = this.router.container;
+    const dom = container.get(IDOM);
+    const projectorLocator = container.get(IProjectorLocator);
+    const renderingEngine = container.get(IRenderingEngine);
+
+    component.$hydrate(dom, projectorLocator, renderingEngine, host, null);
+    component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+    component.$attach(LifecycleFlags.fromStartTask);
+  }
+
+  private removeComponent(component: ICustomElement): void {
+    component.$detach(LifecycleFlags.fromStopTask);
+    component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+  }
+
+  private async waitForElement(): Promise<void> {
     if (this.element) {
       return Promise.resolve();
     }
     return new Promise((resolve) => {
       this.elementResolve = resolve;
-    });
-    // if (!guard) {
-    //   return Promise.resolve();
-    // }
-    // await this.wait(100);
-    // return this.waitForElement(--guard);
-  }
-
-  private async wait(time: number = 0): Promise<void> {
-    await new Promise((resolve) => {
-      PLATFORM.global.setTimeout(resolve, time);
     });
   }
 }

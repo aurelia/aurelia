@@ -1,6 +1,7 @@
-import { customElement, ICustomElement } from '@aurelia/runtime';
+import { customElement, ICustomElement, PromiseTask } from '@aurelia/runtime';
 import template from './app.html';
-import { LoadResourceTask } from '@aurelia/runtime-pixi';
+import { loader } from 'pixi.js';
+import { PLATFORM } from '@aurelia/kernel';
 
 interface ISprite {
   src: string;
@@ -24,9 +25,13 @@ export class App {
   }
 
   public created(): void {
-    LoadResourceTask
-      .register(this)
-      .add('logo', require('img/aurelia-icon-256x256.png'));
+    loader.add('logo', require('img/aurelia-icon-256x256.png'));
+    this.$lifecycle.registerTask(
+      new PromiseTask(
+        new Promise(loader.load.bind(loader)),
+        PLATFORM.noop
+      )
+    );
 
     for (let i = 0; i < 50; ++i) {
       this.addSprite();

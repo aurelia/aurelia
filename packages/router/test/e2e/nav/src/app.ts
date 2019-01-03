@@ -1,6 +1,6 @@
-import { inject } from '../../../../../kernel';
-import { Router } from '../../../../../router';
-import { customElement } from '../../../../../runtime';
+import { inject } from '@aurelia/kernel';
+import { customElement } from '@aurelia/runtime';
+import { Router } from '../../../../../router/src/index';
 
 @inject(Router)
 @customElement({

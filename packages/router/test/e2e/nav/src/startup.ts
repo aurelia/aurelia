@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { HTMLJitConfiguration } from '@aurelia/jit-html';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
-import { NavCustomElement, ViewportCustomElement } from '../../../../../router';
+import { NavCustomElement, ViewportCustomElement } from '../../../../../router/src/index';
 import { App } from './app';
 
 import { About } from './components/about';

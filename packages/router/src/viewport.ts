@@ -257,6 +257,30 @@ export class Viewport {
     return false;
   }
 
+  public binding(flags: LifecycleFlags): void {
+    if (this.component) {
+      this.component.$bind(flags);
+    }
+  }
+
+  public attaching(flags: LifecycleFlags): void {
+    if (this.component) {
+      this.component.$attach(flags);
+    }
+  }
+
+  public detaching(flags: LifecycleFlags): void {
+    if (this.component) {
+      this.component.$detach(flags);
+    }
+  }
+
+  public unbinding(flags: LifecycleFlags): void {
+    if (this.component) {
+      this.component.$unbind(flags);
+    }
+  }
+
   private loadComponent(component: ICustomElementType): void {
     this.nextComponent = this.router.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
   }

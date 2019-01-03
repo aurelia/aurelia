@@ -1,8 +1,8 @@
-import { customElement } from '../../../../../../runtime';
+import { customElement } from '@aurelia/runtime';
 
 @customElement({ name: 'about', template: `<template>ABOUT [\${id}] <input></template>` })
 export class About {
-  static parameters = ['id'];
+  public static parameters = ['id'];
 
   public id: string = 'no id provided';
 

@@ -1,5 +1,5 @@
-import { customElement } from '../../../../../../runtime';
-import { inject } from '../../../../../..//kernel';
+import { inject } from '@aurelia//kernel';
+import { customElement } from '@aurelia/runtime';
 import { ContactList } from './../contact-list';
 
 @customElement({

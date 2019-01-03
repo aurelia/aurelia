@@ -1,4 +1,4 @@
-import { customElement } from '../../../../../../runtime';
+import { customElement } from '@aurelia/runtime';
 import { wait } from '../utils';
 
 @customElement({ name: 'board', template: `<template>THE BIG BOARD! <input></template>` })

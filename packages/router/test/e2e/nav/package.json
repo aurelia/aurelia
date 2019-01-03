@@ -7,12 +7,12 @@
     "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {
-    "@aurelia/debug": "file:../../../../../packages/debug",
-    "@aurelia/jit-html": "file:../../../../../packages/jit-html",
-    "@aurelia/jit": "file:../../../../../packages/jit",
-    "@aurelia/kernel": "file:../../../../../packages/kernel",
-    "@aurelia/runtime-html": "file:../../../../../packages/runtime-html",
-    "@aurelia/runtime": "file:../../../../../packages/runtime"
+    "@aurelia/debug": "file:../../../../debug",
+    "@aurelia/jit-html": "file:../../../../jit-html",
+    "@aurelia/jit": "file:../../../../jit",
+    "@aurelia/kernel": "file:../../../../kernel",
+    "@aurelia/runtime-html": "file:../../../../runtime-html",
+    "@aurelia/runtime": "file:../../../../runtime"
   },
   "devDependencies": {
     "@types/node": "latest",

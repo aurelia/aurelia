@@ -1,4 +1,4 @@
-import { bindable, CustomElementResource, INode } from '@aurelia/runtime';
+import { bindable, CustomElementResource, INode, LifecycleFlags } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
@@ -22,6 +22,30 @@ export class ViewportCustomElement {
   }
   public detached(): void {
     this.router.removeViewport(this.viewport);
+  }
+
+  public binding(flags: LifecycleFlags): void {
+    if (this.viewport) {
+      this.viewport.binding(flags);
+    }
+  }
+
+  public attaching(flags: LifecycleFlags): void {
+    if (this.viewport) {
+      this.viewport.attaching(flags);
+    }
+  }
+
+  public detaching(flags: LifecycleFlags): void {
+    if (this.viewport) {
+      this.viewport.detaching(flags);
+    }
+  }
+
+  public unbinding(flags: LifecycleFlags): void {
+    if (this.viewport) {
+      this.viewport.unbinding(flags);
+    }
   }
 }
 // tslint:disable-next-line:no-invalid-template-strings

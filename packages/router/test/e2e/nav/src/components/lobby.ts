@@ -1,4 +1,4 @@
-import { customElement } from '../../../../../../runtime';
+import { customElement } from '@aurelia/runtime';
 
 @customElement({
   name: 'lobby', template:

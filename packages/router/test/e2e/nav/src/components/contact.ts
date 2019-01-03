@@ -1,5 +1,5 @@
-import { customElement } from '../../../../../../runtime';
-import { inject } from '../../../../../..//kernel';
+import { inject } from '@aurelia//kernel';
+import { customElement } from '@aurelia/runtime';
 import { ContactList } from '../contact-list';
 
 @customElement({
@@ -9,12 +9,12 @@ import { ContactList } from '../contact-list';
 </template>` })
 @inject(ContactList)
 export class Contact {
-  static parameters = ['id'];
+  public static parameters = ['id'];
 
   public contact = {};
   constructor(private contactList: ContactList) { }
 
-  enter(parameters) {
+  public enter(parameters) {
     if (parameters.id) {
       this.contact = this.contactList.contact(parameters.id);
     }

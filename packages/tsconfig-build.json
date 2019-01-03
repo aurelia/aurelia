@@ -13,6 +13,9 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "stripInternal": true,
-    "target": "es2018"
+    "target": "es2018",
+    "types": [
+      "node"
+    ]
   }
 }

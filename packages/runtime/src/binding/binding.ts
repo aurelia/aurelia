@@ -81,6 +81,11 @@ export class Binding implements IPartialConnectableBinding {
     const locator = this.locator;
     flags |= this.persistentFlags;
 
+    if (this.mode === BindingMode.fromView) {
+      flags &= ~LifecycleFlags.updateTargetInstance;
+      flags |= LifecycleFlags.updateSourceExpression;
+    }
+
     if (flags & LifecycleFlags.updateTargetInstance) {
       const targetObserver = this.targetObserver;
       const mode = this.mode;

@@ -418,7 +418,7 @@ export class TemplateBinder {
         // the template compiler will translate it to the correct instruction
         (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
         manifest.isTarget = true;
-      } else if (expr !== null) {
+      } else if (expr !== null || attrSyntax.target === 'ref') {
         // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
         manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
         manifest.isTarget = true;

@@ -2,7 +2,7 @@
   "name": "jit-pixi-webpack-ts",
   "version": "0.1.1",
   "scripts": {
-    "watch": "webpack-dev-server --no-inline",
+    "watch": "webpack-dev-server --no-inline --port 8080",
     "build": "rimraf dist && webpack --config webpack.config.js",
     "serve": "http-server -c-1 -p 9000 dist"
   },
@@ -19,14 +19,16 @@
   "devDependencies": {
     "@types/node": "latest",
     "@types/pixi.js": "^4.8.6",
+    "copy-webpack-plugin": "^4.6.0",
+    "file-loader": "^3.0.1",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
     "http-server": "latest",
     "rimraf": "latest",
     "ts-loader": "latest",
     "typescript": "latest",
+    "webpack": "latest",
     "webpack-cli": "latest",
-    "webpack-dev-server": "latest",
-    "webpack": "latest"
+    "webpack-dev-server": "latest"
   }
 }

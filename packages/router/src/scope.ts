@@ -211,7 +211,7 @@ export class Scope {
       viewport = this.viewports[name] = new Viewport(this.router, name, element, this, scope, options);
     }
     if (element) {
-      viewport.setElement(element);
+      viewport.setElement(element, options);
       // // First added viewport with element is always scope viewport (except for root scope)
       // if (viewport.scope && viewport.scope.parent && !viewport.scope.viewport) {
       //   viewport.scope.viewport = viewport;

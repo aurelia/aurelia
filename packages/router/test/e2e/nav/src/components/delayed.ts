@@ -1,8 +1,8 @@
 import { customElement } from '../../../../../../runtime';
 import { wait } from '../utils';
 
-@customElement({ name: 'board', template: `<template>THE BIG BOARD! <input></template>` })
-export class Board {
+@customElement({ name: 'delayed', template: `<template>A test, just ignore <input></template>` })
+export class Delayed {
 
   public async enter() {
     return wait(5000);

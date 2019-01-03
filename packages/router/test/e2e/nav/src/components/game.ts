@@ -1,4 +1,5 @@
 import { customElement } from '../../../../../../runtime';
+import { wait } from '../utils';
 
 @customElement({
   name: 'game', template:
@@ -12,4 +13,10 @@ import { customElement } from '../../../../../../runtime';
   </div>
 </template>
 ` })
-export class Game { }
+export class Game {
+
+  public async enter() {
+    return wait(5000);
+  }
+
+}

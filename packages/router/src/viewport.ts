@@ -24,6 +24,12 @@ export interface IViewportOptions {
 }
 
 export class Viewport {
+  public name: string;
+  public element: Element;
+  public owningScope: Scope;
+  public scope: Scope;
+  public options?: IViewportOptions;
+
   public content: IRouteableCustomElementType;
   public nextContent: IRouteableCustomElementType;
   public parameters: string;
@@ -35,9 +41,17 @@ export class Viewport {
   public component: IRouteableCustomElement;
   public nextComponent: IRouteableCustomElement;
 
+  private router: Router;
   private clear: boolean = false;
+  private elementResolve: Function;
 
-  constructor(private router: Router, public name: string, public element: Element, public owningScope: Scope, public scope: Scope, public options?: IViewportOptions) {
+  constructor(router: Router, name: string, element: Element, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
+    this.router = router;
+    this.name = name;
+    this.element = element;
+    this.owningScope = owningScope;
+    this.scope = scope;
+    this.options = options;
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
@@ -69,7 +83,7 @@ export class Viewport {
     return false;
   }
 
-  public setElement(element: Element): void {
+  public setElement(element: Element, options: IViewportOptions): void {
     // First added viewport with element is always scope viewport (except for root scope)
     if (this.scope && this.scope.parent && !this.scope.viewport) {
       this.scope.viewport = this;
@@ -79,9 +93,15 @@ export class Viewport {
     }
     if (!this.element) {
       this.element = element;
-      if (!this.element.children) {
-        this.canEnter().then(() => this.loadContent()).catch(error => { throw error; });
+      if (options && options.usedBy) {
+        this.options.usedBy = options.usedBy;
       }
+      if (this.elementResolve) {
+        this.elementResolve();
+      }
+      // if (!this.element.children) {
+      //   this.canEnter().then(() => this.loadContent()).catch(error => { throw error; });
+      // }
     }
   }
 
@@ -152,7 +172,7 @@ export class Viewport {
 
     if (this.component) {
       if (this.component.leave) {
-        this.component.leave(this.instruction, this.nextInstruction);
+        await this.component.leave(this.instruction, this.nextInstruction);
       }
       this.component.$detach(LifecycleFlags.fromStopTask);
       this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
@@ -163,7 +183,7 @@ export class Viewport {
         const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, this.nextContent.parameters);
         this.nextInstruction.parameters = merged.parameters;
         this.nextInstruction.parameterList = merged.list;
-        this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
+        await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
       }
       this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host, null);
       this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
@@ -245,11 +265,14 @@ export class Viewport {
     if (this.element) {
       return Promise.resolve();
     }
-    if (!guard) {
-      return Promise.resolve();
-    }
-    await this.wait(100);
-    return this.waitForElement(--guard);
+    return new Promise((resolve) => {
+      this.elementResolve = resolve;
+    });
+    // if (!guard) {
+    //   return Promise.resolve();
+    // }
+    // await this.wait(100);
+    // return this.waitForElement(--guard);
   }
 
   private async wait(time: number = 0): Promise<void> {

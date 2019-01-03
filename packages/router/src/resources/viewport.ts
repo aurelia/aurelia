@@ -20,7 +20,7 @@ export class ViewportCustomElement {
     }
     this.viewport = this.router.addViewport(this.name, this.element, options);
   }
-  public unbound(): void {
+  public detached(): void {
     this.router.removeViewport(this.viewport);
   }
 }

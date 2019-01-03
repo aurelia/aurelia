@@ -6,7 +6,6 @@
     "module": "esnext",
     "moduleResolution": "node",
     "outDir": "dist",
-    "rootDir": "src",
     "target": "es2018"
   },
   "include": ["src"]

@@ -11,7 +11,7 @@ export class ViewportCustomElement {
 
   public viewport: Viewport;
 
-  constructor(private router: Router, private element: Element) { }
+  constructor(private readonly router: Router, private readonly element: Element) { }
 
   public attached(): void {
     const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };

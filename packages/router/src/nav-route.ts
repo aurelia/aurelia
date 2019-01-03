@@ -1,4 +1,4 @@
-import { AccessorOrObserver, ICustomElementType, IObserverLocator } from '@aurelia/runtime';
+import { AccessorOrObserver, ICustomElementType, IObserverLocator, SetterObserver } from '@aurelia/runtime';
 import { INavRoute, Nav } from './nav';
 
 export interface IViewportComponent {
@@ -16,8 +16,7 @@ export class NavRoute {
 
   public active: string = '';
 
-  private observerLocator: IObserverLocator;
-  private observer: any;
+  private readonly observer: SetterObserver;
 
   constructor(nav: Nav, route?: INavRoute) {
     this.nav = nav;
@@ -28,13 +27,20 @@ export class NavRoute {
       active: '',
     });
     this.link = this._link();
-    this.observerLocator = this.nav.router.container.get(IObserverLocator);
-    this.observer = this.observerLocator.getObserver(this.nav.router, 'activeComponents');
+    this.observer = new SetterObserver(this.nav.router, 'activeComponents');
     this.observer.subscribe(this);
   }
 
   public get hasChildren(): string {
     return (this.children && this.children.length ? 'nav-has-children' : '');
+  }
+
+  public handleChange(): void {
+    if (this.link && this.link.length) {
+      this.active = this._active();
+    } else {
+      this.active = (this.active === 'nav-active' ? 'nav-active' : (this.activeChild() ? 'nav-active-child' : ''));
+    }
   }
 
   public _active(): string {
@@ -67,13 +73,6 @@ export class NavRoute {
     }
   }
 
-  private handleChange(): void {
-    if (this.link && this.link.length) {
-      this.active = this._active();
-    } else {
-      this.active = (this.active === 'nav-active' ? 'nav-active' : (this.activeChild() ? 'nav-active-child' : ''));
-    }
-  }
   private activeChild(): boolean {
     if (this.children) {
       for (const child of this.children) {

@@ -40,7 +40,7 @@ export class Viewport {
   public component: IRouteableCustomElement;
   public nextComponent: IRouteableCustomElement;
 
-  private router: Router;
+  private readonly router: Router;
   private clear: boolean = false;
   private elementResolve: Function;
 

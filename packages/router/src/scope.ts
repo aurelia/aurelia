@@ -26,7 +26,7 @@ export class Scope {
   private scopeViewportParts: Object = {};
   private availableViewports: Object;
 
-  constructor(private router: Router, public element: Element, public parent: Scope) {
+  constructor(private readonly router: Router, public element: Element, public parent: Scope) {
     if (this.parent) {
       this.parent.addChild(this);
     }
@@ -67,6 +67,7 @@ export class Scope {
           componentViewports.push(...found.componentViewports);
           viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
           this.availableViewports[name] = null;
+          // tslint:disable-next-line:no-dynamic-delete
           delete this.scopeViewportParts[viewportPart];
           break;
         }
@@ -99,6 +100,7 @@ export class Scope {
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[name] = null;
+        // tslint:disable-next-line:no-dynamic-delete
         delete this.scopeViewportParts[viewportPart];
       }
     }
@@ -122,6 +124,7 @@ export class Scope {
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[viewport.name] = null;
+        // tslint:disable-next-line:no-dynamic-delete
         delete this.scopeViewportParts[viewportPart];
         break;
       }
@@ -212,19 +215,6 @@ export class Scope {
     }
     if (element) {
       viewport.setElement(element, options);
-      // // First added viewport with element is always scope viewport (except for root scope)
-      // if (viewport.scope && viewport.scope.parent && !viewport.scope.viewport) {
-      //   viewport.scope.viewport = viewport;
-      // }
-      // if (viewport.scope && !viewport.scope.element) {
-      //   viewport.scope.element = element;
-      // }
-      // if (!viewport.element) {
-      //   viewport.element = element;
-      //   if (!viewport.element.children) {
-      //     this.renderViewport(viewport).catch(error => { throw error; });
-      //   }
-      // }
     }
     return viewport;
   }
@@ -232,6 +222,7 @@ export class Scope {
     if (viewport.scope) {
       this.router.removeScope(viewport.scope);
     }
+    // tslint:disable-next-line:no-dynamic-delete
     delete this.viewports[viewport.name];
     return Object.keys(this.viewports).length;
   }

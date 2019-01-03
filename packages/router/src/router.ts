@@ -58,7 +58,7 @@ export class Router {
   private isActive: boolean = false;
   private isRedirecting: boolean = false;
 
-  private pendingNavigations: INavigationInstruction[] = [];
+  private readonly pendingNavigations: INavigationInstruction[] = [];
   private processingNavigation: INavigationInstruction = null;
 
   constructor(public container: IContainer) {
@@ -236,8 +236,9 @@ export class Router {
         this.processingNavigation = null;
         return Promise.resolve();
       }
-      results = await Promise.all(changedViewports.map((value) => value.loadContent()));
+      await Promise.all(changedViewports.map((value) => value.loadContent()));
       // TODO: Remove this once multi level recursiveness has been fixed
+      // results = await Promise.all(changedViewports.map((value) => value.loadContent()));
       // if (results.findIndex((value) => value === false) >= 0) {
       //   this.historyBrowser.cancel();
       //   return Promise.resolve();

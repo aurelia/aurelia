@@ -21,9 +21,16 @@ import { Router } from '../router';
 export class NavCustomElement {
   @bindable public name: string;
   @bindable public routes: NavRoute[];
-  @bindable public level: number = 0;
+  @bindable public level: number;
 
-  constructor(private router: Router, private element: Element) { }
+  private readonly router: Router;
+
+  constructor(router: Router) {
+    this.router = router;
+    this.name = null;
+    this.routes = null;
+    this.level = 0;
+  }
 
   get navRoutes(): NavRoute[] {
     const nav = this.router.findNav(this.name);

@@ -11,6 +11,7 @@ import {
 import {
   parseExpression
 } from '../../jit/src/index';
+import { TargetedInstruction } from '../dist';
 import {
   addBindable,
   Aurelia,
@@ -52,7 +53,6 @@ import {
   TemplateDefinition,
   ToViewBindingInstruction
 } from '../src/index';
-import { TargetedInstruction } from '../dist';
 
 const slice = Array.prototype.slice;
 
@@ -81,13 +81,12 @@ export class AuNode implements INode {
   public parentNode: AuNode | null;
   public childNodes: AuNode[];
   public get textContent(): string {
-    if (this.isRenderLocation === true) {
-      return '';
-    }
     let textContent = this._textContent;
     let current = this.firstChild;
     while (current !== null) {
-      textContent += current.textContent;
+      if (current.isRenderLocation === false) {
+        textContent += current.textContent;
+      }
       current = current.nextSibling;
     }
     return textContent;

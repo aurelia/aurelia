@@ -150,7 +150,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       } else {
         forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           const view = views[i];
-          if (indexMap[i] === i && !!view.$scope) {
+          if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
           } else {
             view.$bind(flags, Scope.fromParent($scope, BindingContext.create(local, item)));

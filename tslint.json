@@ -74,7 +74,7 @@
     "no-invalid-this": false,
     "no-jquery-raw-elements": true,
     "no-misused-new": true,
-    "no-non-null-assertion": true,
+    "no-non-null-assertion": false,
     "no-object-literal-type-assertion": true,
     "no-parameter-reassignment": false,
     "no-reference-import": true,

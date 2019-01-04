@@ -181,16 +181,7 @@
     "prefer-object-spread": true,
     "prefer-template": true,
     "type-literal-delimiter": true,
-    "typedef": [
-      true,
-      "call-signature",
-      //"arrow-call-signature",
-      "parameter",
-      //"arrow-parameter",
-      "property-declaration",
-      //"variable-declaration",
-      "member-variable-declaration"
-    ],
+    "typedef": false,
     "underscore-consistent-invocation": true,
     "unified-signatures": false,
     "use-default-type-parameter": true,

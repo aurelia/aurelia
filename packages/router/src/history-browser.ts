@@ -4,9 +4,9 @@ export interface IHistoryEntry {
   index?: number;
   title?: string;
   query?: string;
-  parameters?: Object;
+  parameters?: Record<string, string>;
   parameterList?: string[];
-  data?: Object;
+  data?: Record<string, unknown>;
 }
 
 export interface IHistoryOptions {
@@ -70,7 +70,7 @@ export class HistoryBrowser {
     this.isActive = false;
   }
 
-  public goto(path: string, title?: string, data?: Object): void {
+  public goto(path: string, title?: string, data?: Record<string, unknown>): void {
     this.activeEntry = {
       path: path,
       fullStatePath: null,
@@ -80,7 +80,7 @@ export class HistoryBrowser {
     this.setPath(path);
   }
 
-  public replace(path: string, title?: string, data?: Object): void {
+  public replace(path: string, title?: string, data?: Record<string, unknown>): void {
     this.isReplacing = true;
     this.activeEntry = {
       path: path,
@@ -90,7 +90,7 @@ export class HistoryBrowser {
     };
     this.setPath(path, true);
   }
-  public redirect(path: string, title?: string, data?: Object): void {
+  public redirect(path: string, title?: string, data?: Record<string, unknown>): void {
     // This makes sure we can cancel redirects from both pushes and replaces
     this.cancelRedirectHistoryMovement = this.lastHistoryMovement + 1;
     this.replace(path, title, data);
@@ -122,7 +122,7 @@ export class HistoryBrowser {
     }
   }
 
-  public setState(key: string | Object, value?: Object): void {
+  public setState(key: string | Record<string, unknown>, value?: Record<string, unknown>): void {
     const { pathname, search, hash } = this.location;
     let state = { ...this.history.state };
     if (typeof key === 'string') {
@@ -133,7 +133,7 @@ export class HistoryBrowser {
     this.history.replaceState(state, null, `${pathname}${search}${hash}`);
   }
 
-  public getState(key: string): Object {
+  public getState(key: string): Record<string, unknown> {
     const state = { ...this.history.state };
     return state[key];
   }

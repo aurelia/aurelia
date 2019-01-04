@@ -24,12 +24,12 @@ export class Scope {
   public viewport: Viewport;
 
   public children: Scope[] = [];
-  public viewports: Object = {};
+  public viewports: Record<string, Viewport> = {};
 
   private readonly router: Router;
 
-  private scopeViewportParts: Object = {};
-  private availableViewports: Object;
+  private scopeViewportParts: Record<string, string[][]> = {};
+  private availableViewports: Record<string, Viewport>;
 
   constructor(router: Router, element: Element, parent: Scope) {
     this.router = router;
@@ -47,7 +47,7 @@ export class Scope {
     }
   }
 
-  public findViewports(viewports?: Object): IFindViewportsResult {
+  public findViewports(viewports?: Record<string, string>): IFindViewportsResult {
     const componentViewports: IComponentViewport[] = [];
     let viewportsRemaining: boolean = false;
 
@@ -162,7 +162,7 @@ export class Scope {
     };
   }
 
-  public foundViewport(viewports: Object, scopeViewportParts: Object, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult {
+  public foundViewport(viewports: Record<string, string>, scopeViewportParts: Record<string, string[][]>, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult {
     const componentViewports: IComponentViewport[] = [{ component: component, viewport: viewport }];
     let viewportsRemaining: boolean = false;
 

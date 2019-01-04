@@ -17,8 +17,8 @@ export interface IRoute {
   path: string;
   redirect?: string;
   title?: string;
-  viewports?: Object;
-  meta?: Object;
+  viewports?: Record<string, string>;
+  meta?: Record<string, string>;
 }
 
 export interface IRouteViewport {
@@ -41,7 +41,7 @@ export class Router {
   public static readonly inject: ReadonlyArray<Function> = [IContainer];
 
   public routes: IRoute[] = [];
-  public viewports: Object = {};
+  public viewports: Record<string, Viewport> = {};
 
   public rootScope: Scope;
   public scopes: Scope[] = [];
@@ -51,7 +51,7 @@ export class Router {
   public historyBrowser: HistoryBrowser;
   public linkHandler: LinkHandler;
 
-  public navs: Object = {};
+  public navs: Record<string, Nav> = {};
   public activeComponents: string[] = [];
 
   private options: IRouterOptions;
@@ -160,7 +160,7 @@ export class Router {
     instruction.parameterList = parsedQuery.list;
 
     let title;
-    let views: Object;
+    let views: Record<string, string>;
     let route: IRoute = this.findRoute(instruction);
     if (route) {
       if (route.redirect) {
@@ -315,7 +315,7 @@ export class Router {
   public findRoute(entry: IHistoryEntry): IRoute {
     return this.routes.find((value) => value.path === entry.path);
   }
-  public resolveRedirect(route: IRoute, data?: Object): IRoute {
+  public resolveRedirect(route: IRoute, data?: Record<string, unknown>): IRoute {
     while (route.redirect) {
       const redirectRoute: IRoute = this.findRoute({
         path: route.redirect,
@@ -331,8 +331,8 @@ export class Router {
     return route;
   }
 
-  public findViews(entry: IHistoryEntry): Object {
-    const views: Object = {};
+  public findViews(entry: IHistoryEntry): Record<string, string> {
+    const views: Record<string, string> = {};
     let path = entry.path;
     // TODO: Let this govern start of scope
     if (path.startsWith('/')) {
@@ -412,7 +412,7 @@ export class Router {
     this.routes.push(route);
   }
 
-  public goto(pathOrViewports: string | Object, title?: string, data?: Object): void {
+  public goto(pathOrViewports: string | Object, title?: string, data?: Record<string, unknown>): void {
     if (typeof pathOrViewports === 'string') {
       this.historyBrowser.goto(pathOrViewports, title, data);
     }
@@ -421,7 +421,7 @@ export class Router {
     // }
   }
 
-  public replace(pathOrViewports: string | Object, title?: string, data?: Object): void {
+  public replace(pathOrViewports: string | Object, title?: string, data?: Record<string, unknown>): void {
     if (typeof pathOrViewports === 'string') {
       this.historyBrowser.replace(pathOrViewports, title, data);
     }

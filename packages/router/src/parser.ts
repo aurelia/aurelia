@@ -1,10 +1,10 @@
 export interface IParsedQuery {
-  parameters: Object;
+  parameters: Record<Exclude<string, '-unnamed'>, string> | (Record<Exclude<string, '-unnamed'>, string> & Record<'-unnamed', string[]>);
   list: string[];
 }
 
 export interface IMergedParameters {
-  parameters: Object;
+  parameters: Record<string, string>;
   list: string[];
   merged: string[] | Object;
 }

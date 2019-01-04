@@ -1,5 +1,6 @@
 {
   "extends": "../tslint.json",
+  "defaultSeverity": "warning",
   "linterOptions": {
     "exclude": []
   },

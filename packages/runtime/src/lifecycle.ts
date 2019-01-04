@@ -3,11 +3,13 @@ import {
   IContainer,
   IDisposable,
   Immutable,
+  InterfaceSymbol,
   IResolver,
   IServiceLocator,
   Omit,
   PLATFORM,
   Registration,
+  Reporter,
   Tracer
 } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
@@ -1266,7 +1268,7 @@ export class Lifecycle implements ILifecycle {
       this.detachedCount = 0;
       let currentDetached = this.detachedHead.$nextDetached! as Required<ILifecycleDetached>; // we know queued attachables cannot have `null` on `$nextDetached` because we always set marker on the last queued;
       this.detachedHead = this.detachedTail = this;
-      let nextDetached: Required<ILifecycleDetached>;; // we know queued attachables always have `detached` defined because otherwise they can't get queued
+      let nextDetached: Required<ILifecycleDetached>; // we know queued attachables always have `detached` defined because otherwise they can't get queued
 
       do {
         currentDetached.detached(flags);
@@ -1296,17 +1298,17 @@ export class Lifecycle implements ILifecycle {
 }
 
 export class CompositionCoordinator {
-  public static readonly inject: ReadonlyArray<Function> = [ILifecycle];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ILifecycle];
 
   public readonly $lifecycle: ILifecycle;
 
   public onSwapComplete: () => void;
 
-  private currentView: IView;
+  private currentView: IView | null;
   private isAttached: boolean;
   private isBound: boolean;
   private queue: (IView | PromiseSwap)[] | null;
-  private scope: IScope;
+  private scope: IScope | null;
   private swapTask: ILifecycleTask;
 
   constructor($lifecycle: ILifecycle) {
@@ -1318,6 +1320,7 @@ export class CompositionCoordinator {
     this.isAttached = false;
     this.isBound = false;
     this.queue = null;
+    this.scope = null;
     this.swapTask = LifecycleTask.done;
   }
 
@@ -1418,6 +1421,9 @@ export class CompositionCoordinator {
     } else {
       if (this.isBound) {
         $lifecycle.beginBind();
+        if (this.scope === null) {
+          throw Reporter.error(0); // TODO: create error code (compose called before bound?)
+        }
         currentView.$bind(flags, this.scope);
         $lifecycle.endBind(flags);
       }
@@ -1445,7 +1451,7 @@ export class CompositionCoordinator {
 
   private processNext(): void {
     if (this.queue !== null && this.queue.length > 0) {
-      const next = this.queue.pop();
+      const next = this.queue.pop() as IView | PromiseSwap; // cast is safe because we know the queue has elements
       this.queue.length = 0;
 
       if (PromiseSwap.is(next)) {
@@ -1472,18 +1478,18 @@ export interface ILifecycleTask<T = unknown> {
   readonly done: boolean;
   canCancel(): boolean;
   cancel(): void;
-  wait(): Promise<T>;
+  wait(): Promise<T | undefined>;
 }
 
 export class AggregateLifecycleTask implements ILifecycleTask<void> {
   public done: boolean;
 
   /** @internal */
-  public owner: Lifecycle;
+  public owner: Lifecycle | null;
 
-  private resolve: () => void;
+  private resolve: (() => void) | null;
   private tasks: ILifecycleTask[];
-  private waiter: Promise<void>;
+  private waiter: Promise<void> | null;
 
   constructor() {
     this.done = true;
@@ -1562,6 +1568,9 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
       this.owner.processUnbindQueue(LifecycleFlags.fromLifecycleTask);
       this.owner.processBindQueue(LifecycleFlags.fromLifecycleTask);
       this.owner.processAttachQueue(LifecycleFlags.fromLifecycleTask);
+    }
+    if (this.owner === null) {
+      throw Reporter.error(0); // TODO: create error code (owner not set but task added?)
     }
     this.owner.finishTask(this);
 
@@ -1670,7 +1679,7 @@ export class PromiseTask<T = void> implements ILifecycleTask<T> {
   public done: boolean;
 
   private isCancelled: boolean;
-  private promise: Promise<T>;
+  private promise: Promise<T | undefined>;
   private callback: (result?: T) => void;
 
   constructor(promise: Promise<T>, callback: (result?: T) => void) {
@@ -1697,7 +1706,7 @@ export class PromiseTask<T = void> implements ILifecycleTask<T> {
     }
   }
 
-  public wait(): Promise<T> {
+  public wait(): Promise<T | undefined> {
     return this.promise;
   }
 }

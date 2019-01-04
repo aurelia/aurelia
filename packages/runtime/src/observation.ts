@@ -87,7 +87,7 @@ export enum DelegationStrategy {
  * Describes a type that tracks changes and can flush those changes in some way
  */
 export interface IChangeTracker {
-  $nextFlush?: IChangeTracker;
+  $nextFlush: IChangeTracker | null;
   hasChanges?: boolean;
   flush(flags: LifecycleFlags): void;
 }
@@ -104,7 +104,7 @@ export interface IAccessor<TValue = unknown> {
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).
  */
 export interface IBindingTargetAccessor<
-  TObj = any,
+  TObj extends object = object,
   TProp = keyof TObj,
   TValue = unknown>
   extends IDisposable,
@@ -117,7 +117,7 @@ export interface IBindingTargetAccessor<
  * Describes a target observer for from-view or two-way bindings.
  */
 export interface IBindingTargetObserver<
-  TObj = any,
+  TObj extends object = object,
   TProp = keyof TObj,
   TValue = unknown>
   extends IBindingTargetAccessor<TObj, TProp, TValue>,
@@ -150,7 +150,7 @@ export enum MutationKind {
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = unknown> {
+export interface IPropertyChangeTracker<TObj extends object, TProp = keyof TObj, TValue = unknown> {
   obj: TObj;
   propertyKey?: TProp;
   currentValue?: TValue;
@@ -295,7 +295,7 @@ export interface IBatchedSubscribable<T extends MutationKind> {
 /**
  * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
  */
-export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj> extends
+export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj> extends
   IDisposable,
   IAccessor<TObj[TProp]>,
   IPropertyChangeTracker<TObj, TProp>,
@@ -306,7 +306,7 @@ export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj
 /**
  * An any-typed property observer
  */
-export type PropertyObserver = IPropertyObserver<any, PropertyKey>;
+export type PropertyObserver = IPropertyObserver<IIndexable, string>;
 
 /**
  * A collection (array, set or map)

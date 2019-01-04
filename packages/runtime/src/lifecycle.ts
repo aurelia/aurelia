@@ -102,8 +102,8 @@ export const IRenderable = DI.createInterface<IRenderable>('IRenderable').noDefa
 
 export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
   createChild(): IRenderContext<T>;
-  render(renderable: IRenderable<T>, targets: ArrayLike<Object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IRenderable<T>, target: Object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
+  render(renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
+  beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 
 export interface IView<T extends INode = INode> extends IBindScope, IRenderable<T>, IAttach, IMountable {
@@ -191,7 +191,7 @@ export interface ILifecycleBinding extends IHooks, IState {
 }
 
 export interface ILifecycleBound extends IHooks, IState {
-  /** @internal */$nextBound?: ILifecycleBound;
+  /** @internal */$nextBound: ILifecycleBound | null;
 
   /**
    * Called at the end of `$bind`, after this instance and its children (if any) are bound.
@@ -236,7 +236,7 @@ export interface ILifecycleUnbinding extends IHooks, IState {
 }
 
 export interface ILifecycleUnbound extends IHooks, IState {
-  /** @internal */$nextUnbound?: ILifecycleUnbound;
+  /** @internal */$nextUnbound: ILifecycleUnbound | null;
 
   /**
    * Called at the end of `$unbind`, after this instance and its children (if any) are unbound.
@@ -280,7 +280,7 @@ export interface ILifecycleAttaching extends IHooks, IState {
 }
 
 export interface ILifecycleAttached extends IHooks, IState {
-  /** @internal */$nextAttached?: ILifecycleAttached;
+  /** @internal */$nextAttached: ILifecycleAttached | null;
 
   /**
    * Called at the end of `$attach`, after this instance and its children (if any) are attached.
@@ -316,7 +316,7 @@ export interface ILifecycleDetaching extends IHooks, IState {
 }
 
 export interface ILifecycleDetached extends IHooks, IState {
-  /** @internal */$nextDetached?: ILifecycleDetached;
+  /** @internal */$nextDetached: ILifecycleDetached | null;
 
   /**
    * Called at the end of `$detach`, after this instance and its children (if any) are detached.
@@ -384,7 +384,7 @@ export interface IAttach extends ILifecycleAttach, ILifecycleDetach, ICachable {
 }
 
 export interface ILifecycleMount {
-  /** @internal */$nextMount?: ILifecycleMount;
+  /** @internal */$nextMount: ILifecycleMount | null;
 
   /**
    * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
@@ -393,7 +393,7 @@ export interface ILifecycleMount {
 }
 
 export interface ILifecycleUnmount {
-  /** @internal */$nextUnmount?: ILifecycleUnmount;
+  /** @internal */$nextUnmount: ILifecycleUnmount | null;
 
   /**
    * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
@@ -412,12 +412,12 @@ export interface ILifecycleUnbind {
 }
 
 export interface ILifecycleUnbindAfterDetach extends ILifecycleUnbind {
-  $nextUnbindAfterDetach?: ILifecycleUnbindAfterDetach;
+  $nextUnbindAfterDetach: ILifecycleUnbindAfterDetach | null;
 }
 
 export interface ILifecycleBind {
   $state?: State;
-  $bind(flags: LifecycleFlags, scope?: IScope): void;
+  $bind(flags: LifecycleFlags, scope?: IScope | null): void;
 }
 
 export interface ILifecycleBindScope {
@@ -695,7 +695,7 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public unboundHead: ILifecycleUnbound;
   /** @internal */public unboundTail: ILifecycleUnbound;
 
-  /** @internal */public flushed: Promise<void>;
+  /** @internal */public flushed: Promise<void> | null;
   /** @internal */public promise: Promise<void>;
 
   /** @internal */public flushCount: number;
@@ -841,7 +841,7 @@ export class Lifecycle implements ILifecycle {
       ++this.flushCount;
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return this.flushed;
+    return this.flushed!; // it can never be null here due to `this.flushHead === this` check
   }
 
   public processFlushQueue(flags: LifecycleFlags): void {
@@ -850,12 +850,12 @@ export class Lifecycle implements ILifecycle {
     // flush callbacks may lead to additional flush operations, so keep looping until
     // the flush head is back to `this` (though this will typically happen in the first iteration)
     while (this.flushCount > 0) {
-      let current = this.flushHead.$nextFlush;
+      let current = this.flushHead.$nextFlush!; // we know queued changeTrackers cannot have `null` on `$nextFlush` because we always set marker on the last queued
       this.flushHead = this.flushTail = this;
       this.flushCount = 0;
       let next: typeof current;
       do {
-        next = current.$nextFlush;
+        next = current.$nextFlush!; // we know queued changeTrackers cannot have `null` on `$nextFlush` because we always set marker on the last queued
         current.$nextFlush = null;
         current.flush(flags);
         current = next;
@@ -919,12 +919,12 @@ export class Lifecycle implements ILifecycle {
     // connects cannot lead to additional connects, so we don't need to loop here
     if (this.connectCount > 0) {
       this.connectCount = 0;
-      let current = this.connectHead.$nextConnect;
+      let current = this.connectHead.$nextConnect!; // we know queued connectables cannot have `null` on `$nextConnect` because we always set marker on the last queued
       this.connectHead = this.connectTail = this as unknown as IConnectableBinding;
       let next: typeof current;
       do {
         current.connect(flags);
-        next = current.$nextConnect;
+        next = current.$nextConnect!; // we know queued connectables cannot have `null` on `$nextConnect` because we always set marker on the last queued
         current.$nextConnect = null;
         current = next;
       } while (current !== marker);
@@ -943,12 +943,12 @@ export class Lifecycle implements ILifecycle {
     // the patch head is back to `this` (though this will typically happen in the first iteration)
     while (this.patchCount > 0) {
       this.patchCount = 0;
-      let current = this.patchHead.$nextPatch;
+      let current = this.patchHead.$nextPatch!; // we know queued patchables cannot have `null` on `$nextPatch` because we always set marker on the last queued
       this.patchHead = this.patchTail = this as unknown as IConnectableBinding;
       let next: typeof current;
       do {
         current.patch(flags);
-        next = current.$nextPatch;
+        next = current.$nextPatch!; // we know queued patchables cannot have `null` on `$nextPatch` because we always set marker on the last queued
         current.$nextPatch = null;
         current = next;
       } while (current !== marker);
@@ -972,6 +972,7 @@ export class Lifecycle implements ILifecycle {
       return LifecycleTask.done;
     }
     if (Tracer.enabled) { Tracer.leave(); }
+    return LifecycleTask.done;
   }
 
   public processBindQueue(flags: LifecycleFlags): void {
@@ -985,12 +986,12 @@ export class Lifecycle implements ILifecycle {
     // the bound head is back to `this` (though this will typically happen in the first iteration)
     while (this.boundCount > 0) {
       this.boundCount = 0;
-      let current = this.boundHead.$nextBound;
-      let next: ILifecycleBound;
+      let current = this.boundHead.$nextBound! as Required<ILifecycleBound>; // we know queued bindables cannot have `null` on `$nextBound` because we always set marker on the last queued
+      let next: Required<ILifecycleBound>; // we know queued bindables always have `bound` defined because otherwise they can't get queued
       this.boundHead = this.boundTail = this;
       do {
         current.bound(flags);
-        next = current.$nextBound;
+        next = current.$nextBound! as Required<ILifecycleBound>; // we know queued bindables cannot have `null` on `$nextBound` because we always set marker on the last queued
         current.$nextBound = null;
         current = next;
       } while (current !== marker);
@@ -1035,6 +1036,7 @@ export class Lifecycle implements ILifecycle {
       return LifecycleTask.done;
     }
     if (Tracer.enabled) { Tracer.leave(); }
+    return LifecycleTask.done;
   }
 
   public processUnbindQueue(flags: LifecycleFlags): void {
@@ -1043,12 +1045,12 @@ export class Lifecycle implements ILifecycle {
     // the unbound head is back to `this` (though this will typically happen in the first iteration)
     while (this.unboundCount > 0) {
       this.unboundCount = 0;
-      let current = this.unboundHead.$nextUnbound;
-      let next: ILifecycleUnbound;
+      let current = this.unboundHead.$nextUnbound! as Required<ILifecycleUnbound>; // we know queued bindables cannot have `null` on `$nextUnbound` because we always set marker on the last queued
+      let next: Required<ILifecycleUnbound>; // we know queued bindables always have `unbound` defined because otherwise they can't get queued
       this.unboundHead = this.unboundTail = this;
       do {
         current.unbound(flags);
-        next = current.$nextUnbound;
+        next = current.$nextUnbound! as Required<ILifecycleUnbound>; // we know queued bindables cannot have `null` on `$nextUnbound` because we always set marker on the last queued
         current.$nextUnbound = null;
         current = next;
       } while (current !== marker);
@@ -1107,6 +1109,7 @@ export class Lifecycle implements ILifecycle {
       return LifecycleTask.done;
     }
     if (Tracer.enabled) { Tracer.leave(); }
+    return LifecycleTask.done;
   }
 
   public processAttachQueue(flags: LifecycleFlags): void {
@@ -1119,13 +1122,13 @@ export class Lifecycle implements ILifecycle {
 
     if (this.mountCount > 0) {
       this.mountCount = 0;
-      let currentMount = this.mountHead.$nextMount;
+      let currentMount = this.mountHead.$nextMount!; // we know queued mountables cannot have `null` on `$nextMount` because we always set marker on the last queued
       this.mountHead = this.mountTail = this;
-      let nextMount: typeof currentMount;
+      let nextMount: ILifecycleMount;
 
       do {
         currentMount.$mount(flags);
-        nextMount = currentMount.$nextMount;
+        nextMount = currentMount.$nextMount!; // we know queued mountables cannot have `null` on `$nextMount` because we always set marker on the last queued
         currentMount.$nextMount = null;
         currentMount = nextMount;
       } while (currentMount !== marker);
@@ -1140,13 +1143,13 @@ export class Lifecycle implements ILifecycle {
 
     if (this.attachedCount > 0) {
       this.attachedCount = 0;
-      let currentAttached = this.attachedHead.$nextAttached;
+      let currentAttached = this.attachedHead.$nextAttached! as Required<ILifecycleAttached>; // we know queued attachables cannot have `null` on `$nextAttached` because we always set marker on the last queued
       this.attachedHead = this.attachedTail = this;
-      let nextAttached: typeof currentAttached;
+      let nextAttached: Required<ILifecycleAttached>; // we know queued attachables always have `attached` defined because otherwise they can't get queued
 
       do {
         currentAttached.attached(flags);
-        nextAttached = currentAttached.$nextAttached;
+        nextAttached = currentAttached.$nextAttached! as Required<ILifecycleAttached>; // we know queued attachables cannot have `null` on `$nextAttached` because we always set marker on the last queued
         currentAttached.$nextAttached = null;
         currentAttached = nextAttached;
       } while (currentAttached !== marker);
@@ -1236,6 +1239,7 @@ export class Lifecycle implements ILifecycle {
       return LifecycleTask.done;
     }
     if (Tracer.enabled) { Tracer.leave(); }
+    return LifecycleTask.done;
   }
 
   public processDetachQueue(flags: LifecycleFlags): void {
@@ -1246,13 +1250,13 @@ export class Lifecycle implements ILifecycle {
 
     if (this.unmountCount > 0) {
       this.unmountCount = 0;
-      let currentUnmount = this.unmountHead.$nextUnmount;
+      let currentUnmount = this.unmountHead.$nextUnmount! as Required<ILifecycleUnmount>; // we know queued mountables cannot have `null` on `$nextUnmount` because we always set marker on the last queued
       this.unmountHead = this.unmountTail = this;
-      let nextUnmount: typeof currentUnmount;
+      let nextUnmount: ILifecycleUnmount;
 
       do {
         currentUnmount.$unmount(flags);
-        nextUnmount = currentUnmount.$nextUnmount;
+        nextUnmount = currentUnmount.$nextUnmount!; // we know queued mountables cannot have `null` on `$nextUnmount` because we always set marker on the last queued
         currentUnmount.$nextUnmount = null;
         currentUnmount = nextUnmount;
       } while (currentUnmount !== marker);
@@ -1260,13 +1264,13 @@ export class Lifecycle implements ILifecycle {
 
     if (this.detachedCount > 0) {
       this.detachedCount = 0;
-      let currentDetached = this.detachedHead.$nextDetached;
+      let currentDetached = this.detachedHead.$nextDetached! as Required<ILifecycleDetached>; // we know queued attachables cannot have `null` on `$nextDetached` because we always set marker on the last queued;
       this.detachedHead = this.detachedTail = this;
-      let nextDetached: typeof currentDetached;
+      let nextDetached: Required<ILifecycleDetached>;; // we know queued attachables always have `detached` defined because otherwise they can't get queued
 
       do {
         currentDetached.detached(flags);
-        nextDetached = currentDetached.$nextDetached;
+        nextDetached = currentDetached.$nextDetached! as Required<ILifecycleDetached>; // we know queued attachables cannot have `null` on `$nextDetached` because we always set marker on the last queued;
         currentDetached.$nextDetached = null;
         currentDetached = nextDetached;
       } while (currentDetached !== marker);
@@ -1275,22 +1279,20 @@ export class Lifecycle implements ILifecycle {
     if (this.unbindAfterDetachCount > 0) {
       this.beginUnbind();
       this.unbindAfterDetachCount = 0;
-      let currentUnbind = this.unbindAfterDetachHead.$nextUnbindAfterDetach;
+      let currentUnbind = this.unbindAfterDetachHead.$nextUnbindAfterDetach! as Required<ILifecycleUnbindAfterDetach>; // we know queued bindables cannot have `null` on `$nextUnbindAfterDetach` because we always set marker on the last queued
       this.unbindAfterDetachHead = this.unbindAfterDetachTail = this;
-      let nextUnbind: typeof currentUnbind;
+      let nextUnbind: Required<ILifecycleUnbindAfterDetach>;
 
       do {
         currentUnbind.$unbind(flags);
-        nextUnbind = currentUnbind.$nextUnbindAfterDetach;
-        currentUnbind.$nextUnbindAfterDetach = null;
+        nextUnbind = currentUnbind.$nextUnbindAfterDetach! as Required<ILifecycleUnbindAfterDetach>;
+        currentUnbind.$nextUnbindAfterDetach = null; // we know queued bindables cannot have `null` on `$nextUnbindAfterDetach` because we always set marker on the last queued
         currentUnbind = nextUnbind;
       } while (currentUnbind !== marker);
       this.endUnbind(flags);
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
-
-  private
 }
 
 export class CompositionCoordinator {

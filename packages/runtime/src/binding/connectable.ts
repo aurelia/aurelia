@@ -27,8 +27,8 @@ export interface IPartialConnectableBinding extends IBinding, IPropertySubscribe
 }
 
 export interface IConnectableBinding extends IPartialConnectableBinding {
-  $nextConnect?: IConnectableBinding;
-  $nextPatch?: IConnectableBinding;
+  $nextConnect: IConnectableBinding | null;
+  $nextPatch: IConnectableBinding | null;
   observerSlots: number;
   version: number;
   observeProperty(obj: IIndexable, propertyName: string): void;

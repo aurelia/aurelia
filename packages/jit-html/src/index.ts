@@ -4,6 +4,8 @@ export {
   CaptureBindingCommand
 } from './binding-command';
 export {
+  HTMLBindingLanguage,
+  HTMLTemplateCompiler,
   HTMLJitConfiguration
 } from './configuration';
 export {

@@ -5,6 +5,7 @@
     "packages/debug",
     "packages/jit",
     "packages/jit-html",
+    "packages/jit-pixi",
     "packages/kernel",
     "packages/plugin-parcel",
     "packages/plugin-requirejs",
@@ -13,6 +14,7 @@
     "packages/router",
     "packages/runtime",
     "packages/runtime-html",
+    "packages/runtime-pixi",
     "packages/testing",
     "packages/validation"
   ],

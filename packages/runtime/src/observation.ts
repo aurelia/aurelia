@@ -395,7 +395,7 @@ export interface IBindingContext {
   [key: string]: unknown;
 
   readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup<IOverrideContext>;
+  readonly $observers?: ObserversLookup<IOverrideContext> | null;
   getObservers?(): ObserversLookup<IOverrideContext>;
 }
 

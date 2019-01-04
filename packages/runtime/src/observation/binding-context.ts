@@ -22,9 +22,11 @@ const enum RuntimeError {
 
 /** @internal */
 export class InternalObserversLookup {
+  [key: string]: unknown;
+
   public getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver {
     if (Tracer.enabled) { Tracer.enter('InternalObserversLookup.getOrCreate', slice.call(arguments)); }
-    let observer = this[key];
+    let observer = this[key] as undefined | PropertyObserver;
     if (observer === undefined) {
       observer = this[key] = new SetterObserver(obj, key);
     }
@@ -36,14 +38,15 @@ export class InternalObserversLookup {
 type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
 export class BindingContext implements IBindingContext {
-  [key: string]: BindingContextValue;
+  [key: string]: unknown;
 
   public readonly $synthetic: true;
 
-  public $observers: ObserversLookup<IOverrideContext>;
+  public $observers: ObserversLookup<IOverrideContext> | null;
 
   private constructor(keyOrObj?: string | IIndexable, value?: BindingContextValue) {
     this.$synthetic = true;
+    this.$observers = null;
 
     if (keyOrObj !== undefined) {
       if (value !== undefined) {
@@ -53,7 +56,7 @@ export class BindingContext implements IBindingContext {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
           if (keyOrObj.hasOwnProperty(prop)) {
-            this[prop] = keyOrObj[prop];
+            this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }
       }
@@ -82,7 +85,8 @@ export class BindingContext implements IBindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBindScope {
+  // tslint:disable-next-line:cognitive-complexity
+  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBindScope | null | undefined {
     if (Tracer.enabled) { Tracer.enter('BindingContext.get', slice.call(arguments)); }
     if (scope === undefined) {
       throw Reporter.error(RuntimeError.UndefinedScope);
@@ -90,7 +94,7 @@ export class BindingContext implements IBindingContext {
     if (scope === null) {
       throw Reporter.error(RuntimeError.NullScope);
     }
-    let overrideContext = scope.overrideContext;
+    let overrideContext: IOverrideContext | null = scope.overrideContext;
 
     if (ancestor > 0) {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
@@ -145,7 +149,7 @@ export class BindingContext implements IBindingContext {
   public getObservers(): ObserversLookup<IOverrideContext> {
     if (Tracer.enabled) { Tracer.enter('BindingContext.getObservers', slice.call(arguments)); }
     let observers = this.$observers;
-    if (observers === undefined) {
+    if (observers === null) {
       this.$observers = observers = new InternalObserversLookup() as ObserversLookup<IOverrideContext>;
     }
     if (Tracer.enabled) { Tracer.leave(); }
@@ -197,7 +201,7 @@ export class Scope implements IScope {
   public static create(bc: IBindingContext | IBindScope, oc?: IOverrideContext | null): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope.create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc) : oc);
+    return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc === undefined ? null : oc) : oc);
   }
 
   public static fromOverride(oc: IOverrideContext): Scope {

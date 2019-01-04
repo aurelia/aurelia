@@ -12,8 +12,8 @@ import { IBinding } from '../binding/binding';
 import { IScope, LifecycleFlags } from '../observation';
 
 export interface IBindingBehavior {
-  bind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
-  unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
+  bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: unknown[]): void;
+  unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: unknown[]): void;
 }
 
 export interface IBindingBehaviorDefinition extends IResourceDefinition { }

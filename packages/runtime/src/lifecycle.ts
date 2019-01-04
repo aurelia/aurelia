@@ -432,7 +432,9 @@ export interface IBind extends ILifecycleBind, ILifecycleUnbind {
   /** @internal */$prevBind: IBindScope;
 }
 
-export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope { }
+export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope {
+  [key: string]: unknown;
+}
 
 const marker = Object.freeze(Object.create(null));
 

@@ -27,6 +27,7 @@ export class NavCustomElement {
 
   constructor(router: Router) {
     this.router = router;
+
     this.name = null;
     this.routes = null;
     this.level = 0;

@@ -41,7 +41,8 @@ export class Viewport {
   public nextComponent: IRouteableCustomElement;
 
   private readonly router: Router;
-  private clear: boolean = false;
+
+  private clear: boolean;
   private elementResolve: Function;
 
   constructor(router: Router, name: string, element: Element, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
@@ -51,6 +52,18 @@ export class Viewport {
     this.owningScope = owningScope;
     this.scope = scope;
     this.options = options;
+
+    this.clear = false;
+
+    this.content = null;
+    this.nextContent = null;
+    this.parameters = null;
+    this.nextParameters = null;
+    this.instruction = null;
+    this.nextInstruction = null;
+    this.component = null;
+    this.nextComponent = null;
+    this.elementResolve = null;
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {

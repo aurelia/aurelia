@@ -18,15 +18,30 @@ export interface IFindViewportsResult {
 }
 
 export class Scope {
+  public element: Element;
+  public parent: Scope;
+
   public viewport: Viewport;
 
   public children: Scope[] = [];
   public viewports: Object = {};
 
+  private readonly router: Router;
+
   private scopeViewportParts: Object = {};
   private availableViewports: Object;
 
-  constructor(private readonly router: Router, public element: Element, public parent: Scope) {
+  constructor(router: Router, element: Element, parent: Scope) {
+    this.router = router;
+    this.element = element;
+    this.parent = parent;
+
+    this.viewport = null;
+    this.children = [];
+    this.viewports = {};
+    this.scopeViewportParts = {};
+    this.availableViewports = null;
+
     if (this.parent) {
       this.parent.addChild(this);
     }

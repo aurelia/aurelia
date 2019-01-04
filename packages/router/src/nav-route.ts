@@ -1,3 +1,5 @@
+// NOTE: this file is currently not in use
+
 import { ICustomElementType, IObserverLocator, IPropertyObserver } from '@aurelia/runtime';
 import { INavRoute, Nav } from './nav';
 import { Router } from './router';

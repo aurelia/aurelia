@@ -1,3 +1,5 @@
+// NOTE: this file is currently not in use
+
 import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
 import { NavRoute } from './nav-route';
 import { Router } from './router';

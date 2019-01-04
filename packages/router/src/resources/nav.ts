@@ -1,3 +1,5 @@
+// NOTE: this file is currently not in use
+
 import { inject } from '@aurelia/kernel';
 import { bindable, customElement } from '@aurelia/runtime';
 import { NavRoute } from '../nav-route';

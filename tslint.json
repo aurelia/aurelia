@@ -147,7 +147,7 @@
     "no-empty-interface": false,
     "no-for-in": false,
     "no-function-expression": false,
-    "no-inferrable-types": false, // turn no-inferrable-types off in order to make the code consistent in its use of type decorations
+    "no-inferrable-types": true, // turn no-inferrable-types off in order to make the code consistent in its use of type decorations
     "no-multiline-string": false,
     "no-null-keyword": false, // turn no-null-keyword off and use undefined to mean not initialized and null to mean without a value
     "no-parameter-properties": false,
@@ -201,7 +201,7 @@
     * be consistent.
     */
     "align": [true, "parameters", "arguments", "statements"],
-    "curly": false,
+    "curly":[true, "ignore-same-line"],
     "encoding": true,
     "eofline": true,
     "import-spacing": true,
@@ -217,7 +217,7 @@
     "object-literal-key-quotes": [true, "consistent"],
     "one-line": [true, "check-open-brace", "check-catch", "check-else", "check-whitespace"],
     "quotemark": [true, "single"],
-    "semicolon": [true, "always"],
+    "semicolon": [true, "always", "ignore-bound-class-methods"],
     "space-within-parens": true,
     "trailing-comma": false, // forcing trailing commas for multi-line
                 // lists results in lists that are easier to reorder and version control diffs that are more clear.
@@ -239,7 +239,16 @@
     * Controversial/Configurable rules.
     */
     "ban": false,                // only enable this if you have some code pattern that you want to ban
-    "ban-types": false,
+    "ban-types": {
+        "options": [
+            ["Object", "Avoid using the `Object` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives."],
+            ["{}", "Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives."],
+            ["Function", "Avoid using the `Function` type. Prefer a specific function type, like `() => void`, or use `Constructable` / `Class<TProto, TStatic>` when referring to a constructor function."],
+            ["Boolean", "Avoid using the `Boolean` type. Did you mean `boolean`?"],
+            ["Number", "Avoid using the `Number` type. Did you mean `number`?"],
+            ["String", "Avoid using the `String` type. Did you mean `string`?"]
+        ]
+    },
     "cyclomatic-complexity": false,
     "deprecation": false, // deprecated APIs are sometimes unavoidable
     "file-header": false,  // enable this rule only if you are legally required to add a file header

@@ -1,5 +1,6 @@
-import { AccessorOrObserver, ICustomElementType, IObserverLocator, SetterObserver } from '@aurelia/runtime';
+import { ICustomElementType, IObserverLocator, IPropertyObserver } from '@aurelia/runtime';
 import { INavRoute, Nav } from './nav';
+import { Router } from './router';
 
 export interface IViewportComponent {
   viewport?: string;
@@ -16,7 +17,8 @@ export class NavRoute {
 
   public active: string = '';
 
-  private readonly observer: SetterObserver;
+  private readonly observerLocator: IObserverLocator;
+  private readonly observer: IPropertyObserver<Router, 'activeComponents'>;
 
   constructor(nav: Nav, route?: INavRoute) {
     this.nav = nav;
@@ -27,7 +29,8 @@ export class NavRoute {
       active: '',
     });
     this.link = this._link();
-    this.observer = new SetterObserver(this.nav.router, 'activeComponents');
+    this.observerLocator = this.nav.router.container.get(IObserverLocator);
+    this.observer = this.observerLocator.getObserver(this.nav.router, 'activeComponents') as IPropertyObserver<Router, 'activeComponents'>;
     this.observer.subscribe(this);
   }
 

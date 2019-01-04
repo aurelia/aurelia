@@ -2821,6 +2821,10 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               const $scope = this.$scope;
               const locator = this.locator;
               flags |= this.persistentFlags;
+              if (this.mode === BindingMode.fromView) {
+                  flags &= ~LifecycleFlags.updateTargetInstance;
+                  flags |= LifecycleFlags.updateSourceExpression;
+              }
               if (flags & LifecycleFlags.updateTargetInstance) {
                   const targetObserver = this.targetObserver;
                   const mode = this.mode;
@@ -5723,7 +5727,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   else {
                       forOf.iterate(items, (arr, i, item) => {
                           const view = views[i];
-                          if (indexMap[i] === i && !!view.$scope) {
+                          if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
                               view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
                           }
                           else {

@@ -1,1 +1,1 @@
-{"version":3,"file":"configuration.d.ts","sourceRoot":"","sources":["packages/plugin-requirejs/src/configuration.ts"],"names":[],"mappings":"AAMA,wBAAgB,uBAAuB,IAAI,IAAI,CAG9C"}
+{"version":3,"file":"configuration.d.ts","sourceRoot":"","sources":["../src/configuration.ts"],"names":[],"mappings":"AAMA,wBAAgB,uBAAuB,IAAI,IAAI,CAG9C"}

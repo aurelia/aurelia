@@ -384,7 +384,7 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
                       manifest.bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
                       manifest.isTarget = true;
                   }
-                  else if (expr !== null) {
+                  else if (expr !== null || attrSyntax.target === 'ref') {
                       // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
                       manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
                       manifest.isTarget = true;
@@ -807,14 +807,18 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
       }
       TemplateCompiler.inject = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
 
-      const HTMLBindingLanguage = [
+      const HTMLBindingLanguage = exports('HTMLBindingLanguage', [
           TriggerBindingCommand,
           DelegateBindingCommand,
           CaptureBindingCommand
-      ];
+      ]);
+      const HTMLTemplateCompiler = exports('HTMLTemplateCompiler', [
+          Registration.singleton(ITemplateCompiler, TemplateCompiler),
+          Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory)
+      ]);
       const HTMLJitConfiguration = exports('HTMLJitConfiguration', {
           register(container) {
-              container.register(HTMLRuntimeConfiguration, JitConfiguration, Registration.singleton(ITemplateCompiler, TemplateCompiler), Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory), ...HTMLBindingLanguage);
+              container.register(HTMLRuntimeConfiguration, ...HTMLTemplateCompiler, JitConfiguration, ...HTMLBindingLanguage);
           },
           createContainer() {
               const container = DI.createContainer();

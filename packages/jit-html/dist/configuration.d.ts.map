@@ -1,1 +1,1 @@
-{"version":3,"file":"configuration.d.ts","sourceRoot":"","sources":["packages/jit-html/src/configuration.ts"],"names":[],"mappings":"AACA,OAAO,EAAM,UAAU,EAAE,SAAS,EAAgB,MAAM,iBAAiB,CAAC;AAW1E,eAAO,MAAM,mBAAmB,EAAE,SAAS,EAI1C,CAAC;AAEF,eAAO,MAAM,oBAAoB;;;CAehC,CAAC"}
+{"version":3,"file":"configuration.d.ts","sourceRoot":"","sources":["packages/jit-html/src/configuration.ts"],"names":[],"mappings":"AACA,OAAO,EAAM,UAAU,EAAE,SAAS,EAAgB,MAAM,iBAAiB,CAAC;AAW1E,eAAO,MAAM,mBAAmB,EAAE,SAAS,EAI1C,CAAC;AAEF,eAAO,MAAM,oBAAoB,EAAE,SAAS,EAG3C,CAAC;AAEF,eAAO,MAAM,oBAAoB;;;CAchC,CAAC"}

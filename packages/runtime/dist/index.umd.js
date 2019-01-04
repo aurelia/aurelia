@@ -2743,6 +2743,10 @@
           const $scope = this.$scope;
           const locator = this.locator;
           flags |= this.persistentFlags;
+          if (this.mode === exports.BindingMode.fromView) {
+              flags &= ~exports.LifecycleFlags.updateTargetInstance;
+              flags |= exports.LifecycleFlags.updateSourceExpression;
+          }
           if (flags & exports.LifecycleFlags.updateTargetInstance) {
               const targetObserver = this.targetObserver;
               const mode = this.mode;
@@ -5634,7 +5638,7 @@
               else {
                   forOf.iterate(items, (arr, i, item) => {
                       const view = views[i];
-                      if (indexMap[i] === i && !!view.$scope) {
+                      if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
                           view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
                       }
                       else {

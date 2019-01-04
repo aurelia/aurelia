@@ -1,5 +1,4 @@
 /// <reference types="node" />
-/// <reference types="webpack-env" />
 export interface IPerformance {
     now(): number;
 }

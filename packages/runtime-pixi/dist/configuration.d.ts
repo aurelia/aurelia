@@ -1,7 +1,6 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
-export declare const HTMLBindingLanguage: IRegistry[];
-export declare const HTMLTemplateCompiler: IRegistry[];
-export declare const HTMLJitConfiguration: {
+export declare const PixiGlobalResources: IRegistry[];
+export declare const PixiRuntimeConfiguration: {
     register(container: IContainer): void;
     createContainer(): IContainer;
 };

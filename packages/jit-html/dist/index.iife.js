@@ -335,7 +335,7 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
                   manifest.bindings.push(new jit.BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
                   manifest.isTarget = true;
               }
-              else if (expr !== null) {
+              else if (expr !== null || attrSyntax.target === 'ref') {
                   // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
                   manifest.attributes.push(new jit.PlainAttributeSymbol(attrSyntax, command, expr));
                   manifest.isTarget = true;
@@ -763,9 +763,13 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
       DelegateBindingCommand,
       CaptureBindingCommand
   ];
+  const HTMLTemplateCompiler = [
+      kernel.Registration.singleton(runtime.ITemplateCompiler, TemplateCompiler),
+      kernel.Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory)
+  ];
   const HTMLJitConfiguration = {
       register(container) {
-          container.register(runtimeHtml.HTMLRuntimeConfiguration, jit.JitConfiguration, kernel.Registration.singleton(runtime.ITemplateCompiler, TemplateCompiler), kernel.Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory), ...HTMLBindingLanguage);
+          container.register(runtimeHtml.HTMLRuntimeConfiguration, ...HTMLTemplateCompiler, jit.JitConfiguration, ...HTMLBindingLanguage);
       },
       createContainer() {
           const container = kernel.DI.createContainer();
@@ -889,6 +893,8 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
   exports.TriggerBindingCommand = TriggerBindingCommand;
   exports.DelegateBindingCommand = DelegateBindingCommand;
   exports.CaptureBindingCommand = CaptureBindingCommand;
+  exports.HTMLBindingLanguage = HTMLBindingLanguage;
+  exports.HTMLTemplateCompiler = HTMLTemplateCompiler;
   exports.HTMLJitConfiguration = HTMLJitConfiguration;
   exports.stringifyDOM = stringifyDOM;
   exports.stringifyInstructions = stringifyInstructions;

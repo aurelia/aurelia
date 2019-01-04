@@ -4080,6 +4080,10 @@ var au = (function (exports) {
             const $scope = this.$scope;
             const locator = this.locator;
             flags |= this.persistentFlags;
+            if (this.mode === BindingMode.fromView) {
+                flags &= ~LifecycleFlags.updateTargetInstance;
+                flags |= LifecycleFlags.updateSourceExpression;
+            }
             if (flags & LifecycleFlags.updateTargetInstance) {
                 const targetObserver = this.targetObserver;
                 const mode = this.mode;
@@ -6982,7 +6986,7 @@ var au = (function (exports) {
                 else {
                     forOf.iterate(items, (arr, i, item) => {
                         const view = views[i];
-                        if (indexMap[i] === i && !!view.$scope) {
+                        if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
                             view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
                         }
                         else {
@@ -12126,7 +12130,7 @@ var au = (function (exports) {
                     manifest.bindings.push(new BindingSymbol(command, bindable$$1, expr, attrSyntax.rawValue, attrSyntax.target));
                     manifest.isTarget = true;
                 }
-                else if (expr !== null) {
+                else if (expr !== null || attrSyntax.target === 'ref') {
                     // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
                     manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
                     manifest.isTarget = true;
@@ -12554,9 +12558,13 @@ var au = (function (exports) {
         DelegateBindingCommand,
         CaptureBindingCommand
     ];
+    const HTMLTemplateCompiler = [
+        Registration.singleton(ITemplateCompiler, TemplateCompiler),
+        Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory)
+    ];
     const HTMLJitConfiguration = {
         register(container) {
-            container.register(HTMLRuntimeConfiguration, JitConfiguration, Registration.singleton(ITemplateCompiler, TemplateCompiler), Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory), ...HTMLBindingLanguage);
+            container.register(HTMLRuntimeConfiguration, ...HTMLTemplateCompiler, JitConfiguration, ...HTMLBindingLanguage);
         },
         createContainer() {
             const container = DI.createContainer();
@@ -12683,6 +12691,8 @@ var au = (function (exports) {
         TriggerBindingCommand: TriggerBindingCommand,
         DelegateBindingCommand: DelegateBindingCommand,
         CaptureBindingCommand: CaptureBindingCommand,
+        HTMLBindingLanguage: HTMLBindingLanguage,
+        HTMLTemplateCompiler: HTMLTemplateCompiler,
         HTMLJitConfiguration: HTMLJitConfiguration,
         stringifyDOM: stringifyDOM,
         stringifyInstructions: stringifyInstructions,

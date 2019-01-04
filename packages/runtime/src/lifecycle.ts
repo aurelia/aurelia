@@ -831,7 +831,7 @@ export class Lifecycle implements ILifecycle {
     // Queue a flush() callback; the depth is just for debugging / testing purposes and has
     // no effect on execution. flush() will automatically be invoked when the promise resolves,
     // or it can be manually invoked synchronously.
-    if (this.flushHead === this) {
+    if (this.flushTail === this) {
       this.flushed = this.promise.then(() => { this.processFlushQueue(LifecycleFlags.fromAsyncFlush); });
     }
     if (requestor.$nextFlush === null) {
@@ -841,7 +841,7 @@ export class Lifecycle implements ILifecycle {
       ++this.flushCount;
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return this.flushed!; // it can never be null here due to `this.flushHead === this` check
+    return this.flushed!; // it can never be null here due to `this.flushTail === this` check
   }
 
   public processFlushQueue(flags: LifecycleFlags): void {

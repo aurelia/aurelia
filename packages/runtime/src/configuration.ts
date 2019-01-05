@@ -13,29 +13,47 @@ import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 
-export const GlobalResources: IRegistry[] = [
-  If,
-  Else,
-  Repeat,
-  Replaceable,
-  With,
-  SanitizeValueConverter,
-  DebounceBindingBehavior,
-  OneTimeBindingBehavior,
-  ToViewBindingBehavior,
-  FromViewBindingBehavior,
-  SignalBindingBehavior,
-  ThrottleBindingBehavior,
-  TwoWayBindingBehavior
+export const IfRegistration = If as IRegistry;
+export const ElseRegistration = Else as IRegistry;
+export const RepeatRegistration = Repeat as IRegistry;
+export const ReplaceableRegistration = Replaceable as IRegistry;
+export const WithRegistration = With as IRegistry;
+export const SanitizeValueConverterRegistration = SanitizeValueConverter as IRegistry;
+export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as IRegistry;
+export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as IRegistry;
+export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as IRegistry;
+export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as IRegistry;
+export const SignalBindingBehaviorRegistration = SignalBindingBehavior as IRegistry;
+export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as IRegistry;
+export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as IRegistry;
+
+export const GlobalResources = [
+  IfRegistration,
+  ElseRegistration,
+  RepeatRegistration,
+  ReplaceableRegistration,
+  WithRegistration,
+  SanitizeValueConverterRegistration,
+  DebounceBindingBehaviorRegistration,
+  OneTimeBindingBehaviorRegistration,
+  ToViewBindingBehaviorRegistration,
+  FromViewBindingBehaviorRegistration,
+  SignalBindingBehaviorRegistration,
+  ThrottleBindingBehaviorRegistration,
+  TwoWayBindingBehaviorRegistration
 ];
+
+export const ObserverLocatorRegistration = Registration.singleton(IObserverLocator, ObserverLocator) as IRegistry;
+export const LifecycleRegistration = Registration.singleton(ILifecycle, Lifecycle) as IRegistry;
+export const RendererRegistration = Registration.singleton(IRenderer, Renderer) as IRegistry;
 
 export const RuntimeConfiguration = {
   register(container: IContainer): void {
     container.register(
       BasicRenderer,
-      Registration.singleton(IObserverLocator, ObserverLocator),
-      Registration.singleton(ILifecycle, Lifecycle),
-      Registration.singleton(IRenderer, Renderer),
+      ObserverLocatorRegistration,
+      LifecycleRegistration,
+      RendererRegistration,
       ...GlobalResources
     );
   },

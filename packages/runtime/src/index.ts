@@ -255,6 +255,23 @@ export {
   ISinglePageApp
 } from './aurelia';
 export {
+  IfRegistration,
+  ElseRegistration,
+  RepeatRegistration,
+  ReplaceableRegistration,
+  WithRegistration,
+  SanitizeValueConverterRegistration,
+  DebounceBindingBehaviorRegistration,
+  OneTimeBindingBehaviorRegistration,
+  ToViewBindingBehaviorRegistration,
+  FromViewBindingBehaviorRegistration,
+  SignalBindingBehaviorRegistration,
+  ThrottleBindingBehaviorRegistration,
+  TwoWayBindingBehaviorRegistration,
+  GlobalResources,
+  ObserverLocatorRegistration,
+  LifecycleRegistration,
+  RendererRegistration,
   RuntimeConfiguration
 } from './configuration';
 export {

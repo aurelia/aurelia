@@ -28,7 +28,6 @@ export const HTMLRuntimeResources = [
   ComposeRegistration,
 ];
 
-export const DOMInitializerRegistration = Registration.singleton(IDOMInitializer, HTMLDOMInitializer) as IRegistry;
 export const ProjectorLocatorRegistration = Registration.singleton(IProjectorLocator, HTMLProjectorLocator) as IRegistry;
 export const TargetAccessorLocatorRegistration = Registration.singleton(ITargetAccessorLocator, TargetAccessorLocator) as IRegistry;
 export const TargetObserverLocatorRegistration = Registration.singleton(ITargetObserverLocator, TargetObserverLocator) as IRegistry;
@@ -40,7 +39,6 @@ export const HTMLRuntimeConfiguration = {
       ...HTMLRuntimeResources,
       RuntimeConfiguration,
       HTMLRenderer,
-      DOMInitializerRegistration,
       ProjectorLocatorRegistration,
       TargetAccessorLocatorRegistration,
       TargetObserverLocatorRegistration,

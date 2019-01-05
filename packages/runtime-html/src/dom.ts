@@ -410,6 +410,10 @@ export class HTMLTemplateFactory implements ITemplateFactory {
     this.dom = dom;
   }
 
+  public static register(container: IContainer): IResolver<ITemplateFactory> {
+    return Registration.singleton(ITemplateFactory, this).register(container);
+  }
+
   public create(parentRenderContext: IRenderContext, definition: TemplateDefinition): ITemplate {
     return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node), parentRenderContext);
   }

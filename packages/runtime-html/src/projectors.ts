@@ -1,4 +1,4 @@
-import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { IContainer, IResolver, PLATFORM, Registration, Reporter, Tracer } from '@aurelia/kernel';
 import {
   CustomElementHost,
   ICustomElement,
@@ -16,6 +16,10 @@ const defaultShadowOptions = {
 };
 
 export class HTMLProjectorLocator implements IProjectorLocator<Node> {
+  public static register(container: IContainer): IResolver<IProjectorLocator> {
+    return Registration.singleton(IProjectorLocator, this).register(container);
+  }
+
   public getElementProjector(dom: IDOM<Node>, $component: ICustomElement<Node>, host: CustomElementHost<HTMLElement>, def: TemplateDefinition): IElementProjector<Node> {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {

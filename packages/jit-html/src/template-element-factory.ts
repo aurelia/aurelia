@@ -1,4 +1,4 @@
-import { DI, InterfaceSymbol } from '@aurelia/kernel';
+import { DI, IContainer, InterfaceSymbol, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**
@@ -49,6 +49,10 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   constructor(dom: IDOM) {
     this.dom = dom;
     this.template = dom.createTemplate() as HTMLTemplateElement;
+  }
+
+  public static register(container: IContainer): IResolver<ITemplateElementFactory> {
+    return Registration.singleton(ITemplateElementFactory, this).register(container);
   }
 
   public createTemplate(markup: string): HTMLTemplateElement;

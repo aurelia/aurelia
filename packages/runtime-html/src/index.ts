@@ -73,7 +73,6 @@ export {
   UpdateTriggerBindingBehaviorRegistration,
   ComposeRegistration,
   HTMLRuntimeResources,
-  DOMInitializerRegistration,
   ProjectorLocatorRegistration,
   TargetAccessorLocatorRegistration,
   TargetObserverLocatorRegistration,

@@ -1,6 +1,5 @@
 import { JitConfiguration } from '@aurelia/jit';
-import { DI, IContainer, IRegistry, Registration } from '@aurelia/kernel';
-import { ITemplateCompiler } from '@aurelia/runtime';
+import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { HTMLRuntimeConfiguration } from '@aurelia/runtime-html';
 import {
   CaptureBindingCommand,
@@ -8,7 +7,7 @@ import {
   TriggerBindingCommand
 } from './binding-command';
 import { TemplateCompiler } from './template-compiler';
-import { HTMLTemplateElementFactory, ITemplateElementFactory } from './template-element-factory';
+import { HTMLTemplateElementFactory } from './template-element-factory';
 
 export const TriggerBindingCommandRegistration = TriggerBindingCommand as IRegistry;
 export const DelegateBindingCommandRegistration = DelegateBindingCommand as IRegistry;
@@ -20,8 +19,8 @@ export const HTMLBindingLanguage = [
   CaptureBindingCommandRegistration
 ];
 
-export const TemplateCompilerRegistration = Registration.singleton(ITemplateCompiler, TemplateCompiler) as IRegistry;
-export const TemplateElementFactoryRegistration = Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory) as IRegistry;
+export const TemplateCompilerRegistration = TemplateCompiler as IRegistry;
+export const TemplateElementFactoryRegistration = HTMLTemplateElementFactory as IRegistry;
 
 export const HTMLTemplateCompiler = [
   TemplateCompilerRegistration,

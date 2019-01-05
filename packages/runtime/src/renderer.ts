@@ -96,6 +96,10 @@ export class Renderer implements IRenderer {
     });
   }
 
+  public static register(container: IContainer): IResolver<IRenderer> {
+    return Registration.singleton(IRenderer, this).register(container);
+  }
+
   public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     if (Tracer.enabled) { Tracer.enter('Renderer.render', slice.call(arguments)); }
     const targetInstructions = definition.instructions;

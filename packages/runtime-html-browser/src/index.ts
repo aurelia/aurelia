@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
 import { HTMLDOM, HTMLRuntimeConfiguration } from '@aurelia/runtime-html';
 
@@ -9,6 +9,10 @@ class BrowserDOMInitializer implements IDOMInitializer {
 
   constructor(container: IContainer) {
     this.container = container;
+  }
+
+  public static register(container: IContainer): IResolver<IDOMInitializer> {
+    return Registration.singleton(IDOMInitializer, this).register(container);
   }
 
   public initialize(config?: ISinglePageApp<Node>): IDOM {
@@ -32,7 +36,7 @@ class BrowserDOMInitializer implements IDOMInitializer {
   }
 }
 
-export const DOMInitializerRegistration = Registration.singleton(IDOMInitializer, BrowserDOMInitializer) as IRegistry;
+export const DOMInitializerRegistration = BrowserDOMInitializer as IRegistry;
 
 export const HTMLBrowserRuntimeConfiguration = {
   register(container: IContainer): void {
@@ -43,7 +47,7 @@ export const HTMLBrowserRuntimeConfiguration = {
   },
   createContainer(): IContainer {
     const container = DI.createContainer();
-    container.register(HTMLRuntimeConfiguration);
+    container.register(HTMLBrowserRuntimeConfiguration);
     return container;
   }
 };

@@ -124,7 +124,8 @@ export {
   GetterObserver
 } from './observation/computed-observer';
 export {
-  IDirtyChecker
+  IDirtyChecker,
+  DirtyCheckProperty
 } from './observation/dirty-checker';
 export {
   IObjectObservationAdapter,

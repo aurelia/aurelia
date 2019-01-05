@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
 import { HTMLDOM, HTMLRuntimeConfiguration } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
@@ -10,6 +10,10 @@ class JSDOMInitializer implements IDOMInitializer {
 
   constructor(container: IContainer) {
     this.container = container;
+  }
+
+  public static register(container: IContainer): IResolver<IDOMInitializer> {
+    return Registration.singleton(IDOMInitializer, this).register(container);
   }
 
   public initialize(config?: ISinglePageApp<Node>): IDOM {
@@ -38,7 +42,7 @@ class JSDOMInitializer implements IDOMInitializer {
   }
 }
 
-export const DOMInitializerRegistration = Registration.singleton(IDOMInitializer, JSDOMInitializer) as IRegistry;
+export const DOMInitializerRegistration = JSDOMInitializer as IRegistry;
 
 export const HTMLJSDOMRuntimeConfiguration = {
   register(container: IContainer): void {

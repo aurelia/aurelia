@@ -17,7 +17,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from '@aurelia/jit';
-import { IResourceDescriptions, PLATFORM } from '@aurelia/kernel';
+import { IContainer, IResolver, IResourceDescriptions, PLATFORM, Registration } from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
@@ -78,6 +78,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.attrParser = attrParser;
     this.exprParser = exprParser;
     this.instructionRows = null;
+  }
+
+  public static register(container: IContainer): IResolver<ITemplateCompiler> {
+    return Registration.singleton(ITemplateCompiler, this).register(container);
   }
 
   public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {

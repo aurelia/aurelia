@@ -1,13 +1,6 @@
-import { DI, IContainer, IRegistry, Registration } from '@aurelia/kernel';
-import {
-  IDOMInitializer,
-  IProjectorLocator,
-  ITargetAccessorLocator,
-  ITargetObserverLocator,
-  ITemplateFactory,
-  RuntimeConfiguration
-} from '@aurelia/runtime';
-import { HTMLDOMInitializer, HTMLTemplateFactory } from './dom';
+import { DI, IContainer, IRegistry } from '@aurelia/kernel';
+import { RuntimeConfiguration } from '@aurelia/runtime';
+import { HTMLTemplateFactory } from './dom';
 import { HTMLRenderer } from './html-renderer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { HTMLProjectorLocator } from './projectors';
@@ -28,10 +21,10 @@ export const HTMLRuntimeResources = [
   ComposeRegistration,
 ];
 
-export const ProjectorLocatorRegistration = Registration.singleton(IProjectorLocator, HTMLProjectorLocator) as IRegistry;
-export const TargetAccessorLocatorRegistration = Registration.singleton(ITargetAccessorLocator, TargetAccessorLocator) as IRegistry;
-export const TargetObserverLocatorRegistration = Registration.singleton(ITargetObserverLocator, TargetObserverLocator) as IRegistry;
-export const TemplateFactoryRegistration = Registration.singleton(ITemplateFactory, HTMLTemplateFactory) as IRegistry;
+export const ProjectorLocatorRegistration = HTMLProjectorLocator as IRegistry;
+export const TargetAccessorLocatorRegistration = TargetAccessorLocator as IRegistry;
+export const TargetObserverLocatorRegistration = TargetObserverLocator as IRegistry;
+export const TemplateFactoryRegistration = HTMLTemplateFactory as IRegistry;
 
 export const HTMLRuntimeConfiguration = {
   register(container: IContainer): void {

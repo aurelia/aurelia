@@ -1,4 +1,5 @@
 
+import { IContainer, IResolver, Registration } from '@aurelia/kernel';
 import {
   IBindingTargetAccessor,
   IBindingTargetObserver,
@@ -77,6 +78,11 @@ export class TargetObserverLocator implements ITargetObserverLocator {
   constructor(dom: IDOM) {
     this.dom = dom;
   }
+
+  public static register(container: IContainer): IResolver<ITargetObserverLocator> {
+    return Registration.singleton(ITargetObserverLocator, this).register(container);
+  }
+
   public getObserver(lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: Node, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
     switch (propertyName) {
       case 'checked':
@@ -134,6 +140,10 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
 
   constructor(dom: IDOM) {
     this.dom = dom;
+  }
+
+  public static register(container: IContainer): IResolver<ITargetAccessorLocator> {
+    return Registration.singleton(ITargetAccessorLocator, this).register(container);
   }
 
   public getAccessor(lifecycle: ILifecycle, obj: Node, propertyName: string): IBindingTargetAccessor {

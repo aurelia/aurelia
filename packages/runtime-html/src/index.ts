@@ -68,6 +68,16 @@ export {
 } from './resources/custom-elements/compose';
 
 export {
+  AttrBindingBehaviorRegistration,
+  SelfBindingBehaviorRegistration,
+  UpdateTriggerBindingBehaviorRegistration,
+  ComposeRegistration,
+  HTMLRuntimeResources,
+  DOMInitializerRegistration,
+  ProjectorLocatorRegistration,
+  TargetAccessorLocatorRegistration,
+  TargetObserverLocatorRegistration,
+  TemplateFactoryRegistration,
   HTMLRuntimeConfiguration
 } from './configuration';
 export {

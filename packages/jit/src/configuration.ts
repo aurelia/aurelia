@@ -1,5 +1,10 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { DotSeparatedAttributePattern, RefAttributePattern } from './attribute-pattern';
+import {
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
+  DotSeparatedAttributePattern,
+  RefAttributePattern
+} from './attribute-pattern';
 import {
   CallBindingCommand,
   DefaultBindingCommand,
@@ -11,19 +16,42 @@ import {
 } from './binding-command';
 import { ParserRegistration } from './expression-parser';
 
-export const BasicBindingSyntax: IRegistry[] = [
-  DotSeparatedAttributePattern,
-  RefAttributePattern
+export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as IRegistry;
+export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as IRegistry;
+export const RefAttributePatternRegistration = RefAttributePattern as IRegistry;
+export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as IRegistry;
+
+export const BasicBindingSyntax = [
+  RefAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration
 ];
 
-export const BasicBindingLanguage: IRegistry[] = [
-  CallBindingCommand,
-  DefaultBindingCommand,
-  ForBindingCommand,
-  FromViewBindingCommand,
-  OneTimeBindingCommand,
-  ToViewBindingCommand,
-  TwoWayBindingCommand
+export const ShortHandBindingSyntax = [
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration
+];
+
+export const FullBindingSyntax = [
+  ...BasicBindingSyntax,
+  ...ShortHandBindingSyntax
+];
+
+export const CallBindingCommandRegistration = CallBindingCommand as IRegistry;
+export const DefaultBindingCommandRegistration = DefaultBindingCommand as IRegistry;
+export const ForBindingCommandRegistration = ForBindingCommand as IRegistry;
+export const FromViewBindingCommandRegistration = FromViewBindingCommand as IRegistry;
+export const OneTimeBindingCommandRegistration = OneTimeBindingCommand as IRegistry;
+export const ToViewBindingCommandRegistration = ToViewBindingCommand as IRegistry;
+export const TwoWayBindingCommandRegistration = TwoWayBindingCommand as IRegistry;
+
+export const BasicBindingLanguage = [
+  CallBindingCommandRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
 ];
 
 export const JitConfiguration = {

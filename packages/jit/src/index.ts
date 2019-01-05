@@ -34,6 +34,21 @@ export {
   TwoWayBindingCommand
 } from './binding-command';
 export {
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration,
+  RefAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration,
+  BasicBindingSyntax,
+  ShortHandBindingSyntax,
+  FullBindingSyntax,
+  CallBindingCommandRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
+  BasicBindingLanguage,
   JitConfiguration
 } from './configuration';
 export {

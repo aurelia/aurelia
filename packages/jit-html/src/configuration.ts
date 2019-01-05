@@ -10,15 +10,22 @@ import {
 import { TemplateCompiler } from './template-compiler';
 import { HTMLTemplateElementFactory, ITemplateElementFactory } from './template-element-factory';
 
-export const HTMLBindingLanguage: IRegistry[] = [
-  TriggerBindingCommand,
-  DelegateBindingCommand,
-  CaptureBindingCommand
+export const TriggerBindingCommandRegistration = TriggerBindingCommand as IRegistry;
+export const DelegateBindingCommandRegistration = DelegateBindingCommand as IRegistry;
+export const CaptureBindingCommandRegistration = CaptureBindingCommand as IRegistry;
+
+export const HTMLBindingLanguage = [
+  TriggerBindingCommandRegistration,
+  DelegateBindingCommandRegistration,
+  CaptureBindingCommandRegistration
 ];
 
-export const HTMLTemplateCompiler: IRegistry[] = [
-  Registration.singleton(ITemplateCompiler, TemplateCompiler),
-  Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory)
+export const TemplateCompilerRegistration = Registration.singleton(ITemplateCompiler, TemplateCompiler) as IRegistry;
+export const TemplateElementFactoryRegistration = Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory) as IRegistry;
+
+export const HTMLTemplateCompiler = [
+  TemplateCompilerRegistration,
+  TemplateElementFactoryRegistration
 ];
 
 export const HTMLJitConfiguration = {

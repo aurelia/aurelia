@@ -4,7 +4,12 @@ export {
   CaptureBindingCommand
 } from './binding-command';
 export {
+  TriggerBindingCommandRegistration,
+  DelegateBindingCommandRegistration,
+  CaptureBindingCommandRegistration,
   HTMLBindingLanguage,
+  TemplateCompilerRegistration,
+  TemplateElementFactoryRegistration,
   HTMLTemplateCompiler,
   HTMLJitConfiguration
 } from './configuration';

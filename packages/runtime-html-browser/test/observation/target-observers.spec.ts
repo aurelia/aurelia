@@ -13,9 +13,9 @@ import {
   ClassAttributeAccessor,
   DataAttributeAccessor,
   HTMLDOM,
-  HTMLRuntimeConfiguration,
   StyleAttributeAccessor
-} from '../../src';
+} from '../../../runtime-html/src';
+import { HTMLBrowserRuntimeConfiguration } from '../../src/index';
 import { CSS_PROPERTIES } from '../css-properties';
 import {
   createElement,
@@ -37,7 +37,7 @@ function createSvgUseElement(name: string, value: string) {
 }
 
 function setup() {
-  const container = HTMLRuntimeConfiguration.createContainer();
+  const container = HTMLBrowserRuntimeConfiguration.createContainer();
   const dom = new HTMLDOM(document);
   Registration.instance(IDOM, dom).register(container, IDOM);
   const lifecycle = container.get(ILifecycle);

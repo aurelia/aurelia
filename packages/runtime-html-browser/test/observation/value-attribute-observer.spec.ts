@@ -16,12 +16,12 @@ import {
   SinonSpy,
   spy
 } from 'sinon';
-import { Lifecycle } from '../../../runtime/src/lifecycle';
 import {
   HTMLDOM,
-  HTMLRuntimeConfiguration,
   ValueAttributeObserver
-} from '../../src/index';
+} from '../../../runtime-html/src/index';
+import { Lifecycle } from '../../../runtime/src/lifecycle';
+import { HTMLBrowserRuntimeConfiguration } from '../../src/index';
 import {
   _,
   createElement
@@ -48,7 +48,7 @@ describe('ValueAttributeObserver', () => {
     ]) {
     describe(`setValue() - type="${inputType}"`, () => {
       function setup(hasSubscriber: boolean) {
-        const container = HTMLRuntimeConfiguration.createContainer();
+        const container = HTMLBrowserRuntimeConfiguration.createContainer();
         const dom = new HTMLDOM(document);
         Registration.instance(IDOM, dom).register(container, IDOM);
         //@ts-ignore
@@ -120,7 +120,7 @@ describe('ValueAttributeObserver', () => {
 
     describe(`handleEvent() - type="${inputType}"`, () => {
       function setup() {
-        const container = HTMLRuntimeConfiguration.createContainer();
+        const container = HTMLBrowserRuntimeConfiguration.createContainer();
         const dom = new HTMLDOM(document);
         Registration.instance(IDOM, dom).register(container, IDOM);
         const lifecycle = container.get(ILifecycle);

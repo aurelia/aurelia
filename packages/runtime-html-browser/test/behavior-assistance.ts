@@ -17,13 +17,14 @@ import {
   ITargetedInstruction,
   TargetedInstructionType
 } from '@aurelia/runtime';
+import { HTMLDOM } from '../../runtime-html/src/index';
 import {
   InstanceProvider
 } from '../../runtime/src/rendering-engine';
 import {
   FakeView
 } from '../../runtime/test/_doubles/fake-view';
-import { HTMLDOM, HTMLRuntimeConfiguration } from '../src/index';
+import { HTMLBrowserRuntimeConfiguration } from '../src/index';
 
 
 interface IElementTestOptions {
@@ -36,7 +37,7 @@ export function hydrateCustomElement<T>(
   options: IElementTestOptions = {}
 ) {
   const ElementType: ICustomElementType = Type as any;
-  const container = options.container || HTMLRuntimeConfiguration.createContainer();
+  const container = options.container || HTMLBrowserRuntimeConfiguration.createContainer();
   const dom = new HTMLDOM(document);
   Registration.instance(IDOM, dom).register(container, IDOM);
   if (options.lifecycle) {

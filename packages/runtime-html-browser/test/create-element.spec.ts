@@ -12,14 +12,13 @@ import {
   HTMLDOM,
   HTMLTargetedInstructionType,
   RenderPlan
-} from '../src/index';
+} from '../../runtime-html/src/index';
 import {
   _,
   createElement,
   eachCartesianJoin,
   eachCartesianJoinFactory
 } from './util';
-
 
 describe(`createElement() creates element based on tag`, () => {
   const dom = new HTMLDOM(document);

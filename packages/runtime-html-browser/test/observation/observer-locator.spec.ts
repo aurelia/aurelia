@@ -5,17 +5,13 @@ import {
 import {
   CollectionLengthObserver,
   CustomSetterObserver,
+  DirtyCheckProperty,
   IDOM,
   IObserverLocator,
   PrimitiveObserver,
   PropertyAccessor,
   SetterObserver
 } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { spy } from 'sinon';
-import {
-  DirtyCheckProperty
-} from '../../../runtime/src/observation/dirty-checker';
 import {
   AttributeNSAccessor,
   CheckedObserver,
@@ -23,11 +19,13 @@ import {
   DataAttributeAccessor,
   ElementPropertyAccessor,
   HTMLDOM,
-  HTMLRuntimeConfiguration,
   SelectValueObserver,
   StyleAttributeAccessor,
   ValueAttributeObserver
-} from '../../src/index';
+} from '@aurelia/runtime-html';
+import { expect } from 'chai';
+import { spy } from 'sinon';
+import { HTMLBrowserRuntimeConfiguration } from '../../src/index';
 import {
   _,
   createElement
@@ -35,7 +33,7 @@ import {
 
 describe('ObserverLocator', () => {
   function setup() {
-    const container = HTMLRuntimeConfiguration.createContainer();
+    const container = HTMLBrowserRuntimeConfiguration.createContainer();
     const dom = new HTMLDOM(document);
     Registration.instance(IDOM, dom).register(container, IDOM);
     const sut = container.get(IObserverLocator);
@@ -221,32 +219,32 @@ describe('ObserverLocator', () => {
               for (const isVolatile of hasOverrides ? [true, false, undefined] : [false]) {
                 for (const hasAdapterObserver of [true, false]) {
                   for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
-                    const { sut } = setup();
-                    const obj = {};
-                    const dummyObserver = {} as any;
-                    if (hasAdapterObserver) {
-                      if (adapterIsDefined) {
-                        sut.addAdapter({getObserver() { return dummyObserver; }});
-                      } else {
-                        sut.addAdapter({getObserver() { return null; }});
+                    it(_`getObserver() - descriptor=${{ configurable, enumerable }}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
+                      const { sut } = setup();
+                      const obj = {};
+                      const dummyObserver = {} as any;
+                      if (hasAdapterObserver) {
+                        if (adapterIsDefined) {
+                          sut.addAdapter({getObserver() { return dummyObserver; }});
+                        } else {
+                          sut.addAdapter({getObserver() { return null; }});
+                        }
                       }
-                    }
-                    const descriptor = { configurable, enumerable } as PropertyDescriptor;
-                    if (hasGetter) {
-                      function getter() {}
-                      if (hasGetObserver) {
-                        getter['getObserver'] = () => dummyObserver;
+                      const descriptor = { configurable, enumerable } as PropertyDescriptor;
+                      if (hasGetter) {
+                        function getter() {}
+                        if (hasGetObserver) {
+                          getter['getObserver'] = () => dummyObserver;
+                        }
+                        descriptor.get = getter;
                       }
-                      descriptor.get = getter;
-                    }
-                    if (hasSetter) {
-                      function setter() {}
-                      descriptor.set = setter;
-                    }
-                    if (hasOverrides) {
-                      obj.constructor['computed'] = { isVolatile };
-                    }
-                    it(_`getObserver() - descriptor=${descriptor}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
+                      if (hasSetter) {
+                        function setter() {}
+                        descriptor.set = setter;
+                      }
+                      if (hasOverrides) {
+                        obj.constructor['computed'] = { isVolatile };
+                      }
                       Object.defineProperty(obj, 'foo', descriptor);
                       if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
                         expect(() => sut.getObserver(obj, 'foo')).to.throw(/18/);
@@ -295,17 +293,17 @@ describe('ObserverLocator', () => {
           ...Object.getOwnPropertyDescriptors(HTMLDivElement.prototype)
         };
         for (const property of Object.keys(descriptors)) {
-          const { sut } = setup();
-          const obj = document.createElement('div');
-          const dummyObserver = {} as any;
-          if (hasAdapterObserver) {
-            if (adapterIsDefined) {
-              sut.addAdapter({getObserver() { return dummyObserver; }});
-            } else {
-              sut.addAdapter({getObserver() { return null; }});
-            }
-          }
           it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
+            const { sut } = setup();
+            const obj = document.createElement('div');
+            const dummyObserver = {} as any;
+            if (hasAdapterObserver) {
+              if (adapterIsDefined) {
+                sut.addAdapter({getObserver() { return dummyObserver; }});
+              } else {
+                sut.addAdapter({getObserver() { return null; }});
+              }
+            }
             const actual = sut.getObserver(obj, property);
             if (property === 'textContent' || property === 'innerHTML' || property === 'scrollTop' || property === 'scrollLeft') {
               expect(actual.constructor.name).to.equal(ValueAttributeObserver.name);

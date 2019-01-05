@@ -16,19 +16,19 @@ import { ParserRegistration } from '../../jit/src/index';
 import {
   CaptureBindingInstruction,
   DelegateBindingInstruction,
-  HTMLRuntimeConfiguration,
   IListenerBindingInstruction,
   Listener,
   SetAttributeInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction,
   TriggerBindingInstruction
-} from '../src/index';
+} from '../../runtime-html/src/index';
+import { HTMLBrowserRuntimeConfiguration } from '../src/index';
 import { _, createElement } from './util';
 
 describe('Renderer', () => {
   function setup() {
-    const container = HTMLRuntimeConfiguration.createContainer();
+    const container = HTMLBrowserRuntimeConfiguration.createContainer();
     ParserRegistration.register(container);
     const dom = container.get(IDOMInitializer).initialize();
     const renderable: IRenderable = { $bindableHead: null, $bindableTail: null, $attachableHead: null, $attachableTail: null, $context: null, $nodes: null, $scope: null };

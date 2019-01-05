@@ -8,8 +8,8 @@ import {
   IManagedEvent,
   ListenerTracker,
   TriggerSubscription
-} from '../../src/index';
-import { EventManager } from '../../src/observation/event-manager';
+} from '../../../runtime-html/src/index';
+import { EventManager } from '../../../runtime-html/src/observation/event-manager';
 import { _ } from '../util';
 
 const dom = new HTMLDOM(document);

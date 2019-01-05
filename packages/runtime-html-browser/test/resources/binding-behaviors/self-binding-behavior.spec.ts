@@ -1,7 +1,7 @@
 import { DI, IContainer } from '@aurelia/kernel';
 import { Binding, BindingMode, IObserverLocator, IsBindingBehavior, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { SelfBindingBehavior } from '../../../src/index';
+import { SelfBindingBehavior } from '../../../../runtime-html/src/index';
 
 describe('SelfBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;

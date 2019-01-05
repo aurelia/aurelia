@@ -16,14 +16,14 @@ import { spy } from 'sinon';
 import {
   CheckedObserver,
   HTMLDOM,
-  HTMLRuntimeConfiguration,
   IInputElement
-} from '../../src/index';
+} from '../../../runtime-html/src/index';
+import { Lifecycle } from '../../../runtime/src/lifecycle';
+import { HTMLBrowserRuntimeConfiguration } from '../../src/index';
 import {
   _,
   createElement
 } from '../util';
-import { Lifecycle } from '../../../runtime/src/lifecycle';
 
 type ObservedInputElement = HTMLInputElement & {
   $observers: Record<string, IBindingTargetObserver>;
@@ -43,7 +43,7 @@ describe('CheckedObserver', () => {
 
   describe('setValue() - primitive - type="checkbox"', () => {
     function setup(hasSubscriber: boolean) {
-      const container = HTMLRuntimeConfiguration.createContainer();
+      const container = HTMLBrowserRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
       // @ts-ignore
@@ -115,7 +115,7 @@ describe('CheckedObserver', () => {
 
   describe('handleEvent() - primitive - type="checkbox"', () => {
     function setup() {
-      const container = HTMLRuntimeConfiguration.createContainer();
+      const container = HTMLBrowserRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
       const observerLocator = container.get(IObserverLocator);
@@ -169,7 +169,7 @@ describe('CheckedObserver', () => {
 
   describe('setValue() - primitive - type="radio"', () => {
     function setup(hasSubscriber: boolean) {
-      const container = HTMLRuntimeConfiguration.createContainer();
+      const container = HTMLBrowserRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
       //@ts-ignore
@@ -268,7 +268,7 @@ describe('CheckedObserver', () => {
 
   describe('handleEvent() - primitive - type="radio"', () => {
     function setup() {
-      const container = HTMLRuntimeConfiguration.createContainer();
+      const container = HTMLBrowserRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
       const lifecycle = container.get(ILifecycle);
@@ -348,7 +348,7 @@ describe('CheckedObserver', () => {
 
   describe('setValue() - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
-      const container = HTMLRuntimeConfiguration.createContainer();
+      const container = HTMLBrowserRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
       //@ts-ignore
@@ -425,7 +425,7 @@ describe('CheckedObserver', () => {
 
   describe('mutate collection - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
-      const container = HTMLRuntimeConfiguration.createContainer();
+      const container = HTMLBrowserRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
       //@ts-ignore
@@ -493,7 +493,7 @@ describe('CheckedObserver', () => {
 
   describe('handleEvent() - array - type="checkbox"', () => {
     function setup(value: any, prop: string) {
-      const container = HTMLRuntimeConfiguration.createContainer();
+      const container = HTMLBrowserRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
       const lifecycle = container.get(ILifecycle);
@@ -560,7 +560,7 @@ describe('CheckedObserver', () => {
 
   describe('SelectValueObserver.setValue() - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
-      const container = HTMLRuntimeConfiguration.createContainer();
+      const container = HTMLBrowserRuntimeConfiguration.createContainer();
       const dom = new HTMLDOM(document);
       Registration.instance(IDOM, dom).register(container, IDOM);
       const lifecycle = container.get(ILifecycle);

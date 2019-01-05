@@ -1,7 +1,8 @@
 import { Registration } from '@aurelia/kernel';
 import { CustomElementResource, IAttach, IDOM, ILifecycle, ITemplateDefinition, IViewFactory, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { Compose, HTMLDOM, HTMLRuntimeConfiguration, RenderPlan } from '../../../src/index';
+import { Compose, HTMLDOM, RenderPlan } from '../../../../runtime-html/src/index';
+import { HTMLBrowserRuntimeConfiguration } from '../../../src/index';
 import { FakeViewFactory } from '../../_doubles/fake-view-factory';
 import { hydrateCustomElement } from '../../behavior-assistance';
 
@@ -180,7 +181,7 @@ describe('The "compose" custom element', () => {
   for (const value of noSubjectValues) {
     for (const producer of producerPossibilities) {
       it(`clears out the view when the subject is ${value} ${producer.description}`, done => {
-        const container = HTMLRuntimeConfiguration.createContainer();
+        const container = HTMLBrowserRuntimeConfiguration.createContainer();
         const lifecycle = container.get(ILifecycle);
         const dom = new HTMLDOM(document);
         Registration.instance(IDOM, dom).register(container, IDOM);

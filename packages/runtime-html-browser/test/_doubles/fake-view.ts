@@ -1,6 +1,22 @@
-import { IAttach, IBindScope, ILifecycle, ILifecycleUnbind, IMountable, INodeSequence, IRenderContext, IRenderLocation, IScope, IView, IViewCache, LifecycleFlags, State } from '@aurelia/runtime';
-import { NodeSequenceFactory } from '../../src/dom';
-import { HTMLDOM } from '../../src/index';
+import {
+  IAttach,
+  IBindScope,
+  ILifecycle,
+  ILifecycleUnbind,
+  IMountable,
+  INodeSequence,
+  IRenderContext,
+  IRenderLocation,
+  IScope,
+  IView,
+  IViewCache,
+  LifecycleFlags,
+  State
+} from '@aurelia/runtime';
+import {
+  HTMLDOM,
+  NodeSequenceFactory
+} from '../../../runtime-html/src/dom';
 
 export class FakeView implements IView {
   public $bindableHead: IBindScope;

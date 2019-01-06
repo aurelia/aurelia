@@ -12,7 +12,6 @@ import {
   IRenderLocation,
   ITargetedInstruction,
   IViewFactory,
-  RuntimeConfiguration,
   TemplateDefinition
 } from '../src/index';
 import { ViewFactory } from '../src/templating/view';

@@ -12,7 +12,7 @@ import {
   IRenderingEngine} from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { ParserRegistration } from '../../jit/src/index';
+import { IExpressionParserRegistration } from '../../jit/src/index';
 import {
   CaptureBindingInstruction,
   DelegateBindingInstruction,
@@ -23,13 +23,13 @@ import {
   TextBindingInstruction,
   TriggerBindingInstruction
 } from '../../runtime-html/src/index';
-import { HTMLBrowserRuntimeConfiguration } from '../src/index';
+import { BasicConfiguration } from '../src/index';
 import { _, createElement } from './util';
 
 describe('Renderer', () => {
   function setup() {
-    const container = HTMLBrowserRuntimeConfiguration.createContainer();
-    ParserRegistration.register(container);
+    const container = BasicConfiguration.createContainer();
+    IExpressionParserRegistration.register(container);
     const dom = container.get(IDOMInitializer).initialize();
     const renderable: IRenderable = { $bindableHead: null, $bindableTail: null, $attachableHead: null, $attachableTail: null, $context: null, $nodes: null, $scope: null };
     container.register(Registration.instance(IRenderable, renderable));

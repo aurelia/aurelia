@@ -3,7 +3,7 @@ import { IDOM, ILifecycle, IObserverLocator, LifecycleFlags } from '@aurelia/run
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { HTMLDOM, SelectValueObserver } from '../../../runtime-html/src/index';
-import { HTMLBrowserRuntimeConfiguration } from '../../src/index';
+import { BasicConfiguration } from '../../src/index';
 import { _, createElement, h, verifyEqual } from '../util';
 
 type Anything = any;
@@ -11,7 +11,7 @@ type Anything = any;
 // TODO: need many more tests here, this is just preliminary
 describe('SelectValueObserver', () => {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
-    const container = HTMLBrowserRuntimeConfiguration.createContainer();
+    const container = BasicConfiguration.createContainer();
     const dom = new HTMLDOM(document);
     Registration.instance(IDOM, dom).register(container, IDOM);
     const lifecycle = container.get(ILifecycle);
@@ -230,7 +230,7 @@ describe('SelectValueObserver', () => {
       type SelectValidChild = HTMLOptionElement | HTMLOptGroupElement;
 
       function createMutiSelectSut(initialValue: Anything[], options: SelectValidChild[]) {
-        const container = HTMLBrowserRuntimeConfiguration.createContainer();
+        const container = BasicConfiguration.createContainer();
         const dom = new HTMLDOM(document);
         Registration.instance(IDOM, dom).register(container, IDOM);
         const lifecycle = container.get(ILifecycle);

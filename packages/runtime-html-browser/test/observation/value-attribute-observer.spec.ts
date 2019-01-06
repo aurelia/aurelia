@@ -21,7 +21,7 @@ import {
   ValueAttributeObserver
 } from '../../../runtime-html/src/index';
 import { Lifecycle } from '../../../runtime/src/lifecycle';
-import { HTMLBrowserRuntimeConfiguration } from '../../src/index';
+import { BasicConfiguration } from '../../src/index';
 import {
   _,
   createElement
@@ -48,7 +48,7 @@ describe('ValueAttributeObserver', () => {
     ]) {
     describe(`setValue() - type="${inputType}"`, () => {
       function setup(hasSubscriber: boolean) {
-        const container = HTMLBrowserRuntimeConfiguration.createContainer();
+        const container = BasicConfiguration.createContainer();
         const dom = new HTMLDOM(document);
         Registration.instance(IDOM, dom).register(container, IDOM);
         //@ts-ignore
@@ -120,7 +120,7 @@ describe('ValueAttributeObserver', () => {
 
     describe(`handleEvent() - type="${inputType}"`, () => {
       function setup() {
-        const container = HTMLBrowserRuntimeConfiguration.createContainer();
+        const container = BasicConfiguration.createContainer();
         const dom = new HTMLDOM(document);
         Registration.instance(IDOM, dom).register(container, IDOM);
         const lifecycle = container.get(ILifecycle);

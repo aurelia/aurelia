@@ -24,7 +24,7 @@ import {
 import {
   FakeView
 } from '../../runtime/test/_doubles/fake-view';
-import { HTMLBrowserRuntimeConfiguration } from '../src/index';
+import { BasicConfiguration } from '../src/index';
 
 
 interface IElementTestOptions {
@@ -37,7 +37,7 @@ export function hydrateCustomElement<T>(
   options: IElementTestOptions = {}
 ) {
   const ElementType: ICustomElementType = Type as any;
-  const container = options.container || HTMLBrowserRuntimeConfiguration.createContainer();
+  const container = options.container || BasicConfiguration.createContainer();
   const dom = new HTMLDOM(document);
   Registration.instance(IDOM, dom).register(container, IDOM);
   if (options.lifecycle) {

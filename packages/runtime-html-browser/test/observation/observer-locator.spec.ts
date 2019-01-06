@@ -25,7 +25,7 @@ import {
 } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { HTMLBrowserRuntimeConfiguration } from '../../src/index';
+import { BasicConfiguration } from '../../src/index';
 import {
   _,
   createElement
@@ -33,7 +33,7 @@ import {
 
 describe('ObserverLocator', () => {
   function setup() {
-    const container = HTMLBrowserRuntimeConfiguration.createContainer();
+    const container = BasicConfiguration.createContainer();
     const dom = new HTMLDOM(document);
     Registration.instance(IDOM, dom).register(container, IDOM);
     const sut = container.get(IObserverLocator);

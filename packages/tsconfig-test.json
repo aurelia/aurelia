@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "alwaysStrict": true,
-    "downlevelIteration": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
-    "lib": ["esnext", "dom"],
+    "pretty": true,
+    "lib": ["esnext"],
+    "target": "es2018",
     "module": "commonjs",
     "moduleResolution": "node",
-    "preserveConstEnums": true,
-    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "rootDir": ".",
+
     "sourceMap": true,
-    "target": "es2018"
+
+    "skipLibCheck": true,
+
+    "alwaysStrict": true,
+    "preserveConstEnums": true,
+    "allowSyntheticDefaultImports": true
   }
 }

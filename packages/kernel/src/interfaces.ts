@@ -4,6 +4,15 @@ export interface IPerformance {
 
 export type ITimerHandler = string | Function;
 
+declare namespace NodeJS {
+  interface Process {
+    // tslint:disable-next-line:no-any
+    env?: any;
+    uptime(): number;
+    hrtime(): [number, number];
+  }
+}
+
 export interface IWindowOrWorkerGlobalScope {
   process?: NodeJS.Process;
   readonly performance: IPerformance;

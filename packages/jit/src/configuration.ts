@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { BasicConfiguration as RuntimeConfiguration, IExpressionParser } from '@aurelia/runtime';
+import { BasicConfiguration as RuntimeBasicConfiguration, IExpressionParser } from '@aurelia/runtime';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -95,7 +95,7 @@ export const BasicConfiguration = {
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimeConfiguration
+    return RuntimeBasicConfiguration
       .register(container)
       .register(
         ...DefaultComponents,

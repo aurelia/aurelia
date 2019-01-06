@@ -3,6 +3,7 @@ import { ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
 declare var global: IWindowOrWorkerGlobalScope;
 declare var self: IWindowOrWorkerGlobalScope;
 declare var window: IWindowOrWorkerGlobalScope;
+declare function setTimeout(handler: (...args: unknown[]) => void, timeout: number): unknown;
 
 const $global: IWindowOrWorkerGlobalScope = (function(): IWindowOrWorkerGlobalScope {
   // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415

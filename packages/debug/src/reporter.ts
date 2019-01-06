@@ -1,5 +1,13 @@
 import { ITraceInfo, ITraceWriter, PLATFORM, Reporter as RuntimeReporter, Tracer as RuntimeTracer } from '@aurelia/kernel';
 
+declare var console: {
+  log(...args: unknown[]): void;
+  debug(...args: unknown[]): void;
+  info(...args: unknown[]): void;
+  warn(...args: unknown[]): void;
+  error(...args: unknown[]): void;
+};
+
 const enum MessageType {
   error,
   warn,

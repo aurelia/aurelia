@@ -2,6 +2,7 @@
   "extends": "../tsconfig-test.json",
   "compilerOptions": {
     "forceConsistentCasingInFileNames": false,
+    "emitDecoratorMetadata": true,
     "lib": ["esnext"],
     "types": [
       "node",

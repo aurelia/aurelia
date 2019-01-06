@@ -1,21 +1,28 @@
 {
   "compilerOptions": {
-    "allowJs": false,
-    "alwaysStrict": true,
-    "noImplicitThis": true,
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
+    "pretty": true,
     "lib": ["esnext"],
+    "target": "es2018",
     "module": "esnext",
     "moduleResolution": "node",
+    "importHelpers": true,
+    "experimentalDecorators": true,
+    "rootDir": ".",
+
+    "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
+    "composite": true,
+    "noEmitOnError": true,
+
+    "noImplicitThis": true,
+
+    "skipLibCheck": true,
+
+    "alwaysStrict": true,
+    "preserveConstEnums": true,
     "stripInternal": true,
-    "target": "es2018",
-    "types": [
-      "node"
-    ]
+
+    "types": []
   }
 }

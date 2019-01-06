@@ -1,13 +1,37 @@
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { BasicConfiguration } from '../../../jit-html-browser/src/index';
-import { Router, ViewportCustomElement } from '../../src/index';
+import { IComponentViewportParameters, Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
 
 describe('Router', () => {
   it('can be created', function () {
     this.timeout(30000);
     const sut = new Router(null);
+  });
+
+  it('handles state strings', function () {
+    const router = new Router(null);
+    router.activate();
+    let states: IComponentViewportParameters[] = [
+      { component: 'foo', viewport: 'left', parameters: { id: '123' } },
+      { component: 'bar', viewport: 'right', parameters: { id: '456' } },
+    ];
+    let stateString = router.statesToString(states);
+    expect(stateString).to.equal('foo@left=123+bar@right=456');
+    let stringStates = router.statesFromString(stateString);
+    expect(stringStates).to.deep.equal(states);
+
+    states = [
+      { component: 'foo', parameters: { id: '123' } },
+      { component: 'bar', viewport: 'right' },
+      { component: 'baz' },
+    ];
+
+    stateString = router.statesToString(states);
+    expect(stateString).to.equal('foo=123+bar@right+baz');
+    stringStates = router.statesFromString(stateString);
+    expect(stringStates).to.deep.equal(states);
   });
 
   it('loads viewports left and right', async function () {

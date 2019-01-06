@@ -10,6 +10,14 @@ import { IViewportOptions, Viewport } from './viewport';
 export interface IRouterOptions extends IHistoryOptions {
   reportCallback?: Function;
   separators?: IRouteSeparators;
+  transformFromUrl?: Function;
+  transformToUrl?: Function;
+}
+
+export interface IComponentViewportParameters {
+  component: ICustomElementType | string;
+  viewport?: Viewport | string;
+  parameters?: Record<string, unknown>;
 }
 
 export interface IRoute {
@@ -145,14 +153,24 @@ export class Router {
     }
 
     let clearViewports: boolean = false;
+    let fullStateInstruction: boolean = false;
     if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
       instruction.path = instruction.fullStatePath;
+      fullStateInstruction = true;
     }
-    const path = instruction.path;
+
+    let path = instruction.path;
+    if (this.options.transformFromUrl && !fullStateInstruction) {
+      path = this.options.transformFromUrl(path, this);
+      if (Array.isArray(path)) {
+        path = this.statesToString(path);
+      }
+    }
+
     if (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add)) {
       clearViewports = true;
       if (path.startsWith(this.separators.clear)) {
-        instruction.path = path.substr(1);
+        path = path.substr(1);
       }
     }
 
@@ -178,7 +196,7 @@ export class Router {
 
       views = route.viewports;
     } else {
-      views = this.findViews(instruction);
+      views = this.findViews(path);
     }
 
     if (!views && !Object.keys(views).length && !clearViewports) {
@@ -332,9 +350,8 @@ export class Router {
     return route;
   }
 
-  public findViews(entry: IHistoryEntry): Record<string, string> {
+  public findViews(path: string): Record<string, string> {
     const views: Record<string, string> = {};
-    let path = entry.path;
     // TODO: Let this govern start of scope
     if (path.startsWith('/')) {
       path = path.substr(1);
@@ -440,6 +457,49 @@ export class Router {
     this.historyBrowser.forward();
   }
 
+  public statesToString(states: IComponentViewportParameters[]): string {
+    const stringStates: string[] = [];
+    for (const state of states) {
+      // TODO: Support non-string components
+      let stateString: string = state.component as string;
+      if (state.viewport) {
+        stateString += this.separators.viewport + state.viewport;
+      }
+      if (state.parameters) {
+        // TODO: Support more than one parameter
+        for (const key in state.parameters) {
+          stateString += this.separators.parameters + state.parameters[key];
+        }
+      }
+      stringStates.push(stateString);
+    }
+    return stringStates.join(this.separators.sibling);
+  }
+  public statesFromString(statesString: string): IComponentViewportParameters[] {
+    const states = [];
+    const stateStrings = statesString.split(this.separators.sibling);
+    for (const stateString of stateStrings) {
+      let component, viewport, parameters;
+      const [componentPart, rest] = stateString.split(this.separators.viewport);
+      if (rest === undefined) {
+        [component, parameters] = componentPart.split(this.separators.parameters);
+      } else {
+        component = componentPart;
+        [viewport, parameters] = rest.split(this.separators.parameters);
+      }
+      // TODO: Support more than one parameter
+      const state: IComponentViewportParameters = { component: component };
+      if (viewport) {
+        state.viewport = viewport;
+      }
+      if (parameters) {
+        state.parameters = { id: parameters };
+      }
+      states.push(state);
+    }
+    return states;
+  }
+
   public addNav(name: string, routes: INavRoute[]): void {
     let nav = this.navs[name];
     if (!nav) {
@@ -497,13 +557,18 @@ export class Router {
   private replacePaths(instruction: INavigationInstruction): void {
     let viewportStates = this.rootScope.viewportStates();
     viewportStates = this.removeStateDuplicates(viewportStates);
+    let state = viewportStates.join(this.separators.sibling);
+    if (this.options.transformToUrl) {
+      state = this.options.transformToUrl(this.statesFromString(state), this);
+    }
+
     let fullViewportStates = this.rootScope.viewportStates(true);
     fullViewportStates = this.removeStateDuplicates(fullViewportStates);
     this.activeComponents = fullViewportStates;
     fullViewportStates.unshift(this.separators.clear);
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
     this.historyBrowser.replacePath(
-      viewportStates.join(this.separators.sibling) + query,
+      state + query,
       fullViewportStates.join(this.separators.sibling) + query,
       instruction);
   }

@@ -5,19 +5,10 @@ import { NavCustomElement, ViewportCustomElement } from '../../../../../router/s
 import { App } from './app';
 
 import { About } from './components/about';
-import { Board } from './components/board';
-import { Cancel } from './components/cancel';
-import { Contact } from './components/contact';
-import { Contacts } from './components/contacts';
-import { Delayed } from './components/delayed';
-import { Game } from './components/game';
-import { Inventory } from './components/inventory';
-import { Lobby } from './components/lobby';
-import { enableTracing, disableTracing, TraceWriter } from './tracing';
-import { Tracer } from '@aurelia/kernel';
-
-enableTracing();
-Tracer.enableLiveLogging(TraceWriter);
+import { Author } from './components/author';
+import { Authors } from './components/authors';
+import { Book } from './components/book';
+import { Books } from './components/books';
 
 const container = HTMLJitConfiguration.createContainer();
 container.register(
@@ -25,15 +16,11 @@ container.register(
   NavCustomElement as any,
   App as any,
 
-  Game as any,
-  Lobby as any,
   About as any,
-  Contacts as any,
-  Contact as any,
-  Board as any,
-  Inventory as any,
-  Delayed as any,
-  Cancel as any,
+  Author as any,
+  Authors as any,
+  Book as any,
+  Books as any,
 );
 const component = container.get(CustomElementResource.keyFrom('app'));
 
@@ -41,4 +28,3 @@ window['au'] = new Aurelia(container)
   .register(DebugConfiguration)
   .app({ host: document.querySelector('app'), component: component })
   .start();
-

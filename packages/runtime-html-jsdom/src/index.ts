@@ -1,6 +1,6 @@
 import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
-import { HTMLDOM, HTMLRuntimeConfiguration } from '@aurelia/runtime-html';
+import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 
 class JSDOMInitializer implements IDOMInitializer {
@@ -42,18 +42,34 @@ class JSDOMInitializer implements IDOMInitializer {
   }
 }
 
-export const DOMInitializerRegistration = JSDOMInitializer as IRegistry;
+export const IDOMInitializerRegistration = JSDOMInitializer as IRegistry;
 
-export const HTMLJSDOMRuntimeConfiguration = {
-  register(container: IContainer): void {
-    container.register(
-      HTMLRuntimeConfiguration,
-      DOMInitializerRegistration
-    );
+/**
+ * Default HTML-specific, jsdom-specific implementations for the following interfaces:
+ * - `IDOMInitializer`
+ */
+export const DefaultComponents = [
+  IDOMInitializerRegistration
+];
+
+/**
+ * A DI configuration object containing html-specific, jsdom-specific registrations:
+ * - `BasicConfiguration` from `@aurelia/runtime-html`
+ * - `DefaultComponents`
+ */
+export const BasicConfiguration = {
+  /**
+   * Apply this configuration to the provided container.
+   */
+  register(container: IContainer): IContainer {
+    return RuntimeHtmlConfiguration
+      .register(container)
+      .register(...DefaultComponents);
   },
+  /**
+   * Create a new container with this configuration applied to it.
+   */
   createContainer(): IContainer {
-    const container = DI.createContainer();
-    container.register(HTMLRuntimeConfiguration);
-    return container;
+    return this.register(DI.createContainer());
   }
 };

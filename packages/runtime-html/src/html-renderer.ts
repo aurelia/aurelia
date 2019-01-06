@@ -36,6 +36,8 @@ const slice = Array.prototype.slice;
 export class TextBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
 
+  public static readonly register: IRegistry['register'];
+
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
 
@@ -67,6 +69,8 @@ export class TextBindingRenderer implements IInstructionRenderer {
 export class ListenerBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IEventManager];
 
+  public static readonly register: IRegistry['register'];
+
   private parser: IExpressionParser;
   private eventManager: IEventManager;
 
@@ -87,6 +91,8 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(HTMLTargetedInstructionType.setAttribute)
 /** @internal */
 export class SetAttributeRenderer implements IInstructionRenderer {
+  public static readonly register: IRegistry['register'];
+
   public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: ISetAttributeInstruction): void {
     if (Tracer.enabled) { Tracer.enter('SetAttributeRenderer.render', slice.call(arguments)); }
     target.setAttribute(instruction.to, instruction.value);
@@ -98,6 +104,8 @@ export class SetAttributeRenderer implements IInstructionRenderer {
 /** @internal */
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+
+  public static readonly register: IRegistry['register'];
 
   private parser: IExpressionParser;
   private observerLocator: IObserverLocator;
@@ -116,13 +124,3 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
   }
 }
 
-export const HTMLRenderer = {
-  register(container: IContainer): void {
-    container.register(
-      TextBindingRenderer as unknown as IRegistry,
-      ListenerBindingRenderer as unknown as IRegistry,
-      SetAttributeRenderer as unknown as IRegistry,
-      StylePropertyBindingRenderer as unknown as IRegistry
-    );
-  }
-};

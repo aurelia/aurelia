@@ -8,11 +8,11 @@ import {
   DefaultComponents as JitHtmlDefaultComponents
 } from '@aurelia/jit-html';
 import { DI, IContainer } from '@aurelia/kernel';
-import { BasicConfiguration as RuntimePixiConfiguration } from '@aurelia/runtime-pixi';
+import { BasicConfiguration as RuntimeHtmlBrowserBasicConfiguration } from '@aurelia/runtime-html-browser';
 
 /**
- * A DI configuration object containing html-, pixi- and browser-specific registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-pixi`
+ * A DI configuration object containing html-specific, browser-specific registrations:
+ * - `BasicConfiguration` from `@aurelia/runtime-html-browser`
  * - `DefaultComponents` from `@aurelia/jit`
  * - `DefaultBindingSyntax` from `@aurelia/jit`
  * - `DefaultBindingLanguage` from `@aurelia/jit`
@@ -24,7 +24,7 @@ export const BasicConfiguration = {
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimePixiConfiguration
+    return RuntimeHtmlBrowserBasicConfiguration
       .register(container)
       .register(
         ...JitDefaultBindingLanguage,

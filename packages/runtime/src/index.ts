@@ -269,11 +269,11 @@ export {
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
-  GlobalResources,
-  ObserverLocatorRegistration,
-  LifecycleRegistration,
-  RendererRegistration,
-  RuntimeConfiguration
+  DefaultResources as BasicResources,
+  IObserverLocatorRegistration as ObserverLocatorRegistration,
+  ILifecycleRegistration as LifecycleRegistration,
+  IRendererRegistration as RendererRegistration,
+  RuntimeBasicConfiguration as BasicConfiguration
 } from './configuration';
 export {
   AttributeDefinition,
@@ -428,8 +428,7 @@ export {
   instructionRenderer,
   ensureExpression,
   addAttachable,
-  addBindable,
-  BasicRenderer
+  addBindable
 } from './renderer';
 export {
   CompiledTemplate,

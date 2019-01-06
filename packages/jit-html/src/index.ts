@@ -4,14 +4,18 @@ export {
   CaptureBindingCommand
 } from './binding-command';
 export {
+  ITemplateCompilerRegistration,
+  ITemplateElementFactoryRegistration,
+
+  DefaultComponents,
+
   TriggerBindingCommandRegistration,
   DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
-  HTMLBindingLanguage,
-  TemplateCompilerRegistration,
-  TemplateElementFactoryRegistration,
-  HTMLTemplateCompiler,
-  HTMLJitConfiguration
+
+  DefaultBindingLanguage,
+
+  BasicConfiguration
 } from './configuration';
 export {
   stringifyDOM,

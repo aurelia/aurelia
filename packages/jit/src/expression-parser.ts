@@ -1,25 +1,16 @@
-import { IContainer, IRegistry, Reporter } from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
   ArrayBindingPattern, ArrayLiteral, Assign, Binary,
   BinaryOperator, BindingBehavior, BindingIdentifier,
   BindingIdentifierOrPattern, BindingType, CallFunction,
   CallMember, CallScope, Conditional, ExpressionKind, ForOfStatement,
-  IExpression, IExpressionParser, Interpolation, IsAssign, IsAssignable,
+  Interpolation, IsAssign, IsAssignable,
   IsBinary, IsBindingBehavior, IsConditional,
   IsExpressionOrStatement, IsLeftHandSide, IsPrimary, IsUnary,
   IsValueConverter, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, UnaryOperator, ValueConverter
 } from '@aurelia/runtime';
 import { Access, Char, Precedence, Token, unescapeCode } from './common';
-
-export const ParserRegistration: IRegistry = {
-  register(container: IContainer): void {
-    container.registerTransformer(IExpressionParser, parser => {
-      parser['parseCore'] = parseExpression;
-      return parser;
-    });
-  }
-};
 
 const $false = PrimitiveLiteral.$false;
 const $true = PrimitiveLiteral.$true;

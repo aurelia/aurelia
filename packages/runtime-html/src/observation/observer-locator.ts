@@ -89,7 +89,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
         return new CheckedObserver(lifecycle, obj as IInputElement, new EventSubscriber(this.dom, inputEvents), observerLocator);
       case 'value':
         if (obj['tagName'] === 'SELECT') {
-          return new SelectValueObserver(lifecycle, obj as ISelectElement, new EventSubscriber(this.dom, selectEvents), observerLocator);
+          return new SelectValueObserver(lifecycle, obj as ISelectElement, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
         }
         return new ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, inputEvents));
       case 'files':

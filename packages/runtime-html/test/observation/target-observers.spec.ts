@@ -1,29 +1,18 @@
 
-import { Registration } from '@aurelia/kernel';
-import {
-  IDOM,
-  ILifecycle,
-  IObserverLocator,
-  LifecycleFlags
-} from '@aurelia/runtime';
+import { ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import {
   AttributeNSAccessor,
   ClassAttributeAccessor,
   DataAttributeAccessor,
-  HTMLDOM,
   StyleAttributeAccessor
 } from '../../../runtime-html/src';
-import { BasicConfiguration } from '../../src/index';
 import { CSS_PROPERTIES } from '../css-properties';
-import {
-  createElement,
-  globalAttributeNames
-} from '../util';
+import { globalAttributeNames, HTMLTestContext, TestContext } from '../util';
 
-function createSvgUseElement(name: string, value: string) {
-  return createElement(`<svg>
+function createSvgUseElement(ctx: HTMLTestContext, name: string, value: string) {
+  return ctx.createElementFromMarkup(`<svg>
   <defs>
     <g id="shape1">
       <rect x="50" y="50" width="50" height="50" />
@@ -37,13 +26,10 @@ function createSvgUseElement(name: string, value: string) {
 }
 
 function setup() {
-  const container = BasicConfiguration.createContainer();
-  const dom = new HTMLDOM(document);
-  Registration.instance(IDOM, dom).register(container, IDOM);
-  const lifecycle = container.get(ILifecycle);
-  const observerLocator = container.get(IObserverLocator);
+  const ctx = TestContext.createHTMLTestContext();
+  const { container, lifecycle, observerLocator } = ctx;
 
-  return { container, lifecycle, observerLocator };
+  return { ctx, container, lifecycle, observerLocator };
 }
 
 describe('AttributeNSAccessor', () => {
@@ -63,9 +49,9 @@ describe('AttributeNSAccessor', () => {
   describe('getValue()', () => {
     for (const { name, value } of tests) {
       it(`returns ${value} for xlink:${name}`, () => {
-        const { lifecycle: $lifecycle } = setup();
+        const { ctx, lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
-        el = createSvgUseElement(name, value) as HTMLElement;
+        el = createSvgUseElement(ctx, name, value) as HTMLElement;
         sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, name, 'http://www.w3.org/1999/xlink');
         const actual = sut.getValue();
         expect(actual).to.equal(value);
@@ -76,7 +62,8 @@ describe('AttributeNSAccessor', () => {
   describe('setValue()', () => {
     for (const { name, value } of tests) {
       it(`sets xlink:${name} to foo`, () => {
-        el = createSvgUseElement(name, value) as HTMLElement;
+        const ctx = TestContext.createHTMLTestContext();
+        el = createSvgUseElement(ctx, name, value) as HTMLElement;
         const { lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
         sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, name, 'http://www.w3.org/1999/xlink');
@@ -100,7 +87,8 @@ describe('DataAttributeAccessor', () => {
     for (const name of globalAttributeNames) {
       for (const value of valueArr.filter(v => v !== null && v !== undefined)) {
         it(`returns "${value}" for attribute "${name}"`, () => {
-          el = createElement(`<div ${name}="${value}"></div>`);
+          const ctx = TestContext.createHTMLTestContext();
+          el = ctx.createElementFromMarkup(`<div ${name}="${value}"></div>`);
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           sut = new DataAttributeAccessor(lifecycle, el, name);
@@ -115,7 +103,8 @@ describe('DataAttributeAccessor', () => {
     for (const name of globalAttributeNames) {
       for (const value of valueArr) {
         it(`sets attribute "${name}" to "${value}"`, () => {
-          el = createElement(`<div></div>`);
+          const ctx = TestContext.createHTMLTestContext();
+          el = ctx.createElementFromMarkup(`<div></div>`);
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           const expected = value !== null && value !== undefined ? `<div ${name}="${value}"></div>` : '<div></div>';
@@ -145,7 +134,8 @@ describe('StyleAccessor', () => {
     const value = values[0];
     const rule = `${propName}:${value}`;
     it(`setValue - style="${rule}"`, () => {
-      el = createElement('<div></div>') as HTMLElement;
+      const ctx = TestContext.createHTMLTestContext();
+      el = ctx.createElementFromMarkup('<div></div>') as HTMLElement;
       const { lifecycle: $lifecycle } = setup();
       lifecycle = $lifecycle;
       sut = new StyleAttributeAccessor(lifecycle, el);
@@ -160,7 +150,8 @@ describe('StyleAccessor', () => {
   }
 
   it(`getValue - style="display: block;"`, () => {
-    el = createElement(`<div style="display: block;"></div>`) as HTMLElement;
+    const ctx = TestContext.createHTMLTestContext();
+    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`) as HTMLElement;
     const { lifecycle: $lifecycle } = setup();
     lifecycle = $lifecycle;
     sut = new StyleAttributeAccessor(lifecycle, el);
@@ -187,7 +178,8 @@ describe('ClassAccessor', () => {
   for (const markup of markupArr) {
     for (const classList of classListArr) {
       beforeEach(() => {
-        el = createElement(markup);
+        const ctx = TestContext.createHTMLTestContext();
+        el = ctx.createElementFromMarkup(markup);
         initialClassList = el.classList.toString();
         const { lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;

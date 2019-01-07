@@ -24,14 +24,32 @@ class BrowserDOMInitializer implements IDOMInitializer {
       if (config.dom !== undefined) {
         dom = config.dom;
       } else if (config.host.ownerDocument !== null) {
-        dom = new HTMLDOM(config.host.ownerDocument);
+        dom = new HTMLDOM(
+          window,
+          config.host.ownerDocument,
+          Node,
+          Element,
+          HTMLElement
+        );
       } else {
-        dom = new HTMLDOM(document);
+        dom = new HTMLDOM(
+          window,
+          document,
+          Node,
+          Element,
+          HTMLElement
+        );
       }
     } else {
-      dom = new HTMLDOM(document);
+      dom = new HTMLDOM(
+        window,
+        document,
+        Node,
+        Element,
+        HTMLElement
+      );
     }
-    Registration.instance(IDOM, dom).register(this.container, IDOM);
+    Registration.instance(IDOM, dom).register(this.container);
     return dom;
   }
 }

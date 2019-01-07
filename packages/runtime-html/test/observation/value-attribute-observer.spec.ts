@@ -1,37 +1,11 @@
-import {
-  DI,
-  Registration
-} from '@aurelia/kernel';
-import {
-  Binding,
-  IBindingTargetObserver,
-  IDOM,
-  ILifecycle,
-  IObserverLocator,
-  IPropertySubscriber,
-  LifecycleFlags
-} from '@aurelia/runtime';
+import { IPropertySubscriber, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
-import {
-  SinonSpy,
-  spy
-} from 'sinon';
-import {
-  HTMLDOM,
-  ValueAttributeObserver
-} from '../../../runtime-html/src/index';
-import { Lifecycle } from '../../../runtime/src/lifecycle';
-import { BasicConfiguration } from '../../src/index';
-import {
-  _,
-  createElement
-} from '../util';
+import { SinonSpy, spy } from 'sinon';
+import { ValueAttributeObserver } from '../../src/index';
+import { _, TestContext } from '../util';
 
 describe('ValueAttributeObserver', () => {
   const eventDefaults = { bubbles: true };
-  // TODO: these input types don't behave consistently due to their various constraints.
-  // These need to be discussed and probably need specific logic for them to work predictably
-  const inputTypeArr = ['color', 'date', 'datetime-local', 'file', 'month', 'number', 'range', 'time', 'week'];
 
   for (const { inputType, nullValues, validValues } of [
       { inputType: 'button',   nullValues: [null, undefined], validValues: ['', 'foo'] },
@@ -48,15 +22,11 @@ describe('ValueAttributeObserver', () => {
     ]) {
     describe(`setValue() - type="${inputType}"`, () => {
       function setup(hasSubscriber: boolean) {
-        const container = BasicConfiguration.createContainer();
-        const dom = new HTMLDOM(document);
-        Registration.instance(IDOM, dom).register(container, IDOM);
-        //@ts-ignore
-        const lifecycle = container.get(ILifecycle) as Lifecycle;
-        const observerLocator = container.get(IObserverLocator);
+        const ctx = TestContext.createHTMLTestContext();
+        const { container, lifecycle, observerLocator } = ctx;
 
-        const el = createElement(`<input type="${inputType}"/>`) as HTMLInputElement;
-        document.body.appendChild(el);
+        const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
+        ctx.doc.body.appendChild(el);
 
         const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
 
@@ -65,11 +35,11 @@ describe('ValueAttributeObserver', () => {
           sut.subscribe(subscriber);
         }
 
-        return { container, lifecycle, observerLocator, el, sut, subscriber };
+        return { ctx, container, lifecycle, observerLocator, el, sut, subscriber };
       }
 
-      function tearDown({ sut, lifecycle, el }: Partial<ReturnType<typeof setup>>) {
-        document.body.removeChild(el);
+      function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+        ctx.doc.body.removeChild(el);
         sut.dispose();
       }
 
@@ -79,7 +49,7 @@ describe('ValueAttributeObserver', () => {
 
             it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, () => {
 
-              const { sut, lifecycle, el, subscriber } = setup(hasSubscriber);
+              const { ctx, sut, lifecycle, el, subscriber } = setup(hasSubscriber);
 
               const expectedValueBefore = nullValues.includes(valueBefore) ? sut.defaultValue : valueBefore;
               const expectedValueAfter = nullValues.includes(valueAfter) ? sut.defaultValue : valueAfter;
@@ -111,7 +81,7 @@ describe('ValueAttributeObserver', () => {
                 expect((subscriber.handleChange as SinonSpy).getCalls().length).to.equal(callCount);
               }
 
-              tearDown({ sut, lifecycle, el });
+              tearDown({ ctx, sut, lifecycle, el });
             });
           }
         }
@@ -120,25 +90,22 @@ describe('ValueAttributeObserver', () => {
 
     describe(`handleEvent() - type="${inputType}"`, () => {
       function setup() {
-        const container = BasicConfiguration.createContainer();
-        const dom = new HTMLDOM(document);
-        Registration.instance(IDOM, dom).register(container, IDOM);
-        const lifecycle = container.get(ILifecycle);
-        const observerLocator = container.get(IObserverLocator);
+        const ctx = TestContext.createHTMLTestContext();
+        const { container, observerLocator } = ctx;
 
-        const el = createElement(`<input type="${inputType}"/>`) as HTMLInputElement;
-        document.body.appendChild(el);
+        const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
+        ctx.doc.body.appendChild(el);
 
         const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
 
         const subscriber: IPropertySubscriber = { handleChange: spy() };
         sut.subscribe(subscriber);
 
-        return { container, observerLocator, el, sut, subscriber };
+        return { ctx, container, observerLocator, el, sut, subscriber };
       }
 
-      function tearDown({ sut, el }: Partial<ReturnType<typeof setup>>) {
-        document.body.removeChild(el);
+      function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+        ctx.doc.body.removeChild(el);
         sut.dispose();
       }
 
@@ -148,7 +115,7 @@ describe('ValueAttributeObserver', () => {
 
             it(_`valueBefore=${valueBefore}, valueAfter=${valueAfter}`, () => {
 
-              const { sut, el, subscriber } = setup();
+              const { ctx, sut, el, subscriber } = setup();
 
               // TODO: only setting input.value to null sets it to empty string. Setting it to undefined actually coerces to 'undefined'. This should work consistently in both directions
               const expectedValueBefore = valueBefore === null ? '' : valueBefore + '';
@@ -156,7 +123,7 @@ describe('ValueAttributeObserver', () => {
               let callCount = 0;
 
               el.value = valueBefore;
-              el.dispatchEvent(new Event(event, eventDefaults));
+              el.dispatchEvent(new ctx.Event(event, eventDefaults));
               expect(el.value).to.equal(expectedValueBefore, 'el.value 1');
               expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
               if (expectedValueBefore !== '') {
@@ -165,7 +132,7 @@ describe('ValueAttributeObserver', () => {
               }
 
               el.value = valueAfter;
-              el.dispatchEvent(new Event(event, eventDefaults));
+              el.dispatchEvent(new ctx.Event(event, eventDefaults));
               expect(el.value).to.equal(expectedValueAfter, 'el.value 2');
               expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
               if (expectedValueBefore !== expectedValueAfter) {
@@ -174,7 +141,7 @@ describe('ValueAttributeObserver', () => {
               }
               expect((subscriber.handleChange as SinonSpy).getCalls().length).to.equal(callCount);
 
-              tearDown({ sut, el });
+              tearDown({ ctx, sut, el });
             });
           }
         }
@@ -183,4 +150,4 @@ describe('ValueAttributeObserver', () => {
   }
 });
 
-type TwoWayBinding = Binding & { targetObserver: IBindingTargetObserver };
+

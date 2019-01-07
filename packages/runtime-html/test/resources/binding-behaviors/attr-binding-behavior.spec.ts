@@ -1,7 +1,8 @@
-import { DI, IContainer } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import { Binding, BindingMode, IObserverLocator, IsBindingBehavior, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { AttrBindingBehavior, DataAttributeAccessor } from '../../../../runtime-html/src/index';
+import { AttrBindingBehavior, DataAttributeAccessor } from '../../../src/index';
+import { TestContext } from '../../util';
 
 describe('AttrBindingBehavior', () => {
   let sourceExpression: IsBindingBehavior;
@@ -16,10 +17,11 @@ describe('AttrBindingBehavior', () => {
   let scope: IScope;
 
   beforeEach(() => {
-    target = document.createElement('div');
+    const ctx = TestContext.createHTMLTestContext();
+    target = ctx.createElement('div');
     targetProperty = 'foo';
     sut = new AttrBindingBehavior();
-    container = DI.createContainer();
+    container = ctx.container;
     binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
     sut.bind(flags, scope, binding);
   });

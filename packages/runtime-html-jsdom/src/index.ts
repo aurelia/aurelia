@@ -7,9 +7,11 @@ class JSDOMInitializer implements IDOMInitializer {
   public static inject: unknown[] = [IContainer];
 
   private readonly container: IContainer;
+  private readonly jsdom: JSDOM;
 
   constructor(container: IContainer) {
     this.container = container;
+    this.jsdom = new JSDOM();
   }
 
   public static register(container: IContainer): IResolver<IDOMInitializer> {
@@ -24,20 +26,36 @@ class JSDOMInitializer implements IDOMInitializer {
     if (config !== undefined) {
       if (config.dom !== undefined) {
         dom = config.dom;
-      } else if (config.host.ownerDocument !== null) {
-        dom = new HTMLDOM(config.host.ownerDocument);
+      } else if (config.host.ownerDocument) {
+        dom = new HTMLDOM(
+          this.jsdom.window,
+          config.host.ownerDocument,
+          this.jsdom.window.Node,
+          this.jsdom.window.Element,
+          this.jsdom.window.HTMLElement
+        );
       } else {
-        const doc = new JSDOM().window.document;
         if (config.host) {
-          doc.body.appendChild(config.host);
+          this.jsdom.window.document.body.appendChild(config.host);
         }
-        dom = new HTMLDOM(doc);
+        dom = new HTMLDOM(
+          this.jsdom.window,
+          this.jsdom.window.document,
+          this.jsdom.window.Node,
+          this.jsdom.window.Element,
+          this.jsdom.window.HTMLElement
+        );
       }
     } else {
-      const doc = new JSDOM().window.document;
-      dom = new HTMLDOM(doc);
+      dom = new HTMLDOM(
+        this.jsdom.window,
+        this.jsdom.window.document,
+        this.jsdom.window.Node,
+        this.jsdom.window.Element,
+        this.jsdom.window.HTMLElement
+      );
     }
-    Registration.instance(IDOM, dom).register(this.container, IDOM);
+    Registration.instance(IDOM, dom).register(this.container);
     return dom;
   }
 }

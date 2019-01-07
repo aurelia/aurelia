@@ -9,24 +9,24 @@ import {
 import { expect } from 'chai';
 import {
   createElement as sut,
-  HTMLDOM,
   HTMLTargetedInstructionType,
   RenderPlan
-} from '../../runtime-html/src/index';
+} from '../src/index';
 import {
   _,
-  createElement,
   eachCartesianJoin,
-  eachCartesianJoinFactory
+  eachCartesianJoinFactory,
+  HTMLTestContext,
+  TestContext
 } from './util';
 
-describe(`createElement() creates element based on tag`, () => {
-  const dom = new HTMLDOM(document);
 
+describe(`createElement() creates element based on tag`, () => {
   eachCartesianJoin([['div', 'template']], (tag: string) => {
     describe(`tag=${tag}`, () => {
       it(`translates raw object properties to attributes`, () => {
-        const actual = sut(dom, tag, { title: 'asdf', foo: 'bar' });
+        const ctx = TestContext.createHTMLTestContext();
+        const actual = sut(ctx.dom, tag, { title: 'asdf', foo: 'bar' });
 
         const node = actual['node'] as Element;
 
@@ -39,7 +39,9 @@ describe(`createElement() creates element based on tag`, () => {
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
         it(`can handle ${str} props`, () => {
-          const actual = sut(dom, tag, props);
+          const ctx = TestContext.createHTMLTestContext();
+          //@ts-ignore
+          const actual = sut(ctx.dom, tag, props);
 
           const node = actual['node'] as Element;
 
@@ -48,25 +50,31 @@ describe(`createElement() creates element based on tag`, () => {
         });
       });
 
-      eachCartesianJoin([[
-        TargetedInstructionType.callBinding,
-        TargetedInstructionType.hydrateAttribute,
-        TargetedInstructionType.hydrateElement,
-        TargetedInstructionType.hydrateLetElement,
-        TargetedInstructionType.hydrateTemplateController,
-        TargetedInstructionType.interpolation,
-        TargetedInstructionType.iteratorBinding,
-        TargetedInstructionType.letBinding,
-        TargetedInstructionType.propertyBinding,
-        TargetedInstructionType.refBinding,
-        TargetedInstructionType.setProperty,
-        HTMLTargetedInstructionType.listenerBinding,
-        HTMLTargetedInstructionType.setAttribute,
-        HTMLTargetedInstructionType.stylePropertyBinding,
-        HTMLTargetedInstructionType.textBinding
-      ]], t => {
+      eachCartesianJoin(
+        [
+          [
+            TargetedInstructionType.callBinding,
+            TargetedInstructionType.hydrateAttribute,
+            TargetedInstructionType.hydrateElement,
+            TargetedInstructionType.hydrateLetElement,
+            TargetedInstructionType.hydrateTemplateController,
+            TargetedInstructionType.interpolation,
+            TargetedInstructionType.iteratorBinding,
+            TargetedInstructionType.letBinding,
+            TargetedInstructionType.propertyBinding,
+            TargetedInstructionType.refBinding,
+            TargetedInstructionType.setProperty,
+            HTMLTargetedInstructionType.listenerBinding,
+            HTMLTargetedInstructionType.setAttribute,
+            HTMLTargetedInstructionType.stylePropertyBinding,
+            HTMLTargetedInstructionType.textBinding
+          ]
+        ],
+        t => {
         it(`understands targeted instruction type=${t}`, () => {
-          const actual = sut(dom, tag, { prop: { type: t }});
+          const ctx = TestContext.createHTMLTestContext();
+          //@ts-ignore
+          const actual = sut(ctx.dom, tag, { prop: { type: t }});
 
           const instruction = actual['instructions'][0][0] as TargetedInstruction;
           const node = actual['node'] as Element;
@@ -80,18 +88,21 @@ describe(`createElement() creates element based on tag`, () => {
 
       eachCartesianJoinFactory([
         [
-          () => [['foo', 'bar'], 'foobar'],
-          () => [[createElement('<div>foo</div>'), createElement('<div>bar</div>')], 'foobar'],
-          () => [['foo', createElement('<div>bar</div>')], 'foobar']
-        ] as (() => [(RenderPlan | string | INode)[], string])[],
+          TestContext.createHTMLTestContext
+        ],
         [
-          ([children, expected]) => [children, expected],
-          ([children, expected]) => [[sut(dom, 'div', null, ['baz']), ...children], `baz${expected}`],
-          ([children, expected]) => [[sut(dom, 'div', null, [createElement('<div>baz</div>')]), ...children], `baz${expected}`]
-        ] as (($1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
-      ],                       ($1, [children, expected]) => {
+          ctx => [['foo', 'bar'], 'foobar'],
+          ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
+          ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
+        ] as ((ctx: HTMLTestContext) => [(RenderPlan | string | INode)[], string])[],
+        [
+          (ctx, [children, expected]) => [children, expected],
+          (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, ['baz']), ...children], `baz${expected}`],
+          (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
+        ] as ((ctx: HTMLTestContext, $1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
+      ],                       (ctx, $1, [children, expected]) => {
         it(_`adds children (${children})`, () => {
-          const actual = sut(dom, tag, null, children);
+          const actual = sut(ctx.dom, tag, null, children);
 
           const node = actual['node'] as Element;
 
@@ -106,7 +117,6 @@ describe(`createElement() creates element based on tag`, () => {
 });
 
 describe(`createElement() creates element based on type`, () => {
-  const dom = new HTMLDOM(document);
   eachCartesianJoin([
     [
       () => CustomElementResource.define({ name: 'foo' }, class Foo {}),
@@ -116,8 +126,9 @@ describe(`createElement() creates element based on type`, () => {
                     (createType: () => ICustomElementType) => {
     describe(_`type=${createType()}`, () => {
       it(`translates raw object properties to attributes`, () => {
+        const ctx = TestContext.createHTMLTestContext();
         const type = createType();
-        const actual = sut(dom, type, { title: 'asdf', foo: 'bar' });
+        const actual = sut(ctx.dom, type, { title: 'asdf', foo: 'bar' });
 
         const node = actual['node'] as Element;
         const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
@@ -146,7 +157,9 @@ describe(`createElement() creates element based on type`, () => {
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
         it(`can handle ${str} props`, () => {
           const type = createType();
-          const actual = sut(dom, type, props);
+          const ctx = TestContext.createHTMLTestContext();
+          //@ts-ignore
+          const actual = sut(ctx.dom, type, props);
 
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
@@ -158,26 +171,32 @@ describe(`createElement() creates element based on type`, () => {
         });
       });
 
-      eachCartesianJoin([[
-        TargetedInstructionType.callBinding,
-        TargetedInstructionType.hydrateAttribute,
-        TargetedInstructionType.hydrateElement,
-        TargetedInstructionType.hydrateLetElement,
-        TargetedInstructionType.hydrateTemplateController,
-        TargetedInstructionType.interpolation,
-        TargetedInstructionType.iteratorBinding,
-        TargetedInstructionType.letBinding,
-        TargetedInstructionType.propertyBinding,
-        TargetedInstructionType.refBinding,
-        TargetedInstructionType.setProperty,
-        HTMLTargetedInstructionType.listenerBinding,
-        HTMLTargetedInstructionType.setAttribute,
-        HTMLTargetedInstructionType.stylePropertyBinding,
-        HTMLTargetedInstructionType.textBinding
-      ]], t => {
+      eachCartesianJoin(
+        [
+          [
+            TargetedInstructionType.callBinding,
+            TargetedInstructionType.hydrateAttribute,
+            TargetedInstructionType.hydrateElement,
+            TargetedInstructionType.hydrateLetElement,
+            TargetedInstructionType.hydrateTemplateController,
+            TargetedInstructionType.interpolation,
+            TargetedInstructionType.iteratorBinding,
+            TargetedInstructionType.letBinding,
+            TargetedInstructionType.propertyBinding,
+            TargetedInstructionType.refBinding,
+            TargetedInstructionType.setProperty,
+            HTMLTargetedInstructionType.listenerBinding,
+            HTMLTargetedInstructionType.setAttribute,
+            HTMLTargetedInstructionType.stylePropertyBinding,
+            HTMLTargetedInstructionType.textBinding
+          ]
+        ],
+        t => {
         it(`understands targeted instruction type=${t}`, () => {
           const type = createType();
-          const actual = sut(dom, type, { prop: { type: t }});
+          const ctx = TestContext.createHTMLTestContext();
+          //@ts-ignore
+          const actual = sut(ctx.dom, type, { prop: { type: t }});
 
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
@@ -194,19 +213,22 @@ describe(`createElement() creates element based on type`, () => {
 
       eachCartesianJoinFactory([
         [
-          () => [['foo', 'bar'], 'foobar'],
-          () => [[createElement('<div>foo</div>'), createElement('<div>bar</div>')], 'foobar'],
-          () => [['foo', createElement('<div>bar</div>')], 'foobar']
-        ] as (() => [(RenderPlan | string | INode)[], string])[],
+          TestContext.createHTMLTestContext
+        ],
         [
-          ([children, expected]) => [children, expected],
-          ([children, expected]) => [[sut(dom, 'div', null, ['baz']), ...children], `baz${expected}`],
-          ([children, expected]) => [[sut(dom, 'div', null, [createElement('<div>baz</div>')]), ...children], `baz${expected}`]
-        ] as (($1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
-      ],                       ($1, [children, expected]) => {
+          ctx => [['foo', 'bar'], 'foobar'],
+          ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
+          ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
+        ] as ((ctx: HTMLTestContext) => [(RenderPlan | string | INode)[], string])[],
+        [
+          (ctx, [children, expected]) => [children, expected],
+          (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, ['baz']), ...children], `baz${expected}`],
+          (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
+        ] as ((ctx: HTMLTestContext, $1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
+      ],                       (ctx, $1, [children, expected]) => {
         it(_`adds children (${children})`, () => {
           const type = createType();
-          const actual = sut(dom, type, null, children);
+          const actual = sut(ctx.dom, type, null, children);
 
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;

@@ -1,8 +1,4 @@
-import {
-  IContainer,
-  IRegistry,
-  Tracer
-} from '@aurelia/kernel';
+import { IRegistry, Tracer } from '@aurelia/kernel';
 import {
   addBindable,
   Binding,

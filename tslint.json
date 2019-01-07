@@ -158,7 +158,7 @@
     "no-shadowed-variable": true,
     "no-suspicious-comment": false,
     "no-this-assignment": false,
-    "no-typeof-undefined": true,
+    "no-typeof-undefined": false,
     "no-unnecessary-class": false,
     "no-unnecessary-field-initialization": true,
     "no-unnecessary-local-variable": true,

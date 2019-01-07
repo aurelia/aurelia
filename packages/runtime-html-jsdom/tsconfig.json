@@ -4,10 +4,7 @@
     "rootDir": "src",
     "declarationDir": "dist",
     "outDir": "dist/build",
-    "lib": ["esnext"],
-    "types": [
-      "jsdom"
-    ]
+    "lib": ["esnext"]
   },
   "include": ["src"]
 }

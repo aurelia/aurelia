@@ -1,44 +1,32 @@
-import {
-  Registration,
-  Reporter
-} from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import {
   CollectionLengthObserver,
   CustomSetterObserver,
   DirtyCheckProperty,
-  IDOM,
-  IObserverLocator,
   PrimitiveObserver,
   PropertyAccessor,
   SetterObserver
 } from '@aurelia/runtime';
+import { expect } from 'chai';
+import { spy } from 'sinon';
 import {
   AttributeNSAccessor,
   CheckedObserver,
   ClassAttributeAccessor,
   DataAttributeAccessor,
   ElementPropertyAccessor,
-  HTMLDOM,
   SelectValueObserver,
   StyleAttributeAccessor,
   ValueAttributeObserver
-} from '@aurelia/runtime-html';
-import { expect } from 'chai';
-import { spy } from 'sinon';
-import { BasicConfiguration } from '../../src/index';
-import {
-  _,
-  createElement
-} from '../util';
+} from '../../src/index';
+import { _, TestContext } from '../util';
 
 describe('ObserverLocator', () => {
   function setup() {
-    const container = BasicConfiguration.createContainer();
-    const dom = new HTMLDOM(document);
-    Registration.instance(IDOM, dom).register(container, IDOM);
-    const sut = container.get(IObserverLocator);
+    const ctx = TestContext.createHTMLTestContext();
+    const sut = ctx.observerLocator;
 
-    return { sut };
+    return { ctx, sut };
   }
 
   for (const markup of [
@@ -51,9 +39,9 @@ describe('ObserverLocator', () => {
     `<input model="foo"></input>`,
     `<div xlink:type="foo"></div>`,
   ]) {
-    const el = createElement(markup) as Element;
+    const { ctx, sut } = setup();
+    const el = ctx.createElementFromMarkup(markup) as Element;
     const attr = el.attributes[0];
-    const { sut } = setup();
     const expected = sut.getObserver(el, attr.name);
     it(_`getAccessor() - ${markup} - returns ${expected.constructor.name}`, () => {
       const actual = sut.getAccessor(el, attr.name);
@@ -77,7 +65,7 @@ describe('ObserverLocator', () => {
   //   `<div aria-a=""></div>`,
   // ]) {
   //   it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, () => {
-  //     const el = createElement(markup) as Element;
+  //     const el = ctx.createElement(markup) as Element;
   //     const attr = el.attributes[0];
   //     const { sut } = setup();
   //     const actual = sut.getAccessor(el, attr.name);
@@ -94,9 +82,9 @@ describe('ObserverLocator', () => {
     `<div aria-a=""></div>`,
   ]) {
     it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, () => {
-      const el = createElement(markup) as Element;
+      const { ctx, sut } = setup();
+      const el = ctx.createElementFromMarkup(markup) as Element;
       const attr = el.attributes[0];
-      const { sut } = setup();
       const actual = sut.getAccessor(el, attr.name);
       expect(actual.constructor.name).to.equal(DataAttributeAccessor.name);
       expect(actual).to.be.instanceof(DataAttributeAccessor);
@@ -111,9 +99,9 @@ describe('ObserverLocator', () => {
     `<div a:a=""></div>`
   ]) {
     it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, () => {
-      const el = createElement(markup) as Element;
+      const { ctx, sut } = setup();
+      const el = ctx.createElementFromMarkup(markup) as Element;
       const attr = el.attributes[0];
-      const { sut } = setup();
       const actual = sut.getAccessor(el, attr.name);
       expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
       expect(actual).to.be.instanceof(ElementPropertyAccessor);
@@ -135,9 +123,9 @@ describe('ObserverLocator', () => {
     `<div ariaa=""></div>`,
   ]) {
     it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, () => {
-      const el = createElement(markup) as Element;
+      const { ctx, sut } = setup();
+      const el = ctx.createElementFromMarkup(markup) as Element;
       const attr = el.attributes[0];
-      const { sut } = setup();
       const actual = sut.getAccessor(el, attr.name);
       expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
       expect(actual).to.be.instanceof(ElementPropertyAccessor);
@@ -201,9 +189,9 @@ describe('ObserverLocator', () => {
     { markup: `<div aria-a=""></div>`, ctor: DataAttributeAccessor }
   ]) {
     it(_`getObserver() - ${markup} - returns ${ctor.name}`, () => {
-      const el = createElement(markup) as Element;
+      const { ctx, sut } = setup();
+      const el = ctx.createElementFromMarkup(markup) as Element;
       const attr = el.attributes[0];
-      const { sut } = setup();
       const actual = sut.getObserver(el, attr.name);
       expect(actual.constructor.name).to.equal(ctor.name);
       expect(actual).to.be.instanceof(ctor);
@@ -287,15 +275,15 @@ describe('ObserverLocator', () => {
     for (const hasAdapterObserver of [true, false]) {
       for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
         const descriptors = {
-          ...Object.getOwnPropertyDescriptors(Node.prototype),
-          ...Object.getOwnPropertyDescriptors(Element.prototype),
-          ...Object.getOwnPropertyDescriptors(HTMLElement.prototype),
-          ...Object.getOwnPropertyDescriptors(HTMLDivElement.prototype)
+          ...Object.getOwnPropertyDescriptors(TestContext.Node.prototype),
+          ...Object.getOwnPropertyDescriptors(TestContext.Element.prototype),
+          ...Object.getOwnPropertyDescriptors(TestContext.HTMLElement.prototype),
+          ...Object.getOwnPropertyDescriptors(TestContext.HTMLDivElement.prototype)
         };
         for (const property of Object.keys(descriptors)) {
           it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
-            const { sut } = setup();
-            const obj = document.createElement('div');
+            const { ctx, sut } = setup();
+            const obj = ctx.createElement('div');
             const dummyObserver = {} as any;
             if (hasAdapterObserver) {
               if (adapterIsDefined) {

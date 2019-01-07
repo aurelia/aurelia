@@ -2,7 +2,6 @@ import {
   IContainer,
   IDisposable,
   Immutable,
-  ImmutableArray,
   IResourceType,
   PLATFORM,
   Writable
@@ -41,20 +40,12 @@ import {
   State,
   TemplatePartDefinitions
 } from '@aurelia/runtime';
-import { expect } from 'chai';
 import { spy } from 'sinon';
-import {
- Lifecycle
-} from '../../runtime/src/lifecycle';
-import {
-  ObserverLocator
-} from '../../runtime/src/observation/observer-locator';
-import {
-  RuntimeBehavior
-} from '../../runtime/src/rendering-engine';
-import {
-  ViewFactory
-} from '../../runtime/src/templating/view';
+import {Lifecycle } from '../../runtime/src/lifecycle';
+import { ObserverLocator } from '../../runtime/src/observation/observer-locator';
+import { RuntimeBehavior } from '../../runtime/src/rendering-engine';
+import { ViewFactory } from '../../runtime/src/templating/view';
+import { HTMLTestContext } from './util';
 
 export class MockContext {
   public log: any[] = [];
@@ -75,26 +66,26 @@ export class MockNodeSequence implements INodeSequence {
     this.childNodes = PLATFORM.toArray(fragment.childNodes);
   }
 
-  public static createSimpleMarker(): MockNodeSequence {
-    const fragment = document.createDocumentFragment();
-    const marker = document.createElement('au-m');
+  public static createSimpleMarker(ctx: HTMLTestContext): MockNodeSequence {
+    const fragment = ctx.doc.createDocumentFragment();
+    const marker = ctx.createElement('au-m');
     marker.classList.add('au');
     fragment.appendChild(marker);
     return new MockNodeSequence(fragment);
   }
 
-  public static createRenderLocation(): MockNodeSequence {
-    const fragment = document.createDocumentFragment();
-    const location = document.createComment('au-loc');
+  public static createRenderLocation(ctx: HTMLTestContext): MockNodeSequence {
+    const fragment = ctx.doc.createDocumentFragment();
+    const location = ctx.doc.createComment('au-loc');
     fragment.appendChild(location);
     return new MockNodeSequence(fragment);
   }
 
-  public static createTextBindingMarker(): MockNodeSequence {
-    const fragment = document.createDocumentFragment();
-    const marker = document.createElement('au-m');
+  public static createTextBindingMarker(ctx: HTMLTestContext): MockNodeSequence {
+    const fragment = ctx.doc.createDocumentFragment();
+    const marker = ctx.createElement('au-m');
     marker.classList.add('au');
-    const textNode = document.createTextNode('');
+    const textNode = ctx.doc.createTextNode('');
     fragment.appendChild(marker);
     fragment.appendChild(textNode);
     return new MockNodeSequence(fragment);
@@ -138,9 +129,9 @@ export class MockTextNodeSequence implements INodeSequence {
 
   public fragment: DocumentFragment;
 
-  constructor() {
-    const fragment = this.fragment = document.createDocumentFragment();
-    const textNode = this.firstChild = this.lastChild = document.createTextNode('');
+  constructor(ctx: HTMLTestContext) {
+    const fragment = this.fragment = ctx.doc.createDocumentFragment();
+    const textNode = this.firstChild = this.lastChild = ctx.doc.createTextNode('');
     fragment.appendChild(textNode);
     this.childNodes = [textNode];
   }

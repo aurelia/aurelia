@@ -28,10 +28,10 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export declare class LinkHandler {
-    private static window;
+    private static readonly window;
     private options;
     private isActive;
-    private document;
+    private readonly document;
     constructor();
     /**
      * Gets the href and a "should handle" recommendation, given an Event.
@@ -62,6 +62,6 @@ export declare class LinkHandler {
      * Deactivate the instance. Event handlers and other resources should be cleaned up here.
      */
     deactivate(): void;
-    private handler;
+    private readonly handler;
 }
 //# sourceMappingURL=link-handler.d.ts.map

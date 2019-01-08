@@ -14,17 +14,17 @@ export interface IFindViewportsResult {
     viewportsRemaining?: boolean;
 }
 export declare class Scope {
-    private router;
     element: Element;
     parent: Scope;
     viewport: Viewport;
     children: Scope[];
-    viewports: Object;
+    viewports: Record<string, Viewport>;
+    private readonly router;
     private scopeViewportParts;
     private availableViewports;
     constructor(router: Router, element: Element, parent: Scope);
-    findViewports(viewports?: Object): IFindViewportsResult;
-    foundViewport(viewports: Object, scopeViewportParts: Object, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult;
+    findViewports(viewports?: Record<string, string>): IFindViewportsResult;
+    foundViewport(viewports: Record<string, string>, scopeViewportParts: Record<string, string[][]>, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult;
     addViewport(name: string, element: Element, options?: IViewportOptions): Viewport;
     removeViewport(viewport: Viewport): number;
     removeScope(): void;

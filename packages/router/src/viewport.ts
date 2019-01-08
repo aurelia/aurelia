@@ -1,9 +1,13 @@
-import { PLATFORM } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
+import { mergeParameters } from './parser';
 import { Router } from './router';
 import { Scope } from './scope';
-import { IViewportOptions } from './viewport';
+import { IRouteableCustomElement, IViewportOptions } from './viewport';
+
+export interface IRouteableCustomElementType extends ICustomElementType {
+  parameters?: string[];
+}
 
 export interface IRouteableCustomElement extends ICustomElement {
   canEnter?: Function;
@@ -19,8 +23,16 @@ export interface IViewportOptions {
 }
 
 export class Viewport {
-  public content: ICustomElementType;
-  public nextContent: ICustomElementType;
+  public name: string;
+  public element: Element;
+  public owningScope: Scope;
+  public scope: Scope;
+  public options?: IViewportOptions;
+
+  public content: IRouteableCustomElementType;
+  public nextContent: IRouteableCustomElementType;
+  public parameters: string;
+  public nextParameters: string;
 
   public instruction: INavigationInstruction;
   public nextInstruction: INavigationInstruction;
@@ -28,18 +40,43 @@ export class Viewport {
   public component: IRouteableCustomElement;
   public nextComponent: IRouteableCustomElement;
 
-  private clear: boolean = false;
+  private readonly router: Router;
 
-  constructor(private router: Router, public name: string, public element: Element, public owningScope: Scope, public scope: Scope, public options?: IViewportOptions) {
+  private clear: boolean;
+  private elementResolve: Function;
+
+  constructor(router: Router, name: string, element: Element, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
+    this.router = router;
+    this.name = name;
+    this.element = element;
+    this.owningScope = owningScope;
+    this.scope = scope;
+    this.options = options;
+
+    this.clear = false;
+
+    this.content = null;
+    this.nextContent = null;
+    this.parameters = null;
+    this.nextParameters = null;
+    this.instruction = null;
+    this.nextInstruction = null;
+    this.component = null;
+    this.nextComponent = null;
+    this.elementResolve = null;
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
+    let parameters;
     this.clear = false;
     if (typeof content === 'string') {
       if (content === this.router.separators.clear) {
         this.clear = true;
         content = null;
       } else {
+        const cp = content.split(this.router.separators.parameters);
+        content = cp.shift();
+        parameters = cp.length ? cp.join(this.router.separators.parameters) : null;
         const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(content));
         if (resolver !== null) {
           content = resolver.getFactory(this.router.container).Type as ICustomElementType;
@@ -49,14 +86,32 @@ export class Viewport {
 
     this.nextContent = content as ICustomElementType;
     this.nextInstruction = instruction;
+    this.nextParameters = parameters;
 
-    if (this.content !== content || instruction.isRefresh) {
+    if (this.content !== content || this.parameters !== parameters || !this.instruction || this.instruction.query !== instruction.query || instruction.isRefresh) {
       return true;
     }
 
-    // Add comparisons against path and data here
-
     return false;
+  }
+
+  public setElement(element: Element, options: IViewportOptions): void {
+    // First added viewport with element is always scope viewport (except for root scope)
+    if (this.scope && this.scope.parent && !this.scope.viewport) {
+      this.scope.viewport = this;
+    }
+    if (this.scope && !this.scope.element) {
+      this.scope.element = element;
+    }
+    if (!this.element) {
+      this.element = element;
+      if (options && options.usedBy) {
+        this.options.usedBy = options.usedBy;
+      }
+      if (this.elementResolve) {
+        this.elementResolve();
+      }
+    }
   }
 
   public canLeave(): Promise<boolean> {
@@ -106,51 +161,54 @@ export class Viewport {
     return result;
   }
 
-  public async loadContent(guard?: number): Promise<boolean> {
+  public async loadContent(): Promise<boolean> {
     // tslint:disable-next-line:no-console
     console.log('Viewport loadContent', this.name);
 
-    if (!this.element) {
-      // TODO: Refactor this once multi level recursiveness is fixed
-      await this.waitForElement(50);
-      if (!this.element) {
-        return Promise.resolve(false);
-      }
-    }
-
-    const host: INode = this.element as INode;
-    const container = this.router.container;
-    const dom = container.get(IDOM);
-    const projectorLocator = container.get(IProjectorLocator);
-    const renderingEngine = container.get(IRenderingEngine);
-
     if (this.component) {
       if (this.component.leave) {
-        this.component.leave(this.instruction, this.nextInstruction);
+        await this.component.leave(this.instruction, this.nextInstruction);
       }
-      this.component.$detach(LifecycleFlags.fromStopTask);
-      this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+      // No need to wait for next component activation
+      if (!this.nextComponent) {
+        this.removeComponent(this.component);
+      }
     }
 
     if (this.nextComponent) {
       if (this.nextComponent.enter) {
-        this.nextComponent.enter(this.nextInstruction, this.instruction);
+        const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, this.nextContent.parameters);
+        this.nextInstruction.parameters = merged.parameters;
+        this.nextInstruction.parameterList = merged.list;
+        await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
       }
-      this.nextComponent.$hydrate(dom, projectorLocator, renderingEngine, host, null);
-      this.nextComponent.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
-      this.nextComponent.$attach(LifecycleFlags.fromStartTask);
+
+      if (!this.element) {
+        // TODO: Refactor this once multi level recursiveness is fixed
+        await this.waitForElement();
+        if (!this.element) {
+          return Promise.resolve(false);
+        }
+      }
+
+      // Only when next component activation is done
+      if (this.component) {
+        this.removeComponent(this.component);
+      }
+      this.addComponent(this.nextComponent);
 
       this.content = this.nextContent;
+      this.parameters = this.nextParameters;
       this.instruction = this.nextInstruction;
       this.component = this.nextComponent;
     }
 
     if (this.clear) {
-      this.content = this.component = null;
+      this.content = this.parameters = this.component = null;
       this.instruction = this.nextInstruction;
     }
 
-    this.nextContent = this.nextInstruction = this.nextComponent = null;
+    this.nextContent = this.nextParameters = this.nextInstruction = this.nextComponent = null;
 
     return Promise.resolve(true);
   }
@@ -159,16 +217,17 @@ export class Viewport {
     if (this.content) {
       const component = this.content.description.name;
       const newScope: string = this.scope ? this.router.separators.ownsScope : '';
+      const parameters = this.parameters ? this.router.separators.parameters + this.parameters : '';
       if (full || newScope.length || this.options.forceDescription) {
-        return `${component}${this.router.separators.viewport}${this.name}${newScope}`;
+        return `${component}${this.router.separators.viewport}${this.name}${newScope}${parameters}`;
       }
       const viewports = {};
       viewports[component] = component;
       const found = this.owningScope.findViewports(viewports);
       if (!found) {
-        return `${component}${this.router.separators.viewport}${this.name}${newScope}`;
+        return `${component}${this.router.separators.viewport}${this.name}${newScope}${parameters}`;
       }
-      return component;
+      return `${component}${parameters}`;
     }
   }
 
@@ -206,24 +265,57 @@ export class Viewport {
     return false;
   }
 
+  public binding(flags: LifecycleFlags): void {
+    if (this.component) {
+      this.component.$bind(flags);
+    }
+  }
+
+  public attaching(flags: LifecycleFlags): void {
+    if (this.component) {
+      this.component.$attach(flags);
+    }
+  }
+
+  public detaching(flags: LifecycleFlags): void {
+    if (this.component) {
+      this.component.$detach(flags);
+    }
+  }
+
+  public unbinding(flags: LifecycleFlags): void {
+    if (this.component) {
+      this.component.$unbind(flags);
+    }
+  }
+
   private loadComponent(component: ICustomElementType): void {
     this.nextComponent = this.router.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
   }
 
-  private async waitForElement(guard: number): Promise<void> {
+  private addComponent(component: ICustomElement): void {
+    const host: INode = this.element as INode;
+    const container = this.router.container;
+    const dom = container.get(IDOM);
+    const projectorLocator = container.get(IProjectorLocator);
+    const renderingEngine = container.get(IRenderingEngine);
+
+    component.$hydrate(dom, projectorLocator, renderingEngine, host, null);
+    component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+    component.$attach(LifecycleFlags.fromStartTask);
+  }
+
+  private removeComponent(component: ICustomElement): void {
+    component.$detach(LifecycleFlags.fromStopTask);
+    component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+  }
+
+  private async waitForElement(): Promise<void> {
     if (this.element) {
       return Promise.resolve();
     }
-    if (!guard) {
-      return Promise.resolve();
-    }
-    await this.wait(100);
-    return this.waitForElement(--guard);
-  }
-
-  private async wait(time: number = 0): Promise<void> {
-    await new Promise((resolve) => {
-      PLATFORM.global.setTimeout(resolve, time);
+    return new Promise((resolve) => {
+      this.elementResolve = resolve;
     });
   }
 }

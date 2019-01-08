@@ -1,6 +1,4 @@
 <template>
-  <require from="./components/viewport"></require>
-
   <p>${message}</p>
 
   <div style="padding: 20px;">
@@ -33,6 +31,31 @@
 
     <au-viewport name="left" class="split"></au-viewport>
     <au-viewport name="right" class="split"></au-viewport> -->
+
+    <!--
+    <nav class="top-menu">
+      <ul class="level-0">
+        <li class="nav-active">
+          <a href="email">Email</a>
+          <ul class="level-1">
+            <li>
+              <a href="email+inbox@email-content">Inbox</a>
+            </li>
+            <li class="nav-active">
+              <a href="email+about@email-content">About</a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <a href="calendar">Calendar</a>
+        </li>
+      </ul>
+    </nav>
+    -->
+
+    <div style="padding: 10px;">
+      <au-nav name="top-menu"></au-nav>
+    </div>
 
     <div style="padding: 10px;">
       <au-viewport name="header" used-by="header"></au-viewport>

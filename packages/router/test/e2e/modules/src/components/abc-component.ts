@@ -1,7 +1,7 @@
 import { AppState } from './../app-state';
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '../../../../../../runtime';
 import * as template from './abc-component.html';
-import { inject } from '@aurelia/kernel';
+import { inject } from '../../../../../../kernel';
 
 @inject(AppState)
 @customElement({ name: 'abc', template })

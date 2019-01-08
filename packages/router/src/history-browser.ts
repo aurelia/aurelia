@@ -3,7 +3,10 @@ export interface IHistoryEntry {
   fullStatePath: string;
   index?: number;
   title?: string;
-  data?: Object;
+  query?: string;
+  parameters?: Record<string, string>;
+  parameterList?: string[];
+  data?: Record<string, unknown>;
 }
 
 export interface IHistoryOptions {
@@ -67,27 +70,27 @@ export class HistoryBrowser {
     this.isActive = false;
   }
 
-  public goto(path: string, title?: string, data?: Object): void {
+  public goto(path: string, title?: string, data?: Record<string, unknown>): void {
     this.activeEntry = {
       path: path,
-      fullStatePath: path,
+      fullStatePath: null,
       title: title,
       data: data,
     };
     this.setPath(path);
   }
 
-  public replace(path: string, title?: string, data?: Object): void {
+  public replace(path: string, title?: string, data?: Record<string, unknown>): void {
     this.isReplacing = true;
     this.activeEntry = {
       path: path,
-      fullStatePath: path,
+      fullStatePath: null,
       title: title,
       data: data,
     };
     this.setPath(path, true);
   }
-  public redirect(path: string, title?: string, data?: Object): void {
+  public redirect(path: string, title?: string, data?: Record<string, unknown>): void {
     // This makes sure we can cancel redirects from both pushes and replaces
     this.cancelRedirectHistoryMovement = this.lastHistoryMovement + 1;
     this.replace(path, title, data);
@@ -119,7 +122,7 @@ export class HistoryBrowser {
     }
   }
 
-  public setState(key: string | Object, value?: Object): void {
+  public setState(key: string | Record<string, unknown>, value?: Record<string, unknown>): void {
     const { pathname, search, hash } = this.location;
     let state = { ...this.history.state };
     if (typeof key === 'string') {
@@ -130,7 +133,7 @@ export class HistoryBrowser {
     this.history.replaceState(state, null, `${pathname}${search}${hash}`);
   }
 
-  public getState(key: string): Object {
+  public getState(key: string): Record<string, unknown> {
     const state = { ...this.history.state };
     return state[key];
   }
@@ -144,7 +147,14 @@ export class HistoryBrowser {
     });
   }
 
-  public replacePath(path: string, fullStatePath: string): void {
+  public replacePath(path: string, fullStatePath: string, entry: INavigationInstruction): void {
+    if (entry.index !== this.currentEntry.index) {
+      // TODO: Store unresolved in localStorage to set if we should ever navigate back to it
+      // tslint:disable-next-line:no-console
+      console.warn('replacePath: entry not matching currentEntry', entry, this.currentEntry);
+      return;
+    }
+
     const newHash = `#/${path}`;
     const { pathname, search, hash } = this.location;
     // tslint:disable-next-line:possible-timing-attack
@@ -176,6 +186,7 @@ export class HistoryBrowser {
 
   public pathChanged = (): void => {
     const path: string = this.getPath();
+    const search: string = this.getSearch();
     // tslint:disable-next-line:no-console
     console.log('path changed to', path, this.activeEntry, this.currentEntry);
 
@@ -233,8 +244,9 @@ export class HistoryBrowser {
         // TODO: max history length of 50, find better new index
         historyEntry = {
           path: path,
-          fullStatePath: path,
+          fullStatePath: null,
           index: this.history.length - this.historyOffset,
+          query: search,
         };
         this.historyEntries = this.historyEntries.slice(0, historyEntry.index);
         this.historyEntries.push(historyEntry);
@@ -265,7 +277,8 @@ export class HistoryBrowser {
   }
 
   private getPath(): string {
-    return this.location.hash.substr(1);
+    const hash = this.location.hash.substr(1);
+    return hash.split('?')[0];
   }
   private setPath(path: string, replace: boolean = false): void {
     // More checks, such as parameters, needed
@@ -284,6 +297,13 @@ export class HistoryBrowser {
       this.history.pushState({}, null, `${pathname}${search}${hash}`);
     }
     this.pathChanged();
+  }
+
+  private getSearch(): string {
+    const hash = this.location.hash.substr(1) || '';
+    const hashSearches = hash.split('?');
+    hashSearches.shift();
+    return hashSearches.shift() || '';
   }
 
   private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags): void {

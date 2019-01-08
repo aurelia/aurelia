@@ -38,6 +38,13 @@ export class Aurelia {
 
   public app(config: ISinglePageApp): this {
     const host = config.host as INode & {$au?: Aurelia | null};
+    let dom: IDOM;
+    if (this.container.has(IDOM, false)) {
+      dom = this.container.get(IDOM);
+    } else {
+      const domInitializer = this.container.get(IDOMInitializer);
+      dom = domInitializer.initialize(config);
+    }
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
     if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
@@ -46,8 +53,6 @@ export class Aurelia {
     } else {
       component = componentOrType as ICustomElement;
     }
-    const domInitializer = this.container.get(IDOMInitializer);
-    const dom = domInitializer.initialize(config);
 
     const startTask = () => {
       host.$au = this;

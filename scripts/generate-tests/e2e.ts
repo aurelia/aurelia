@@ -26,25 +26,31 @@ const defaults = {
       'local': {
         '@aurelia/debug': 'file:../../../../../packages/debug',
         '@aurelia/jit-html': 'file:../../../../../packages/jit-html',
+        '@aurelia/jit-html-browser': 'file:../../../../../packages/jit-html-browser',
         '@aurelia/jit': 'file:../../../../../packages/jit',
         '@aurelia/kernel': 'file:../../../../../packages/kernel',
         '@aurelia/runtime-html': 'file:../../../../../packages/runtime-html',
+        '@aurelia/runtime-html-browser': 'file:../../../../../packages/runtime-html-browser',
         '@aurelia/runtime': 'file:../../../../../packages/runtime'
       },
       'dev': {
         '@aurelia/debug': 'dev',
         '@aurelia/jit-html': 'dev',
+        '@aurelia/jit-html-browser': 'dev',
         '@aurelia/jit': 'dev',
         '@aurelia/kernel': 'dev',
         '@aurelia/runtime-html': 'dev',
+        '@aurelia/runtime-html-browser': 'dev',
         '@aurelia/runtime': 'dev'
       },
       'latest': {
         '@aurelia/debug': 'latest',
         '@aurelia/jit-html': 'latest',
+        '@aurelia/jit-html-browser': 'latest',
         '@aurelia/jit': 'latest',
         '@aurelia/kernel': 'latest',
         '@aurelia/runtime-html': 'latest',
+        '@aurelia/runtime-html-browser': 'latest',
         '@aurelia/runtime': 'latest'
       }
     }
@@ -281,7 +287,7 @@ export class App {
           'serve': 'http-server -c-1 -p 9000 .'
         },
         'local': {
-          'build': 'copyfiles -u 7 ../../../../../packages/jit-html/dist/index.iife.full.js .'
+          'build': 'copyfiles -u 7 ../../../../../packages/jit-html-browser/dist/index.iife.full.js .'
         }
       },
       'dependencies': {
@@ -324,7 +330,7 @@ npm run serve
           'prebuild': 'rimraf *.tgz && npm run copypackages && npm run renamepackages && npm run installpackages',
           'copypackages': 'copyfiles -u 7 ../../../../../packages/*/*.tgz .',
           'renamepackages': 'rname -r \"(?<name>[a-z\\-]+)(?<version>-\\d.\\d.\\d)\" --noindex aurelia*.tgz \"{{name}}\"',
-          'installpackages': 'npm i --save ./aurelia-kernel.tgz ./aurelia-runtime.tgz ./aurelia-runtime-html.tgz ./aurelia-debug.tgz ./aurelia-jit.tgz ./aurelia-jit-html.tgz'
+          'installpackages': 'npm i --save ./aurelia-kernel.tgz ./aurelia-runtime.tgz ./aurelia-runtime-html.tgz ./aurelia-runtime-html-browser.tgz ./aurelia-debug.tgz ./aurelia-jit.tgz ./aurelia-jit-html.tgz ./aurelia-jit-html-browser.tgz'
         }
       },
       'dependencies': {

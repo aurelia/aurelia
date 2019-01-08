@@ -152,10 +152,10 @@ export const DI = {
 
   createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
     const Key: any = function(target: Injectable, property: string, index: number): any {
-      if (target === undefined) {
-        throw Reporter.error(16, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
-      }
       Key.friendlyName = friendlyName || 'Interface';
+      if (target === undefined) {
+        throw Reporter.error(16, Key.friendlyName, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+      }
       (target.inject || (target.inject = []))[index] = Key;
       return target;
     };

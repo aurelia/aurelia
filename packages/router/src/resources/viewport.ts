@@ -8,6 +8,7 @@ export class ViewportCustomElement {
   @bindable public name: string;
   @bindable public scope: boolean;
   @bindable public usedBy: string;
+  @bindable public default: string;
 
   public viewport: Viewport;
 
@@ -21,6 +22,7 @@ export class ViewportCustomElement {
     this.name = 'default';
     this.scope = null;
     this.usedBy = null;
+    this.default = null;
     this.viewport = null;
   }
 
@@ -28,6 +30,9 @@ export class ViewportCustomElement {
     const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };
     if (this.usedBy && this.usedBy.length) {
       options.usedBy = this.usedBy;
+    }
+    if (this.default && this.default.length) {
+      options.default = this.default;
     }
     this.viewport = this.router.addViewport(this.name, this.element, options);
   }

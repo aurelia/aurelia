@@ -6,6 +6,7 @@ import { Router } from './router';
 
 export interface INavRoute {
   components: string | ICustomElementType | Object;
+  consideredActive?: string | ICustomElementType | Object;
   link?: string;
   title: string;
   children?: NavRoute[];

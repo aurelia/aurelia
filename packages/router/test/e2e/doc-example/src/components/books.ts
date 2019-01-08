@@ -7,7 +7,7 @@ import { BooksRepository } from '../repositories/books';
 <h3>Books</h3>
 <ul>
   <li repeat.for="book of books">
-    <a href="book/\${book.id}">\${book.title}</a>
+    <a href="book=\${book.id}">\${book.title}</a>
     <ul><li repeat.for="author of book.authors">\${author.name}</li></ul>
   </li>
 </ul>

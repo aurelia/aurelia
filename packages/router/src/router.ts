@@ -62,6 +62,8 @@ export class Router {
   public navs: Record<string, Nav> = {};
   public activeComponents: string[] = [];
 
+  public addedViewports: any = [];
+
   private options: IRouterOptions;
   private isActive: boolean = false;
   private isRedirecting: boolean = false;
@@ -208,12 +210,14 @@ export class Router {
       this.historyBrowser.setEntryTitle(title);
     }
 
+    this.ensureRootScope();
     const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
+    const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
 
     // TODO: Take care of cancellations down in subsets/iterations
     let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
     let guard = 100;
-    while (componentViewports.length || viewportsRemaining) {
+    while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
       // Guard against endless loop
       if (!guard--) {
         break;
@@ -228,10 +232,21 @@ export class Router {
         if (usedIndex >= 0) {
           usedViewports.splice(usedIndex, 1);
         }
+        const defaultIndex = defaultViewports.findIndex((value) => value === viewport);
+        if (defaultIndex >= 0) {
+          defaultViewports.splice(defaultIndex, 1);
+        }
       }
       for (const viewport of usedViewports) {
         if (viewport.setNextContent(this.separators.clear, instruction)) {
           changedViewports.push(viewport);
+        }
+      }
+      // TODO: Support/review viewports not found in first iteration
+      let vp: Viewport;
+      while (vp = defaultViewports.shift()) {
+        if (vp.setNextContent(vp.options.default, instruction)) {
+          changedViewports.push(vp);
         }
       }
 
@@ -265,7 +280,14 @@ export class Router {
 
       // TODO: Fix multi level recursiveness!
       const remaining = this.rootScope.findViewports();
-      componentViewports = remaining.componentViewports;
+      componentViewports = [];
+      let addedViewport;
+      while (addedViewport = this.addedViewports.shift()) {
+        if (!remaining.componentViewports.find((value) => value.viewport === addedViewport.viewport)) {
+          componentViewports.push(addedViewport);
+        }
+      }
+      componentViewports = [...componentViewports, ...remaining.componentViewports];
       viewportsRemaining = remaining.viewportsRemaining;
     }
 
@@ -275,6 +297,12 @@ export class Router {
 
     if (this.pendingNavigations.length) {
       this.processNavigations().catch(error => { throw error; });
+    }
+  }
+
+  public addProcessingViewport(viewport: Viewport, component: string): void {
+    if (this.processingNavigation) {
+      this.addedViewports.push({ viewport: viewport, component: component });
     }
   }
 
@@ -392,11 +420,7 @@ export class Router {
   // }
 
   public findScope(element: Element): Scope {
-    if (!this.rootScope) {
-      const aureliaRootElement = this.container.get(Aurelia).root().$host;
-      this.rootScope = new Scope(this, aureliaRootElement as Element, null);
-      this.scopes.push(this.rootScope);
-    }
+    this.ensureRootScope();
     return this.closestScope(element);
   }
 
@@ -500,6 +524,13 @@ export class Router {
     return states;
   }
 
+  public setNav(name: string, routes: INavRoute[]): void {
+    const nav = this.findNav(name);
+    if (nav) {
+      nav.routes = [];
+    }
+    this.addNav(name, routes);
+  }
   public addNav(name: string, routes: INavRoute[]): void {
     let nav = this.navs[name];
     if (!nav) {
@@ -509,6 +540,14 @@ export class Router {
   }
   public findNav(name: string): Nav {
     return this.navs[name];
+  }
+
+  private ensureRootScope(): void {
+    if (!this.rootScope) {
+      const aureliaRootElement = this.container.get(Aurelia).root().$host;
+      this.rootScope = new Scope(this, aureliaRootElement as Element, null);
+      this.scopes.push(this.rootScope);
+    }
   }
 
   private closestScope(element: Element): Scope {

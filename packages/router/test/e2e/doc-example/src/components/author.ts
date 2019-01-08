@@ -8,7 +8,7 @@ import { AuthorsRepository } from '../repositories/authors';
 <div>Born: \${author.born}</div>
 <div>Books:
   <ul>
-    <li repeat.for="book of author.books"><a href="book/\${book.id}">\${book.title}</a></li>
+    <li repeat.for="book of author.books"><a href="book=\${book.id}">\${book.title}</a></li>
   </ul>
 </div>
 </template>` })

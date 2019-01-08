@@ -19,6 +19,7 @@ export interface IRouteableCustomElement extends ICustomElement {
 export interface IViewportOptions {
   scope?: boolean;
   usedBy?: string | string[];
+  default?: string;
   forceDescription?: boolean;
 }
 
@@ -111,6 +112,9 @@ export class Viewport {
       if (this.elementResolve) {
         this.elementResolve();
       }
+    }
+    if (!this.component && !this.nextComponent && this.options.default) {
+      this.router.addProcessingViewport(this, this.options.default);
     }
   }
 

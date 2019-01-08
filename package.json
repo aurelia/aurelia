@@ -35,7 +35,8 @@
     "publish:latest": "ts-node -P scripts/tsconfig.json scripts/publish.ts latest",
     "refresh": "lerna clean -y && nodetouch ensurestash && git add . && git stash && git clean -xfd && git stash pop && git rm -f ensurestash && npm ci && npm run bootstrap && npm run build",
     "generate-tests:template-compiler.static": "ts-node -P scripts/tsconfig.json scripts/generate-tests/template-compiler.static.ts",
-    "generate-tests:template-compiler.mutations": "ts-node -P scripts/tsconfig.json scripts/generate-tests/template-compiler.mutations.ts"
+    "generate-tests:template-compiler.mutations": "ts-node -P scripts/tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
+    "generate-e2e": "ts-node -P scripts/tsconfig.json scripts/generate-tests/e2e.ts"
   },
   "dependencies": {},
   "devDependencies": {

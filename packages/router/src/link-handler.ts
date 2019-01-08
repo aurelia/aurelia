@@ -30,13 +30,13 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export class LinkHandler {
-  private static window: Window;
+  private static readonly window: Window;
 
   private options: ILinkHandlerOptions;
   private isActive: boolean = false;
 
   // private handler: EventListener;
-  private document: Document;
+  private readonly document: Document;
 
   constructor() {
     this.document = document;
@@ -129,7 +129,7 @@ export class LinkHandler {
     this.isActive = false;
   }
 
-  private handler: EventListener = (e) => {
+  private readonly handler: EventListener = (e) => {
     const info = LinkHandler.getEventInfo(e);
 
     if (info.shouldHandleEvent) {

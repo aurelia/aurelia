@@ -18,21 +18,36 @@ export interface IFindViewportsResult {
 }
 
 export class Scope {
+  public element: Element;
+  public parent: Scope;
+
   public viewport: Viewport;
 
   public children: Scope[] = [];
-  public viewports: Object = {};
+  public viewports: Record<string, Viewport> = {};
 
-  private scopeViewportParts: Object = {};
-  private availableViewports: Object;
+  private readonly router: Router;
 
-  constructor(private router: Router, public element: Element, public parent: Scope) {
+  private scopeViewportParts: Record<string, string[][]> = {};
+  private availableViewports: Record<string, Viewport>;
+
+  constructor(router: Router, element: Element, parent: Scope) {
+    this.router = router;
+    this.element = element;
+    this.parent = parent;
+
+    this.viewport = null;
+    this.children = [];
+    this.viewports = {};
+    this.scopeViewportParts = {};
+    this.availableViewports = null;
+
     if (this.parent) {
       this.parent.addChild(this);
     }
   }
 
-  public findViewports(viewports?: Object): IFindViewportsResult {
+  public findViewports(viewports?: Record<string, string>): IFindViewportsResult {
     const componentViewports: IComponentViewport[] = [];
     let viewportsRemaining: boolean = false;
 
@@ -55,15 +70,19 @@ export class Scope {
 
     // Configured viewport is ruling
     for (const viewportPart in this.scopeViewportParts) {
-      const component = viewportPart.split(this.router.separators.viewport).shift();
+      const parameters = viewportPart.split(this.router.separators.parameters);
+      const componentViewportPart = parameters.shift();
+      const component = componentViewportPart.split(this.router.separators.viewport).shift();
+      const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
       for (const name in this.availableViewports) {
         const viewport: Viewport = this.availableViewports[name];
         // TODO: Also check if (resolved) component wants a specific viewport
         if (viewport && viewport.wantComponent(component)) {
-          const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, component, viewport);
+          const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, componentParameters, viewport);
           componentViewports.push(...found.componentViewports);
           viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
           this.availableViewports[name] = null;
+          // tslint:disable-next-line:no-dynamic-delete
           delete this.scopeViewportParts[viewportPart];
           break;
         }
@@ -72,8 +91,11 @@ export class Scope {
 
     // Next in line is specified viewport
     for (const viewportPart in this.scopeViewportParts) {
-      const parts = viewportPart.split(this.router.separators.viewport);
+      const parameters = viewportPart.split(this.router.separators.parameters);
+      const componentViewportPart = parameters.shift();
+      const parts = componentViewportPart.split(this.router.separators.viewport);
       const component = parts.shift();
+      const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
       let name = parts.shift();
       if (!name || !name.length || name.startsWith('?')) {
         continue;
@@ -89,17 +111,21 @@ export class Scope {
       }
       const viewport = this.availableViewports[name];
       if (viewport && viewport.acceptComponent(component)) {
-        const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, component, viewport);
+        const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, componentParameters, viewport);
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[name] = null;
+        // tslint:disable-next-line:no-dynamic-delete
         delete this.scopeViewportParts[viewportPart];
       }
     }
 
     // Finally, only one accepting viewport left?
     for (const viewportPart in this.scopeViewportParts) {
-      const component = viewportPart.split(this.router.separators.viewport).shift();
+      const parameters = viewportPart.split(this.router.separators.parameters);
+      const componentViewportPart = parameters.shift();
+      const component = componentViewportPart.split(this.router.separators.viewport).shift();
+      const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
       const remainingViewports = [];
       for (const name in this.availableViewports) {
         const viewport: Viewport = this.availableViewports[name];
@@ -109,10 +135,11 @@ export class Scope {
       }
       if (remainingViewports.length === 1) {
         const viewport = remainingViewports.shift();
-        const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, component, viewport);
+        const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, componentParameters, viewport);
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[viewport.name] = null;
+        // tslint:disable-next-line:no-dynamic-delete
         delete this.scopeViewportParts[viewportPart];
         break;
       }
@@ -135,7 +162,7 @@ export class Scope {
     };
   }
 
-  public foundViewport(viewports: Object, scopeViewportParts: Object, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult {
+  public foundViewport(viewports: Record<string, string>, scopeViewportParts: Record<string, string[][]>, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult {
     const componentViewports: IComponentViewport[] = [{ component: component, viewport: viewport }];
     let viewportsRemaining: boolean = false;
 
@@ -202,19 +229,7 @@ export class Scope {
       viewport = this.viewports[name] = new Viewport(this.router, name, element, this, scope, options);
     }
     if (element) {
-      // First added viewport with element is always scope viewport (except for root scope)
-      if (viewport.scope && viewport.scope.parent && !viewport.scope.viewport) {
-        viewport.scope.viewport = viewport;
-      }
-      if (viewport.scope && !viewport.scope.element) {
-        viewport.scope.element = element;
-      }
-      if (!viewport.element) {
-        viewport.element = element;
-        if (!viewport.element.children) {
-          this.renderViewport(viewport).catch(error => { throw error; });
-        }
-      }
+      viewport.setElement(element, options);
     }
     return viewport;
   }
@@ -222,6 +237,7 @@ export class Scope {
     if (viewport.scope) {
       this.router.removeScope(viewport.scope);
     }
+    // tslint:disable-next-line:no-dynamic-delete
     delete this.viewports[viewport.name];
     return Object.keys(this.viewports).length;
   }

@@ -2,6 +2,8 @@ import { IContainer } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
+import { INavRoute, Nav } from './nav';
+import { IParsedQuery, parseQuery } from './parser';
 import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 
@@ -15,8 +17,8 @@ export interface IRoute {
   path: string;
   redirect?: string;
   title?: string;
-  viewports?: Object;
-  meta?: Object;
+  viewports?: Record<string, string>;
+  meta?: Record<string, string>;
 }
 
 export interface IRouteViewport {
@@ -39,7 +41,7 @@ export class Router {
   public static readonly inject: ReadonlyArray<Function> = [IContainer];
 
   public routes: IRoute[] = [];
-  public viewports: Object = {};
+  public viewports: Record<string, Viewport> = {};
 
   public rootScope: Scope;
   public scopes: Scope[] = [];
@@ -49,9 +51,15 @@ export class Router {
   public historyBrowser: HistoryBrowser;
   public linkHandler: LinkHandler;
 
+  public navs: Record<string, Nav> = {};
+  public activeComponents: string[] = [];
+
   private options: IRouterOptions;
   private isActive: boolean = false;
   private isRedirecting: boolean = false;
+
+  private readonly pendingNavigations: INavigationInstruction[] = [];
+  private processingNavigation: INavigationInstruction = null;
 
   constructor(public container: IContainer) {
     this.historyBrowser = new HistoryBrowser();
@@ -67,7 +75,7 @@ export class Router {
     this.options = {
       ...{
         callback: (navigationInstruction) => {
-          this.historyCallback(navigationInstruction).catch(error => { throw error; });
+          this.historyCallback(navigationInstruction);
         }
       }, ...options
     };
@@ -113,17 +121,30 @@ export class Router {
     this.historyBrowser.setHash(href);
   }
 
-  public async historyCallback(instruction: INavigationInstruction): Promise<void> {
+  public historyCallback(instruction: INavigationInstruction): void {
+    this.pendingNavigations.push(instruction);
+    this.processNavigations().catch(error => { throw error; });
+  }
+
+  public async processNavigations(): Promise<void> {
+    if (this.processingNavigation !== null || !this.pendingNavigations.length) {
+      return Promise.resolve();
+    }
+
+    const instruction: INavigationInstruction = this.pendingNavigations.shift();
+    this.processingNavigation = instruction;
+
     if (this.options.reportCallback) {
       this.options.reportCallback(instruction);
     }
 
     if (instruction.isCancel) {
+      this.processingNavigation = null;
       return Promise.resolve();
     }
 
     let clearViewports: boolean = false;
-    if (instruction.isBack || instruction.isForward) {
+    if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
       instruction.path = instruction.fullStatePath;
     }
     const path = instruction.path;
@@ -134,14 +155,19 @@ export class Router {
       }
     }
 
+    const parsedQuery: IParsedQuery = parseQuery(instruction.query);
+    instruction.parameters = parsedQuery.parameters;
+    instruction.parameterList = parsedQuery.list;
+
     let title;
-    let views: Object;
+    let views: Record<string, string>;
     let route: IRoute = this.findRoute(instruction);
     if (route) {
       if (route.redirect) {
         route = this.resolveRedirect(route, instruction.data);
         this.isRedirecting = true;
         this.historyBrowser.redirect(route.path, route.title, instruction.data);
+        this.processingNavigation = null;
         return Promise.resolve();
       }
 
@@ -155,6 +181,7 @@ export class Router {
     }
 
     if (!views && !Object.keys(views).length && !clearViewports) {
+      this.processingNavigation = null;
       return Promise.resolve();
     }
 
@@ -200,15 +227,18 @@ export class Router {
       let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
       if (results.findIndex((value) => value === false) >= 0) {
         this.historyBrowser.cancel();
+        this.processingNavigation = null;
         return Promise.resolve();
       }
       results = await Promise.all(changedViewports.map((value) => value.canEnter()));
       if (results.findIndex((value) => value === false) >= 0) {
         this.historyBrowser.cancel();
+        this.processingNavigation = null;
         return Promise.resolve();
       }
-      results = await Promise.all(changedViewports.map((value) => value.loadContent()));
+      await Promise.all(changedViewports.map((value) => value.loadContent()));
       // TODO: Remove this once multi level recursiveness has been fixed
+      // results = await Promise.all(changedViewports.map((value) => value.loadContent()));
       // if (results.findIndex((value) => value === false) >= 0) {
       //   this.historyBrowser.cancel();
       //   return Promise.resolve();
@@ -219,8 +249,14 @@ export class Router {
       componentViewports = remaining.componentViewports;
       viewportsRemaining = remaining.viewportsRemaining;
     }
-    // TODO: Make sure replace paths isn't called on wrong (later) navigation
-    this.replacePaths();
+
+    this.replacePaths(instruction);
+
+    this.processingNavigation = null;
+
+    if (this.pendingNavigations.length) {
+      this.processNavigations().catch(error => { throw error; });
+    }
   }
 
   // public view(views: Object, title?: string, data?: Object): Promise<void> {
@@ -279,11 +315,11 @@ export class Router {
   public findRoute(entry: IHistoryEntry): IRoute {
     return this.routes.find((value) => value.path === entry.path);
   }
-  public resolveRedirect(route: IRoute, data?: Object): IRoute {
+  public resolveRedirect(route: IRoute, data?: Record<string, unknown>): IRoute {
     while (route.redirect) {
       const redirectRoute: IRoute = this.findRoute({
         path: route.redirect,
-        fullStatePath: route.redirect,
+        fullStatePath: null, // TODO: This might not be right
         data: data,
       });
       if (redirectRoute) {
@@ -295,14 +331,14 @@ export class Router {
     return route;
   }
 
-  public findViews(entry: IHistoryEntry): Object {
-    const views: Object = {};
+  public findViews(entry: IHistoryEntry): Record<string, string> {
+    const views: Record<string, string> = {};
     let path = entry.path;
     // TODO: Let this govern start of scope
     if (path.startsWith('/')) {
       path = path.substr(1);
     }
-    let sections: string[] = path.split(this.separators.sibling);
+    const sections: string[] = path.split(this.separators.sibling);
 
     // TODO: Remove this once multi level recursiveness is fixed
     // Expand with instances for all containing views
@@ -319,8 +355,6 @@ export class Router {
     let index = 0;
     while (sections.length) {
       const view = sections.shift();
-      // TODO: implement parameters
-      // As a = part at the end of the view!
       const scopes = view.split(this.separators.scope);
       const leaf = scopes.pop();
       const parts = leaf.split(this.separators.viewport);
@@ -378,7 +412,7 @@ export class Router {
     this.routes.push(route);
   }
 
-  public goto(pathOrViewports: string | Object, title?: string, data?: Object): void {
+  public goto(pathOrViewports: string | Object, title?: string, data?: Record<string, unknown>): void {
     if (typeof pathOrViewports === 'string') {
       this.historyBrowser.goto(pathOrViewports, title, data);
     }
@@ -387,7 +421,7 @@ export class Router {
     // }
   }
 
-  public replace(pathOrViewports: string | Object, title?: string, data?: Object): void {
+  public replace(pathOrViewports: string | Object, title?: string, data?: Record<string, unknown>): void {
     if (typeof pathOrViewports === 'string') {
       this.historyBrowser.replace(pathOrViewports, title, data);
     }
@@ -403,6 +437,17 @@ export class Router {
 
   public forward(): void {
     this.historyBrowser.forward();
+  }
+
+  public addNav(name: string, routes: INavRoute[]): void {
+    let nav = this.navs[name];
+    if (!nav) {
+      nav = this.navs[name] = new Nav(this, name);
+    }
+    nav.addRoutes(routes);
+  }
+  public findNav(name: string): Nav {
+    return this.navs[name];
   }
 
   private closestScope(element: Element): Scope {
@@ -448,12 +493,17 @@ export class Router {
     return unique;
   }
 
-  private replacePaths(): void {
+  private replacePaths(instruction: INavigationInstruction): void {
     let viewportStates = this.rootScope.viewportStates();
     viewportStates = this.removeStateDuplicates(viewportStates);
     let fullViewportStates = this.rootScope.viewportStates(true);
     fullViewportStates = this.removeStateDuplicates(fullViewportStates);
+    this.activeComponents = fullViewportStates;
     fullViewportStates.unshift(this.separators.clear);
-    this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling), fullViewportStates.join(this.separators.sibling));
+    const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
+    this.historyBrowser.replacePath(
+      viewportStates.join(this.separators.sibling) + query,
+      fullViewportStates.join(this.separators.sibling) + query,
+      instruction);
   }
 }

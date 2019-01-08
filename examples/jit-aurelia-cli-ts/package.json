@@ -16,9 +16,11 @@
     "text": "github:requirejs/text#latest",
     "@aurelia/debug": "dev",
     "@aurelia/jit-html": "dev",
+    "@aurelia/jit-html-browser": "dev",
     "@aurelia/jit": "dev",
     "@aurelia/kernel": "dev",
     "@aurelia/runtime-html": "dev",
+    "@aurelia/runtime-html-browser": "dev",
     "@aurelia/runtime": "dev"
   },
   "devDependencies": {

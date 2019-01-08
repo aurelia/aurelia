@@ -13,7 +13,7 @@
     "prebuild": "rimraf *.tgz && npm run copypackages && npm run renamepackages && npm run installpackages",
     "copypackages": "copyfiles -u 7 ../../../../../packages/*/*.tgz .",
     "renamepackages": "rname -r \"(?<name>[a-z\\-]+)(?<version>-\\d.\\d.\\d)\" --noindex aurelia*.tgz \"{{name}}\"",
-    "installpackages": "npm i --save ./aurelia-kernel.tgz ./aurelia-runtime.tgz ./aurelia-runtime-html.tgz ./aurelia-debug.tgz ./aurelia-jit.tgz ./aurelia-jit-html.tgz"
+    "installpackages": "npm i --save ./aurelia-kernel.tgz ./aurelia-runtime.tgz ./aurelia-runtime-html.tgz ./aurelia-runtime-html-browser.tgz ./aurelia-debug.tgz ./aurelia-jit.tgz ./aurelia-jit-html.tgz ./aurelia-jit-html-browser.tgz"
   },
   "dependencies": {},
   "devDependencies": {

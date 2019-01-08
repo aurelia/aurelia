@@ -14,9 +14,11 @@
   "dependencies": {
     "@aurelia/debug": "latest",
     "@aurelia/jit-html": "latest",
+    "@aurelia/jit-html-browser": "latest",
     "@aurelia/jit": "latest",
     "@aurelia/kernel": "latest",
     "@aurelia/runtime-html": "latest",
+    "@aurelia/runtime-html-browser": "latest",
     "@aurelia/runtime": "latest"
   },
   "devDependencies": {

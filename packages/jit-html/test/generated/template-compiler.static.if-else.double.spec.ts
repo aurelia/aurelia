@@ -1,13 +1,12 @@
 import { expect } from "chai";
-import { CustomElementResource, Aurelia } from "../../../runtime/src/index";
-import { HTMLJitConfiguration } from "../../src/index";
-import { getVisibleText } from "../util";
+import { CustomElementResource, Aurelia } from "@aurelia/runtime";
+import { getVisibleText, TestContext } from "../util";
 
 describe("generated.template-compiler.static.if-else.double", function () {
     function setup() {
-        const container = HTMLJitConfiguration.createContainer();
-        const au = new Aurelia(container);
-        const host = document.createElement("div");
+        const ctx = TestContext.createHTMLTestContext();
+        const au = new Aurelia(ctx.container);
+        const host = ctx.createElement("div");
         return { au, host };
     }
     function verify(au, host, expected) {

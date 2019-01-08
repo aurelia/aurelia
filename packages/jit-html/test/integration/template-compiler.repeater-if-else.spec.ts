@@ -3,11 +3,12 @@ import {
   Aurelia,
   bindable,
   ILifecycle,
-  LifecycleFlags
+  LifecycleFlags,
+  CustomElementResource
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { baseSuite } from './template-compiler.base';
-import { defineCustomElement, trimFull } from './util';
+import { trimFull } from './util';
 
 const spec = 'template-compiler.repeater-if-else';
 
@@ -258,14 +259,14 @@ parentSuite.addActionSlot('setup')
       @bindable public items: any[];
       @bindable public display: boolean;
     }
-    const $Foo = defineCustomElement('foo', template, Foo);
+    const $Foo = CustomElementResource.define({ name: 'foo', template }, Foo);
     container.register($Foo);
     class App {
       public items: any[] = initialItems;
       public display: boolean = false;
       public count: number = count;
     }
-    const $App = defineCustomElement('app', markup, App);
+    const $App = CustomElementResource.define({ name: 'app', template: markup }, App);
     const component = new $App();
     au.app({ host, component }).start();
     lifecycle.processFlushQueue(LifecycleFlags.none);

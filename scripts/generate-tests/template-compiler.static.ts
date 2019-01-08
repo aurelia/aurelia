@@ -873,9 +873,8 @@ function generateAndEmit(): void {
     const tests = testsRecord[suffix];
     const nodes = [
       $$import('chai', 'expect'),
-      $$import('../../../runtime/src/index', 'CustomElementResource', 'Aurelia'),
-      $$import('../../src/index', 'HTMLJitConfiguration'),
-      $$import('../util', 'getVisibleText'),
+      $$import('@aurelia/runtime', 'CustomElementResource', 'Aurelia'),
+      $$import('../util', 'getVisibleText', 'TestContext'),
       null,
       $$functionExpr('describe', [
         $expression(`generated.template-compiler.${suffix}`),
@@ -883,9 +882,9 @@ function generateAndEmit(): void {
           $$functionDecl(
             'setup',
             [
-              $$const('container', $call('HTMLJitConfiguration.createContainer')),
-              $$new('au', 'Aurelia', ['container']),
-              $$const('host', $call('document.createElement', [$expression('div')])),
+              $$const('ctx', $call('TestContext.createHTMLTestContext')),
+              $$new('au', 'Aurelia', ['ctx.container']),
+              $$const('host', $call('ctx.createElement', [$expression('div')])),
               $$return({ au: 'au', host: 'host' })
             ],
             []

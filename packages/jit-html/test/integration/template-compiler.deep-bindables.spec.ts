@@ -5,12 +5,13 @@ import {
 import {
   Aurelia,
   bindable,
+  CustomElementResource,
   ICustomElementType,
   ILifecycle
 } from '@aurelia/runtime';
 import { expect } from 'chai';
+import { HTMLTestContext } from '../util';
 import { baseSuite } from './template-compiler.base';
-import { defineCustomElement } from './util';
 
 const spec = 'template-compiler.deep-bindables';
 
@@ -24,9 +25,10 @@ const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement
 
 parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = document.createElement('template');
-  const text = document.createTextNode('${$1}${$2}${$3}');
-  const fooA_el = document.createElement('foo-a');
+  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
+  const template = $ctx.createElement('template') as HTMLTemplateElement;
+  const text = $ctx.doc.createTextNode('${$1}${$2}${$3}');
+  const fooA_el = $ctx.createElement('foo-a');
 
   fooA_el.setAttribute('a1.bind', '$1');
   fooA_el.setAttribute('a2.bind', '$2');
@@ -35,16 +37,17 @@ parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
   template.content.appendChild(text);
   template.content.appendChild(fooA_el);
 
-  const $App = defineCustomElement('app', template, class App {});
+  const $App = CustomElementResource.define({ name: 'app', template }, class App {});
   container.register($App);
   ctx.i = fooA_el;
   return $App;
 });
 parentSuite.addDataSlot('f').addData('foo-a').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = document.createElement('template');
-  const text = document.createTextNode('${a1}${a2}${a3}');
-  const fooB_el = document.createElement('foo-b');
+  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
+  const template = $ctx.createElement('template') as HTMLTemplateElement;
+  const text = $ctx.doc.createTextNode('${a1}${a2}${a3}');
+  const fooB_el = $ctx.createElement('foo-b');
 
   fooB_el.setAttribute('b1.bind', 'a1');
   fooB_el.setAttribute('b2.bind', 'a2');
@@ -60,16 +63,17 @@ parentSuite.addDataSlot('f').addData('foo-a').setFactory(ctx => {
     @bindable() public display: boolean;
     @bindable() public things: any[];
   }
-  const $FooA = defineCustomElement('foo-a', template, FooA);
+  const $FooA = CustomElementResource.define({ name: 'foo-a', template }, FooA);
   container.register($FooA);
   ctx.j = fooB_el;
   return $FooA;
 });
 parentSuite.addDataSlot('g').addData('foo-b').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = document.createElement('template');
-  const text = document.createTextNode('${b1}${b2}${b3}');
-  const fooC_el = document.createElement('foo-c');
+  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
+  const template = $ctx.createElement('template') as HTMLTemplateElement;
+  const text = $ctx.doc.createTextNode('${b1}${b2}${b3}');
+  const fooC_el = $ctx.createElement('foo-c');
 
   fooC_el.setAttribute('c1.bind', 'b1');
   fooC_el.setAttribute('c2.bind', 'b2');
@@ -85,15 +89,16 @@ parentSuite.addDataSlot('g').addData('foo-b').setFactory(ctx => {
     @bindable() public display: boolean;
     @bindable() public things: any[];
   }
-  const $FooB = defineCustomElement('foo-b', template, FooB);
+  const $FooB = CustomElementResource.define({ name: 'foo-b', template }, FooB);
   container.register($FooB);
   ctx.k = fooC_el;
   return $FooB;
 });
 parentSuite.addDataSlot('h').addData('foo-c').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = document.createElement('template');
-  const text = document.createTextNode('${c1}${c2}${c3}');
+  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
+  const template = $ctx.createElement('template') as HTMLTemplateElement;
+  const text = $ctx.doc.createTextNode('${c1}${c2}${c3}');
 
   template.content.appendChild(text);
 
@@ -104,7 +109,7 @@ parentSuite.addDataSlot('h').addData('foo-c').setFactory(ctx => {
     @bindable() public display: boolean;
     @bindable() public things: any[];
   }
-  const $FooC = defineCustomElement('foo-c', template, FooC);
+  const $FooC = CustomElementResource.define({ name: 'foo-c', template }, FooC);
   container.register($FooC);
   return $FooC;
 });
@@ -124,8 +129,9 @@ wrappedBasic.addActionSlot('wrap in div')
       h: { description: { template: fooCTemplate } }
     } = ctx;
 
+    const $ctx = ctx.a.get<HTMLTestContext>(HTMLTestContext);
     for (const template of [appTemplate, fooATemplate, fooBTemplate, fooCTemplate] as HTMLTemplateElement[]) {
-      const div = document.createElement('div');
+      const div = $ctx.createElement('div');
       div.appendChild(template.content);
       template.content.appendChild(div);
     }

@@ -1,4 +1,4 @@
-import { IContainer, Registration } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElementResource,
@@ -7,10 +7,10 @@ import {
   IObserverLocator,
   IRenderingEngine,
   LifecycleFlags} from '@aurelia/runtime';
-import { HTMLDOM, RenderPlan } from '@aurelia/runtime-html';
+import { RenderPlan } from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { HTMLJitConfiguration } from '../../src/index';
 import { eachCartesianJoin } from '../unit/util';
+import { TestContext } from '../util';
 import { trimFull } from './util';
 
 const build = { required: true, compiler: 'default' };
@@ -18,14 +18,10 @@ const spec = 'template-compiler.compose';
 
 describe(spec, () => {
   function setup(): SpecContext {
-    const container = HTMLJitConfiguration.createContainer();
-    const dom = new HTMLDOM(document);
-    Registration.instance(IDOM, dom).register(container, IDOM);
+    const ctx = TestContext.createHTMLTestContext();
+    const { container, dom, lifecycle, observerLocator, renderingEngine: re } = ctx;
     const au = new Aurelia(container);
     const host = dom.createElement('div');
-    const lifecycle = container.get(ILifecycle);
-    const re = container.get(IRenderingEngine);
-    const observerLocator = container.get(IObserverLocator);
 
     return { container, dom, au, host, lifecycle, re, observerLocator };
   }

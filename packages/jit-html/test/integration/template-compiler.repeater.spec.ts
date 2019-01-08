@@ -1,14 +1,7 @@
-import {
-  IContainer,
-  PLATFORM
-} from '@aurelia/kernel';
-import {
-  Aurelia,
-  ILifecycle
-} from '@aurelia/runtime';
+import { IContainer, PLATFORM } from '@aurelia/kernel';
+import { Aurelia, CustomElementResource, ILifecycle } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { baseSuite } from './template-compiler.base';
-import { defineCustomElement } from './util';
 
 const spec = 'template-compiler.repeater';
 
@@ -46,7 +39,7 @@ suite.addActionSlot('setup')
   .addAction(null, ctx => {
     const {  b: au, c: lifecycle, d: host, e: [a1, a2, expected, initialize], f: markup } = ctx;
     class App {}
-    const $App = defineCustomElement('app', markup, App);
+    const $App = CustomElementResource.define({ name: 'app', template: markup }, App);
     const component = new $App();
     initialize(component);
 

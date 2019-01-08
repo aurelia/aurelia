@@ -31,8 +31,8 @@
         "TS_NODE_PROJECT": "${workspaceRoot}/packages/runtime-html-jsdom/test/tsconfig.json"
       },
       "args": [
-        "${workspaceRoot}/packages/runtime-html-jsdom/test/setup-node.ts",
-        "${workspaceRoot}/packages/runtime-html-jsdom/test/**/event-manager.spec.ts", // remember to change this to the file you want to debug (and you may need to remove this comment as well for VS Code's json parser)
+        "${workspaceRoot}/packages/jit-html-jsdom/test/setup-node.ts",
+        "${workspaceRoot}/packages/jit-html/test/unit/template-element-factory.spec.ts", // remember to change this to the file you want to debug (and you may need to remove this comment as well for VS Code's json parser)
         "-c",
         "-R",
         "progress",

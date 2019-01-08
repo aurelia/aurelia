@@ -1,6 +1,11 @@
 {
-  "name": "jit-parcel",
-  "version": "0.1.1",
+  "name": "jit-parcel-ts",
+  "license": "MIT",
+  "engines": {
+    "node": ">=8.11.4 <11.0.0",
+    "npm": ">=6.1.0 <7.0.0"
+  },
+  "version": "0.3.0",
   "scripts": {
     "watch": "parcel index.html -p 9000 --open",
     "build": "rimraf dist && parcel build index.html",

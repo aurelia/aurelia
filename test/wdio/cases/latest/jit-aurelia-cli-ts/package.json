@@ -1,20 +1,25 @@
 {
-  "name": "jit-aurelia-cli",
-  "version": "0.1.1",
+  "name": "jit-aurelia-cli-ts",
+  "license": "MIT",
+  "engines": {
+    "node": ">=8.11.4 <11.0.0",
+    "npm": ">=6.1.0 <7.0.0"
+  },
+  "version": "0.3.0",
   "scripts": {
     "watch": "au run --watch",
     "build": "rimraf scripts && au build",
     "serve": "http-server -c-1 -p 9000 ."
   },
   "dependencies": {
+    "requirejs": "latest",
+    "text": "github:requirejs/text#latest",
     "@aurelia/debug": "latest",
     "@aurelia/jit-html": "latest",
     "@aurelia/jit": "latest",
     "@aurelia/kernel": "latest",
     "@aurelia/runtime-html": "latest",
-    "@aurelia/runtime": "latest",
-    "requirejs": "latest",
-    "text": "github:requirejs/text#latest"
+    "@aurelia/runtime": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",

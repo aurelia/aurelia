@@ -1,12 +1,17 @@
 {
   "name": "jit-iife-inline",
-  "version": "0.1.1",
+  "license": "MIT",
+  "engines": {
+    "node": ">=8.11.4 <11.0.0",
+    "npm": ">=6.1.0 <7.0.0"
+  },
+  "version": "0.3.0",
   "scripts": {
     "watch": "http-server -c-1 -p 9000 .",
     "build": "echo \"Nothing to build!\"",
     "serve": "http-server -c-1 -p 9000 ."
   },
-  "dependencies": { },
+  "dependencies": {},
   "devDependencies": {
     "http-server": "latest"
   }

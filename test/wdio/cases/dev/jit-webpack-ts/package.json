@@ -1,6 +1,11 @@
 {
   "name": "jit-webpack-ts",
-  "version": "0.1.1",
+  "license": "MIT",
+  "engines": {
+    "node": ">=8.11.4 <11.0.0",
+    "npm": ">=6.1.0 <7.0.0"
+  },
+  "version": "0.3.0",
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack --config webpack.config.js",

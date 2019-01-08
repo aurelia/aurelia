@@ -55,7 +55,8 @@ const memoizedViridis = (() => {
     if (memoKey in memo) {
       return memo[memoKey];
     } else {
-      return memo[memoKey] = `#${Math.random().toString(16).substr(-6)}`;
+      const random = Math.random().toString(16);
+      return memo[memoKey] = `#${random.substring(random.length - 6)}`;
     }
   };
 })();

@@ -208,10 +208,10 @@ function createElement(html: string): Element {
   // and dealing with browser inconsistencies.
   const div = document.createElement('div');
   div.innerHTML = html;
-  return div.firstElementChild as Element;
+  return div.firstElementChild;
 }
 
-if ((createElement('<svg><altGlyph /></svg>').firstElementChild as Element).nodeName === 'altglyph' && svgElements.altGlyph) {
+if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
   // handle chrome casing inconsistencies.
   (svgElements as {altglyph?: string[]}).altglyph = svgElements.altGlyph;
   delete svgElements.altGlyph;

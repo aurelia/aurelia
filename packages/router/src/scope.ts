@@ -47,6 +47,7 @@ export class Scope {
     }
   }
 
+  // TODO: Reduce complexity (currently at 45)
   public findViewports(viewports?: Record<string, string>): IFindViewportsResult {
     const componentViewports: IComponentViewport[] = [];
     let viewportsRemaining: boolean = false;
@@ -267,7 +268,7 @@ export class Scope {
   public viewportStates(full: boolean = false): string[] {
     const states: string[] = [];
     for (const viewport in this.viewports) {
-      states.push((this.viewports[viewport] as Viewport).scopedDescription(full));
+      states.push(this.viewports[viewport].scopedDescription(full));
     }
     for (const scope of this.children) {
       states.push(...scope.viewportStates(full));

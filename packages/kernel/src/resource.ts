@@ -30,7 +30,7 @@ export interface IResourceDescriptions {
 }
 
 export class RuntimeCompilationResources implements IResourceDescriptions {
-  private context: IContainer;
+  private readonly context: IContainer;
 
   constructor(context: IContainer) {
     this.context = context;

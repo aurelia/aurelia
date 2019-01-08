@@ -60,9 +60,9 @@ const buildNotRequired: IBuildInstruction = Object.freeze({
 export class TemplateCompiler implements ITemplateCompiler {
   public static readonly inject: ReadonlyArray<Function> = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
 
-  private factory: ITemplateElementFactory;
-  private attrParser: IAttributeParser;
-  private exprParser: IExpressionParser;
+  private readonly factory: ITemplateElementFactory;
+  private readonly attrParser: IAttributeParser;
+  private readonly exprParser: IExpressionParser;
 
   /**
    * The instructions array for the currently instruction-collecting `ITemplateDefinition`
@@ -248,7 +248,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compilePlainAttribute(symbol: PlainAttributeSymbol): HTMLAttributeInstruction {
-    if ((symbol as PlainAttributeSymbol).command === null) {
+    if (symbol.command === null) {
       if (symbol.expression === null) {
         // a plain attribute on a surrogate
         return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);

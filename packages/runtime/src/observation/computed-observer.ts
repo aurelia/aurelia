@@ -82,8 +82,8 @@ export class CustomSetterObserver implements CustomSetterObserver {
   public oldValue: unknown;
   public propertyKey: string;
 
-  private descriptor: PropertyDescriptor;
-  private lifecycle: ILifecycle;
+  private readonly descriptor: PropertyDescriptor;
+  private readonly lifecycle: ILifecycle;
 
   constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, lifecycle: ILifecycle) {
     this.$nextFlush = null;
@@ -159,7 +159,7 @@ export class GetterObserver implements GetterObserver {
   public obj: IObservable;
   public propertyKey: string;
 
-  private controller: GetterController;
+  private readonly controller: GetterController;
 
   constructor(overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
     this.obj = obj;
@@ -203,12 +203,12 @@ export class GetterController {
   public value: unknown;
   public isCollecting: boolean;
 
-  private dependencies: ISubscribable<MutationKind.instance>[];
-  private instance: IObservable;
-  private lifecycle: ILifecycle;
-  private overrides: ComputedOverrides;
-  private owner: GetterObserver;
-  private propertyName: string;
+  private readonly dependencies: ISubscribable<MutationKind.instance>[];
+  private readonly instance: IObservable;
+  private readonly lifecycle: ILifecycle;
+  private readonly overrides: ComputedOverrides;
+  private readonly owner: GetterObserver;
+  private readonly propertyName: string;
   private subscriberCount: number;
 
   constructor(overrides: ComputedOverrides, instance: IObservable, propertyName: string, descriptor: PropertyDescriptor, owner: GetterObserver, observerLocator: IObserverLocator, lifecycle: ILifecycle) {

@@ -35,6 +35,7 @@ export class Call {
     const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
 
     for (const prop in args) {
+      // tslint:disable-next-line:no-dynamic-delete
       delete overrideContext[prop];
     }
 

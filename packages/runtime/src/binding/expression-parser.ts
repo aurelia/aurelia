@@ -25,9 +25,9 @@ export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpress
 
 /** @internal */
 export class ExpressionParser implements IExpressionParser {
-  private expressionLookup: Record<string, IsBindingBehavior>;
-  private forOfLookup: Record<string, ForOfStatement>;
-  private interpolationLookup: Record<string, Interpolation>;
+  private readonly expressionLookup: Record<string, IsBindingBehavior>;
+  private readonly forOfLookup: Record<string, ForOfStatement>;
+  private readonly interpolationLookup: Record<string, Interpolation>;
 
   constructor() {
     this.expressionLookup = Object.create(null);
@@ -40,24 +40,21 @@ export class ExpressionParser implements IExpressionParser {
   public parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
   public parse(expression: string, bindingType: BindingType): BindingExpression {
     switch (bindingType) {
-      case BindingType.Interpolation:
-      {
+      case BindingType.Interpolation: {
         let found = this.interpolationLookup[expression];
         if (found === undefined) {
           found = this.interpolationLookup[expression] = this.parseCore(expression, bindingType);
         }
         return found;
       }
-      case BindingType.ForCommand:
-      {
+      case BindingType.ForCommand: {
         let found = this.forOfLookup[expression];
         if (found === undefined) {
           found = this.forOfLookup[expression] = this.parseCore(expression, bindingType);
         }
         return found;
       }
-      default:
-      {
+      default: {
         // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
         // But don't cache it, because empty strings are always invalid for any other type of binding
         if (expression.length === 0 && (bindingType & (BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand))) {

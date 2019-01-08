@@ -13,7 +13,7 @@ export class SignalBindingBehavior {
 
   public static register: IRegistry['register'];
 
-  private signaler: ISignaler;
+  private readonly signaler: ISignaler;
 
   constructor(signaler: ISignaler) {
     this.signaler = signaler;

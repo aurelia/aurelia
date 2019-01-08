@@ -43,12 +43,12 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   @bindable public subject: Subject<T> | Promise<Subject<T>> | null;
   @bindable public composing: boolean;
 
-  private dom: IDOM;
-  private coordinator: CompositionCoordinator;
+  private readonly dom: IDOM;
+  private readonly coordinator: CompositionCoordinator;
+  private readonly properties: Record<string, TargetedInstruction>;
+  private readonly renderable: IRenderable<T>;
+  private readonly renderingEngine: IRenderingEngine;
   private lastSubject: Subject<T> | Promise<Subject<T>> | null;
-  private properties: Record<string, TargetedInstruction>;
-  private renderable: IRenderable<T>;
-  private renderingEngine: IRenderingEngine;
 
   constructor(
     dom: IDOM<T>,
@@ -71,7 +71,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     };
 
     this.properties = instruction.instructions
-      .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to as string))
+      .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to))
       .reduce(
         (acc, item: ITargetedInstruction & {to?: string}) => {
           if (item.to) {
@@ -118,7 +118,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     this.lastSubject = subject;
 
     if (subject instanceof Promise) {
-      subject = subject.then(x => this.resolveView(x, flags)) as Promise<IView<T>> | null;
+      subject = subject.then(x => this.resolveView(x, flags));
     } else {
       subject = this.resolveView(subject, flags);
     }

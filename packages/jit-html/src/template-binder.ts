@@ -213,7 +213,7 @@ export class TemplateBinder {
     // This is the top-level symbol for the current depth.
     // If there are no template controllers or replace-parts, it is always the manifest itself.
     // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
-    let manifestProxy = manifest as IParentNodeSymbol;
+    let manifestProxy: IParentNodeSymbol = manifest;
 
     const replacePart = this.declareReplacePart(node);
 

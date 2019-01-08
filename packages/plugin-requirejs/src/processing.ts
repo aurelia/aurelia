@@ -116,6 +116,7 @@ export function loadFromFile(url: string, callback: (content: string) => void, e
   const fs = require.nodeRequire('fs') as {readFileSync(path: string, options?: { encoding?: string } | string): string};
 
   try {
+    // tslint:disable-next-line:non-literal-fs-path
     let file = fs.readFileSync(url, 'utf8');
 
     //Remove BOM (Byte Mark Order) from utf8 files if it is there.

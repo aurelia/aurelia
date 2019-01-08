@@ -26,7 +26,7 @@ export class HTMLProjectorLocator implements IProjectorLocator<Node> {
         throw Reporter.error(21);
       }
 
-      return new ShadowDOMProjector($component, host, def);
+      return new ShadowDOMProjector(dom, $component, host, def);
     }
 
     if (def.containerless) {
@@ -43,8 +43,10 @@ const childObserverOptions = { childList: true };
 export class ShadowDOMProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
   public shadowRoot: CustomElementHost<ShadowRoot>;
+  public dom: IDOM<Node>;
 
-  constructor($customElement: ICustomElement<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
+  constructor(dom: IDOM<Node>, $customElement: ICustomElement<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
+    this.dom = dom;
     this.host = host;
 
     let shadowOptions: ShadowRootInit;
@@ -69,8 +71,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
 
   public subscribeToChildrenChange(callback: () => void): void {
     // TODO: add a way to dispose/disconnect
-    const observer = new MutationObserver(callback);
-    observer.observe(this.shadowRoot, childObserverOptions);
+    this.dom.createNodeObserver(this.shadowRoot, callback, childObserverOptions);
   }
 
   public provideEncapsulationSource(): CustomElementHost<ShadowRoot> {

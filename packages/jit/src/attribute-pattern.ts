@@ -202,6 +202,7 @@ export class State {
       if (child.charSpec.has(ch)) {
         results.push(child);
         childLen = child.patterns.length;
+        j = 0;
         if (child.charSpec.isSymbol) {
           for (; j < childLen; ++j) {
             interpretation.next(child.patterns[j]);

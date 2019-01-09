@@ -27,7 +27,16 @@
     "no-eval": true,
     "no-exec-script": true,
     "no-function-constructor-with-string-args": true,
-    "no-http-string": [true, "http://localhost:?.*", "http://www.w3.org/1999/xlink"],
+      "no-http-string": [true,
+      "http://localhost:?.*",
+      // https://infra.spec.whatwg.org/#namespaces
+      "http://www.w3.org/1999/xhtml",
+      "http://www.w3.org/1998/Math/MathML",
+      "http://www.w3.org/2000/svg",
+      "http://www.w3.org/1999/xlink",
+      "http://www.w3.org/XML/1998/namespace",
+      "http://www.w3.org/2000/xmlns/"
+    ],
     "no-inner-html": false,
     "no-octal-literal": true,
     "no-reserved-keywords": false, // See https://github.com/aurelia/aurelia/pull/297

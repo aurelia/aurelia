@@ -14,8 +14,8 @@ export class Replaceable<T extends INode = INode> implements Replaceable<T> {
   public static readonly kind: ICustomAttributeResource;
   public static readonly description: AttributeDefinition;
 
-  private currentView: IView<T>;
-  private factory: IViewFactory<T>;
+  private readonly currentView: IView<T>;
+  private readonly factory: IViewFactory<T>;
 
   constructor(
     factory: IViewFactory<T>,

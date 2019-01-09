@@ -206,19 +206,19 @@ export const PLATFORM = {
   },
 
   clearInterval(handle?: number): void {
-    return $global.clearInterval(handle);
+    $global.clearInterval(handle);
   },
 
   clearTimeout(handle?: number): void {
-    return $global.clearTimeout(handle);
+    $global.clearTimeout(handle);
   },
 
-    // tslint:disable-next-line:no-any
+  // tslint:disable-next-line:no-any
   setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number {
     return $global.setInterval(handler, timeout, ...args);
   },
 
-    // tslint:disable-next-line:no-any
+  // tslint:disable-next-line:no-any
   setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number {
     return $global.setTimeout(handler, timeout, ...args);
   }

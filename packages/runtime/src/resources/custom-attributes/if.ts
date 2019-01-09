@@ -120,7 +120,7 @@ export class Else<T extends INode = INode> implements Else<T> {
   public static readonly kind: ICustomAttributeResource;
   public static readonly description: AttributeDefinition;
 
-  private factory: IViewFactory<T>;
+  private readonly factory: IViewFactory<T>;
 
   constructor(factory: IViewFactory<T>) {
     this.factory = factory;

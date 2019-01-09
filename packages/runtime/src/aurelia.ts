@@ -11,10 +11,10 @@ export interface ISinglePageApp<THost extends INode = INode> {
 }
 
 export class Aurelia {
-  private container: IContainer;
-  private components: ICustomElement[];
-  private startTasks: (() => void)[];
-  private stopTasks: (() => void)[];
+  private readonly container: IContainer;
+  private readonly components: ICustomElement[];
+  private readonly startTasks: (() => void)[];
+  private readonly stopTasks: (() => void)[];
   private isStarted: boolean;
   private _root: ICustomElement | null;
 

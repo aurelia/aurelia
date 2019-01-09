@@ -36,8 +36,8 @@ const slice = Array.prototype.slice;
 export class TextBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -67,8 +67,8 @@ export class TextBindingRenderer implements IInstructionRenderer {
 export class ListenerBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IEventManager];
 
-  private parser: IExpressionParser;
-  private eventManager: IEventManager;
+  private readonly parser: IExpressionParser;
+  private readonly eventManager: IEventManager;
 
   constructor(parser: IExpressionParser, eventManager: IEventManager) {
     this.parser = parser;
@@ -99,8 +99,8 @@ export class SetAttributeRenderer implements IInstructionRenderer {
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;

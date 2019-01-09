@@ -86,7 +86,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
   public readonly renderContext: IRenderContext<T>;
   public readonly dom: IDOM<T>;
 
-  private definition: TemplateDefinition;
+  private readonly definition: TemplateDefinition;
 
   constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
     this.dom = dom;
@@ -164,13 +164,13 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRendering
 export class RenderingEngine implements IRenderingEngine {
   public static readonly inject: ReadonlyArray<Function> = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
 
-  private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
-  private compilers: Record<string, ITemplateCompiler>;
-  private container: IContainer;
-  private templateFactory: ITemplateFactory;
-  private viewFactoryLookup: Map<Immutable<ITemplateDefinition>, IViewFactory>;
-  private lifecycle: ILifecycle;
-  private templateLookup: Map<TemplateDefinition, ITemplate>;
+  private readonly behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
+  private readonly compilers: Record<string, ITemplateCompiler>;
+  private readonly container: IContainer;
+  private readonly templateFactory: ITemplateFactory;
+  private readonly viewFactoryLookup: Map<Immutable<ITemplateDefinition>, IViewFactory>;
+  private readonly lifecycle: ILifecycle;
+  private readonly templateLookup: Map<TemplateDefinition, ITemplate>;
 
   constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
     this.behaviorLookup = new Map();
@@ -403,9 +403,9 @@ export interface IChildrenObserver extends
 export class ChildrenObserver implements Partial<IChildrenObserver> {
   public hasChanges: boolean;
 
+  private readonly customElement: ICustomElement & { $childrenChanged?(): void };
+  private readonly lifecycle: ILifecycle;
   private children: ICustomElement[];
-  private customElement: ICustomElement & { $childrenChanged?(): void };
-  private lifecycle: ILifecycle;
   private observing: boolean;
 
   constructor(lifecycle: ILifecycle, customElement: ICustomElement & { $childrenChanged?(): void }) {

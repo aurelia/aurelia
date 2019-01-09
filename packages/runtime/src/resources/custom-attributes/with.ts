@@ -19,8 +19,8 @@ export class With<T extends INode = INode> implements With<T>  {
   // TODO: this type is incorrect (it can be any user-provided object), need to fix and double check Scope.
   @bindable public value: IBindScope | IBindingContext;
 
-  private currentView: IView<T>;
-  private factory: IViewFactory<T>;
+  private readonly currentView: IView<T>;
+  private readonly factory: IViewFactory<T>;
 
   constructor(
     factory: IViewFactory<T>,

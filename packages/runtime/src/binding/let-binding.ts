@@ -23,7 +23,7 @@ export class LetBinding implements IPartialConnectableBinding {
   public target: Object;
   public targetProperty: string;
 
-  private toViewModel: boolean;
+  private readonly toViewModel: boolean;
 
   constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel: boolean = false) {
     this.$nextBind = null;

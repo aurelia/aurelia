@@ -242,7 +242,7 @@ export class SelectValueObserver implements SelectValueObserver {
   }
 
   public bind(): void {
-    this.nodeObserver = new MutationObserver(this.handleNodeChange.bind(this))
+    this.nodeObserver = new MutationObserver(this.handleNodeChange.bind(this));
     this.nodeObserver.observe(this.obj, childObserverOptions);
   }
 

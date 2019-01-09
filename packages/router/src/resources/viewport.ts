@@ -9,6 +9,7 @@ export class ViewportCustomElement {
   @bindable public scope: boolean;
   @bindable public usedBy: string;
   @bindable public default: string;
+  @bindable public noLink: boolean;
 
   public viewport: Viewport;
 
@@ -33,6 +34,9 @@ export class ViewportCustomElement {
     }
     if (this.default && this.default.length) {
       options.default = this.default;
+    }
+    if (this.element.hasAttribute('no-link')) {
+      options.noLink = true;
     }
     this.viewport = this.router.addViewport(this.name, this.element, options);
   }

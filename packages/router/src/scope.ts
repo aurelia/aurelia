@@ -268,7 +268,9 @@ export class Scope {
   public viewportStates(full: boolean = false): string[] {
     const states: string[] = [];
     for (const viewport in this.viewports) {
-      states.push(this.viewports[viewport].scopedDescription(full));
+      if (full || !(this.viewports[viewport] as Viewport).options.noLink) {
+        states.push((this.viewports[viewport] as Viewport).scopedDescription(full));
+      }
     }
     for (const scope of this.children) {
       states.push(...scope.viewportStates(full));

@@ -158,7 +158,7 @@ export class HistoryBrowser {
     const newHash = `#/${path}`;
     const { pathname, search, hash } = this.location;
     // tslint:disable-next-line:possible-timing-attack
-    if (newHash === hash) {
+    if (newHash === hash && this.currentEntry.path === path && this.currentEntry.fullStatePath === fullStatePath) {
       return;
     }
     this.currentEntry.path = path;

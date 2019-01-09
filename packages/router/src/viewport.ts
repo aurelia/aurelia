@@ -20,6 +20,7 @@ export interface IViewportOptions {
   scope?: boolean;
   usedBy?: string | string[];
   default?: string;
+  noLink?: boolean;
   forceDescription?: boolean;
 }
 
@@ -108,6 +109,12 @@ export class Viewport {
       this.element = element;
       if (options && options.usedBy) {
         this.options.usedBy = options.usedBy;
+      }
+      if (options && options.default) {
+        this.options.default = options.default;
+      }
+      if (options && options.noLink) {
+        this.options.noLink = options.noLink;
       }
       if (this.elementResolve) {
         this.elementResolve();

@@ -457,6 +457,12 @@ workflows:
           <<: *filter_ignore_develop_release
       - unit_test:
           <<: *filter_ignore_develop_release
+          name: unit_test_chrome
+      - unit_test:
+          <<: *filter_ignore_develop_release
+          name: unit_test_firefox
+          npm_command: "test-firefox"
+          coverage: false
       - build_packages:
           <<: *filter_ignore_develop_release
           requires:
@@ -516,6 +522,15 @@ workflows:
           attach: true
           requires:
             - bundle_packages
+      - merge_and_dist:
+          <<: *filter_only_master
+          requires:
+            - lint_packages
+            - unit_test_chrome
+            - unit_test_firefox
+            - bundle_packages
+            - e2e_browserstack
+          to: "develop"
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag
@@ -639,87 +654,45 @@ workflows:
           requires:
             - publish_npm
 
-  # Publishes from the develop branch to npm@dev
-  # Triggered by push to develop branch
-  publish_dev:
-    jobs:
-      # artifacts are already prepared and committed by the scheduled workflow, so only publish remains
-      - publish_npm:
-          <<: *filter_only_develop
-          channel: dev
-      # verify the dev packages after publishing them
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-aurelia-cli-ts
-          path: "dev/jit-aurelia-cli-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-browserify-ts
-          path: "dev/jit-browserify-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-fuse-box-ts
-          path: "dev/jit-fuse-box-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-parcel-ts
-          path: "dev/jit-parcel-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-webpack-ts
-          path: "dev/jit-webpack-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-iife-inline
-          path: "dev/jit-iife-inline"
-          requires:
-            - publish_npm
-
   # Runs build and tests, and pushes the built artifacts to the develop branch (which then triggers publish_dev)
   # Triggered by schedule once per day on 0:00 UTC on the master branch
   build_test_push_dev:
     triggers:
       - schedule:
-          <<: *filter_only_master
+          <<: *filter_only_develop
           cron: "0 5 * * *"
     jobs:
-      - install_root
-      - unit_test:
-          name: unit_test_chrome
-      - unit_test:
-          name: unit_test_firefox
-          npm_command: "test-firefox"
-          coverage: false
-      - build_packages:
+      # artifacts are already prepared and committed by the build_test workflow, so only publish remains
+      - publish_npm:
+          channel: dev
+      # verify the dev packages after publishing them
+      - e2e_wdio:
+          name: jit-aurelia-cli-ts
+          path: "dev/jit-aurelia-cli-ts"
           requires:
-            - install_root
-      - lint_packages:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-browserify-ts
+          path: "dev/jit-browserify-ts"
           requires:
-            - install_root
-      - unit_test_node:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-fuse-box-ts
+          path: "dev/jit-fuse-box-ts"
           requires:
-            - build_packages
-      - bundle_packages:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-parcel-ts
+          path: "dev/jit-parcel-ts"
           requires:
-            - build_packages
-      - e2e_browserstack:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-webpack-ts
+          path: "dev/jit-webpack-ts"
           requires:
-            - build_packages
-      - merge_and_dist:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-iife-inline
+          path: "dev/jit-iife-inline"
           requires:
-            - lint_packages
-            - unit_test_chrome
-            - unit_test_firefox
-            - bundle_packages
-            - e2e_browserstack
-          to: "develop"
+            - publish_npm

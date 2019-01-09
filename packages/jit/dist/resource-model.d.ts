@@ -7,10 +7,10 @@ import { IBindingCommand } from './binding-command';
  * binding commands, optimized for consumption by the template compiler.
  */
 export declare class ResourceModel {
-    private resources;
-    private elementLookup;
-    private attributeLookup;
-    private commandLookup;
+    private readonly resources;
+    private readonly elementLookup;
+    private readonly attributeLookup;
+    private readonly commandLookup;
     constructor(resources: IResourceDescriptions);
     /**
      * Retrieve information about a custom element resource.

@@ -15,7 +15,7 @@ export declare class Listener implements IBinding {
     sourceExpression: IsBindingBehavior;
     target: Node;
     targetEvent: string;
-    private eventManager;
+    private readonly eventManager;
     private handler;
     constructor(dom: IDOM, targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: Node, preventDefault: boolean, eventManager: IEventManager, locator: IServiceLocator);
     callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']>;

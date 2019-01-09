@@ -553,6 +553,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           this.addSubscriber(subscriber);
       }
       function dispose() {
+          // tslint:disable-next-line:no-dynamic-delete
           delete this.obj[this.propertyKey];
           this.obj = null;
           this.propertyKey = null;
@@ -2951,6 +2952,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               Object.assign(overrideContext, args);
               const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
               for (const prop in args) {
+                  // tslint:disable-next-line:no-dynamic-delete
                   delete overrideContext[prop];
               }
               return result;
@@ -3007,35 +3009,32 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
           parse(expression, bindingType) {
               switch (bindingType) {
-                  case 2048 /* Interpolation */:
-                      {
-                          let found = this.interpolationLookup[expression];
-                          if (found === undefined) {
-                              found = this.interpolationLookup[expression] = this.parseCore(expression, bindingType);
-                          }
-                          return found;
+                  case 2048 /* Interpolation */: {
+                      let found = this.interpolationLookup[expression];
+                      if (found === undefined) {
+                          found = this.interpolationLookup[expression] = this.parseCore(expression, bindingType);
                       }
-                  case 539 /* ForCommand */:
-                      {
-                          let found = this.forOfLookup[expression];
-                          if (found === undefined) {
-                              found = this.forOfLookup[expression] = this.parseCore(expression, bindingType);
-                          }
-                          return found;
+                      return found;
+                  }
+                  case 539 /* ForCommand */: {
+                      let found = this.forOfLookup[expression];
+                      if (found === undefined) {
+                          found = this.forOfLookup[expression] = this.parseCore(expression, bindingType);
                       }
-                  default:
-                      {
-                          // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
-                          // But don't cache it, because empty strings are always invalid for any other type of binding
-                          if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
-                              return PrimitiveLiteral.$empty;
-                          }
-                          let found = this.expressionLookup[expression];
-                          if (found === undefined) {
-                              found = this.expressionLookup[expression] = this.parseCore(expression, bindingType);
-                          }
-                          return found;
+                      return found;
+                  }
+                  default: {
+                      // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
+                      // But don't cache it, because empty strings are always invalid for any other type of binding
+                      if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
+                          return PrimitiveLiteral.$empty;
                       }
+                      let found = this.expressionLookup[expression];
+                      if (found === undefined) {
+                          found = this.expressionLookup[expression] = this.parseCore(expression, bindingType);
+                      }
+                      return found;
+                  }
               }
           }
           cache(expressions) {

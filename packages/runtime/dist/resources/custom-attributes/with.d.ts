@@ -13,8 +13,8 @@ export declare class With<T extends INode = INode> implements With<T> {
     static readonly kind: ICustomAttributeResource;
     static readonly description: AttributeDefinition;
     value: IBindScope | IBindingContext;
-    private currentView;
-    private factory;
+    private readonly currentView;
+    private readonly factory;
     constructor(factory: IViewFactory<T>, location: IRenderLocation<T>);
     valueChanged(this: With): void;
     binding(flags: LifecycleFlags): void;

@@ -28,7 +28,7 @@ export declare class CompiledTemplate<T extends INode = INode> implements ITempl
     readonly factory: INodeSequenceFactory<T>;
     readonly renderContext: IRenderContext<T>;
     readonly dom: IDOM<T>;
-    private definition;
+    private readonly definition;
     constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>);
     render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions): void;
 }

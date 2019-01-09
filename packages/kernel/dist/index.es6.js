@@ -190,10 +190,10 @@ const PLATFORM = {
         return $raf(callback);
     },
     clearInterval(handle) {
-        return $global.clearInterval(handle);
+        $global.clearInterval(handle);
     },
     clearTimeout(handle) {
-        return $global.clearTimeout(handle);
+        $global.clearTimeout(handle);
     },
     // tslint:disable-next-line:no-any
     setInterval(handler, timeout, ...args) {
@@ -476,18 +476,16 @@ class Resolver {
         switch (this.strategy) {
             case 0 /* instance */:
                 return this.state;
-            case 1 /* singleton */:
-                {
-                    this.strategy = 0 /* instance */;
-                    const factory = handler.getFactory(this.state);
-                    return this.state = factory.construct(handler);
-                }
-            case 2 /* transient */:
-                {
-                    // Always create transients from the requesting container
-                    const factory = handler.getFactory(this.state);
-                    return factory.construct(requestor);
-                }
+            case 1 /* singleton */: {
+                this.strategy = 0 /* instance */;
+                const factory = handler.getFactory(this.state);
+                return this.state = factory.construct(handler);
+            }
+            case 2 /* transient */: {
+                // Always create transients from the requesting container
+                const factory = handler.getFactory(this.state);
+                return factory.construct(requestor);
+            }
             case 3 /* callback */:
                 return this.state(handler, requestor, this);
             case 4 /* array */:

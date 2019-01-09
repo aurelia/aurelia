@@ -17,7 +17,7 @@ export declare class LetBinding implements IPartialConnectableBinding {
     sourceExpression: IExpression;
     target: Object;
     targetProperty: string;
-    private toViewModel;
+    private readonly toViewModel;
     constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel?: boolean);
     handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope): void;

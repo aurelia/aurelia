@@ -13,7 +13,7 @@ export declare type UpdateTriggerableBinding = Binding & {
 export declare class UpdateTriggerBindingBehavior {
     static readonly inject: ReadonlyArray<Function>;
     static register: IRegistry['register'];
-    private observerLocator;
+    private readonly observerLocator;
     constructor(observerLocator: IObserverLocator);
     bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void;

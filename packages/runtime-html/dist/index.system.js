@@ -53,6 +53,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       });
 
       class Listener {
+          // tslint:disable-next-line:parameters-max-number
           constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
               this.dom = dom;
               this.$nextBind = null;

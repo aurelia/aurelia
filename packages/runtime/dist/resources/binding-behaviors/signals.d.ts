@@ -8,7 +8,7 @@ export declare type SignalableBinding = Binding & {
 export declare class SignalBindingBehavior {
     static readonly inject: ReadonlyArray<Function>;
     static register: IRegistry['register'];
-    private signaler;
+    private readonly signaler;
     constructor(signaler: ISignaler);
     bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding, ...args: string[]): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding): void;

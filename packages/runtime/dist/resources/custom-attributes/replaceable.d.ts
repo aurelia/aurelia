@@ -12,8 +12,8 @@ export declare class Replaceable<T extends INode = INode> implements Replaceable
     static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;
     static readonly description: AttributeDefinition;
-    private currentView;
-    private factory;
+    private readonly currentView;
+    private readonly factory;
     constructor(factory: IViewFactory<T>, location: IRenderLocation<T>);
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;

@@ -6,7 +6,7 @@ export declare class SelfObserver implements SelfObserver {
     obj: IIndexable;
     propertyKey: string;
     currentValue: unknown;
-    private callback;
+    private readonly callback;
     constructor(instance: object, propertyName: string, callbackName: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;

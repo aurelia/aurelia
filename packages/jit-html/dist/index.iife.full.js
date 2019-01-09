@@ -202,10 +202,10 @@ var au = (function (exports) {
             return $raf(callback);
         },
         clearInterval(handle) {
-            return $global.clearInterval(handle);
+            $global.clearInterval(handle);
         },
         clearTimeout(handle) {
-            return $global.clearTimeout(handle);
+            $global.clearTimeout(handle);
         },
         // tslint:disable-next-line:no-any
         setInterval(handler, timeout, ...args) {
@@ -488,18 +488,16 @@ var au = (function (exports) {
             switch (this.strategy) {
                 case 0 /* instance */:
                     return this.state;
-                case 1 /* singleton */:
-                    {
-                        this.strategy = 0 /* instance */;
-                        const factory = handler.getFactory(this.state);
-                        return this.state = factory.construct(handler);
-                    }
-                case 2 /* transient */:
-                    {
-                        // Always create transients from the requesting container
-                        const factory = handler.getFactory(this.state);
-                        return factory.construct(requestor);
-                    }
+                case 1 /* singleton */: {
+                    this.strategy = 0 /* instance */;
+                    const factory = handler.getFactory(this.state);
+                    return this.state = factory.construct(handler);
+                }
+                case 2 /* transient */: {
+                    // Always create transients from the requesting container
+                    const factory = handler.getFactory(this.state);
+                    return factory.construct(requestor);
+                }
                 case 3 /* callback */:
                     return this.state(handler, requestor, this);
                 case 4 /* array */:
@@ -1812,6 +1810,7 @@ var au = (function (exports) {
         this.addSubscriber(subscriber);
     }
     function dispose() {
+        // tslint:disable-next-line:no-dynamic-delete
         delete this.obj[this.propertyKey];
         this.obj = null;
         this.propertyKey = null;
@@ -4210,6 +4209,7 @@ var au = (function (exports) {
             Object.assign(overrideContext, args);
             const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
             for (const prop in args) {
+                // tslint:disable-next-line:no-dynamic-delete
                 delete overrideContext[prop];
             }
             return result;
@@ -4266,35 +4266,32 @@ var au = (function (exports) {
         }
         parse(expression, bindingType) {
             switch (bindingType) {
-                case 2048 /* Interpolation */:
-                    {
-                        let found = this.interpolationLookup[expression];
-                        if (found === undefined) {
-                            found = this.interpolationLookup[expression] = this.parseCore(expression, bindingType);
-                        }
-                        return found;
+                case 2048 /* Interpolation */: {
+                    let found = this.interpolationLookup[expression];
+                    if (found === undefined) {
+                        found = this.interpolationLookup[expression] = this.parseCore(expression, bindingType);
                     }
-                case 539 /* ForCommand */:
-                    {
-                        let found = this.forOfLookup[expression];
-                        if (found === undefined) {
-                            found = this.forOfLookup[expression] = this.parseCore(expression, bindingType);
-                        }
-                        return found;
+                    return found;
+                }
+                case 539 /* ForCommand */: {
+                    let found = this.forOfLookup[expression];
+                    if (found === undefined) {
+                        found = this.forOfLookup[expression] = this.parseCore(expression, bindingType);
                     }
-                default:
-                    {
-                        // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
-                        // But don't cache it, because empty strings are always invalid for any other type of binding
-                        if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
-                            return PrimitiveLiteral.$empty;
-                        }
-                        let found = this.expressionLookup[expression];
-                        if (found === undefined) {
-                            found = this.expressionLookup[expression] = this.parseCore(expression, bindingType);
-                        }
-                        return found;
+                    return found;
+                }
+                default: {
+                    // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
+                    // But don't cache it, because empty strings are always invalid for any other type of binding
+                    if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
+                        return PrimitiveLiteral.$empty;
                     }
+                    let found = this.expressionLookup[expression];
+                    if (found === undefined) {
+                        found = this.expressionLookup[expression] = this.parseCore(expression, bindingType);
+                    }
+                    return found;
+                }
             }
         }
         cache(expressions) {
@@ -9899,6 +9896,7 @@ var au = (function (exports) {
     });
 
     class Listener {
+        // tslint:disable-next-line:parameters-max-number
         constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
             this.dom = dom;
             this.$nextBind = null;

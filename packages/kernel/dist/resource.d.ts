@@ -22,7 +22,7 @@ export interface IResourceDescriptions {
     create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null;
 }
 export declare class RuntimeCompilationResources implements IResourceDescriptions {
-    private context;
+    private readonly context;
     constructor(context: IContainer);
     find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null;
     create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null;

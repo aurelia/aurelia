@@ -18,8 +18,8 @@ export declare class CustomSetterObserver implements CustomSetterObserver {
     obj: IObservable;
     oldValue: unknown;
     propertyKey: string;
-    private descriptor;
-    private lifecycle;
+    private readonly descriptor;
+    private readonly lifecycle;
     constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, lifecycle: ILifecycle);
     getValue(): unknown;
     setValue(newValue: unknown): void;

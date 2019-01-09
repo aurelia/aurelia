@@ -14,12 +14,12 @@ export declare class Compose<T extends INode = Node> implements Compose<T> {
     static readonly bindables: TemplateDefinition['bindables'];
     subject: Subject<T> | Promise<Subject<T>> | null;
     composing: boolean;
-    private dom;
-    private coordinator;
+    private readonly dom;
+    private readonly coordinator;
+    private readonly properties;
+    private readonly renderable;
+    private readonly renderingEngine;
     private lastSubject;
-    private properties;
-    private renderable;
-    private renderingEngine;
     constructor(dom: IDOM<T>, renderable: IRenderable<T>, instruction: Immutable<IHydrateElementInstruction>, renderingEngine: IRenderingEngine, coordinator: CompositionCoordinator);
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;

@@ -7,11 +7,11 @@ export interface IManagedEvent extends Event {
     deepPath?(): EventTarget[];
 }
 export declare class ListenerTracker {
-    private dom;
-    private capture;
+    private readonly dom;
+    private readonly capture;
+    private readonly eventName;
+    private readonly listener;
     private count;
-    private eventName;
-    private listener;
     constructor(dom: IDOM, eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean);
     increment(): void;
     decrement(): void;
@@ -33,7 +33,7 @@ export declare class TriggerSubscription {
     target: Node;
     targetEvent: string;
     callback: EventListenerOrEventListenerObject;
-    private dom;
+    private readonly dom;
     constructor(dom: IDOM, target: Node, targetEvent: string, callback: EventListenerOrEventListenerObject);
     dispose(): void;
 }

@@ -36,7 +36,7 @@ export declare class Else<T extends INode = INode> implements Else<T> {
     static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;
     static readonly description: AttributeDefinition;
-    private factory;
+    private readonly factory;
     constructor(factory: IViewFactory<T>);
     link(ifBehavior: If<T>): void;
 }

@@ -17,60 +17,60 @@ export declare class SetPropertyRenderer implements IInstructionRenderer {
 }
 export declare class CustomElementRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<Function>;
-    private renderingEngine;
+    private readonly renderingEngine;
     constructor(renderingEngine: IRenderingEngine);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void;
 }
 export declare class CustomAttributeRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<Function>;
-    private renderingEngine;
+    private readonly renderingEngine;
     constructor(renderingEngine: IRenderingEngine);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void;
 }
 export declare class TemplateControllerRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<Function>;
-    private renderingEngine;
+    private readonly renderingEngine;
     constructor(renderingEngine: IRenderingEngine);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void;
 }
 export declare class LetElementRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<Function>;
-    private parser;
-    private observerLocator;
+    private readonly parser;
+    private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateLetElementInstruction): void;
 }
 export declare class CallBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<Function>;
-    private parser;
-    private observerLocator;
+    private readonly parser;
+    private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: ICallBindingInstruction): void;
 }
 export declare class RefBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<Function>;
-    private parser;
+    private readonly parser;
     constructor(parser: IExpressionParser);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IRefBindingInstruction): void;
 }
 export declare class InterpolationBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<Function>;
-    private parser;
-    private observerLocator;
+    private readonly parser;
+    private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IInterpolationInstruction): void;
 }
 export declare class PropertyBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<Function>;
-    private parser;
-    private observerLocator;
+    private readonly parser;
+    private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IPropertyBindingInstruction): void;
 }
 export declare class IteratorBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<Function>;
-    private parser;
-    private observerLocator;
+    private readonly parser;
+    private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
     render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IIteratorBindingInstruction): void;
 }

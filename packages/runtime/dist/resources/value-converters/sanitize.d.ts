@@ -13,7 +13,7 @@ export declare const ISanitizer: import("@aurelia/kernel").InterfaceSymbol<ISani
 export declare class SanitizeValueConverter {
     static readonly inject: ReadonlyArray<Function>;
     static register: IRegistry['register'];
-    private sanitizer;
+    private readonly sanitizer;
     constructor(sanitizer: ISanitizer);
     /**
      * Process the provided markup that flows to the view.

@@ -8,8 +8,8 @@ export declare class Interpretation {
     parts: ReadonlyArray<string>;
     pattern: string | null;
     private _pattern;
-    private currentRecord;
-    private partsRecord;
+    private readonly currentRecord;
+    private readonly partsRecord;
     constructor();
     append(pattern: string, ch: string): void;
     next(pattern: string): void;

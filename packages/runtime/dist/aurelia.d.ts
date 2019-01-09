@@ -7,10 +7,10 @@ export interface ISinglePageApp<THost extends INode = INode> {
     component: unknown;
 }
 export declare class Aurelia {
-    private container;
-    private components;
-    private startTasks;
-    private stopTasks;
+    private readonly container;
+    private readonly components;
+    private readonly startTasks;
+    private readonly stopTasks;
     private isStarted;
     private _root;
     constructor(container?: IContainer);

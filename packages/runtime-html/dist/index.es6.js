@@ -2,6 +2,7 @@ import { DI, Reporter, PLATFORM, Registration, IContainer } from '@aurelia/kerne
 import { LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, SetterObserver, IDOM, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, INode, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBindable, Binding, RuntimeConfiguration, IDOMInitializer, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory } from '@aurelia/runtime';
 
 class Listener {
+    // tslint:disable-next-line:parameters-max-number
     constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
         this.dom = dom;
         this.$nextBind = null;

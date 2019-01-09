@@ -556,8 +556,8 @@ export interface ILifecycleTask<T = unknown> {
 }
 export declare class AggregateLifecycleTask implements ILifecycleTask<void> {
     done: boolean;
+    private readonly tasks;
     private resolve;
-    private tasks;
     private waiter;
     constructor();
     addTask(task: ILifecycleTask): void;
@@ -608,8 +608,8 @@ export class MyViewModel {
 export declare class PromiseTask<T = void> implements ILifecycleTask<T> {
     done: boolean;
     private isCancelled;
-    private promise;
-    private callback;
+    private readonly promise;
+    private readonly callback;
     constructor(promise: Promise<T>, callback: (result?: T) => void);
     canCancel(): boolean;
     cancel(): void;

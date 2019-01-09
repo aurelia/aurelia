@@ -7,7 +7,7 @@ export declare type WithMode = {
     originalMode?: BindingMode;
 };
 export declare abstract class BindingModeBehavior {
-    private mode;
+    private readonly mode;
     constructor(mode: BindingMode);
     bind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void;

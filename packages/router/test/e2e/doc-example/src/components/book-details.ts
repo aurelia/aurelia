@@ -16,5 +16,4 @@ export class BookDetails {
       this.book = this.booksRepository.book(+parameters.id);
     }
   }
-
 }

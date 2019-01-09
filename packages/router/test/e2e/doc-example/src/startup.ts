@@ -15,6 +15,10 @@ import { Book } from './components/book';
 import { BookDetails } from './components/book-details';
 import { Books } from './components/books';
 
+import { Chat } from './components/chat';
+import { ChatUser } from './components/chat-user';
+import { ChatUsers } from './components/chat-users';
+
 const container = HTMLJitConfiguration.createContainer();
 const dom = new HTMLDOM(document);
 Registration.instance(IDOM, dom).register(container);
@@ -31,6 +35,10 @@ container.register(
   Book as any,
   BookDetails as any,
   Books as any,
+
+  Chat as any,
+  ChatUser as any,
+  ChatUsers as any,
 );
 
 window['au'] = new Aurelia(container)

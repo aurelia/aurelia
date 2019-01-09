@@ -13,6 +13,7 @@ import { Books } from './components/books';
     <au-nav name="app-menu"></au-nav>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
     <au-viewport name="content" default="about"></au-viewport>
+    <au-viewport name="chat" used-by="chat"></au-viewport>
   </div>
 </template>
 ` })
@@ -71,6 +72,10 @@ export class App {
       {
         components: About,
         title: 'About',
+      },
+      {
+        components: 'chat',
+        title: 'Chat',
       },
     ]);
   }

@@ -4,7 +4,7 @@ import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction 
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
-import { Scope } from './scope';
+import { IComponentViewport, Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 
 export interface IRouterOptions extends IHistoryOptions {
@@ -62,7 +62,7 @@ export class Router {
   public navs: Record<string, Nav> = {};
   public activeComponents: string[] = [];
 
-  public addedViewports: any = [];
+  public addedViewports: IComponentViewport[] = [];
 
   private options: IRouterOptions;
   private isActive: boolean = false;
@@ -292,7 +292,7 @@ export class Router {
       // TODO: Fix multi level recursiveness!
       const remaining = this.rootScope.findViewports();
       componentViewports = [];
-      let addedViewport;
+      let addedViewport: IComponentViewport;
       while (addedViewport = this.addedViewports.shift()) {
         if (!remaining.componentViewports.find((value) => value.viewport === addedViewport.viewport)) {
           componentViewports.push(addedViewport);
@@ -305,7 +305,7 @@ export class Router {
     this.replacePaths(instruction);
 
     if (!keepHistoryEntry) {
-      this.historyBrowser.pop();
+      this.historyBrowser.pop().catch(error => { throw error; });
     }
     this.processingNavigation = null;
 

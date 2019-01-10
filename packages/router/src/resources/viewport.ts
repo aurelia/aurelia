@@ -1,7 +1,6 @@
 import { bindable, CustomElementResource, INode, LifecycleFlags } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
-import { bind } from 'bluebird';
 
 export class ViewportCustomElement {
   public static readonly inject: ReadonlyArray<Function> = [Router, INode];

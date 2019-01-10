@@ -548,14 +548,14 @@ describe('EventManager', () => {
                           expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
                           expect(childHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
                           expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                          expect(childHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
+                          expect(childHandlerPath[0].currentTarget).to.equal(ctx.doc);
                           if (stopPropagation) {
                             expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
                           } else {
                             expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                             expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
                             expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                            expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
+                            expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc);
                           }
                         } else {
                           expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
@@ -567,14 +567,14 @@ describe('EventManager', () => {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
+                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc);
                           if (stopPropagation) {
                             expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
                           } else {
                             expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
                             expect(childHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
                             expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                            expect(childHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
+                            expect(childHandlerPath[0].currentTarget).to.equal(ctx.doc);
                           }
                         } else {
                           expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
@@ -608,7 +608,7 @@ describe('EventManager', () => {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
+                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc);
                         } else {
                           expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
                         }
@@ -619,7 +619,7 @@ describe('EventManager', () => {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
+                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc);
                         } else {
                           expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
                         }

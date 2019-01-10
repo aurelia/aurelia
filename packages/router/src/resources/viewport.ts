@@ -1,6 +1,7 @@
 import { bindable, CustomElementResource, INode, LifecycleFlags } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
+import { bind } from 'bluebird';
 
 export class ViewportCustomElement {
   public static readonly inject: ReadonlyArray<Function> = [Router, INode];
@@ -10,6 +11,7 @@ export class ViewportCustomElement {
   @bindable public usedBy: string;
   @bindable public default: string;
   @bindable public noLink: boolean;
+  @bindable public noHistory: boolean;
 
   public viewport: Viewport;
 
@@ -24,6 +26,8 @@ export class ViewportCustomElement {
     this.scope = null;
     this.usedBy = null;
     this.default = null;
+    this.noLink = null;
+    this.noHistory = null;
     this.viewport = null;
   }
 
@@ -37,6 +41,9 @@ export class ViewportCustomElement {
     }
     if (this.element.hasAttribute('no-link')) {
       options.noLink = true;
+    }
+    if (this.element.hasAttribute('no-history')) {
+      options.noHistory = true;
     }
     this.viewport = this.router.addViewport(this.name, this.element, options);
   }

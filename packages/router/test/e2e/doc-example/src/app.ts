@@ -13,7 +13,7 @@ import { Books } from './components/books';
     <au-nav name="app-menu"></au-nav>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
     <au-viewport name="content" default="about"></au-viewport>
-    <au-viewport name="chat" used-by="chat" no-link></au-viewport>
+    <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
   </div>
 </template>
 ` })

@@ -214,6 +214,8 @@ export class Router {
     const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
     const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
 
+    let keepHistoryEntry = false;
+
     // TODO: Take care of cancellations down in subsets/iterations
     let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
     let guard = 100;
@@ -278,6 +280,10 @@ export class Router {
       //   return Promise.resolve();
       // }
 
+      if (changedViewports.reduce((accumulated: boolean, current: Viewport) => !current.options.noHistory || accumulated, keepHistoryEntry)) {
+        keepHistoryEntry = true;
+      }
+
       // TODO: Fix multi level recursiveness!
       const remaining = this.rootScope.findViewports();
       componentViewports = [];
@@ -293,6 +299,9 @@ export class Router {
 
     this.replacePaths(instruction);
 
+    if (!keepHistoryEntry) {
+      this.historyBrowser.pop();
+    }
     this.processingNavigation = null;
 
     if (this.pendingNavigations.length) {
@@ -594,6 +603,9 @@ export class Router {
   }
 
   private replacePaths(instruction: INavigationInstruction): void {
+    this.activeComponents = this.rootScope.viewportStates(true, true);
+    this.activeComponents = this.removeStateDuplicates(this.activeComponents);
+
     let viewportStates = this.rootScope.viewportStates();
     viewportStates = this.removeStateDuplicates(viewportStates);
     let state = viewportStates.join(this.separators.sibling);
@@ -603,7 +615,6 @@ export class Router {
 
     let fullViewportStates = this.rootScope.viewportStates(true);
     fullViewportStates = this.removeStateDuplicates(fullViewportStates);
-    this.activeComponents = fullViewportStates;
     fullViewportStates.unshift(this.separators.clear);
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
     this.historyBrowser.replacePath(

@@ -265,12 +265,14 @@ export class Scope {
     this.children.splice(this.children.indexOf(child), 1);
   }
 
-  public viewportStates(full: boolean = false): string[] {
+  public viewportStates(full: boolean = false, active: boolean = false): string[] {
     const states: string[] = [];
-    for (const viewport in this.viewports) {
-      if (full || !(this.viewports[viewport] as Viewport).options.noLink) {
-        states.push((this.viewports[viewport] as Viewport).scopedDescription(full));
+    for (const vp in this.viewports) {
+      const viewport: Viewport = this.viewports[vp];
+      if ((viewport.options.noHistory || (viewport.options.noLink && !full)) && !active) {
+        continue;
       }
+      states.push(viewport.scopedDescription(full));
     }
     for (const scope of this.children) {
       states.push(...scope.viewportStates(full));

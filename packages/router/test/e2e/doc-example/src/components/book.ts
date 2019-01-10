@@ -19,7 +19,7 @@ import { BooksRepository } from '../repositories/books';
 export class Book {
   public static parameters = ['id'];
 
-  public book: {id: number};
+  public book: { id: number };
 
   constructor(private router: Router, private booksRepository: BooksRepository) { }
 

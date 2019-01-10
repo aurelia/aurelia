@@ -21,6 +21,7 @@ export interface IViewportOptions {
   usedBy?: string | string[];
   default?: string;
   noLink?: boolean;
+  noHistory?: boolean;
   forceDescription?: boolean;
 }
 
@@ -115,6 +116,9 @@ export class Viewport {
       }
       if (options && options.noLink) {
         this.options.noLink = options.noLink;
+      }
+      if (options && options.noHistory) {
+        this.options.noHistory = options.noHistory;
       }
       if (this.elementResolve) {
         this.elementResolve();

@@ -45,6 +45,8 @@ export class HistoryBrowser {
   private isReplacing: boolean = false;
   private isRefreshing: boolean = false;
 
+  private ignorePathChange: any = null;
+
   constructor() {
     this.location = window.location;
     this.history = window.history;
@@ -122,6 +124,32 @@ export class HistoryBrowser {
     }
   }
 
+  public async wait(time: number = 0) {
+    await new Promise((resolve) => {
+      setTimeout(resolve, time);
+    });
+  }
+
+  public async pop(): Promise<void> {
+    let path = this.location.toString();
+    let state;
+    // tslint:disable-next-line:promise-must-complete
+    let wait = new Promise((resolve, reject): void => {
+      this.ignorePathChange = resolve;
+    });
+    this.history.go(-1);
+    await wait;
+    path = this.location.toString();
+    state = this.history.state;
+    // tslint:disable-next-line:promise-must-complete
+    wait = new Promise((resolve, reject): void => {
+      this.ignorePathChange = resolve;
+    });
+    this.history.go(-1);
+    await wait;
+    this.history.pushState(state, null, path);
+  }
+
   public setState(key: string | Record<string, unknown>, value?: Record<string, unknown>): void {
     const { pathname, search, hash } = this.location;
     let state = { ...this.history.state };
@@ -185,6 +213,14 @@ export class HistoryBrowser {
   }
 
   public pathChanged = (): void => {
+    if (this.ignorePathChange !== null) {
+      console.log('IgnorePathChange =====', this.getPath());
+      const resolve = this.ignorePathChange;
+      this.ignorePathChange = null;
+      resolve();
+      return;
+    }
+
     const path: string = this.getPath();
     const search: string = this.getSearch();
     // tslint:disable-next-line:no-console

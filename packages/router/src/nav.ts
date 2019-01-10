@@ -15,13 +15,15 @@ export interface INavRoute {
 
 export class Nav {
   public name: string;
-  public routes: NavRoute[] = [];
+  public routes: NavRoute[];
 
   public router: Router;
 
   constructor(router: Router, name: string) {
     this.router = router;
     this.name = name;
+
+    this.routes = [];
   }
 
   public addRoutes(routes: INavRoute[]): void {

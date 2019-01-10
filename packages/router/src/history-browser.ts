@@ -36,22 +36,40 @@ export class HistoryBrowser {
   public history: History;
   public location: Location;
 
-  private activeEntry: IHistoryEntry = null;
+  private activeEntry: IHistoryEntry;
 
   private options: IHistoryOptions;
-  private isActive: boolean = false;
+  private isActive: boolean;
 
   private lastHistoryMovement: number;
   private cancelRedirectHistoryMovement: number;
-  private isCancelling: boolean = false;
-  private isReplacing: boolean = false;
-  private isRefreshing: boolean = false;
+  private isCancelling: boolean;
+  private isReplacing: boolean;
+  private isRefreshing: boolean;
 
-  private ignorePathChange: Function = null;
+  private ignorePathChange: Function;
 
   constructor() {
     this.location = window.location;
     this.history = window.history;
+
+    this.currentEntry = null;
+    this.historyEntries = null;
+    this.historyOffset = null;
+    this.replacedEntry = null;
+
+    this.activeEntry = null;
+
+    this.options = null;
+    this.isActive = false;
+
+    this.lastHistoryMovement = null;
+    this.cancelRedirectHistoryMovement = null;
+    this.isCancelling = false;
+    this.isReplacing = false;
+    this.isRefreshing = false;
+
+    this.ignorePathChange = null;
   }
 
   public activate(options?: IHistoryOptions): Promise<void> {
@@ -338,7 +356,7 @@ export class HistoryBrowser {
     const hash = this.location.hash.substr(1);
     const hashSearches = hash.split('?');
     hashSearches.shift();
-    return hashSearches.length > 0 ?  hashSearches.shift() : '';
+    return hashSearches.length > 0 ? hashSearches.shift() : '';
   }
 
   private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags, previousEntry: IHistoryEntry): void {

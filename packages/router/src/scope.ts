@@ -23,12 +23,12 @@ export class Scope {
 
   public viewport: Viewport;
 
-  public children: Scope[] = [];
-  public viewports: Record<string, Viewport> = {};
+  public children: Scope[];
+  public viewports: Record<string, Viewport>;
 
   private readonly router: Router;
 
-  private scopeViewportParts: Record<string, string[][]> = {};
+  private scopeViewportParts: Record<string, string[][]>;
   private availableViewports: Record<string, Viewport>;
 
   constructor(router: Router, element: Element, parent: Scope) {

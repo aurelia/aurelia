@@ -28,6 +28,7 @@ export class NavRoute {
     Object.assign(this, {
       components: route.components,
       title: route.title,
+      children: null,
       meta: route.meta,
       active: '',
     });

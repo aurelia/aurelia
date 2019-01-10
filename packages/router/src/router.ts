@@ -159,6 +159,11 @@ export class Router {
     if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
       instruction.path = instruction.fullStatePath;
       fullStateInstruction = true;
+      if (!confirm('Perform history navigation?')) {
+        this.historyBrowser.cancel();
+        this.processingNavigation = null;
+        return Promise.resolve();
+      }
     }
 
     let path = instruction.path;

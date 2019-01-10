@@ -23,7 +23,9 @@ export interface INavigationFlags {
   isCancel?: boolean;
 }
 
-export interface INavigationInstruction extends IHistoryEntry, INavigationFlags { }
+export interface INavigationInstruction extends IHistoryEntry, INavigationFlags {
+  previous?: IHistoryEntry;
+}
 
 export class HistoryBrowser {
   public currentEntry: IHistoryEntry;
@@ -228,10 +230,12 @@ export class HistoryBrowser {
 
     const navigationFlags: INavigationFlags = {};
 
+    let previousEntry: IHistoryEntry;
     let historyEntry: IHistoryEntry = this.getState('HistoryEntry') as IHistoryEntry;
     if (this.activeEntry && this.activeEntry.path === path) { // Only happens with new history entries (including replacing ones)
       navigationFlags.isNew = true;
       const index = (this.isReplacing ? this.currentEntry.index : this.history.length - this.historyOffset);
+      previousEntry = this.currentEntry;
       this.currentEntry = this.activeEntry;
       this.currentEntry.index = index;
       if (this.isReplacing) {
@@ -293,6 +297,7 @@ export class HistoryBrowser {
         });
       }
       this.lastHistoryMovement = (this.currentEntry ? historyEntry.index - this.currentEntry.index : 0);
+      previousEntry = this.currentEntry;
       this.currentEntry = historyEntry;
 
       if (this.isCancelling) {
@@ -309,7 +314,7 @@ export class HistoryBrowser {
 
     // tslint:disable-next-line:no-console
     console.log('navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
-    this.callback(this.currentEntry, navigationFlags);
+    this.callback(this.currentEntry, navigationFlags, previousEntry);
   }
 
   private getPath(): string {
@@ -342,8 +347,9 @@ export class HistoryBrowser {
     return hashSearches.length > 0 ?  hashSearches.shift() : '';
   }
 
-  private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags): void {
+  private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags, previousEntry: IHistoryEntry): void {
     const instruction: INavigationInstruction = { ...currentEntry, ...navigationFlags };
+    instruction.previous = previousEntry;
     // tslint:disable-next-line:no-console
     console.log('callback', currentEntry, navigationFlags);
     if (this.options.callback) {

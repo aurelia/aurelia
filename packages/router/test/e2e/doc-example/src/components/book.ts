@@ -13,7 +13,7 @@ import { BooksRepository } from '../repositories/books';
   </ul>
 </div>
 <au-nav name="book-menu"></au-nav>
-<au-viewport name="book-tabs" default="book-details=\${book.id}" used-by="about-books,book-details"></au-viewport>
+<au-viewport name="book-tabs" default="book-details=\${book.id}" used-by="about-books,book-details" no-link></au-viewport>
 </template>` })
 @inject(Router, BooksRepository)
 export class Book {

@@ -132,8 +132,8 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   private cache: View<T>[];
   private cacheSize: number;
-  private lifecycle: ILifecycle;
-  private template: ITemplate<T>;
+  private readonly lifecycle: ILifecycle;
+  private readonly template: ITemplate<T>;
 
   constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
     this.isCaching = false;
@@ -186,7 +186,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     let view: View<T>;
 
     if (cache !== null && cache.length > 0) {
-      view = cache.pop() as View<T>;
+      view = cache.pop();
       view.$state &= ~State.isCached;
       return view;
     }
@@ -238,7 +238,6 @@ function lockedUnbind<T extends INode = INode>(this: IView<T>, flags: LifecycleF
   }
   if (Tracer.enabled) { Tracer.leave(); }
 }
-
 
 ((proto: IView): void => {
   proto.$bind = $bindView;

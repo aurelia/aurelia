@@ -12,7 +12,7 @@ export class SelfObserver implements SelfObserver {
   public propertyKey: string;
   public currentValue: unknown;
 
-  private callback: (newValue: unknown, oldValue: unknown) => unknown;
+  private readonly callback: (newValue: unknown, oldValue: unknown) => unknown;
 
   constructor(
     instance: object,

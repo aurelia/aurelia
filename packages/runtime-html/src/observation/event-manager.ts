@@ -75,11 +75,11 @@ function handleDelegatedEvent(event: IManagedEvent): void {
 }
 
 export class ListenerTracker {
-  private dom: IDOM;
-  private capture: boolean;
+  private readonly dom: IDOM;
+  private readonly capture: boolean;
+  private readonly eventName: string;
+  private readonly listener: EventListenerOrEventListenerObject;
   private count: number;
-  private eventName: string;
-  private listener: EventListenerOrEventListenerObject;
 
   constructor(dom: IDOM, eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean) {
     this.dom = dom;
@@ -145,7 +145,7 @@ export class TriggerSubscription implements IDisposable {
   public target: Node;
   public targetEvent: string;
   public callback: EventListenerOrEventListenerObject;
-  private dom: IDOM;
+  private readonly dom: IDOM;
 
   constructor(
     dom: IDOM,

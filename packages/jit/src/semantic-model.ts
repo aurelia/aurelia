@@ -23,7 +23,7 @@ export const enum SymbolFlags {
 }
 
 function createMarker(dom: IDOM): INode {
-  const marker = dom.createElement('au-m') as INode;
+  const marker = dom.createElement('au-m');
   dom.makeTarget(marker);
   return marker;
 }

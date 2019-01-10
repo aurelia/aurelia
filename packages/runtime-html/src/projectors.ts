@@ -95,7 +95,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
 export class ContainerlessProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
 
-  private childNodes: ReadonlyArray<CustomElementHost<Node>>;
+  private readonly childNodes: ReadonlyArray<CustomElementHost<Node>>;
 
   constructor(dom: IDOM<Node>, $customElement: ICustomElement<Node>, host: Node) {
     if (host.childNodes.length) {

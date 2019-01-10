@@ -31,11 +31,10 @@ const slice = Array.prototype.slice;
 /** @internal */
 export class TextBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
-
   public static readonly register: IRegistry['register'];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -64,11 +63,10 @@ export class TextBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class ListenerBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IEventManager];
-
   public static readonly register: IRegistry['register'];
 
-  private parser: IExpressionParser;
-  private eventManager: IEventManager;
+  private readonly parser: IExpressionParser;
+  private readonly eventManager: IEventManager;
 
   constructor(parser: IExpressionParser, eventManager: IEventManager) {
     this.parser = parser;
@@ -100,11 +98,10 @@ export class SetAttributeRenderer implements IInstructionRenderer {
 /** @internal */
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
-
   public static readonly register: IRegistry['register'];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;

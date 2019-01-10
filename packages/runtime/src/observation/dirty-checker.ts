@@ -12,8 +12,8 @@ export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').
 
 /** @internal */
 export class DirtyChecker {
-  private checkDelay: number;
-  private tracked: DirtyCheckProperty[];
+  private readonly checkDelay: number;
+  private readonly tracked: DirtyCheckProperty[];
 
   public constructor() {
     this.checkDelay = 120;
@@ -69,7 +69,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
   public oldValue: unknown;
   public propertyKey: string;
 
-  private dirtyChecker: IDirtyChecker;
+  private readonly dirtyChecker: IDirtyChecker;
 
   constructor(dirtyChecker: IDirtyChecker, obj: IObservable, propertyKey: string) {
     this.obj = obj;

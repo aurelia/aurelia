@@ -423,14 +423,12 @@ export class Resolver implements IResolver, IRegistration {
     switch (this.strategy) {
       case ResolverStrategy.instance:
         return this.state;
-      case ResolverStrategy.singleton:
-      {
+      case ResolverStrategy.singleton: {
         this.strategy = ResolverStrategy.instance;
         const factory = handler.getFactory(this.state);
         return this.state = factory.construct(handler);
       }
-      case ResolverStrategy.transient:
-      {
+      case ResolverStrategy.transient: {
         // Always create transients from the requesting container
         const factory = handler.getFactory(this.state);
         return factory.construct(requestor);
@@ -471,8 +469,8 @@ export interface IInvoker {
 /** @internal */
 export class Factory implements IFactory {
   public Type: Function;
-  private invoker: IInvoker;
-  private dependencies: Function[];
+  private readonly invoker: IInvoker;
+  private readonly dependencies: Function[];
   private transformers: ((instance: any) => any)[] | null;
 
   constructor(Type: Function, invoker: IInvoker, dependencies: Function[]) {
@@ -537,10 +535,10 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
 /** @internal */
 export class Container implements IContainer {
   private parent: Container | null;
-  private resolvers: Map<any, IResolver>;
-  private factories: Map<Function, IFactory>;
-  private configuration: IContainerConfiguration;
-  private resourceLookup: Record<string, IResolver>;
+  private readonly resolvers: Map<any, IResolver>;
+  private readonly factories: Map<Function, IFactory>;
+  private readonly configuration: IContainerConfiguration;
+  private readonly resourceLookup: Record<string, IResolver>;
 
   constructor(configuration: IContainerConfiguration = {}) {
     this.parent = null;

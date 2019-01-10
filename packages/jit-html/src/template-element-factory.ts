@@ -43,7 +43,7 @@ export const ITemplateElementFactory: InterfaceSymbol<ITemplateElementFactory> =
 export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   public static readonly inject: ReadonlyArray<Function> = [IDOM];
 
-  private dom: IDOM;
+  private readonly dom: IDOM;
   private template: HTMLTemplateElement;
 
   constructor(dom: IDOM) {

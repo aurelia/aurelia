@@ -183,10 +183,9 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 /** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
-
   public static readonly register: IRegistry['register'];
 
-  private renderingEngine: IRenderingEngine;
+  private readonly renderingEngine: IRenderingEngine;
 
   constructor(renderingEngine: IRenderingEngine) {
     this.renderingEngine = renderingEngine;
@@ -219,10 +218,9 @@ export class CustomElementRenderer implements IInstructionRenderer {
 /** @internal */
 export class CustomAttributeRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
-
   public static readonly register: IRegistry['register'];
 
-  private renderingEngine: IRenderingEngine;
+  private readonly renderingEngine: IRenderingEngine;
 
   constructor(renderingEngine: IRenderingEngine) {
     this.renderingEngine = renderingEngine;
@@ -254,10 +252,9 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
-
   public static readonly register: IRegistry['register'];
 
-  private renderingEngine: IRenderingEngine;
+  private readonly renderingEngine: IRenderingEngine;
 
   constructor(renderingEngine: IRenderingEngine) {
     this.renderingEngine = renderingEngine;
@@ -294,11 +291,10 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 /** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
-
   public static readonly register: IRegistry['register'];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -324,11 +320,10 @@ export class LetElementRenderer implements IInstructionRenderer {
 /** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
-
   public static readonly register: IRegistry['register'];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -348,10 +343,9 @@ export class CallBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser];
-
   public static readonly register: IRegistry['register'];
 
-  private parser: IExpressionParser;
+  private readonly parser: IExpressionParser;
 
   constructor(parser: IExpressionParser) {
     this.parser = parser;
@@ -370,11 +364,10 @@ export class RefBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
-
   public static readonly register: IRegistry['register'];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -399,11 +392,10 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
-
   public static readonly register: IRegistry['register'];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
@@ -423,11 +415,10 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
-
   public static readonly register: IRegistry['register'];
 
-  private parser: IExpressionParser;
-  private observerLocator: IObserverLocator;
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;

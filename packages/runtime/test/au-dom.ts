@@ -416,8 +416,8 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
 
   private start: AuNode;
   private end: AuNode;
-  private wrapper: AuNode;
-  private targets: AuNode[];
+  private readonly wrapper: AuNode;
+  private readonly targets: AuNode[];
 
   constructor(dom: AuDOM, wrapper: AuNode) {
     this.dom = dom;
@@ -583,7 +583,7 @@ export class AuTextInstruction implements ITargetedInstruction {
 @instructionRenderer('au')
 /** @internal */
 export class AuTextRenderer implements IInstructionRenderer {
-  private observerLocator: IObserverLocator;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(observerLocator: IObserverLocator) {
     this.observerLocator = observerLocator;

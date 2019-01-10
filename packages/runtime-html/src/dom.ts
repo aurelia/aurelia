@@ -175,7 +175,7 @@ export class TextNodeSequence implements INodeSequence {
   public lastChild: Text;
   public childNodes: Text[];
 
-  private targets: [Node];
+  private readonly targets: [Node];
 
   constructor(dom: HTMLDOM, text: Text) {
     this.dom = dom;
@@ -216,9 +216,9 @@ export class FragmentNodeSequence implements INodeSequence {
   public childNodes: Node[];
 
   private end: IRenderLocation & Comment;
-  private fragment: DocumentFragment;
   private start: IRenderLocation & Comment;
-  private targets: ArrayLike<Node>;
+  private readonly fragment: DocumentFragment;
+  private readonly targets: ArrayLike<Node>;
 
   constructor(dom: IDOM, fragment: DocumentFragment) {
     this.dom = dom;

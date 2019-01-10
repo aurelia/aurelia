@@ -22,7 +22,7 @@ export class UpdateTriggerBindingBehavior {
 
   public static register: IRegistry['register'];
 
-  private observerLocator: IObserverLocator;
+  private readonly observerLocator: IObserverLocator;
 
   constructor(observerLocator: IObserverLocator) {
     this.observerLocator = observerLocator;

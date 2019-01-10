@@ -9,7 +9,7 @@ const { oneTime, toView, fromView, twoWay } = BindingMode;
 export type WithMode = { mode: BindingMode; originalMode?: BindingMode };
 
 export abstract class BindingModeBehavior {
-  private mode: BindingMode;
+  private readonly mode: BindingMode;
 
   constructor(mode: BindingMode) {
     this.mode = mode;

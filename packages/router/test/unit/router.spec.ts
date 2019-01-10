@@ -1,6 +1,7 @@
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { expect } from 'chai';
+import { DebugConfiguration } from '../../../debug/src/index';
 import { BasicConfiguration } from '../../../jit-html-browser/src/index';
+import { Aurelia, CustomElementResource, IDOM } from '../../../runtime/src/index';
 import { IComponentViewportParameters, Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
 
@@ -482,6 +483,7 @@ let quxCantLeave = 2;
 
 const setup = async (): Promise<{ au; container; host; router }> => {
   const container = BasicConfiguration.createContainer();
+
   const App = (CustomElementResource as any).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
   const Foo = (CustomElementResource as any).define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
   const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {
@@ -503,16 +505,19 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   });
   const Quux = (CustomElementResource as any).define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
   const Corge = (CustomElementResource as any).define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport></template>' });
-  container.register(ViewportCustomElement as any);
-  container.register(Foo, Bar, Baz, Qux, Quux, Corge);
-  const au = new Aurelia(container as any);
-  const host = document.createElement('div');
-  document.body.appendChild(host as any);
-  const component = new App();
-  au.app({ component, host });
-  au.start();
 
   container.register(Router as any);
+  container.register(ViewportCustomElement as any);
+  container.register(Foo, Bar, Baz, Qux, Quux, Corge);
+
+  const host = document.createElement('div');
+  document.body.appendChild(host as any);
+
+  const au = window['au'] = new Aurelia(container)
+  .register(DebugConfiguration)
+  .app({ host: host, component: App })
+  .start();
+
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
   mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;

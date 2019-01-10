@@ -159,11 +159,11 @@ export class Router {
     if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
       instruction.path = instruction.fullStatePath;
       fullStateInstruction = true;
-      if (!confirm('Perform history navigation?')) {
-        this.historyBrowser.cancel();
-        this.processingNavigation = null;
-        return Promise.resolve();
-      }
+      // if (!confirm('Perform history navigation?')) {
+      //   this.historyBrowser.cancel();
+      //   this.processingNavigation = null;
+      //   return Promise.resolve();
+      // }
     }
 
     let path = instruction.path;
@@ -219,7 +219,7 @@ export class Router {
     const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
     const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
 
-    let keepHistoryEntry = false;
+    let keepHistoryEntry = instruction.isFirst;
 
     // TODO: Take care of cancellations down in subsets/iterations
     let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);

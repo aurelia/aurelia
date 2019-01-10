@@ -204,7 +204,7 @@ const formatDefinitions: [
   { $format: 'iife',   $exports: 'named', $name: 'iife',  $minify: true }
 ];
 
-const iife_full_packages = ['jit-html'];
+const iife_full_packages = ['jit-html-browser'];
 
 async function createBundle(): Promise<void> {
   const args = process.argv.slice(2);
@@ -234,7 +234,11 @@ async function createBundle(): Promise<void> {
   for (const pkg of packages) {
     const logPrefix = c.grey(`[${++cur}/${count}] ${pkg.name.npm}`);
 
-    const external = project.packages.filter(p => p.name.npm !== pkg.name.npm).map(p => p.name.npm);
+    const external = [
+      'jsdom',
+      'pixi.js',
+      ...project.packages.filter(p => p.name.npm !== pkg.name.npm).map(p => p.name.npm)
+    ];
     const plugins = [
       replace({
         // We're just replacing `Tracer.enabled` with `false` and let dead code elimination take care of the rest

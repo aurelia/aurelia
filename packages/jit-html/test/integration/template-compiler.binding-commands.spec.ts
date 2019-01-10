@@ -1,4 +1,5 @@
 import { LifecycleFlags } from '@aurelia/runtime';
+import { IEventManager } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { HTMLTestContext, TestContext } from '../util';
@@ -198,18 +199,28 @@ describe('template-compiler.binding-commands', () => {
   // delegate - button
   it('19.', () => {
     const { au, lifecycle, host, component } = setupWithDocumentAndStart(ctx, `<template><button click.delegate="doStuff()"></button></template>`, null);
-    component.doStuff = spy();
-    host.firstChild.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
-    expect(component.doStuff).to.have.been.called;
-    tearDown(au, lifecycle, host);
+    try {
+      component.doStuff = spy();
+      host.firstChild.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
+      expect(component.doStuff).to.have.been.called;
+    } finally {
+      const em = ctx.container.get(IEventManager);
+      em.dispose();
+      tearDown(au, lifecycle, host);
+    }
   });
 
   // capture - button
   it('20.', () => {
     const { au, lifecycle, host, component } = setupWithDocumentAndStart(ctx, `<template><button click.capture="doStuff()"></button></template>`, null);
-    component.doStuff = spy();
-    host.firstChild.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
-    expect(component.doStuff).to.have.been.called;
-    tearDown(au, lifecycle, host);
+    try {
+      component.doStuff = spy();
+      host.firstChild.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
+      expect(component.doStuff).to.have.been.called;
+    } finally {
+      const em = ctx.container.get(IEventManager);
+      em.dispose();
+      tearDown(au, lifecycle, host);
+    }
   });
 });

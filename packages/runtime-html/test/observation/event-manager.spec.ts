@@ -156,11 +156,11 @@ describe('ListenerTracker', () => {
 
                 el.dispatchEvent(event);
                 if (bubbles === true && capture !== true) {
-                  assertHandlerPath([AT_TARGET, BUBBLING_PHASE, AT_TARGET, BUBBLING_PHASE], handlerPath);
+                  assertHandlerPath([AT_TARGET, BUBBLING_PHASE, AT_TARGET], handlerPath);
                 } else if (capture === true && bubbles !== true) {
-                  assertHandlerPath([CAPTURING_PHASE, AT_TARGET, CAPTURING_PHASE, AT_TARGET], handlerPath);
+                  assertHandlerPath([CAPTURING_PHASE, AT_TARGET, AT_TARGET], handlerPath);
                 } else if (capture === true && bubbles === true) {
-                  assertHandlerPath([CAPTURING_PHASE, AT_TARGET, CAPTURING_PHASE, AT_TARGET], handlerPath);
+                  assertHandlerPath([CAPTURING_PHASE, AT_TARGET, AT_TARGET], handlerPath);
                 } else {
                   assertHandlerPath([AT_TARGET, AT_TARGET], handlerPath);
                 }
@@ -548,14 +548,14 @@ describe('EventManager', () => {
                           expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
                           expect(childHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
                           expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                          expect(childHandlerPath[0].currentTarget).to.equal(ctx.wnd);
+                          expect(childHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
                           if (stopPropagation) {
                             expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
                           } else {
                             expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                             expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
                             expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                            expect(parentHandlerPath[0].currentTarget).to.equal(ctx.wnd);
+                            expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
                           }
                         } else {
                           expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
@@ -567,14 +567,14 @@ describe('EventManager', () => {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.wnd);
+                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
                           if (stopPropagation) {
                             expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
                           } else {
                             expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
                             expect(childHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
                             expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                            expect(childHandlerPath[0].currentTarget).to.equal(ctx.wnd);
+                            expect(childHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
                           }
                         } else {
                           expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
@@ -608,7 +608,7 @@ describe('EventManager', () => {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.wnd);
+                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
                         } else {
                           expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
                         }
@@ -619,7 +619,7 @@ describe('EventManager', () => {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.wnd);
+                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc.body);
                         } else {
                           expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
                         }

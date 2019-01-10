@@ -62,7 +62,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
-    (publisher || this.wnd).addEventListener(eventName, subscriber, options);
+    (publisher || this.doc.body).addEventListener(eventName, subscriber, options);
   }
   public appendChild(parent: Node, child: Node): void {
     parent.appendChild(child);
@@ -155,7 +155,7 @@ export class HTMLDOM implements IDOM {
     }
   }
   public removeEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | EventListenerOptions): void {
-    (publisher || this.doc).removeEventListener(eventName, subscriber, options);
+    (publisher || this.doc.body).removeEventListener(eventName, subscriber, options);
   }
   public setAttribute(node: Element, name: string, value: unknown): void {
     node.setAttribute(name, value as string);

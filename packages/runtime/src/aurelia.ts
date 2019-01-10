@@ -1,8 +1,11 @@
-import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './observation';
 import { ExposedContext, IRenderingEngine } from './rendering-engine';
 import { CustomElementResource, ICustomElement, ICustomElementType, IProjectorLocator } from './resources/custom-element';
+
+const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.start');
+const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
 
 export interface ISinglePageApp<THost extends INode = INode> {
   dom?: IDOM;
@@ -88,18 +91,22 @@ export class Aurelia {
   }
 
   public start(): this {
+    if (Profiler.enabled) { enterStart(); }
     for (const runStartTask of this.startTasks) {
       runStartTask();
     }
     this.isStarted = true;
+    if (Profiler.enabled) { leaveStart(); }
     return this;
   }
 
   public stop(): this {
+    if (Profiler.enabled) { enterStop(); }
     this.isStarted = false;
     for (const runStopTask of this.stopTasks) {
       runStopTask();
     }
+    if (Profiler.enabled) { leaveStop(); }
     return this;
   }
 }

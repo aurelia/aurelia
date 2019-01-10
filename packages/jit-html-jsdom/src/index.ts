@@ -7,8 +7,10 @@ import {
   DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
   DefaultComponents as JitHtmlDefaultComponents
 } from '@aurelia/jit-html';
-import { DI, IContainer } from '@aurelia/kernel';
+import { DI, IContainer, Profiler } from '@aurelia/kernel';
 import { BasicConfiguration as RuntimeJSDOMBrowserBasicConfiguration } from '@aurelia/runtime-html-jsdom';
+
+const { enter, leave } = Profiler.createTimer('BasicConfiguration');
 
 /**
  * A DI configuration object containing html-specific, jsdom-specific registrations:
@@ -24,7 +26,8 @@ export const BasicConfiguration = {
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimeJSDOMBrowserBasicConfiguration
+    if (Profiler.enabled) { enter(); }
+    RuntimeJSDOMBrowserBasicConfiguration
       .register(container)
       .register(
         ...JitDefaultBindingLanguage,
@@ -33,11 +36,16 @@ export const BasicConfiguration = {
         ...JitHtmlDefaultBindingLanguage,
         ...JitHtmlDefaultComponents
       );
+    if (Profiler.enabled) { leave(); }
+    return container;
   },
   /**
    * Create a new container with this configuration applied to it.
    */
   createContainer(): IContainer {
-    return this.register(DI.createContainer());
+    if (Profiler.enabled) { enter(); }
+    const container = this.register(DI.createContainer());
+    if (Profiler.enabled) { leave(); }
+    return container;
   }
 };

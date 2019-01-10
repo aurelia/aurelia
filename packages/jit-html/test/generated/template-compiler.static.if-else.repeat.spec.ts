@@ -1,8 +1,16 @@
 import { expect } from "chai";
 import { CustomElementResource, Aurelia } from "@aurelia/runtime";
-import { getVisibleText, TestContext } from "../util";
+import { Profiler } from "@aurelia/kernel";
+import { getVisibleText, TestContext, writeProfilerReport } from "../util";
 
 describe("generated.template-compiler.static.if-else.repeat", function () {
+    before(function () {
+        Profiler.enable();
+    });
+    after(function () {
+        Profiler.disable();
+        writeProfilerReport("static.if-else.repeat");
+    });
     function setup() {
         const ctx = TestContext.createHTMLTestContext();
         const au = new Aurelia(ctx.container);

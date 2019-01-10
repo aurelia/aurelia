@@ -17,7 +17,8 @@ import {
   $functionExpr,
   $param,
   $property,
-  emit
+  emit,
+  $id
 } from './util';
 
 function outFile(suffix: string): string {
@@ -874,11 +875,23 @@ function generateAndEmit(): void {
     const nodes = [
       $$import('chai', 'expect'),
       $$import('@aurelia/runtime', 'CustomElementResource', 'Aurelia'),
-      $$import('../util', 'getVisibleText', 'TestContext'),
+      $$import('@aurelia/kernel', 'Profiler'),
+      $$import('../util', 'getVisibleText', 'TestContext', 'writeProfilerReport'),
       null,
       $$functionExpr('describe', [
         $expression(`generated.template-compiler.${suffix}`),
         $functionExpr([
+          $$functionExpr('before', [
+            $functionExpr([
+              $$call('Profiler.enable')
+            ])
+          ]),
+          $$functionExpr('after', [
+            $functionExpr([
+              $$call('Profiler.disable'),
+              $$call('writeProfilerReport', [$expression(suffix)])
+            ])
+          ]),
           $$functionDecl(
             'setup',
             [

@@ -17,7 +17,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from '@aurelia/jit';
-import { IContainer, IResolver, IResourceDescriptions, PLATFORM, Registration } from '@aurelia/kernel';
+import { IContainer, IResolver, IResourceDescriptions, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
@@ -52,6 +52,8 @@ const buildNotRequired: IBuildInstruction = Object.freeze({
   compiler: 'default'
 });
 
+const { enter, leave } = Profiler.createTimer('TemplateCompiler');
+
 /**
  * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
  *
@@ -85,6 +87,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
+    if (Profiler.enabled) { enter(); }
     const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template) as HTMLTemplateElement;
     const surrogate = binder.bind(template);
@@ -114,6 +117,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     this.instructionRows = null;
 
+    if (Profiler.enabled) { leave(); }
     return definition as TemplateDefinition;
   }
 

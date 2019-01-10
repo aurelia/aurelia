@@ -1,5 +1,18 @@
 export interface IPerformance {
   now(): number;
+  mark(name: string): void;
+  measure(name: string, start?: string, end?: string): void;
+  getEntriesByName(name: string): IPerformanceEntry[];
+  getEntriesByType(type: string): IPerformanceEntry[];
+  clearMarks(name?: string): void;
+  clearMeasures(name?: string): void;
+}
+
+export interface IPerformanceEntry {
+  readonly duration: number;
+  readonly entryType: string;
+  readonly name: string;
+  readonly startTime: number;
 }
 
 export type ITimerHandler = string | Function;

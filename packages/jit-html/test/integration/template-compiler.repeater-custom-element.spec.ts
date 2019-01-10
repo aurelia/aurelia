@@ -180,7 +180,8 @@ describe(spec, () => {
   });
 
   // repeater with custom element and children observer
-  it('12.', async () => {
+  it('12.', async function() {
+    this.timeout(10000);
     let childrenCount = 0;
     let childrenChangedCount = 0;
     const FooEl = CustomElementResource.define({

@@ -217,6 +217,18 @@ export function padRight(str: any, len: number): string {
   return str + new Array(len - strLen + 1).join(' ');
 }
 
+/**
+ * pad a string with spaces on the left-hand side until it's the specified length
+ */
+export function padLeft(str: any, len: number): string {
+  str = `${str}`;
+  const strLen = str.length;
+  if (strLen >= len) {
+    return str;
+  }
+  return new Array(len - strLen + 1).join(' ') + str;
+}
+
 export function verifyEqual(actual: any, expected: any, depth?: number, property?: string, index?: number): any {
   if (depth === undefined) {
     depth = 0;

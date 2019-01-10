@@ -1,4 +1,4 @@
-import { ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
+import { IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
 
 declare var global: IWindowOrWorkerGlobalScope;
 declare var self: IWindowOrWorkerGlobalScope;
@@ -27,14 +27,12 @@ const $global: IWindowOrWorkerGlobalScope = (function(): IWindowOrWorkerGlobalSc
     // tslint:disable-next-line:no-object-literal-type-assertion
     return {} as IWindowOrWorkerGlobalScope;
   }
-  // @ts-ignore 2683
 })();
 
 // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
 const $now = (function(): () => number {
   let getNanoSeconds: () => number;
   let hrtime: (time?: [number, number]) => [number, number];
-  let loadTime: number;
   let moduleLoadTime: number;
   let nodeLoadTime: number;
   let upTime: number;
@@ -58,20 +56,140 @@ const $now = (function(): () => number {
     upTime = $global.process.uptime() * 1e9;
     nodeLoadTime = moduleLoadTime - upTime;
     return now;
-  } else if (Date.now) {
-    const now = function(): number {
-      return Date.now() - loadTime;
-    };
-    loadTime = Date.now();
-    return now;
-  } else {
-    const now = function(): number {
-      return new Date().getTime() - loadTime;
-    };
-    loadTime = new Date().getTime();
-    return now;
   }
-})() as () => number;
+})();
+
+// performance.mark / measure polyfill based on https://github.com/blackswanny/performance-polyfill
+// note: this is NOT intended to be a polyfill for browsers that don't support it; it's just for NodeJS
+// TODO: probably want to move environment-specific logic to the appropriate runtime (e.g. the NodeJS polyfill
+// to runtime-html-jsdom)
+const {
+  $mark,
+  $measure,
+  $getEntriesByName,
+  $getEntriesByType,
+  $clearMarks,
+  $clearMeasures
+} = (function(): {
+  $mark: IWindowOrWorkerGlobalScope['performance']['mark'];
+  $measure: IWindowOrWorkerGlobalScope['performance']['measure'];
+  $getEntriesByName: IWindowOrWorkerGlobalScope['performance']['getEntriesByName'];
+  $getEntriesByType: IWindowOrWorkerGlobalScope['performance']['getEntriesByType'];
+  $clearMarks: IWindowOrWorkerGlobalScope['performance']['clearMarks'];
+  $clearMeasures: IWindowOrWorkerGlobalScope['performance']['clearMeasures'];
+ } {
+  if (
+    $global.performance !== undefined &&
+    $global.performance !== null &&
+    $global.performance.mark &&
+    $global.performance.measure &&
+    $global.performance.getEntriesByName &&
+    $global.performance.getEntriesByType &&
+    $global.performance.clearMarks &&
+    $global.performance.clearMeasures
+  ) {
+    const $performance = $global.performance;
+    return {
+      $mark: function(name: string): void {
+        $performance.mark(name);
+      },
+      $measure: function(name: string, start?: string, end?: string): void {
+        $performance.measure(name, start, end);
+      },
+      $getEntriesByName: function(name: string): IPerformanceEntry[] {
+        return $performance.getEntriesByName(name);
+      },
+      $getEntriesByType: function(type: string): IPerformanceEntry[] {
+        return $performance.getEntriesByType(type);
+      },
+      $clearMarks: function(name?: string): void {
+        $performance.clearMarks(name);
+      },
+      $clearMeasures: function(name?: string): void {
+        $performance.clearMeasures(name);
+      }
+    };
+  } else if ($global.process !== undefined && $global.process !== null && $global.process.hrtime) {
+    const entries: IPerformanceEntry[] = [];
+    const marksIndex: Record<string, IPerformanceEntry> = {};
+
+    const filterEntries = function (key: string, value: string): IPerformanceEntry[] {
+      let i = 0;
+      const n = entries.length;
+      const result = [];
+      for (; i < n; i++) {
+        if (entries[i][key] === value) {
+          result.push(entries[i]);
+        }
+      }
+      return	result;
+    };
+
+    const clearEntries = function (type: string, name: string): void {
+      let i = entries.length;
+      let entry: IPerformanceEntry;
+      while (i--) {
+        entry = entries[i];
+        if (entry.entryType === type && (name === void 0 || entry.name === name)) {
+          entries.splice(i, 1);
+        }
+      }
+    };
+
+    return {
+      $mark: function(name: string): void {
+        const mark: IPerformanceEntry = {
+          name,
+          entryType: 'mark',
+          startTime: $now(),
+          duration: 0
+        };
+        entries.push(mark);
+        marksIndex[name] = mark;
+      },
+      $measure: function(name: string, startMark?: string, endMark?: string): void {
+        let startTime: number;
+        let endTime: number;
+
+        if (endMark !== undefined && marksIndex[endMark] === undefined) {
+          throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${endMark}' does not exist.`);
+        }
+        if (startMark !== undefined && marksIndex[startMark] === undefined) {
+          throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${startMark}' does not exist.`);
+        }
+
+        if (marksIndex[startMark]) {
+          startTime = marksIndex[startMark].startTime;
+        } else {
+          startTime = 0;
+        }
+        if (marksIndex[endMark]) {
+          endTime = marksIndex[endMark].startTime;
+        } else {
+          endTime = $now();
+        }
+        entries.push({
+          name,
+          entryType: 'measure',
+          startTime,
+          duration: endTime - startTime
+        });
+      },
+      $getEntriesByName: function(name: string): IPerformanceEntry[] {
+        return filterEntries('name', name);
+      },
+      $getEntriesByType: function(type: string): IPerformanceEntry[] {
+        return filterEntries('entryType', type);
+      },
+      $clearMarks: function(name?: string): void {
+        clearEntries('mark', name);
+      },
+      $clearMeasures: function(name?: string): void {
+        clearEntries('measure', name);
+      }
+    };
+  }
+})();
 
 // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js
 const $raf = (function(): (callback: (time: number) => void) => number {
@@ -143,7 +261,7 @@ const $raf = (function(): (callback: (time: number) => void) => number {
   $global.requestAnimationFrame = raf;
   $global.cancelAnimationFrame = caf;
   return $$raf;
-})() as (callback: (time: number) => void) => number;
+})();
 
 const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};
@@ -154,6 +272,12 @@ export const PLATFORM = {
   emptyObject: Object.freeze({}),
   noop(): void { return; },
   now: $now,
+  mark: $mark,
+  measure: $measure,
+  getEntriesByName: $getEntriesByName,
+  getEntriesByType: $getEntriesByType,
+  clearMarks: $clearMarks,
+  clearMeasures: $clearMeasures,
 
   camelCase(input: string): string {
     // benchmark: http://jsben.ch/qIz4Z

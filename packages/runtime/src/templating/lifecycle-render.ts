@@ -1,4 +1,4 @@
-import { PLATFORM, Tracer, Writable } from '@aurelia/kernel';
+import { PLATFORM, Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { IElementHydrationOptions, TemplateDefinition } from '../definitions';
 import { IDOM, INode } from '../dom';
 import { Hooks, IRenderContext } from '../lifecycle';
@@ -8,6 +8,8 @@ import { ICustomAttribute, ICustomAttributeType } from '../resources/custom-attr
 import { ICustomElement, ICustomElementType, IProjectorLocator } from '../resources/custom-element';
 
 const slice = Array.prototype.slice;
+
+const { enter, leave } = Profiler.createTimer('RenderLifecycle');
 
 export interface IElementTemplateProvider {
   getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType | null, parentContext: IRenderContext | null): ITemplate;
@@ -46,6 +48,7 @@ export function $hydrateAttribute(
   renderingEngine: IRenderingEngine
 ): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice.call(arguments)); }
+  if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomAttributeType;
 
   renderingEngine.applyRuntimeBehavior(Type, this);
@@ -53,6 +56,7 @@ export function $hydrateAttribute(
   if (this.$hooks & Hooks.hasCreated) {
     this.created();
   }
+  if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
@@ -67,6 +71,7 @@ export function $hydrateElement(
   options: IElementHydrationOptions = PLATFORM.emptyObject
 ): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice.call(arguments)); }
+  if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
@@ -91,5 +96,6 @@ export function $hydrateElement(
   if (this.$hooks & Hooks.hasCreated) {
     this.created();
   }
+  if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }

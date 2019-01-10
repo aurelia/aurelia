@@ -1,4 +1,4 @@
-import { DI, IContainer, InterfaceSymbol, IResolver, Registration } from '@aurelia/kernel';
+import { DI, IContainer, InterfaceSymbol, IResolver, Profiler, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**
@@ -35,6 +35,8 @@ export interface ITemplateElementFactory {
 // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
 export const ITemplateElementFactory: InterfaceSymbol<ITemplateElementFactory> = DI.createInterface('ITemplateElementFactory').noDefault();
 
+const { enter, leave } = Profiler.createTimer('TemplateElementFactory');
+
 /**
  * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
  *
@@ -59,6 +61,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   public createTemplate(node: Node): HTMLTemplateElement;
   public createTemplate(input: unknown): HTMLTemplateElement;
   public createTemplate(input: string | Node): HTMLTemplateElement {
+    if (Profiler.enabled) { enter(); }
     if (typeof input === 'string') {
       const template = this.template;
       template.innerHTML = input;
@@ -67,17 +70,20 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
       // return the whole template that wraps it/them (and create a new one for the next input)
       if (node === null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling !== null) {
         this.template = this.dom.createTemplate() as HTMLTemplateElement;
+        if (Profiler.enabled) { leave(); }
         return template;
       }
       // the node to return is both a template and the only node, so return just the node
       // and clean up the template for the next input
       template.content.removeChild(node);
+      if (Profiler.enabled) { leave(); }
       return node as HTMLTemplateElement;
     }
     if (input.nodeName !== 'TEMPLATE') {
       // if we get one node that is not a template, wrap it in one
       const template = this.dom.createTemplate() as HTMLTemplateElement;
       template.content.appendChild(input);
+      if (Profiler.enabled) { leave(); }
       return template;
     }
     // we got a template element, remove it from the DOM if it's present there and don't
@@ -85,6 +91,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
     if (input.parentNode !== null) {
       input.parentNode.removeChild(input);
     }
+    if (Profiler.enabled) { leave(); }
     return input as HTMLTemplateElement;
   }
 }

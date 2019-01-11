@@ -1,4 +1,4 @@
-import { IBatchedCollectionSubscriber, IBindingTargetObserver, ILifecycle, IndexMap, IObserverLocator, IPropertySubscriber, LifecycleFlags } from '@aurelia/runtime';
+import { IBatchedCollectionSubscriber, IBindingTargetObserver, IDOM, ILifecycle, IndexMap, IObserverLocator, IPropertySubscriber, LifecycleFlags } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface ISelectElement extends HTMLSelectElement {
@@ -21,9 +21,10 @@ export declare class SelectValueObserver implements SelectValueObserver {
     oldValue: unknown;
     defaultValue: unknown;
     flush: () => void;
+    private dom;
     private arrayObserver;
     private nodeObserver;
-    constructor(lifecycle: ILifecycle, obj: ISelectElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
+    constructor(lifecycle: ILifecycle, obj: ISelectElement, handler: IEventSubscriber, observerLocator: IObserverLocator, dom: IDOM);
     getValue(): unknown;
     setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleBatchedChange(indexMap: number[]): void;

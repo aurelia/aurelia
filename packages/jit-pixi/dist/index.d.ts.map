@@ -1,1 +1,1 @@
-{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,oBAAoB,EACrB,MAAM,iBAAiB,CAAC"}
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["packages/jit-pixi/src/index.ts"],"names":[],"mappings":"AASA,OAAO,EAAM,UAAU,EAAE,MAAM,iBAAiB,CAAC;AAGjD;;;;;;;;GAQG;AACH,eAAO,MAAM,kBAAkB;IAC7B;;OAEG;;IAYH;;OAEG;;CAIJ,CAAC"}

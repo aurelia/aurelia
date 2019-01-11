@@ -424,6 +424,13 @@
               this.dom.removeEventListener(this.eventName, this.listener, null, this.capture);
           }
       }
+      /*@internal*/
+      dispose() {
+          if (this.count > 0) {
+              this.count = 0;
+              this.dom.removeEventListener(this.eventName, this.listener, null, this.capture);
+          }
+      }
   }
   /**
    * Enable dispose() pattern for `delegate` & `capture` commands
@@ -486,7 +493,8 @@
   /** @internal */
   class EventManager {
       constructor() {
-          this.elementHandlerLookup = {};
+          this.delegatedHandlers = {};
+          this.capturedHandlers = {};
           this.delegatedHandlers = {};
           this.capturedHandlers = {};
       }
@@ -510,6 +518,16 @@
           }
           return new TriggerSubscription(dom, target, targetEvent, callbackOrListener);
       }
+      dispose() {
+          let key;
+          const { delegatedHandlers, capturedHandlers } = this;
+          for (key in delegatedHandlers) {
+              delegatedHandlers[key].dispose();
+          }
+          for (key in capturedHandlers) {
+              capturedHandlers[key].dispose();
+          }
+      }
   }
 
   const handleEventFlags$1 = runtime.LifecycleFlags.fromDOMEvent | runtime.LifecycleFlags.updateSourceExpression;
@@ -522,12 +540,13 @@
       return a === b;
   }
   exports.SelectValueObserver = class SelectValueObserver {
-      constructor(lifecycle, obj, handler, observerLocator) {
+      constructor(lifecycle, obj, handler, observerLocator, dom) {
           this.isDOMObserver = true;
           this.lifecycle = lifecycle;
           this.obj = obj;
           this.handler = handler;
           this.observerLocator = observerLocator;
+          this.dom = dom;
       }
       getValue() {
           return this.currentValue;
@@ -692,8 +711,7 @@
           }
       }
       bind() {
-          this.nodeObserver = new MutationObserver(this.handleNodeChange.bind(this));
-          this.nodeObserver.observe(this.obj, childObserverOptions);
+          this.nodeObserver = this.dom.createNodeObserver(this.obj, this.handleNodeChange.bind(this), childObserverOptions);
       }
       unbind() {
           this.nodeObserver.disconnect();
@@ -917,13 +935,16 @@
       constructor(dom) {
           this.dom = dom;
       }
+      static register(container) {
+          return kernel.Registration.singleton(runtime.ITargetObserverLocator, this).register(container);
+      }
       getObserver(lifecycle, observerLocator, obj, propertyName) {
           switch (propertyName) {
               case 'checked':
                   return new exports.CheckedObserver(lifecycle, obj, new EventSubscriber(this.dom, inputEvents), observerLocator);
               case 'value':
                   if (obj['tagName'] === 'SELECT') {
-                      return new exports.SelectValueObserver(lifecycle, obj, new EventSubscriber(this.dom, selectEvents), observerLocator);
+                      return new exports.SelectValueObserver(lifecycle, obj, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
                   }
                   return new exports.ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, inputEvents));
               case 'files':
@@ -968,6 +989,9 @@
   class TargetAccessorLocator {
       constructor(dom) {
           this.dom = dom;
+      }
+      static register(container) {
+          return kernel.Registration.singleton(runtime.ITargetAccessorLocator, this).register(container);
       }
       getAccessor(lifecycle, obj, propertyName) {
           switch (propertyName) {
@@ -1077,6 +1101,12 @@
   UpdateTriggerBindingBehavior.inject = [runtime.IObserverLocator];
   runtime.BindingBehaviorResource.define('updateTrigger', UpdateTriggerBindingBehavior);
 
+  (function (HTMLTargetedInstructionType) {
+      HTMLTargetedInstructionType["textBinding"] = "ha";
+      HTMLTargetedInstructionType["listenerBinding"] = "hb";
+      HTMLTargetedInstructionType["stylePropertyBinding"] = "hc";
+      HTMLTargetedInstructionType["setAttribute"] = "hd";
+  })(exports.HTMLTargetedInstructionType || (exports.HTMLTargetedInstructionType = {}));
   function isHTMLTargetedInstruction(value) {
       const type = value.type;
       return typeof type === 'string' && type.length === 2;
@@ -1349,12 +1379,30 @@
   ], Compose.prototype, "composing", void 0);
   runtime.CustomElementResource.define(composeSource, Compose);
 
+  (function (NodeType) {
+      NodeType[NodeType["Element"] = 1] = "Element";
+      NodeType[NodeType["Attr"] = 2] = "Attr";
+      NodeType[NodeType["Text"] = 3] = "Text";
+      NodeType[NodeType["CDATASection"] = 4] = "CDATASection";
+      NodeType[NodeType["EntityReference"] = 5] = "EntityReference";
+      NodeType[NodeType["Entity"] = 6] = "Entity";
+      NodeType[NodeType["ProcessingInstruction"] = 7] = "ProcessingInstruction";
+      NodeType[NodeType["Comment"] = 8] = "Comment";
+      NodeType[NodeType["Document"] = 9] = "Document";
+      NodeType[NodeType["DocumentType"] = 10] = "DocumentType";
+      NodeType[NodeType["DocumentFragment"] = 11] = "DocumentFragment";
+      NodeType[NodeType["Notation"] = 12] = "Notation";
+  })(exports.NodeType || (exports.NodeType = {}));
   function isRenderLocation(node) {
       return node.textContent === 'au-end';
   }
   class HTMLDOM {
-      constructor(doc) {
+      constructor(wnd, doc, TNode, TElement, THTMLElement) {
+          this.wnd = wnd;
           this.doc = doc;
+          this.Node = TNode;
+          this.Element = TElement;
+          this.HTMLElement = THTMLElement;
       }
       addEventListener(eventName, subscriber, publisher, options) {
           (publisher || this.doc).addEventListener(eventName, subscriber, options);
@@ -1397,6 +1445,19 @@
       createElement(name) {
           return this.doc.createElement(name);
       }
+      createNodeObserver(node, cb, init) {
+          if (typeof MutationObserver === 'undefined') {
+              // TODO: find a proper response for this scenario
+              return {
+                  disconnect() { },
+                  observe() { },
+                  takeRecords() { return kernel.PLATFORM.emptyArray; }
+              };
+          }
+          const observer = new MutationObserver(cb);
+          observer.observe(node, init);
+          return observer;
+      }
       createTemplate(markup) {
           if (markup === undefined || markup === null) {
               return this.doc.createElement('template');
@@ -1415,7 +1476,7 @@
           return node.nodeName === 'AU-M';
       }
       isNodeInstance(potentialNode) {
-          return potentialNode.nodeType > 0;
+          return potentialNode !== null && potentialNode !== undefined && potentialNode.nodeType > 0;
       }
       isRenderLocation(node) {
           return node.textContent === 'au-end';
@@ -1425,10 +1486,9 @@
       }
       registerElementResolver(container, resolver) {
           container.registerResolver(runtime.INode, resolver);
-          container.registerResolver(Node, resolver);
-          container.registerResolver(Element, resolver);
-          container.registerResolver(HTMLElement, resolver);
-          container.registerResolver(SVGElement, resolver);
+          container.registerResolver(this.Node, resolver);
+          container.registerResolver(this.Element, resolver);
+          container.registerResolver(this.HTMLElement, resolver);
       }
       remove(node) {
           if (node.remove) {
@@ -1638,44 +1698,12 @@
       proto.nodeType = 1 /* Element */;
   })(AuMarker.prototype);
   /** @internal */
-  class HTMLDOMInitializer {
-      constructor(container) {
-          this.container = container;
-      }
-      /**
-       * Either create a new HTML `DOM` backed by the supplied `document` or uses the supplied `DOM` directly.
-       *
-       * If no argument is provided, uses the default global `document` variable.
-       * (this will throw an error in non-browser environments).
-       */
-      initialize(config) {
-          if (this.container.has(runtime.IDOM, false)) {
-              return this.container.get(runtime.IDOM);
-          }
-          let dom;
-          if (config !== undefined) {
-              if (config.dom !== undefined) {
-                  dom = config.dom;
-              }
-              else if (config.host.ownerDocument !== null) {
-                  dom = new HTMLDOM(config.host.ownerDocument);
-              }
-              else {
-                  dom = new HTMLDOM(document);
-              }
-          }
-          else {
-              dom = new HTMLDOM(document);
-          }
-          kernel.Registration.instance(runtime.IDOM, dom).register(this.container, runtime.IDOM);
-          return dom;
-      }
-  }
-  HTMLDOMInitializer.inject = [kernel.IContainer];
-  /** @internal */
   class HTMLTemplateFactory {
       constructor(dom) {
           this.dom = dom;
+      }
+      static register(container) {
+          return kernel.Registration.singleton(runtime.ITemplateFactory, this).register(container);
       }
       create(parentRenderContext, definition) {
           return new runtime.CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template), parentRenderContext);
@@ -1758,22 +1786,20 @@
       runtime.instructionRenderer("hc" /* stylePropertyBinding */)
       /** @internal */
   ], StylePropertyBindingRenderer);
-  const HTMLRenderer = {
-      register(container) {
-          container.register(TextBindingRenderer, ListenerBindingRenderer, SetAttributeRenderer, StylePropertyBindingRenderer);
-      }
-  };
 
   const defaultShadowOptions = {
       mode: 'open'
   };
   class HTMLProjectorLocator {
+      static register(container) {
+          return kernel.Registration.singleton(runtime.IProjectorLocator, this).register(container);
+      }
       getElementProjector(dom, $component, host, def) {
           if (def.shadowOptions || def.hasSlots) {
               if (def.containerless) {
                   throw kernel.Reporter.error(21);
               }
-              return new ShadowDOMProjector($component, host, def);
+              return new ShadowDOMProjector(dom, $component, host, def);
           }
           if (def.containerless) {
               return new ContainerlessProjector(dom, $component, host);
@@ -1784,7 +1810,8 @@
   const childObserverOptions$1 = { childList: true };
   /** @internal */
   class ShadowDOMProjector {
-      constructor($customElement, host, definition) {
+      constructor(dom, $customElement, host, definition) {
+          this.dom = dom;
           this.host = host;
           let shadowOptions;
           if (definition.shadowOptions !== undefined &&
@@ -1805,8 +1832,7 @@
       }
       subscribeToChildrenChange(callback) {
           // TODO: add a way to dispose/disconnect
-          const observer = new MutationObserver(callback);
-          observer.observe(this.shadowRoot, childObserverOptions$1);
+          this.dom.createNodeObserver(this.shadowRoot, callback, childObserverOptions$1);
       }
       provideEncapsulationSource() {
           return this.shadowRoot;
@@ -1871,20 +1897,76 @@
       }
   }
 
-  const HTMLRuntimeResources = [
-      AttrBindingBehavior,
-      SelfBindingBehavior,
-      UpdateTriggerBindingBehavior,
-      Compose
+  const IProjectorLocatorRegistration = HTMLProjectorLocator;
+  const ITargetAccessorLocatorRegistration = TargetAccessorLocator;
+  const ITargetObserverLocatorRegistration = TargetObserverLocator;
+  const ITemplateFactoryRegistration = HTMLTemplateFactory;
+  /**
+   * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
+   * - `IProjectorLocator`
+   * - `ITargetAccessorLocator`
+   * - `ITargetObserverLocator`
+   * - `ITemplateFactory`
+   */
+  const DefaultComponents = [
+      IProjectorLocatorRegistration,
+      ITargetAccessorLocatorRegistration,
+      ITargetObserverLocatorRegistration,
+      ITemplateFactoryRegistration
   ];
-  const HTMLRuntimeConfiguration = {
+  const AttrBindingBehaviorRegistration = AttrBindingBehavior;
+  const SelfBindingBehaviorRegistration = SelfBindingBehavior;
+  const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior;
+  const ComposeRegistration = Compose;
+  /**
+   * Default HTML-specific (but environment-agnostic) resources:
+   * - Binding Behaviors: `attr`, `self`, `updateTrigger`
+   * - Custom Elements: `au-compose`
+   */
+  const DefaultResources = [
+      AttrBindingBehaviorRegistration,
+      SelfBindingBehaviorRegistration,
+      UpdateTriggerBindingBehaviorRegistration,
+      ComposeRegistration,
+  ];
+  const ListenerBindingRendererRegistration = ListenerBindingRenderer;
+  const SetAttributeRendererRegistration = SetAttributeRenderer;
+  const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer;
+  const TextBindingRendererRegistration = TextBindingRenderer;
+  /**
+   * Default HTML-specfic (but environment-agnostic) renderers for:
+   * - Listener Bindings: `trigger`, `capture`, `delegate`
+   * - SetAttribute
+   * - StyleProperty: `style`, `css`
+   * - TextBinding: `${}`
+   */
+  const DefaultRenderers = [
+      ListenerBindingRendererRegistration,
+      SetAttributeRendererRegistration,
+      StylePropertyBindingRendererRegistration,
+      TextBindingRendererRegistration
+  ];
+  /**
+   * A DI configuration object containing html-specific (but environment-agnostic) registrations:
+   * - `BasicConfiguration` from `@aurelia/runtime`
+   * - `DefaultComponents`
+   * - `DefaultResources`
+   * - `DefaultRenderers`
+   */
+  const BasicConfiguration = {
+      /**
+       * Apply this configuration to the provided container.
+       */
       register(container) {
-          container.register(...HTMLRuntimeResources, runtime.RuntimeConfiguration, HTMLRenderer, kernel.Registration.singleton(runtime.IDOMInitializer, HTMLDOMInitializer), kernel.Registration.singleton(runtime.IProjectorLocator, HTMLProjectorLocator), kernel.Registration.singleton(runtime.ITargetAccessorLocator, TargetAccessorLocator), kernel.Registration.singleton(runtime.ITargetObserverLocator, TargetObserverLocator), kernel.Registration.singleton(runtime.ITemplateFactory, HTMLTemplateFactory));
+          return runtime.BasicConfiguration
+              .register(container)
+              .register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
       },
+      /**
+       * Create a new container with this configuration applied to it.
+       */
       createContainer() {
-          const container = kernel.DI.createContainer();
-          container.register(HTMLRuntimeConfiguration);
-          return container;
+          return this.register(kernel.DI.createContainer());
       }
   };
 
@@ -1901,12 +1983,26 @@
   exports.SelfBindingBehavior = SelfBindingBehavior;
   exports.UpdateTriggerBindingBehavior = UpdateTriggerBindingBehavior;
   exports.Compose = Compose;
-  exports.HTMLRuntimeConfiguration = HTMLRuntimeConfiguration;
+  exports.IProjectorLocatorRegistration = IProjectorLocatorRegistration;
+  exports.ITargetAccessorLocatorRegistration = ITargetAccessorLocatorRegistration;
+  exports.ITargetObserverLocatorRegistration = ITargetObserverLocatorRegistration;
+  exports.ITemplateFactoryRegistration = ITemplateFactoryRegistration;
+  exports.DefaultComponents = DefaultComponents;
+  exports.AttrBindingBehaviorRegistration = AttrBindingBehaviorRegistration;
+  exports.SelfBindingBehaviorRegistration = SelfBindingBehaviorRegistration;
+  exports.UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehaviorRegistration;
+  exports.ComposeRegistration = ComposeRegistration;
+  exports.DefaultResources = DefaultResources;
+  exports.ListenerBindingRendererRegistration = ListenerBindingRendererRegistration;
+  exports.SetAttributeRendererRegistration = SetAttributeRendererRegistration;
+  exports.StylePropertyBindingRendererRegistration = StylePropertyBindingRendererRegistration;
+  exports.TextBindingRendererRegistration = TextBindingRendererRegistration;
+  exports.DefaultRenderers = DefaultRenderers;
+  exports.BasicConfiguration = BasicConfiguration;
   exports.createElement = createElement;
   exports.RenderPlan = RenderPlan;
   exports.isHTMLTargetedInstruction = isHTMLTargetedInstruction;
   exports.HTMLDOM = HTMLDOM;
-  exports.HTMLRenderer = HTMLRenderer;
   exports.CaptureBindingInstruction = CaptureBindingInstruction;
   exports.DelegateBindingInstruction = DelegateBindingInstruction;
   exports.SetAttributeInstruction = SetAttributeInstruction;

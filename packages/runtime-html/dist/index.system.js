@@ -1,21 +1,22 @@
 System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var DI, Reporter, PLATFORM, Registration, IContainer, LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, SetterObserver, IDOM, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, INode, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBindable, Binding, RuntimeConfiguration, IDOMInitializer, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory;
+  var DI, Registration, Reporter, PLATFORM, LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBindable, Binding, IProjectorLocator, BasicConfiguration;
   return {
     setters: [function (module) {
       DI = module.DI;
+      Registration = module.Registration;
       Reporter = module.Reporter;
       PLATFORM = module.PLATFORM;
-      Registration = module.Registration;
-      IContainer = module.IContainer;
     }, function (module) {
       LifecycleFlags = module.LifecycleFlags;
       hasBind = module.hasBind;
       hasUnbind = module.hasUnbind;
       targetObserver = module.targetObserver;
       DelegationStrategy = module.DelegationStrategy;
+      ITargetObserverLocator = module.ITargetObserverLocator;
       SetterObserver = module.SetterObserver;
       IDOM = module.IDOM;
+      ITargetAccessorLocator = module.ITargetAccessorLocator;
       ILifecycle = module.ILifecycle;
       BindingBehaviorResource = module.BindingBehaviorResource;
       BindingMode = module.BindingMode;
@@ -29,6 +30,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       bindable = module.bindable;
       CustomElementResource = module.CustomElementResource;
       INode = module.INode;
+      ITemplateFactory = module.ITemplateFactory;
       CompiledTemplate = module.CompiledTemplate;
       NodeSequence = module.NodeSequence;
       IExpressionParser = module.IExpressionParser;
@@ -38,18 +40,16 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       InterpolationBinding = module.InterpolationBinding;
       addBindable = module.addBindable;
       Binding = module.Binding;
-      RuntimeConfiguration = module.RuntimeConfiguration;
-      IDOMInitializer = module.IDOMInitializer;
       IProjectorLocator = module.IProjectorLocator;
-      ITargetAccessorLocator = module.ITargetAccessorLocator;
-      ITargetObserverLocator = module.ITargetObserverLocator;
-      ITemplateFactory = module.ITemplateFactory;
+      BasicConfiguration = module.BasicConfiguration;
     }],
     execute: function () {
 
       exports({
         createElement: createElement,
-        isHTMLTargetedInstruction: isHTMLTargetedInstruction
+        HTMLTargetedInstructionType: void 0,
+        isHTMLTargetedInstruction: isHTMLTargetedInstruction,
+        NodeType: void 0
       });
 
       class Listener {
@@ -472,6 +472,13 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
                   this.dom.removeEventListener(this.eventName, this.listener, null, this.capture);
               }
           }
+          /*@internal*/
+          dispose() {
+              if (this.count > 0) {
+                  this.count = 0;
+                  this.dom.removeEventListener(this.eventName, this.listener, null, this.capture);
+              }
+          }
       } exports('ListenerTracker', ListenerTracker);
       /**
        * Enable dispose() pattern for `delegate` & `capture` commands
@@ -534,7 +541,8 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       /** @internal */
       class EventManager {
           constructor() {
-              this.elementHandlerLookup = {};
+              this.delegatedHandlers = {};
+              this.capturedHandlers = {};
               this.delegatedHandlers = {};
               this.capturedHandlers = {};
           }
@@ -558,6 +566,16 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               }
               return new TriggerSubscription(dom, target, targetEvent, callbackOrListener);
           }
+          dispose() {
+              let key;
+              const { delegatedHandlers, capturedHandlers } = this;
+              for (key in delegatedHandlers) {
+                  delegatedHandlers[key].dispose();
+              }
+              for (key in capturedHandlers) {
+                  capturedHandlers[key].dispose();
+              }
+          }
       }
 
       const handleEventFlags$1 = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
@@ -570,12 +588,13 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           return a === b;
       }
       let SelectValueObserver = exports('SelectValueObserver', class SelectValueObserver {
-          constructor(lifecycle, obj, handler, observerLocator) {
+          constructor(lifecycle, obj, handler, observerLocator, dom) {
               this.isDOMObserver = true;
               this.lifecycle = lifecycle;
               this.obj = obj;
               this.handler = handler;
               this.observerLocator = observerLocator;
+              this.dom = dom;
           }
           getValue() {
               return this.currentValue;
@@ -740,8 +759,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               }
           }
           bind() {
-              this.nodeObserver = new MutationObserver(this.handleNodeChange.bind(this));
-              this.nodeObserver.observe(this.obj, childObserverOptions);
+              this.nodeObserver = this.dom.createNodeObserver(this.obj, this.handleNodeChange.bind(this), childObserverOptions);
           }
           unbind() {
               this.nodeObserver.disconnect();
@@ -965,13 +983,16 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           constructor(dom) {
               this.dom = dom;
           }
+          static register(container) {
+              return Registration.singleton(ITargetObserverLocator, this).register(container);
+          }
           getObserver(lifecycle, observerLocator, obj, propertyName) {
               switch (propertyName) {
                   case 'checked':
                       return new CheckedObserver(lifecycle, obj, new EventSubscriber(this.dom, inputEvents), observerLocator);
                   case 'value':
                       if (obj['tagName'] === 'SELECT') {
-                          return new SelectValueObserver(lifecycle, obj, new EventSubscriber(this.dom, selectEvents), observerLocator);
+                          return new SelectValueObserver(lifecycle, obj, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
                       }
                       return new ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, inputEvents));
                   case 'files':
@@ -1016,6 +1037,9 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       class TargetAccessorLocator {
           constructor(dom) {
               this.dom = dom;
+          }
+          static register(container) {
+              return Registration.singleton(ITargetAccessorLocator, this).register(container);
           }
           getAccessor(lifecycle, obj, propertyName) {
               switch (propertyName) {
@@ -1125,6 +1149,13 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       UpdateTriggerBindingBehavior.inject = [IObserverLocator];
       BindingBehaviorResource.define('updateTrigger', UpdateTriggerBindingBehavior);
 
+      var HTMLTargetedInstructionType;
+      (function (HTMLTargetedInstructionType) {
+          HTMLTargetedInstructionType["textBinding"] = "ha";
+          HTMLTargetedInstructionType["listenerBinding"] = "hb";
+          HTMLTargetedInstructionType["stylePropertyBinding"] = "hc";
+          HTMLTargetedInstructionType["setAttribute"] = "hd";
+      })(HTMLTargetedInstructionType || (HTMLTargetedInstructionType = exports('HTMLTargetedInstructionType', {})));
       function isHTMLTargetedInstruction(value) {
           const type = value.type;
           return typeof type === 'string' && type.length === 2;
@@ -1397,12 +1428,31 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       ], Compose.prototype, "composing", void 0);
       CustomElementResource.define(composeSource, Compose);
 
+      var NodeType;
+      (function (NodeType) {
+          NodeType[NodeType["Element"] = 1] = "Element";
+          NodeType[NodeType["Attr"] = 2] = "Attr";
+          NodeType[NodeType["Text"] = 3] = "Text";
+          NodeType[NodeType["CDATASection"] = 4] = "CDATASection";
+          NodeType[NodeType["EntityReference"] = 5] = "EntityReference";
+          NodeType[NodeType["Entity"] = 6] = "Entity";
+          NodeType[NodeType["ProcessingInstruction"] = 7] = "ProcessingInstruction";
+          NodeType[NodeType["Comment"] = 8] = "Comment";
+          NodeType[NodeType["Document"] = 9] = "Document";
+          NodeType[NodeType["DocumentType"] = 10] = "DocumentType";
+          NodeType[NodeType["DocumentFragment"] = 11] = "DocumentFragment";
+          NodeType[NodeType["Notation"] = 12] = "Notation";
+      })(NodeType || (NodeType = exports('NodeType', {})));
       function isRenderLocation(node) {
           return node.textContent === 'au-end';
       }
       class HTMLDOM {
-          constructor(doc) {
+          constructor(wnd, doc, TNode, TElement, THTMLElement) {
+              this.wnd = wnd;
               this.doc = doc;
+              this.Node = TNode;
+              this.Element = TElement;
+              this.HTMLElement = THTMLElement;
           }
           addEventListener(eventName, subscriber, publisher, options) {
               (publisher || this.doc).addEventListener(eventName, subscriber, options);
@@ -1445,6 +1495,19 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           createElement(name) {
               return this.doc.createElement(name);
           }
+          createNodeObserver(node, cb, init) {
+              if (typeof MutationObserver === 'undefined') {
+                  // TODO: find a proper response for this scenario
+                  return {
+                      disconnect() { },
+                      observe() { },
+                      takeRecords() { return PLATFORM.emptyArray; }
+                  };
+              }
+              const observer = new MutationObserver(cb);
+              observer.observe(node, init);
+              return observer;
+          }
           createTemplate(markup) {
               if (markup === undefined || markup === null) {
                   return this.doc.createElement('template');
@@ -1463,7 +1526,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               return node.nodeName === 'AU-M';
           }
           isNodeInstance(potentialNode) {
-              return potentialNode.nodeType > 0;
+              return potentialNode !== null && potentialNode !== undefined && potentialNode.nodeType > 0;
           }
           isRenderLocation(node) {
               return node.textContent === 'au-end';
@@ -1473,10 +1536,9 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           }
           registerElementResolver(container, resolver) {
               container.registerResolver(INode, resolver);
-              container.registerResolver(Node, resolver);
-              container.registerResolver(Element, resolver);
-              container.registerResolver(HTMLElement, resolver);
-              container.registerResolver(SVGElement, resolver);
+              container.registerResolver(this.Node, resolver);
+              container.registerResolver(this.Element, resolver);
+              container.registerResolver(this.HTMLElement, resolver);
           }
           remove(node) {
               if (node.remove) {
@@ -1686,44 +1748,12 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           proto.nodeType = 1 /* Element */;
       })(AuMarker.prototype);
       /** @internal */
-      class HTMLDOMInitializer {
-          constructor(container) {
-              this.container = container;
-          }
-          /**
-           * Either create a new HTML `DOM` backed by the supplied `document` or uses the supplied `DOM` directly.
-           *
-           * If no argument is provided, uses the default global `document` variable.
-           * (this will throw an error in non-browser environments).
-           */
-          initialize(config) {
-              if (this.container.has(IDOM, false)) {
-                  return this.container.get(IDOM);
-              }
-              let dom;
-              if (config !== undefined) {
-                  if (config.dom !== undefined) {
-                      dom = config.dom;
-                  }
-                  else if (config.host.ownerDocument !== null) {
-                      dom = new HTMLDOM(config.host.ownerDocument);
-                  }
-                  else {
-                      dom = new HTMLDOM(document);
-                  }
-              }
-              else {
-                  dom = new HTMLDOM(document);
-              }
-              Registration.instance(IDOM, dom).register(this.container, IDOM);
-              return dom;
-          }
-      }
-      HTMLDOMInitializer.inject = [IContainer];
-      /** @internal */
       class HTMLTemplateFactory {
           constructor(dom) {
               this.dom = dom;
+          }
+          static register(container) {
+              return Registration.singleton(ITemplateFactory, this).register(container);
           }
           create(parentRenderContext, definition) {
               return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template), parentRenderContext);
@@ -1806,22 +1836,20 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           instructionRenderer("hc" /* stylePropertyBinding */)
           /** @internal */
       ], StylePropertyBindingRenderer);
-      const HTMLRenderer = exports('HTMLRenderer', {
-          register(container) {
-              container.register(TextBindingRenderer, ListenerBindingRenderer, SetAttributeRenderer, StylePropertyBindingRenderer);
-          }
-      });
 
       const defaultShadowOptions = {
           mode: 'open'
       };
       class HTMLProjectorLocator {
+          static register(container) {
+              return Registration.singleton(IProjectorLocator, this).register(container);
+          }
           getElementProjector(dom, $component, host, def) {
               if (def.shadowOptions || def.hasSlots) {
                   if (def.containerless) {
                       throw Reporter.error(21);
                   }
-                  return new ShadowDOMProjector($component, host, def);
+                  return new ShadowDOMProjector(dom, $component, host, def);
               }
               if (def.containerless) {
                   return new ContainerlessProjector(dom, $component, host);
@@ -1832,7 +1860,8 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       const childObserverOptions$1 = { childList: true };
       /** @internal */
       class ShadowDOMProjector {
-          constructor($customElement, host, definition) {
+          constructor(dom, $customElement, host, definition) {
+              this.dom = dom;
               this.host = host;
               let shadowOptions;
               if (definition.shadowOptions !== undefined &&
@@ -1853,8 +1882,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           }
           subscribeToChildrenChange(callback) {
               // TODO: add a way to dispose/disconnect
-              const observer = new MutationObserver(callback);
-              observer.observe(this.shadowRoot, childObserverOptions$1);
+              this.dom.createNodeObserver(this.shadowRoot, callback, childObserverOptions$1);
           }
           provideEncapsulationSource() {
               return this.shadowRoot;
@@ -1919,20 +1947,76 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           }
       }
 
-      const HTMLRuntimeResources = [
-          AttrBindingBehavior,
-          SelfBindingBehavior,
-          UpdateTriggerBindingBehavior,
-          Compose
-      ];
-      const HTMLRuntimeConfiguration = exports('HTMLRuntimeConfiguration', {
+      const IProjectorLocatorRegistration = exports('IProjectorLocatorRegistration', HTMLProjectorLocator);
+      const ITargetAccessorLocatorRegistration = exports('ITargetAccessorLocatorRegistration', TargetAccessorLocator);
+      const ITargetObserverLocatorRegistration = exports('ITargetObserverLocatorRegistration', TargetObserverLocator);
+      const ITemplateFactoryRegistration = exports('ITemplateFactoryRegistration', HTMLTemplateFactory);
+      /**
+       * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
+       * - `IProjectorLocator`
+       * - `ITargetAccessorLocator`
+       * - `ITargetObserverLocator`
+       * - `ITemplateFactory`
+       */
+      const DefaultComponents = exports('DefaultComponents', [
+          IProjectorLocatorRegistration,
+          ITargetAccessorLocatorRegistration,
+          ITargetObserverLocatorRegistration,
+          ITemplateFactoryRegistration
+      ]);
+      const AttrBindingBehaviorRegistration = exports('AttrBindingBehaviorRegistration', AttrBindingBehavior);
+      const SelfBindingBehaviorRegistration = exports('SelfBindingBehaviorRegistration', SelfBindingBehavior);
+      const UpdateTriggerBindingBehaviorRegistration = exports('UpdateTriggerBindingBehaviorRegistration', UpdateTriggerBindingBehavior);
+      const ComposeRegistration = exports('ComposeRegistration', Compose);
+      /**
+       * Default HTML-specific (but environment-agnostic) resources:
+       * - Binding Behaviors: `attr`, `self`, `updateTrigger`
+       * - Custom Elements: `au-compose`
+       */
+      const DefaultResources = exports('DefaultResources', [
+          AttrBindingBehaviorRegistration,
+          SelfBindingBehaviorRegistration,
+          UpdateTriggerBindingBehaviorRegistration,
+          ComposeRegistration,
+      ]);
+      const ListenerBindingRendererRegistration = exports('ListenerBindingRendererRegistration', ListenerBindingRenderer);
+      const SetAttributeRendererRegistration = exports('SetAttributeRendererRegistration', SetAttributeRenderer);
+      const StylePropertyBindingRendererRegistration = exports('StylePropertyBindingRendererRegistration', StylePropertyBindingRenderer);
+      const TextBindingRendererRegistration = exports('TextBindingRendererRegistration', TextBindingRenderer);
+      /**
+       * Default HTML-specfic (but environment-agnostic) renderers for:
+       * - Listener Bindings: `trigger`, `capture`, `delegate`
+       * - SetAttribute
+       * - StyleProperty: `style`, `css`
+       * - TextBinding: `${}`
+       */
+      const DefaultRenderers = exports('DefaultRenderers', [
+          ListenerBindingRendererRegistration,
+          SetAttributeRendererRegistration,
+          StylePropertyBindingRendererRegistration,
+          TextBindingRendererRegistration
+      ]);
+      /**
+       * A DI configuration object containing html-specific (but environment-agnostic) registrations:
+       * - `BasicConfiguration` from `@aurelia/runtime`
+       * - `DefaultComponents`
+       * - `DefaultResources`
+       * - `DefaultRenderers`
+       */
+      const BasicConfiguration$1 = exports('BasicConfiguration', {
+          /**
+           * Apply this configuration to the provided container.
+           */
           register(container) {
-              container.register(...HTMLRuntimeResources, RuntimeConfiguration, HTMLRenderer, Registration.singleton(IDOMInitializer, HTMLDOMInitializer), Registration.singleton(IProjectorLocator, HTMLProjectorLocator), Registration.singleton(ITargetAccessorLocator, TargetAccessorLocator), Registration.singleton(ITargetObserverLocator, TargetObserverLocator), Registration.singleton(ITemplateFactory, HTMLTemplateFactory));
+              return BasicConfiguration
+                  .register(container)
+                  .register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
           },
+          /**
+           * Create a new container with this configuration applied to it.
+           */
           createContainer() {
-              const container = DI.createContainer();
-              container.register(HTMLRuntimeConfiguration);
-              return container;
+              return this.register(DI.createContainer());
           }
       });
 

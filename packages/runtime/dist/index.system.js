@@ -1,12 +1,13 @@
 System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
   'use strict';
-  var Reporter, DI, Registration, PLATFORM, RuntimeCompilationResources, IContainer, all;
+  var Reporter, DI, Registration, PLATFORM, Profiler, RuntimeCompilationResources, IContainer, all;
   return {
     setters: [function (module) {
       Reporter = module.Reporter;
       DI = module.DI;
       Registration = module.Registration;
       PLATFORM = module.PLATFORM;
+      Profiler = module.Profiler;
       RuntimeCompilationResources = module.RuntimeCompilationResources;
       IContainer = module.IContainer;
       all = module.all;
@@ -1983,6 +1984,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.$nextUnbound = marker;
               this.unbound = PLATFORM.noop;
               this.task = null;
+          }
+          static register(container) {
+              return Registration.singleton(ILifecycle, this).register(container);
           }
           registerTask(task) {
               if (this.task === null) {
@@ -4348,8 +4352,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               }
           }
       }
-      /** @internal */
-      let DirtyCheckProperty = class DirtyCheckProperty {
+      let DirtyCheckProperty = exports('DirtyCheckProperty', class DirtyCheckProperty {
           constructor(dirtyChecker, obj, propertyKey) {
               this.obj = obj;
               this.propertyKey = propertyKey;
@@ -4382,10 +4385,10 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   this.dirtyChecker.removeProperty(this);
               }
           }
-      };
-      DirtyCheckProperty = __decorate([
+      });
+      DirtyCheckProperty = exports('DirtyCheckProperty', __decorate([
           propertyObserver()
-      ], DirtyCheckProperty);
+      ], DirtyCheckProperty));
 
       const noop = PLATFORM.noop;
       // note: string.length is the only property of any primitive that is not a function,
@@ -4450,6 +4453,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.lifecycle = lifecycle;
               this.targetObserverLocator = targetObserverLocator;
               this.targetAccessorLocator = targetAccessorLocator;
+          }
+          static register(container) {
+              return Registration.singleton(IObserverLocator, this).register(container);
           }
           getObserver(obj, propertyName) {
               if (isBindingContext(obj)) {
@@ -4981,6 +4987,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           return def;
       }
 
+      const { enter, leave } = Profiler.createTimer('AttachLifecycle');
       /** @internal */
       // tslint:disable-next-line:no-ignored-initial-value
       function $attachAttribute(flags) {
@@ -5193,6 +5200,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           return false;
       }
 
+      const { enter: enter$1, leave: leave$1 } = Profiler.createTimer('BindLifecycle');
       /** @internal */
       function $bindAttribute(flags, scope) {
           flags |= LifecycleFlags.fromBind;
@@ -5332,6 +5340,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
       }
 
+      const { enter: enter$2, leave: leave$2 } = Profiler.createTimer('RenderLifecycle');
       /** @internal */
       function $hydrateAttribute(renderingEngine) {
           const Type = this.constructor;
@@ -6421,6 +6430,8 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           });
       }
 
+      const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.start');
+      const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
       class Aurelia {
           constructor(container = DI.createContainer()) {
               this.container = container;
@@ -6439,6 +6450,14 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
           app(config) {
               const host = config.host;
+              let dom;
+              if (this.container.has(IDOM, false)) {
+                  dom = this.container.get(IDOM);
+              }
+              else {
+                  const domInitializer = this.container.get(IDOMInitializer);
+                  dom = domInitializer.initialize(config);
+              }
               let component;
               const componentOrType = config.component;
               if (CustomElementResource.isType(componentOrType)) {
@@ -6448,8 +6467,6 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               else {
                   component = componentOrType;
               }
-              const domInitializer = this.container.get(IDOMInitializer);
-              const dom = domInitializer.initialize(config);
               const startTask = () => {
                   host.$au = this;
                   if (!this.components.includes(component)) {
@@ -6523,6 +6540,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               instructionRenderers.forEach(item => {
                   record[item.instructionType] = item;
               });
+          }
+          static register(container) {
+              return Registration.singleton(IRenderer, this).register(container);
           }
           render(dom, context, renderable, targets, definition, host, parts) {
               const targetInstructions = definition.instructions;
@@ -6794,35 +6814,108 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           instructionRenderer("rk" /* iteratorBinding */)
           /** @internal */
       ], IteratorBindingRenderer);
-      const BasicRenderer = exports('BasicRenderer', {
-          register(container) {
-              container.register(SetPropertyRenderer, CustomElementRenderer, CustomAttributeRenderer, TemplateControllerRenderer, LetElementRenderer, CallBindingRenderer, RefBindingRenderer, InterpolationBindingRenderer, PropertyBindingRenderer, IteratorBindingRenderer);
-          }
-      });
 
-      const GlobalResources = [
-          If,
-          Else,
-          Repeat,
-          Replaceable,
-          With,
-          SanitizeValueConverter,
-          DebounceBindingBehavior,
-          OneTimeBindingBehavior,
-          ToViewBindingBehavior,
-          FromViewBindingBehavior,
-          SignalBindingBehavior,
-          ThrottleBindingBehavior,
-          TwoWayBindingBehavior
+      const IObserverLocatorRegistration = exports('ObserverLocatorRegistration', ObserverLocator);
+      const ILifecycleRegistration = exports('LifecycleRegistration', Lifecycle);
+      const IRendererRegistration = exports('RendererRegistration', Renderer);
+      /**
+       * Default implementations for the following interfaces:
+       * - `IObserverLocator`
+       * - `ILifecycle`
+       * - `IRenderer`
+       */
+      const DefaultComponents = [
+          IObserverLocatorRegistration,
+          ILifecycleRegistration,
+          IRendererRegistration
       ];
-      const RuntimeConfiguration = exports('RuntimeConfiguration', {
+      const IfRegistration = exports('IfRegistration', If);
+      const ElseRegistration = exports('ElseRegistration', Else);
+      const RepeatRegistration = exports('RepeatRegistration', Repeat);
+      const ReplaceableRegistration = exports('ReplaceableRegistration', Replaceable);
+      const WithRegistration = exports('WithRegistration', With);
+      const SanitizeValueConverterRegistration = exports('SanitizeValueConverterRegistration', SanitizeValueConverter);
+      const DebounceBindingBehaviorRegistration = exports('DebounceBindingBehaviorRegistration', DebounceBindingBehavior);
+      const OneTimeBindingBehaviorRegistration = exports('OneTimeBindingBehaviorRegistration', OneTimeBindingBehavior);
+      const ToViewBindingBehaviorRegistration = exports('ToViewBindingBehaviorRegistration', ToViewBindingBehavior);
+      const FromViewBindingBehaviorRegistration = exports('FromViewBindingBehaviorRegistration', FromViewBindingBehavior);
+      const SignalBindingBehaviorRegistration = exports('SignalBindingBehaviorRegistration', SignalBindingBehavior);
+      const ThrottleBindingBehaviorRegistration = exports('ThrottleBindingBehaviorRegistration', ThrottleBindingBehavior);
+      const TwoWayBindingBehaviorRegistration = exports('TwoWayBindingBehaviorRegistration', TwoWayBindingBehavior);
+      /**
+       * Default resources:
+       * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)
+       * - Value Converters (`sanitize`)
+       * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
+       */
+      const DefaultResources = exports('BasicResources', [
+          IfRegistration,
+          ElseRegistration,
+          RepeatRegistration,
+          ReplaceableRegistration,
+          WithRegistration,
+          SanitizeValueConverterRegistration,
+          DebounceBindingBehaviorRegistration,
+          OneTimeBindingBehaviorRegistration,
+          ToViewBindingBehaviorRegistration,
+          FromViewBindingBehaviorRegistration,
+          SignalBindingBehaviorRegistration,
+          ThrottleBindingBehaviorRegistration,
+          TwoWayBindingBehaviorRegistration
+      ]);
+      const CallBindingRendererRegistration = CallBindingRenderer;
+      const CustomAttributeRendererRegistration = CustomAttributeRenderer;
+      const CustomElementRendererRegistration = CustomElementRenderer;
+      const InterpolationBindingRendererRegistration = InterpolationBindingRenderer;
+      const IteratorBindingRendererRegistration = IteratorBindingRenderer;
+      const LetElementRendererRegistration = LetElementRenderer;
+      const PropertyBindingRendererRegistration = PropertyBindingRenderer;
+      const RefBindingRendererRegistration = RefBindingRenderer;
+      const SetPropertyRendererRegistration = SetPropertyRenderer;
+      const TemplateControllerRendererRegistration = TemplateControllerRenderer;
+      /**
+       * Default renderers for:
+       * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`
+       * - IteratorBinding: `for`
+       * - CallBinding: `call`
+       * - RefBinding: `ref`
+       * - InterpolationBinding: `${}`
+       * - SetProperty
+       * - `customElement` hydration
+       * - `customAttribute` hydration
+       * - `templateController` hydration
+       * - `let` element hydration
+       */
+      const DefaultRenderers = [
+          PropertyBindingRendererRegistration,
+          IteratorBindingRendererRegistration,
+          CallBindingRendererRegistration,
+          RefBindingRendererRegistration,
+          InterpolationBindingRendererRegistration,
+          SetPropertyRendererRegistration,
+          CustomElementRendererRegistration,
+          CustomAttributeRendererRegistration,
+          TemplateControllerRendererRegistration,
+          LetElementRendererRegistration
+      ];
+      /**
+       * A DI configuration object containing environment/runtime-agnostic registrations:
+       * - `DefaultComponents`
+       * - `DefaultResources`
+       * - `DefaultRenderers`
+       */
+      const RuntimeBasicConfiguration = exports('BasicConfiguration', {
+          /**
+           * Apply this configuration to the provided container.
+           */
           register(container) {
-              container.register(BasicRenderer, Registration.singleton(IObserverLocator, ObserverLocator), Registration.singleton(ILifecycle, Lifecycle), Registration.singleton(IRenderer, Renderer), ...GlobalResources);
+              return container.register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
           },
+          /**
+           * Create a new container with this configuration applied to it.
+           */
           createContainer() {
-              const container = DI.createContainer();
-              container.register(RuntimeConfiguration);
-              return container;
+              return this.register(DI.createContainer());
           }
       });
 

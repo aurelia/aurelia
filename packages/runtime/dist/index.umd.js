@@ -1906,6 +1906,9 @@
           this.unbound = kernel.PLATFORM.noop;
           this.task = null;
       }
+      static register(container) {
+          return kernel.Registration.singleton(ILifecycle, this).register(container);
+      }
       registerTask(task) {
           if (this.task === null) {
               this.task = new AggregateLifecycleTask();
@@ -4239,7 +4242,7 @@
           this.tracked = [];
       }
       createProperty(obj, propertyName) {
-          return new DirtyCheckProperty(this, obj, propertyName);
+          return new exports.DirtyCheckProperty(this, obj, propertyName);
       }
       addProperty(property) {
           const tracked = this.tracked;
@@ -4269,8 +4272,7 @@
           }
       }
   }
-  /** @internal */
-  let DirtyCheckProperty = class DirtyCheckProperty {
+  exports.DirtyCheckProperty = class DirtyCheckProperty {
       constructor(dirtyChecker, obj, propertyKey) {
           this.obj = obj;
           this.propertyKey = propertyKey;
@@ -4304,9 +4306,9 @@
           }
       }
   };
-  DirtyCheckProperty = __decorate([
+  exports.DirtyCheckProperty = __decorate([
       propertyObserver()
-  ], DirtyCheckProperty);
+  ], exports.DirtyCheckProperty);
 
   const noop = kernel.PLATFORM.noop;
   // note: string.length is the only property of any primitive that is not a function,
@@ -4371,6 +4373,9 @@
           this.lifecycle = lifecycle;
           this.targetObserverLocator = targetObserverLocator;
           this.targetAccessorLocator = targetAccessorLocator;
+      }
+      static register(container) {
+          return kernel.Registration.singleton(IObserverLocator, this).register(container);
       }
       getObserver(obj, propertyName) {
           if (isBindingContext(obj)) {
@@ -4892,6 +4897,7 @@
       return def;
   }
 
+  const { enter, leave } = kernel.Profiler.createTimer('AttachLifecycle');
   /** @internal */
   // tslint:disable-next-line:no-ignored-initial-value
   function $attachAttribute(flags) {
@@ -5104,6 +5110,7 @@
       return false;
   }
 
+  const { enter: enter$1, leave: leave$1 } = kernel.Profiler.createTimer('BindLifecycle');
   /** @internal */
   function $bindAttribute(flags, scope) {
       flags |= exports.LifecycleFlags.fromBind;
@@ -5243,6 +5250,7 @@
       }
   }
 
+  const { enter: enter$2, leave: leave$2 } = kernel.Profiler.createTimer('RenderLifecycle');
   /** @internal */
   function $hydrateAttribute(renderingEngine) {
       const Type = this.constructor;
@@ -6331,6 +6339,8 @@
       });
   }
 
+  const { enter: enterStart, leave: leaveStart } = kernel.Profiler.createTimer('Aurelia.start');
+  const { enter: enterStop, leave: leaveStop } = kernel.Profiler.createTimer('Aurelia.stop');
   class Aurelia {
       constructor(container = kernel.DI.createContainer()) {
           this.container = container;
@@ -6349,6 +6359,14 @@
       }
       app(config) {
           const host = config.host;
+          let dom;
+          if (this.container.has(IDOM, false)) {
+              dom = this.container.get(IDOM);
+          }
+          else {
+              const domInitializer = this.container.get(IDOMInitializer);
+              dom = domInitializer.initialize(config);
+          }
           let component;
           const componentOrType = config.component;
           if (CustomElementResource.isType(componentOrType)) {
@@ -6358,8 +6376,6 @@
           else {
               component = componentOrType;
           }
-          const domInitializer = this.container.get(IDOMInitializer);
-          const dom = domInitializer.initialize(config);
           const startTask = () => {
               host.$au = this;
               if (!this.components.includes(component)) {
@@ -6433,6 +6449,9 @@
           instructionRenderers.forEach(item => {
               record[item.instructionType] = item;
           });
+      }
+      static register(container) {
+          return kernel.Registration.singleton(IRenderer, this).register(container);
       }
       render(dom, context, renderable, targets, definition, host, parts) {
           const targetInstructions = definition.instructions;
@@ -6704,35 +6723,108 @@
       instructionRenderer("rk" /* iteratorBinding */)
       /** @internal */
   ], IteratorBindingRenderer);
-  const BasicRenderer = {
-      register(container) {
-          container.register(SetPropertyRenderer, CustomElementRenderer, CustomAttributeRenderer, TemplateControllerRenderer, LetElementRenderer, CallBindingRenderer, RefBindingRenderer, InterpolationBindingRenderer, PropertyBindingRenderer, IteratorBindingRenderer);
-      }
-  };
 
-  const GlobalResources = [
-      If,
-      Else,
-      Repeat,
-      Replaceable,
-      With,
-      SanitizeValueConverter,
-      DebounceBindingBehavior,
-      OneTimeBindingBehavior,
-      ToViewBindingBehavior,
-      FromViewBindingBehavior,
-      SignalBindingBehavior,
-      ThrottleBindingBehavior,
-      TwoWayBindingBehavior
+  const IObserverLocatorRegistration = ObserverLocator;
+  const ILifecycleRegistration = Lifecycle;
+  const IRendererRegistration = Renderer;
+  /**
+   * Default implementations for the following interfaces:
+   * - `IObserverLocator`
+   * - `ILifecycle`
+   * - `IRenderer`
+   */
+  const DefaultComponents = [
+      IObserverLocatorRegistration,
+      ILifecycleRegistration,
+      IRendererRegistration
   ];
-  const RuntimeConfiguration = {
+  const IfRegistration = If;
+  const ElseRegistration = Else;
+  const RepeatRegistration = Repeat;
+  const ReplaceableRegistration = Replaceable;
+  const WithRegistration = With;
+  const SanitizeValueConverterRegistration = SanitizeValueConverter;
+  const DebounceBindingBehaviorRegistration = DebounceBindingBehavior;
+  const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior;
+  const ToViewBindingBehaviorRegistration = ToViewBindingBehavior;
+  const FromViewBindingBehaviorRegistration = FromViewBindingBehavior;
+  const SignalBindingBehaviorRegistration = SignalBindingBehavior;
+  const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior;
+  const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior;
+  /**
+   * Default resources:
+   * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)
+   * - Value Converters (`sanitize`)
+   * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
+   */
+  const DefaultResources = [
+      IfRegistration,
+      ElseRegistration,
+      RepeatRegistration,
+      ReplaceableRegistration,
+      WithRegistration,
+      SanitizeValueConverterRegistration,
+      DebounceBindingBehaviorRegistration,
+      OneTimeBindingBehaviorRegistration,
+      ToViewBindingBehaviorRegistration,
+      FromViewBindingBehaviorRegistration,
+      SignalBindingBehaviorRegistration,
+      ThrottleBindingBehaviorRegistration,
+      TwoWayBindingBehaviorRegistration
+  ];
+  const CallBindingRendererRegistration = CallBindingRenderer;
+  const CustomAttributeRendererRegistration = CustomAttributeRenderer;
+  const CustomElementRendererRegistration = CustomElementRenderer;
+  const InterpolationBindingRendererRegistration = InterpolationBindingRenderer;
+  const IteratorBindingRendererRegistration = IteratorBindingRenderer;
+  const LetElementRendererRegistration = LetElementRenderer;
+  const PropertyBindingRendererRegistration = PropertyBindingRenderer;
+  const RefBindingRendererRegistration = RefBindingRenderer;
+  const SetPropertyRendererRegistration = SetPropertyRenderer;
+  const TemplateControllerRendererRegistration = TemplateControllerRenderer;
+  /**
+   * Default renderers for:
+   * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`
+   * - IteratorBinding: `for`
+   * - CallBinding: `call`
+   * - RefBinding: `ref`
+   * - InterpolationBinding: `${}`
+   * - SetProperty
+   * - `customElement` hydration
+   * - `customAttribute` hydration
+   * - `templateController` hydration
+   * - `let` element hydration
+   */
+  const DefaultRenderers = [
+      PropertyBindingRendererRegistration,
+      IteratorBindingRendererRegistration,
+      CallBindingRendererRegistration,
+      RefBindingRendererRegistration,
+      InterpolationBindingRendererRegistration,
+      SetPropertyRendererRegistration,
+      CustomElementRendererRegistration,
+      CustomAttributeRendererRegistration,
+      TemplateControllerRendererRegistration,
+      LetElementRendererRegistration
+  ];
+  /**
+   * A DI configuration object containing environment/runtime-agnostic registrations:
+   * - `DefaultComponents`
+   * - `DefaultResources`
+   * - `DefaultRenderers`
+   */
+  const RuntimeBasicConfiguration = {
+      /**
+       * Apply this configuration to the provided container.
+       */
       register(container) {
-          container.register(BasicRenderer, kernel.Registration.singleton(IObserverLocator, ObserverLocator), kernel.Registration.singleton(ILifecycle, Lifecycle), kernel.Registration.singleton(IRenderer, Renderer), ...GlobalResources);
+          return container.register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
       },
+      /**
+       * Create a new container with this configuration applied to it.
+       */
       createContainer() {
-          const container = kernel.DI.createContainer();
-          container.register(RuntimeConfiguration);
-          return container;
+          return this.register(kernel.DI.createContainer());
       }
   };
 
@@ -6942,7 +7034,24 @@
   exports.bindable = bindable;
   exports.Aurelia = Aurelia;
   exports.IDOMInitializer = IDOMInitializer;
-  exports.RuntimeConfiguration = RuntimeConfiguration;
+  exports.IfRegistration = IfRegistration;
+  exports.ElseRegistration = ElseRegistration;
+  exports.RepeatRegistration = RepeatRegistration;
+  exports.ReplaceableRegistration = ReplaceableRegistration;
+  exports.WithRegistration = WithRegistration;
+  exports.SanitizeValueConverterRegistration = SanitizeValueConverterRegistration;
+  exports.DebounceBindingBehaviorRegistration = DebounceBindingBehaviorRegistration;
+  exports.OneTimeBindingBehaviorRegistration = OneTimeBindingBehaviorRegistration;
+  exports.ToViewBindingBehaviorRegistration = ToViewBindingBehaviorRegistration;
+  exports.FromViewBindingBehaviorRegistration = FromViewBindingBehaviorRegistration;
+  exports.SignalBindingBehaviorRegistration = SignalBindingBehaviorRegistration;
+  exports.ThrottleBindingBehaviorRegistration = ThrottleBindingBehaviorRegistration;
+  exports.TwoWayBindingBehaviorRegistration = TwoWayBindingBehaviorRegistration;
+  exports.BasicResources = DefaultResources;
+  exports.ObserverLocatorRegistration = IObserverLocatorRegistration;
+  exports.LifecycleRegistration = ILifecycleRegistration;
+  exports.RendererRegistration = IRendererRegistration;
+  exports.BasicConfiguration = RuntimeBasicConfiguration;
   exports.buildTemplateDefinition = buildTemplateDefinition;
   exports.isTargetedInstruction = isTargetedInstruction;
   exports.ITargetedInstruction = ITargetedInstruction;
@@ -6976,7 +7085,6 @@
   exports.ensureExpression = ensureExpression;
   exports.addAttachable = addAttachable;
   exports.addBindable = addBindable;
-  exports.BasicRenderer = BasicRenderer;
   exports.CompiledTemplate = CompiledTemplate;
   exports.createRenderContext = createRenderContext;
   exports.IInstructionRenderer = IInstructionRenderer;

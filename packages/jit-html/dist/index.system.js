@@ -1,6 +1,6 @@
 System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var getTarget, BindingCommandResource, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, JitConfiguration, TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, TextBindingInstruction, SetAttributeInstruction, HTMLRuntimeConfiguration, PLATFORM, DI, Registration, BindingMode, IDOM, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser, ITemplateCompiler;
+  var getTarget, BindingCommandResource, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents, DefaultBindingSyntax, DefaultBindingLanguage, TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration, Profiler, PLATFORM, DI, Registration, BindingMode, IDOM, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser;
   return {
     setters: [function (module) {
       getTarget = module.getTarget;
@@ -17,21 +17,25 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
       ReplacePartSymbol = module.ReplacePartSymbol;
       ResourceModel = module.ResourceModel;
       IAttributeParser = module.IAttributeParser;
-      JitConfiguration = module.JitConfiguration;
+      DefaultComponents = module.DefaultComponents;
+      DefaultBindingSyntax = module.DefaultBindingSyntax;
+      DefaultBindingLanguage = module.DefaultBindingLanguage;
     }, function (module) {
       TriggerBindingInstruction = module.TriggerBindingInstruction;
       DelegateBindingInstruction = module.DelegateBindingInstruction;
       CaptureBindingInstruction = module.CaptureBindingInstruction;
       TextBindingInstruction = module.TextBindingInstruction;
       SetAttributeInstruction = module.SetAttributeInstruction;
-      HTMLRuntimeConfiguration = module.HTMLRuntimeConfiguration;
+      BasicConfiguration = module.BasicConfiguration;
     }, function (module) {
+      Profiler = module.Profiler;
       PLATFORM = module.PLATFORM;
       DI = module.DI;
       Registration = module.Registration;
     }, function (module) {
       BindingMode = module.BindingMode;
       IDOM = module.IDOM;
+      ITemplateCompiler = module.ITemplateCompiler;
       LetBindingInstruction = module.LetBindingInstruction;
       LetElementInstruction = module.LetElementInstruction;
       HydrateElementInstruction = module.HydrateElementInstruction;
@@ -41,7 +45,6 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
       HydrateAttributeInstruction = module.HydrateAttributeInstruction;
       RefBindingInstruction = module.RefBindingInstruction;
       IExpressionParser = module.IExpressionParser;
-      ITemplateCompiler = module.ITemplateCompiler;
     }],
     execute: function () {
 
@@ -79,6 +82,7 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
       } exports('CaptureBindingCommand', CaptureBindingCommand);
       BindingCommandResource.define('capture', CaptureBindingCommand);
 
+      const { enter, leave } = Profiler.createTimer('TemplateBinder');
       const invalidSurrogateAttribute = {
           'id': true,
           'part': true,
@@ -504,6 +508,14 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
               ;
           return input.slice(start, state.index).trim();
       }
+      var Char;
+      (function (Char) {
+          Char[Char["DoubleQuote"] = 34] = "DoubleQuote";
+          Char[Char["SingleQuote"] = 39] = "SingleQuote";
+          Char[Char["Slash"] = 47] = "Slash";
+          Char[Char["Semicolon"] = 59] = "Semicolon";
+          Char[Char["Colon"] = 58] = "Colon";
+      })(Char || (Char = {}));
       function scanAttributeValue(state) {
           ++state.index;
           const { length, input } = state;
@@ -534,6 +546,7 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
       // "semantic error TS2742 The inferred type of 'ITemplateElementFactory' cannot be named without a reference to '@aurelia/jit/node_modules/@aurelia/kernel'. This is likely not portable. A type annotation is necessary"
       // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
       const ITemplateElementFactory = exports('ITemplateElementFactory', DI.createInterface('ITemplateElementFactory').noDefault());
+      const { enter: enter$1, leave: leave$1 } = Profiler.createTimer('TemplateElementFactory');
       /**
        * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
        *
@@ -543,6 +556,9 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
           constructor(dom) {
               this.dom = dom;
               this.template = dom.createTemplate();
+          }
+          static register(container) {
+              return Registration.singleton(ITemplateElementFactory, this).register(container);
           }
           createTemplate(input) {
               if (typeof input === 'string') {
@@ -580,6 +596,7 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
           required: false,
           compiler: 'default'
       });
+      const { enter: enter$2, leave: leave$2 } = Profiler.createTimer('TemplateCompiler');
       /**
        * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
        *
@@ -594,6 +611,9 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
           }
           get name() {
               return 'default';
+          }
+          static register(container) {
+              return Registration.singleton(ITemplateCompiler, this).register(container);
           }
           compile(dom, definition, descriptions) {
               const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
@@ -807,23 +827,52 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
       }
       TemplateCompiler.inject = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
 
-      const HTMLBindingLanguage = exports('HTMLBindingLanguage', [
-          TriggerBindingCommand,
-          DelegateBindingCommand,
-          CaptureBindingCommand
+      const ITemplateCompilerRegistration = exports('ITemplateCompilerRegistration', TemplateCompiler);
+      const ITemplateElementFactoryRegistration = exports('ITemplateElementFactoryRegistration', HTMLTemplateElementFactory);
+      /**
+       * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
+       * - `ITemplateCompiler`
+       * - `ITemplateElementFactory`
+       */
+      const DefaultComponents$1 = exports('DefaultComponents', [
+          ITemplateCompilerRegistration,
+          ITemplateElementFactoryRegistration
       ]);
-      const HTMLTemplateCompiler = exports('HTMLTemplateCompiler', [
-          Registration.singleton(ITemplateCompiler, TemplateCompiler),
-          Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory)
+      const TriggerBindingCommandRegistration = exports('TriggerBindingCommandRegistration', TriggerBindingCommand);
+      const DelegateBindingCommandRegistration = exports('DelegateBindingCommandRegistration', DelegateBindingCommand);
+      const CaptureBindingCommandRegistration = exports('CaptureBindingCommandRegistration', CaptureBindingCommand);
+      /**
+       * Default HTML-specific (but environment-agnostic) binding commands:
+       * - Event listeners: `.trigger`, `.delegate`, `.capture`
+       */
+      const DefaultBindingLanguage$1 = exports('DefaultBindingLanguage', [
+          TriggerBindingCommandRegistration,
+          DelegateBindingCommandRegistration,
+          CaptureBindingCommandRegistration
       ]);
-      const HTMLJitConfiguration = exports('HTMLJitConfiguration', {
+      /**
+       * A DI configuration object containing html-specific (but environment-agnostic) registrations:
+       * - `BasicConfiguration` from `@aurelia/runtime-html`
+       * - `DefaultComponents` from `@aurelia/jit`
+       * - `DefaultBindingSyntax` from `@aurelia/jit`
+       * - `DefaultBindingLanguage` from `@aurelia/jit`
+       * - `DefaultComponents`
+       * - `DefaultBindingLanguage`
+       */
+      const BasicConfiguration$1 = exports('BasicConfiguration', {
+          /**
+           * Apply this configuration to the provided container.
+           */
           register(container) {
-              container.register(HTMLRuntimeConfiguration, ...HTMLTemplateCompiler, JitConfiguration, ...HTMLBindingLanguage);
+              return BasicConfiguration
+                  .register(container)
+                  .register(...DefaultComponents, ...DefaultBindingSyntax, ...DefaultBindingLanguage, ...DefaultComponents$1, ...DefaultBindingLanguage$1);
           },
+          /**
+           * Create a new container with this configuration applied to it.
+           */
           createContainer() {
-              const container = DI.createContainer();
-              container.register(HTMLJitConfiguration);
-              return container;
+              return this.register(DI.createContainer());
           }
       });
 

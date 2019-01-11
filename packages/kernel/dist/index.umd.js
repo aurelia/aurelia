@@ -27,13 +27,11 @@
           // tslint:disable-next-line:no-object-literal-type-assertion
           return {};
       }
-      // @ts-ignore 2683
   })();
   // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
   const $now = (function () {
       let getNanoSeconds;
       let hrtime;
-      let loadTime;
       let moduleLoadTime;
       let nodeLoadTime;
       let upTime;
@@ -58,19 +56,118 @@
           nodeLoadTime = moduleLoadTime - upTime;
           return now;
       }
-      else if (Date.now) {
-          const now = function () {
-              return Date.now() - loadTime;
+  })();
+  // performance.mark / measure polyfill based on https://github.com/blackswanny/performance-polyfill
+  // note: this is NOT intended to be a polyfill for browsers that don't support it; it's just for NodeJS
+  // TODO: probably want to move environment-specific logic to the appropriate runtime (e.g. the NodeJS polyfill
+  // to runtime-html-jsdom)
+  const { $mark, $measure, $getEntriesByName, $getEntriesByType, $clearMarks, $clearMeasures } = (function () {
+      if ($global.performance !== undefined &&
+          $global.performance !== null &&
+          $global.performance.mark &&
+          $global.performance.measure &&
+          $global.performance.getEntriesByName &&
+          $global.performance.getEntriesByType &&
+          $global.performance.clearMarks &&
+          $global.performance.clearMeasures) {
+          const $performance = $global.performance;
+          return {
+              $mark: function (name) {
+                  $performance.mark(name);
+              },
+              $measure: function (name, start, end) {
+                  $performance.measure(name, start, end);
+              },
+              $getEntriesByName: function (name) {
+                  return $performance.getEntriesByName(name);
+              },
+              $getEntriesByType: function (type) {
+                  return $performance.getEntriesByType(type);
+              },
+              $clearMarks: function (name) {
+                  $performance.clearMarks(name);
+              },
+              $clearMeasures: function (name) {
+                  $performance.clearMeasures(name);
+              }
           };
-          loadTime = Date.now();
-          return now;
       }
-      else {
-          const now = function () {
-              return new Date().getTime() - loadTime;
+      else if ($global.process !== undefined && $global.process !== null && $global.process.hrtime) {
+          const entries = [];
+          const marksIndex = {};
+          const filterEntries = function (key, value) {
+              let i = 0;
+              const n = entries.length;
+              const result = [];
+              for (; i < n; i++) {
+                  if (entries[i][key] === value) {
+                      result.push(entries[i]);
+                  }
+              }
+              return result;
           };
-          loadTime = new Date().getTime();
-          return now;
+          const clearEntries = function (type, name) {
+              let i = entries.length;
+              let entry;
+              while (i--) {
+                  entry = entries[i];
+                  if (entry.entryType === type && (name === void 0 || entry.name === name)) {
+                      entries.splice(i, 1);
+                  }
+              }
+          };
+          return {
+              $mark: function (name) {
+                  const mark = {
+                      name,
+                      entryType: 'mark',
+                      startTime: $now(),
+                      duration: 0
+                  };
+                  entries.push(mark);
+                  marksIndex[name] = mark;
+              },
+              $measure: function (name, startMark, endMark) {
+                  let startTime;
+                  let endTime;
+                  if (endMark !== undefined && marksIndex[endMark] === undefined) {
+                      throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${endMark}' does not exist.`);
+                  }
+                  if (startMark !== undefined && marksIndex[startMark] === undefined) {
+                      throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${startMark}' does not exist.`);
+                  }
+                  if (marksIndex[startMark]) {
+                      startTime = marksIndex[startMark].startTime;
+                  }
+                  else {
+                      startTime = 0;
+                  }
+                  if (marksIndex[endMark]) {
+                      endTime = marksIndex[endMark].startTime;
+                  }
+                  else {
+                      endTime = $now();
+                  }
+                  entries.push({
+                      name,
+                      entryType: 'measure',
+                      startTime,
+                      duration: endTime - startTime
+                  });
+              },
+              $getEntriesByName: function (name) {
+                  return filterEntries('name', name);
+              },
+              $getEntriesByType: function (type) {
+                  return filterEntries('entryType', type);
+              },
+              $clearMarks: function (name) {
+                  clearEntries('mark', name);
+              },
+              $clearMeasures: function (name) {
+                  clearEntries('measure', name);
+              }
+          };
       }
   })();
   // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js
@@ -145,6 +242,12 @@
       emptyObject: Object.freeze({}),
       noop() { return; },
       now: $now,
+      mark: $mark,
+      measure: $measure,
+      getEntriesByName: $getEntriesByName,
+      getEntriesByType: $getEntriesByType,
+      clearMarks: $clearMarks,
+      clearMeasures: $clearMeasures,
       camelCase(input) {
           // benchmark: http://jsben.ch/qIz4Z
           let value = camelCaseLookup[input];
@@ -274,10 +377,16 @@
           };
       };
   }
-  const DI = {
-      createContainer() {
+  function createContainer(...params) {
+      if (arguments.length === 0) {
           return new Container();
-      },
+      }
+      else {
+          return new Container().register(...params);
+      }
+  }
+  const DI = {
+      createContainer,
       getDesignParamTypes(target) {
           return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
       },
@@ -300,10 +409,10 @@
       },
       createInterface(friendlyName) {
           const Key = function (target, property, index) {
-              if (target === undefined) {
-                  throw Reporter.error(16, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
-              }
               Key.friendlyName = friendlyName || 'Interface';
+              if (target === undefined) {
+                  throw Reporter.error(16, Key.friendlyName, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+              }
               (target.inject || (target.inject = []))[index] = Key;
               return target;
           };
@@ -469,6 +578,16 @@
       }
   });
   /** @internal */
+  var ResolverStrategy;
+  (function (ResolverStrategy) {
+      ResolverStrategy[ResolverStrategy["instance"] = 0] = "instance";
+      ResolverStrategy[ResolverStrategy["singleton"] = 1] = "singleton";
+      ResolverStrategy[ResolverStrategy["transient"] = 2] = "transient";
+      ResolverStrategy[ResolverStrategy["callback"] = 3] = "callback";
+      ResolverStrategy[ResolverStrategy["array"] = 4] = "array";
+      ResolverStrategy[ResolverStrategy["alias"] = 5] = "alias";
+  })(ResolverStrategy || (ResolverStrategy = {}));
+  /** @internal */
   class Resolver {
       constructor(key, strategy, state) {
           this.key = key;
@@ -585,6 +704,7 @@
                   }
               }
           }
+          return this;
       }
       registerResolver(key, resolver) {
           validateKey(key);
@@ -833,6 +953,61 @@
       return Reflect.construct(Type, args);
   }
 
+  const Profiler = (function () {
+      const now = PLATFORM.now;
+      const timers = [];
+      let profileMap;
+      const profiler = {
+          createTimer,
+          enable,
+          disable,
+          report,
+          enabled: false
+      };
+      return profiler;
+      function createTimer(name) {
+          timers.push(name);
+          let depth = 0;
+          let mark = 0;
+          return {
+              enter,
+              leave
+          };
+          function enter() {
+              if (++depth === 1) {
+                  mark = now();
+                  ++profileMap[name].topLevelCount;
+              }
+              ++profileMap[name].totalCount;
+          }
+          function leave() {
+              if (--depth === 0) {
+                  profileMap[name].duration += (now() - mark);
+              }
+          }
+      }
+      function enable() {
+          profileMap = {};
+          for (const timer of timers) {
+              profileMap[timer] = {
+                  name: timer,
+                  duration: 0,
+                  topLevelCount: 0,
+                  totalCount: 0
+              };
+          }
+          profiler.enabled = true;
+      }
+      function disable() {
+          profiler.enabled = false;
+      }
+      function report(cb) {
+          Object.keys(profileMap).map(key => profileMap[key]).sort((a, b) => b.duration - a.duration).forEach(p => {
+              cb(p.name, p.duration, p.topLevelCount, p.totalCount);
+          });
+      }
+  })();
+
   class RuntimeCompilationResources {
       constructor(context) {
           this.context = context;
@@ -881,6 +1056,7 @@
   exports.PLATFORM = PLATFORM;
   exports.Reporter = Reporter;
   exports.Tracer = Tracer;
+  exports.Profiler = Profiler;
   exports.RuntimeCompilationResources = RuntimeCompilationResources;
 
   Object.defineProperty(exports, '__esModule', { value: true });

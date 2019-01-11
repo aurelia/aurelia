@@ -15,14 +15,19 @@ export declare const enum NodeType {
     Notation = 12
 }
 export declare class HTMLDOM implements IDOM {
+    readonly Node: typeof Node;
+    readonly Element: typeof Element;
+    readonly HTMLElement: typeof HTMLElement;
+    private readonly wnd;
     private readonly doc;
-    constructor(doc: Document);
+    constructor(wnd: Window, doc: Document, TNode: typeof Node, TElement: typeof Element, THTMLElement: typeof HTMLElement);
     addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void;
     appendChild(parent: Node, child: Node): void;
     cloneNode<T>(node: T, deep?: boolean): T;
     convertToRenderLocation(node: Node): IRenderLocation;
     createDocumentFragment(markupOrNode?: string | Node): DocumentFragment;
     createElement(name: string): HTMLElement;
+    createNodeObserver(node: Node, cb: MutationCallback, init: MutationObserverInit): MutationObserver;
     createTemplate(markup?: unknown): HTMLTemplateElement;
     createTextNode(text: string): Text;
     insertBefore(nodeToInsert: Node, referenceNode: Node): void;

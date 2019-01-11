@@ -1,8 +1,26 @@
-/// <reference types="node" />
 export interface IPerformance {
     now(): number;
+    mark(name: string): void;
+    measure(name: string, start?: string, end?: string): void;
+    getEntriesByName(name: string): IPerformanceEntry[];
+    getEntriesByType(type: string): IPerformanceEntry[];
+    clearMarks(name?: string): void;
+    clearMeasures(name?: string): void;
+}
+export interface IPerformanceEntry {
+    readonly duration: number;
+    readonly entryType: string;
+    readonly name: string;
+    readonly startTime: number;
 }
 export declare type ITimerHandler = string | Function;
+declare namespace NodeJS {
+    interface Process {
+        env?: any;
+        uptime(): number;
+        hrtime(): [number, number];
+    }
+}
 export interface IWindowOrWorkerGlobalScope {
     process?: NodeJS.Process;
     readonly performance: IPerformance;
@@ -105,4 +123,5 @@ export declare type Pick3<T, K1 extends keyof T, K2 extends keyof T[K1], K3 exte
 export declare type Primitive = undefined | null | number | boolean | symbol | string;
 export declare type Unwrap<T> = T extends (infer U)[] ? U : T extends (...args: unknown[]) => infer U ? U : T extends Promise<infer U> ? U : T;
 export declare type StrictPrimitive = string | number | boolean | null | undefined;
+export {};
 //# sourceMappingURL=interfaces.d.ts.map

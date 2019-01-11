@@ -30,6 +30,7 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
   }
   jit.BindingCommandResource.define('capture', CaptureBindingCommand);
 
+  const { enter, leave } = kernel.Profiler.createTimer('TemplateBinder');
   const invalidSurrogateAttribute = {
       'id': true,
       'part': true,
@@ -455,6 +456,14 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
           ;
       return input.slice(start, state.index).trim();
   }
+  var Char;
+  (function (Char) {
+      Char[Char["DoubleQuote"] = 34] = "DoubleQuote";
+      Char[Char["SingleQuote"] = 39] = "SingleQuote";
+      Char[Char["Slash"] = 47] = "Slash";
+      Char[Char["Semicolon"] = 59] = "Semicolon";
+      Char[Char["Colon"] = 58] = "Colon";
+  })(Char || (Char = {}));
   function scanAttributeValue(state) {
       ++state.index;
       const { length, input } = state;
@@ -485,6 +494,7 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
   // "semantic error TS2742 The inferred type of 'ITemplateElementFactory' cannot be named without a reference to '@aurelia/jit/node_modules/@aurelia/kernel'. This is likely not portable. A type annotation is necessary"
   // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
   const ITemplateElementFactory = kernel.DI.createInterface('ITemplateElementFactory').noDefault();
+  const { enter: enter$1, leave: leave$1 } = kernel.Profiler.createTimer('TemplateElementFactory');
   /**
    * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
    *
@@ -494,6 +504,9 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
       constructor(dom) {
           this.dom = dom;
           this.template = dom.createTemplate();
+      }
+      static register(container) {
+          return kernel.Registration.singleton(ITemplateElementFactory, this).register(container);
       }
       createTemplate(input) {
           if (typeof input === 'string') {
@@ -531,6 +544,7 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
       required: false,
       compiler: 'default'
   });
+  const { enter: enter$2, leave: leave$2 } = kernel.Profiler.createTimer('TemplateCompiler');
   /**
    * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
    *
@@ -545,6 +559,9 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
       }
       get name() {
           return 'default';
+      }
+      static register(container) {
+          return kernel.Registration.singleton(runtime.ITemplateCompiler, this).register(container);
       }
       compile(dom, definition, descriptions) {
           const binder = new TemplateBinder(dom, new jit.ResourceModel(descriptions), this.attrParser, this.exprParser);
@@ -758,23 +775,52 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
   }
   TemplateCompiler.inject = [ITemplateElementFactory, jit.IAttributeParser, runtime.IExpressionParser];
 
-  const HTMLBindingLanguage = [
-      TriggerBindingCommand,
-      DelegateBindingCommand,
-      CaptureBindingCommand
+  const ITemplateCompilerRegistration = TemplateCompiler;
+  const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory;
+  /**
+   * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
+   * - `ITemplateCompiler`
+   * - `ITemplateElementFactory`
+   */
+  const DefaultComponents = [
+      ITemplateCompilerRegistration,
+      ITemplateElementFactoryRegistration
   ];
-  const HTMLTemplateCompiler = [
-      kernel.Registration.singleton(runtime.ITemplateCompiler, TemplateCompiler),
-      kernel.Registration.singleton(ITemplateElementFactory, HTMLTemplateElementFactory)
+  const TriggerBindingCommandRegistration = TriggerBindingCommand;
+  const DelegateBindingCommandRegistration = DelegateBindingCommand;
+  const CaptureBindingCommandRegistration = CaptureBindingCommand;
+  /**
+   * Default HTML-specific (but environment-agnostic) binding commands:
+   * - Event listeners: `.trigger`, `.delegate`, `.capture`
+   */
+  const DefaultBindingLanguage = [
+      TriggerBindingCommandRegistration,
+      DelegateBindingCommandRegistration,
+      CaptureBindingCommandRegistration
   ];
-  const HTMLJitConfiguration = {
+  /**
+   * A DI configuration object containing html-specific (but environment-agnostic) registrations:
+   * - `BasicConfiguration` from `@aurelia/runtime-html`
+   * - `DefaultComponents` from `@aurelia/jit`
+   * - `DefaultBindingSyntax` from `@aurelia/jit`
+   * - `DefaultBindingLanguage` from `@aurelia/jit`
+   * - `DefaultComponents`
+   * - `DefaultBindingLanguage`
+   */
+  const BasicConfiguration = {
+      /**
+       * Apply this configuration to the provided container.
+       */
       register(container) {
-          container.register(runtimeHtml.HTMLRuntimeConfiguration, ...HTMLTemplateCompiler, jit.JitConfiguration, ...HTMLBindingLanguage);
+          return runtimeHtml.BasicConfiguration
+              .register(container)
+              .register(...jit.DefaultComponents, ...jit.DefaultBindingSyntax, ...jit.DefaultBindingLanguage, ...DefaultComponents, ...DefaultBindingLanguage);
       },
+      /**
+       * Create a new container with this configuration applied to it.
+       */
       createContainer() {
-          const container = kernel.DI.createContainer();
-          container.register(HTMLJitConfiguration);
-          return container;
+          return this.register(kernel.DI.createContainer());
       }
   };
 
@@ -893,9 +939,14 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
   exports.TriggerBindingCommand = TriggerBindingCommand;
   exports.DelegateBindingCommand = DelegateBindingCommand;
   exports.CaptureBindingCommand = CaptureBindingCommand;
-  exports.HTMLBindingLanguage = HTMLBindingLanguage;
-  exports.HTMLTemplateCompiler = HTMLTemplateCompiler;
-  exports.HTMLJitConfiguration = HTMLJitConfiguration;
+  exports.ITemplateCompilerRegistration = ITemplateCompilerRegistration;
+  exports.ITemplateElementFactoryRegistration = ITemplateElementFactoryRegistration;
+  exports.DefaultComponents = DefaultComponents;
+  exports.TriggerBindingCommandRegistration = TriggerBindingCommandRegistration;
+  exports.DelegateBindingCommandRegistration = DelegateBindingCommandRegistration;
+  exports.CaptureBindingCommandRegistration = CaptureBindingCommandRegistration;
+  exports.DefaultBindingLanguage = DefaultBindingLanguage;
+  exports.BasicConfiguration = BasicConfiguration;
   exports.stringifyDOM = stringifyDOM;
   exports.stringifyInstructions = stringifyInstructions;
   exports.stringifyTemplateDefinition = stringifyTemplateDefinition;

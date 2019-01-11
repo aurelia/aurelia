@@ -29,12 +29,12 @@ export interface IRegistry {
     register(container: IContainer): void;
 }
 export interface IContainer extends IServiceLocator {
-    register(...params: IRegistry[]): void;
-    register(...params: Record<string, Partial<IRegistry>>[]): void;
-    register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void;
-    register(registry: Record<string, Partial<IRegistry>>): void;
-    register(registry: IRegistry): void;
-    register(registry: IRegistry | Record<string, Partial<IRegistry>>): void;
+    register(...params: IRegistry[]): IContainer;
+    register(...params: Record<string, Partial<IRegistry>>[]): IContainer;
+    register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): IContainer;
+    register(registry: Record<string, Partial<IRegistry>>): IContainer;
+    register(registry: IRegistry): IContainer;
+    register(registry: IRegistry | Record<string, Partial<IRegistry>>): IContainer;
     registerResolver<T>(key: Key<T>, resolver: IResolver<T>): IResolver<T>;
     registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;
     registerTransformer<T>(key: Key<T>, transformer: (instance: T) => T): boolean;
@@ -54,8 +54,14 @@ export interface IResolverBuilder<T> {
 export declare type RegisterSelf<T extends Constructable> = {
     register(container: IContainer): IResolver<InstanceType<T>>;
 };
+declare function createContainer(...params: IRegistry[]): IContainer;
+declare function createContainer(...params: Record<string, Partial<IRegistry>>[]): IContainer;
+declare function createContainer(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): IContainer;
+declare function createContainer(registry: Record<string, Partial<IRegistry>>): IContainer;
+declare function createContainer(registry: IRegistry): IContainer;
+declare function createContainer(registry: IRegistry | Record<string, Partial<IRegistry>>): IContainer;
 export declare const DI: {
-    createContainer(): IContainer;
+    createContainer: typeof createContainer;
     getDesignParamTypes(target: Function): Function[];
     getDependencies(Type: Function | Injectable<{}>): Function[];
     createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T>;

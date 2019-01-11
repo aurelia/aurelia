@@ -1,4 +1,4 @@
-import { Reporter, DI, Registration, PLATFORM, RuntimeCompilationResources, IContainer, all } from '@aurelia/kernel';
+import { Reporter, DI, Registration, PLATFORM, Profiler, RuntimeCompilationResources, IContainer, all } from '@aurelia/kernel';
 
 var LifecycleFlags;
 (function (LifecycleFlags) {
@@ -1912,6 +1912,9 @@ class Lifecycle {
         this.$nextUnbound = marker;
         this.unbound = PLATFORM.noop;
         this.task = null;
+    }
+    static register(container) {
+        return Registration.singleton(ILifecycle, this).register(container);
     }
     registerTask(task) {
         if (this.task === null) {
@@ -4277,7 +4280,6 @@ class DirtyChecker {
         }
     }
 }
-/** @internal */
 let DirtyCheckProperty = class DirtyCheckProperty {
     constructor(dirtyChecker, obj, propertyKey) {
         this.obj = obj;
@@ -4379,6 +4381,9 @@ class ObserverLocator {
         this.lifecycle = lifecycle;
         this.targetObserverLocator = targetObserverLocator;
         this.targetAccessorLocator = targetAccessorLocator;
+    }
+    static register(container) {
+        return Registration.singleton(IObserverLocator, this).register(container);
     }
     getObserver(obj, propertyName) {
         if (isBindingContext(obj)) {
@@ -4910,6 +4915,7 @@ function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindab
     return def;
 }
 
+const { enter, leave } = Profiler.createTimer('AttachLifecycle');
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
 function $attachAttribute(flags) {
@@ -5122,6 +5128,7 @@ function $unmountView(flags) {
     return false;
 }
 
+const { enter: enter$1, leave: leave$1 } = Profiler.createTimer('BindLifecycle');
 /** @internal */
 function $bindAttribute(flags, scope) {
     flags |= LifecycleFlags.fromBind;
@@ -5261,6 +5268,7 @@ function $unbindView(flags) {
     }
 }
 
+const { enter: enter$2, leave: leave$2 } = Profiler.createTimer('RenderLifecycle');
 /** @internal */
 function $hydrateAttribute(renderingEngine) {
     const Type = this.constructor;
@@ -6350,6 +6358,8 @@ function createGetterSetter(instance, name) {
     });
 }
 
+const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.start');
+const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
 class Aurelia {
     constructor(container = DI.createContainer()) {
         this.container = container;
@@ -6368,6 +6378,14 @@ class Aurelia {
     }
     app(config) {
         const host = config.host;
+        let dom;
+        if (this.container.has(IDOM, false)) {
+            dom = this.container.get(IDOM);
+        }
+        else {
+            const domInitializer = this.container.get(IDOMInitializer);
+            dom = domInitializer.initialize(config);
+        }
         let component;
         const componentOrType = config.component;
         if (CustomElementResource.isType(componentOrType)) {
@@ -6377,8 +6395,6 @@ class Aurelia {
         else {
             component = componentOrType;
         }
-        const domInitializer = this.container.get(IDOMInitializer);
-        const dom = domInitializer.initialize(config);
         const startTask = () => {
             host.$au = this;
             if (!this.components.includes(component)) {
@@ -6452,6 +6468,9 @@ class Renderer {
         instructionRenderers.forEach(item => {
             record[item.instructionType] = item;
         });
+    }
+    static register(container) {
+        return Registration.singleton(IRenderer, this).register(container);
     }
     render(dom, context, renderable, targets, definition, host, parts) {
         const targetInstructions = definition.instructions;
@@ -6723,35 +6742,108 @@ IteratorBindingRenderer = __decorate([
     instructionRenderer("rk" /* iteratorBinding */)
     /** @internal */
 ], IteratorBindingRenderer);
-const BasicRenderer = {
-    register(container) {
-        container.register(SetPropertyRenderer, CustomElementRenderer, CustomAttributeRenderer, TemplateControllerRenderer, LetElementRenderer, CallBindingRenderer, RefBindingRenderer, InterpolationBindingRenderer, PropertyBindingRenderer, IteratorBindingRenderer);
-    }
-};
 
-const GlobalResources = [
-    If,
-    Else,
-    Repeat,
-    Replaceable,
-    With,
-    SanitizeValueConverter,
-    DebounceBindingBehavior,
-    OneTimeBindingBehavior,
-    ToViewBindingBehavior,
-    FromViewBindingBehavior,
-    SignalBindingBehavior,
-    ThrottleBindingBehavior,
-    TwoWayBindingBehavior
+const IObserverLocatorRegistration = ObserverLocator;
+const ILifecycleRegistration = Lifecycle;
+const IRendererRegistration = Renderer;
+/**
+ * Default implementations for the following interfaces:
+ * - `IObserverLocator`
+ * - `ILifecycle`
+ * - `IRenderer`
+ */
+const DefaultComponents = [
+    IObserverLocatorRegistration,
+    ILifecycleRegistration,
+    IRendererRegistration
 ];
-const RuntimeConfiguration = {
+const IfRegistration = If;
+const ElseRegistration = Else;
+const RepeatRegistration = Repeat;
+const ReplaceableRegistration = Replaceable;
+const WithRegistration = With;
+const SanitizeValueConverterRegistration = SanitizeValueConverter;
+const DebounceBindingBehaviorRegistration = DebounceBindingBehavior;
+const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior;
+const ToViewBindingBehaviorRegistration = ToViewBindingBehavior;
+const FromViewBindingBehaviorRegistration = FromViewBindingBehavior;
+const SignalBindingBehaviorRegistration = SignalBindingBehavior;
+const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior;
+const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior;
+/**
+ * Default resources:
+ * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)
+ * - Value Converters (`sanitize`)
+ * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
+ */
+const DefaultResources = [
+    IfRegistration,
+    ElseRegistration,
+    RepeatRegistration,
+    ReplaceableRegistration,
+    WithRegistration,
+    SanitizeValueConverterRegistration,
+    DebounceBindingBehaviorRegistration,
+    OneTimeBindingBehaviorRegistration,
+    ToViewBindingBehaviorRegistration,
+    FromViewBindingBehaviorRegistration,
+    SignalBindingBehaviorRegistration,
+    ThrottleBindingBehaviorRegistration,
+    TwoWayBindingBehaviorRegistration
+];
+const CallBindingRendererRegistration = CallBindingRenderer;
+const CustomAttributeRendererRegistration = CustomAttributeRenderer;
+const CustomElementRendererRegistration = CustomElementRenderer;
+const InterpolationBindingRendererRegistration = InterpolationBindingRenderer;
+const IteratorBindingRendererRegistration = IteratorBindingRenderer;
+const LetElementRendererRegistration = LetElementRenderer;
+const PropertyBindingRendererRegistration = PropertyBindingRenderer;
+const RefBindingRendererRegistration = RefBindingRenderer;
+const SetPropertyRendererRegistration = SetPropertyRenderer;
+const TemplateControllerRendererRegistration = TemplateControllerRenderer;
+/**
+ * Default renderers for:
+ * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`
+ * - IteratorBinding: `for`
+ * - CallBinding: `call`
+ * - RefBinding: `ref`
+ * - InterpolationBinding: `${}`
+ * - SetProperty
+ * - `customElement` hydration
+ * - `customAttribute` hydration
+ * - `templateController` hydration
+ * - `let` element hydration
+ */
+const DefaultRenderers = [
+    PropertyBindingRendererRegistration,
+    IteratorBindingRendererRegistration,
+    CallBindingRendererRegistration,
+    RefBindingRendererRegistration,
+    InterpolationBindingRendererRegistration,
+    SetPropertyRendererRegistration,
+    CustomElementRendererRegistration,
+    CustomAttributeRendererRegistration,
+    TemplateControllerRendererRegistration,
+    LetElementRendererRegistration
+];
+/**
+ * A DI configuration object containing environment/runtime-agnostic registrations:
+ * - `DefaultComponents`
+ * - `DefaultResources`
+ * - `DefaultRenderers`
+ */
+const RuntimeBasicConfiguration = {
+    /**
+     * Apply this configuration to the provided container.
+     */
     register(container) {
-        container.register(BasicRenderer, Registration.singleton(IObserverLocator, ObserverLocator), Registration.singleton(ILifecycle, Lifecycle), Registration.singleton(IRenderer, Renderer), ...GlobalResources);
+        return container.register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
     },
+    /**
+     * Create a new container with this configuration applied to it.
+     */
     createContainer() {
-        const container = DI.createContainer();
-        container.register(RuntimeConfiguration);
-        return container;
+        return this.register(DI.createContainer());
     }
 };
 
@@ -6865,5 +6957,5 @@ class LetBindingInstruction {
     }
 }
 
-export { CallFunction, ExpressionKind, connects, observes, callsFunction, hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, arePureLiterals, isPureLiteral, BindingBehavior, ValueConverter, Assign, Conditional, AccessThis, AccessScope, AccessMember, AccessKeyed, CallScope, CallMember, Binary, Unary, PrimitiveLiteral, HtmlLiteral, ArrayLiteral, ObjectLiteral, Template, TaggedTemplate, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, BindingMode, Binding, Call, connectable, IExpressionParser, BindingType, MultiInterpolationBinding, InterpolationBinding, LetBinding, Ref, ArrayObserver, enableArrayObservation, disableArrayObservation, MapObserver, enableMapObservation, disableMapObservation, SetObserver, enableSetObservation, disableSetObservation, BindingContext, Scope, OverrideContext, collectionObserver, CollectionLengthObserver, computed, CustomSetterObserver, GetterObserver, IDirtyChecker, IObserverLocator, ITargetObserverLocator, ITargetAccessorLocator, getCollectionObserver, PrimitiveObserver, PropertyAccessor, propertyObserver, SelfObserver, SetterObserver, ISignaler, subscriberCollection, batchedSubscriberCollection, targetObserver, bindingBehavior, BindingBehaviorResource, BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, DebounceBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, customAttribute, CustomAttributeResource, dynamicOptions, templateController, If, Else, Repeat, Replaceable, With, containerless, customElement, CustomElementResource, IProjectorLocator, useShadowDOM, valueConverter, ValueConverterResource, ISanitizer, SanitizeValueConverter, bindable, Aurelia, IDOMInitializer, RuntimeConfiguration, buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType, INode, IRenderLocation, IDOM, NodeSequence, CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, AggregateLifecycleTask, CompositionCoordinator, Hooks, ILifecycle, IRenderable, IViewFactory, LifecycleTask, PromiseTask, State, CollectionKind, DelegationStrategy, LifecycleFlags, MutationKind, stringifyLifecycleFlags, instructionRenderer, ensureExpression, addAttachable, addBindable, BasicRenderer, CompiledTemplate, createRenderContext, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags };
+export { CallFunction, ExpressionKind, connects, observes, callsFunction, hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, arePureLiterals, isPureLiteral, BindingBehavior, ValueConverter, Assign, Conditional, AccessThis, AccessScope, AccessMember, AccessKeyed, CallScope, CallMember, Binary, Unary, PrimitiveLiteral, HtmlLiteral, ArrayLiteral, ObjectLiteral, Template, TaggedTemplate, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, BindingMode, Binding, Call, connectable, IExpressionParser, BindingType, MultiInterpolationBinding, InterpolationBinding, LetBinding, Ref, ArrayObserver, enableArrayObservation, disableArrayObservation, MapObserver, enableMapObservation, disableMapObservation, SetObserver, enableSetObservation, disableSetObservation, BindingContext, Scope, OverrideContext, collectionObserver, CollectionLengthObserver, computed, CustomSetterObserver, GetterObserver, IDirtyChecker, DirtyCheckProperty, IObserverLocator, ITargetObserverLocator, ITargetAccessorLocator, getCollectionObserver, PrimitiveObserver, PropertyAccessor, propertyObserver, SelfObserver, SetterObserver, ISignaler, subscriberCollection, batchedSubscriberCollection, targetObserver, bindingBehavior, BindingBehaviorResource, BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, DebounceBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, customAttribute, CustomAttributeResource, dynamicOptions, templateController, If, Else, Repeat, Replaceable, With, containerless, customElement, CustomElementResource, IProjectorLocator, useShadowDOM, valueConverter, ValueConverterResource, ISanitizer, SanitizeValueConverter, bindable, Aurelia, IDOMInitializer, IfRegistration, ElseRegistration, RepeatRegistration, ReplaceableRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, DefaultResources as BasicResources, IObserverLocatorRegistration as ObserverLocatorRegistration, ILifecycleRegistration as LifecycleRegistration, IRendererRegistration as RendererRegistration, RuntimeBasicConfiguration as BasicConfiguration, buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType, INode, IRenderLocation, IDOM, NodeSequence, CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, AggregateLifecycleTask, CompositionCoordinator, Hooks, ILifecycle, IRenderable, IViewFactory, LifecycleTask, PromiseTask, State, CollectionKind, DelegationStrategy, LifecycleFlags, MutationKind, stringifyLifecycleFlags, instructionRenderer, ensureExpression, addAttachable, addBindable, CompiledTemplate, createRenderContext, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags };
 //# sourceMappingURL=index.es6.js.map

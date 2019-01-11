@@ -265,6 +265,13 @@ this.au.debug = (function (exports, kernel, AST) {
       }
   }
 
+  var MessageType;
+  (function (MessageType) {
+      MessageType[MessageType["error"] = 0] = "error";
+      MessageType[MessageType["warn"] = 1] = "warn";
+      MessageType[MessageType["info"] = 2] = "info";
+      MessageType[MessageType["debug"] = 3] = "debug";
+  })(MessageType || (MessageType = {}));
   const marker = {
       name: 'marker',
       params: kernel.PLATFORM.emptyArray,

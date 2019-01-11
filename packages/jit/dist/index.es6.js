@@ -1,5 +1,5 @@
-import { PLATFORM, DI, Registration, Reporter, all } from '@aurelia/kernel';
-import { OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, IExpressionParser, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, CustomElementResource, CustomAttributeResource } from '@aurelia/runtime';
+import { PLATFORM, DI, Registration, Reporter, Profiler, all } from '@aurelia/kernel';
+import { OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, IExpressionParser, BasicConfiguration, CustomElementResource, CustomAttributeResource } from '@aurelia/runtime';
 
 class AttrSyntax {
     constructor(rawName, rawValue, target, command) {
@@ -169,6 +169,7 @@ class State {
             if (child.charSpec.has(ch)) {
                 results.push(child);
                 childLen = child.patterns.length;
+                j = 0;
                 if (child.charSpec.isSymbol) {
                     for (; j < childLen; ++j) {
                         interpretation.next(child.patterns[j]);
@@ -415,6 +416,7 @@ class AtPrefixedTriggerAttributePattern {
 attributePattern({ pattern: '@PART', symbols: '@' })(AtPrefixedTriggerAttributePattern);
 
 const IAttributeParser = DI.createInterface('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
+const { enter, leave } = Profiler.createTimer('AttributeParser');
 /** @internal */
 class AttributeParser {
     constructor(interpreter, attrPatterns) {
@@ -584,15 +586,201 @@ function unescapeCode(code) {
         default: return code;
     }
 }
+/** @internal */
+var Access;
+(function (Access) {
+    Access[Access["Reset"] = 0] = "Reset";
+    Access[Access["Ancestor"] = 511] = "Ancestor";
+    Access[Access["This"] = 512] = "This";
+    Access[Access["Scope"] = 1024] = "Scope";
+    Access[Access["Member"] = 2048] = "Member";
+    Access[Access["Keyed"] = 4096] = "Keyed";
+})(Access || (Access = {}));
+/** @internal */
+var Precedence;
+(function (Precedence) {
+    Precedence[Precedence["Variadic"] = 61] = "Variadic";
+    Precedence[Precedence["Assign"] = 62] = "Assign";
+    Precedence[Precedence["Conditional"] = 63] = "Conditional";
+    Precedence[Precedence["LogicalOR"] = 64] = "LogicalOR";
+    Precedence[Precedence["LogicalAND"] = 128] = "LogicalAND";
+    Precedence[Precedence["Equality"] = 192] = "Equality";
+    Precedence[Precedence["Relational"] = 256] = "Relational";
+    Precedence[Precedence["Additive"] = 320] = "Additive";
+    Precedence[Precedence["Multiplicative"] = 384] = "Multiplicative";
+    Precedence[Precedence["Binary"] = 448] = "Binary";
+    Precedence[Precedence["LeftHandSide"] = 449] = "LeftHandSide";
+    Precedence[Precedence["Primary"] = 450] = "Primary";
+    Precedence[Precedence["Unary"] = 451] = "Unary";
+})(Precedence || (Precedence = {}));
+/** @internal */
+var Token;
+(function (Token) {
+    Token[Token["EOF"] = 1572864] = "EOF";
+    Token[Token["ExpressionTerminal"] = 1048576] = "ExpressionTerminal";
+    Token[Token["AccessScopeTerminal"] = 524288] = "AccessScopeTerminal";
+    Token[Token["ClosingToken"] = 262144] = "ClosingToken";
+    Token[Token["OpeningToken"] = 131072] = "OpeningToken";
+    Token[Token["BinaryOp"] = 65536] = "BinaryOp";
+    Token[Token["UnaryOp"] = 32768] = "UnaryOp";
+    Token[Token["LeftHandSide"] = 16384] = "LeftHandSide";
+    Token[Token["StringOrNumericLiteral"] = 12288] = "StringOrNumericLiteral";
+    Token[Token["NumericLiteral"] = 8192] = "NumericLiteral";
+    Token[Token["StringLiteral"] = 4096] = "StringLiteral";
+    Token[Token["IdentifierName"] = 3072] = "IdentifierName";
+    Token[Token["Keyword"] = 2048] = "Keyword";
+    Token[Token["Identifier"] = 1024] = "Identifier";
+    Token[Token["Contextual"] = 512] = "Contextual";
+    Token[Token["Precedence"] = 448] = "Precedence";
+    Token[Token["Type"] = 63] = "Type";
+    Token[Token["FalseKeyword"] = 2048] = "FalseKeyword";
+    Token[Token["TrueKeyword"] = 2049] = "TrueKeyword";
+    Token[Token["NullKeyword"] = 2050] = "NullKeyword";
+    Token[Token["UndefinedKeyword"] = 2051] = "UndefinedKeyword";
+    Token[Token["ThisScope"] = 3076] = "ThisScope";
+    Token[Token["ParentScope"] = 3077] = "ParentScope";
+    Token[Token["OpenParen"] = 671750] = "OpenParen";
+    Token[Token["OpenBrace"] = 131079] = "OpenBrace";
+    Token[Token["Dot"] = 16392] = "Dot";
+    Token[Token["CloseBrace"] = 1835017] = "CloseBrace";
+    Token[Token["CloseParen"] = 1835018] = "CloseParen";
+    Token[Token["Comma"] = 1572875] = "Comma";
+    Token[Token["OpenBracket"] = 671756] = "OpenBracket";
+    Token[Token["CloseBracket"] = 1835021] = "CloseBracket";
+    Token[Token["Colon"] = 1572878] = "Colon";
+    Token[Token["Question"] = 1572879] = "Question";
+    Token[Token["Ampersand"] = 1572880] = "Ampersand";
+    Token[Token["Bar"] = 1572883] = "Bar";
+    Token[Token["BarBar"] = 1638548] = "BarBar";
+    Token[Token["AmpersandAmpersand"] = 1638613] = "AmpersandAmpersand";
+    Token[Token["EqualsEquals"] = 1638678] = "EqualsEquals";
+    Token[Token["ExclamationEquals"] = 1638679] = "ExclamationEquals";
+    Token[Token["EqualsEqualsEquals"] = 1638680] = "EqualsEqualsEquals";
+    Token[Token["ExclamationEqualsEquals"] = 1638681] = "ExclamationEqualsEquals";
+    Token[Token["LessThan"] = 1638746] = "LessThan";
+    Token[Token["GreaterThan"] = 1638747] = "GreaterThan";
+    Token[Token["LessThanEquals"] = 1638748] = "LessThanEquals";
+    Token[Token["GreaterThanEquals"] = 1638749] = "GreaterThanEquals";
+    Token[Token["InKeyword"] = 1640798] = "InKeyword";
+    Token[Token["InstanceOfKeyword"] = 1640799] = "InstanceOfKeyword";
+    Token[Token["Plus"] = 623008] = "Plus";
+    Token[Token["Minus"] = 623009] = "Minus";
+    Token[Token["TypeofKeyword"] = 34850] = "TypeofKeyword";
+    Token[Token["VoidKeyword"] = 34851] = "VoidKeyword";
+    Token[Token["Asterisk"] = 1638884] = "Asterisk";
+    Token[Token["Percent"] = 1638885] = "Percent";
+    Token[Token["Slash"] = 1638886] = "Slash";
+    Token[Token["Equals"] = 1048615] = "Equals";
+    Token[Token["Exclamation"] = 32808] = "Exclamation";
+    Token[Token["TemplateTail"] = 540713] = "TemplateTail";
+    Token[Token["TemplateContinuation"] = 540714] = "TemplateContinuation";
+    Token[Token["OfKeyword"] = 1051179] = "OfKeyword";
+})(Token || (Token = {}));
+/** @internal */
+var Char;
+(function (Char) {
+    Char[Char["Null"] = 0] = "Null";
+    Char[Char["Backspace"] = 8] = "Backspace";
+    Char[Char["Tab"] = 9] = "Tab";
+    Char[Char["LineFeed"] = 10] = "LineFeed";
+    Char[Char["VerticalTab"] = 11] = "VerticalTab";
+    Char[Char["FormFeed"] = 12] = "FormFeed";
+    Char[Char["CarriageReturn"] = 13] = "CarriageReturn";
+    Char[Char["Space"] = 32] = "Space";
+    Char[Char["Exclamation"] = 33] = "Exclamation";
+    Char[Char["DoubleQuote"] = 34] = "DoubleQuote";
+    Char[Char["Dollar"] = 36] = "Dollar";
+    Char[Char["Percent"] = 37] = "Percent";
+    Char[Char["Ampersand"] = 38] = "Ampersand";
+    Char[Char["SingleQuote"] = 39] = "SingleQuote";
+    Char[Char["OpenParen"] = 40] = "OpenParen";
+    Char[Char["CloseParen"] = 41] = "CloseParen";
+    Char[Char["Asterisk"] = 42] = "Asterisk";
+    Char[Char["Plus"] = 43] = "Plus";
+    Char[Char["Comma"] = 44] = "Comma";
+    Char[Char["Minus"] = 45] = "Minus";
+    Char[Char["Dot"] = 46] = "Dot";
+    Char[Char["Slash"] = 47] = "Slash";
+    Char[Char["Semicolon"] = 59] = "Semicolon";
+    Char[Char["Backtick"] = 96] = "Backtick";
+    Char[Char["OpenBracket"] = 91] = "OpenBracket";
+    Char[Char["Backslash"] = 92] = "Backslash";
+    Char[Char["CloseBracket"] = 93] = "CloseBracket";
+    Char[Char["Caret"] = 94] = "Caret";
+    Char[Char["Underscore"] = 95] = "Underscore";
+    Char[Char["OpenBrace"] = 123] = "OpenBrace";
+    Char[Char["Bar"] = 124] = "Bar";
+    Char[Char["CloseBrace"] = 125] = "CloseBrace";
+    Char[Char["Colon"] = 58] = "Colon";
+    Char[Char["LessThan"] = 60] = "LessThan";
+    Char[Char["Equals"] = 61] = "Equals";
+    Char[Char["GreaterThan"] = 62] = "GreaterThan";
+    Char[Char["Question"] = 63] = "Question";
+    Char[Char["Zero"] = 48] = "Zero";
+    Char[Char["One"] = 49] = "One";
+    Char[Char["Two"] = 50] = "Two";
+    Char[Char["Three"] = 51] = "Three";
+    Char[Char["Four"] = 52] = "Four";
+    Char[Char["Five"] = 53] = "Five";
+    Char[Char["Six"] = 54] = "Six";
+    Char[Char["Seven"] = 55] = "Seven";
+    Char[Char["Eight"] = 56] = "Eight";
+    Char[Char["Nine"] = 57] = "Nine";
+    Char[Char["UpperA"] = 65] = "UpperA";
+    Char[Char["UpperB"] = 66] = "UpperB";
+    Char[Char["UpperC"] = 67] = "UpperC";
+    Char[Char["UpperD"] = 68] = "UpperD";
+    Char[Char["UpperE"] = 69] = "UpperE";
+    Char[Char["UpperF"] = 70] = "UpperF";
+    Char[Char["UpperG"] = 71] = "UpperG";
+    Char[Char["UpperH"] = 72] = "UpperH";
+    Char[Char["UpperI"] = 73] = "UpperI";
+    Char[Char["UpperJ"] = 74] = "UpperJ";
+    Char[Char["UpperK"] = 75] = "UpperK";
+    Char[Char["UpperL"] = 76] = "UpperL";
+    Char[Char["UpperM"] = 77] = "UpperM";
+    Char[Char["UpperN"] = 78] = "UpperN";
+    Char[Char["UpperO"] = 79] = "UpperO";
+    Char[Char["UpperP"] = 80] = "UpperP";
+    Char[Char["UpperQ"] = 81] = "UpperQ";
+    Char[Char["UpperR"] = 82] = "UpperR";
+    Char[Char["UpperS"] = 83] = "UpperS";
+    Char[Char["UpperT"] = 84] = "UpperT";
+    Char[Char["UpperU"] = 85] = "UpperU";
+    Char[Char["UpperV"] = 86] = "UpperV";
+    Char[Char["UpperW"] = 87] = "UpperW";
+    Char[Char["UpperX"] = 88] = "UpperX";
+    Char[Char["UpperY"] = 89] = "UpperY";
+    Char[Char["UpperZ"] = 90] = "UpperZ";
+    Char[Char["LowerA"] = 97] = "LowerA";
+    Char[Char["LowerB"] = 98] = "LowerB";
+    Char[Char["LowerC"] = 99] = "LowerC";
+    Char[Char["LowerD"] = 100] = "LowerD";
+    Char[Char["LowerE"] = 101] = "LowerE";
+    Char[Char["LowerF"] = 102] = "LowerF";
+    Char[Char["LowerG"] = 103] = "LowerG";
+    Char[Char["LowerH"] = 104] = "LowerH";
+    Char[Char["LowerI"] = 105] = "LowerI";
+    Char[Char["LowerJ"] = 106] = "LowerJ";
+    Char[Char["LowerK"] = 107] = "LowerK";
+    Char[Char["LowerL"] = 108] = "LowerL";
+    Char[Char["LowerM"] = 109] = "LowerM";
+    Char[Char["LowerN"] = 110] = "LowerN";
+    Char[Char["LowerO"] = 111] = "LowerO";
+    Char[Char["LowerP"] = 112] = "LowerP";
+    Char[Char["LowerQ"] = 113] = "LowerQ";
+    Char[Char["LowerR"] = 114] = "LowerR";
+    Char[Char["LowerS"] = 115] = "LowerS";
+    Char[Char["LowerT"] = 116] = "LowerT";
+    Char[Char["LowerU"] = 117] = "LowerU";
+    Char[Char["LowerV"] = 118] = "LowerV";
+    Char[Char["LowerW"] = 119] = "LowerW";
+    Char[Char["LowerX"] = 120] = "LowerX";
+    Char[Char["LowerY"] = 121] = "LowerY";
+    Char[Char["LowerZ"] = 122] = "LowerZ";
+})(Char || (Char = {}));
 
-const ParserRegistration = {
-    register(container) {
-        container.registerTransformer(IExpressionParser, parser => {
-            parser['parseCore'] = parseExpression;
-            return parser;
-        });
-    }
-};
+const { enter: enter$1, leave: leave$1 } = Profiler.createTimer('ExpressionParser');
 const $false = PrimitiveLiteral.$false;
 const $true = PrimitiveLiteral.$true;
 const $null = PrimitiveLiteral.$null;
@@ -617,6 +805,28 @@ class ParserState {
     }
 }
 const $state = new ParserState('');
+var SyntaxError;
+(function (SyntaxError) {
+    SyntaxError[SyntaxError["InvalidExpressionStart"] = 100] = "InvalidExpressionStart";
+    SyntaxError[SyntaxError["UnconsumedToken"] = 101] = "UnconsumedToken";
+    SyntaxError[SyntaxError["DoubleDot"] = 102] = "DoubleDot";
+    SyntaxError[SyntaxError["InvalidMemberExpression"] = 103] = "InvalidMemberExpression";
+    SyntaxError[SyntaxError["UnexpectedEndOfExpression"] = 104] = "UnexpectedEndOfExpression";
+    SyntaxError[SyntaxError["ExpectedIdentifier"] = 105] = "ExpectedIdentifier";
+    SyntaxError[SyntaxError["InvalidForDeclaration"] = 106] = "InvalidForDeclaration";
+    SyntaxError[SyntaxError["InvalidObjectLiteralPropertyDefinition"] = 107] = "InvalidObjectLiteralPropertyDefinition";
+    SyntaxError[SyntaxError["UnterminatedQuote"] = 108] = "UnterminatedQuote";
+    SyntaxError[SyntaxError["UnterminatedTemplate"] = 109] = "UnterminatedTemplate";
+    SyntaxError[SyntaxError["MissingExpectedToken"] = 110] = "MissingExpectedToken";
+    SyntaxError[SyntaxError["UnexpectedCharacter"] = 111] = "UnexpectedCharacter";
+    SyntaxError[SyntaxError["MissingValueConverter"] = 112] = "MissingValueConverter";
+    SyntaxError[SyntaxError["MissingBindingBehavior"] = 113] = "MissingBindingBehavior";
+})(SyntaxError || (SyntaxError = {}));
+var SemanticError;
+(function (SemanticError) {
+    SemanticError[SemanticError["NotAssignable"] = 150] = "NotAssignable";
+    SemanticError[SemanticError["UnexpectedForOf"] = 151] = "UnexpectedForOf";
+})(SemanticError || (SemanticError = {}));
 function parseExpression(input, bindingType) {
     $state.input = input;
     $state.length = input.length;
@@ -789,9 +999,10 @@ function parse(state, access, minPrecedence, bindingType) {
             // tslint:disable-next-line:no-any
             return parseForOfStatement(state, result);
         }
-        // tslint:disable-next-line:no-any
-        if (449 /* LeftHandSide */ < minPrecedence)
+        if (449 /* LeftHandSide */ < minPrecedence) {
+            // tslint:disable-next-line:no-any
             return result;
+        }
         /** parseMemberExpression (Token.Dot, Token.OpenBracket, Token.TemplateContinuation)
          * MemberExpression :
          *   1. PrimaryExpression
@@ -883,9 +1094,10 @@ function parse(state, access, minPrecedence, bindingType) {
             }
         }
     }
-    // tslint:disable-next-line:no-any
-    if (448 /* Binary */ < minPrecedence)
+    if (448 /* Binary */ < minPrecedence) {
+        // tslint:disable-next-line:no-any
         return result;
+    }
     /** parseBinaryExpression
      * https://tc39.github.io/ecma262/#sec-multiplicative-operators
      *
@@ -922,9 +1134,10 @@ function parse(state, access, minPrecedence, bindingType) {
         result = new Binary(TokenValues[opToken & 63 /* Type */], result, parse(state, access, opToken & 448 /* Precedence */, bindingType));
         state.assignable = false;
     }
-    // tslint:disable-next-line:no-any
-    if (63 /* Conditional */ < minPrecedence)
+    if (63 /* Conditional */ < minPrecedence) {
+        // tslint:disable-next-line:no-any
         return result;
+    }
     /**
      * parseConditionalExpression
      * https://tc39.github.io/ecma262/#prod-ConditionalExpression
@@ -942,9 +1155,10 @@ function parse(state, access, minPrecedence, bindingType) {
         result = new Conditional(result, yes, parse(state, access, 62 /* Assign */, bindingType));
         state.assignable = false;
     }
-    // tslint:disable-next-line:no-any
-    if (62 /* Assign */ < minPrecedence)
+    if (62 /* Assign */ < minPrecedence) {
+        // tslint:disable-next-line:no-any
         return result;
+    }
     /** parseAssignmentExpression
      * https://tc39.github.io/ecma262/#prod-AssignmentExpression
      * Note: AssignmentExpression here is equivalent to ES Expression because we don't parse the comma operator
@@ -962,9 +1176,10 @@ function parse(state, access, minPrecedence, bindingType) {
         }
         result = new Assign(result, parse(state, access, 62 /* Assign */, bindingType));
     }
-    // tslint:disable-next-line:no-any
-    if (61 /* Variadic */ < minPrecedence)
+    if (61 /* Variadic */ < minPrecedence) {
+        // tslint:disable-next-line:no-any
         return result;
+    }
     /** parseValueConverter
      */
     while (consumeOpt(state, 1572883 /* Bar */)) {
@@ -1529,27 +1744,86 @@ CharScanners[93 /* CloseBracket */] = returnToken(1835021 /* CloseBracket */);
 CharScanners[123 /* OpenBrace */] = returnToken(131079 /* OpenBrace */);
 CharScanners[125 /* CloseBrace */] = returnToken(1835017 /* CloseBrace */);
 
-const BasicBindingSyntax = [
-    DotSeparatedAttributePattern,
-    RefAttributePattern
-];
-const BasicBindingLanguage = [
-    CallBindingCommand,
-    DefaultBindingCommand,
-    ForBindingCommand,
-    FromViewBindingCommand,
-    OneTimeBindingCommand,
-    ToViewBindingCommand,
-    TwoWayBindingCommand
-];
-const JitConfiguration = {
+const IExpressionParserRegistration = {
     register(container) {
-        container.register(ParserRegistration, ...BasicBindingSyntax, ...BasicBindingLanguage);
+        container.registerTransformer(IExpressionParser, parser => {
+            parser['parseCore'] = parseExpression;
+            return parser;
+        });
+    }
+};
+/**
+ * Default runtime/environment-agnostic implementations for the following interfaces:
+ * - `IExpressionParser`
+ */
+const DefaultComponents = [
+    IExpressionParserRegistration
+];
+const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern;
+const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern;
+const RefAttributePatternRegistration = RefAttributePattern;
+const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern;
+/**
+ * Default binding syntax for the following attribute name patterns:
+ * - `ref`
+ * - `target.command` (dot-separated)
+ */
+const DefaultBindingSyntax = [
+    RefAttributePatternRegistration,
+    DotSeparatedAttributePatternRegistration
+];
+/**
+ * Binding syntax for short-hand attribute name patterns:
+ * - `@target` (short-hand for `target.trigger`)
+ * - `:target` (short-hand for `target.bind`)
+ */
+const ShortHandBindingSyntax = [
+    AtPrefixedTriggerAttributePatternRegistration,
+    ColonPrefixedBindAttributePatternRegistration
+];
+const CallBindingCommandRegistration = CallBindingCommand;
+const DefaultBindingCommandRegistration = DefaultBindingCommand;
+const ForBindingCommandRegistration = ForBindingCommand;
+const FromViewBindingCommandRegistration = FromViewBindingCommand;
+const OneTimeBindingCommandRegistration = OneTimeBindingCommand;
+const ToViewBindingCommandRegistration = ToViewBindingCommand;
+const TwoWayBindingCommandRegistration = TwoWayBindingCommand;
+/**
+ * Default runtime/environment-agnostic binding commands:
+ * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
+ * - Function call: `.call`
+ * - Collection observation: `.for`
+ */
+const DefaultBindingLanguage = [
+    DefaultBindingCommandRegistration,
+    OneTimeBindingCommandRegistration,
+    FromViewBindingCommandRegistration,
+    ToViewBindingCommandRegistration,
+    TwoWayBindingCommandRegistration,
+    CallBindingCommandRegistration,
+    ForBindingCommandRegistration
+];
+/**
+ * A DI configuration object containing runtime/environment-agnostic registrations:
+ * - `BasicConfiguration` from `@aurelia/runtime`
+ * - `DefaultComponents`
+ * - `DefaultBindingSyntax`
+ * - `DefaultBindingLanguage`
+ */
+const BasicConfiguration$1 = {
+    /**
+     * Apply this configuration to the provided container.
+     */
+    register(container) {
+        return BasicConfiguration
+            .register(container)
+            .register(...DefaultComponents, ...DefaultBindingSyntax, ...DefaultBindingLanguage);
     },
+    /**
+     * Create a new container with this configuration applied to it.
+     */
     createContainer() {
-        const container = DI.createContainer();
-        container.register(JitConfiguration);
-        return container;
+        return this.register(DI.createContainer());
     }
 };
 
@@ -1736,6 +2010,25 @@ class AttrInfo {
     }
 }
 
+var SymbolFlags;
+(function (SymbolFlags) {
+    SymbolFlags[SymbolFlags["type"] = 511] = "type";
+    SymbolFlags[SymbolFlags["isTemplateController"] = 1] = "isTemplateController";
+    SymbolFlags[SymbolFlags["isReplacePart"] = 2] = "isReplacePart";
+    SymbolFlags[SymbolFlags["isCustomAttribute"] = 4] = "isCustomAttribute";
+    SymbolFlags[SymbolFlags["isPlainAttribute"] = 8] = "isPlainAttribute";
+    SymbolFlags[SymbolFlags["isCustomElement"] = 16] = "isCustomElement";
+    SymbolFlags[SymbolFlags["isLetElement"] = 32] = "isLetElement";
+    SymbolFlags[SymbolFlags["isPlainElement"] = 64] = "isPlainElement";
+    SymbolFlags[SymbolFlags["isText"] = 128] = "isText";
+    SymbolFlags[SymbolFlags["isBinding"] = 256] = "isBinding";
+    SymbolFlags[SymbolFlags["hasMarker"] = 512] = "hasMarker";
+    SymbolFlags[SymbolFlags["hasTemplate"] = 1024] = "hasTemplate";
+    SymbolFlags[SymbolFlags["hasAttributes"] = 2048] = "hasAttributes";
+    SymbolFlags[SymbolFlags["hasBindings"] = 4096] = "hasBindings";
+    SymbolFlags[SymbolFlags["hasChildNodes"] = 8192] = "hasChildNodes";
+    SymbolFlags[SymbolFlags["hasParts"] = 16384] = "hasParts";
+})(SymbolFlags || (SymbolFlags = {}));
 function createMarker(dom) {
     const marker = dom.createElement('au-m');
     dom.makeTarget(marker);
@@ -1940,5 +2233,5 @@ class TextSymbol {
     }
 }
 
-export { AttrSyntax, IAttributeParser, AtPrefixedTriggerAttributePattern, attributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, IAttributePattern, Interpretation, ISyntaxInterpreter, RefAttributePattern, bindingCommand, BindingCommandResource, CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, getMode, getTarget, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, JitConfiguration, ParserRegistration, parseExpression, ResourceModel, BindableInfo, ElementInfo, AttrInfo, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, ReplacePartSymbol, TemplateControllerSymbol, TextSymbol };
+export { AttrSyntax, IAttributeParser, AtPrefixedTriggerAttributePattern, attributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, IAttributePattern, Interpretation, ISyntaxInterpreter, RefAttributePattern, bindingCommand, BindingCommandResource, CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, getMode, getTarget, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, IExpressionParserRegistration, DefaultComponents, RefAttributePatternRegistration, DotSeparatedAttributePatternRegistration, DefaultBindingSyntax, AtPrefixedTriggerAttributePatternRegistration, ColonPrefixedBindAttributePatternRegistration, ShortHandBindingSyntax, CallBindingCommandRegistration, DefaultBindingCommandRegistration, ForBindingCommandRegistration, FromViewBindingCommandRegistration, OneTimeBindingCommandRegistration, ToViewBindingCommandRegistration, TwoWayBindingCommandRegistration, DefaultBindingLanguage, BasicConfiguration$1 as BasicConfiguration, parseExpression, ResourceModel, BindableInfo, ElementInfo, AttrInfo, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, ReplacePartSymbol, SymbolFlags, TemplateControllerSymbol, TextSymbol };
 //# sourceMappingURL=index.es6.js.map

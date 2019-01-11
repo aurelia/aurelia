@@ -48,7 +48,6 @@ export interface IRouteSeparators {
 export class Router {
   public static readonly inject: ReadonlyArray<Function> = [IContainer];
 
-  public routes: IRoute[] = [];
   public viewports: Record<string, Viewport> = {};
 
   public rootScope: Scope;
@@ -185,26 +184,9 @@ export class Router {
     instruction.parameters = parsedQuery.parameters;
     instruction.parameterList = parsedQuery.list;
 
-    let title;
-    let views: Record<string, string>;
-    let route: IRoute = this.findRoute(instruction);
-    if (route) {
-      if (route.redirect) {
-        route = this.resolveRedirect(route, instruction.data);
-        this.isRedirecting = true;
-        this.historyBrowser.redirect(route.path, route.title, instruction.data);
-        this.processingNavigation = null;
-        return Promise.resolve();
-      }
-
-      if (route.title) {
-        title = route.title;
-      }
-
-      views = route.viewports;
-    } else {
-      views = this.findViews(path);
-    }
+    // TODO: Fetch title (probably when done)
+    const title = null;
+    const views: Record<string, string> = this.findViews(path);
 
     if (!views && !Object.keys(views).length && !clearViewports) {
       this.processingNavigation = null;
@@ -373,25 +355,6 @@ export class Router {
   //     });
   // }
 
-  public findRoute(entry: IHistoryEntry): IRoute {
-    return this.routes.find((value) => value.path === entry.path);
-  }
-  public resolveRedirect(route: IRoute, data?: Record<string, unknown>): IRoute {
-    while (route.redirect) {
-      const redirectRoute: IRoute = this.findRoute({
-        path: route.redirect,
-        fullStatePath: null, // TODO: This might not be right
-        data: data,
-      });
-      if (redirectRoute) {
-        route = redirectRoute;
-      } else {
-        break;
-      }
-    }
-    return route;
-  }
-
   public findViews(path: string): Record<string, string> {
     const views: Record<string, string> = {};
     // TODO: Let this govern start of scope
@@ -462,10 +425,6 @@ export class Router {
         this.scopes.splice(index, 1);
       }
     }
-  }
-
-  public addRoute(route: IRoute): void {
-    this.routes.push(route);
   }
 
   public goto(pathOrViewports: string | Object, title?: string, data?: Record<string, unknown>): void {

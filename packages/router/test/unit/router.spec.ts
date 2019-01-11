@@ -6,14 +6,19 @@ import { IComponentViewportParameters, Router, ViewportCustomElement } from '../
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
 
 describe('Router', () => {
-  it('can be created', function () {
+  it('can be created', async function () {
     this.timeout(30000);
-    const sut = new Router(null);
+    const { host, router } = await setup();
+    await waitForNavigation(router);
+
+    await teardown(host, router, 1);
   });
 
-  it('handles state strings', function () {
-    const router = new Router(null);
-    router.activate();
+  it('handles state strings', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+    await waitForNavigation(router);
+
     let states: IComponentViewportParameters[] = [
       { component: 'foo', viewport: 'left', parameters: { id: '123' } },
       { component: 'bar', viewport: 'right', parameters: { id: '456' } },
@@ -33,11 +38,14 @@ describe('Router', () => {
     expect(stateString).to.equal('foo=123+bar@right+baz');
     stringStates = router.statesFromString(stateString);
     expect(stringStates).to.deep.equal(states);
+
+    await teardown(host, router, 1);
   });
 
   it('loads viewports left and right', async function () {
     this.timeout(30000);
     const { host, router } = await setup();
+    await waitForNavigation(router);
     expect(host.textContent).to.contain('left');
     expect(host.textContent).to.contain('right');
     await teardown(host, router, -1);
@@ -510,6 +518,12 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   container.register(ViewportCustomElement as any);
   container.register(Foo, Bar, Baz, Qux, Quux, Corge);
 
+  const router = container.get(Router);
+  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
+  mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
+  router.historyBrowser.history = mockBrowserHistoryLocation as any;
+  router.historyBrowser.location = mockBrowserHistoryLocation as any;
+
   const host = document.createElement('div');
   document.body.appendChild(host as any);
 
@@ -518,11 +532,6 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   .app({ host: host, component: App })
   .start();
 
-  const router = container.get(Router);
-  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-  router.historyBrowser.history = mockBrowserHistoryLocation as any;
-  router.historyBrowser.location = mockBrowserHistoryLocation as any;
   router.activate();
   await Promise.resolve();
   return { au, container, host, router };

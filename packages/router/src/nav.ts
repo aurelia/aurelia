@@ -9,7 +9,7 @@ export interface INavRoute {
   consideredActive?: string | ICustomElementType | Object;
   link?: string;
   title: string;
-  children?: NavRoute[];
+  children?: INavRoute[];
   meta?: Object;
 }
 

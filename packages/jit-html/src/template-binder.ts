@@ -19,7 +19,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from '@aurelia/jit';
-import { PLATFORM, Tracer } from '@aurelia/kernel';
+import { PLATFORM, Profiler, Tracer } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
@@ -29,6 +29,8 @@ import {
 import { NodeType } from '@aurelia/runtime-html';
 
 const slice = Array.prototype.slice;
+
+const { enter, leave } = Profiler.createTimer('TemplateBinder');
 
 const invalidSurrogateAttribute = {
   'id': true,
@@ -78,6 +80,7 @@ export class TemplateBinder {
 
   public bind(node: HTMLTemplateElement): PlainElementSymbol {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder.bind', slice.call(arguments)); }
+    if (Profiler.enabled) { enter(); }
 
     const surrogateSave = this.surrogate;
     const parentManifestRootSave = this.parentManifestRoot;
@@ -93,6 +96,7 @@ export class TemplateBinder {
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
 
       if (invalidSurrogateAttribute[attrSyntax.target] === true) {
+        if (Profiler.enabled) { leave(); }
         throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
         // TODO: use reporter
       }
@@ -100,6 +104,7 @@ export class TemplateBinder {
       if (attrInfo === null) {
         this.bindPlainAttribute(attrSyntax);
       } else if (attrInfo.isTemplateController) {
+        if (Profiler.enabled) { leave(); }
         throw new Error('Cannot have template controller on surrogate element.');
         // TODO: use reporter
       } else {
@@ -115,6 +120,7 @@ export class TemplateBinder {
     this.manifestRoot = manifestRootSave;
     this.manifest = manifestSave;
 
+    if (Profiler.enabled) { leave(); }
     if (Tracer.enabled) { Tracer.leave(); }
     return manifest;
   }

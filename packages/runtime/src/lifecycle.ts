@@ -809,6 +809,10 @@ export class Lifecycle implements ILifecycle {
     this.task = null;
   }
 
+  public static register(container: IContainer): IResolver<ILifecycle> {
+    return Registration.singleton(ILifecycle, this).register(container);
+  }
+
   public registerTask(task: ILifecycleTask): void {
     if (this.task === null) {
       this.task = new AggregateLifecycleTask();

@@ -17,7 +17,8 @@ import {
   $functionExpr,
   $param,
   $property,
-  emit
+  emit,
+  $id
 } from './util';
 
 function outFile(suffix: string): string {
@@ -873,19 +874,30 @@ function generateAndEmit(): void {
     const tests = testsRecord[suffix];
     const nodes = [
       $$import('chai', 'expect'),
-      $$import('../../../runtime/src/index', 'CustomElementResource', 'Aurelia'),
-      $$import('../../src/index', 'HTMLJitConfiguration'),
-      $$import('../util', 'getVisibleText'),
+      $$import('@aurelia/runtime', 'CustomElementResource', 'Aurelia'),
+      $$import('@aurelia/kernel', 'Profiler'),
+      $$import('../util', 'getVisibleText', 'TestContext', 'writeProfilerReport'),
       null,
       $$functionExpr('describe', [
         $expression(`generated.template-compiler.${suffix}`),
         $functionExpr([
+          $$functionExpr('before', [
+            $functionExpr([
+              $$call('Profiler.enable')
+            ])
+          ]),
+          $$functionExpr('after', [
+            $functionExpr([
+              $$call('Profiler.disable'),
+              $$call('writeProfilerReport', [$expression(suffix)])
+            ])
+          ]),
           $$functionDecl(
             'setup',
             [
-              $$const('container', $call('HTMLJitConfiguration.createContainer')),
-              $$new('au', 'Aurelia', ['container']),
-              $$const('host', $call('document.createElement', [$expression('div')])),
+              $$const('ctx', $call('TestContext.createHTMLTestContext')),
+              $$new('au', 'Aurelia', ['ctx.container']),
+              $$const('host', $call('ctx.createElement', [$expression('div')])),
               $$return({ au: 'au', host: 'host' })
             ],
             []

@@ -5,6 +5,8 @@
     "packages/debug",
     "packages/jit",
     "packages/jit-html",
+    "packages/jit-html-browser",
+    "packages/jit-html-jsdom",
     "packages/jit-pixi",
     "packages/kernel",
     "packages/plugin-parcel",
@@ -14,6 +16,8 @@
     "packages/router",
     "packages/runtime",
     "packages/runtime-html",
+    "packages/runtime-html-browser",
+    "packages/runtime-html-jsdom",
     "packages/runtime-pixi",
     "packages/testing",
     "packages/validation"

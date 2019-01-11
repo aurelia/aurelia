@@ -1,4 +1,4 @@
-import { DI, Primitive, Reporter } from '@aurelia/kernel';
+import { DI, IContainer, IResolver, Primitive, Registration, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
@@ -85,6 +85,10 @@ export class ObserverLocator implements IObserverLocator {
     this.lifecycle = lifecycle;
     this.targetObserverLocator = targetObserverLocator;
     this.targetAccessorLocator = targetAccessorLocator;
+  }
+
+  public static register(container: IContainer): IResolver<IObserverLocator> {
+    return Registration.singleton(IObserverLocator, this).register(container);
   }
 
   public getObserver(obj: unknown, propertyName: string): AccessorOrObserver {

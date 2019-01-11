@@ -1,12 +1,16 @@
+import { IContainer, Registration } from '@aurelia/kernel';
 import {
-  CustomElementResource,
-  ICustomElement,
+  IDOM,
+  ILifecycle,
+  IObserverLocator,
+  IProjectorLocator,
+  IRenderer,
+  IRenderingEngine,
   IScope,
-  ITemplateDefinition,
   OverrideContext,
-  Scope
+  Scope,
+  State
 } from '@aurelia/runtime';
-import { expect } from 'chai';
 import { spy } from 'sinon';
 import {
   _,
@@ -24,10 +28,11 @@ import {
   stringify,
   verifyEqual
 } from '../../../scripts/test-lib';
+import { h } from '../../../scripts/test-lib-dom';
 import {
-  createElement,
-  h
-} from '../../../scripts/test-lib-dom';
+  BasicConfiguration,
+  HTMLDOM
+} from '../src/index';
 
 /**
  * Object describing a test fixture
@@ -48,189 +53,6 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
     return Scope.create(bindingContext, OverrideContext.create(bindingContext, OverrideContext.create(parentBindingContext, null)));
   }
   return Scope.create(bindingContext, OverrideContext.create(bindingContext, null));
-}
-
-function countSubscribers(observer: any): number {
-  let count = 0;
-  if (observer._context0) {
-    count++;
-  }
-  if (observer._context1) {
-    count++;
-  }
-  if (observer._context2) {
-    count++;
-  }
-  if (observer._contextsRest) {
-    count += observer._contextsRest.length;
-  }
-  return count;
-}
-
-export function executeSharedPropertyObserverTests(observer: any, done: Function): void {
-  const context = 'test-context';
-  let callable0: any = { call: spy() };
-  const callable1 = { call: spy() };
-  const callable2 = { call: spy() };
-  const callable3 = { call: spy() };
-  const callable4 = { call: spy() };
-  const callable5 = { call: spy() };
-  let oldValue;
-  let newValue;
-  const values = ['alkjdfs', 0, false, {}, [], null, undefined, 'foo'];
-  let next;
-  spy(observer, 'addSubscriber');
-  spy(observer, 'removeSubscriber');
-  // hasSubscribers, hasSubscriber
-  expect(observer.hasSubscribers()).to.equal(false);
-  expect(observer.hasSubscriber(context, callable0)).to.equal(false);
-  observer.subscribe(context, callable0);
-  expect(observer.addSubscriber).to.have.been.calledWith(context, callable0);
-  expect(countSubscribers(observer)).to.equal(1);
-  expect(observer.hasSubscribers()).to.equal(true);
-  expect(observer.hasSubscriber(context, callable0)).to.equal(true);
-  // doesn't allow multiple subscribe
-  observer.subscribe(context, callable0);
-  expect(observer.addSubscriber).to.have.been.calledWith(context, callable0);
-  expect(countSubscribers(observer)).to.equal(1);
-  // doesn't allow multiple unsubscribe
-  observer.unsubscribe(context, callable0);
-  expect(observer.removeSubscriber).to.have.been.calledWith(context, callable0);
-  expect(countSubscribers(observer)).to.equal(0);
-  observer.unsubscribe(context, callable0);
-  expect(observer.removeSubscriber).to.have.been.calledWith(context, callable0);
-  expect(countSubscribers(observer)).to.equal(0);
-
-  // overflows into "rest" array
-  observer.subscribe(context, callable0);
-  expect(observer._callable0).to.equal(callable0);
-  expect(countSubscribers(observer)).to.equal(1);
-  expect(observer.hasSubscribers()).to.equal(true);
-  expect(observer.hasSubscriber(context, callable0)).to.equal(true);
-
-  observer.subscribe(context, callable1);
-  expect(observer._callable1).to.equal(callable1);
-  expect(countSubscribers(observer)).to.equal(2);
-  expect(observer.hasSubscribers()).to.equal(true);
-  expect(observer.hasSubscriber(context, callable1)).to.equal(true);
-
-  observer.subscribe(context, callable2);
-  expect(observer._callable2).to.equal(callable2);
-  expect(countSubscribers(observer)).to.equal(3);
-  expect(observer.hasSubscribers()).to.equal(true);
-  expect(observer.hasSubscriber(context, callable2)).to.equal(true);
-
-  observer.subscribe(context, callable3);
-  expect(observer._callablesRest[0]).to.equal(callable3);
-  expect(countSubscribers(observer)).to.equal(4);
-  expect(observer.hasSubscribers()).to.equal(true);
-  expect(observer.hasSubscriber(context, callable3)).to.equal(true);
-
-  observer.subscribe(context, callable4);
-  expect(observer._callablesRest[1]).to.equal(callable4);
-  expect(countSubscribers(observer)).to.equal(5);
-  expect(observer.hasSubscribers()).to.equal(true);
-  expect(observer.hasSubscriber(context, callable4)).to.equal(true);
-
-  observer.subscribe(context, callable5);
-  expect(observer._callablesRest[2]).to.equal(callable5);
-  expect(countSubscribers(observer)).to.equal(6);
-  expect(observer.hasSubscribers()).to.equal(true);
-  expect(observer.hasSubscriber(context, callable5)).to.equal(true);
-
-  // reuses empty slots
-  observer.unsubscribe(context, callable2);
-  expect(observer._callable2).to.equal(null);
-  expect(countSubscribers(observer)).to.equal(5);
-  expect(observer.hasSubscribers()).to.equal(true);
-  expect(observer.hasSubscriber(context, callable2)).to.equal(false);
-
-  observer.subscribe(context, callable2);
-  expect(observer._callable2).to.equal(callable2);
-  expect(countSubscribers(observer)).to.equal(6);
-  expect(observer.hasSubscribers()).to.equal(true);
-  expect(observer.hasSubscriber(context, callable2)).to.equal(true);
-
-  // handles unsubscribe during callable0
-  let unsubscribeDuringCallbackTested = false;
-  observer.unsubscribe(context, callable0);
-  callable0 = {
-    call: (_context: any, _newValue: any, _oldValue: any): void => {
-      observer.unsubscribe(_context, callable1);
-      observer.unsubscribe(_context, callable2);
-      observer.unsubscribe(_context, callable3);
-      observer.unsubscribe(_context, callable4);
-      observer.unsubscribe(_context, callable5);
-    }
-  };
-  spy(callable0, 'call');
-  observer.subscribe(context, callable0);
-
-  next = () => {
-    if (values.length) {
-      oldValue = observer.getValue();
-      newValue = values.splice(0, 1)[0];
-      observer.setValue(newValue);
-      setTimeout(() => {
-        expect(callable0.call).to.have.been.calledWith(context, newValue, oldValue);
-        if (!unsubscribeDuringCallbackTested) {
-          unsubscribeDuringCallbackTested = true;
-          expect(callable1.call).to.have.been.calledWith(context, newValue, oldValue);
-          expect(callable2.call).to.have.been.calledWith(context, newValue, oldValue);
-          expect(callable3.call).to.have.been.calledWith(context, newValue, oldValue);
-          expect(callable4.call).to.have.been.calledWith(context, newValue, oldValue);
-          expect(callable5.call).to.have.been.calledWith(context, newValue, oldValue);
-        }
-        next();
-      },         checkDelay * 2);
-    } else {
-      observer.unsubscribe(context, callable0);
-      (callable0.call as any).resetHistory();
-      observer.setValue('bar');
-      setTimeout(() => {
-        expect(callable0.call).not.to.have.been.called;
-        expect(observer._callable0).to.equal(null);
-        expect(observer._callable1).to.equal(null);
-        expect(observer._callable2).to.equal(null);
-        expect(observer._callablesRest.length).to.equal(0);
-        done();
-      },         checkDelay * 2);
-    }
-  };
-
-  next();
-}
-
-/**
- * Increment the specified (numeric) values (or properties) by the specified number
- */
-export function incrementItems(items: any[], by: number, fixture?: IRepeaterFixture): void {
-  let i = 0;
-  const len = items.length;
-  if (fixture) {
-    const prop = fixture.propName;
-    while (i < len) {
-      items[i][prop] += by;
-      i++;
-    }
-  } else {
-    while (i < len) {
-      items[i] += by;
-      i++;
-    }
-  }
-}
-
-/**
- * Create a customElement based on the provided fixture
- *
- * (currently specific to repeater)
- */
-export function createRepeater(fixture: IRepeaterFixture, initialItems: any[], def: ITemplateDefinition): ICustomElement {
-  const Type = CustomElementResource.define(def, class {});
-  const component = new Type();
-  component[fixture.colName] = initialItems;
-  return component as ICustomElement;
 }
 
 export class SpySubscriber {
@@ -344,10 +166,209 @@ export const globalAttributeNames = [
   'onwaiting'
 ];
 
+export class HTMLTestContext {
+  public readonly wnd: Window;
+  public readonly doc: Document;
+  public readonly dom: HTMLDOM;
+
+  public readonly UIEvent: typeof UIEvent;
+  public readonly Event: typeof Event;
+  public readonly CustomEvent: typeof CustomEvent;
+  public readonly Node: typeof Node;
+  public readonly Element: typeof Element;
+  public readonly HTMLElement: typeof HTMLElement;
+  public readonly HTMLDivElement: typeof HTMLDivElement;
+  public readonly Text: typeof Text;
+  public readonly Comment: typeof Comment;
+
+  public get container(): IContainer {
+    if (this._container === null) {
+      this._container = BasicConfiguration.createContainer();
+      Registration.instance(IDOM, this.dom).register(this._container);
+      Registration.instance(HTMLTestContext, this).register(this._container);
+    }
+    return this._container;
+  }
+  public get observerLocator(): IObserverLocator {
+    if (this._observerLocator === null) {
+      this._observerLocator = this.container.get(IObserverLocator);
+    }
+    return this._observerLocator;
+  }
+  public get lifecycle(): ILifecycle & { flushCount?: number } {
+    if (this._lifecycle === null) {
+      this._lifecycle = this.container.get(ILifecycle);
+    }
+    return this._lifecycle;
+  }
+  public get renderer(): IRenderer {
+    if (this._renderer === null) {
+      this._renderer = this.container.get(IRenderer);
+    }
+    return this._renderer;
+  }
+  public get projectorLocator(): IProjectorLocator {
+    if (this._projectorLocator === null) {
+      this._projectorLocator = this.container.get(IProjectorLocator);
+    }
+    return this._projectorLocator;
+  }
+  public get renderingEngine(): IRenderingEngine {
+    if (this._renderingEngine === null) {
+      this._renderingEngine = this.container.get(IRenderingEngine);
+    }
+    return this._renderingEngine;
+  }
+
+  private _container: IContainer;
+  private _observerLocator: IObserverLocator;
+  private _lifecycle: ILifecycle;
+  private _renderer: IRenderer;
+  private _projectorLocator: IProjectorLocator;
+  private _renderingEngine: IRenderingEngine;
+  private readonly domParser: HTMLDivElement;
+
+  private constructor(
+    wnd: Window,
+    UIEventType: typeof UIEvent,
+    EventType: typeof Event,
+    CustomEventType: typeof CustomEvent,
+    NodeType: typeof Node,
+    ElementType: typeof Element,
+    HTMLElementType: typeof HTMLElement,
+    HTMLDivElementType: typeof HTMLDivElement,
+    TextType: typeof Text,
+    CommentType: typeof Comment
+  ) {
+    this.wnd = wnd;
+    this.UIEvent = UIEventType;
+    this.Event = EventType;
+    this.CustomEvent = CustomEventType;
+    this.Node = NodeType;
+    this.Element = ElementType;
+    this.HTMLElement = HTMLElementType;
+    this.HTMLDivElement = HTMLDivElementType;
+    this.Text = TextType;
+    this.Comment = CommentType;
+    this.doc = wnd.document;
+    this.domParser = this.doc.createElement('div');
+    this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType);
+    this._container = null;
+    this._observerLocator = null;
+    this._lifecycle = null;
+    this._renderer = null;
+    this._projectorLocator = null;
+    this._renderingEngine = null;
+  }
+
+  public static create(
+    wnd: Window,
+    UIEventType: typeof UIEvent,
+    EventType: typeof Event,
+    CustomEventType: typeof CustomEvent,
+    NodeType: typeof Node,
+    ElementType: typeof Element,
+    HTMLElementType: typeof HTMLElement,
+    HTMLDivElementType: typeof HTMLDivElement,
+    TextType: typeof Text,
+    CommentType: typeof Comment
+  ): HTMLTestContext {
+    return new HTMLTestContext(
+      wnd,
+      UIEventType,
+      EventType,
+      CustomEventType,
+      NodeType,
+      ElementType,
+      HTMLElementType,
+      HTMLDivElementType,
+      TextType,
+      CommentType
+    );
+  }
+
+  public createElementFromMarkup(markup: string): HTMLElement {
+    this.domParser.innerHTML = markup;
+    return this.domParser.firstElementChild as HTMLElement;
+  }
+
+  public createElement(name: string): HTMLElement {
+    return this.doc.createElement(name);
+  }
+}
+
+export const TestContext = {
+  createHTMLTestContext(): HTMLTestContext {
+    throw new Error('No createHTMLTestContext function has been provided');
+  },
+  // these are just needed by observer-locator.spec.ts to get the property descriptors from
+  // the prototype chain
+  Node: null as typeof Node,
+  Element: null as typeof Element,
+  HTMLElement: null as typeof HTMLElement,
+  HTMLDivElement: null as typeof HTMLDivElement
+};
+
+export function addChaiAsserts_$state(_chai, utils) {
+  const Assertion = _chai['Assertion'];
+
+  Assertion.addProperty('$state');
+  function getStateFlagName(state) {
+    if (state === 0) return 'none';
+    const names = [];
+    if (state & State.isBinding) names.push('isBinding');
+    if (state & State.isBound) names.push('isBound');
+    if (state & State.isAttaching) names.push('isAttaching');
+    if (state & State.isAttached) names.push('isAttached');
+    if (state & State.isMounted) names.push('isMounted');
+    if (state & State.isDetaching) names.push('isDetaching');
+    if (state & State.isUnbinding) names.push('isUnbinding');
+    if (state & State.isCached) names.push('isCached');
+    return names.join('|');
+  }
+
+  for (const stateFlag of [
+    State.none,
+    State.isBinding,
+    State.isBound,
+    State.isAttaching,
+    State.isAttached,
+    State.isMounted,
+    State.isDetaching,
+    State.isUnbinding,
+    State.isCached,
+  ]) {
+    const flagName = getStateFlagName(stateFlag);
+    Assertion.addChainableMethod(
+      flagName,
+      function(msg) {
+        msg = msg === undefined ? '' : msg + ' - ';
+        const state = this._obj['$state'];
+        let currentFlag = stateFlag;
+        if (utils.flag(this, 'isBinding')) currentFlag |= State.isBinding;
+        if (utils.flag(this, 'isBound')) currentFlag |= State.isBound;
+        if (utils.flag(this, 'isAttaching')) currentFlag |= State.isAttaching;
+        if (utils.flag(this, 'isAttached')) currentFlag |= State.isAttached;
+        if (utils.flag(this, 'isMounted')) currentFlag |= State.isMounted;
+        if (utils.flag(this, 'isDetaching')) currentFlag |= State.isDetaching;
+        if (utils.flag(this, 'isUnbinding')) currentFlag |= State.isUnbinding;
+        if (utils.flag(this, 'isCached')) currentFlag |= State.isCached;
+
+        this.assert(
+          (state & currentFlag) === currentFlag,
+          `${msg}expected $state to have flags [${getStateFlagName(currentFlag)}], but got [${getStateFlagName(state)}]`,
+          `${msg}expected $state to NOT have flags [${getStateFlagName(currentFlag)}], but got [${getStateFlagName(state)}]`);
+      },
+      function() {
+        utils.flag(this, flagName, true);
+      }
+    );
+  }
+}
+
 export {
   _,
   h,
-  createElement,
   stringify,
   jsonStringify,
   htmlStringify,

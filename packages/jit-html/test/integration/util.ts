@@ -1,17 +1,13 @@
 import {
   Constructable,
   IRegistry,
-  PLATFORM,
-  Registration
+  PLATFORM
 } from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElementResource,
-  IDOM,
-  ILifecycle,
-  IObserverLocator
+  ILifecycle
 } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import {
   _,
@@ -28,15 +24,11 @@ import {
   stringify,
   verifyEqual
 } from '../../../../scripts/test-lib';
-import {
-  createElement,
-  h
-} from '../../../../scripts/test-lib-dom';
-import { HTMLJitConfiguration } from '../../src/index';
-import { TestConfiguration } from './resources';
+import { h } from '../../../../scripts/test-lib-dom';
+import { HTMLTestContext, TestContext } from '../util';
 
-export function cleanup(): void {
-  const body = document.body;
+export function cleanup(ctx: HTMLTestContext): void {
+  const body = ctx.doc.body;
   let current = body.firstElementChild;
   while (current !== null) {
     const next = current.nextElementSibling;
@@ -47,50 +39,19 @@ export function cleanup(): void {
   }
 }
 
-const buildRequired = { required: true, compiler: 'default' };
-
-export function defineCustomElement<T>(name: string, markupOrNode: string | HTMLElement, $class: Constructable<T>, dependencies: ReadonlyArray<any> = PLATFORM.emptyArray) {
-  return CustomElementResource.define(
-    {
-      name,
-      template: markupOrNode,
-      dependencies: dependencies.slice() as unknown as IRegistry[],
-      build: buildRequired
-    },
-    $class === null ? class { } : $class
-  );
-}
-
-export function createCustomElement(markupOrNode: string | HTMLElement, $class: Constructable | null, dependencies: ReadonlyArray<any> = PLATFORM.emptyArray): { [key: string]: any } {
-  const App = CustomElementResource.define(
-    {
-      name: 'app',
-      template: markupOrNode,
-      dependencies: dependencies.slice() as unknown as IRegistry[],
-      build: buildRequired
-    },
-    $class === null ? class { } : $class
-  );
-  return new App();
-}
-
-export function setup(template: string, $class: Constructable | null, ...registrations: any[]) {
-  const container = HTMLJitConfiguration.createContainer();
-  container.register(TestConfiguration, ...registrations);
-  const dom = new HTMLDOM(document);
-  Registration.instance(IDOM, dom).register(container, IDOM);
-
-  const lifecycle = container.get(ILifecycle);
-  const observerLocator = container.get(IObserverLocator);
-  const host = document.createElement('app');
+export function setup(ctx: HTMLTestContext, template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  const { container, lifecycle, observerLocator } = ctx;
+  container.register(...registrations);
+  const host = ctx.createElement('app');
   const au = new Aurelia(container);
-  const component = createCustomElement(template, $class);
+  const App = CustomElementResource.define({ name: 'app', template }, $class);
+  const component = new App();
 
   return { container, lifecycle, host, au, component, observerLocator };
 }
 
-export function setupAndStart(template: string, $class: Constructable | null, ...registrations: any[]) {
-  const { container, lifecycle, host, au, component, observerLocator } = setup(template, $class, ...registrations);
+export function setupAndStart(ctx: HTMLTestContext, template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  const { container, lifecycle, host, au, component, observerLocator } = setup(ctx, template, $class, ...registrations);
 
   au.app({ host, component });
   au.start();
@@ -98,14 +59,14 @@ export function setupAndStart(template: string, $class: Constructable | null, ..
   return { container, lifecycle, host, au, component, observerLocator };
 }
 
-export function setupWithDocument(template: string, $class: Constructable | null, ...registrations: any[]) {
-  const { container, lifecycle, host, au, component, observerLocator } = setup(template, $class, ...registrations);
-  document.body.appendChild(host);
+export function setupWithDocument(ctx: HTMLTestContext, template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  const { container, lifecycle, host, au, component, observerLocator } = setup(ctx, template, $class, ...registrations);
+  ctx.doc.body.appendChild(host);
   return { container, lifecycle, host, au, component, observerLocator };
 }
 
-export function setupWithDocumentAndStart(template: string, $class: Constructable | null, ...registrations: any[]) {
-  const { container, lifecycle, host, au, component, observerLocator } = setupWithDocument(template, $class, ...registrations);
+export function setupWithDocumentAndStart(ctx: HTMLTestContext, template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  const { container, lifecycle, host, au, component, observerLocator } = setupWithDocument(ctx, template, $class, ...registrations);
 
   au.app({ host, component });
   au.start();
@@ -124,4 +85,4 @@ export function trimFull(text: string) {
   return text.replace(reg, '');
 }
 
-export { _, h, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };
+export { _, h, stringify, jsonStringify, htmlStringify, verifyEqual, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };

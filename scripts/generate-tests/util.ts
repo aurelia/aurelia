@@ -291,15 +291,17 @@ export function $method(name: string, statements: Statement[], params?: Paramete
 export function $class(elements: ReadonlyArray<ClassElement>): ClassExpression {
   return createClassExpression([], undefined, [], [], elements);
 }
-export function $functionExpr(statements: Statement[]): Expression {
+export function $functionExpr(parameters: ParameterDeclaration[], statements: Statement[]): Expression;
+export function $functionExpr(statements: Statement[]): Expression;
+export function $functionExpr(statementsOrParameters: Statement[] | ParameterDeclaration[], statements?: Statement[]): Expression {
   return createFunctionExpression(
     [],
     undefined,
     undefined,
     [],
-    [],
+    arguments.length === 1 ? [] : statementsOrParameters as ParameterDeclaration[],
     undefined,
-    createBlock(statements, true)
+    createBlock(arguments.length === 1 ? statementsOrParameters as Statement[] : statements, true)
   );
 }
 export function $$functionExpr(name: string, args: Expression[]): Statement {

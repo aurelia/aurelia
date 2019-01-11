@@ -154,28 +154,38 @@ export function stringify(value: any): string {
 }
 
 export function jsonStringify(o: any): string {
-  let cache = [];
-  const result = JSON.stringify(o, function(_key: string, value: any): string {
-    if (typeof value === 'object' && value !== null) {
-      if (value.nodeType > 0) {
-        return htmlStringify(value);
-      }
-      if (cache.indexOf(value) !== -1) {
-        try {
-          return JSON.parse(JSON.stringify(value));
-        } catch (error) {
-          return;
+  try {
+    let cache = [];
+    const result = JSON.stringify(o, function(_key: string, value: any): string {
+      if (typeof value === 'object' && value !== null) {
+        if (value.nodeType > 0) {
+          return htmlStringify(value);
         }
+        if (cache.indexOf(value) !== -1) {
+          try {
+            return JSON.parse(JSON.stringify(value));
+          } catch (error) {
+            return;
+          }
+        }
+        cache.push(value);
       }
-      cache.push(value);
-    }
-    return value;
-  });
-  cache = null;
-  return result.replace(newline, '');
+      return value;
+    });
+    cache = null;
+    return result.replace(newline, '');
+  } catch (e) {
+    return `error stringifying to json: ${e}`;
+  }
 }
 
 export function htmlStringify(node: Object & { nodeName?: string; content?: any; innerHTML?: string; textContent?: string; childNodes?: ArrayLike<Object>; nodeType?: number }): string {
+  if (node === null) {
+    return 'null';
+  }
+  if (node === undefined) {
+    return 'undefined';
+  }
   if ((node.textContent !== null && node.textContent.length) || node.nodeType === 3/*Text*/ || node.nodeType === 8/*Comment*/) {
     return node.textContent.replace(newline, '');
   }
@@ -205,6 +215,18 @@ export function padRight(str: any, len: number): string {
     return str;
   }
   return str + new Array(len - strLen + 1).join(' ');
+}
+
+/**
+ * pad a string with spaces on the left-hand side until it's the specified length
+ */
+export function padLeft(str: any, len: number): string {
+  str = `${str}`;
+  const strLen = str.length;
+  if (strLen >= len) {
+    return str;
+  }
+  return new Array(len - strLen + 1).join(' ') + str;
 }
 
 export function verifyEqual(actual: any, expected: any, depth?: number, property?: string, index?: number): any {

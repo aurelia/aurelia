@@ -1,18 +1,18 @@
 import { expect } from 'chai';
-import {
-  cleanup,
-  setupAndStart,
-  tearDown
-} from './util';
+import { HTMLTestContext, TestContext } from '../util';
+import { setupAndStart, tearDown } from './util';
 
 // TemplateCompiler - Binding Resources integration
 describe('template-compiler.binding-resources', () => {
-  beforeEach(cleanup);
-  afterEach(cleanup);
+  let ctx: HTMLTestContext;
+
+  beforeEach(() => {
+    ctx = TestContext.createHTMLTestContext();
+  });
 
   // debounceBindingBehavior - input.value
   it('01.', done => {
-    const { au, lifecycle, host, component } = setupAndStart(`<template><input value.to-view="message & debounce:50"></template>`, null);
+    const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.to-view="message & debounce:50"></template>`, null);
     expect(host.firstChild['value']).to.equal('');
     component.message = 'hello!';
     setTimeout(() => {

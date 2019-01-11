@@ -25,7 +25,6 @@ export type HTMLAttributeInstruction =
   ISetAttributeInstruction;
 
 export type HTMLTargetedInstruction = HTMLNodeInstruction | HTMLAttributeInstruction;
-
 // TODO: further improve specificity and integrate with the definitions;
 export type HTMLInstructionRow = [HTMLTargetedInstruction, ...HTMLAttributeInstruction[]];
 

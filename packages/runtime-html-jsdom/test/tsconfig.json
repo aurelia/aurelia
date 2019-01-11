@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig-test.json",
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": false,
+    "lib": ["esnext", "dom"],
+    "types": [
+      "../../runtime-html/test/asserts",
+      "node",
+      "mocha",
+      "chai",
+      "sinon",
+      "sinon-chai",
+      "jsdom"
+    ]
+  }
+}

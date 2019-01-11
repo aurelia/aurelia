@@ -1,6 +1,11 @@
 {
   "name": "jit-fuse-box-ts",
-  "version": "0.1.1",
+  "license": "MIT",
+  "engines": {
+    "node": ">=8.11.4 <11.0.0",
+    "npm": ">=6.1.0 <7.0.0"
+  },
+  "version": "0.3.0",
   "scripts": {
     "watch": "node fuse dev",
     "build": "rimraf dist && node fuse prod",
@@ -9,9 +14,11 @@
   "dependencies": {
     "@aurelia/debug": "latest",
     "@aurelia/jit-html": "latest",
+    "@aurelia/jit-html-browser": "latest",
     "@aurelia/jit": "latest",
     "@aurelia/kernel": "latest",
     "@aurelia/runtime-html": "latest",
+    "@aurelia/runtime-html-browser": "latest",
     "@aurelia/runtime": "latest"
   },
   "devDependencies": {

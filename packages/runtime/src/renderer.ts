@@ -96,6 +96,10 @@ export class Renderer implements IRenderer {
     });
   }
 
+  public static register(container: IContainer): IResolver<IRenderer> {
+    return Registration.singleton(IRenderer, this).register(container);
+  }
+
   public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     if (Tracer.enabled) { Tracer.enter('Renderer.render', slice.call(arguments)); }
     const targetInstructions = definition.instructions;
@@ -166,6 +170,8 @@ export function addAttachable(renderable: IAttachables, attachable: IAttach): vo
 @instructionRenderer(TargetedInstructionType.setProperty)
 /** @internal */
 export class SetPropertyRenderer implements IInstructionRenderer {
+  public static readonly register: IRegistry['register'];
+
   public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: Object, instruction: ISetPropertyInstruction): void {
     if (Tracer.enabled) { Tracer.enter('SetPropertyRenderer.render', slice.call(arguments)); }
     target[instruction.to] = instruction.value;
@@ -177,6 +183,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 /** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
+  public static readonly register: IRegistry['register'];
 
   private readonly renderingEngine: IRenderingEngine;
 
@@ -211,6 +218,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
 /** @internal */
 export class CustomAttributeRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
+  public static readonly register: IRegistry['register'];
 
   private readonly renderingEngine: IRenderingEngine;
 
@@ -244,6 +252,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IRenderingEngine];
+  public static readonly register: IRegistry['register'];
 
   private readonly renderingEngine: IRenderingEngine;
 
@@ -282,6 +291,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 /** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+  public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
   private readonly observerLocator: IObserverLocator;
@@ -310,6 +320,7 @@ export class LetElementRenderer implements IInstructionRenderer {
 /** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+  public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
   private readonly observerLocator: IObserverLocator;
@@ -332,6 +343,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser];
+  public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
 
@@ -352,6 +364,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+  public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
   private readonly observerLocator: IObserverLocator;
@@ -379,6 +392,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+  public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
   private readonly observerLocator: IObserverLocator;
@@ -401,6 +415,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
   public static readonly inject: ReadonlyArray<Function> = [IExpressionParser, IObserverLocator];
+  public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
   private readonly observerLocator: IObserverLocator;
@@ -418,20 +433,3 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
-
-export const BasicRenderer = {
-  register(container: IContainer): void {
-    container.register(
-      SetPropertyRenderer as unknown as IRegistry,
-      CustomElementRenderer as unknown as IRegistry,
-      CustomAttributeRenderer as unknown as IRegistry,
-      TemplateControllerRenderer as unknown as IRegistry,
-      LetElementRenderer as unknown as IRegistry,
-      CallBindingRenderer as unknown as IRegistry,
-      RefBindingRenderer as unknown as IRegistry,
-      InterpolationBindingRenderer as unknown as IRegistry,
-      PropertyBindingRenderer as unknown as IRegistry,
-      IteratorBindingRenderer as unknown as IRegistry
-    );
-  }
-};

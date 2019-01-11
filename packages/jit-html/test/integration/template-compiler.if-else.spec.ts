@@ -6,13 +6,13 @@ import {
   Aurelia,
   ICustomElementType,
   ILifecycle,
-  LifecycleFlags
+  LifecycleFlags,
+  CustomElementResource
 } from '@aurelia/runtime';
 import { expect } from 'chai';
+import { HTMLTestContext, TestContext } from '../util';
 import { baseSuite } from './template-compiler.base';
 import {
-  cleanup,
-  defineCustomElement,
   setupAndStart,
   tearDown
 } from './util';
@@ -21,12 +21,15 @@ const spec = 'template-compiler.if-else';
 
 // TemplateCompiler - if/else integration
 describe(spec, () => {
-  beforeEach(cleanup);
-  afterEach(cleanup);
+  let ctx: HTMLTestContext;
+
+  beforeEach(() => {
+    ctx = TestContext.createHTMLTestContext();
+  });
 
   //if - shows and hides
   it('01.', () => {
-    const { au, lifecycle, host, component } = setupAndStart(`<template><div if.bind="foo">bar</div></template>`, null);
+    const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div if.bind="foo">bar</div></template>`, null);
     component.foo = true;
     lifecycle.processFlushQueue(LifecycleFlags.none);
     expect(host.textContent).to.equal('bar');
@@ -38,16 +41,16 @@ describe(spec, () => {
 
   //if - shows and hides - toggles else
   it('02.', () => {
-    const { au, lifecycle, host, component } = setupAndStart(`<template><div if.bind="foo">bar</div><div else>baz</div></template>`, null);
+    const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div if.bind="foo">bar</div><div else>baz</div></template>`, null);
     component.foo = true;
     lifecycle.processFlushQueue(LifecycleFlags.none);
-    expect(host.innerText).to.equal('bar');
+    expect(host.textContent).to.equal('bar');
     component.foo = false;
     lifecycle.processFlushQueue(LifecycleFlags.none);
-    expect(host.innerText).to.equal('baz');
+    expect(host.textContent).to.equal('baz');
     component.foo = true;
     lifecycle.processFlushQueue(LifecycleFlags.none);
-    expect(host.innerText).to.equal('bar');
+    expect(host.textContent).to.equal('bar');
     tearDown(au, lifecycle, host);
   });
 
@@ -58,20 +61,21 @@ const suite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp
 
 suite.addDataSlot('e').addData('app').setFactory(ctx => {
   const { a: container } = ctx;
-  const template = document.createElement('template');
+  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
+  const template = $ctx.createElement('template') as HTMLTemplateElement;
 
-  const ifTemplate = document.createElement('template');
-  const elseTemplate = document.createElement('template');
+  const ifTemplate = $ctx.createElement('template') as HTMLTemplateElement;
+  const elseTemplate = $ctx.createElement('template') as HTMLTemplateElement;
   template.content.appendChild(ifTemplate);
   template.content.appendChild(elseTemplate);
-  const ifText = document.createTextNode('${ifText}');
-  const elseText = document.createTextNode('${elseText}');
+  const ifText = $ctx.doc.createTextNode('${ifText}');
+  const elseText = $ctx.doc.createTextNode('${elseText}');
   ifTemplate.content.appendChild(ifText);
   elseTemplate.content.appendChild(elseText);
   ifTemplate.setAttribute('if.bind', 'show');
   elseTemplate.setAttribute('else', '');
 
-  const $App = defineCustomElement('app', template, class App {
+  const $App = CustomElementResource.define({ name: 'app', template }, class App {
     public ifText: string;
     public elseText: string;
     public show: boolean;

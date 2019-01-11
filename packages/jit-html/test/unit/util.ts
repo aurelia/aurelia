@@ -29,12 +29,8 @@ import {
   verifyEqual
 } from '../../../../scripts/test-lib';
 import {
-  createElement,
-  h
-} from '../../../../scripts/test-lib-dom';
-import {
   Tracer as DebugTracer
-} from '../../../debug/src/index';
+} from '../../../debug/src/reporter';
 
 export const SymbolTraceWriter = {
   write(info: ITraceInfo): void {
@@ -54,14 +50,17 @@ export const SymbolTraceWriter = {
           if (p === null) {
             output += 'null';
           } else {
-            if ((p as ISymbol).kind) {
+            if ((p as ISymbol).flags) {
               const symbol = p as INodeSymbol | IAttributeSymbol;
-              if ('attr' in symbol) {
-                output += `attr: ${symbol.attr.name}=${symbol.attr.value}`;
-              } else if ('text' in symbol) {
-                output += `text: "${symbol.text.textContent}"`;
+              if ('target' in symbol) {
+                //@ts-ignore
+                output += `attr: ${symbol.target}=${symbol.rawValue}`;
+              } else if ('interpolation' in symbol) {
+                //@ts-ignore
+                output += `text: "${symbol.physicalNode.textContent}"`;
               } else {
-                output += `element: ${symbol.element.outerHTML}`;
+                //@ts-ignore
+                output += `element: ${symbol.physicalNode.outerHTML}`;
               }
             } else {
               if ('outerHTML' in (p as HTMLElement)) {
@@ -163,7 +162,7 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
     for (let i = 0, ii = Math.max(expected.length, actual.length); i < ii; ++i) {
       verifyBindingInstructionsEqual(actual[i], expected[i], errors, `${path}[${i}]`);
     }
-  } else if (expected instanceof Node) {
+  } else if (expected.nodeType > 0) {
     if (expected.nodeType === 11) {
       for (let i = 0, ii = Math.max(expected.childNodes.length, actual.childNodes.length); i < ii; ++i) {
         verifyBindingInstructionsEqual(actual.childNodes.item(i), expected.childNodes.item(i), errors, `${path}.childNodes[${i}]`);
@@ -192,4 +191,4 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
   }
 }
 
-export { _, h, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };
+export { _, stringify, jsonStringify, htmlStringify, verifyEqual, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };

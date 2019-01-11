@@ -49,7 +49,7 @@ import {
   IteratorBindingInstruction,
   LetBindingInstruction,
   LetElementInstruction,
-  RuntimeConfiguration,
+  BasicConfiguration,
   TemplateDefinition,
   ToViewBindingInstruction
 } from '../src/index';
@@ -607,7 +607,7 @@ export class AuTextRenderer implements IInstructionRenderer {
 export const AuDOMConfiguration = {
   register(container: IContainer): void {
     container.register(
-      RuntimeConfiguration,
+      BasicConfiguration,
       AuTextRenderer as unknown as IRegistry,
       Registration.singleton(IDOM, AuDOM),
       Registration.singleton(IDOMInitializer, AuDOMInitializer),

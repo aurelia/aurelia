@@ -13,11 +13,13 @@
     "allure:post": "ts-node ../../scripts/post-allure.ts"
   },
   "dependencies": {
-    "@aurelia/jit-html": "file:../../packages/jit-html",
     "@aurelia/jit": "file:../../packages/jit",
+    "@aurelia/jit-html": "file:../../packages/jit-html",
+    "@aurelia/jit-html-browser": "file:../../packages/jit-html-browser",
     "@aurelia/kernel": "file:../../packages/kernel",
+    "@aurelia/runtime": "file:../../packages/runtime",
     "@aurelia/runtime-html": "file:../../packages/runtime-html",
-    "@aurelia/runtime": "file:../../packages/runtime"
+    "@aurelia/runtime-html-browser": "file:../../packages/runtime-html-browser"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

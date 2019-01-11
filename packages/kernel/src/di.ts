@@ -57,12 +57,12 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
-  register(...params: IRegistry[]): void;
-  register(...params: Record<string, Partial<IRegistry>>[]): void;
-  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void;
-  register(registry: Record<string, Partial<IRegistry>>): void;
-  register(registry: IRegistry): void;
-  register(registry: IRegistry | Record<string, Partial<IRegistry>>): void;
+  register(...params: IRegistry[]): IContainer;
+  register(...params: Record<string, Partial<IRegistry>>[]): IContainer;
+  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): IContainer;
+  register(registry: Record<string, Partial<IRegistry>>): IContainer;
+  register(registry: IRegistry): IContainer;
+  register(registry: IRegistry | Record<string, Partial<IRegistry>>): IContainer;
 
   registerResolver<T>(key: Key<T>, resolver: IResolver<T>): IResolver<T>;
   registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;
@@ -108,10 +108,22 @@ if (!('getOwnMetadata' in Reflect)) {
   };
 }
 
-export const DI = {
-  createContainer(): IContainer {
+function createContainer(...params: IRegistry[]): IContainer;
+function createContainer(...params: Record<string, Partial<IRegistry>>[]): IContainer;
+function createContainer(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): IContainer;
+function createContainer(registry: Record<string, Partial<IRegistry>>): IContainer;
+function createContainer(registry: IRegistry): IContainer;
+function createContainer(registry: IRegistry | Record<string, Partial<IRegistry>>): IContainer;
+function createContainer(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): IContainer {
+  if (arguments.length === 0) {
     return new Container();
-  },
+  } else {
+    return new Container().register(...params);
+  }
+}
+
+export const DI = {
+  createContainer,
 
   getDesignParamTypes(target: Function): Function[] {
     return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
@@ -140,10 +152,10 @@ export const DI = {
 
   createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
     const Key: any = function(target: Injectable, property: string, index: number): any {
-      if (target === undefined) {
-        throw Reporter.error(16, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
-      }
       Key.friendlyName = friendlyName || 'Interface';
+      if (target === undefined) {
+        throw Reporter.error(16, Key.friendlyName, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+      }
       (target.inject || (target.inject = []))[index] = Key;
       return target;
     };
@@ -537,8 +549,13 @@ export class Container implements IContainer {
     this.resolvers.set(IContainer, containerResolver);
   }
 
-  public register(registry: (IRegistry | Record<string, Partial<IRegistry>>)): void;
-  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void {
+  public register(...params: IRegistry[]): this;
+  public register(...params: Record<string, Partial<IRegistry>>[]): this;
+  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this;
+  public register(registry: Record<string, Partial<IRegistry>>): this;
+  public register(registry: IRegistry): this;
+  public register(registry: IRegistry | Record<string, Partial<IRegistry>>): this;
+  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this {
     for (let i = 0, ii = params.length; i < ii; ++i) {
       const current = params[i] as IRegistry | Record<string, IRegistry>;
       if (isRegistry(current)) {
@@ -557,6 +574,7 @@ export class Container implements IContainer {
         }
       }
     }
+    return this;
   }
 
   public registerResolver(key: any, resolver: IResolver): IResolver {

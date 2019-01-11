@@ -21,7 +21,7 @@ import {
   ObjectLiteral,
   PrimitiveLiteral,
   PropertyAccessor,
-  RuntimeConfiguration,
+  BasicConfiguration,
   Scope,
   SetterObserver,
   State
@@ -62,7 +62,7 @@ describe('Binding', () => {
   let dummyMode: BindingMode;
 
   function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
-    const container = RuntimeConfiguration.createContainer();
+    const container = BasicConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const sut = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
@@ -115,7 +115,7 @@ describe('Binding', () => {
         expr = new Binary('+', expr, new AccessScope(prop, 0));
       }
     }
-    const container = RuntimeConfiguration.createContainer();
+    const container = BasicConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const target = {val: 0};

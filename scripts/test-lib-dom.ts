@@ -1,11 +1,12 @@
 const emptyArray = [];
 
 export function h<T extends keyof HTMLElementTagNameMap, TChildren extends (string | number | boolean | null | undefined | Node)[]>(
+  doc: Document,
   name: T,
   attrs: Record<string, any> = null,
   ...children: TChildren
 ): HTMLElementTagNameMap[T] {
-  const el = document.createElement<T>(name);
+  const el = doc.createElement<T>(name);
   for (const attr in attrs) {
     if (attr === 'class' || attr === 'className' || attr === 'cls') {
       let value: string[] = attrs[attr];
@@ -28,18 +29,12 @@ export function h<T extends keyof HTMLElementTagNameMap, TChildren extends (stri
     }
     childrenCt.appendChild(isNodeOrTextOrComment(child)
       ? child
-      : document.createTextNode(`${child}`)
+      : doc.createTextNode(`${child}`)
     );
   }
   return el;
 }
 
 function isNodeOrTextOrComment(obj: any): obj is Text | Comment | Node {
-  return obj instanceof Node || obj instanceof Text || obj instanceof Comment;
-}
-
-const domParser = document.createElement('div');
-export function createElement(markup: string): HTMLElement {
-  domParser.innerHTML = markup;
-  return domParser.firstElementChild as HTMLElement;
+  return obj.nodeType > 0;
 }

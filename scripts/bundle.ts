@@ -242,7 +242,8 @@ async function createBundle(): Promise<void> {
     const plugins = [
       replace({
         // We're just replacing `Tracer.enabled` with `false` and let dead code elimination take care of the rest
-        'Tracer.enabled': 'false'
+        'Tracer.enabled': 'false',
+        'Profiler.enabled': 'false'
       }),
       resolve({ jsnext: true }), // use the jsnext:main field from our packages package.json files to resolve dependencies
       typescript2({

@@ -3,20 +3,19 @@ import {
   AccessScope,
   BindingMode,
   DelegationStrategy,
-  IDOMInitializer,
   Interpolation,
   InterpolationBinding,
   IRenderable,
   IRenderContext,
   IRenderer,
-  IRenderingEngine} from '@aurelia/runtime';
+  IRenderingEngine
+} from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { ParserRegistration } from '../../jit/src/index';
+import { IExpressionParserRegistration } from '../../jit/src/index';
 import {
   CaptureBindingInstruction,
   DelegateBindingInstruction,
-  HTMLRuntimeConfiguration,
   IListenerBindingInstruction,
   Listener,
   SetAttributeInstruction,
@@ -24,17 +23,17 @@ import {
   TextBindingInstruction,
   TriggerBindingInstruction
 } from '../src/index';
-import { _, createElement } from './util';
+import { _, TestContext } from './util';
 
 describe('Renderer', () => {
   function setup() {
-    const container = HTMLRuntimeConfiguration.createContainer();
-    ParserRegistration.register(container);
-    const dom = container.get(IDOMInitializer).initialize();
+    const ctx = TestContext.createHTMLTestContext();
+    const { dom, container } = ctx;
+    IExpressionParserRegistration.register(container);
     const renderable: IRenderable = { $bindableHead: null, $bindableTail: null, $attachableHead: null, $attachableTail: null, $context: null, $nodes: null, $scope: null };
     container.register(Registration.instance(IRenderable, renderable));
-    const wrapper = createElement('<div><au-target class="au"></au-target> </div>') as HTMLElement;
-    document.body.appendChild(wrapper);
+    const wrapper = ctx.createElementFromMarkup('<div><au-target class="au"></au-target> </div>') as HTMLElement;
+    dom.appendChild(ctx.doc.body, wrapper);
     const target = wrapper.firstElementChild as HTMLElement;
     const placeholder = target.nextSibling as HTMLElement;
 
@@ -58,18 +57,18 @@ describe('Renderer', () => {
     spy(renderContext, 'get');
     spy(renderContext, 'beginComponentOperation');
 
-    return { sut, dom, renderable, target, placeholder, wrapper, renderContext, renderingEngine };
+    return { ctx, sut, dom, renderable, target, placeholder, wrapper, renderContext, renderingEngine };
   }
 
-  function tearDown({ wrapper }: Partial<ReturnType<typeof setup>>) {
-    document.body.removeChild(wrapper);
+  function tearDown({ ctx, wrapper }: Partial<ReturnType<typeof setup>>) {
+    ctx.doc.body.removeChild(wrapper);
   }
 
   describe('handles ITextBindingInstruction', () => {
     for (const from of ['${foo}', new Interpolation(['', ''], [new AccessScope('foo')])] as any[]) {
       const instruction = new TextBindingInstruction(from) as any;
       it(_`instruction=${instruction}`, () => {
-        const { sut, dom, renderable, target, placeholder, wrapper, renderContext } = setup();
+        const { ctx, sut, dom, renderable, target, placeholder, wrapper, renderContext } = setup();
 
         sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
 
@@ -83,7 +82,7 @@ describe('Renderer', () => {
         expect(bindable.mode).to.equal(BindingMode.toView);
         //expect(target.isConnected).to.equal(false);
 
-        tearDown({ wrapper });
+        tearDown({ ctx, wrapper });
       });
     }
   });
@@ -94,7 +93,7 @@ describe('Renderer', () => {
         for (const from of ['foo', new AccessScope('foo')]) {
           const instruction = new (Instruction as any)(from, to) as IListenerBindingInstruction;
           it(_`instruction=${instruction}`, () => {
-            const { sut, dom, renderable, target, wrapper, renderContext } = setup();
+            const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
             sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
 
@@ -107,7 +106,7 @@ describe('Renderer', () => {
             expect(bindable.targetEvent).to.equal(to);
             expect(bindable.preventDefault).to.equal(instruction.strategy === DelegationStrategy.none);
 
-            tearDown({ wrapper });
+            tearDown({ ctx, wrapper });
           });
         }
       }
@@ -119,7 +118,7 @@ describe('Renderer', () => {
       for (const from of ['foo', new AccessScope('foo')] as any[]) {
         const instruction = new StylePropertyBindingInstruction(from, to) as any;
         it(_`instruction=${instruction}`, () => {
-          const { sut, dom, renderable, target, wrapper, renderContext } = setup();
+          const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
           sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
 
@@ -131,7 +130,7 @@ describe('Renderer', () => {
           expect(bindable.mode).to.equal(BindingMode.toView);
           expect(bindable.targetProperty).to.equal(to);
 
-          tearDown({ wrapper });
+          tearDown({ ctx, wrapper });
         });
       }
     }
@@ -142,14 +141,14 @@ describe('Renderer', () => {
       for (const value of ['foo', 42, null] as any[]) {
         const instruction = new SetAttributeInstruction(value, to) as any;
         it(_`instruction=${instruction}`, () => {
-          const { sut, dom, renderable, target, wrapper, renderContext } = setup();
+          const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
           sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
 
           expect(renderable.$bindableHead).to.equal(null, 'renderable.$bindableHead');
           expect(target.getAttribute(to)).to.equal(value + '');
 
-          tearDown({ wrapper });
+          tearDown({ ctx, wrapper });
         });
       }
     }

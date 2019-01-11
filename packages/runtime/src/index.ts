@@ -124,7 +124,8 @@ export {
   GetterObserver
 } from './observation/computed-observer';
 export {
-  IDirtyChecker
+  IDirtyChecker,
+  DirtyCheckProperty
 } from './observation/dirty-checker';
 export {
   IObjectObservationAdapter,
@@ -255,7 +256,24 @@ export {
   ISinglePageApp
 } from './aurelia';
 export {
-  RuntimeConfiguration
+  IfRegistration,
+  ElseRegistration,
+  RepeatRegistration,
+  ReplaceableRegistration,
+  WithRegistration,
+  SanitizeValueConverterRegistration,
+  DebounceBindingBehaviorRegistration,
+  OneTimeBindingBehaviorRegistration,
+  ToViewBindingBehaviorRegistration,
+  FromViewBindingBehaviorRegistration,
+  SignalBindingBehaviorRegistration,
+  ThrottleBindingBehaviorRegistration,
+  TwoWayBindingBehaviorRegistration,
+  DefaultResources as BasicResources,
+  IObserverLocatorRegistration as ObserverLocatorRegistration,
+  ILifecycleRegistration as LifecycleRegistration,
+  IRendererRegistration as RendererRegistration,
+  RuntimeBasicConfiguration as BasicConfiguration
 } from './configuration';
 export {
   AttributeDefinition,
@@ -410,8 +428,7 @@ export {
   instructionRenderer,
   ensureExpression,
   addAttachable,
-  addBindable,
-  BasicRenderer
+  addBindable
 } from './renderer';
 export {
   CompiledTemplate,

@@ -1,23 +1,16 @@
-import { Registration } from '@aurelia/kernel';
-import {
-  Aurelia,
-  IDOM,
-  ILifecycle
-} from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { Aurelia, ILifecycle } from '@aurelia/runtime';
 import { TestSuite } from '../../../../scripts/test-suite';
-import { HTMLJitConfiguration } from '../../src/index';
+import { TestContext } from '../util';
 import { TestConfiguration } from './resources';
 
 export const baseSuite = new TestSuite(null);
 
 baseSuite.addDataSlot('a').addData(null).setFactory(c => {
-  const container = HTMLJitConfiguration.createContainer();
-  const dom = new HTMLDOM(document);
-  Registration.instance(IDOM, dom).register(container, IDOM);
+  const ctx = TestContext.createHTMLTestContext();
+  const container = ctx.container;
   container.register(TestConfiguration);
   c.b = new Aurelia(container);
   c.c = container.get(ILifecycle);
-  c.d = document.createElement('app');
+  c.d = ctx.createElement('app');
   return container;
 });

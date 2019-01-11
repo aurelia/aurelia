@@ -53,6 +53,7 @@ export interface IDOM<T extends INode = INode> {
   convertToRenderLocation(node: T): IRenderLocation<T>;
   createDocumentFragment(markupOrNode?: string | T): T;
   createElement(name: string): T;
+  createNodeObserver?(node: T, cb: (...args: unknown[]) => void, init: unknown): unknown;
   createTemplate(markup?: string): T;
   createTextNode(text: string): T;
   insertBefore(nodeToInsert: T, referenceNode: T): void;

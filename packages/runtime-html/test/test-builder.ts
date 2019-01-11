@@ -26,9 +26,10 @@ import {
   ToViewBindingInstruction
 
 } from '@aurelia/runtime';
-import { HTMLJitConfiguration } from '../../jit-html/src/index';
+import { BasicConfiguration } from '../../jit-html/src/index';
 import { parseExpression } from '../../jit/src/index';
 import { HTMLTargetedInstruction, TextBindingInstruction } from '../src/index';
+import { ExposedContext } from './mock';
 
 
 export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
@@ -315,7 +316,7 @@ export class TestBuilder<T extends Constructable> {
   private Type: T;
 
   constructor(Type: T) {
-    this.container = HTMLJitConfiguration.createContainer();
+    this.container = BasicConfiguration.createContainer();
     this.container.register(<any>Type);
     this.Type = Type;
   }
@@ -380,7 +381,7 @@ export class TestContext<T extends Object> {
     const projectorLocator = this.container.get(IProjectorLocator);
     const dom = this.container.get(IDOM);
     host = host || this.host;
-    this.component.$hydrate(dom, projectorLocator, renderingEngine, host);
+    this.component.$hydrate(dom, projectorLocator, renderingEngine, host, this.container as ExposedContext);
   }
 
   public bind(flags?: LifecycleFlags): void {

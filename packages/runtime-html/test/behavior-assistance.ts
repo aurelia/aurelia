@@ -1,52 +1,26 @@
 
-import {
-  Constructable,
-  IContainer,
-  Registration
-} from '@aurelia/kernel';
+import { Constructable } from '@aurelia/kernel';
 import {
   CustomElementResource,
   ICustomElement,
   ICustomElementType,
-  IDOM,
   IHydrateElementInstruction,
-  ILifecycle,
   IProjectorLocator,
   IRenderable,
   IRenderingEngine,
   ITargetedInstruction,
   TargetedInstructionType
 } from '@aurelia/runtime';
-import {
-  InstanceProvider
-} from '../../runtime/src/rendering-engine';
-import {
-  FakeView
-} from '../../runtime/test/_doubles/fake-view';
-import { HTMLDOM, HTMLRuntimeConfiguration } from '../src/index';
+import { InstanceProvider } from '../../runtime/src/rendering-engine';
+import { FakeView } from './_doubles/fake-view';
+import { HTMLTestContext } from './util';
 
-
-interface IElementTestOptions {
-  lifecycle?: ILifecycle;
-  container?: IContainer;
-}
-
-export function hydrateCustomElement<T>(
-  Type: Constructable<T>,
-  options: IElementTestOptions = {}
-) {
+export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestContext) {
+  const { container, dom } = ctx;
   const ElementType: ICustomElementType = Type as any;
-  const container = options.container || HTMLRuntimeConfiguration.createContainer();
-  const dom = new HTMLDOM(document);
-  Registration.instance(IDOM, dom).register(container, IDOM);
-  if (options.lifecycle) {
-    Registration.instance(ILifecycle, options.lifecycle).register(container, ILifecycle);
-  }
-  const lifecycle = container.get(ILifecycle);
-  const parent = document.createElement('div');
-  const host = document.createElement(ElementType.description.name);
-  // @ts-ignore
-  const renderable = new FakeView(lifecycle);
+  const parent = ctx.createElement('div');
+  const host = ctx.createElement(ElementType.description.name);
+  const renderable = new FakeView(ctx);
   const instruction: IHydrateElementInstruction = {
     type: TargetedInstructionType.hydrateElement,
     res: 'au-compose',
@@ -76,5 +50,5 @@ export function hydrateCustomElement<T>(
   const projectorLocator = container.get(IProjectorLocator);
   element.$hydrate(dom, projectorLocator, renderingEngine, host);
 
-  return { dom, element, parent, lifecycle };
+  return { element, parent };
 }

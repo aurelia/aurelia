@@ -1,5 +1,25 @@
-import { Constructable, IContainer, IResolver, PLATFORM, Registration, Reporter, Writable } from '@aurelia/kernel';
-import { CompiledTemplate, IDOM, IDOMInitializer, INode, INodeSequence, IRenderContext, IRenderLocation, ISinglePageApp, ITemplate, ITemplateFactory, NodeSequence, TemplateDefinition } from '@aurelia/runtime';
+import {
+  Constructable,
+  DI,
+  IContainer,
+  IResolver,
+  PLATFORM,
+  Registration,
+  Reporter,
+  Writable
+} from '@aurelia/kernel';
+import {
+  CompiledTemplate,
+  IDOM,
+  INode,
+  INodeSequence,
+  IRenderContext,
+  IRenderLocation,
+  ITemplate,
+  ITemplateFactory,
+  NodeSequence,
+  TemplateDefinition
+} from '@aurelia/runtime';
 
 export const enum NodeType {
   Element = 1,
@@ -21,10 +41,24 @@ function isRenderLocation(node: Node): node is Node & IRenderLocation {
 }
 
 export class HTMLDOM implements IDOM {
+  public readonly Node: typeof Node;
+  public readonly Element: typeof Element;
+  public readonly HTMLElement: typeof HTMLElement;
+  private readonly wnd: Window;
   private readonly doc: Document;
 
-  constructor(doc: Document) {
+  constructor(
+    wnd: Window,
+    doc: Document,
+    TNode: typeof Node,
+    TElement: typeof Element,
+    THTMLElement: typeof HTMLElement
+  ) {
+    this.wnd = wnd;
     this.doc = doc;
+    this.Node = TNode;
+    this.Element = TElement;
+    this.HTMLElement = THTMLElement;
   }
 
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
@@ -68,6 +102,19 @@ export class HTMLDOM implements IDOM {
   public createElement(name: string): HTMLElement {
     return this.doc.createElement(name);
   }
+  public createNodeObserver(node: Node, cb: MutationCallback, init: MutationObserverInit): MutationObserver {
+    if (typeof MutationObserver === 'undefined') {
+      // TODO: find a proper response for this scenario
+      return {
+        disconnect(): void { /*empty*/ },
+        observe(): void { /*empty*/ },
+        takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as MutationRecord[]; }
+      };
+    }
+    const observer = new MutationObserver(cb);
+    observer.observe(node, init);
+    return observer;
+  }
   public createTemplate(markup?: unknown): HTMLTemplateElement {
     if (markup === undefined || markup === null) {
       return this.doc.createElement('template');
@@ -86,7 +133,7 @@ export class HTMLDOM implements IDOM {
     return (node as AuMarker).nodeName === 'AU-M';
   }
   public isNodeInstance(potentialNode: unknown): potentialNode is Node {
-    return (potentialNode as Node).nodeType > 0;
+    return potentialNode !== null && potentialNode !== undefined && (potentialNode as Node).nodeType > 0;
   }
   public isRenderLocation(node: unknown): node is IRenderLocation {
     return (node as Comment).textContent === 'au-end';
@@ -96,10 +143,9 @@ export class HTMLDOM implements IDOM {
   }
   public registerElementResolver(container: IContainer, resolver: IResolver): void {
     container.registerResolver(INode, resolver);
-    container.registerResolver(Node, resolver);
-    container.registerResolver(Element, resolver);
-    container.registerResolver(HTMLElement, resolver);
-    container.registerResolver(SVGElement, resolver);
+    container.registerResolver(this.Node, resolver);
+    container.registerResolver(this.Element, resolver);
+    container.registerResolver(this.HTMLElement, resolver);
   }
   public remove(node: Node): void {
     if ((node as ChildNode).remove) {
@@ -364,43 +410,6 @@ export class AuMarker implements INode {
 })(AuMarker.prototype as Writable<AuMarker>);
 
 /** @internal */
-export class HTMLDOMInitializer implements IDOMInitializer {
-  public static inject: unknown[] = [IContainer];
-
-  private readonly container: IContainer;
-
-  constructor(container: IContainer) {
-    this.container = container;
-  }
-
-  /**
-   * Either create a new HTML `DOM` backed by the supplied `document` or uses the supplied `DOM` directly.
-   *
-   * If no argument is provided, uses the default global `document` variable.
-   * (this will throw an error in non-browser environments).
-   */
-  public initialize(config?: ISinglePageApp<Node>): IDOM {
-    if (this.container.has(IDOM, false)) {
-      return this.container.get(IDOM);
-    }
-    let dom: IDOM;
-    if (config !== undefined) {
-      if (config.dom !== undefined) {
-        dom = config.dom;
-      } else if (config.host.ownerDocument !== null) {
-        dom = new HTMLDOM(config.host.ownerDocument);
-      } else {
-        dom = new HTMLDOM(document);
-      }
-    } else {
-      dom = new HTMLDOM(document);
-    }
-    Registration.instance(IDOM, dom).register(this.container, IDOM);
-    return dom;
-  }
-}
-
-/** @internal */
 export class HTMLTemplateFactory implements ITemplateFactory {
   public static inject: unknown[] = [IDOM];
 
@@ -408,6 +417,10 @@ export class HTMLTemplateFactory implements ITemplateFactory {
 
   constructor(dom: IDOM) {
     this.dom = dom;
+  }
+
+  public static register(container: IContainer): IResolver<ITemplateFactory> {
+    return Registration.singleton(ITemplateFactory, this).register(container);
   }
 
   public create(parentRenderContext: IRenderContext, definition: TemplateDefinition): ITemplate {

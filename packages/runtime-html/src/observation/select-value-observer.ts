@@ -3,6 +3,7 @@ import {
   IBatchedCollectionSubscriber,
   IBindingTargetObserver,
   ICollectionObserver,
+  IDOM,
   ILifecycle,
   IndexMap,
   IObserverLocator,
@@ -51,6 +52,7 @@ export class SelectValueObserver implements SelectValueObserver {
 
   public flush: () => void;
 
+  private dom: IDOM;
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private nodeObserver: MutationObserver;
 
@@ -58,13 +60,15 @@ export class SelectValueObserver implements SelectValueObserver {
     lifecycle: ILifecycle,
     obj: ISelectElement,
     handler: IEventSubscriber,
-    observerLocator: IObserverLocator
+    observerLocator: IObserverLocator,
+    dom: IDOM
   ) {
     this.isDOMObserver = true;
     this.lifecycle = lifecycle;
     this.obj = obj;
     this.handler = handler;
     this.observerLocator = observerLocator;
+    this.dom = dom;
   }
 
   public getValue(): unknown {
@@ -242,8 +246,7 @@ export class SelectValueObserver implements SelectValueObserver {
   }
 
   public bind(): void {
-    this.nodeObserver = new MutationObserver(this.handleNodeChange.bind(this));
-    this.nodeObserver.observe(this.obj, childObserverOptions);
+    this.nodeObserver = this.dom.createNodeObserver(this.obj, this.handleNodeChange.bind(this), childObserverOptions) as MutationObserver;
   }
 
   public unbind(): void {

@@ -2,8 +2,8 @@ import { Primitive } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { SelectValueObserver } from '@aurelia/runtime-html';
 import { expect } from 'chai';
+import { HTMLTestContext, TestContext } from '../util';
 import {
-  cleanup,
   h,
   setup,
   setupAndStart,
@@ -12,8 +12,11 @@ import {
 
 // TemplateCompiler - <select/> Integration
 describe('template-compiler.select', () => {
-  beforeEach(cleanup);
-  afterEach(cleanup);
+  let ctx: HTMLTestContext;
+
+  beforeEach(() => {
+    ctx = TestContext.createHTMLTestContext();
+  });
 
   //<select/> - single
   describe('01.', () => {
@@ -21,6 +24,7 @@ describe('template-compiler.select', () => {
     //works with multiple toView bindings
     it('01.', () => {
       const { au, lifecycle, host, observerLocator, component } = setup(
+        ctx,
         `<template>
           <select id="select1" value.to-view="selectedValue">
             <option>1</option>
@@ -70,6 +74,7 @@ describe('template-compiler.select', () => {
     //works with mixed of multiple binding: twoWay + toView
     it('02.', () => {
       const { au, lifecycle, host, observerLocator, component } = setup(
+        ctx,
         `<template>
           <select id="select1" value.to-view="selectedValue">
             <option>1</option>
@@ -106,7 +111,7 @@ describe('template-compiler.select', () => {
 
       // simulate change from under input
       select2.value = '1';
-      select2.dispatchEvent(new CustomEvent('change', { bubbles: true }));
+      select2.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
 
       expect(component.selectedValue).to.equal('1');
       const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
@@ -130,6 +135,7 @@ describe('template-compiler.select', () => {
     //works with multiple toView bindings without pre-selection
     it('01.', () => {
       const { au, lifecycle, host, observerLocator, component } = setupAndStart(
+        ctx,
         `<template>
           <select id="select1" multiple value.to-view="selectedValues">
             <option id="o11">1</option>
@@ -187,6 +193,7 @@ describe('template-compiler.select', () => {
     //works with mixed of two-way + to-view bindings with pre-selection
     it('02.', () => {
       const { au, lifecycle, host, observerLocator, component } = setupAndStart(
+        ctx,
         `<template>
           <select id="select1" multiple value.to-view="selectedValues">
             <option id="o11">1</option>
@@ -235,7 +242,7 @@ describe('template-compiler.select', () => {
       [].forEach.call(select3.options, (option: HTMLOptionElement) => {
         option.selected = true;
       });
-      select3.dispatchEvent(new CustomEvent('change', { bubbles: true }));
+      select3.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
       expect(component.selectedValues.toString()).to.equal(['8', '9', '10', '11', '12'].toString());
       [].forEach.call(select2.options, (option: HTMLOptionElement) => {
         option.selected = true;
@@ -255,11 +262,11 @@ describe('template-compiler.select', () => {
   //toViewBinding - select single
   it('03.', () => {
     const { au, lifecycle, host, component } = setupAndStart(
-      // @ts-ignore
-      template(null,
-               select(
-          { 'value.to-view': 'selectedValue' },
-          ...[1, 2].map(v => option({ value: v }))
+      ctx,
+      template(ctx.doc, null,
+               select(ctx.doc,
+                      { 'value.to-view': 'selectedValue' },
+                      ...[1, 2].map(v => option(ctx.doc, { value: v }))
         )
       ), null
     );
@@ -275,12 +282,12 @@ describe('template-compiler.select', () => {
   //twoWayBinding - select single
   it('04.', () => {
     const { au, lifecycle, host, component } = setupAndStart(
-      // @ts-ignore
-      h('template',
+      ctx,
+      h(ctx.doc, 'template',
         null,
-        h('select',
+        h(ctx.doc, 'select',
           { 'value.two-way': 'selectedValue' },
-          ...[1, 2].map(v => h('option', { value: v }))
+          ...[1, 2].map(v => h(ctx.doc, 'option', { value: v }))
         )
       ),
       null
@@ -288,20 +295,20 @@ describe('template-compiler.select', () => {
     expect(component.selectedValue).to.equal(undefined);
     host.firstChild.childNodes.item(1)['selected'] = true;
     expect(component.selectedValue).to.equal(undefined);
-    host.firstChild.dispatchEvent(new CustomEvent('change'));
+    host.firstChild.dispatchEvent(new ctx.CustomEvent('change'));
     expect(component.selectedValue).to.equal('2');
     tearDown(au, lifecycle, host);
   });
 
-  function template(attrs: Record<string, any> | null, ...children: Element[]) {
-    return h('template', attrs, ...children);
+  function template(doc: Document, attrs: Record<string, any> | null, ...children: Element[]) {
+    return h(doc, 'template', attrs, ...children);
   }
 
-  function select(attrs: Record<string, any> | null, ...children: (HTMLOptionElement | HTMLOptGroupElement)[]) {
-    return h('select', attrs, ...children);
+  function select(doc: Document, attrs: Record<string, any> | null, ...children: (HTMLOptionElement | HTMLOptGroupElement)[]) {
+    return h(doc, 'select', attrs, ...children);
   }
 
-  function option(attrs: Record<string, any> | null) {
-    return h('option', attrs);
+  function option(doc: Document, attrs: Record<string, any> | null) {
+    return h(doc, 'option', attrs);
   }
 });

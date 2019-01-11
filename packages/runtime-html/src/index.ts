@@ -68,7 +68,28 @@ export {
 } from './resources/custom-elements/compose';
 
 export {
-  HTMLRuntimeConfiguration
+  IProjectorLocatorRegistration,
+  ITargetAccessorLocatorRegistration,
+  ITargetObserverLocatorRegistration,
+  ITemplateFactoryRegistration,
+
+  DefaultComponents,
+
+  AttrBindingBehaviorRegistration,
+  SelfBindingBehaviorRegistration,
+  UpdateTriggerBindingBehaviorRegistration,
+  ComposeRegistration,
+
+  DefaultResources,
+
+  ListenerBindingRendererRegistration,
+  SetAttributeRendererRegistration,
+  StylePropertyBindingRendererRegistration,
+  TextBindingRendererRegistration,
+
+  DefaultRenderers,
+
+  BasicConfiguration
 } from './configuration';
 export {
   createElement,
@@ -90,9 +111,6 @@ export {
   NodeType,
   HTMLDOM
 } from './dom';
-export {
-  HTMLRenderer
-} from './html-renderer';
 export {
   CaptureBindingInstruction,
   DelegateBindingInstruction,

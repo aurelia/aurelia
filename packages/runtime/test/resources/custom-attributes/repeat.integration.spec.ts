@@ -372,6 +372,6 @@
 //     lifecycle.processFlushQueue(LifecycleFlags.none);
 
 //     const expectedText = initItems.map(i => `${i.id}${i.innerTodos.length}${i.innerTodos.map(ii => `${ii.innerId}${ii.innerInnerTodos.length}${ii.innerInnerTodos.map(iii => `${iii.innerInnerId}`).join('')}`).join(' ')}`).join(' ');
-//     expect(host['innerText'].trim()).to.equal(expectedText);
+//     expect(host['textContent'].trim()).to.equal(expectedText);
 //   });
 // });

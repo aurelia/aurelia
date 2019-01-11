@@ -4,6 +4,8 @@ import { propertyObserver } from './property-observer';
 
 export interface IDirtyChecker {
   createProperty(obj: IObservable, propertyName: string): IBindingTargetAccessor;
+  addProperty(property: DirtyCheckProperty): void;
+  removeProperty(property: DirtyCheckProperty): void;
 }
 
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
@@ -59,19 +61,17 @@ export class DirtyChecker {
   }
 }
 
-/** @internal */
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
-/** @internal */
 @propertyObserver()
 export class DirtyCheckProperty implements DirtyCheckProperty {
   public obj: IObservable;
   public oldValue: unknown;
   public propertyKey: string;
 
-  private readonly dirtyChecker: DirtyChecker;
+  private readonly dirtyChecker: IDirtyChecker;
 
-  constructor(dirtyChecker: DirtyChecker, obj: IObservable, propertyKey: string) {
+  constructor(dirtyChecker: IDirtyChecker, obj: IObservable, propertyKey: string) {
     this.obj = obj;
     this.propertyKey = propertyKey;
 

@@ -92,14 +92,22 @@ export class ListenerTracker {
   public increment(): void {
     this.count++;
     if (this.count === 1) {
-      this.dom .addEventListener(this.eventName, this.listener, null, this.capture);
+      this.dom.addEventListener(this.eventName, this.listener, null, this.capture);
     }
   }
 
   public decrement(): void {
     this.count--;
     if (this.count === 0) {
-      this.dom .removeEventListener(this.eventName, this.listener, null, this.capture);
+      this.dom.removeEventListener(this.eventName, this.listener, null, this.capture);
+    }
+  }
+
+  /*@internal*/
+  public dispose(): void {
+    if (this.count > 0) {
+      this.count = 0;
+      this.dom.removeEventListener(this.eventName, this.listener, null, this.capture);
     }
   }
 }
@@ -107,7 +115,7 @@ export class ListenerTracker {
 /**
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
-export class DelegateOrCaptureSubscription {
+export class DelegateOrCaptureSubscription implements IDisposable {
   public entry: ListenerTracker;
   public lookup: Record<string, EventListenerOrEventListenerObject>;
   public targetEvent: string;
@@ -133,7 +141,7 @@ export class DelegateOrCaptureSubscription {
 /**
  * Enable dispose() pattern for addEventListener for `trigger`
  */
-export class TriggerSubscription {
+export class TriggerSubscription implements IDisposable {
   public target: Node;
   public targetEvent: string;
   public callback: EventListenerOrEventListenerObject;
@@ -212,7 +220,7 @@ export class EventSubscriber implements IEventSubscriber {
 
 export type EventSubscription = DelegateOrCaptureSubscription | TriggerSubscription;
 
-export interface IEventManager {
+export interface IEventManager extends IDisposable {
   addEventListener(dom: IDOM, target: Node, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
 
@@ -220,9 +228,13 @@ export const IEventManager = DI.createInterface<IEventManager>('IEventManager').
 
 /** @internal */
 export class EventManager implements IEventManager {
-  public elementHandlerLookup: Record<string, Record<string, string[]>> = {};
-  public delegatedHandlers: Record<string, ListenerTracker> = {};
-  public capturedHandlers: Record<string, ListenerTracker> = {};
+  public readonly delegatedHandlers: Record<string, ListenerTracker> = {};
+  public readonly capturedHandlers: Record<string, ListenerTracker> = {};
+
+  constructor() {
+    this.delegatedHandlers = {};
+    this.capturedHandlers = {};
+  }
 
   public addEventListener(
     dom: IDOM,
@@ -250,5 +262,16 @@ export class EventManager implements IEventManager {
       return new DelegateOrCaptureSubscription(handlerEntry, capturedCallbacks, targetEvent, callbackOrListener);
     }
     return new TriggerSubscription(dom, target, targetEvent, callbackOrListener);
+  }
+
+  public dispose(): void {
+    let key: string;
+    const { delegatedHandlers, capturedHandlers } = this;
+    for (key in delegatedHandlers) {
+      delegatedHandlers[key].dispose();
+    }
+    for (key in capturedHandlers) {
+      capturedHandlers[key].dispose();
+    }
   }
 }

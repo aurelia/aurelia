@@ -1,6 +1,20 @@
-import { IAttach, IBindScope, ILifecycle, ILifecycleUnbind, IMountable, INodeSequence, IRenderContext, IRenderLocation, IScope, IView, IViewCache, LifecycleFlags, State } from '@aurelia/runtime';
+import {
+  IAttach,
+  IBindScope,
+  ILifecycle,
+  ILifecycleUnbind,
+  IMountable,
+  INodeSequence,
+  IRenderContext,
+  IRenderLocation,
+  IScope,
+  IView,
+  IViewCache,
+  LifecycleFlags,
+  State
+} from '@aurelia/runtime';
 import { NodeSequenceFactory } from '../../src/dom';
-import { HTMLDOM } from '../../src/index';
+import { HTMLTestContext } from '../util';
 
 export class FakeView implements IView {
   public $bindableHead: IBindScope;
@@ -30,7 +44,7 @@ export class FakeView implements IView {
 
   public readonly $lifecycle: ILifecycle;
 
-  constructor($lifecycle: ILifecycle) {
+  constructor(ctx: HTMLTestContext) {
     this.$bindableHead = null;
     this.$bindableTail = null;
 
@@ -50,13 +64,13 @@ export class FakeView implements IView {
 
     this.$state = State.none;
     this.$scope = null;
-    this.$nodes = new NodeSequenceFactory(new HTMLDOM(document), '<div>Fake View</div>').createNodeSequence();
+    this.$nodes = new NodeSequenceFactory(ctx.dom, '<div>Fake View</div>').createNodeSequence();
     this.$context = null;
     this.cache = null;
     this.location = null;
     this.isFree = false;
 
-    this.$lifecycle = $lifecycle;
+    this.$lifecycle = ctx.lifecycle;
   }
 
   public hold(location: IRenderLocation): void {

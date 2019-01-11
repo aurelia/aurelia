@@ -64,6 +64,9 @@ export {
   Tracer
 } from './reporter';
 export {
+  Profiler
+} from './profiler';
+export {
   IResourceDefinition,
   IResourceDescriptions,
   IResourceKind,

@@ -1,4 +1,4 @@
-import { Tracer, Writable } from '@aurelia/kernel';
+import { Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { Hooks, IView, State } from '../lifecycle';
 import { IScope, LifecycleFlags } from '../observation';
 import { ICustomAttribute } from '../resources/custom-attribute';
@@ -6,13 +6,17 @@ import { ICustomElement } from '../resources/custom-element';
 
 const slice = Array.prototype.slice;
 
+const { enter, leave } = Profiler.createTimer('BindLifecycle');
+
 /** @internal */
 export function $bindAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, scope: IScope): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$bindAttribute`, slice.call(arguments)); }
+  if (Profiler.enabled) { enter(); }
   flags |= LifecycleFlags.fromBind;
 
   if (this.$state & State.isBound) {
     if (this.$scope === scope) {
+      if (Profiler.enabled) { leave(); }
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
@@ -41,13 +45,16 @@ export function $bindAttribute(this: Writable<ICustomAttribute>, flags: Lifecycl
   this.$state &= ~State.isBinding;
 
   lifecycle.endBind(flags);
+  if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /** @internal */
 export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFlags, parentScope: IScope | null): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$bindElement`, slice.call(arguments)); }
+  if (Profiler.enabled) { enter(); }
   if (this.$state & State.isBound) {
+    if (Profiler.enabled) { leave(); }
     if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
@@ -81,6 +88,7 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
   this.$state &= ~State.isBinding;
 
   lifecycle.endBind(flags);
+  if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }
 

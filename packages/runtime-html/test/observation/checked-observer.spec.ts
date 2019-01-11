@@ -1,29 +1,13 @@
 import {
-  Registration
-} from '@aurelia/kernel';
-import {
-  Binding,
   enableArrayObservation,
   IBindingTargetObserver,
-  IDOM,
-  ILifecycle,
-  IObserverLocator,
   IPropertySubscriber,
   LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import {
-  CheckedObserver,
-  HTMLDOM,
-  HTMLRuntimeConfiguration,
-  IInputElement
-} from '../../src/index';
-import {
-  _,
-  createElement
-} from '../util';
-import { Lifecycle } from '../../../runtime/src/lifecycle';
+import { CheckedObserver, IInputElement } from '../../src/index';
+import { _, TestContext } from '../util';
 
 type ObservedInputElement = HTMLInputElement & {
   $observers: Record<string, IBindingTargetObserver>;
@@ -31,7 +15,6 @@ type ObservedInputElement = HTMLInputElement & {
   matcher: (a: any, b: any) => boolean;
   children: HTMLCollectionOf<ObservedInputElement>;
 };
-type TwoWayBinding = Binding & { targetObserver: IBindingTargetObserver };
 
 const eventDefaults = { bubbles: true };
 
@@ -43,29 +26,24 @@ describe('CheckedObserver', () => {
 
   describe('setValue() - primitive - type="checkbox"', () => {
     function setup(hasSubscriber: boolean) {
-      const container = HTMLRuntimeConfiguration.createContainer();
-      const dom = new HTMLDOM(document);
-      Registration.instance(IDOM, dom).register(container, IDOM);
-      // @ts-ignore
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = container.get(IObserverLocator);
+      const ctx = TestContext.createHTMLTestContext();
+      const { container, lifecycle, observerLocator } = ctx;
+      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
+      ctx.doc.body.appendChild(el);
 
-      const el = createElement(`<input type="checkbox"/>`) as IInputElement;
-      document.body.appendChild(el);
-
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      observerLocator.getObserver(el, 'value');
+      const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
+      ctx.observerLocator.getObserver(el, 'value');
 
       const subscriber: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sut.subscribe(subscriber);
       }
 
-      return { container, lifecycle, observerLocator, el, sut, subscriber };
+      return { ctx, container, lifecycle, observerLocator, el, sut, subscriber };
     }
 
-    function tearDown({ sut, lifecycle, el }: Partial<ReturnType<typeof setup>>) {
-      document.body.removeChild(el);
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+      ctx.doc.body.removeChild(el);
       sut.unbind();
       sut.dispose();
     }
@@ -87,7 +65,7 @@ describe('CheckedObserver', () => {
                 const changeCountBefore = expectedPropValue !== null ? 1 : 0;
                 const changeCountAfter = expectedPropValue !== expectedNewValue ? 1 : 0;
 
-                const { sut, lifecycle, el, subscriber } = setup(hasSubscriber);
+                const { ctx, sut, lifecycle, el, subscriber } = setup(hasSubscriber);
 
                 sut.setValue(propValue, LifecycleFlags.none);
                 expect(lifecycle.flushCount).to.equal(changeCountBefore, 'lifecycle.flushCount 1');
@@ -104,7 +82,7 @@ describe('CheckedObserver', () => {
                 expect(el.checked).to.equal(checkedAfter, 'el.checked 3');
                 expect(subscriber.handleChange).not.to.have.been.called;
 
-                tearDown({ sut, lifecycle, el });
+                tearDown({ ctx, sut, lifecycle, el });
               });
             }
           }
@@ -115,24 +93,21 @@ describe('CheckedObserver', () => {
 
   describe('handleEvent() - primitive - type="checkbox"', () => {
     function setup() {
-      const container = HTMLRuntimeConfiguration.createContainer();
-      const dom = new HTMLDOM(document);
-      Registration.instance(IDOM, dom).register(container, IDOM);
-      const observerLocator = container.get(IObserverLocator);
+      const ctx = TestContext.createHTMLTestContext();
+      const { container, lifecycle, observerLocator } = ctx;
+      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
+      ctx.doc.body.appendChild(el);
 
-      const el = createElement(`<input type="checkbox"/>`) as IInputElement;
-      document.body.appendChild(el);
-
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+      const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
 
       const subscriber: IPropertySubscriber = { handleChange: spy() };
       sut.subscribe(subscriber);
 
-      return { container, observerLocator, el, sut, subscriber };
+      return { ctx, container, lifecycle, observerLocator, el, sut, subscriber };
     }
 
-    function tearDown({ sut, el }: Partial<ReturnType<typeof setup>>) {
-      document.body.removeChild(el);
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+      ctx.doc.body.removeChild(el);
       sut.unbind();
       sut.dispose();
     }
@@ -142,15 +117,15 @@ describe('CheckedObserver', () => {
         for (const event of ['change', 'input']) {
           it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, () => {
 
-            const { sut, el, subscriber } = setup();
+            const { ctx, sut, el, subscriber } = setup();
 
             el.checked = checkedBefore;
-            el.dispatchEvent(new Event(event, eventDefaults));
+            el.dispatchEvent(new ctx.Event(event, eventDefaults));
             expect(sut.getValue()).to.equal(checkedBefore, 'sut.getValue() 1');
             expect(subscriber.handleChange).to.have.been.calledWith(checkedBefore, null, LifecycleFlags.updateSourceExpression | LifecycleFlags.fromDOMEvent);
 
             el.checked = checkedAfter;
-            el.dispatchEvent(new Event(event, eventDefaults));
+            el.dispatchEvent(new ctx.Event(event, eventDefaults));
             expect(sut.getValue()).to.equal(checkedAfter, 'sut.getValue() 2');
 
             if (checkedBefore !== checkedAfter) {
@@ -160,7 +135,7 @@ describe('CheckedObserver', () => {
               expect(subscriber.handleChange).to.have.been.calledOnce;
             }
 
-            tearDown({ sut, el });
+            tearDown({ ctx, sut, el });
           });
         }
       }
@@ -169,19 +144,15 @@ describe('CheckedObserver', () => {
 
   describe('setValue() - primitive - type="radio"', () => {
     function setup(hasSubscriber: boolean) {
-      const container = HTMLRuntimeConfiguration.createContainer();
-      const dom = new HTMLDOM(document);
-      Registration.instance(IDOM, dom).register(container, IDOM);
-      //@ts-ignore
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = container.get(IObserverLocator);
+      const ctx = TestContext.createHTMLTestContext();
+      const { container, lifecycle, observerLocator } = ctx;
 
-      const elA = createElement(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
-      const elB = createElement(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
-      const elC = createElement(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
-      document.body.appendChild(elA);
-      document.body.appendChild(elB);
-      document.body.appendChild(elC);
+      const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
+      const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
+      const elC = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
+      ctx.doc.body.appendChild(elA);
+      ctx.doc.body.appendChild(elB);
+      ctx.doc.body.appendChild(elC);
       const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
       const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
       const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
@@ -198,13 +169,13 @@ describe('CheckedObserver', () => {
         sutC.subscribe(subscriberC);
       }
 
-      return { container, lifecycle, observerLocator, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      return { ctx, container, lifecycle, observerLocator, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
-    function tearDown({ sutA, sutB, sutC, elA, elB, elC, lifecycle }: Partial<ReturnType<typeof setup>>) {
-      document.body.removeChild(elA);
-      document.body.removeChild(elB);
-      document.body.removeChild(elC);
+    function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof setup>>) {
+      ctx.doc.body.removeChild(elA);
+      ctx.doc.body.removeChild(elB);
+      ctx.doc.body.removeChild(elC);
       sutA.unbind();
       sutB.unbind();
       sutC.unbind();
@@ -225,7 +196,7 @@ describe('CheckedObserver', () => {
             const changeCountBefore = expectedPropValue !== null ? 3 : 0;
             const changeCountAfter = expectedPropValue !== expectedNewValue ? 3 : 0;
 
-            const { sutA, sutB, sutC, elA, elB, elC, lifecycle, subscriberA, subscriberB, subscriberC } = setup(hasSubscriber);
+            const { ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle, subscriberA, subscriberB, subscriberC } = setup(hasSubscriber);
 
             sutA.setValue(checkedBefore, LifecycleFlags.none);
             sutB.setValue(checkedBefore, LifecycleFlags.none);
@@ -259,7 +230,7 @@ describe('CheckedObserver', () => {
             expect(subscriberB.handleChange).not.to.have.been.called;
             expect(subscriberC.handleChange).not.to.have.been.called;
 
-            tearDown({ sutA, sutB, sutC, elA, elB, elC, lifecycle });
+            tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle });
           });
         }
       }
@@ -268,18 +239,15 @@ describe('CheckedObserver', () => {
 
   describe('handleEvent() - primitive - type="radio"', () => {
     function setup() {
-      const container = HTMLRuntimeConfiguration.createContainer();
-      const dom = new HTMLDOM(document);
-      Registration.instance(IDOM, dom).register(container, IDOM);
-      const lifecycle = container.get(ILifecycle);
-      const observerLocator = container.get(IObserverLocator);
+      const ctx = TestContext.createHTMLTestContext();
+      const { container, lifecycle, observerLocator } = ctx;
 
-      const elA = createElement(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
-      const elB = createElement(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
-      const elC = createElement(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
-      document.body.appendChild(elA);
-      document.body.appendChild(elB);
-      document.body.appendChild(elC);
+      const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
+      const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
+      const elC = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
+      ctx.doc.body.appendChild(elA);
+      ctx.doc.body.appendChild(elB);
+      ctx.doc.body.appendChild(elC);
       const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
       const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
       const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
@@ -290,13 +258,13 @@ describe('CheckedObserver', () => {
       sutB.subscribe(subscriberB);
       sutC.subscribe(subscriberC);
 
-      return { container, lifecycle, observerLocator, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      return { ctx, container, lifecycle, observerLocator, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
-    function tearDown({ sutA, sutB, sutC, elA, elB, elC, lifecycle }: Partial<ReturnType<typeof setup>>) {
-      document.body.removeChild(elA);
-      document.body.removeChild(elB);
-      document.body.removeChild(elC);
+    function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof setup>>) {
+      ctx.doc.body.removeChild(elA);
+      ctx.doc.body.removeChild(elB);
+      ctx.doc.body.removeChild(elC);
       sutA.unbind();
       sutB.unbind();
       sutC.unbind();
@@ -311,14 +279,14 @@ describe('CheckedObserver', () => {
 
           it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, () => {
 
-            const { sutA, sutB, sutC, elA, elB, elC, subscriberA, subscriberB, subscriberC } = setup();
+            const { ctx, sutA, sutB, sutC, elA, elB, elC } = setup();
 
             elA.checked = checkedBefore === 'A';
             elB.checked = checkedBefore === 'B';
             elC.checked = checkedBefore === 'C';
-            elA.dispatchEvent(new Event(event, eventDefaults));
-            elB.dispatchEvent(new Event(event, eventDefaults));
-            elC.dispatchEvent(new Event(event, eventDefaults));
+            elA.dispatchEvent(new ctx.Event(event, eventDefaults));
+            elB.dispatchEvent(new ctx.Event(event, eventDefaults));
+            elC.dispatchEvent(new ctx.Event(event, eventDefaults));
             expect(sutA.getValue()).to.equal(checkedBefore === 'A' ? 'A' : null, 'sutA.getValue() 1');
             expect(sutB.getValue()).to.equal(checkedBefore === 'B' ? 'B' : null, 'sutB.getValue() 1');
             expect(sutC.getValue()).to.equal(checkedBefore === 'C' ? 'C' : null, 'sutC.getValue() 1');
@@ -329,9 +297,9 @@ describe('CheckedObserver', () => {
             elA.checked = checkedAfter === 'A';
             elB.checked = checkedAfter === 'B';
             elC.checked = checkedAfter === 'C';
-            elA.dispatchEvent(new Event(event, eventDefaults));
-            elB.dispatchEvent(new Event(event, eventDefaults));
-            elC.dispatchEvent(new Event(event, eventDefaults));
+            elA.dispatchEvent(new ctx.Event(event, eventDefaults));
+            elB.dispatchEvent(new ctx.Event(event, eventDefaults));
+            elC.dispatchEvent(new ctx.Event(event, eventDefaults));
             expect(sutA.getValue()).to.equal(checkedBefore === 'A' || checkedAfter === 'A' ? 'A' : null, 'sutA.getValue() 2');
             expect(sutB.getValue()).to.equal(checkedBefore === 'B' || checkedAfter === 'B' ? 'B' : null, 'sutB.getValue() 2');
             expect(sutC.getValue()).to.equal(checkedBefore === 'C' || checkedAfter === 'C' ? 'C' : null, 'sutC.getValue() 2');
@@ -339,7 +307,7 @@ describe('CheckedObserver', () => {
             expect(elB.checked).to.equal(checkedAfter === 'B', 'elB.checked 2');
             expect(elC.checked).to.equal(checkedAfter === 'C', 'elC.checked 2');
 
-            tearDown({ sutA, sutB, sutC, elA, elB, elC });
+            tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC });
           });
         }
       }
@@ -348,16 +316,12 @@ describe('CheckedObserver', () => {
 
   describe('setValue() - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
-      const container = HTMLRuntimeConfiguration.createContainer();
-      const dom = new HTMLDOM(document);
-      Registration.instance(IDOM, dom).register(container, IDOM);
-      //@ts-ignore
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = container.get(IObserverLocator);
+      const ctx = TestContext.createHTMLTestContext();
+      const { container, lifecycle, observerLocator } = ctx;
 
-      const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
+      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
-      document.body.appendChild(el);
+      ctx.doc.body.appendChild(el);
 
       const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
       observerLocator.getObserver(el, prop);
@@ -367,11 +331,11 @@ describe('CheckedObserver', () => {
         sut.subscribe(subscriber);
       }
 
-      return { value, container, lifecycle, observerLocator, el, sut, subscriber };
+      return { ctx, value, container, lifecycle, observerLocator, el, sut, subscriber };
     }
 
-    function tearDown({ sut, lifecycle, el }: Partial<ReturnType<typeof setup>>) {
-      document.body.removeChild(el);
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+      ctx.doc.body.removeChild(el);
       sut.unbind();
       sut.dispose();
     }
@@ -395,7 +359,7 @@ describe('CheckedObserver', () => {
                     const changeCountBefore = 1;
                     const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
 
-                    const { sut, lifecycle, el, subscriber } = setup(hasSubscriber, value, prop);
+                    const { ctx, sut, lifecycle, el, subscriber } = setup(hasSubscriber, value, prop);
 
                     sut.setValue(propValue, LifecycleFlags.none);
                     expect(lifecycle.flushCount).to.equal(changeCountBefore, 'lifecycle.flushCount 1');
@@ -412,7 +376,7 @@ describe('CheckedObserver', () => {
                     expect(el.checked).to.equal(valueCanBeChecked && checkedAfter, 'el.checked 3');
                     expect(subscriber.handleChange).not.to.have.been.called;
 
-                    tearDown({ sut, lifecycle, el });
+                    tearDown({ ctx, sut, lifecycle, el });
                   });
                 }
               }
@@ -425,16 +389,12 @@ describe('CheckedObserver', () => {
 
   describe('mutate collection - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
-      const container = HTMLRuntimeConfiguration.createContainer();
-      const dom = new HTMLDOM(document);
-      Registration.instance(IDOM, dom).register(container, IDOM);
-      //@ts-ignore
-      const lifecycle = container.get(ILifecycle) as Lifecycle;
-      const observerLocator = container.get(IObserverLocator);
+      const ctx = TestContext.createHTMLTestContext();
+      const { container, lifecycle, observerLocator } = ctx;
 
-      const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
+      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
-      document.body.appendChild(el);
+      ctx.doc.body.appendChild(el);
 
       const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
       observerLocator.getObserver(el, prop);
@@ -444,11 +404,11 @@ describe('CheckedObserver', () => {
         sut.subscribe(subscriber);
       }
 
-      return { value, container, lifecycle, observerLocator, el, sut, subscriber };
+      return { ctx, value, container, lifecycle, observerLocator, el, sut, subscriber };
     }
 
-    function tearDown({ sut, lifecycle, el }: Partial<ReturnType<typeof setup>>) {
-      document.body.removeChild(el);
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+      ctx.doc.body.removeChild(el);
       sut.unbind();
       sut.dispose();
     }
@@ -463,7 +423,7 @@ describe('CheckedObserver', () => {
 
             const array = [];
 
-            const { sut, lifecycle, el, subscriber } = setup(hasSubscriber, value, prop);
+            const { ctx, sut, lifecycle, el, subscriber } = setup(hasSubscriber, value, prop);
 
             sut.setValue(array, LifecycleFlags.none);
             expect(lifecycle.flushCount).to.equal(1, 'lifecycle.flushCount 1');
@@ -484,7 +444,7 @@ describe('CheckedObserver', () => {
             expect(el.checked).to.equal(false, 'el.checked 5');
             expect(subscriber.handleChange).not.to.have.been.called;
 
-            tearDown({ sut, lifecycle, el });
+            tearDown({ ctx, sut, lifecycle, el });
           });
         }
       }
@@ -493,26 +453,23 @@ describe('CheckedObserver', () => {
 
   describe('handleEvent() - array - type="checkbox"', () => {
     function setup(value: any, prop: string) {
-      const container = HTMLRuntimeConfiguration.createContainer();
-      const dom = new HTMLDOM(document);
-      Registration.instance(IDOM, dom).register(container, IDOM);
-      const lifecycle = container.get(ILifecycle);
-      const observerLocator = container.get(IObserverLocator);
+      const ctx = TestContext.createHTMLTestContext();
+      const { container, observerLocator } = ctx;
 
-      const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
+      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
-      document.body.appendChild(el);
+      ctx.doc.body.appendChild(el);
 
       const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
 
       const subscriber: IPropertySubscriber = { handleChange: spy() };
       sut.subscribe(subscriber);
 
-      return { value, container, observerLocator, el, sut, subscriber };
+      return { ctx, value, container, observerLocator, el, sut, subscriber };
     }
 
-    function tearDown({ sut, el }: Partial<ReturnType<typeof setup>>) {
-      document.body.removeChild(el);
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+      ctx.doc.body.removeChild(el);
       sut.unbind();
       sut.dispose();
     }
@@ -526,12 +483,12 @@ describe('CheckedObserver', () => {
 
               it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async () => {
 
-                const { sut, el, subscriber } = setup(value, prop);
+                const { ctx, sut, el, subscriber } = setup(value, prop);
 
                 const array = [];
                 await sut.setValue(array, LifecycleFlags.none);
                 el.checked = checkedBefore;
-                el.dispatchEvent(new Event(event, eventDefaults));
+                el.dispatchEvent(new ctx.Event(event, eventDefaults));
                 let actual = sut.getValue() as IInputElement[];
                 if (checkedBefore) {
                   expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value + '' : '') : value); // TODO: maybe we should coerce value in the observer
@@ -540,7 +497,7 @@ describe('CheckedObserver', () => {
                 }
 
                 el.checked = checkedAfter;
-                el.dispatchEvent(new Event(event, eventDefaults));
+                el.dispatchEvent(new ctx.Event(event, eventDefaults));
                 actual = sut.getValue() as IInputElement[];
                 if (checkedAfter) {
                   expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value + '' : '') : value); // TODO: maybe we should coerce value in the observer
@@ -549,7 +506,7 @@ describe('CheckedObserver', () => {
                 }
                 expect(subscriber.handleChange).not.to.have.been.called;
 
-                tearDown({ sut, el });
+                tearDown({ ctx, sut, el });
               });
             }
           }
@@ -560,14 +517,11 @@ describe('CheckedObserver', () => {
 
   describe('SelectValueObserver.setValue() - array - type="checkbox"', () => {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
-      const container = HTMLRuntimeConfiguration.createContainer();
-      const dom = new HTMLDOM(document);
-      Registration.instance(IDOM, dom).register(container, IDOM);
-      const lifecycle = container.get(ILifecycle);
-      const observerLocator = container.get(IObserverLocator);
+      const ctx = TestContext.createHTMLTestContext();
+      const { container, lifecycle, observerLocator } = ctx;
 
-      const el = createElement(`<input type="checkbox"/>`) as ObservedInputElement;
-      document.body.appendChild(el);
+      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
+      ctx.doc.body.appendChild(el);
 
       const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
       const valueOrModelObserver = observerLocator.getObserver(el, prop) as IBindingTargetObserver;
@@ -577,11 +531,11 @@ describe('CheckedObserver', () => {
         sut.subscribe(subscriber);
       }
 
-      return { value, container, observerLocator, el, sut, subscriber, valueOrModelObserver, lifecycle };
+      return { ctx, value, container, observerLocator, el, sut, subscriber, valueOrModelObserver, lifecycle };
     }
 
-    function tearDown({ sut, el }: Partial<ReturnType<typeof setup>>) {
-      document.body.removeChild(el);
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+      ctx.doc.body.removeChild(el);
       sut.unbind();
       sut.dispose();
     }
@@ -602,7 +556,7 @@ describe('CheckedObserver', () => {
 
                   it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, () => {
 
-                    const { sut, el, subscriber, valueOrModelObserver, lifecycle } = setup(hasSubscriber, value, prop);
+                    const { ctx, sut, el, subscriber, valueOrModelObserver, lifecycle } = setup(hasSubscriber, value, prop);
 
                     sut.setValue(propValue, LifecycleFlags.none);
                     lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -624,7 +578,7 @@ describe('CheckedObserver', () => {
                     expect(el.checked).to.equal(valueCanBeChecked && checkedAfter, 'el.checked 5');
                     expect(subscriber.handleChange).not.to.have.been.called;
 
-                    tearDown({ sut, el });
+                    tearDown({ ctx, sut, el });
                   });
                 }
               }

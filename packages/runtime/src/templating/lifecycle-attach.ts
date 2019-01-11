@@ -1,4 +1,4 @@
-import { Tracer, Writable } from '@aurelia/kernel';
+import { Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { Hooks, IView, State } from '../lifecycle';
 import { LifecycleFlags } from '../observation';
 import { ICustomAttribute } from '../resources/custom-attribute';
@@ -6,11 +6,15 @@ import { ICustomElement } from '../resources/custom-element';
 
 const slice = Array.prototype.slice;
 
+const { enter, leave } = Profiler.createTimer('AttachLifecycle');
+
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
 export function $attachAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$attachAttribute`, slice.call(arguments)); }
+  if (Profiler.enabled) { enter(); }
   if (this.$state & State.isAttached) {
+    if (Profiler.enabled) { leave(); }
     if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
@@ -34,6 +38,7 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
     lifecycle.enqueueAttached(this as Required<typeof this>);
   }
   lifecycle.endAttach(flags);
+  if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
@@ -41,7 +46,9 @@ export function $attachAttribute(this: Writable<ICustomAttribute>, flags: Lifecy
 // tslint:disable-next-line:no-ignored-initial-value
 export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$attachElement`, slice.call(arguments)); }
+  if (Profiler.enabled) { enter(); }
   if (this.$state & State.isAttached) {
+    if (Profiler.enabled) { leave(); }
     if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
@@ -73,6 +80,7 @@ export function $attachElement(this: Writable<ICustomElement>, flags: LifecycleF
     lifecycle.enqueueAttached(this as Required<typeof this>);
   }
   lifecycle.endAttach(flags);
+  if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }
 

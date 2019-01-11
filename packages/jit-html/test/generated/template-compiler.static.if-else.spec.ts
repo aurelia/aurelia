@@ -1,13 +1,20 @@
 import { expect } from "chai";
-import { CustomElementResource, Aurelia } from "../../../runtime/src/index";
-import { HTMLJitConfiguration } from "../../src/index";
-import { getVisibleText } from "../util";
+import { CustomElementResource, Aurelia } from "@aurelia/runtime";
+import { Profiler } from "@aurelia/kernel";
+import { getVisibleText, TestContext, writeProfilerReport } from "../util";
 
 describe("generated.template-compiler.static.if-else", function () {
+    before(function () {
+        Profiler.enable();
+    });
+    after(function () {
+        Profiler.disable();
+        writeProfilerReport("static.if-else");
+    });
     function setup() {
-        const container = HTMLJitConfiguration.createContainer();
-        const au = new Aurelia(container);
-        const host = document.createElement("div");
+        const ctx = TestContext.createHTMLTestContext();
+        const au = new Aurelia(ctx.container);
+        const host = ctx.createElement("div");
         return { au, host };
     }
     function verify(au, host, expected) {

@@ -13,7 +13,7 @@ import {
   ILifecycle,
   IScope,
   LifecycleFlags,
-  RuntimeConfiguration,
+  BasicConfiguration,
   SetterObserver
 } from '../../src/index';
 import { Lifecycle } from '../../src/lifecycle';
@@ -29,7 +29,7 @@ import {
 
 describe('Call', () => {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
-    const container = RuntimeConfiguration.createContainer();
+    const container = BasicConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const observerLocator = createObserverLocator(container);
     const sut = new Call(sourceExpression as any, target, targetProperty, observerLocator, container);

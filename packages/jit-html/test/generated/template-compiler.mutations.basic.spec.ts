@@ -1,13 +1,13 @@
 import { expect } from "chai";
-import { CustomElementResource, Aurelia } from "../../../runtime/src/index";
-import { HTMLJitConfiguration } from "../../src/index";
+import { CustomElementResource, Aurelia, INode } from "@aurelia/runtime";
+import { TestContext } from "../util";
 
 describe("generated.template-compiler.mutations.basic", function () {
     function setup() {
-        const container = HTMLJitConfiguration.createContainer();
-        const au = new Aurelia(container);
-        const host = document.createElement("div");
-        return { au, host };
+        const ctx = TestContext.createHTMLTestContext();
+        const au = new Aurelia(ctx.container);
+        const host = ctx.createElement("div");
+        return { au, host, ctx };
     }
     it("works 1", function () {
         const { au, host } = setup();
@@ -19,7 +19,7 @@ describe("generated.template-compiler.mutations.basic", function () {
             el;
             $lifecycle;
             cycled = false;
-            static inject = [Element];
+            static inject = [INode];
             constructor(el) {
                 this.el = el;
             }
@@ -87,7 +87,7 @@ describe("generated.template-compiler.mutations.basic", function () {
             el;
             $lifecycle;
             cycled = false;
-            static inject = [Element];
+            static inject = [INode];
             constructor(el) {
                 this.el = el;
             }
@@ -151,7 +151,7 @@ describe("generated.template-compiler.mutations.basic", function () {
             el;
             $lifecycle;
             cycled = false;
-            static inject = [Element];
+            static inject = [INode];
             constructor(el) {
                 this.el = el;
             }
@@ -221,7 +221,7 @@ describe("generated.template-compiler.mutations.basic", function () {
             el;
             $lifecycle;
             cycled = false;
-            static inject = [Element];
+            static inject = [INode];
             constructor(el) {
                 this.el = el;
             }

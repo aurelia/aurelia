@@ -1,6 +1,6 @@
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { HTMLJitConfiguration } from '../../../jit-html/src/index';
+import { BasicConfiguration } from '../../../jit-html-browser/src/index';
 import { Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
 
@@ -457,7 +457,7 @@ describe('Router', () => {
 let quxCantLeave = 2;
 
 const setup = async (): Promise<{ au; container; host; router }> => {
-  const container = HTMLJitConfiguration.createContainer();
+  const container = BasicConfiguration.createContainer();
   const App = (CustomElementResource as any).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
   const Foo = (CustomElementResource as any).define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
   const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {

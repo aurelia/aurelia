@@ -1,7 +1,7 @@
 import { PLATFORM, Registration } from '@aurelia/kernel';
 import { expect } from 'chai';
 import { SinonSpy, spy } from 'sinon';
-import { ParserRegistration } from '../../jit/src';
+import { IExpressionParserRegistration } from '../../jit/src';
 import {
   AccessScope,
   CallBindingInstruction,
@@ -31,7 +31,7 @@ import { _ } from './util';
 describe('Renderer', () => {
   function setup() {
     const container = AuDOMConfiguration.createContainer();
-    ParserRegistration.register(container as any);
+    IExpressionParserRegistration.register(container as any);
     const dom = container.get(IDOM);
     const renderable: IRenderable = { $bindableHead: null, $bindableTail: null, $attachableHead: null, $attachableTail: null, $context: null, $nodes: null, $scope: null };
     container.register(Registration.instance(IRenderable, renderable));

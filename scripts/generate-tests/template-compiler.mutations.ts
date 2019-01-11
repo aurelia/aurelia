@@ -23,7 +23,7 @@ import {
 } from './util';
 
 function outFile(suffix: string): string {
-  return join(`${project.path}`, 'packages', 'jit', 'test', 'generated', `template-compiler.${suffix}.spec.ts`);
+  return join(`${project.path}`, 'packages', 'jit-html', 'test', 'generated', `template-compiler.${suffix}.spec.ts`);
 }
 
 function $hook(name: string, mutation: Statement | Statement[], flush?: boolean, expectedBeforeFlush?: [any, any], expectedAfterFlush?: [any, any]): MethodDeclaration {
@@ -75,7 +75,7 @@ function generateAndEmit(): void {
               $property('el'),
               $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class Element {}], true),
+              $property('inject', [class INode {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -116,7 +116,7 @@ function generateAndEmit(): void {
               $property('el'),
               $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class Element {}], true),
+              $property('inject', [class INode {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -158,7 +158,7 @@ function generateAndEmit(): void {
               $property('el'),
               $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class Element {}], true),
+              $property('inject', [class INode {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -200,7 +200,7 @@ function generateAndEmit(): void {
               $property('el'),
               $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class Element {}], true),
+              $property('inject', [class INode {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -231,9 +231,8 @@ function generateAndEmit(): void {
     const tests = testsRecord[suffix];
     const nodes = [
       $$import('chai', 'expect'),
-      $$import('../../../kernel/src/index', 'DI'),
-      $$import('../../../runtime/src/index', 'CustomElementResource', 'Aurelia', 'BindingMode', 'ILifecycle'),
-      $$import('../../src/index', 'BasicConfiguration'),
+      $$import('@aurelia/runtime', 'CustomElementResource', 'Aurelia', 'INode'),
+      $$import('../util', 'TestContext'),
       null,
       $$functionExpr('describe', [
         $expression(`generated.template-compiler.${suffix}`),
@@ -241,11 +240,10 @@ function generateAndEmit(): void {
           $$functionDecl(
             'setup',
             [
-              $$const('container', $call('DI.createContainer')),
-              $$call('container.register', ['BasicConfiguration']),
-              $$new('au', 'Aurelia', ['container']),
-              $$const('host', $call('document.createElement', [$expression('div')])),
-              $$return({ au: 'au', host: 'host' })
+              $$const('ctx', $call('TestContext.createHTMLTestContext')),
+              $$new('au', 'Aurelia', ['ctx.container']),
+              $$const('host', $call('ctx.createElement', [$expression('div')])),
+              $$return({ au: 'au', host: 'host', ctx: 'ctx' })
             ],
             []
           ),

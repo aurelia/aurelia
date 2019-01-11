@@ -34,12 +34,33 @@ export {
   TwoWayBindingCommand
 } from './binding-command';
 export {
-  JitConfiguration
+  IExpressionParserRegistration,
+
+  DefaultComponents,
+
+  RefAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration,
+
+  DefaultBindingSyntax,
+
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration,
+
+  ShortHandBindingSyntax,
+
+  CallBindingCommandRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
+
+  DefaultBindingLanguage,
+
+  BasicConfiguration
 } from './configuration';
-export {
-  ParserRegistration,
-  parseExpression
-} from './expression-parser';
+export { parseExpression } from './expression-parser';
 export {
   ResourceModel,
   BindableInfo,

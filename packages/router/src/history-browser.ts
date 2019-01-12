@@ -145,6 +145,7 @@ export class HistoryBrowser {
   }
 
   public async pop(): Promise<void> {
+    // TODO: Make sure we don't back out of application
     let state;
     // tslint:disable-next-line:promise-must-complete
     let wait = new Promise((resolve, reject): void => {

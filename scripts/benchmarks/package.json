@@ -1,0 +1,27 @@
+{
+  "name": "benchmarks",
+  "version": "0.3.0",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=8.11.4 <11.0.0",
+    "npm": ">=6.1.0 <7.0.0"
+  },
+  "scripts": {
+    "container:register": "ts-node -r esm src/container.ts register",
+    "container:resolve": "ts-node -r esm src/container.ts resolve 10",
+    "lifecycle:bind": "ts-node -r esm src/lifecycle.ts bind 10"
+  },
+  "devDependencies": {
+    "@aurelia/debug": "dev",
+    "@aurelia/jit": "dev",
+    "@aurelia/jit-html": "dev",
+    "@aurelia/kernel": "dev",
+    "@aurelia/runtime": "dev",
+    "@aurelia/runtime-html": "dev",
+    "@types/benchmark": "latest",
+    "benchmark": "latest",
+    "esm": "latest",
+    "ts-node": "latest"
+  }
+}

@@ -1,8 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { HTMLJitConfiguration } from '@aurelia/jit-html';
-import { Registration } from '@aurelia/kernel';
+import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, IDOM } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
 
 import { NavCustomElement, ViewportCustomElement } from '../../../../../router/src/index';
 import { App } from './app';
@@ -21,9 +19,7 @@ import { Chat } from './components/chat';
 import { ChatUser } from './components/chat-user';
 import { ChatUsers } from './components/chat-users';
 
-const container = HTMLJitConfiguration.createContainer();
-const dom = new HTMLDOM(document);
-Registration.instance(IDOM, dom).register(container);
+const container = BasicConfiguration.createContainer();
 
 container.register(
   ViewportCustomElement as any,

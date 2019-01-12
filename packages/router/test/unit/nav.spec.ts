@@ -1,8 +1,6 @@
 import { expect } from 'chai';
 import { DebugConfiguration } from '../../../debug/src/index';
-import { HTMLJitConfiguration } from '../../../jit-html/src/index';
-import { Registration } from '../../../kernel/src/index';
-import { HTMLDOM } from '../../../runtime-html/src/index';
+import { BasicConfiguration } from '../../../jit-html-browser/src/index';
 import { Aurelia, CustomElementResource, IDOM } from '../../../runtime/src/index';
 import { NavCustomElement, Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
@@ -42,9 +40,7 @@ describe('Nav', () => {
 });
 
 const setup = async (component): Promise<{ au; container; host; router }> => {
-  const container = HTMLJitConfiguration.createContainer();
-  const dom = new HTMLDOM(document);
-  Registration.instance(IDOM, dom).register(container as any);
+  const container = BasicConfiguration.createContainer();
 
   const App = (CustomElementResource as any).define({ name: 'app', template: `<template><au-viewport name="app" used-by="${component}" default="${component}"></au-viewport></template>` });
   const Foo = CustomElementResource.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {

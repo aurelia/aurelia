@@ -9,6 +9,7 @@
   "dependencies": {
     "@aurelia/debug": "file:../../../../debug",
     "@aurelia/jit-html": "file:../../../../jit-html",
+    "@aurelia/jit-html-browser": "file:../../../../jit-html-browser",
     "@aurelia/jit": "file:../../../../jit",
     "@aurelia/kernel": "file:../../../../kernel",
     "@aurelia/runtime-html": "file:../../../../runtime-html",

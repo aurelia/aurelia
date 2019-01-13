@@ -1,4 +1,4 @@
-import { DI, PLATFORM } from '@aurelia/kernel';
+import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
 import { IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { propertyObserver } from './property-observer';
 
@@ -10,53 +10,100 @@ export interface IDirtyChecker {
 
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
 
+export const DirtyCheckSettings = {
+  /**
+   * Default: `6`
+   *
+   * Adjust the global dirty check frequency.
+   * Measures in "frames per check", such that (given an FPS of 60):
+   * - A value of 1 will result in 60 dirty checks per second
+   * - A value of 6 will result in 10 dirty checks per second
+   */
+  framesPerCheck: 6,
+  /**
+   * Default: `false`
+   *
+   * Disable dirty-checking entirely. Properties that cannot be observed without dirty checking
+   * or an adapter, will simply not be observed.
+   */
+  disable: false,
+  /**
+   * Default: `true`
+   *
+   * Log a warning message to the console if a property is being dirty-checked.
+   */
+  warn: true,
+  /**
+   * Default: `false`
+   *
+   * Throw an error if a property is being dirty-checked.
+   */
+  throw: false,
+  /**
+   * Resets all dirty checking settings to the framework's defaults.
+   */
+  resetToDefault(): void {
+    this.framesPerCheck = 6;
+    this.disable = false;
+    this.warn = true;
+    this.throw = false;
+  }
+};
+
 /** @internal */
 export class DirtyChecker {
-  private readonly checkDelay: number;
   private readonly tracked: DirtyCheckProperty[];
 
+  private elapsedFrames: number;
+
   public constructor() {
-    this.checkDelay = 120;
+    this.elapsedFrames = 0;
     this.tracked = [];
   }
 
   public createProperty(obj: IObservable, propertyName: string): DirtyCheckProperty {
+    if (DirtyCheckSettings.throw) {
+      throw Reporter.error(800); // TODO: create/organize error code
+    }
+    if (DirtyCheckSettings.warn) {
+      Reporter.write(801);
+    }
     return new DirtyCheckProperty(this, obj, propertyName);
   }
 
   public addProperty(property: DirtyCheckProperty): void {
-    const tracked = this.tracked;
+    this.tracked.push(property);
 
-    tracked.push(property);
-
-    if (tracked.length === 1) {
-      this.scheduleDirtyCheck();
+    if (this.tracked.length === 1) {
+      PLATFORM.ticker.add(this.check, this);
     }
   }
 
   public removeProperty(property: DirtyCheckProperty): void {
-    const tracked = this.tracked;
-    tracked.splice(tracked.indexOf(property), 1);
+    this.tracked.splice(this.tracked.indexOf(property), 1);
+    if (this.tracked.length === 0) {
+      PLATFORM.ticker.remove(this.check, this);
+    }
   }
 
-  public scheduleDirtyCheck(): void {
-    PLATFORM.global.setTimeout(() => { this.check(); }, this.checkDelay);
-  }
-
-  public check(): void {
+  public check(delta: number): void {
+    if (DirtyCheckSettings.disable) {
+      return;
+    }
+    this.elapsedFrames += delta;
+    if (this.elapsedFrames < DirtyCheckSettings.framesPerCheck) {
+      return;
+    }
+    this.elapsedFrames = 0;
     const tracked = this.tracked;
-    let i = tracked.length;
-
-    while (i--) {
-      const current = tracked[i];
-
+    const len = tracked.length;
+    let current: DirtyCheckProperty;
+    let i = 0;
+    for (; i < len; ++i) {
+      current = tracked[i];
       if (current.isDirty()) {
         current.flush(LifecycleFlags.fromFlush);
       }
-    }
-
-    if (tracked.length) {
-      this.scheduleDirtyCheck();
     }
   }
 }

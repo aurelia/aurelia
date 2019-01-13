@@ -46,6 +46,7 @@ export class Viewport {
   public nextComponent: IRouteableCustomElement;
 
   private readonly router: Router;
+  private container: IContainer;
 
   private clear: boolean;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;

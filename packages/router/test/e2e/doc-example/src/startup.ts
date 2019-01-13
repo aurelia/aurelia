@@ -1,6 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, IDOM } from '@aurelia/runtime';
+import { registerComponent } from './utils';
 
 import { NavCustomElement, ViewportCustomElement } from '../../../../../router/src/index';
 import { App } from './app';
@@ -25,7 +26,8 @@ container.register(
   ViewportCustomElement as any,
   NavCustomElement as any,
   App as any,
-
+);
+registerComponent(container,
   About as any,
   AboutAuthors as any,
   AboutBooks as any,

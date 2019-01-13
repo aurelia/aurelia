@@ -403,11 +403,11 @@ export class Router {
   }
 
   // Called from the viewport custom element in attached()
-  public addViewport(name: string, element: Element, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, container: IContainer, options?: IViewportOptions): Viewport {
     // tslint:disable-next-line:no-console
     console.log('Viewport added', name, element);
     const parentScope = this.findScope(element);
-    return parentScope.addViewport(name, element, options);
+    return parentScope.addViewport(name, element, container, options);
   }
   // Called from the viewport custom element
   public removeViewport(viewport: Viewport): void {

@@ -45,7 +45,7 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('no-history')) {
       options.noHistory = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, options);
+    this.viewport = this.router.addViewport(this.name, this.element, (this as any).$context, options);
   }
   public detached(): void {
     this.router.removeViewport(this.viewport);

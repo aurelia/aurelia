@@ -4,6 +4,9 @@ import { BasicConfiguration } from '../../../jit-html-browser/src/index';
 import { Aurelia, CustomElementResource, IDOM } from '../../../runtime/src/index';
 import { IComponentViewportParameters, Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
+import { registerComponent } from './utils';
+
+const define = (CustomElementResource as any).define;
 
 describe('Router', () => {
   it('can be created', async function () {
@@ -485,6 +488,241 @@ describe('Router', () => {
     await teardown(host, router, 1);
   });
 
+  // Fred's tests
+
+  describe('local deps', function () {
+    this.timeout(30000);
+
+    async function $setup(dependencies: any[] = []) {
+      const container = BasicConfiguration.createContainer();
+      registerComponent(container, ViewportCustomElement as any);
+      const App = define({ name: 'app', template: '<au-viewport></au-viewport>', dependencies }, null);
+
+      const host = document.createElement('div');
+      const component = new App();
+
+      const au = new Aurelia(container);
+
+      au.app({ host, component });
+      au.start();
+
+      const router = container.get(Router);
+      const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
+      mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
+      router.historyBrowser.history = mockBrowserHistoryLocation as any;
+      router.historyBrowser.location = mockBrowserHistoryLocation as any;
+
+      router.activate();
+      await Promise.resolve();
+
+      return { container, host, component, au, router };
+    }
+
+    async function $goto(router: Router, path: string) {
+      router.goto(`/${path}`);
+
+      await waitForNavigation(router);
+    }
+
+    it('verify that the test isn\'t broken', async function () {
+      const Local = define({ name: 'local', template: 'local' }, null);
+      const Global = define({ name: 'global', template: 'global' }, null);
+      const { container, host, router } = await $setup([Local]);
+
+      registerComponent(container, Global);
+
+      await $goto(router, 'global');
+
+      expect(host.textContent).to.match(/.*global.*/);
+
+      //await $goto(router, 'local');
+
+      //expect(host.textContent).to.equal(' Viewport: default local');
+    });
+
+    it('navigates to locally registered dep', async function () {
+      const Local = define({ name: 'local', template: 'local' }, null);
+      const { host, router } = await $setup([Local]);
+
+      await $goto(router, 'local');
+
+      expect(host.textContent).to.match(/.*local.*/);
+    });
+
+    xit('navigates to locally registered dep - nested', async function () {
+      const Local2 = define({ name: 'local2', template: 'local2' }, null);
+      const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="local1-vp"></au-viewport>', dependencies: [Local2] }, null);
+      const { host, router } = await $setup([Local1]);
+
+      await $goto(router, 'local1@default+local2@local1-vp');
+
+      expect(host.textContent).to.match(/.*local1.*local2.*/);
+    });
+
+    xit('navigates to locally registered dep - double nested - case #1', async function () {
+      const Global3 = define({ name: 'global3', template: 'global3' }, null);
+      const Local2 = define({ name: 'local2', template: 'local2<au-viewport></au-viewport>' }, null);
+      const Local1 = define({ name: 'local1', template: 'local1<au-viewport></au-viewport>', dependencies: [Local2] }, null);
+      const { host, router, container } = await $setup([Local1]);
+      registerComponent(container, Global3);
+
+      await $goto(router, 'local1/local2/global3');
+
+      expect(host.textContent).to.match(/.*local1.*local2.*global3.*/);
+    });
+
+    xit('navigates to locally registered dep - double nested - case #2', async function () {
+      const Local3 = define({ name: 'local3', template: 'local3' }, null);
+      const Global2 = define({ name: 'global2', template: 'global2<au-viewport></au-viewport>', dependencies: [Local3] }, null);
+      const Local1 = define({ name: 'local1', template: 'local1<au-viewport></au-viewport>' }, null);
+      const { host, router, container } = await $setup([Local1]);
+      registerComponent(container, Global2);
+
+      await $goto(router, 'local1/global2/local3');
+
+      expect(host.textContent).to.match(/.*local1.*global2.*local3.*/);
+    });
+
+    xit('navigates to locally registered dep - double nested - case #3', async function () {
+      const Local3 = define({ name: 'local3', template: 'local3' }, null);
+      const Local2 = define({ name: 'local2', template: 'local2<au-viewport></au-viewport>', dependencies: [Local3] }, null);
+      const Global1 = define({ name: 'global1', template: 'global1<au-viewport></au-viewport>', dependencies: [Local2] }, null);
+      const { host, router, container } = await $setup();
+      registerComponent(container, Global1);
+
+      await $goto(router, 'global1/local2/local3');
+
+      expect(host.textContent).to.match(/.*global1.*local2.*local3.*/);
+    });
+
+    xit('navigates to locally registered dep - double nested - case #4', async function () {
+      const Local3 = define({ name: 'local3', template: 'local3' }, null);
+      const Local2 = define({ name: 'local2', template: 'local2<au-viewport></au-viewport>', dependencies: [Local3] }, null);
+      const Local1 = define({ name: 'local1', template: 'local1<au-viewport></au-viewport>', dependencies: [Local2] }, null);
+      const { host, router, container } = await $setup([Local1]);
+
+      await $goto(router, 'local1/local2/local3');
+
+      expect(host.textContent).to.match(/.*local1.*local2.*local3.*/);
+    });
+
+    xit('navigates to locally registered dep - conflicting scoped siblings - case #1', async function () {
+      const Conflict1 = define({ name: 'conflict', template: 'conflict1' }, null);
+      const Local1 = define({ name: 'local1', template: 'local1<au-viewport></au-viewport>', dependencies: [Conflict1] }, null);
+      const Conflict2 = define({ name: 'conflict', template: 'conflict2' }, null);
+      const Local2 = define({ name: 'local2', template: 'local2<au-viewport></au-viewport>', dependencies: [Conflict2] }, null);
+      const { host, router } = await $setup([Local1, Local2]);
+
+      await $goto(router, 'local1/conflict');
+
+      expect(host.textContent).to.match(/.*local1.*conflict1.*/);
+
+      await $goto(router, 'local2/conflict');
+
+      expect(host.textContent).to.match(/.*local2.*conflict2.*/);
+    });
+
+    xit('navigates to locally registered dep - conflicting scoped siblings - case #2', async function () {
+      const Conflict1 = define({ name: 'conflict', template: 'conflict1' }, null);
+      const Global1 = define({ name: 'global1', template: 'global1<au-viewport></au-viewport>', dependencies: [Conflict1] }, null);
+      const Conflict2 = define({ name: 'conflict', template: 'conflict2' }, null);
+      const Global2 = define({ name: 'global2', template: 'global2<au-viewport></au-viewport>', dependencies: [Conflict2] }, null);
+      const { host, router, container } = await $setup();
+      registerComponent(container, Global1, Global2);
+
+      await $goto(router, 'global1/conflict');
+
+      expect(host.textContent).to.match(/.*global1.*conflict1.*/);
+
+      await $goto(router, 'global2/conflict');
+
+      expect(host.textContent).to.match(/.*global2.*conflict2.*/);
+    });
+
+    xit('navigates to locally registered dep - conflicting scoped siblings - case #3', async function () {
+      const Conflict1 = define({ name: 'conflict', template: 'conflict1' }, null);
+      const Local1 = define({ name: 'local1', template: 'local1<au-viewport></au-viewport>', dependencies: [Conflict1] }, null);
+      const Conflict2 = define({ name: 'conflict', template: 'conflict2' }, null);
+      const Global2 = define({ name: 'global2', template: 'global2<au-viewport></au-viewport>', dependencies: [Conflict2] }, null);
+      const { host, router, container } = await $setup([Local1]);
+      registerComponent(container, Global2);
+
+      await $goto(router, 'local1/conflict');
+
+      expect(host.textContent).to.match(/.*local1.*conflict1.*/);
+
+      await $goto(router, 'global2/conflict');
+
+      expect(host.textContent).to.match(/.*global2.*conflict2.*/);
+    });
+
+    describe('navigates to locally registered dep recursively', function () {
+      interface RouteSpec {
+        segments: string[];
+        texts: string[];
+      }
+      const routeSpecs: RouteSpec[] = [
+        {
+          segments: ['global1', 'conflict'],
+          texts: ['global1', 'conflict1']
+        },
+        {
+          // note: custom elements always have themselves registered in their own $context, so should be able to navigate to self without registering anywhere
+          segments: ['global1', 'conflict', 'conflict'],
+          texts: ['global1', 'conflict1', 'conflict1']
+        },
+        {
+          segments: ['local2', 'conflict'],
+          texts: ['local2', 'conflict2']
+        },
+        {
+          segments: ['local2', 'conflict', 'conflict'],
+          texts: ['local2', 'conflict2', 'conflict2']
+        },
+        {
+          segments: ['local2', 'global1', 'conflict'],
+          texts: ['local2', 'global1', 'conflict1']
+        },
+        {
+          segments: ['local2', 'global1', 'conflict', 'conflict'],
+          texts: ['local2', 'global1', 'conflict1', 'conflict1']
+        },
+        {
+          segments: ['local2', 'local2', 'conflict', 'conflict'],
+          texts: ['local2', 'local2', 'conflict2', 'conflict2']
+        },
+        {
+          segments: ['local2', 'conflict', 'global1', 'conflict'],
+          texts: ['local2', 'conflict2', 'global1', 'conflict1']
+        },
+        {
+          segments: ['local2', 'conflict', 'local2', 'conflict'],
+          texts: ['local2', 'conflict2', 'local2', 'conflict2']
+        }
+      ];
+
+      for (const routeSpec of routeSpecs) {
+        const { segments, texts } = routeSpec;
+        const path = segments.join('/');
+        const expectedText = new RegExp(`.*${texts.join('.*')}.*`);
+
+        xit(`path: ${path}, expectedText: ${expectedText}`, async function () {
+          const Conflict1 = define({ name: 'conflict', template: 'conflict1<au-viewport></au-viewport>' }, null);
+          const Global1 = define({ name: 'global1', template: 'global1<au-viewport></au-viewport>', dependencies: [Conflict1] }, null);
+          const Conflict2 = define({ name: 'conflict', template: 'conflict2<au-viewport></au-viewport>' }, null);
+          const Local2 = define({ name: 'local2', template: 'local2<au-viewport></au-viewport>', dependencies: [Conflict2] }, null);
+          const { host, router, container } = await $setup([Local2]);
+          registerComponent(container, Global1);
+
+          await $goto(router, path);
+
+          expect(host.textContent).to.match(expectedText);
+        });
+      }
+    });
+  });
+  /////////
+
 });
 
 let quxCantLeave = 2;
@@ -526,7 +764,7 @@ const setup = async (): Promise<{ au; container; host; router }> => {
 
   container.register(Router as any);
   container.register(ViewportCustomElement as any);
-  container.register(Foo, Bar, Baz, Qux, Quux, Corge);
+  registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge);
 
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
@@ -538,9 +776,9 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   document.body.appendChild(host as any);
 
   const au = window['au'] = new Aurelia(container)
-  .register(DebugConfiguration)
-  .app({ host: host, component: App })
-  .start();
+    .register(DebugConfiguration)
+    .app({ host: host, component: App })
+    .start();
 
   await router.activate();
   return { au, container, host, router };

@@ -1,3 +1,4 @@
+import { IContainer } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
 import { Router } from './router';
 import { IFindViewportsResult } from './scope';
@@ -107,7 +108,7 @@ export class Scope {
         name = name.substring(0, name.length - 1);
       }
       if (!this.viewports[name]) {
-        this.addViewport(name, null, { scope: newScope, forceDescription: true });
+        this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
         this.availableViewports[name] = this.viewports[name];
       }
       const viewport = this.availableViewports[name];
@@ -196,7 +197,7 @@ export class Scope {
   //     newScope = true;
   //     name = name.substring(0, name.length - 1);
   //   }
-  //   const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, { scope: newScope });
+  //   const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, null, { scope: newScope });
   //   if (!parts.length) {
   //     return viewport;
   //   } else {
@@ -218,7 +219,7 @@ export class Scope {
   //   return null;
   // }
 
-  public addViewport(name: string, element: Element, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, container: IContainer, options?: IViewportOptions): Viewport {
     let viewport = this.viewports[name];
     if (!viewport) {
       let scope: Scope;
@@ -227,10 +228,10 @@ export class Scope {
         this.router.scopes.push(scope);
       }
 
-      viewport = this.viewports[name] = new Viewport(this.router, name, element, this, scope, options);
+      viewport = this.viewports[name] = new Viewport(this.router, name, element, container, this, scope, options);
     }
-    if (element) {
-      viewport.setElement(element, options);
+    if (element || container) {
+      viewport.setElement(element, container, options);
     }
     return viewport;
   }

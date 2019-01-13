@@ -1,4 +1,5 @@
-import { CustomElementResource, ICustomElement, ICustomElementType, INode, LifecycleFlags } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { Router } from './router';
@@ -33,7 +34,7 @@ export class Viewport {
   public options?: IViewportOptions;
 
   public content: IRouteableCustomElementType;
-  public nextContent: IRouteableCustomElementType;
+  public nextContent: IRouteableCustomElementType | string;
   public parameters: string;
   public nextParameters: string;
 
@@ -44,14 +45,16 @@ export class Viewport {
   public nextComponent: IRouteableCustomElement;
 
   private readonly router: Router;
+  private container: IContainer;
 
   private clear: boolean;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
 
-  constructor(router: Router, name: string, element: Element, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
+  constructor(router: Router, name: string, element: Element, container: IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
     this.name = name;
     this.element = element;
+    this.container = container;
     this.owningScope = owningScope;
     this.scope = scope;
     this.options = options;
@@ -80,25 +83,30 @@ export class Viewport {
         const cp = content.split(this.router.separators.parameters);
         content = cp.shift();
         parameters = cp.length ? cp.join(this.router.separators.parameters) : null;
-        const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(content));
-        if (resolver !== null) {
-          content = resolver.getFactory(this.router.container).Type as ICustomElementType;
+        // If we've got a container, we're good to resolve type
+        if (this.container) {
+          content = this.componentType(content);
         }
       }
     }
 
-    this.nextContent = content as ICustomElementType;
+    // Can be (resolved) type or string (to be resolved later)
+    this.nextContent = content;
     this.nextInstruction = instruction;
     this.nextParameters = parameters;
 
-    if (this.content !== content || this.parameters !== parameters || !this.instruction || this.instruction.query !== instruction.query || instruction.isRefresh) {
+    if ((typeof content === 'string' && this.componentName(this.content) !== content) ||
+      (typeof content !== 'string' && this.content !== content) ||
+      this.parameters !== parameters ||
+      !this.instruction || this.instruction.query !== instruction.query ||
+      instruction.isRefresh) {
       return true;
     }
 
     return false;
   }
 
-  public setElement(element: Element, options: IViewportOptions): void {
+  public setElement(element: Element, container: IContainer, options: IViewportOptions): void {
     // First added viewport with element is always scope viewport (except for root scope)
     if (this.scope && this.scope.parent && !this.scope.viewport) {
       this.scope.viewport = this;
@@ -106,7 +114,7 @@ export class Viewport {
     if (this.scope && !this.scope.element) {
       this.scope.element = element;
     }
-    if (!this.element) {
+    if (!this.element && element) {
       this.element = element;
       if (options && options.usedBy) {
         this.options.usedBy = options.usedBy;
@@ -124,6 +132,10 @@ export class Viewport {
         this.elementResolve();
       }
     }
+    if (!this.container && container) {
+      this.container = container;
+    }
+
     if (!this.component && !this.nextComponent && this.options.default) {
       this.router.addProcessingViewport(this, this.options.default);
     }
@@ -148,7 +160,7 @@ export class Viewport {
     return result;
   }
 
-  public canEnter(): Promise<boolean> {
+  public async canEnter(): Promise<boolean> {
     if (this.clear) {
       return Promise.resolve(true);
     }
@@ -157,7 +169,7 @@ export class Viewport {
       return Promise.resolve(false);
     }
 
-    this.loadComponent(this.nextContent);
+    await this.loadComponent(this.nextContent);
     if (!this.nextComponent) {
       return Promise.resolve(false);
     }
@@ -192,7 +204,7 @@ export class Viewport {
 
     if (this.nextComponent) {
       if (this.nextComponent.enter) {
-        const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, this.nextContent.parameters);
+        const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, (this.nextContent as IRouteableCustomElementType).parameters);
         this.nextInstruction.parameters = merged.parameters;
         this.nextInstruction.parameterList = merged.list;
         await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
@@ -212,7 +224,7 @@ export class Viewport {
       }
       this.addComponent(this.nextComponent);
 
-      this.content = this.nextContent;
+      this.content = this.nextContent as IRouteableCustomElementType;
       this.parameters = this.nextParameters;
       this.instruction = this.nextInstruction;
       this.component = this.nextComponent;
@@ -304,13 +316,45 @@ export class Viewport {
     }
   }
 
-  private loadComponent(component: ICustomElementType): void {
-    this.nextComponent = this.router.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
+  public componentName(component: IRouteableCustomElementType | string): string {
+    if (typeof component === 'string') {
+      return component;
+    } else {
+      return component.description.name;
+    }
+  }
+  public componentType(component: IRouteableCustomElementType | string): IRouteableCustomElementType {
+    if (typeof component !== 'string') {
+      return component as IRouteableCustomElementType;
+    } else {
+      const container = this.container || this.router.container;
+      const resolver = container.getResolver(CustomElementResource.keyFrom(component));
+      if (resolver !== null) {
+        return resolver.getFactory(container).Type as IRouteableCustomElementType;
+      }
+      return null;
+    }
+  }
+  public componentInstance(component: IRouteableCustomElementType | string): IRouteableCustomElement {
+    const container = this.container || this.router.container;
+    if (typeof component !== 'string') {
+      return container.get<IRouteableCustomElement>(component);
+    } else {
+      return container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component));
+    }
+  }
+
+  private async loadComponent(component: ICustomElementType | string): Promise<void> {
+    await this.waitForElement();
+
+    this.nextComponent = this.componentInstance(component);
+    // const container = this.container || this.router.container;
+    // this.nextComponent = container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
   }
 
   private addComponent(component: ICustomElement): void {
     const host: INode = this.element as INode;
-    const container = this.router.container;
+    const container = this.container || this.router.container;
 
     // TODO: get useProxies settings from the template definition
     component.$hydrate(LifecycleFlags.none, container, host);

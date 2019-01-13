@@ -8,9 +8,3 @@ export function registerComponent(container, ...components) {
     Registration.alias(CustomElementResource.keyFrom(name), component).register(container);
   }
 }
-
-export const wait = async (time = 0) => {
-  await new Promise((resolve) => {
-    setTimeout(resolve, time);
-  });
-};

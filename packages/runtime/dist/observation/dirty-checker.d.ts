@@ -1,6 +1,6 @@
-import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
+import { IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
 export interface IDirtyChecker {
-    createProperty(obj: IObservable, propertyName: string): IBindingTargetAccessor;
+    createProperty(obj: IObservable, propertyName: string): IBindingTargetObserver;
     addProperty(property: DirtyCheckProperty): void;
     removeProperty(property: DirtyCheckProperty): void;
 }

@@ -5532,8 +5532,6 @@ var au = (function (exports) {
             (target.computed || (target.computed = {}))[key] = config;
         };
     }
-    // tslint:disable-next-line:no-typeof-undefined
-    const noProxy = typeof Proxy === 'undefined';
     const computedOverrideDefaults = { static: false, volatile: false };
     /* @internal */
     function createComputedObserver(observerLocator, dirtyChecker, lifecycle, instance, propertyName, descriptor) {
@@ -5541,43 +5539,33 @@ var au = (function (exports) {
             return dirtyChecker.createProperty(instance, propertyName);
         }
         if (descriptor.get) {
-            const overrides = instance.constructor.computed
-                ? instance.constructor.computed[propertyName] || computedOverrideDefaults
-                : computedOverrideDefaults;
+            const overrides = instance.constructor.computed && instance.constructor.computed[propertyName] || computedOverrideDefaults;
             if (descriptor.set) {
                 if (overrides.volatile) {
-                    return noProxy
-                        ? dirtyChecker.createProperty(instance, propertyName)
-                        : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
+                    return new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
                 }
-                return new CustomSetterObserver(instance, propertyName, descriptor, lifecycle);
+                return new CustomSetterObserver(instance, propertyName, descriptor);
             }
-            return noProxy
-                ? dirtyChecker.createProperty(instance, propertyName)
-                : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
+            return new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
         }
         throw Reporter.error(18, propertyName);
     }
     // Used when the getter is dependent solely on changes that happen within the setter.
     let CustomSetterObserver = class CustomSetterObserver {
-        constructor(obj, propertyKey, descriptor, lifecycle) {
-            this.$nextFlush = null;
+        constructor(obj, propertyKey, descriptor) {
             this.obj = obj;
-            this.observing = false;
             this.propertyKey = propertyKey;
+            this.currentValue = this.oldValue = undefined;
             this.descriptor = descriptor;
-            this.lifecycle = lifecycle;
-        }
-        getValue() {
-            return this.obj[this.propertyKey];
+            this.observing = false;
         }
         setValue(newValue) {
-            this.obj[this.propertyKey] = newValue;
-        }
-        flush(flags) {
-            const oldValue = this.oldValue;
-            const newValue = this.currentValue;
-            this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
+            this.descriptor.set.call(this.obj, newValue);
+            if (this.currentValue !== newValue) {
+                this.oldValue = this.currentValue;
+                this.currentValue = newValue;
+                this.callSubscribers(newValue, this.oldValue, LifecycleFlags.updateTargetInstance);
+            }
         }
         subscribe(subscriber) {
             if (!this.observing) {
@@ -5589,27 +5577,15 @@ var au = (function (exports) {
             this.removeSubscriber(subscriber);
         }
         convertProperty() {
-            const setter = this.descriptor.set;
-            const that = this;
             this.observing = true;
             this.currentValue = this.obj[this.propertyKey];
-            Reflect.defineProperty(this.obj, this.propertyKey, {
-                set: function (newValue) {
-                    setter.call(that.obj, newValue);
-                    const oldValue = that.currentValue;
-                    if (oldValue !== newValue) {
-                        that.oldValue = oldValue;
-                        that.lifecycle.enqueueFlush(that).catch(error => { throw error; });
-                        that.currentValue = newValue;
-                    }
-                }
-            });
+            const set = (newValue) => { this.setValue(newValue); };
+            Reflect.defineProperty(this.obj, this.propertyKey, { set });
         }
     };
     CustomSetterObserver = __decorate([
         subscriberCollection(MutationKind.instance)
     ], CustomSetterObserver);
-    CustomSetterObserver.prototype.dispose = PLATFORM.noop;
     // Used when there is no setter, and the getter is dependent on other properties of the object;
     // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
     /** @internal */
@@ -5617,135 +5593,131 @@ var au = (function (exports) {
         constructor(overrides, obj, propertyKey, descriptor, observerLocator, lifecycle) {
             this.obj = obj;
             this.propertyKey = propertyKey;
-            this.controller = new GetterController(overrides, obj, propertyKey, descriptor, this, observerLocator, lifecycle);
+            this.isCollecting = false;
+            this.currentValue = this.oldValue = undefined;
+            this.propertyDeps = [];
+            this.collectionDeps = [];
+            this.overrides = overrides;
+            this.subscriberCount = 0;
+            this.descriptor = descriptor;
+            this.proxy = new Proxy(obj, createGetterTraps(observerLocator, this));
+            const get = () => this.getValue();
+            Reflect.defineProperty(obj, propertyKey, { get });
+        }
+        addPropertyDep(subscribable) {
+            if (this.propertyDeps.indexOf(subscribable) === -1) {
+                this.propertyDeps.push(subscribable);
+            }
+        }
+        addCollectionDep(subscribable) {
+            if (this.collectionDeps.indexOf(subscribable) === -1) {
+                this.collectionDeps.push(subscribable);
+            }
         }
         getValue() {
-            return this.controller.value;
-        }
-        setValue(newValue) {
-            return;
-        }
-        flush(flags) {
-            const oldValue = this.controller.value;
-            const newValue = this.controller.getValueAndCollectDependencies();
-            if (oldValue !== newValue) {
-                this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
+            if (this.subscriberCount === 0 || this.isCollecting) {
+                this.currentValue = Reflect.apply(this.descriptor.get, this.proxy, PLATFORM.emptyArray);
             }
+            else {
+                this.currentValue = Reflect.apply(this.descriptor.get, this.obj, PLATFORM.emptyArray);
+            }
+            return this.currentValue;
         }
         subscribe(subscriber) {
             this.addSubscriber(subscriber);
-            this.controller.onSubscriberAdded();
+            if (++this.subscriberCount === 1) {
+                this.getValueAndCollectDependencies(true);
+            }
         }
         unsubscribe(subscriber) {
             this.removeSubscriber(subscriber);
-            this.controller.onSubscriberRemoved();
-        }
-    };
-    GetterObserver = __decorate([
-        subscriberCollection(MutationKind.instance)
-    ], GetterObserver);
-    GetterObserver.prototype.dispose = PLATFORM.noop;
-    /** @internal */
-    class GetterController {
-        constructor(overrides, instance, propertyName, descriptor, owner, observerLocator, lifecycle) {
-            this.isCollecting = false;
-            this.dependencies = [];
-            this.instance = instance;
-            this.lifecycle = lifecycle;
-            this.overrides = overrides;
-            this.owner = owner;
-            this.propertyName = propertyName;
-            this.subscriberCount = 0;
-            const proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
-            const getter = descriptor.get;
-            const ctrl = this;
-            Reflect.defineProperty(instance, propertyName, {
-                get: function () {
-                    if (ctrl.subscriberCount < 1 || ctrl.isCollecting) {
-                        ctrl.value = getter.apply(proxy);
-                    }
-                    return ctrl.value;
-                }
-            });
-        }
-        addDependency(subscribable) {
-            if (this.dependencies.includes(subscribable)) {
-                return;
+            if (--this.subscriberCount === 0) {
+                this.unsubscribeAllDependencies();
             }
-            this.dependencies.push(subscribable);
         }
-        onSubscriberAdded() {
-            this.subscriberCount++;
-            if (this.subscriberCount > 1) {
-                return;
+        handleChange() {
+            const oldValue = this.currentValue;
+            const newValue = this.getValueAndCollectDependencies(false);
+            if (oldValue !== newValue) {
+                this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance);
             }
-            this.getValueAndCollectDependencies(true);
         }
-        getValueAndCollectDependencies(requireCollect = false) {
+        handleBatchedChange() {
+            const oldValue = this.currentValue;
+            const newValue = this.getValueAndCollectDependencies(false);
+            if (oldValue !== newValue) {
+                this.callSubscribers(newValue, oldValue, LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+            }
+        }
+        getValueAndCollectDependencies(requireCollect) {
             const dynamicDependencies = !this.overrides.static || requireCollect;
             if (dynamicDependencies) {
                 this.unsubscribeAllDependencies();
                 this.isCollecting = true;
             }
-            this.value = this.instance[this.propertyName]; // triggers observer collection
+            this.currentValue = this.getValue();
             if (dynamicDependencies) {
+                this.propertyDeps.forEach(x => { x.subscribe(this); });
+                this.collectionDeps.forEach(x => { x.subscribeBatched(this); });
                 this.isCollecting = false;
-                this.dependencies.forEach(x => { x.subscribe(this); });
             }
-            return this.value;
+            return this.currentValue;
         }
-        onSubscriberRemoved() {
-            this.subscriberCount--;
-            if (this.subscriberCount === 0) {
-                this.unsubscribeAllDependencies();
-            }
-        }
-        handleChange() {
-            this.lifecycle.enqueueFlush(this.owner).catch(error => { throw error; });
+        doNotCollect(key) {
+            return !this.isCollecting || key === '$observers';
         }
         unsubscribeAllDependencies() {
-            this.dependencies.forEach(x => { x.unsubscribe(this); });
-            this.dependencies.length = 0;
+            this.propertyDeps.forEach(x => { x.unsubscribe(this); });
+            this.propertyDeps.length = 0;
+            this.collectionDeps.forEach(x => { x.unsubscribeBatched(this); });
+            this.collectionDeps.length = 0;
         }
-    }
-    function createGetterTraps(observerLocator, controller) {
-        return {
-            get: function (instance, key) {
-                const value = instance[key];
-                if (key === '$observers' || typeof value === 'function' || !controller.isCollecting) {
-                    return value;
+    };
+    GetterObserver = __decorate([
+        subscriberCollection(MutationKind.instance)
+    ], GetterObserver);
+    const toStringTag$1 = Object.prototype.toString;
+    function createGetterTraps(observerLocator, observer) {
+        const traps = {
+            get: function (target, key, receiver) {
+                if (observer.doNotCollect(key)) {
+                    return Reflect.get(target, key, receiver);
                 }
-                // TODO: fix this
-                if (instance instanceof Array) {
-                    controller.addDependency(observerLocator.getArrayObserver(instance));
-                    if (key === 'length') {
-                        controller.addDependency(observerLocator.getArrayObserver(instance).getLengthObserver());
-                    }
+                // The length and iterator properties need to be invoked on the original object (for Map and Set
+                // at least) or they will throw.
+                switch (toStringTag$1.call(target)) {
+                    case '[object Array]':
+                        observer.addCollectionDep(observerLocator.getArrayObserver(target));
+                        if (key === 'length') {
+                            return Reflect.get(target, key, target);
+                        }
+                    case '[object Map]':
+                        observer.addCollectionDep(observerLocator.getMapObserver(target));
+                        if (key === 'size') {
+                            return Reflect.get(target, key, target);
+                        }
+                    case '[object Set]':
+                        observer.addCollectionDep(observerLocator.getSetObserver(target));
+                        if (key === 'size') {
+                            return Reflect.get(target, key, target);
+                        }
+                    default:
+                        observer.addPropertyDep(observerLocator.getObserver(target, key));
                 }
-                else if (instance instanceof Map) {
-                    controller.addDependency(observerLocator.getMapObserver(instance));
-                    if (key === 'size') {
-                        controller.addDependency(observerLocator.getMapObserver(instance).getLengthObserver());
-                    }
-                }
-                else if (instance instanceof Set) {
-                    controller.addDependency(observerLocator.getSetObserver(instance));
-                    if (key === 'size') {
-                        return observerLocator.getSetObserver(instance).getLengthObserver();
-                    }
-                }
-                else {
-                    controller.addDependency(observerLocator.getObserver(instance, key));
-                }
-                return proxyOrValue(observerLocator, controller, value);
+                return proxyOrValue(target, key, observerLocator, observer);
             }
         };
+        return traps;
     }
-    function proxyOrValue(observerLocator, controller, value) {
-        if (!(value instanceof Object)) {
+    function proxyOrValue(target, key, observerLocator, observer) {
+        const value = Reflect.get(target, key, target);
+        if (typeof value === 'function') {
+            return target[key].bind(target);
+        }
+        if (typeof value !== 'object' || value === null) {
             return value;
         }
-        return new Proxy(value, createGetterTraps(observerLocator, controller));
+        return new Proxy(value, createGetterTraps(observerLocator, observer));
     }
 
     const IDirtyChecker = DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
@@ -5866,7 +5838,7 @@ var au = (function (exports) {
         }
     }
 
-    const toStringTag$1 = Object.prototype.toString;
+    const toStringTag$2 = Object.prototype.toString;
     const IObserverLocator = DI.createInterface('IObserverLocator').noDefault();
     const ITargetObserverLocator = DI.createInterface('ITargetObserverLocator').noDefault();
     const ITargetAccessorLocator = DI.createInterface('ITargetAccessorLocator').noDefault();
@@ -5970,7 +5942,7 @@ var au = (function (exports) {
                 }
                 isNode = true;
             }
-            const tag = toStringTag$1.call(obj);
+            const tag = toStringTag$2.call(obj);
             switch (tag) {
                 case '[object Array]':
                     if (propertyName === 'length') {
@@ -6009,7 +5981,7 @@ var au = (function (exports) {
     }
     ObserverLocator.inject = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
     function getCollectionObserver(lifecycle, collection) {
-        switch (toStringTag$1.call(collection)) {
+        switch (toStringTag$2.call(collection)) {
             case '[object Array]':
                 return getArrayObserver(lifecycle, collection);
             case '[object Map]':

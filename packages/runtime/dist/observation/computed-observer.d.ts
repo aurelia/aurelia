@@ -1,5 +1,4 @@
-import { ILifecycle } from '../lifecycle';
-import { IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
+import { IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
 export interface ComputedOverrides {
     static?: boolean;
     volatile?: boolean;
@@ -11,19 +10,14 @@ export declare function computed(config: ComputedOverrides): PropertyDecorator;
 export interface CustomSetterObserver extends IBindingTargetObserver {
 }
 export declare class CustomSetterObserver implements CustomSetterObserver {
-    $nextFlush: this;
+    readonly obj: IObservable;
+    readonly propertyKey: string;
     currentValue: unknown;
-    dispose: () => void;
-    observing: boolean;
-    obj: IObservable;
     oldValue: unknown;
-    propertyKey: string;
     private readonly descriptor;
-    private readonly lifecycle;
-    constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, lifecycle: ILifecycle);
-    getValue(): unknown;
+    private observing;
+    constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor);
     setValue(newValue: unknown): void;
-    flush(flags: LifecycleFlags): void;
     subscribe(subscriber: IPropertySubscriber): void;
     unsubscribe(subscriber: IPropertySubscriber): void;
     convertProperty(): void;

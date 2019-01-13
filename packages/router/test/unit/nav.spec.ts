@@ -58,7 +58,7 @@ const setup = async (component): Promise<{ au; container; host; router }> => {
     public static inject = [Router];
     constructor(private r: Router) { }
     public enter() {
-      this.r.addNav('main-nav', [{ title: 'Baz', components: Baz, children: [{ title: 'Bar', components: ['bar', Baz] }] }, { title: 'Empty', components: null }, { title: 'Foo', components: { component: Foo, viewport: 'main-viewport' } }]);
+      this.r.addNav('main-nav', [{ title: 'Baz', components: Baz, children: [{ title: 'Bar', components: ['bar', Baz] }] }, { title: 'Foo', components: { component: Foo, viewport: 'main-viewport' } }]);
     }
   });
 

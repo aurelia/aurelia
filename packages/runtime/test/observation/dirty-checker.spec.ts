@@ -41,16 +41,16 @@ describe('DirtyChecker', function() {
       framesPerCheck: 2,
       frameChecks: [
         { callCount: 0 },
-        { callCount: 0 },
-        { oldValue: '0', newValue: '2', callCount: 1, flags: expectedFlags },
-        { oldValue: '0', newValue: '2', callCount: 1, flags: expectedFlags },
-        { oldValue: '2', newValue: '4', callCount: 2, flags: expectedFlags },
-        { oldValue: '2', newValue: '4', callCount: 2, flags: expectedFlags },
-        { oldValue: '4', newValue: '6', callCount: 3, flags: expectedFlags },
-        { oldValue: '4', newValue: '6', callCount: 3, flags: expectedFlags },
-        { oldValue: '6', newValue: '8', callCount: 4, flags: expectedFlags },
-        { oldValue: '6', newValue: '8', callCount: 4, flags: expectedFlags },
-        { oldValue: '8', newValue: '10', callCount: 5, flags: expectedFlags }
+        { oldValue: '0', newValue: '1', callCount: 1, flags: expectedFlags },
+        { oldValue: '0', newValue: '1', callCount: 1, flags: expectedFlags },
+        { oldValue: '1', newValue: '3', callCount: 2, flags: expectedFlags },
+        { oldValue: '1', newValue: '3', callCount: 2, flags: expectedFlags },
+        { oldValue: '3', newValue: '5', callCount: 3, flags: expectedFlags },
+        { oldValue: '3', newValue: '5', callCount: 3, flags: expectedFlags },
+        { oldValue: '5', newValue: '7', callCount: 4, flags: expectedFlags },
+        { oldValue: '5', newValue: '7', callCount: 4, flags: expectedFlags },
+        { oldValue: '7', newValue: '9', callCount: 5, flags: expectedFlags },
+        { oldValue: '7', newValue: '9', callCount: 5, flags: expectedFlags }
       ]
     },
     {
@@ -58,15 +58,15 @@ describe('DirtyChecker', function() {
       frameChecks: [
         { callCount: 0 },
         { callCount: 0 },
-        { callCount: 0 },
-        { oldValue: '0', newValue: '3', callCount: 1, flags: expectedFlags },
-        { oldValue: '0', newValue: '3', callCount: 1, flags: expectedFlags },
-        { oldValue: '0', newValue: '3', callCount: 1, flags: expectedFlags },
-        { oldValue: '3', newValue: '6', callCount: 2, flags: expectedFlags },
-        { oldValue: '3', newValue: '6', callCount: 2, flags: expectedFlags },
-        { oldValue: '3', newValue: '6', callCount: 2, flags: expectedFlags },
-        { oldValue: '6', newValue: '9', callCount: 3, flags: expectedFlags },
-        { oldValue: '6', newValue: '9', callCount: 3, flags: expectedFlags }
+        { oldValue: '0', newValue: '2', callCount: 1, flags: expectedFlags },
+        { oldValue: '0', newValue: '2', callCount: 1, flags: expectedFlags },
+        { oldValue: '0', newValue: '2', callCount: 1, flags: expectedFlags },
+        { oldValue: '2', newValue: '5', callCount: 2, flags: expectedFlags },
+        { oldValue: '2', newValue: '5', callCount: 2, flags: expectedFlags },
+        { oldValue: '2', newValue: '5', callCount: 2, flags: expectedFlags },
+        { oldValue: '5', newValue: '8', callCount: 3, flags: expectedFlags },
+        { oldValue: '5', newValue: '8', callCount: 3, flags: expectedFlags },
+        { oldValue: '5', newValue: '8', callCount: 3, flags: expectedFlags }
       ]
     },
     {
@@ -77,18 +77,18 @@ describe('DirtyChecker', function() {
         { callCount: 0 },
         { callCount: 0 },
         { callCount: 0 },
-        { callCount: 0 },
-        { oldValue: '0', newValue: '6', callCount: 1, flags: expectedFlags },
-        { oldValue: '0', newValue: '6', callCount: 1, flags: expectedFlags },
-        { oldValue: '0', newValue: '6', callCount: 1, flags: expectedFlags },
-        { oldValue: '0', newValue: '6', callCount: 1, flags: expectedFlags },
-        { oldValue: '0', newValue: '6', callCount: 1, flags: expectedFlags }
+        { oldValue: '0', newValue: '5', callCount: 1, flags: expectedFlags },
+        { oldValue: '0', newValue: '5', callCount: 1, flags: expectedFlags },
+        { oldValue: '0', newValue: '5', callCount: 1, flags: expectedFlags },
+        { oldValue: '0', newValue: '5', callCount: 1, flags: expectedFlags },
+        { oldValue: '0', newValue: '5', callCount: 1, flags: expectedFlags },
+        { oldValue: '0', newValue: '5', callCount: 1, flags: expectedFlags }
       ]
     }
   ];
 
   for (const spec of specs) {
-    it(`updates after ${spec.frameChecks} RAF call`, function(done) {
+    it(`updates after ${spec.framesPerCheck} RAF call`, function(done) {
       const { framesPerCheck, frameChecks } = spec;
       DirtyCheckSettings.framesPerCheck = framesPerCheck;
       const { dirtyChecker } = setup();
@@ -191,15 +191,14 @@ describe('DirtyChecker', function() {
       observer2.subscribe(subscriber3);
       observer2.subscribe(subscriber4);
 
-      obj1.foo = obj2.foo = `${frameCount + 1}`;
-
-      expect(callCount1).to.equal(0);
-      expect(callCount2).to.equal(0);
-      expect(callCount3).to.equal(0);
-      expect(callCount4).to.equal(0);
 
       PLATFORM.requestAnimationFrame(() => {
-        // skip doing or checking anything the first frame due to initial timing discrepancy in the test runner
+        obj1.foo = obj2.foo = `${frameCount + 1}`;
+
+        expect(callCount1).to.equal(0);
+        expect(callCount2).to.equal(0);
+        expect(callCount3).to.equal(0);
+        expect(callCount4).to.equal(0);
         PLATFORM.requestAnimationFrame(() => {
           obj1.foo = obj2.foo = `${++frameCount + 1}`;
           verifyCalled(2);

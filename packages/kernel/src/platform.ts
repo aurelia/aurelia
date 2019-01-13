@@ -192,7 +192,7 @@ const {
 })();
 
 // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js
-const $raf = (function(): (callback: (time: number) => void) => number {
+const { $raf, $caf } = (function(): { $raf(callback: (time: number) => void): number; $caf(handle: number): void } {
   const vendors = ['moz', 'webkit'];
   const suffix = 'AnimationFrame';
   let raf: (callback: (time: number) => void) => number = $global[`request${suffix}`];
@@ -260,14 +260,196 @@ const $raf = (function(): (callback: (time: number) => void) => number {
   };
   $global.requestAnimationFrame = raf;
   $global.cancelAnimationFrame = caf;
-  return $$raf;
+  return { $raf: $$raf, $caf: caf };
 })();
+
+// A stripped-down version of pixijs's ticker @ https://github.com/pixijs/pixi.js/tree/dev/packages/ticker/src
+const fpms = 0.06;
+
+class Notifier {
+  public fn: (frameDelta?: number) => void;
+  public context: unknown;
+  public next: this;
+  public prev: this;
+  public disconnected: boolean;
+
+  constructor(fn: (frameDelta?: number) => void, context: unknown = null) {
+    this.fn = fn;
+    this.context = context;
+    this.next = null;
+    this.prev = null;
+    this.disconnected = false;
+  }
+
+  public equals(fn: (frameDelta?: number) => void, context: unknown): boolean {
+    context = context || null;
+    return this.fn === fn && this.context === context;
+  }
+
+  public notify(frameDelta: number): this {
+    if (this.fn) {
+      if (this.context) {
+        this.fn.call(this.context, frameDelta);
+      } else {
+        this.fn(frameDelta);
+      }
+    }
+
+    const next = this.next;
+
+    if (this.disconnected) {
+      this.next = null;
+    }
+    return next;
+  }
+
+  public connect(prev: this): void {
+    this.prev = prev;
+    if (prev.next) {
+      prev.next.prev = this;
+    }
+    this.next = prev.next;
+    prev.next = this;
+  }
+
+  public disconnect(hard: boolean = false): this {
+    this.disconnected = true;
+    this.fn = null;
+    this.context = null;
+    if (this.prev) {
+      this.prev.next = this.next;
+    }
+    if (this.next) {
+      this.next.prev = this.prev;
+    }
+    const next = this.next;
+
+    this.next = hard ? null : next;
+    this.prev = null;
+    return next;
+  }
+}
+
+export class Ticker {
+  public head: Notifier;
+  public requestId: number;
+  public frameDelta: number;
+  public elapsedMS: number;
+  public lastTime: number;
+  public started: boolean;
+  public tick: (time: number) => void;
+
+  constructor() {
+    this.head = new Notifier(null, null);
+    this.requestId = -1;
+    this.frameDelta = 1;
+    this.elapsedMS = 1 / fpms;
+    this.lastTime = -1;
+    this.started = false;
+    this.tick = (time: number) => {
+      this.requestId = -1;
+      if (this.started) {
+        this.update(time);
+        if (this.started && this.requestId === -1 && this.head.next) {
+          this.requestId = $raf(this.tick);
+        }
+      }
+    };
+  }
+
+  public add(fn: (frameDelta?: number) => void, context: unknown): this {
+    const notifier = new Notifier(fn, context);
+    let cur = this.head.next;
+    let prev = this.head;
+    if (!cur) {
+      notifier.connect(prev);
+    } else {
+      while (cur) {
+        prev = cur;
+        cur = cur.next;
+      }
+      if (!notifier.prev) {
+        notifier.connect(prev);
+      }
+    }
+    if (this.started) {
+      this.tryRequest();
+    } else {
+      this.start();
+    }
+    return this;
+  }
+
+  public remove(fn: (frameDelta?: number) => void, context: unknown): this {
+    let notifier = this.head.next;
+    while (notifier) {
+      if (notifier.equals(fn, context)) {
+        notifier = notifier.disconnect();
+      } else {
+        notifier = notifier.next;
+      }
+    }
+    if (!this.head.next) {
+      this.tryCancel();
+    }
+    return this;
+  }
+
+  public start(): void {
+    if (!this.started) {
+      this.started = true;
+      this.tryRequest();
+    }
+  }
+
+  public stop(): void {
+    if (this.started) {
+      this.started = false;
+      this.tryCancel();
+    }
+  }
+
+  public update(currentTime: number = $now()): void {
+    let elapsedMS: number;
+
+    if (currentTime > this.lastTime) {
+      elapsedMS = this.elapsedMS = currentTime - this.lastTime;
+      this.frameDelta = elapsedMS * fpms;
+      const head = this.head;
+      let notifier = head.next;
+      while (notifier) {
+        notifier = notifier.notify(this.frameDelta);
+      }
+      if (!head.next) {
+        this.tryCancel();
+      }
+    } else {
+      this.frameDelta = this.elapsedMS = 0;
+    }
+    this.lastTime = currentTime;
+  }
+
+  private tryRequest(): void {
+    if (this.requestId === -1 && this.head.next) {
+      this.lastTime = $now();
+      this.requestId = $raf(this.tick);
+    }
+  }
+
+  private tryCancel(): void {
+    if (this.requestId !== -1) {
+      $caf(this.requestId);
+      this.requestId = -1;
+    }
+  }
+}
 
 const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};
 
 export const PLATFORM = {
   global: $global,
+  ticker: new Ticker(),
   emptyArray: Object.freeze([]),
   emptyObject: Object.freeze({}),
   noop(): void { return; },

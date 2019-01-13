@@ -1,5 +1,8 @@
 import { IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
 
+// tslint:disable-next-line:no-redundant-jump
+function $noop(): void { return; }
+
 declare var global: IWindowOrWorkerGlobalScope;
 declare var self: IWindowOrWorkerGlobalScope;
 declare var window: IWindowOrWorkerGlobalScope;
@@ -282,21 +285,18 @@ class Notifier {
   }
 
   public equals(fn: (frameDelta?: number) => void, context: unknown): boolean {
-    context = context || null;
-    return this.fn === fn && this.context === context;
+    return this.fn === fn && this.context === (context || null);
   }
 
   public notify(frameDelta: number): this {
-    if (this.fn) {
-      if (this.context) {
+    if (this.fn !== null) {
+      if (this.context !== null) {
         this.fn.call(this.context, frameDelta);
       } else {
         this.fn(frameDelta);
       }
     }
-
     const next = this.next;
-
     if (this.disconnected) {
       this.next = null;
     }
@@ -305,7 +305,7 @@ class Notifier {
 
   public connect(prev: this): void {
     this.prev = prev;
-    if (prev.next) {
+    if (prev.next !== null) {
       prev.next.prev = this;
     }
     this.next = prev.next;
@@ -316,14 +316,13 @@ class Notifier {
     this.disconnected = true;
     this.fn = null;
     this.context = null;
-    if (this.prev) {
+    if (this.prev !== null) {
       this.prev.next = this.next;
     }
-    if (this.next) {
+    if (this.next !== null) {
       this.next.prev = this.prev;
     }
     const next = this.next;
-
     this.next = hard ? null : next;
     this.prev = null;
     return next;
@@ -331,29 +330,34 @@ class Notifier {
 }
 
 export class Ticker {
-  public head: Notifier;
-  public requestId: number;
-  public frameDelta: number;
-  public elapsedMS: number;
-  public lastTime: number;
-  public started: boolean;
-  public tick: (time: number) => void;
+  private head: Notifier;
+  private requestId: number;
+  private frameDelta: number;
+  private lastTime: number;
+  private started: boolean;
+  private promise: Promise<number>;
+  private resolve: (deltaTime: number) => void;
+  private tick: (deltaTime: number) => void;
 
   constructor() {
     this.head = new Notifier(null, null);
     this.requestId = -1;
     this.frameDelta = 1;
-    this.elapsedMS = 1 / fpms;
     this.lastTime = -1;
     this.started = false;
-    this.tick = (time: number) => {
+    this.promise = null;
+    this.resolve = $noop;
+    this.tick = (deltaTime: number) => {
       this.requestId = -1;
       if (this.started) {
-        this.update(time);
-        if (this.started && this.requestId === -1 && this.head.next) {
+        this.update(deltaTime);
+        if (this.started && this.requestId === -1 && this.head.next !== null) {
           this.requestId = $raf(this.tick);
         }
       }
+      this.resolve(deltaTime);
+      this.resolve = $noop;
+      this.promise = null;
     };
   }
 
@@ -361,14 +365,14 @@ export class Ticker {
     const notifier = new Notifier(fn, context);
     let cur = this.head.next;
     let prev = this.head;
-    if (!cur) {
+    if (cur === null) {
       notifier.connect(prev);
     } else {
-      while (cur) {
+      while (cur !== null) {
         prev = cur;
         cur = cur.next;
       }
-      if (!notifier.prev) {
+      if (notifier.prev === null) {
         notifier.connect(prev);
       }
     }
@@ -382,14 +386,14 @@ export class Ticker {
 
   public remove(fn: (frameDelta?: number) => void, context: unknown): this {
     let notifier = this.head.next;
-    while (notifier) {
+    while (notifier !== null) {
       if (notifier.equals(fn, context)) {
         notifier = notifier.disconnect();
       } else {
         notifier = notifier.next;
       }
     }
-    if (!this.head.next) {
+    if (this.head.next === null) {
       this.tryCancel();
     }
     return this;
@@ -413,24 +417,34 @@ export class Ticker {
     let elapsedMS: number;
 
     if (currentTime > this.lastTime) {
-      elapsedMS = this.elapsedMS = currentTime - this.lastTime;
-      this.frameDelta = elapsedMS * fpms;
+      elapsedMS = currentTime - this.lastTime;
+      this.frameDelta = (~~(elapsedMS * 0.6 + 0.5)) / 10; // round to nearest 1/10th of frame
       const head = this.head;
       let notifier = head.next;
-      while (notifier) {
+      while (notifier !== null) {
         notifier = notifier.notify(this.frameDelta);
       }
-      if (!head.next) {
+      if (head.next === null) {
         this.tryCancel();
       }
     } else {
-      this.frameDelta = this.elapsedMS = 0;
+      this.frameDelta = 0;
     }
     this.lastTime = currentTime;
   }
 
+  public waitForNextTick(): Promise<number> {
+    if (this.promise === null) {
+      // tslint:disable-next-line:promise-must-complete
+      this.promise = new Promise(resolve => {
+        this.resolve = resolve;
+      });
+    }
+    return this.promise;
+  }
+
   private tryRequest(): void {
-    if (this.requestId === -1 && this.head.next) {
+    if (this.requestId === -1 && this.head.next !== null) {
       this.lastTime = $now();
       this.requestId = $raf(this.tick);
     }
@@ -452,7 +466,7 @@ export const PLATFORM = {
   ticker: new Ticker(),
   emptyArray: Object.freeze([]),
   emptyObject: Object.freeze({}),
-  noop(): void { return; },
+  noop: $noop,
   now: $now,
   mark: $mark,
   measure: $measure,

@@ -102,7 +102,7 @@ export class DirtyChecker {
     for (; i < len; ++i) {
       current = tracked[i];
       if (current.isDirty()) {
-        current.flush(LifecycleFlags.fromFlush);
+        current.flush(LifecycleFlags.fromTick);
       }
     }
   }
@@ -129,17 +129,9 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     return this.oldValue !== this.obj[this.propertyKey];
   }
 
-  public getValue(): unknown {
-    return this.obj[this.propertyKey];
-  }
-
-  public setValue(newValue: unknown): void {
-    this.obj[this.propertyKey] = newValue;
-  }
-
   public flush(flags: LifecycleFlags): void {
     const oldValue = this.oldValue;
-    const newValue = this.getValue();
+    const newValue = this.obj[this.propertyKey];
 
     this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
 
@@ -148,7 +140,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
 
   public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
-      this.oldValue = this.getValue();
+      this.oldValue = this.obj[this.propertyKey];
       this.dirtyChecker.addProperty(this);
     }
     this.addSubscriber(subscriber);

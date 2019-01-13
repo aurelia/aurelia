@@ -252,7 +252,7 @@ describe('DirtyChecker', function() {
   it('does nothing if disabled', function(done) {
     const framesPerCheck: number = 1;
     DirtyCheckSettings.framesPerCheck = framesPerCheck;
-    DirtyCheckSettings.disable = true;
+    DirtyCheckSettings.disabled = true;
     const { dirtyChecker } = setup();
 
     const obj = { foo: '0' };

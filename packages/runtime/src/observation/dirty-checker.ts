@@ -26,7 +26,7 @@ export const DirtyCheckSettings = {
    * Disable dirty-checking entirely. Properties that cannot be observed without dirty checking
    * or an adapter, will simply not be observed.
    */
-  disable: false,
+  disabled: false,
   /**
    * Default: `true`
    *
@@ -44,7 +44,7 @@ export const DirtyCheckSettings = {
    */
   resetToDefault(): void {
     this.framesPerCheck = 6;
-    this.disable = false;
+    this.disabled = false;
     this.warn = true;
     this.throw = false;
   }
@@ -87,7 +87,7 @@ export class DirtyChecker {
   }
 
   public check(delta: number): void {
-    if (DirtyCheckSettings.disable) {
+    if (DirtyCheckSettings.disabled) {
       return;
     }
     this.elapsedFrames += delta;

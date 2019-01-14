@@ -243,7 +243,7 @@ export function executeSharedPropertyObserverTests(observer: any, done: Function
       },         checkDelay * 2);
     } else {
       observer.unsubscribe(context, callable0);
-      (callable0.call as any).resetHistory();
+      callable0.call.resetHistory();
       observer.setValue('bar');
       setTimeout(() => {
         expect(callable0.call).not.to.have.been.called;
@@ -288,7 +288,7 @@ export function createRepeater(fixture: IRepeaterFixture, initialItems: any[], d
   const Type = CustomElementResource.define(def, class {});
   const component = new Type();
   component[fixture.colName] = initialItems;
-  return component as ICustomElement;
+  return component;
 }
 
 export class SpySubscriber {

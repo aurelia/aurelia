@@ -1,57 +1,56 @@
-import { DI } from '../../../../../kernel';
 import { BasicConfiguration } from '../../../../../jit';
+import { DI } from '../../../../../kernel';
+import { NavCustomElement, ViewportCustomElement } from '../../../../../router';
 import { Aurelia, CustomElementResource } from '../../../../../runtime';
 import { App } from './app';
-import { ViewportCustomElement } from '../../../../../router';
-import { NavCustomElement } from '../../../../../router';
-import { GotoCustomElement } from './components/goto';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';
+import { GotoCustomElement } from './components/goto';
 
-import { Email } from './components/email';
-import { Calendar } from './components/calendar';
 import { About } from './components/about';
+import { Calendar } from './components/calendar';
 import { Contacts } from './components/contacts';
-import { Inbox } from './components/inbox';
-import { Schedule } from './components/schedule';
 import { Dates } from './components/dates';
-import { Recursive } from './components/recursive';
+import { Email } from './components/email';
 import { Header } from './components/header';
+import { Inbox } from './components/inbox';
+import { Recursive } from './components/recursive';
+import { Schedule } from './components/schedule';
 
 import { One } from './components/one';
-import { Two } from './components/two';
 import { Three } from './components/three';
+import { Two } from './components/two';
 
-import { Sub } from './components/sub';
 import { Alpha } from './components/alpha';
 import { Beta } from './components/beta';
+import { Sub } from './components/sub';
 
 const container = DI.createContainer();
 container.register(BasicConfiguration,
-  <any>ViewportCustomElement,
-  <any>NavCustomElement,
-  <any>GotoCustomElement,
-  <any>App,
-  <any>AbcComponent,
-  <any>DefComponent,
+                   ViewportCustomElement as any,
+                   NavCustomElement as any,
+                   GotoCustomElement as any,
+                   App as any,
+                   AbcComponent as any,
+                   DefComponent as any,
 
-  <any>Email,
-  <any>Calendar,
-  <any>About,
-  <any>Contacts,
-  <any>Inbox,
-  <any>Schedule,
-  <any>Dates,
-  <any>Recursive,
-  <any>Header,
+                   Email as any,
+                   Calendar as any,
+                   About as any,
+                   Contacts as any,
+                   Inbox as any,
+                   Schedule as any,
+                   Dates as any,
+                   Recursive as any,
+                   Header as any,
 
-  <any>One,
-  <any>Two,
-  <any>Three,
+                   One as any,
+                   Two as any,
+                   Three as any,
 
-  <any>Sub,
-  <any>Alpha,
-  <any>Beta,
+                   Sub as any,
+                   Alpha as any,
+                   Beta as any,
 );
 const component = container.get(CustomElementResource.keyFrom('app'));
 

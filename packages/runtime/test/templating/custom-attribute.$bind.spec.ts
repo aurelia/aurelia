@@ -190,9 +190,9 @@ describe('@customAttribute', () => {
 
         let unbindCalled = false;
         let unbindFlags;
-        sut.$unbind = flags => {
+        sut.$unbind = flags2 => {
           unbindCalled = true;
-          unbindFlags = flags;
+          unbindFlags = flags2;
         };
 
         // Act
@@ -219,13 +219,13 @@ describe('@customAttribute', () => {
         description: '$isBound: false, $scope: null',
         expectation: 'calls behaviors',
         callsBehaviors: false,
-        setProps(sut: CustomAttribute) { }
+        setProps(sut: CustomAttribute) { return; }
       },
       {
         description: '$isBound: false, $scope !== null',
         expectation: 'calls behaviors',
         callsBehaviors: false,
-        setProps(sut: CustomAttribute) { }
+        setProps(sut: CustomAttribute) { return; }
       },
       {
         description: '$isBound: true, $scope: null',
@@ -297,7 +297,7 @@ describe('@customAttribute', () => {
       {
         description: 'Hooks.hasUnbound',
         expectation: 'does NOT call unbinding(), calls unbound()',
-        getHooks() { return Hooks.hasUnbound;},
+        getHooks() { return Hooks.hasUnbound; },
         verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -306,15 +306,15 @@ describe('@customAttribute', () => {
     ];
 
     eachCartesianJoin([propsAndScopeSpecs, flagsSpec, hooksSpecs],
-                      (psSpec, flagsSpec, hooksSpec) => {
+                      (psSpec, flagsSpec2, hooksSpec) => {
 
-      it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
+      it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec2.expectation} if ${flagsSpec2.description}`, () => {
         // Arrange
         const { sut } = createCustomAttribute();
         psSpec.setProps(sut);
         sut.$hooks = hooksSpec.getHooks();
-        const expectedFlags = flagsSpec.getExpectedFlags();
-        const flags = flagsSpec.getFlags();
+        const expectedFlags = flagsSpec2.getExpectedFlags();
+        const flags = flagsSpec2.getFlags();
 
         // Act
         sut.$unbind(flags);

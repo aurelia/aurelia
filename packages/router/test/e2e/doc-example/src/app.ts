@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
-import { IComponentViewportParameters, Router } from '../../../../../router/src/index';
+import { Router } from '../../../../../router/src/index';
 import { About } from './components/about';
 import { Authors } from './components/authors';
 import { Books } from './components/books';
@@ -18,7 +18,7 @@ import { Books } from './components/books';
 </template>
 ` })
 export class App {
-  constructor(private router: Router) {
+  constructor(private readonly router: Router) {
     this.router.activate({
       // transformFromUrl: (path, router) => {
       //   if (!path.length) {

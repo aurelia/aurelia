@@ -6,5 +6,5 @@ export class UsersRepository {
   ];
 
   public users() { return this.data; }
-  public user(id) { return this.data.find((value) => value.id === id); }
+  public user(id: string) { return this.data.find((value) => value.id === id); }
 }

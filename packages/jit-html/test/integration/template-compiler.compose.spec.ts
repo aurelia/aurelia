@@ -6,7 +6,7 @@ import {
   ILifecycle,
   IObserverLocator,
   IRenderingEngine,
-  LifecycleFlags} from '@aurelia/runtime';
+  LifecycleFlags } from '@aurelia/runtime';
 import { RenderPlan } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../unit/util';

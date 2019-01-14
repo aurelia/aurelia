@@ -1,5 +1,5 @@
-import { customElement } from '../../../../../../runtime';
 import { inject } from '../../../../../..//kernel';
+import { customElement } from '../../../../../../runtime';
 import { ContactList } from './../contact-list';
 
 @customElement({
@@ -11,7 +11,7 @@ import { ContactList } from './../contact-list';
 </template>` })
 @inject(ContactList)
 export class Contacts {
-  constructor(private contactList: ContactList) { }
+  constructor(private readonly contactList: ContactList) { }
 
   get contacts() { return this.contactList.allContacts(); }
 }

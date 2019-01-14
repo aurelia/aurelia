@@ -45,18 +45,18 @@ const setup = async (component): Promise<{ au; container; host; router }> => {
   const App = (CustomElementResource as any).define({ name: 'app', template: `<template><au-viewport name="app" used-by="${component}" default="${component}"></au-viewport></template>` });
   const Foo = CustomElementResource.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {
     public static inject = [Router];
-    constructor(private r: Router) { }
+    constructor(private readonly r: Router) { }
     public enter() { this.r.setNav('main-nav', [{ title: 'Bar', components: 'bar' }]); }
   });
   const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Nav: bar <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
     public static inject = [Router];
-    constructor(private r: Router) { }
+    constructor(private readonly r: Router) { }
     public enter() { this.r.setNav('main-nav', [{ title: 'Baz', components: 'baz' }]); }
   });
   const Baz = CustomElementResource.define({ name: 'baz', template: '<template>Baz</template>' }, class { });
   const Qux = CustomElementResource.define({ name: 'qux', template: '<template>Nav: qux <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
     public static inject = [Router];
-    constructor(private r: Router) { }
+    constructor(private readonly r: Router) { }
     public enter() {
       this.r.addNav('main-nav', [{ title: 'Baz', components: Baz, children: [{ title: 'Bar', components: ['bar', Baz] }] }, { title: 'Foo', components: { component: Foo, viewport: 'main-viewport' } }]);
     }
@@ -80,8 +80,7 @@ const setup = async (component): Promise<{ au; container; host; router }> => {
     .app({ host: host, component: App })
     .start();
 
-  router.activate();
-  await Promise.resolve();
+  await router.activate();
   return { au, container, host, router };
 };
 

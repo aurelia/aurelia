@@ -3,13 +3,13 @@ import { expect } from 'chai';
 import { eachCartesianJoin } from '../../../../scripts/test-lib';
 import {
   BasicConfiguration,
+  DirtyCheckProperty,
   IDirtyChecker,
   ILifecycle,
   IObserverLocator,
   ITargetAccessorLocator,
   ITargetObserverLocator,
-  LifecycleFlags,
-  DirtyCheckProperty
+  LifecycleFlags
 } from '../../src/index';
 import { ComputedOverrides, createComputedObserver } from '../../src/observation/computed-observer';
 import { BindingTraceWriter, disableTracing, enableTracing } from '../util';
@@ -258,7 +258,6 @@ describe('ComputedObserver', function() {
 
   });
 
-
   // only run this test in browser for now as it hangs in node due to subtleties with prototype stuff
   // TODO: fix this in node
   if (typeof document !== 'undefined') {
@@ -302,10 +301,10 @@ describe('ComputedObserver', function() {
           array
             .sort(this.sortFn)
             .slice()
-            .map((v, i) => ({ v: JSON.stringify(v), i }))
+            .map((v, i2) => ({ v: JSON.stringify(v), i2 }))
             .reduce(
               (acc, cur) => {
-                acc[cur.i] = cur.v;
+                acc[cur.i2] = cur.v;
                 return acc;
               },
               result
@@ -313,10 +312,10 @@ describe('ComputedObserver', function() {
           Array.from(set)
             .sort(this.sortFn)
             .slice()
-            .map((v, i) => ({ v: JSON.stringify(v), i }))
+            .map((v, i2) => ({ v: JSON.stringify(v), i2 }))
             .reduce(
               (acc, cur) => {
-                acc[cur.i] = cur.v;
+                acc[cur.i2] = cur.v;
                 return acc;
               },
               result
@@ -324,16 +323,16 @@ describe('ComputedObserver', function() {
           Array.from(map)
             .sort(this.sortFn)
             .slice()
-            .map(([k, v], i) => ({ v: JSON.stringify(v), i }))
+            .map(([k, v], i2) => ({ v: JSON.stringify(v), i2 }))
             .reduce(
               (acc, cur) => {
-                acc[cur.i] = cur.v;
+                acc[cur.i2] = cur.v;
                 return acc;
               },
               result
             );
-          for (let i = 0, ii = children.length; i < ii; ++i) {
-            result[`child${i}`] = children[i].getter;
+          for (let i3 = 0, ii = children.length; i3 < ii; ++i3) {
+            result[`child${i3}`] = children[i3].getter;
           }
           result[`array${this.branch}`] = array.length;
           result[`set${this.branch}`] = set.size;
@@ -462,7 +461,7 @@ describe('ComputedObserver', function() {
     let err;
     try {
       createComputedObserver(locator, dirtyChecker, lifecycle, foo, 'bar', pd);
-    } catch(e) {
+    } catch (e) {
       err = e;
     }
 

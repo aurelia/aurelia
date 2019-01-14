@@ -37,7 +37,7 @@ describe('Renderer', () => {
     container.register(Registration.instance(IRenderable, renderable));
     const target = AuNode.createMarker();
 
-    const renderingEngine = container.get(IRenderingEngine) as IRenderingEngine;
+    const renderingEngine = container.get(IRenderingEngine);
     const sut = container.get(IRenderer);
 
     const renderContext: IRenderContext = {
@@ -64,7 +64,7 @@ describe('Renderer', () => {
     for (const Instruction of [OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction] as any[]) {
       for (const to of ['foo', 'bar']) {
         for (const from of ['foo', new AccessScope('foo')]) {
-          const instruction = new (Instruction as any)(from, to) as IPropertyBindingInstruction;
+          const instruction = new Instruction(from, to) as IPropertyBindingInstruction;
           it(_`instruction=${instruction}`, () => {
             const { sut, dom, renderable, target, renderContext } = setup();
 
@@ -186,7 +186,8 @@ describe('Renderer', () => {
         for (const value of ['foo', new AccessScope('foo')] as any[]) {
           const instruction = new LetElementInstruction(
             [new LetBindingInstruction(value, to)],
-            Math.random() > .4
+            // tslint:disable-next-line:insecure-random
+            Math.random() > 0.4
           ) as any;
           it(_`instruction=${instruction}`, () => {
             const { sut, dom, renderable, target, renderContext } = setup();

@@ -1,8 +1,8 @@
 export class MockBrowserHistoryLocation {
   public changeCallback: Function;
 
-  private states: Object[] = [{}];
-  private paths: string[] = [''];
+  private readonly states: Object[] = [{}];
+  private readonly paths: string[] = [''];
   private index: number = 0;
 
   get length(): number {
@@ -18,7 +18,7 @@ export class MockBrowserHistoryLocation {
   get pathname(): string {
     const parts = this.parts;
     // parts.shift();
-    return <string>parts.shift();
+    return parts.shift();
   }
   get search(): string {
     const parts = this.parts;
@@ -26,7 +26,7 @@ export class MockBrowserHistoryLocation {
     //   parts.shift();
     // }
     parts.shift();
-    const part: string = <string>parts.shift();
+    const part: string = parts.shift();
     return part !== undefined ? `?${part}` : '';
   }
   get hash(): string {
@@ -36,7 +36,7 @@ export class MockBrowserHistoryLocation {
     // }
     parts.shift();
     parts.shift();
-    const part: string = <string>parts.shift();
+    const part: string = parts.shift();
     return part !== undefined ? `#${part}` : '';
   }
   set hash(value: string) {
@@ -54,15 +54,15 @@ export class MockBrowserHistoryLocation {
     //     path += `?${part}`;
     //   }
     // } else {
-      const part = parts.shift();
-      if (part !== undefined) {
+    const part = parts.shift();
+    if (part !== undefined) {
         path += `?${part}`;
       }
-      parts.shift();
-      path += `#${value}`;
+    parts.shift();
+    path += `#${value}`;
     // }
 
-    this.pushState({}, null, <string>path);
+    this.pushState({}, null, path);
     this.notifyChange();
   }
 

@@ -387,22 +387,23 @@ describe('TemplateCompiler', () => {
     }
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
-      expect(actual.length).to.equal(expectation.length, `Expected to have ${expectation.length} ${type ? `${type} ` : ''} instructions. Received: ${actual.length}`);
+      expect(actual.length).to.equal(expectation.length, `Expected to have ${expectation.length} ${type ? type : ''} instructions. Received: ${actual.length}`);
       for (let i = 0, ii = actual.length; i < ii; ++i) {
         const actualInst = actual[i];
         const expectedInst = expectation[i];
+        const ofType = type ? `of ${type}` : '';
         for (const prop of expectedInst.toVerify) {
           if (expectedInst[prop] instanceof Object) {
             expect(
               actualInst[prop]).to.deep.equal(
                 expectedInst[prop],
-                `Expected actual instruction ${type ? `of ${type}` : ''} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+                `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
               );
           } else {
             expect(
               actualInst[prop]).to.equal(
                 expectedInst[prop],
-                `Expected actual instruction ${type ? `of ${type}` : ''} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+                `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
               );
           }
         }
@@ -448,8 +449,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
     }
     node.setAttribute(attr, value);
     while (attributes.length) {
-      const attr = attributes.pop();
-      node.setAttribute(attr.name, attr.value);
+      const attrib = attributes.pop();
+      node.setAttribute(attrib.name, attrib.value);
     }
     node.setAttribute(attr, value);
     const rawMarkup = node.outerHTML;
@@ -524,7 +525,7 @@ function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: bo
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`) as HTMLElement;
+  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
@@ -545,7 +546,7 @@ function createCustomAttribute(ctx: HTMLTestContext, resName: string, finalize: 
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`) as HTMLElement;
+  const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
   outputMarkup.classList.add('au');
   const output = {
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
@@ -563,29 +564,29 @@ const commandToMode = {
 
 const validCommands = ['bind', 'one-time', 'to-view', 'from-view', 'two-way', 'trigger', 'delegate', 'capture', 'call'];
 
-function createAttributeInstruction(bindable: IBindableDescription | null, attributeName: string, attributeValue: string, isMulti: boolean) {
+function createAttributeInstruction(bindableDescription: IBindableDescription | null, attributeName: string, attributeValue: string, isMulti: boolean) {
   const parts = attributeName.split('.');
   const attr = parts[0];
   const cmd = parts.pop();
-  const defaultMode = !!bindable ? (bindable.mode === BindingMode.default ? BindingMode.toView : bindable.mode) : BindingMode.toView;
+  const defaultMode = !!bindableDescription ? (bindableDescription.mode === BindingMode.default ? BindingMode.toView : bindableDescription.mode) : BindingMode.toView;
   const mode = commandToMode[cmd] || defaultMode;
   const oneTime = mode === BindingMode.oneTime;
 
-  if (!!bindable) {
+  if (!!bindableDescription) {
     if (!!cmd && validCommands.indexOf(cmd) !== -1) {
       const type = TT.propertyBinding;
-      const to = bindable.property;
+      const to = bindableDescription.property;
       const from = parseExpression(attributeValue);
       return { type, to, mode, from, oneTime };
     } else {
       const from = parseExpression(attributeValue, BindingType.Interpolation);
       if (!!from) {
         const type = TT.interpolation;
-        const to = bindable.property;
+        const to = bindableDescription.property;
         return { type, to, from };
       } else {
         const type = TT.setProperty;
-        const to = bindable.property;
+        const to = bindableDescription.property;
         const value = attributeValue;
         return { type, to, value };
       }
@@ -599,13 +600,13 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
     } else {
       const from = parseExpression(attributeValue, BindingType.Interpolation);
       if (!!from) {
-        const type = TT.interpolation;
-        return { type, to, from };
+        const type2 = TT.interpolation;
+        return { type: type2, to, from };
       } else if (isMulti) {
-        const type = TT.setProperty;
-        const to = attr;
+        const type3 = TT.setProperty;
+        const to3 = attr;
         const value = attributeValue;
-        return { type, to, value };
+        return { type: type3, to: to3, value };
       } else {
         return null;
       }
@@ -699,7 +700,7 @@ describe(`TemplateCompiler - combinations`, () => {
         (ctx) => BindingMode.twoWay
       ] as ((ctx: HTMLTestContext) => BindingMode | undefined)[],
       [
-        (ctx, [,, to], [attr, value]) => [`${attr}`,           { type: TT.setProperty, to, value }],
+        (ctx, [, , to], [attr, value]) => [`${attr}`,           { type: TT.setProperty, to, value }],
         (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.toView }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.oneTime }],
@@ -765,7 +766,7 @@ describe(`TemplateCompiler - combinations`, () => {
         (ctx, pdName, pdProp, bindables, [cmd]) => [null,              `${pdProp}Qux${cmd}`]
         // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
       ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [IBindableDescription, string])[]
-    ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindable, attrName]) => {
+    ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
 
         const { sut, resources, dom  } = setup(
@@ -773,7 +774,7 @@ describe(`TemplateCompiler - combinations`, () => {
           CustomAttributeResource.define({ name: 'asdf', bindables, hasDynamicOptions: true }, class FooBar {})
         );
 
-        const instruction = createAttributeInstruction(bindable, attrName, attrValue, true);
+        const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);
 
         const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []);
 
@@ -1041,7 +1042,7 @@ describe(`TemplateCompiler - combinations`, () => {
       [
         (ctx) => `''`
       ] as ((ctx: HTMLTestContext) => string)[]
-    ],                       (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindable, attrName]) => {
+    ],                       (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
 
         const { sut, resources, dom } = setup(
@@ -1049,10 +1050,10 @@ describe(`TemplateCompiler - combinations`, () => {
           CustomElementResource.define({ name: 'foobar', bindables }, class FooBar {})
         );
 
-        const instruction = createAttributeInstruction(bindable, attrName, attrValue, false);
+        const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, false);
         const instructions = instruction === null ? [] : [instruction];
-        const childInstructions = !!bindable ? instructions : [];
-        const siblingInstructions = !bindable ? instructions : [];
+        const childInstructions = !!bindableDescription ? instructions : [];
+        const siblingInstructions = !bindableDescription ? instructions : [];
 
         const [input, output] = createCustomElement(ctx, 'foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []);
 

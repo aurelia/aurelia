@@ -40,7 +40,7 @@ describe('ObserverLocator', () => {
     `<div xlink:type="foo"></div>`,
   ]) {
     const { ctx, sut } = setup();
-    const el = ctx.createElementFromMarkup(markup) as Element;
+    const el = ctx.createElementFromMarkup(markup);
     const attr = el.attributes[0];
     const expected = sut.getObserver(el, attr.name);
     it(_`getAccessor() - ${markup} - returns ${expected.constructor.name}`, () => {
@@ -83,7 +83,7 @@ describe('ObserverLocator', () => {
   ]) {
     it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, () => {
       const { ctx, sut } = setup();
-      const el = ctx.createElementFromMarkup(markup) as Element;
+      const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(el, attr.name);
       expect(actual.constructor.name).to.equal(DataAttributeAccessor.name);
@@ -100,7 +100,7 @@ describe('ObserverLocator', () => {
   ]) {
     it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, () => {
       const { ctx, sut } = setup();
-      const el = ctx.createElementFromMarkup(markup) as Element;
+      const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(el, attr.name);
       expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
@@ -124,7 +124,7 @@ describe('ObserverLocator', () => {
   ]) {
     it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, () => {
       const { ctx, sut } = setup();
-      const el = ctx.createElementFromMarkup(markup) as Element;
+      const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(el, attr.name);
       expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
@@ -190,7 +190,7 @@ describe('ObserverLocator', () => {
   ]) {
     it(_`getObserver() - ${markup} - returns ${ctor.name}`, () => {
       const { ctx, sut } = setup();
-      const el = ctx.createElementFromMarkup(markup) as Element;
+      const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getObserver(el, attr.name);
       expect(actual.constructor.name).to.equal(ctor.name);
@@ -213,21 +213,27 @@ describe('ObserverLocator', () => {
                       const dummyObserver = {} as any;
                       if (hasAdapterObserver) {
                         if (adapterIsDefined) {
-                          sut.addAdapter({getObserver() { return dummyObserver; }});
+                          sut.addAdapter({getObserver() {
+                            return dummyObserver;
+                          }});
                         } else {
-                          sut.addAdapter({getObserver() { return null; }});
+                          sut.addAdapter({getObserver() {
+                            return null;
+                          }});
                         }
                       }
-                      const descriptor = { configurable, enumerable } as PropertyDescriptor;
+                      const descriptor: PropertyDescriptor = { configurable, enumerable };
                       if (hasGetter) {
-                        function getter() {}
+                        // tslint:disable-next-line:no-empty
+                        function getter() { }
                         if (hasGetObserver) {
                           getter['getObserver'] = () => dummyObserver;
                         }
                         descriptor.get = getter;
                       }
                       if (hasSetter) {
-                        function setter() {}
+                        // tslint:disable-next-line:no-empty
+                        function setter() { }
                         descriptor.set = setter;
                       }
                       if (hasOverrides) {
@@ -287,9 +293,13 @@ describe('ObserverLocator', () => {
             const dummyObserver = {} as any;
             if (hasAdapterObserver) {
               if (adapterIsDefined) {
-                sut.addAdapter({getObserver() { return dummyObserver; }});
+                sut.addAdapter({getObserver() {
+                  return dummyObserver;
+                }});
               } else {
-                sut.addAdapter({getObserver() { return null; }});
+                sut.addAdapter({getObserver() {
+                  return null;
+                }});
               }
             }
             const actual = sut.getObserver(obj, property);

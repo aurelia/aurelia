@@ -116,4 +116,3 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
-

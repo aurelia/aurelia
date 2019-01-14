@@ -197,7 +197,7 @@ noBindables.addActionSlot('act')
 
     au.app({ host, component }).start();
 
-    expect(host.textContent).to.equal('123' + 'undefined'.repeat(9));
+    expect(host.textContent).to.equal(`123${'undefined'.repeat(9)}`);
   })
   .addAction('assign 2', ctx => {
     const { b: au, c: lifecycle, d: host, e: app } = ctx;

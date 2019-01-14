@@ -2,9 +2,9 @@ import { IContainer } from '@aurelia/kernel';
 import {
   Aurelia,
   bindable,
+  CustomElementResource,
   ILifecycle,
-  LifecycleFlags,
-  CustomElementResource
+  LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { baseSuite } from './template-compiler.base';
@@ -316,7 +316,7 @@ mutations.addActionSlot('mutate') // Tests/assertions
     component.items[1].else = 8;
     lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal(('68' + elseText.slice(2)).repeat(count));
+    expect(trimFull(host.textContent)).to.equal((`68${elseText.slice(2)}`).repeat(count));
   })
   // reverse the items
   .addAction('05', ctx => {
@@ -379,7 +379,7 @@ additions.addActionSlot('add')
     component.items = component.items.slice().concat({if: 'x', else: 'y'});
     lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal((elseText + 'y').repeat(count));
+    expect(trimFull(host.textContent)).to.equal(`${elseText}y`.repeat(count));
   })
   // assign an item more + swap the if/else
   .addAction('02', ctx => {
@@ -396,7 +396,7 @@ additions.addActionSlot('add')
     component.items.push({if: 5, else: 6});
     lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal((elseText + '6').repeat(count));
+    expect(trimFull(host.textContent)).to.equal(`${elseText}6`.repeat(count));
   })
   // push an item + swap the if/else
   .addAction('04', ctx => {
@@ -405,7 +405,7 @@ additions.addActionSlot('add')
     component.display = true;
     lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal((ifText + '5').repeat(count));
+    expect(trimFull(host.textContent)).to.equal(`${ifText}5`.repeat(count));
   });
 
 for (const suite of [mutations, removals, additions]) {

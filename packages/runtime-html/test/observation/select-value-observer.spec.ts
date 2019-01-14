@@ -67,7 +67,10 @@ describe('SelectValueObserver', () => {
       for (const isMultiple of [true, false]) {
         const { sut } = createFixture([], [], isMultiple);
         let count = 0;
-        sut['nodeObserver'] = { disconnect() { count++; } } as Anything;
+        const nodeObserver: any = { disconnect() {
+          count++;
+        } };
+        sut['nodeObserver'] = nodeObserver;
         sut.unbind();
         expect(count).to.equal(1);
         expect(sut['nodeObserver']).to.equal(null);
@@ -77,13 +80,17 @@ describe('SelectValueObserver', () => {
       for (const isMultiple of [true, false]) {
         const { sut } = createFixture([], [], isMultiple);
         let count = 0;
-        sut['nodeObserver'] = { disconnect() { } } as Anything;
-        sut['arrayObserver'] = {
+        const nodeObserver: any = { disconnect() {
+          return;
+        } };
+        const arrayObserver: any = {
           unsubscribeBatched(observer: Anything) {
             expect(observer).to.equal(sut, 'It should have unsubscribe with right observer.');
             count++;
           }
-        } as Anything;
+        };
+        sut['nodeObserver'] = nodeObserver;
+        sut['arrayObserver'] = arrayObserver;
         sut.unbind();
         expect(count).to.equal(1);
         expect(sut['arrayObserver']).to.equal(null);

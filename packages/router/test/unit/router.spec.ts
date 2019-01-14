@@ -260,7 +260,7 @@ describe('Router', () => {
     await waitForNavigation(router);
     expect(host.textContent).to.contain('foo');
 
-    (host as any).getElementsByTagName('SPAN')[0].click();
+    host.getElementsByTagName('SPAN')[0].click();
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: baz');
 
@@ -283,7 +283,7 @@ describe('Router', () => {
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: foo');
 
-    (host as any).getElementsByTagName('SPAN')[0].click();
+    host.getElementsByTagName('SPAN')[0].click();
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: baz');
 
@@ -498,7 +498,10 @@ const setup = async (): Promise<{ au; container; host; router }> => {
     public static parameters = ['id', 'name'];
     public id = 'no id';
     public name = 'no name';
-    public enter(params) { if (params.id) { this.id = params.id; } if (params.name) { this.name = params.name; } }
+    public enter(params) {
+      if (params.id) { this.id = params.id; }
+      if (params.name) { this.name = params.name; }
+    }
   });
   const Baz = CustomElementResource.define({ name: 'baz', template: '<template>Viewport: baz Parameter id: [${id}] <au-viewport name="baz"></au-viewport></template>' }, class {
     public static parameters = ['id'];
@@ -507,7 +510,14 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   });
   const Qux = CustomElementResource.define({ name: 'qux', template: '<template>Viewport: qux<au-viewport name="qux"></au-viewport></template>' }, class {
     public canEnter() { return true; }
-    public canLeave() { if (quxCantLeave > 0) { quxCantLeave--; return false; } else { return true; } }
+    public canLeave() {
+      if (quxCantLeave > 0) {
+        quxCantLeave--;
+        return false;
+      } else {
+        return true;
+      }
+    }
     public enter() { return true; }
     public leave() { return true; }
   });
@@ -532,8 +542,7 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   .app({ host: host, component: App })
   .start();
 
-  router.activate();
-  await Promise.resolve();
+  await router.activate();
   return { au, container, host, router };
 };
 

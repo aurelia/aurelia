@@ -135,7 +135,7 @@ describe('StyleAccessor', () => {
     const rule = `${propName}:${value}`;
     it(`setValue - style="${rule}"`, () => {
       const ctx = TestContext.createHTMLTestContext();
-      el = ctx.createElementFromMarkup('<div></div>') as HTMLElement;
+      el = ctx.createElementFromMarkup('<div></div>');
       const { lifecycle: $lifecycle } = setup();
       lifecycle = $lifecycle;
       sut = new StyleAttributeAccessor(lifecycle, el);
@@ -151,7 +151,7 @@ describe('StyleAccessor', () => {
 
   it(`getValue - style="display: block;"`, () => {
     const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`) as HTMLElement;
+    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
     const { lifecycle: $lifecycle } = setup();
     lifecycle = $lifecycle;
     sut = new StyleAttributeAccessor(lifecycle, el);

@@ -22,7 +22,8 @@ describe('PrimitiveObserver', () => {
     const propertyNameArr = [undefined, null, 1, Symbol(), '', 'foo', 'length', 'valueOf'];
     for (const primitive of primitiveArr) {
       for (const propertyName of propertyNameArr) {
-        it(`should correctly handle ${typeof primitive}[${typeof propertyName === 'string' ? `'${propertyName}'` : typeof propertyName}]`, () => {
+        const propName = typeof propertyName === 'string' ? `'${propertyName}'` : typeof propertyName;
+        it(`should correctly handle ${typeof primitive}[${propName}]`, () => {
           sut = new PrimitiveObserver(primitive, propertyName);
           if (propertyName === 'length') {
             if (typeof primitive === 'string') {
@@ -67,7 +68,6 @@ describe('PrimitiveObserver', () => {
 
 class Foo {}
 
-
 describe('SetterObserver', () => {
   let sut: SetterObserver;
 
@@ -77,7 +77,7 @@ describe('SetterObserver', () => {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, () => {
-          sut = new SetterObserver(object, <any>propertyName);
+          sut = new SetterObserver(object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
           // note: we're deliberately using explicit strict equality here (and in various other places) instead of expect(actual).to.equal(expected)
@@ -98,7 +98,7 @@ describe('SetterObserver', () => {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
-            sut = new SetterObserver(object, <any>propertyName);
+            sut = new SetterObserver(object, propertyName as any);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
             expect(object[propertyName] === value).to.equal(true);
@@ -115,7 +115,7 @@ describe('SetterObserver', () => {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, () => {
-          sut = new SetterObserver(object, <any>propertyName);
+          sut = new SetterObserver(object, propertyName as any);
           sut.subscribe(new SpySubscriber());
         });
       }
@@ -134,11 +134,11 @@ describe('SetterObserver', () => {
           for (const subscribers of subscribersArr) {
             const object = {};
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
-              sut = new SetterObserver(object, <any>propertyName);
+              sut = new SetterObserver(object, propertyName as any);
               for (const subscriber of subscribers) {
                 sut.subscribe(subscriber);
               }
-              let prevValue = object[propertyName];
+              const prevValue = object[propertyName];
               sut.setValue(value, flags);
               for (const subscriber of subscribers) {
                 expect(subscriber.handleChange).to.have.been.calledOnce;
@@ -176,8 +176,9 @@ describe('Observer', () => {
 
 function createObjectArr(): any[] {
   return [
+    // tslint:disable-next-line:use-primitive-type no-construct
     {}, Object.create(null), new Number(), new Boolean(), new String(),
-    new Error(), new Foo(), new Uint8Array(), new WeakMap(), new WeakSet(), JSON.parse("{}"),
-    /asdf/, function(){}, Promise.resolve(), new Proxy({}, {})
+    new Error(), new Foo(), new Uint8Array(), new WeakMap(), new WeakSet(), JSON.parse('{}'),
+    /asdf/, function() { return; }, Promise.resolve(), new Proxy({}, {})
   ];
 }

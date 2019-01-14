@@ -55,10 +55,8 @@ export function massStub(obj: any, configure: (stub: SinonStub, prop: string) =>
 export function massRestore(obj: any, ...properties: string[]): void {
   if (properties.length === 0) {
     for (const prop in obj) {
-      if (typeof obj[prop] === 'function') {
-        if (obj[prop].restore) {
-          obj[prop].restore();
-        }
+      if (typeof obj[prop] === 'function' && obj[prop].restore) {
+        obj[prop].restore();
       }
     }
   } else {
@@ -74,10 +72,8 @@ export function massRestore(obj: any, ...properties: string[]): void {
 export function massReset(obj: any, ...properties: string[]): void {
   if (properties.length === 0) {
     for (const prop in obj) {
-      if (typeof obj[prop] === 'function') {
-        if (obj[prop].resetHistory) {
-          obj[prop].resetHistory();
-        }
+      if (typeof obj[prop] === 'function' && obj[prop].resetHistory) {
+        obj[prop].resetHistory();
       }
     }
   } else {
@@ -132,11 +128,10 @@ export function stringify(value: any): string {
     case '[object Number]':
       return value;
     case '[object Array]':
-      return `[${value.map(i => stringify(i)).join(',')}]`;
+    return `[${value.map(stringify).join(',')}]`;
     case '[object Event]':
       return `'${value.type}'`;
-    case '[object Object]':
-    {
+    case '[object Object]': {
       const proto = Object.getPrototypeOf(value);
       if (!proto || !proto.constructor || proto.constructor.name === 'Object') {
         return jsonStringify(value);
@@ -249,7 +244,7 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
         verifyEqual(actual.childNodes.item(i), expected.childNodes.item(i), depth + 1, property, i);
       }
     } else {
-      expect(actual.outerHTML).to.equal((<any>expected).outerHTML, `depth=${depth}, prop=${property}, index=${index}`);
+      expect(actual.outerHTML).to.equal(expected.outerHTML, `depth=${depth}, prop=${property}, index=${index}`);
     }
     return;
   }
@@ -439,7 +434,6 @@ export function eachCartesianJoinFactory<T extends any,U>(
     // in the meantime, only use this by commenting out the throw by hand if the throw makes it difficult to troubleshoot an error
     const msg = `eachCartesionJoinFactory failed to load ${errors.length} tests:\n\n${errors.map(e => e.message).join('\n')}`;
     throw new Error(msg);
-    // console.error(msg);
   }
 }
 function updateElementByIndicesFactory<T extends any>(arrays: ((...args: T[]) => T)[][], args: T[], indices: number[]): T[] {

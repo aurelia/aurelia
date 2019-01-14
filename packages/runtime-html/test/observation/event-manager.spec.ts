@@ -35,6 +35,7 @@ function assertHandlerPath(expectedPhases: number[], actualPhases: ReturnType<ty
   }
 
   if (errors.length > 0) {
+    // tslint:disable-next-line:no-nested-template-literals
     const msg = `ASSERTION ERRORS:\n${errors.map(e => `  - ${e}`).join('\n')}`;
     throw new Error(msg);
   }
@@ -197,7 +198,7 @@ describe('DelegateOrCaptureSubscription', () => {
 });
 
 describe('TriggerSubscription', () => {
-  function setup(listener: EventListenerOrEventListenerObject, eventName: string, bubbles: boolean) {
+  function setup(listener: EventListenerOrEventListenerObject | null, eventName: string, bubbles: boolean) {
     const ctx = TestContext.createHTMLTestContext();
     const handler = spy();
 

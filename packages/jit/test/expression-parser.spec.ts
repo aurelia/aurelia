@@ -39,8 +39,6 @@ import {
 } from './unicode';
 import { verifyASTEqual } from './util';
 
-// tslint:disable:no-invalid-template-strings
-
 const binaryMultiplicative: BinaryOperator[] = ['*', '%', '/'];
 const binaryAdditive: BinaryOperator[] = ['+', '-'];
 const binaryRelational: [BinaryOperator, string][] = [
@@ -799,7 +797,7 @@ describe('ExpressionParser', () => {
       [`'${input}'`, expr],
       [`"${input}"`, expr]
     ] as [string, any][])
-    .reduce((acc, cur) => acc.concat(cur)) as [string, any][]
+    .reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexStringLiteralList', () => {
     for (const [input, expected] of ComplexStringLiteralList) {

@@ -118,8 +118,8 @@ describe('ValueAttributeObserver', () => {
               const { ctx, sut, el, subscriber } = setup();
 
               // TODO: only setting input.value to null sets it to empty string. Setting it to undefined actually coerces to 'undefined'. This should work consistently in both directions
-              const expectedValueBefore = valueBefore === null ? '' : valueBefore + '';
-              const expectedValueAfter = valueAfter === null ? '' : valueAfter + '';
+              const expectedValueBefore = valueBefore === null ? '' : `${valueBefore}`;
+              const expectedValueAfter = valueAfter === null ? '' : `${valueAfter}`;
               let callCount = 0;
 
               el.value = valueBefore;
@@ -149,5 +149,3 @@ describe('ValueAttributeObserver', () => {
     });
   }
 });
-
-

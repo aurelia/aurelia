@@ -9,7 +9,7 @@ chai.use(function(_chai, utils) {
   Assertion.addProperty('$state');
   function getStateFlagName(state) {
     if (state === 0) return 'none';
-    let names = [];
+    const names = [];
     if (state & State.isBinding) names.push('isBinding');
     if (state & State.isBound) names.push('isBound');
     if (state & State.isAttaching) names.push('isAttaching');
@@ -36,7 +36,7 @@ chai.use(function(_chai, utils) {
     Assertion.addChainableMethod(
       flagName,
       function(msg) {
-        msg = msg === undefined ? '' : msg + ' - ';
+        msg = msg === undefined ? '' : `${msg} - `;
         const state = this._obj['$state'];
         let currentFlag = stateFlag;
         if (utils.flag(this, 'isBinding')) currentFlag |= State.isBinding;

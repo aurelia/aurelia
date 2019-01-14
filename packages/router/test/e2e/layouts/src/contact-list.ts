@@ -6,5 +6,5 @@ export class ContactList {
   ];
 
   public allContacts() { return this.contacts; }
-  public contact(id) { return this.contacts.find((value) => value.id === id); }
+  public contact(id: string) { return this.contacts.find((value) => value.id === id); }
 }

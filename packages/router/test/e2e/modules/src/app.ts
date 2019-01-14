@@ -1,32 +1,31 @@
 import { inject } from '../../../../../kernel';
-import { customElement } from '../../../../../runtime';
-import * as template from './app.html';
 import { Router } from '../../../../../router';
-import { AbcComponent } from './components/abc-component';
-import { DefComponent } from './components/def-component';
+import { customElement } from '../../../../../runtime';
 import { AppState } from './app-state';
-import { Calendar } from './components/calendar';
-import { Email } from './components/email';
+import * as template from './app.html';
+import { AbcComponent } from './components/abc-component';
 import { About } from './components/about';
+import { Calendar } from './components/calendar';
+import { DefComponent } from './components/def-component';
+import { Email } from './components/email';
 
 @inject(Router, AppState)
 @customElement({ name: 'app', template })
 export class App {
-  message = 'So... we meet again, Mr. World!';
+  public message = 'So... we meet again, Mr. World!';
   public output: string = '';
   public title: string = '';
 
   public abcComponent: any = AbcComponent;
 
-  private left: any;
-  private right: any;
+  private readonly left: any;
+  private readonly right: any;
 
-  constructor(private router: Router, private appState: AppState) {
-    this.abcComponent;
+  constructor(private readonly router: Router, private readonly appState: AppState) {
     this.configureRouter();
   }
 
-  configureRouter() {
+  public configureRouter() {
     this.router.activate({
       reportCallback: (instruction) => {
         this.pathCallback(instruction);
@@ -85,21 +84,21 @@ export class App {
     ]);
   }
 
-  pathCallback(instruction) {
+  public pathCallback(instruction) {
     console.log('app callback', instruction, this.title);
     this.output += `Path: ${instruction.path} [${instruction.index}] "${instruction.title}" (${this.stringifyFlags(instruction)}) ${JSON.stringify(instruction.data)}\n`;
     // this.title = this.router.historyBrowser.titles.join(' > ');
     if (!instruction.title) {
       setTimeout(() => {
-        this.router.historyBrowser.setEntryTitle(instruction.path.split('/').pop() + ' (async)');
+        this.router.historyBrowser.setEntryTitle(`${instruction.path.split('/').pop()} (async)`);
         // this.title = this.router.historyBrowser.titles.join(' > ');
-      }, 500);
+      },         500);
     }
   }
 
-  stringifyFlags(flags) {
-    let outs = [];
-    for (let flag in flags) {
+  public stringifyFlags(flags) {
+    const outs = [];
+    for (const flag in flags) {
       if (flag.substring(0, 'is'.length) === 'is') {
         outs.push(flag.replace('is', ''));
       }
@@ -107,41 +106,41 @@ export class App {
     return outs.join(',');
   }
 
-  updateTitle() {
+  public updateTitle() {
     this.title = this.router.historyBrowser.titles.join(' > ');
     setTimeout(() => this.updateTitle(), 150);
   }
-  clickAbc() {
+  public clickAbc() {
     this.router.goto({ left: AbcComponent, right: AbcComponent }, 'first', { id: 123 });
   }
-  clickAbcLeft() {
+  public clickAbcLeft() {
     this.router.goto({ left: AbcComponent }, 'first-left', { id: '123L' });
   }
-  clickAbcRight() {
+  public clickAbcRight() {
     this.router.goto({ right: AbcComponent }, 'first-right', { id: '123R' });
   }
-  clickDef() {
+  public clickDef() {
     this.router.goto({ left: DefComponent, right: DefComponent }, 'second', { id: 456 });
   }
   // clickReplace() {
   //   this.router.replace({ left: Content3Component, right: Content3Component }, 'last', { id: 999 });
   // }
-  clickBack() {
+  public clickBack() {
     this.router.back();
   }
-  clickForward() {
+  public clickForward() {
     this.router.forward();
   }
-  clickBack2() {
+  public clickBack2() {
     this.router.historyBrowser.history.go(-2);
   }
-  clickForward2() {
+  public clickForward2() {
     this.router.historyBrowser.history.go(2);
   }
-  clickCancel() {
+  public clickCancel() {
     this.router.historyBrowser.cancel();
   }
-  clickRefresh() {
+  public clickRefresh() {
     this.router.refresh();
   }
 }

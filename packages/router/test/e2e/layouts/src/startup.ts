@@ -1,30 +1,29 @@
 import { HTMLJitConfiguration } from '../../../../../jit-html/src/index';
+import { NavCustomElement, ViewportCustomElement } from '../../../../../router';
 import { Aurelia, CustomElementResource } from '../../../../../runtime';
 import { App } from './app';
-import { ViewportCustomElement } from '../../../../../router';
-import { NavCustomElement } from '../../../../../router';
 
-import { Game } from './components/game';
-import { Lobby } from './components/lobby';
 import { About } from './components/about';
-import { Contacts } from './components/contacts';
-import { Contact } from './components/contact';
 import { Board } from './components/board';
+import { Contact } from './components/contact';
+import { Contacts } from './components/contacts';
+import { Game } from './components/game';
 import { Inventory } from './components/inventory';
+import { Lobby } from './components/lobby';
 
 const container = HTMLJitConfiguration.createContainer();
 container.register(
-  <any>ViewportCustomElement,
-  <any>NavCustomElement,
-  <any>App,
+  ViewportCustomElement as any,
+  NavCustomElement as any,
+  App as any,
 
-  <any>Game,
-  <any>Lobby,
-  <any>About,
-  <any>Contacts,
-  <any>Contact,
-  <any>Board,
-  <any>Inventory,
+  Game as any,
+  Lobby as any,
+  About as any,
+  Contacts as any,
+  Contact as any,
+  Board as any,
+  Inventory as any,
 );
 const component = container.get(CustomElementResource.keyFrom('app'));
 

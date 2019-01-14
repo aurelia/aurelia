@@ -20,7 +20,7 @@ import {
   IScope,
   ITemplate,
   LifecycleFlags,
-  Scope} from '../../../src/index';
+  Scope } from '../../../src/index';
 import { RuntimeBehavior } from '../../../src/rendering-engine';
 import { ViewFactory } from '../../../src/templating/view';
 import {

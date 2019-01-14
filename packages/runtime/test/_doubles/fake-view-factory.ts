@@ -12,7 +12,7 @@ export class FakeViewFactory implements IViewFactory {
   public tryReturnToCache(view: IView): boolean {
     return false;
   }
-  public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {}
+  public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void { return; }
   public create(): IView {
     return new FakeView(this.$lifecycle);
   }

@@ -158,5 +158,5 @@ export function hydrateCustomAttribute<T extends ICustomAttributeType>(
   const renderingEngine = container.get(IRenderingEngine);
   attribute.$hydrate(renderingEngine);
 
-  return { attribute, location, lifecycle } as ICustomAttributeCreation<T>;
+  return { attribute: attribute as Overwrite<InstanceType<T>, ICustomAttribute<AuNode>>, location, lifecycle };
 }

@@ -5,6 +5,7 @@ import {
 } from 'sinon';
 import {
   AccessScope,
+  BasicConfiguration,
   BindingBehavior,
   Call,
   CallScope,
@@ -13,7 +14,6 @@ import {
   ILifecycle,
   IScope,
   LifecycleFlags,
-  BasicConfiguration,
   SetterObserver
 } from '../../src/index';
 import { Lifecycle } from '../../src/lifecycle';
@@ -41,7 +41,7 @@ describe('Call', () => {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({}), `{}`],
-      () => [({ fooz: () => {} }), `fooz:()=>{}`]
+      () => [({ fooz: () => { return; } }), `fooz:()=>{}`]
     ];
 
     const propVariations: (() => [string, string])[] = [
@@ -55,7 +55,7 @@ describe('Call', () => {
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({theFunc: () => {}}),       `{theFunc:()=>{}}       `]
+      () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
     ];
 
     const renewScopeVariations: (() => [boolean, string])[] = [
@@ -130,7 +130,7 @@ describe('Call', () => {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({}), `{}`],
-      () => [({ fooz: () => {} }), `fooz:()=>{}`]
+      () => [({ fooz: () => { return; } }), `fooz:()=>{}`]
     ];
 
     const propVariations: (() => [string, string])[] = [
@@ -144,7 +144,7 @@ describe('Call', () => {
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({theFunc: () => {}}),       `{theFunc:()=>{}}       `]
+      () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
     ];
 
     const inputs: [typeof targetVariations, typeof propVariations, typeof exprVariations, typeof scopeVariations]
@@ -221,7 +221,7 @@ describe('Call', () => {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({}), `{}`],
-      () => [({ fooz: () => {} }), `fooz:()=>{}`]
+      () => [({ fooz: () => { return; } }), `fooz:()=>{}`]
     ];
 
     const propVariations: (() => [string, string])[] = [
@@ -242,7 +242,7 @@ describe('Call', () => {
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({theFunc: () => {}}),       `{theFunc:()=>{}}       `]
+      () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
     ];
 
     const inputs: [typeof targetVariations, typeof propVariations, typeof argsVariations, typeof exprVariations, typeof scopeVariations]

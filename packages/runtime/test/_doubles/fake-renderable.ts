@@ -29,5 +29,4 @@ export class FakeRenderable implements IRenderable {
   public $nextUnbound: ICustomElement['$nextUnbound'] = null;
   public $nextAttached: ICustomElement['$nextAttached'] = null;
   public $nextDetached: ICustomElement['$nextDetached'] = null;
-
 }

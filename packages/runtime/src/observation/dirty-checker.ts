@@ -90,8 +90,7 @@ export class DirtyChecker {
     if (DirtyCheckSettings.disabled) {
       return;
     }
-    this.elapsedFrames += delta;
-    if (this.elapsedFrames < DirtyCheckSettings.framesPerCheck) {
+    if (++this.elapsedFrames < DirtyCheckSettings.framesPerCheck) {
       return;
     }
     this.elapsedFrames = 0;

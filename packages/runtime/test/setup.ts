@@ -2,7 +2,6 @@ import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import { State } from '../src/index';
 
-chai.should();
 chai.use(sinonChai);
 chai.use(function(_chai, utils) {
   const Assertion = _chai['Assertion'];
@@ -65,4 +64,3 @@ Error.stackTraceLimit = Infinity;
 
 const testContext = require.context('.', true, /\.spec\.ts$/);
 testContext.keys().forEach(testContext);
-

@@ -22,7 +22,6 @@ export function createHTMLTestContext(): HTMLTestContext {
 
 TestContext.createHTMLTestContext = createHTMLTestContext;
 
-chai.should();
 chai.use(sinonChai);
 
 const testContext = require.context('../../jit-html/test', true, /\.spec\.ts$/);

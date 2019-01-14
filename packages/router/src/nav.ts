@@ -6,21 +6,24 @@ import { Router } from './router';
 
 export interface INavRoute {
   components: string | ICustomElementType | Object;
+  consideredActive?: string | ICustomElementType | Object;
   link?: string;
   title: string;
-  children?: NavRoute[];
+  children?: INavRoute[];
   meta?: Object;
 }
 
 export class Nav {
   public name: string;
-  public routes: NavRoute[] = [];
+  public routes: NavRoute[];
 
   public router: Router;
 
   constructor(router: Router, name: string) {
     this.router = router;
     this.name = name;
+
+    this.routes = [];
   }
 
   public addRoutes(routes: INavRoute[]): void {

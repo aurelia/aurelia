@@ -62,7 +62,7 @@ export class RenderPlan<T extends INode = Node> {
   }
 
   public createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext): IView {
-    return this.getViewFactory(engine, parentContext).create(flags);
+    return this.getViewFactory(engine, parentContext).create();
   }
 
   public getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext): IViewFactory {

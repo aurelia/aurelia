@@ -19,6 +19,9 @@ export interface IRouteableCustomElement extends ICustomElement {
 export interface IViewportOptions {
   scope?: boolean;
   usedBy?: string | string[];
+  default?: string;
+  noLink?: boolean;
+  noHistory?: boolean;
   forceDescription?: boolean;
 }
 
@@ -108,9 +111,21 @@ export class Viewport {
       if (options && options.usedBy) {
         this.options.usedBy = options.usedBy;
       }
+      if (options && options.default) {
+        this.options.default = options.default;
+      }
+      if (options && options.noLink) {
+        this.options.noLink = options.noLink;
+      }
+      if (options && options.noHistory) {
+        this.options.noHistory = options.noHistory;
+      }
       if (this.elementResolve) {
         this.elementResolve();
       }
+    }
+    if (!this.component && !this.nextComponent && this.options.default) {
+      this.router.addProcessingViewport(this, this.options.default);
     }
   }
 

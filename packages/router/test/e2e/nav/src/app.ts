@@ -14,7 +14,8 @@ import { Router } from '../../../../../router/src/index';
     <a href="lobby@app+contact@contact=123+contacts@lobby">Lobby + 123 + contacts</a>
     <a href="game+board@game">Game + board (5 + 5, parent-child)</a>
     <a href="game+delayed">Game + delayed (5 + 5, siblings)</a>
-    <au-viewport name="app" used-by="game,lobby"></au-viewport>
+    <a href="cancel">Cancel</a>
+    <au-viewport name="app" used-by="game,lobby,cancel"></au-viewport>
     <au-viewport name="delayed" used-by="delayed"></au-viewport>
   </div>
 </template>

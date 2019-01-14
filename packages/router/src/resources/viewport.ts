@@ -8,6 +8,9 @@ export class ViewportCustomElement {
   @bindable public name: string;
   @bindable public scope: boolean;
   @bindable public usedBy: string;
+  @bindable public default: string;
+  @bindable public noLink: boolean;
+  @bindable public noHistory: boolean;
 
   public viewport: Viewport;
 
@@ -21,6 +24,9 @@ export class ViewportCustomElement {
     this.name = 'default';
     this.scope = null;
     this.usedBy = null;
+    this.default = null;
+    this.noLink = null;
+    this.noHistory = null;
     this.viewport = null;
   }
 
@@ -28,6 +34,15 @@ export class ViewportCustomElement {
     const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };
     if (this.usedBy && this.usedBy.length) {
       options.usedBy = this.usedBy;
+    }
+    if (this.default && this.default.length) {
+      options.default = this.default;
+    }
+    if (this.element.hasAttribute('no-link')) {
+      options.noLink = true;
+    }
+    if (this.element.hasAttribute('no-history')) {
+      options.noHistory = true;
     }
     this.viewport = this.router.addViewport(this.name, this.element, options);
   }

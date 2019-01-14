@@ -23,7 +23,9 @@ export interface INavigationFlags {
   isCancel?: boolean;
 }
 
-export interface INavigationInstruction extends IHistoryEntry, INavigationFlags { }
+export interface INavigationInstruction extends IHistoryEntry, INavigationFlags {
+  previous?: IHistoryEntry;
+}
 
 export class HistoryBrowser {
   public currentEntry: IHistoryEntry;
@@ -34,20 +36,40 @@ export class HistoryBrowser {
   public history: History;
   public location: Location;
 
-  private activeEntry: IHistoryEntry = null;
+  private activeEntry: IHistoryEntry;
 
   private options: IHistoryOptions;
-  private isActive: boolean = false;
+  private isActive: boolean;
 
   private lastHistoryMovement: number;
   private cancelRedirectHistoryMovement: number;
-  private isCancelling: boolean = false;
-  private isReplacing: boolean = false;
-  private isRefreshing: boolean = false;
+  private isCancelling: boolean;
+  private isReplacing: boolean;
+  private isRefreshing: boolean;
+
+  private ignorePathChange: Function;
 
   constructor() {
     this.location = window.location;
     this.history = window.history;
+
+    this.currentEntry = null;
+    this.historyEntries = null;
+    this.historyOffset = null;
+    this.replacedEntry = null;
+
+    this.activeEntry = null;
+
+    this.options = null;
+    this.isActive = false;
+
+    this.lastHistoryMovement = null;
+    this.cancelRedirectHistoryMovement = null;
+    this.isCancelling = false;
+    this.isReplacing = false;
+    this.isRefreshing = false;
+
+    this.ignorePathChange = null;
   }
 
   public activate(options?: IHistoryOptions): Promise<void> {
@@ -122,6 +144,26 @@ export class HistoryBrowser {
     }
   }
 
+  public async pop(): Promise<void> {
+    // TODO: Make sure we don't back out of application
+    let state;
+    // tslint:disable-next-line:promise-must-complete
+    let wait = new Promise((resolve, reject): void => {
+      this.ignorePathChange = resolve;
+    });
+    this.history.go(-1);
+    await wait;
+    const path = this.location.toString();
+    state = this.history.state;
+    // tslint:disable-next-line:promise-must-complete
+    wait = new Promise((resolve, reject): void => {
+      this.ignorePathChange = resolve;
+    });
+    this.history.go(-1);
+    await wait;
+    this.history.pushState(state, null, path);
+  }
+
   public setState(key: string | Record<string, unknown>, value?: Record<string, unknown>): void {
     const { pathname, search, hash } = this.location;
     let state = { ...this.history.state };
@@ -158,7 +200,7 @@ export class HistoryBrowser {
     const newHash = `#/${path}`;
     const { pathname, search, hash } = this.location;
     // tslint:disable-next-line:possible-timing-attack
-    if (newHash === hash) {
+    if (newHash === hash && this.currentEntry.path === path && this.currentEntry.fullStatePath === fullStatePath) {
       return;
     }
     this.currentEntry.path = path;
@@ -185,6 +227,15 @@ export class HistoryBrowser {
   }
 
   public pathChanged = (): void => {
+    if (this.ignorePathChange !== null) {
+      // tslint:disable-next-line:no-console
+      console.log('=== ignore path change', this.getPath());
+      const resolve = this.ignorePathChange;
+      this.ignorePathChange = null;
+      resolve();
+      return;
+    }
+
     const path: string = this.getPath();
     const search: string = this.getSearch();
     // tslint:disable-next-line:no-console
@@ -192,10 +243,12 @@ export class HistoryBrowser {
 
     const navigationFlags: INavigationFlags = {};
 
+    let previousEntry: IHistoryEntry;
     let historyEntry: IHistoryEntry = this.getState('HistoryEntry') as IHistoryEntry;
     if (this.activeEntry && this.activeEntry.path === path) { // Only happens with new history entries (including replacing ones)
       navigationFlags.isNew = true;
       const index = (this.isReplacing ? this.currentEntry.index : this.history.length - this.historyOffset);
+      previousEntry = this.currentEntry;
       this.currentEntry = this.activeEntry;
       this.currentEntry.index = index;
       if (this.isReplacing) {
@@ -257,6 +310,7 @@ export class HistoryBrowser {
         });
       }
       this.lastHistoryMovement = (this.currentEntry ? historyEntry.index - this.currentEntry.index : 0);
+      previousEntry = this.currentEntry;
       this.currentEntry = historyEntry;
 
       if (this.isCancelling) {
@@ -273,7 +327,7 @@ export class HistoryBrowser {
 
     // tslint:disable-next-line:no-console
     console.log('navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
-    this.callback(this.currentEntry, navigationFlags);
+    this.callback(this.currentEntry, navigationFlags, previousEntry);
   }
 
   private getPath(): string {
@@ -303,11 +357,12 @@ export class HistoryBrowser {
     const hash = this.location.hash.substr(1);
     const hashSearches = hash.split('?');
     hashSearches.shift();
-    return hashSearches.length > 0 ?  hashSearches.shift() : '';
+    return hashSearches.length > 0 ? hashSearches.shift() : '';
   }
 
-  private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags): void {
+  private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags, previousEntry: IHistoryEntry): void {
     const instruction: INavigationInstruction = { ...currentEntry, ...navigationFlags };
+    instruction.previous = previousEntry;
     // tslint:disable-next-line:no-console
     console.log('callback', currentEntry, navigationFlags);
     if (this.options.callback) {

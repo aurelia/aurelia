@@ -125,7 +125,7 @@ export class LinkHandler {
    * Deactivate the instance. Event handlers and other resources should be cleaned up here.
    */
   public deactivate(): void {
-    this.document.removeEventListener('click', this.handler);
+    this.document.removeEventListener('click', this.handler, true);
     this.isActive = false;
   }
 

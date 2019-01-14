@@ -23,12 +23,12 @@ export class Scope {
 
   public viewport: Viewport;
 
-  public children: Scope[] = [];
-  public viewports: Record<string, Viewport> = {};
+  public children: Scope[];
+  public viewports: Record<string, Viewport>;
 
   private readonly router: Router;
 
-  private scopeViewportParts: Record<string, string[][]> = {};
+  private scopeViewportParts: Record<string, string[][]>;
   private availableViewports: Record<string, Viewport>;
 
   constructor(router: Router, element: Element, parent: Scope) {
@@ -265,10 +265,14 @@ export class Scope {
     this.children.splice(this.children.indexOf(child), 1);
   }
 
-  public viewportStates(full: boolean = false): string[] {
+  public viewportStates(full: boolean = false, active: boolean = false): string[] {
     const states: string[] = [];
-    for (const viewport in this.viewports) {
-      states.push(this.viewports[viewport].scopedDescription(full));
+    for (const vp in this.viewports) {
+      const viewport: Viewport = this.viewports[vp];
+      if ((viewport.options.noHistory || (viewport.options.noLink && !full)) && !active) {
+        continue;
+      }
+      states.push(viewport.scopedDescription(full));
     }
     for (const scope of this.children) {
       states.push(...scope.viewportStates(full));

@@ -14,6 +14,7 @@ export class NavRoute {
   public components: string | ICustomElementType | IViewportComponent;
   public title: string;
   public link?: string;
+  public linkActive?: string;
   public children?: NavRoute[];
   public meta?: Object;
 
@@ -27,10 +28,12 @@ export class NavRoute {
     Object.assign(this, {
       components: route.components,
       title: route.title,
+      children: null,
       meta: route.meta,
       active: '',
     });
-    this.link = this._link();
+    this.link = this._link(this.components);
+    this.linkActive = route.consideredActive ? this._link((route.consideredActive as string | ICustomElementType | IViewportComponent)) : this.link;
     this.observerLocator = this.nav.router.container.get(IObserverLocator);
     this.observer = this.observerLocator.getObserver(this.nav.router, 'activeComponents') as IPropertyObserver<Router, 'activeComponents'>;
     this.observer.subscribe(this);
@@ -49,16 +52,15 @@ export class NavRoute {
   }
 
   public _active(): string {
-    const components: string[] = this.link.split(this.nav.router.separators.add);
+    const components: string[] = this.linkActive.split(this.nav.router.separators.add);
     const activeComponents: string[] = this.nav.router.activeComponents;
-    for (let component of components) {
+    for (const component of components) {
       if (component.indexOf(this.nav.router.separators.viewport) >= 0) {
         if (activeComponents.indexOf(component) < 0) {
           return '';
         }
       } else {
-        component = component + this.nav.router.separators.viewport;
-        if (activeComponents.findIndex((value) => value.startsWith(component)) < 0) {
+        if (activeComponents.findIndex((value) => value.replace(/\@[^=]*/, '') === component) < 0) {
           return '';
         }
       }
@@ -70,11 +72,11 @@ export class NavRoute {
     this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
   }
 
-  public _link(): string {
-    if (Array.isArray(this.components)) {
-      return this.components.map((value) => this.linkName(value)).join(this.nav.router.separators.sibling);
+  public _link(components: string | ICustomElementType | IViewportComponent): string {
+    if (Array.isArray(components)) {
+      return components.map((value) => this.linkName(value)).join(this.nav.router.separators.sibling);
     } else {
-      return this.linkName(this.components);
+      return this.linkName(components);
     }
   }
 

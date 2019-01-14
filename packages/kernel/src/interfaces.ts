@@ -15,7 +15,7 @@ export interface IPerformanceEntry {
   readonly startTime: number;
 }
 
-export type ITimerHandler = string | Function;
+export type ITimerHandler = string | ((...args: unknown[]) => void);
 
 declare namespace NodeJS {
   interface Process {
@@ -62,7 +62,9 @@ export type Class<T, C = IIndexable> = C & {
   new(...args: unknown[]): T;
 };
 
-export type Injectable<T = {}> = Constructable<T> & { inject?: Function[] };
+export type InterfaceSymbol<T> = (target: Injectable<T>, property: string, index: number) => any;
+
+export type Injectable<T = {}> = Constructable<T> & { inject?: (InterfaceSymbol<unknown>|Constructable)[] };
 
 export type IIndexable<T extends object = object> = T & { [key: string]: unknown };
 

@@ -1,9 +1,10 @@
+import { Constructable, InterfaceSymbol } from '@aurelia/kernel';
 import { bindable, CustomElementResource, INode, LifecycleFlags } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
 export class ViewportCustomElement {
-  public static readonly inject: ReadonlyArray<Function> = [Router, INode];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>|Constructable> = [Router, INode];
 
   @bindable public name: string;
   @bindable public scope: boolean;

@@ -1,6 +1,6 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType } from '@aurelia/runtime';
-import { HistoryBrowser, IHistoryEntry, IHistoryOptions, INavigationInstruction } from './history-browser';
+import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
@@ -8,10 +8,10 @@ import { IComponentViewport, Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 
 export interface IRouterOptions extends IHistoryOptions {
-  reportCallback?: Function;
   separators?: IRouteSeparators;
-  transformFromUrl?: Function;
-  transformToUrl?: Function;
+  reportCallback?(instruction: INavigationInstruction): void;
+  transformFromUrl?(path: string, router: Router): string;
+  transformToUrl?(states: IComponentViewportParameters[], router: Router): string;
 }
 
 export interface IComponentViewportParameters {
@@ -46,7 +46,7 @@ export interface IRouteSeparators {
 }
 
 export class Router {
-  public static readonly inject: ReadonlyArray<Function> = [IContainer];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IContainer];
 
   public viewports: Record<string, Viewport> = {};
 
@@ -158,6 +158,7 @@ export class Router {
     if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
       instruction.path = instruction.fullStatePath;
       fullStateInstruction = true;
+      // tslint:disable-next-line:no-commented-code
       // if (!confirm('Perform history navigation?')) {
       //   this.historyBrowser.cancel();
       //   this.processingNavigation = null;
@@ -427,7 +428,7 @@ export class Router {
     }
   }
 
-  public goto(pathOrViewports: string | Object, title?: string, data?: Record<string, unknown>): void {
+  public goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void {
     if (typeof pathOrViewports === 'string') {
       this.historyBrowser.goto(pathOrViewports, title, data);
     }
@@ -436,7 +437,7 @@ export class Router {
     // }
   }
 
-  public replace(pathOrViewports: string | Object, title?: string, data?: Record<string, unknown>): void {
+  public replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void {
     if (typeof pathOrViewports === 'string') {
       this.historyBrowser.replace(pathOrViewports, title, data);
     }

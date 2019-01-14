@@ -36,6 +36,7 @@ function dispose(this: PropertyObserver): void {
 }
 
 export function propertyObserver(): ClassDecorator {
+  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
   return function(target: Function): void {
     subscriberCollection(MutationKind.instance)(target);
     const proto = target.prototype as PropertyObserver;

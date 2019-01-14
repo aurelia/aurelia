@@ -1,5 +1,5 @@
 /// <reference types="reflect-metadata" />
-import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
+import { Constructable, IIndexable, Injectable, InterfaceSymbol, Primitive } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter, Tracer } from './reporter';
 import { IResourceType } from './resource';
@@ -8,9 +8,7 @@ const slice = Array.prototype.slice;
 
 export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
-export type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Function;
-
-export type InterfaceSymbol<T> = (target: Injectable<T>, property: string, index: number) => any;
+export type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Constructable;
 
 export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
   withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T>;
@@ -31,9 +29,9 @@ export interface IRegistration<T = any> {
 }
 
 export interface IFactory<T = any> {
-  readonly Type: Function;
+  readonly Type: Constructable;
   registerTransformer(transformer: (instance: T) => T): boolean;
-  construct(container: IContainer, dynamicDependencies?: Function[]): T;
+  construct(container: IContainer, dynamicDependencies?: (Constructable | InterfaceSymbol<unknown>)[]): T;
 }
 
 export interface IServiceLocator {
@@ -94,19 +92,19 @@ export type RegisterSelf<T extends Constructable> = {
 // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
 // https://rbuckton.github.io/reflect-metadata/
 // As the official spec proposal uses "any", we use it here as well and suppress related typedef linting warnings.
+// tslint:disable:no-any ban-types
 if (!('getOwnMetadata' in Reflect)) {
-  // tslint:disable-next-line:no-any
   Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
     return (target as IIndexable)[metadataKey];
   };
 
-  // tslint:disable-next-line:no-any
   Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
     return function(target: Function): void {
       (target as IIndexable)[metadataKey] = metadataValue;
     };
   };
 }
+// tslint:enable:no-any ban-types
 
 function createContainer(...params: IRegistry[]): IContainer;
 function createContainer(...params: Record<string, Partial<IRegistry>>[]): IContainer;
@@ -125,12 +123,12 @@ function createContainer(...params: (IRegistry | Record<string, Partial<IRegistr
 export const DI = {
   createContainer,
 
-  getDesignParamTypes(target: Function): Function[] {
+  getDesignParamTypes(target: Constructable): (InterfaceSymbol<unknown>|Constructable)[] {
     return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
-  getDependencies(Type: Function | Injectable): Function[] {
-    let dependencies: Function[];
+  getDependencies(Type: Constructable | Injectable): (Constructable | InterfaceSymbol<unknown>)[] {
+    let dependencies: (Constructable | InterfaceSymbol<unknown>)[];
 
     if ((Type as Injectable).inject === undefined) {
       dependencies = DI.getDesignParamTypes(Type);
@@ -140,7 +138,7 @@ export const DI = {
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
-          dependencies.push(...ctor.inject as Function[]);
+          dependencies.push(...ctor.inject);
         }
 
         ctor = Object.getPrototypeOf(ctor);
@@ -175,10 +173,10 @@ export const DI = {
           instance(value: T): IResolver {
             return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.instance, value));
           },
-          singleton(value: Function): IResolver {
+          singleton(value: Constructable): IResolver {
             return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.singleton, value));
           },
-          transient(value: Function): IResolver {
+          transient(value: Constructable): IResolver {
             return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.transient, value));
           },
           callback(value: ResolveCallback): IResolver {
@@ -196,7 +194,7 @@ export const DI = {
     return Key;
   },
 
-  inject(...dependencies: Function[]): (target: Injectable, key?: string, descriptor?: PropertyDescriptor | number) => void {
+  inject(...dependencies: (InterfaceSymbol<unknown>|Constructable)[]): (target: Injectable, key?: string, descriptor?: PropertyDescriptor | number) => void {
     return function(target: Injectable, key?: string, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!target.hasOwnProperty('inject')) {
@@ -205,7 +203,7 @@ export const DI = {
         }
 
         if (dependencies.length === 1) {
-          (target.inject as Function[])[descriptor] = dependencies[0];
+          target.inject[descriptor] = dependencies[0];
         }
       } else if (key) { // It's a property decorator. Not supported by the container without plugins.
         const actualTarget = target.constructor as Injectable;
@@ -457,36 +455,36 @@ export class Resolver implements IResolver, IRegistration {
 
 /** @internal */
 export interface IInvoker {
-  invoke(container: IContainer, fn: Function, dependencies: Function[]): any;
+  invoke(container: IContainer, fn: Constructable, dependencies: (Constructable | InterfaceSymbol<unknown>)[]): any;
   invokeWithDynamicDependencies(
     container: IContainer,
-    fn: Function,
-    staticDependencies: Function[],
-    dynamicDependencies: Function[]
+    fn: Constructable,
+    staticDependencies: (Constructable | InterfaceSymbol<unknown>)[],
+    dynamicDependencies: (Constructable | InterfaceSymbol<unknown>)[]
   ): any;
 }
 
 /** @internal */
 export class Factory implements IFactory {
-  public Type: Function;
+  public Type: Constructable;
   private readonly invoker: IInvoker;
-  private readonly dependencies: Function[];
+  private readonly dependencies: (Constructable | InterfaceSymbol<unknown>)[];
   private transformers: ((instance: any) => any)[] | null;
 
-  constructor(Type: Function, invoker: IInvoker, dependencies: Function[]) {
+  constructor(Type: Constructable, invoker: IInvoker, dependencies: (Constructable | InterfaceSymbol<unknown>)[]) {
     this.Type = Type;
     this.invoker = invoker;
     this.dependencies = dependencies;
     this.transformers = null;
   }
 
-  public static create(Type: Function): IFactory {
+  public static create(Type: Constructable): IFactory {
     const dependencies = DI.getDependencies(Type);
     const invoker = classInvokers[dependencies.length] || fallbackInvoker;
     return new Factory(Type, invoker, dependencies);
   }
 
-  public construct(container: IContainer, dynamicDependencies?: Function[]): any {
+  public construct(container: IContainer, dynamicDependencies?: (Constructable | InterfaceSymbol<unknown>)[]): any {
     if (Tracer.enabled) { Tracer.enter(`Factory.construct`, slice.call(arguments).concat(this.Type)); }
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
@@ -518,7 +516,7 @@ export class Factory implements IFactory {
 
 /** @internal */
 export interface IContainerConfiguration {
-  factories?: Map<Function, IFactory>;
+  factories?: Map<Constructable, IFactory>;
   resourceLookup?: Record<string, IResourceType<unknown, unknown>>;
 }
 
@@ -536,7 +534,7 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
 export class Container implements IContainer {
   private parent: Container | null;
   private readonly resolvers: Map<any, IResolver>;
-  private readonly factories: Map<Function, IFactory>;
+  private readonly factories: Map<Constructable, IFactory>;
   private readonly configuration: IContainerConfiguration;
   private readonly resourceLookup: Record<string, IResolver>;
 
@@ -702,7 +700,7 @@ export class Container implements IContainer {
     return PLATFORM.emptyArray;
   }
 
-  public getFactory(Type: Function): IFactory {
+  public getFactory(Type: Constructable): IFactory {
     let factory = this.factories.get(Type);
 
     if (factory === undefined) {
@@ -741,11 +739,11 @@ export const Registration = {
     return new Resolver(key, ResolverStrategy.instance, value);
   },
 
-  singleton(key: any, value: Function): IRegistration {
+  singleton(key: any, value: Constructable): IRegistration {
     return new Resolver(key, ResolverStrategy.singleton, value);
   },
 
-  transient(key: any, value: Function): IRegistration {
+  transient(key: any, value: Constructable): IRegistration {
     return new Resolver(key, ResolverStrategy.transient, value);
   },
 
@@ -818,25 +816,25 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: (Constructable | InterfaceSymbol<unknown>)[]): K {
       return new Type(container.get(deps[0]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: (Constructable | InterfaceSymbol<unknown>)[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: (Constructable | InterfaceSymbol<unknown>)[]): K {
       return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: (Constructable | InterfaceSymbol<unknown>)[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -847,7 +845,7 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Function[]): K {
+    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: (Constructable | InterfaceSymbol<unknown>)[]): K {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -862,7 +860,7 @@ export const classInvokers: IInvoker[] = [
 
 /** @internal */
 export const fallbackInvoker: IInvoker = {
-  invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Function, dependencies: Function[]) => any,
+  invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Constructable, dependencies: (Constructable | InterfaceSymbol<unknown>)[]) => any,
   invokeWithDynamicDependencies
 };
 
@@ -870,12 +868,12 @@ export const fallbackInvoker: IInvoker = {
 export function invokeWithDynamicDependencies<T extends Constructable, K>(
   container: IContainer,
   Type: T,
-  staticDependencies: Function[],
-  dynamicDependencies: Function[]
+  staticDependencies: (Constructable | InterfaceSymbol<unknown>)[],
+  dynamicDependencies: (Constructable | InterfaceSymbol<unknown>)[]
 ): K {
   let i = staticDependencies.length;
-  let args: Function[] = new Array(i);
-  let lookup: Function;
+  let args: (Constructable | InterfaceSymbol<unknown>)[] = new Array(i);
+  let lookup: (Constructable | InterfaceSymbol<unknown>);
 
   while (i--) {
     lookup = staticDependencies[i];

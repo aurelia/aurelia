@@ -1266,10 +1266,10 @@ function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator
   return result;
 }
 
-function getFunction(flags: LifecycleFlags, obj: IIndexable, name: string): Function | null {
+function getFunction(flags: LifecycleFlags, obj: IIndexable, name: string): (...args: unknown[]) => unknown | null {
   const func = obj === null || obj === undefined ? null : obj[name];
   if (typeof func === 'function') {
-    return func;
+    return func as (...args: unknown[]) => unknown;
   }
   if (!(flags & LifecycleFlags.mustEvaluate) && (func === null || func === undefined)) {
     return null;

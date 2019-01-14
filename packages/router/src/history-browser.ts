@@ -10,7 +10,7 @@ export interface IHistoryEntry {
 }
 
 export interface IHistoryOptions {
-  callback?: Function;
+  callback?(instruction: INavigationInstruction): void;
 }
 
 export interface INavigationFlags {
@@ -47,7 +47,7 @@ export class HistoryBrowser {
   private isReplacing: boolean;
   private isRefreshing: boolean;
 
-  private ignorePathChange: Function;
+  private ignorePathChange: ((value?: {} | PromiseLike<{}>) => void) | null;
 
   constructor() {
     this.location = window.location;

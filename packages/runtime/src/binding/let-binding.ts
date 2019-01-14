@@ -1,6 +1,6 @@
 import { IIndexable, IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
-import { IScope, LifecycleFlags } from '../observation';
+import { IObservable, IScope, LifecycleFlags } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IExpression } from './ast';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
@@ -20,7 +20,7 @@ export class LetBinding implements IPartialConnectableBinding {
   public locator: IServiceLocator;
   public observerLocator: IObserverLocator;
   public sourceExpression: IExpression;
-  public target: Object;
+  public target: IObservable | null;
   public targetProperty: string;
 
   private readonly toViewModel: boolean;

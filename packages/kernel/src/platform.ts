@@ -285,7 +285,7 @@ class Notifier {
   }
 
   public equals(fn: (frameDelta?: number) => void, context: unknown): boolean {
-    return this.fn === fn && this.context === (context || null);
+    return this.fn === fn && this.context === (context === undefined ? null : context);
   }
 
   public notify(frameDelta: number): this {
@@ -330,14 +330,14 @@ class Notifier {
 }
 
 export class Ticker {
-  private head: Notifier;
   private requestId: number;
   private frameDelta: number;
   private lastTime: number;
   private started: boolean;
   private promise: Promise<number>;
   private resolve: (deltaTime: number) => void;
-  private tick: (deltaTime: number) => void;
+  private readonly head: Notifier;
+  private readonly tick: (deltaTime: number) => void;
 
   constructor() {
     this.head = new Notifier(null, null);

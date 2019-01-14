@@ -1,4 +1,4 @@
-import { DI, IContainer, IResolver, Primitive, Registration, Reporter } from '@aurelia/kernel';
+import { DI, IContainer, InterfaceSymbol, IResolver, Primitive, Registration, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
@@ -29,8 +29,8 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator {
-  getObserver(obj: unknown, propertyName: string): AccessorOrObserver;
-  getAccessor(obj: unknown, propertyName: string): IBindingTargetAccessor;
+  getObserver(obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver;
+  getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
   addAdapter(adapter: IObjectObservationAdapter): void;
   getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
   getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
@@ -66,7 +66,7 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
-  public static readonly inject: ReadonlyArray<Function> = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
 
   private readonly adapters: IObjectObservationAdapter[];
   private readonly dirtyChecker: IDirtyChecker;
@@ -91,22 +91,22 @@ export class ObserverLocator implements IObserverLocator {
     return Registration.singleton(IObserverLocator, this).register(container);
   }
 
-  public getObserver(obj: unknown, propertyName: string): AccessorOrObserver {
+  public getObserver(obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver {
     if (isBindingContext(obj)) {
       return obj.getObservers().getOrCreate(obj, propertyName);
     }
-    let observersLookup = (obj as IObservable).$observers;
+    let observersLookup = obj.$observers;
     let observer: AccessorOrObserver & { doNotCache?: boolean };
 
     if (observersLookup && propertyName in observersLookup) {
       return observersLookup[propertyName];
     }
 
-    observer = this.createPropertyObserver(obj as IObservable, propertyName);
+    observer = this.createPropertyObserver(obj, propertyName);
 
     if (!observer.doNotCache) {
       if (observersLookup === undefined) {
-        observersLookup = this.getOrCreateObserversLookup(obj as IObservable);
+        observersLookup = this.getOrCreateObserversLookup(obj);
       }
 
       observersLookup[propertyName] = observer;

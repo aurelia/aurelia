@@ -6,7 +6,7 @@ export interface IParsedQuery {
 export interface IMergedParameters {
   parameters: Record<string, string>;
   list: string[];
-  merged: string[] | Object;
+  merged: string[] | Record<string, string>;
 }
 
 export function parseQuery(query: string): IParsedQuery {
@@ -46,7 +46,7 @@ export function mergeParameters(parameters: string, query: string, specifiedPara
   if (list.length && Object.keys(params).length) {
     params['-unnamed'] = list.splice(0, list.length);
   }
-  let merged: string[] | Object;
+  let merged: string[] | Record<string, string>;
   if (list.length) {
     merged = list;
   } else {

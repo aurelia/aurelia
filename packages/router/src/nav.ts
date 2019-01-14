@@ -1,16 +1,16 @@
 // NOTE: this file is currently not in use
 
-import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
-import { NavRoute } from './nav-route';
+import { ICustomElementType } from '@aurelia/runtime';
+import { NavComponent, NavRoute } from './nav-route';
 import { Router } from './router';
 
 export interface INavRoute {
-  components: string | ICustomElementType | Object;
-  consideredActive?: string | ICustomElementType | Object;
+  components: string | ICustomElementType | Record<string, unknown>;
+  consideredActive?: NavComponent;
   link?: string;
   title: string;
   children?: INavRoute[];
-  meta?: Object;
+  meta?: Record<string, unknown>;
 }
 
 export class Nav {

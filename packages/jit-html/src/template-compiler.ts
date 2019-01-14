@@ -17,7 +17,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from '@aurelia/jit';
-import { IContainer, IResolver, IResourceDescriptions, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
+import { IContainer, InterfaceSymbol, IResolver, IResourceDescriptions, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
@@ -60,7 +60,7 @@ const { enter, leave } = Profiler.createTimer('TemplateCompiler');
  * @internal
  */
 export class TemplateCompiler implements ITemplateCompiler {
-  public static readonly inject: ReadonlyArray<Function> = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
 
   private readonly factory: ITemplateElementFactory;
   private readonly attrParser: IAttributeParser;

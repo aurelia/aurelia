@@ -38,10 +38,19 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
   }
 
   public get(target: T, p: PropertyKey, receiver?: unknown): unknown {
+    let value: unknown;
     if (typeof receiver === 'object' && !proxies.has(receiver)) {
-      return Reflect.get(target, p, receiver);
+      value = Reflect.get(target, p, receiver);
+      if (typeof value === 'function') {
+        return value.bind(receiver);
+      }
+      return value;
     }
-    return Reflect.get(target, p, target);
+    value = Reflect.get(target, p, target);
+    if (typeof value === 'function') {
+      return value.bind(target);
+    }
+    return value;
   }
 
   public set(target: T, p: PropertyKey, value: unknown, receiver?: unknown): boolean {

@@ -181,7 +181,8 @@ describe('ProxyObserver', function() {
   it('works with array', function() {
     const obj = [];
 
-    const observer = ProxyObserver.getOrCreate(obj as object);
+    const observer = ProxyObserver.getOrCreate(obj);
+    const proxy = observer.proxy;
 
     let callCount = 0;
     let newValue: unknown;
@@ -195,7 +196,85 @@ describe('ProxyObserver', function() {
         flags = $flags;
       }
     };
+
     observer.subscribe(subscriber);
 
+    proxy.length = 2;
+
+    expect(callCount).to.equal(1);
+
+    proxy[5] = 42;
+
+    expect(callCount).to.equal(2);
+
+    proxy.push(1);
+    proxy.unshift(1);
+    proxy.pop();
+    proxy.shift();
+    proxy.splice(0, 0, 1, 2, 3);
+    proxy.reverse();
+    proxy.sort();
+
+    // should not call subscribers on methods, that's still the collection observers job
+    expect(callCount).to.equal(2);
+  });
+
+  it('works with set', function() {
+    const obj = new Set();
+
+    const observer = ProxyObserver.getOrCreate(obj);
+    const proxy = observer.proxy;
+
+    let callCount = 0;
+    let newValue: unknown;
+    let oldValue: unknown;
+    let flags: LifecycleFlags;
+    const subscriber = {
+      handleChange($newValue: unknown, $oldValue: unknown, $flags: LifecycleFlags): void {
+        ++callCount;
+        newValue = $newValue;
+        oldValue = $oldValue;
+        flags = $flags;
+      }
+    };
+
+    observer.subscribe(subscriber);
+
+    proxy.add(1);
+    proxy.delete(1);
+    proxy.clear();
+
+    // should not call subscribers on methods, that's still the collection observers job
+    expect(callCount).to.equal(0);
+  });
+
+  it('works with map', function() {
+    const obj = new Map();
+
+    const observer = ProxyObserver.getOrCreate(obj);
+    const proxy = observer.proxy;
+
+    let callCount = 0;
+    let newValue: unknown;
+    let oldValue: unknown;
+    let flags: LifecycleFlags;
+    const subscriber = {
+      handleChange($newValue: unknown, $oldValue: unknown, $flags: LifecycleFlags): void {
+        ++callCount;
+        newValue = $newValue;
+        oldValue = $oldValue;
+        flags = $flags;
+      }
+    };
+
+    observer.subscribe(subscriber);
+
+    proxy.set(1, 1);
+    proxy.set(2, 2);
+    proxy.delete(1);
+    proxy.clear();
+
+    // should not call subscribers on methods, that's still the collection observers job
+    expect(callCount).to.equal(0);
   });
 });

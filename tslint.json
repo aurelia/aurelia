@@ -11,7 +11,7 @@
       "**/examples/**"
     ]
   },
-  "defaultSeverity": "warning",
+  "defaultSeverity": "error",
   "rules": {
   /**
     * Security Rules. The following rules should be turned on because they find security issues
@@ -60,7 +60,7 @@
     "match-default-export-name": false,
     "mocha-avoid-only": true,
     "mocha-no-side-effect-code": true,
-    "no-any": true,
+    "no-any": { "severity": "warning" },
     "no-arg": true,
     "no-backbone-get-set-outside-model": false,
     "no-bitwise": false,
@@ -135,7 +135,10 @@
     "chai-vague-errors": false,
     "class-name": false,
     "comment-format": true,
-    "completed-docs": [true, "classes"],
+    "completed-docs": {
+      "severity": "warning",
+      "options": "classes"
+    },
     "export-name": false,
     "function-name": false,
     "import-name": true,
@@ -281,7 +284,10 @@
   /**
     * Sonarts rules
     */
-    "cognitive-complexity": [true, 30],
+    "cognitive-complexity": {
+      "severity": "warning",
+      "options": 30
+    },
     "max-union-size": [true, 5],
     "no-extra-semicolon": false,
     "no-identical-functions": false,

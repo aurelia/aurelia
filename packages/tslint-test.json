@@ -3,6 +3,7 @@
   "linterOptions": {
     "exclude": []
   },
+  "defaultSeverity": "warning",
   "rules": {
     "mocha-no-side-effect-code": false,
     "no-any": false,

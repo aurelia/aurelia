@@ -67,7 +67,7 @@ export function emit(path: string, ...nodes: Node[]): void {
       content += `${printer.printNode(EmitHint.Unspecified, node, emptyFile)}\n`;
     }
   }
-  writeFileSync(path, content.slice(0, -1), { encoding: 'utf8' });
+  writeFileSync(path, `// tslint:disable:quotemark member-access\r\n${content.slice(0, -1)}\r\n`, { encoding: 'utf8' });
 }
 
 export function addRange(start: number, end: number, ...records: Record<string, boolean>[]): void {

@@ -418,7 +418,12 @@ export class Ticker {
 
     if (currentTime > this.lastTime) {
       elapsedMS = currentTime - this.lastTime;
-      this.frameDelta = (~~(elapsedMS * 0.6 + 0.5)) / 10; // round to nearest 1/10th of frame
+      // ElapsedMS * 60 / 1000 is to get the frame delta as calculated based on the elapsed time.
+      // Adding half a rounding margin to that and performing a double bitwise negate rounds it to the rounding margin which is the nearest
+      // 1/1000th of a frame (this algorithm is about twice as fast as Math.round - every CPU cycle counts :)).
+      // The rounding is to account for floating point imprecisions in performance.now caused by the browser, and accounts for frame counting mismatch
+      // caused by frame delta's like 0.999238239.
+      this.frameDelta = (~~(elapsedMS * 60 + 0.5)) / 1000;
       const head = this.head;
       let notifier = head.next;
       while (notifier !== null) {

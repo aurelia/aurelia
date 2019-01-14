@@ -6,9 +6,6 @@ export interface ProxySubscriberCollection extends ISubscriberCollection<Mutatio
 @subscriberCollection(MutationKind.instance)
 export class ProxySubscriberCollection implements ProxySubscriberCollection {}
 
-const lookup = new WeakMap<object, ProxyObserver>();
-const proxies = new WeakSet<object>();
-
 export interface ProxyObserver<T extends object = object> extends ISubscriberCollection<MutationKind.proxy> {}
 
 @subscriberCollection(MutationKind.proxy)
@@ -18,21 +15,18 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
 
   constructor(obj: T) {
     this.proxy = new Proxy(obj, this);
-    proxies.add(this.proxy);
     this.subscribers = {};
   }
 
-  public static getOrCreate<T extends object>(obj: T): ProxyObserver<T> {
-    let observer = lookup.get(obj);
-    if (observer === undefined) {
-      observer = new ProxyObserver(obj);
-      lookup.set(obj, observer);
+  public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }): ProxyObserver<T> {
+    if (obj.$raw === undefined) {
+      return new ProxyObserver(obj);
     }
-    return observer as ProxyObserver<T>;
+    return obj.$observer;
   }
 
-  public static isProxy<T extends object>(obj: T): obj is T & { '$raw': T } {
-    return proxies.has(obj);
+  public static isProxy<T extends object>(obj: T & { $raw?: T }): obj is T & { $raw: T } {
+    return obj.$raw !== undefined;
   }
 
   public get(target: T, p: PropertyKey, receiver?: unknown): unknown {
@@ -59,7 +53,7 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
   }
 
   public deleteProperty(target: T, p: PropertyKey): boolean {
-    const oldValue = target[p];
+    const oldValue = Reflect.get(target, p, target);
     if (Reflect.deleteProperty(target, p)) {
       if (oldValue !== undefined) {
         this.callPropertySubscribers(undefined, oldValue, p);
@@ -71,7 +65,7 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
   }
 
   public defineProperty(target: T, p: PropertyKey, attributes: PropertyDescriptor): boolean {
-    const oldValue = target[p];
+    const oldValue = Reflect.get(target, p, target);
     if (Reflect.defineProperty(target, p, attributes)) {
       if (attributes.value !== oldValue) {
         this.callPropertySubscribers(attributes.value, oldValue, p);
@@ -83,9 +77,6 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
   }
 
   public apply(target: T, thisArg: unknown, argArray?: unknown[]): unknown {
-    if (typeof thisArg === 'object' && !proxies.has(thisArg)) {
-      return Reflect.apply(target as Function, thisArg, argArray);
-    }
     return Reflect.apply(target as Function, target, argArray);
   }
 

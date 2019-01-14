@@ -20,6 +20,7 @@ import { IDirtyChecker } from './dirty-checker';
 import { getMapObserver } from './map-observer';
 import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
+import { ProxyObserver } from './proxy-observer';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
 
@@ -93,6 +94,12 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   public getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver {
+    if ((obj as { $raw?: unknown }).$raw !== undefined) {
+      return ((obj as { $observer?: ProxyObserver }).$observer) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
+    }
+    if (flags & LifecycleFlags.useProxies && typeof obj === 'object') {
+      return ProxyObserver.getOrCreate(obj) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
+    }
     if (isBindingContext(obj)) {
       return obj.getObservers(flags).getOrCreate(flags, obj, propertyName);
     }

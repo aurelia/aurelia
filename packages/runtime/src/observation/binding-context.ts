@@ -95,7 +95,9 @@ export class BindingContext implements IBindingContext {
     if (scope === null) {
       throw Reporter.error(RuntimeError.NullScope);
     }
-    let overrideContext = scope.overrideContext;
+    let owner: IScope | IOverrideContext = scope;
+    let overrideContext = owner.overrideContext;
+    let isParentOverride = false;
 
     if (ancestor > 0) {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
@@ -105,22 +107,50 @@ export class BindingContext implements IBindingContext {
           return undefined;
         }
         ancestor--;
-        overrideContext = overrideContext.parentOverrideContext;
+        owner = overrideContext;
+        overrideContext = owner.parentOverrideContext;
+        isParentOverride = true;
       }
 
       if (Tracer.enabled) { Tracer.leave(); }
-      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+      if (flags & LifecycleFlags.useProxies) {
+        if (name in overrideContext) {
+          if (isParentOverride) {
+            return (owner as OverrideContext).parentOverrideContext = ProxyObserver.getOrCreate(overrideContext).proxy;
+          } else {
+            return (owner as Scope).overrideContext = ProxyObserver.getOrCreate(overrideContext).proxy;
+          }
+        } else {
+          return (overrideContext as OverrideContext).bindingContext = ProxyObserver.getOrCreate(overrideContext.bindingContext).proxy;
+        }
+      } else {
+        return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+      }
     }
 
     // traverse the context and it's ancestors, searching for a context that has the name.
     while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
+      owner = overrideContext;
+      isParentOverride = true;
       overrideContext = overrideContext.parentOverrideContext;
     }
 
     if (overrideContext) {
       if (Tracer.enabled) { Tracer.leave(); }
       // we located a context with the property.  return it.
-      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+      if (flags & LifecycleFlags.useProxies) {
+        if (name in overrideContext) {
+          if (isParentOverride) {
+            return (owner as OverrideContext).parentOverrideContext = ProxyObserver.getOrCreate(overrideContext).proxy;
+          } else {
+            return (owner as Scope).overrideContext = ProxyObserver.getOrCreate(overrideContext).proxy;
+          }
+        } else {
+          return (overrideContext as OverrideContext).bindingContext = ProxyObserver.getOrCreate(overrideContext.bindingContext).proxy;
+        }
+      } else {
+        return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+      }
     }
 
     // the name wasn't found. see if parent scope traversal is allowed and if so, try that
@@ -144,7 +174,17 @@ export class BindingContext implements IBindingContext {
       return null;
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return scope.bindingContext || scope.overrideContext;
+    if (flags & LifecycleFlags.useProxies) {
+      if (scope.bindingContext) {
+        return (scope as Scope).bindingContext = ProxyObserver.getOrCreate(scope.bindingContext).proxy;
+      } else if (scope.overrideContext) {
+        return (scope as Scope).overrideContext = ProxyObserver.getOrCreate(scope.overrideContext).proxy;
+      } else {
+        return scope.overrideContext;
+      }
+    } else {
+      return scope.bindingContext || scope.overrideContext;
+    }
   }
 
   public getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext> {
@@ -159,8 +199,8 @@ export class BindingContext implements IBindingContext {
 }
 
 export class Scope implements IScope {
-  public readonly bindingContext: IBindingContext | IBindScope;
-  public readonly overrideContext: IOverrideContext;
+  public bindingContext: IBindingContext | IBindScope;
+  public overrideContext: IOverrideContext;
   // parentScope is strictly internal API and mainly for replaceable template controller.
   // NOT intended for regular scope traversal!
   /** @internal */public readonly parentScope: IScope | null;
@@ -240,8 +280,8 @@ export class OverrideContext implements IOverrideContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
 
   public readonly $synthetic: true;
-  public readonly bindingContext: IBindingContext | IBindScope;
-  public readonly parentOverrideContext: IOverrideContext | null;
+  public bindingContext: IBindingContext | IBindScope;
+  public parentOverrideContext: IOverrideContext | null;
 
   private constructor(bindingContext: IBindingContext | IBindScope, parentOverrideContext: IOverrideContext | null) {
     this.$synthetic = true;

@@ -161,7 +161,11 @@ export class Binding implements IPartialConnectableBinding {
       this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
     }
     if (mode & toView) {
-      this.$lifecycle.enqueueConnect(this);
+      if (flags & LifecycleFlags.useProxies) {
+        sourceExpression.connect(flags, scope, this);
+      } else {
+        this.$lifecycle.enqueueConnect(this);
+      }
     }
     if (mode & fromView) {
       targetObserver.subscribe(this);

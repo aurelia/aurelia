@@ -43,7 +43,7 @@ const { enter, leave } = Profiler.createTimer('TemplateElementFactory');
  * @internal
  */
 export class HTMLTemplateElementFactory implements ITemplateElementFactory {
-  public static readonly inject: ReadonlyArray<Function> = [IDOM];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IDOM];
 
   private readonly dom: IDOM;
   private template: HTMLTemplateElement;

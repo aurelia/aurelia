@@ -57,6 +57,7 @@ function getLengthObserver(this: CollectionObserver): CollectionLengthObserver {
 }
 
 export function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator {
+  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
   return function(target: Function): void {
     subscriberCollection(MutationKind.collection)(target);
     batchedSubscriberCollection()(target);

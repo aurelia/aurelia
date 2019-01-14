@@ -1,4 +1,4 @@
-import { IRegistry, Reporter } from '@aurelia/kernel';
+import { InterfaceSymbol, IRegistry, Reporter } from '@aurelia/kernel';
 import { Binding } from '../../binding/binding';
 import { IScope, LifecycleFlags } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
@@ -9,7 +9,7 @@ export type SignalableBinding = Binding & {
 };
 
 export class SignalBindingBehavior {
-  public static readonly inject: ReadonlyArray<Function> = [ISignaler];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ISignaler];
 
   public static register: IRegistry['register'];
 

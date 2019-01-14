@@ -5,7 +5,7 @@ export interface ILinkHandlerOptions {
   /**
    * Callback method for when a link is clicked
    */
-  callback?: Function;
+  callback?(info: AnchorEventInfo): void;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { IRegistry } from '@aurelia/kernel';
+import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
@@ -9,7 +9,7 @@ import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } f
 
 export interface With<T extends INode = INode> extends ICustomAttribute<T> {}
 export class With<T extends INode = INode> implements With<T>  {
-  public static readonly inject: ReadonlyArray<Function> = [IViewFactory, IRenderLocation];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IViewFactory, IRenderLocation];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];

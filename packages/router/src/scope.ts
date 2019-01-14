@@ -48,7 +48,7 @@ export class Scope {
   }
 
   // TODO: Reduce complexity (currently at 45)
-  public findViewports(viewports?: Record<string, string>): IFindViewportsResult {
+  public findViewports(viewports?: Record<string, string | Viewport>): IFindViewportsResult {
     const componentViewports: IComponentViewport[] = [];
     let viewportsRemaining: boolean = false;
 
@@ -127,7 +127,7 @@ export class Scope {
       const componentViewportPart = parameters.shift();
       const component = componentViewportPart.split(this.router.separators.viewport).shift();
       const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
-      const remainingViewports = [];
+      const remainingViewports: Viewport[] = [];
       for (const name in this.availableViewports) {
         const viewport: Viewport = this.availableViewports[name];
         if (viewport && viewport.acceptComponent(component)) {
@@ -163,7 +163,7 @@ export class Scope {
     };
   }
 
-  public foundViewport(viewports: Record<string, string>, scopeViewportParts: Record<string, string[][]>, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult {
+  public foundViewport(viewports: Record<string, string | Viewport>, scopeViewportParts: Record<string, string[][]>, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult {
     const componentViewports: IComponentViewport[] = [{ component: component, viewport: viewport }];
     let viewportsRemaining: boolean = false;
 
@@ -172,7 +172,7 @@ export class Scope {
       for (const remainingParts of scopeViewportParts[viewportPart]) {
         if (remainingParts.length) {
           const remaining = remainingParts.join(this.router.separators.scope);
-          const vps = {};
+          const vps: Record<string, string | Viewport> = {};
           vps[remaining] = viewports[viewportPart + this.router.separators.scope + remaining];
           const scoped = scope.findViewports(vps);
           componentViewports.push(...scoped.componentViewports);

@@ -3,6 +3,7 @@
   "linterOptions": {
     "exclude": []
   },
+  "defaultSeverity": "warning",
   "rules": {
     "cognitive-complexity": false,
     "completed-docs": false,

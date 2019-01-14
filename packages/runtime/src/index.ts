@@ -125,7 +125,8 @@ export {
 } from './observation/computed-observer';
 export {
   IDirtyChecker,
-  DirtyCheckProperty
+  DirtyCheckProperty,
+  DirtyCheckSettings
 } from './observation/dirty-checker';
 export {
   IObjectObservationAdapter,

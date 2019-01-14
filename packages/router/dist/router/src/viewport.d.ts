@@ -15,6 +15,9 @@ export interface IRouteableCustomElement extends ICustomElement {
 export interface IViewportOptions {
     scope?: boolean;
     usedBy?: string | string[];
+    default?: string;
+    noLink?: boolean;
+    noHistory?: boolean;
     forceDescription?: boolean;
 }
 export declare class Viewport {

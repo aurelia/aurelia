@@ -9,6 +9,7 @@ export declare class NavRoute {
     components: string | ICustomElementType | IViewportComponent;
     title: string;
     link?: string;
+    linkActive?: string;
     children?: NavRoute[];
     meta?: Object;
     active: string;
@@ -19,7 +20,7 @@ export declare class NavRoute {
     handleChange(): void;
     _active(): string;
     toggleActive(): void;
-    _link(): string;
+    _link(components: string | ICustomElementType | IViewportComponent): string;
     private activeChild;
     private linkName;
 }

@@ -6,6 +6,9 @@ export declare class ViewportCustomElement {
     name: string;
     scope: boolean;
     usedBy: string;
+    default: string;
+    noLink: boolean;
+    noHistory: boolean;
     viewport: Viewport;
     private readonly router;
     private readonly element;

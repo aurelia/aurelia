@@ -31,7 +31,7 @@ export declare class Scope {
     renderViewport(viewport: Viewport): Promise<boolean>;
     addChild(child: Scope): void;
     removeChild(child: Scope): void;
-    viewportStates(full?: boolean): string[];
+    viewportStates(full?: boolean, active?: boolean): string[];
     allViewports(): Viewport[];
     context(full?: boolean): string;
     private resolveComponent;

@@ -21,6 +21,7 @@ export interface INavigationFlags {
     isCancel?: boolean;
 }
 export interface INavigationInstruction extends IHistoryEntry, INavigationFlags {
+    previous?: IHistoryEntry;
 }
 export declare class HistoryBrowser {
     currentEntry: IHistoryEntry;
@@ -37,6 +38,7 @@ export declare class HistoryBrowser {
     private isCancelling;
     private isReplacing;
     private isRefreshing;
+    private ignorePathChange;
     constructor();
     activate(options?: IHistoryOptions): Promise<void>;
     deactivate(): void;
@@ -47,6 +49,7 @@ export declare class HistoryBrowser {
     back(): void;
     forward(): void;
     cancel(): void;
+    pop(): Promise<void>;
     setState(key: string | Record<string, unknown>, value?: Record<string, unknown>): void;
     getState(key: string): Record<string, unknown>;
     setEntryTitle(title: string): void;

@@ -4,21 +4,26 @@ this.au.router = (function (exports, runtime, kernel) {
 
   class HistoryBrowser {
       constructor() {
-          this.activeEntry = null;
-          this.isActive = false;
-          this.isCancelling = false;
-          this.isReplacing = false;
-          this.isRefreshing = false;
           this.pathChanged = () => {
+              if (this.ignorePathChange !== null) {
+                  // tslint:disable-next-line:no-console
+                  console.log('=== ignore path change', this.getPath());
+                  const resolve = this.ignorePathChange;
+                  this.ignorePathChange = null;
+                  resolve();
+                  return;
+              }
               const path = this.getPath();
               const search = this.getSearch();
               // tslint:disable-next-line:no-console
               console.log('path changed to', path, this.activeEntry, this.currentEntry);
               const navigationFlags = {};
+              let previousEntry;
               let historyEntry = this.getState('HistoryEntry');
               if (this.activeEntry && this.activeEntry.path === path) { // Only happens with new history entries (including replacing ones)
                   navigationFlags.isNew = true;
                   const index = (this.isReplacing ? this.currentEntry.index : this.history.length - this.historyOffset);
+                  previousEntry = this.currentEntry;
                   this.currentEntry = this.activeEntry;
                   this.currentEntry.index = index;
                   if (this.isReplacing) {
@@ -87,6 +92,7 @@ this.au.router = (function (exports, runtime, kernel) {
                       });
                   }
                   this.lastHistoryMovement = (this.currentEntry ? historyEntry.index - this.currentEntry.index : 0);
+                  previousEntry = this.currentEntry;
                   this.currentEntry = historyEntry;
                   if (this.isCancelling) {
                       navigationFlags.isCancel = true;
@@ -100,10 +106,23 @@ this.au.router = (function (exports, runtime, kernel) {
               }
               // tslint:disable-next-line:no-console
               console.log('navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
-              this.callback(this.currentEntry, navigationFlags);
+              this.callback(this.currentEntry, navigationFlags, previousEntry);
           };
           this.location = window.location;
           this.history = window.history;
+          this.currentEntry = null;
+          this.historyEntries = null;
+          this.historyOffset = null;
+          this.replacedEntry = null;
+          this.activeEntry = null;
+          this.options = null;
+          this.isActive = false;
+          this.lastHistoryMovement = null;
+          this.cancelRedirectHistoryMovement = null;
+          this.isCancelling = false;
+          this.isReplacing = false;
+          this.isRefreshing = false;
+          this.ignorePathChange = null;
       }
       activate(options) {
           if (this.isActive) {
@@ -167,6 +186,25 @@ this.au.router = (function (exports, runtime, kernel) {
               this.replace(this.replacedEntry.path, this.replacedEntry.title, this.replacedEntry.data);
           }
       }
+      async pop() {
+          // TODO: Make sure we don't back out of application
+          let state;
+          // tslint:disable-next-line:promise-must-complete
+          let wait = new Promise((resolve, reject) => {
+              this.ignorePathChange = resolve;
+          });
+          this.history.go(-1);
+          await wait;
+          const path = this.location.toString();
+          state = this.history.state;
+          // tslint:disable-next-line:promise-must-complete
+          wait = new Promise((resolve, reject) => {
+              this.ignorePathChange = resolve;
+          });
+          this.history.go(-1);
+          await wait;
+          this.history.pushState(state, null, path);
+      }
       setState(key, value) {
           const { pathname, search, hash } = this.location;
           let state = Object.assign({}, this.history.state);
@@ -200,7 +238,7 @@ this.au.router = (function (exports, runtime, kernel) {
           const newHash = `#/${path}`;
           const { pathname, search, hash } = this.location;
           // tslint:disable-next-line:possible-timing-attack
-          if (newHash === hash) {
+          if (newHash === hash && this.currentEntry.path === path && this.currentEntry.fullStatePath === fullStatePath) {
               return;
           }
           this.currentEntry.path = path;
@@ -248,8 +286,9 @@ this.au.router = (function (exports, runtime, kernel) {
           hashSearches.shift();
           return hashSearches.length > 0 ? hashSearches.shift() : '';
       }
-      callback(currentEntry, navigationFlags) {
+      callback(currentEntry, navigationFlags, previousEntry) {
           const instruction = Object.assign({}, currentEntry, navigationFlags);
+          instruction.previous = previousEntry;
           // tslint:disable-next-line:no-console
           console.log('callback', currentEntry, navigationFlags);
           if (this.options.callback) {
@@ -344,7 +383,7 @@ this.au.router = (function (exports, runtime, kernel) {
        * Deactivate the instance. Event handlers and other resources should be cleaned up here.
        */
       deactivate() {
-          this.document.removeEventListener('click', this.handler);
+          this.document.removeEventListener('click', this.handler, true);
           this.isActive = false;
       }
   }
@@ -357,10 +396,12 @@ this.au.router = (function (exports, runtime, kernel) {
           Object.assign(this, {
               components: route.components,
               title: route.title,
+              children: null,
               meta: route.meta,
               active: '',
           });
-          this.link = this._link();
+          this.link = this._link(this.components);
+          this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
           this.observerLocator = this.nav.router.container.get(runtime.IObserverLocator);
           this.observer = this.observerLocator.getObserver(this.nav.router, 'activeComponents');
           this.observer.subscribe(this);
@@ -377,17 +418,16 @@ this.au.router = (function (exports, runtime, kernel) {
           }
       }
       _active() {
-          const components = this.link.split(this.nav.router.separators.add);
+          const components = this.linkActive.split(this.nav.router.separators.add);
           const activeComponents = this.nav.router.activeComponents;
-          for (let component of components) {
+          for (const component of components) {
               if (component.indexOf(this.nav.router.separators.viewport) >= 0) {
                   if (activeComponents.indexOf(component) < 0) {
                       return '';
                   }
               }
               else {
-                  component = component + this.nav.router.separators.viewport;
-                  if (activeComponents.findIndex((value) => value.startsWith(component)) < 0) {
+                  if (activeComponents.findIndex((value) => value.replace(/\@[^=]*/, '') === component) < 0) {
                       return '';
                   }
               }
@@ -397,12 +437,12 @@ this.au.router = (function (exports, runtime, kernel) {
       toggleActive() {
           this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
       }
-      _link() {
-          if (Array.isArray(this.components)) {
-              return this.components.map((value) => this.linkName(value)).join(this.nav.router.separators.sibling);
+      _link(components) {
+          if (Array.isArray(components)) {
+              return components.map((value) => this.linkName(value)).join(this.nav.router.separators.sibling);
           }
           else {
-              return this.linkName(this.components);
+              return this.linkName(components);
           }
       }
       activeChild() {
@@ -434,9 +474,9 @@ this.au.router = (function (exports, runtime, kernel) {
   // NOTE: this file is currently not in use
   class Nav {
       constructor(router, name) {
-          this.routes = [];
           this.router = router;
           this.name = name;
+          this.routes = [];
       }
       addRoutes(routes) {
           for (const route of routes) {
@@ -561,9 +601,21 @@ this.au.router = (function (exports, runtime, kernel) {
               if (options && options.usedBy) {
                   this.options.usedBy = options.usedBy;
               }
+              if (options && options.default) {
+                  this.options.default = options.default;
+              }
+              if (options && options.noLink) {
+                  this.options.noLink = options.noLink;
+              }
+              if (options && options.noHistory) {
+                  this.options.noHistory = options.noHistory;
+              }
               if (this.elementResolve) {
                   this.elementResolve();
               }
+          }
+          if (!this.component && !this.nextComponent && this.options.default) {
+              this.router.addProcessingViewport(this, this.options.default);
           }
       }
       canLeave() {
@@ -747,9 +799,6 @@ this.au.router = (function (exports, runtime, kernel) {
 
   class Scope {
       constructor(router, element, parent) {
-          this.children = [];
-          this.viewports = {};
-          this.scopeViewportParts = {};
           this.router = router;
           this.element = element;
           this.parent = parent;
@@ -962,10 +1011,14 @@ this.au.router = (function (exports, runtime, kernel) {
       removeChild(child) {
           this.children.splice(this.children.indexOf(child), 1);
       }
-      viewportStates(full = false) {
+      viewportStates(full = false, active = false) {
           const states = [];
-          for (const viewport in this.viewports) {
-              states.push(this.viewports[viewport].scopedDescription(full));
+          for (const vp in this.viewports) {
+              const viewport = this.viewports[vp];
+              if ((viewport.options.noHistory || (viewport.options.noLink && !full)) && !active) {
+                  continue;
+              }
+              states.push(viewport.scopedDescription(full));
           }
           for (const scope of this.children) {
               states.push(...scope.viewportStates(full));
@@ -1034,11 +1087,11 @@ this.au.router = (function (exports, runtime, kernel) {
   class Router {
       constructor(container) {
           this.container = container;
-          this.routes = [];
           this.viewports = {};
           this.scopes = [];
           this.navs = {};
           this.activeComponents = [];
+          this.addedViewports = [];
           this.isActive = false;
           this.isRedirecting = false;
           this.pendingNavigations = [];
@@ -1110,50 +1163,45 @@ this.au.router = (function (exports, runtime, kernel) {
               return Promise.resolve();
           }
           let clearViewports = false;
+          let fullStateInstruction = false;
           if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
               instruction.path = instruction.fullStatePath;
+              fullStateInstruction = true;
+              // if (!confirm('Perform history navigation?')) {
+              //   this.historyBrowser.cancel();
+              //   this.processingNavigation = null;
+              //   return Promise.resolve();
+              // }
           }
-          const path = instruction.path;
+          let path = instruction.path;
+          if (this.options.transformFromUrl && !fullStateInstruction) {
+              path = this.options.transformFromUrl(path, this);
+              if (Array.isArray(path)) {
+                  path = this.statesToString(path);
+              }
+          }
           if (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add)) {
               clearViewports = true;
               if (path.startsWith(this.separators.clear)) {
-                  instruction.path = path.substr(1);
+                  path = path.substr(1);
               }
           }
           const parsedQuery = parseQuery(instruction.query);
           instruction.parameters = parsedQuery.parameters;
           instruction.parameterList = parsedQuery.list;
-          let title;
-          let views;
-          let route = this.findRoute(instruction);
-          if (route) {
-              if (route.redirect) {
-                  route = this.resolveRedirect(route, instruction.data);
-                  this.isRedirecting = true;
-                  this.historyBrowser.redirect(route.path, route.title, instruction.data);
-                  this.processingNavigation = null;
-                  return Promise.resolve();
-              }
-              if (route.title) {
-                  title = route.title;
-              }
-              views = route.viewports;
-          }
-          else {
-              views = this.findViews(instruction);
-          }
+          const views = this.findViews(path);
           if (!views && !Object.keys(views).length && !clearViewports) {
               this.processingNavigation = null;
               return Promise.resolve();
           }
-          if (title) {
-              this.historyBrowser.setEntryTitle(title);
-          }
+          this.ensureRootScope();
           const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
+          const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
+          let keepHistoryEntry = instruction.isFirst;
           // TODO: Take care of cancellations down in subsets/iterations
           let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
           let guard = 100;
-          while (componentViewports.length || viewportsRemaining) {
+          while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
               // Guard against endless loop
               if (!guard--) {
                   break;
@@ -1168,10 +1216,21 @@ this.au.router = (function (exports, runtime, kernel) {
                   if (usedIndex >= 0) {
                       usedViewports.splice(usedIndex, 1);
                   }
+                  const defaultIndex = defaultViewports.findIndex((value) => value === viewport);
+                  if (defaultIndex >= 0) {
+                      defaultViewports.splice(defaultIndex, 1);
+                  }
               }
               for (const viewport of usedViewports) {
                   if (viewport.setNextContent(this.separators.clear, instruction)) {
                       changedViewports.push(viewport);
+                  }
+              }
+              // TODO: Support/review viewports not found in first iteration
+              let vp;
+              while (vp = defaultViewports.shift()) {
+                  if (vp.setNextContent(vp.options.default, instruction)) {
+                      changedViewports.push(vp);
                   }
               }
               // We've gone via a redirected route back to same viewport status so
@@ -1200,15 +1259,33 @@ this.au.router = (function (exports, runtime, kernel) {
               //   this.historyBrowser.cancel();
               //   return Promise.resolve();
               // }
+              if (changedViewports.reduce((accumulated, current) => !current.options.noHistory || accumulated, keepHistoryEntry)) {
+                  keepHistoryEntry = true;
+              }
               // TODO: Fix multi level recursiveness!
               const remaining = this.rootScope.findViewports();
-              componentViewports = remaining.componentViewports;
+              componentViewports = [];
+              let addedViewport;
+              while (addedViewport = this.addedViewports.shift()) {
+                  if (!remaining.componentViewports.find((value) => value.viewport === addedViewport.viewport)) {
+                      componentViewports.push(addedViewport);
+                  }
+              }
+              componentViewports = [...componentViewports, ...remaining.componentViewports];
               viewportsRemaining = remaining.viewportsRemaining;
           }
           this.replacePaths(instruction);
+          if (!keepHistoryEntry) {
+              this.historyBrowser.pop().catch(error => { throw error; });
+          }
           this.processingNavigation = null;
           if (this.pendingNavigations.length) {
               this.processNavigations().catch(error => { throw error; });
+          }
+      }
+      addProcessingViewport(viewport, component) {
+          if (this.processingNavigation) {
+              this.addedViewports.push({ viewport: viewport, component: component });
           }
       }
       // public view(views: Object, title?: string, data?: Object): Promise<void> {
@@ -1259,28 +1336,8 @@ this.au.router = (function (exports, runtime, kernel) {
       //       this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
       //     });
       // }
-      findRoute(entry) {
-          return this.routes.find((value) => value.path === entry.path);
-      }
-      resolveRedirect(route, data) {
-          while (route.redirect) {
-              const redirectRoute = this.findRoute({
-                  path: route.redirect,
-                  fullStatePath: null,
-                  data: data,
-              });
-              if (redirectRoute) {
-                  route = redirectRoute;
-              }
-              else {
-                  break;
-              }
-          }
-          return route;
-      }
-      findViews(entry) {
+      findViews(path) {
           const views = {};
-          let path = entry.path;
           // TODO: Let this govern start of scope
           if (path.startsWith('/')) {
               path = path.substr(1);
@@ -1317,11 +1374,7 @@ this.au.router = (function (exports, runtime, kernel) {
       //   return this.rootScope.findViewport(name);
       // }
       findScope(element) {
-          if (!this.rootScope) {
-              const aureliaRootElement = this.container.get(runtime.Aurelia).root().$host;
-              this.rootScope = new Scope(this, aureliaRootElement, null);
-              this.scopes.push(this.rootScope);
-          }
+          this.ensureRootScope();
           return this.closestScope(element);
       }
       // Called from the viewport custom element in attached()
@@ -1348,9 +1401,6 @@ this.au.router = (function (exports, runtime, kernel) {
               }
           }
       }
-      addRoute(route) {
-          this.routes.push(route);
-      }
       goto(pathOrViewports, title, data) {
           if (typeof pathOrViewports === 'string') {
               this.historyBrowser.goto(pathOrViewports, title, data);
@@ -1373,6 +1423,56 @@ this.au.router = (function (exports, runtime, kernel) {
       forward() {
           this.historyBrowser.forward();
       }
+      statesToString(states) {
+          const stringStates = [];
+          for (const state of states) {
+              // TODO: Support non-string components
+              let stateString = state.component;
+              if (state.viewport) {
+                  stateString += this.separators.viewport + state.viewport;
+              }
+              if (state.parameters) {
+                  // TODO: Support more than one parameter
+                  for (const key in state.parameters) {
+                      stateString += this.separators.parameters + state.parameters[key];
+                  }
+              }
+              stringStates.push(stateString);
+          }
+          return stringStates.join(this.separators.sibling);
+      }
+      statesFromString(statesString) {
+          const states = [];
+          const stateStrings = statesString.split(this.separators.sibling);
+          for (const stateString of stateStrings) {
+              let component, viewport, parameters;
+              const [componentPart, rest] = stateString.split(this.separators.viewport);
+              if (rest === undefined) {
+                  [component, parameters] = componentPart.split(this.separators.parameters);
+              }
+              else {
+                  component = componentPart;
+                  [viewport, parameters] = rest.split(this.separators.parameters);
+              }
+              // TODO: Support more than one parameter
+              const state = { component: component };
+              if (viewport) {
+                  state.viewport = viewport;
+              }
+              if (parameters) {
+                  state.parameters = { id: parameters };
+              }
+              states.push(state);
+          }
+          return states;
+      }
+      setNav(name, routes) {
+          const nav = this.findNav(name);
+          if (nav) {
+              nav.routes = [];
+          }
+          this.addNav(name, routes);
+      }
       addNav(name, routes) {
           let nav = this.navs[name];
           if (!nav) {
@@ -1382,6 +1482,13 @@ this.au.router = (function (exports, runtime, kernel) {
       }
       findNav(name) {
           return this.navs[name];
+      }
+      ensureRootScope() {
+          if (!this.rootScope) {
+              const aureliaRootElement = this.container.get(runtime.Aurelia).root().$host;
+              this.rootScope = new Scope(this, aureliaRootElement, null);
+              this.scopes.push(this.rootScope);
+          }
       }
       closestScope(element) {
           let closest = Number.MAX_SAFE_INTEGER;
@@ -1423,14 +1530,19 @@ this.au.router = (function (exports, runtime, kernel) {
           return unique;
       }
       replacePaths(instruction) {
+          this.activeComponents = this.rootScope.viewportStates(true, true);
+          this.activeComponents = this.removeStateDuplicates(this.activeComponents);
           let viewportStates = this.rootScope.viewportStates();
           viewportStates = this.removeStateDuplicates(viewportStates);
+          let state = viewportStates.join(this.separators.sibling);
+          if (this.options.transformToUrl) {
+              state = this.options.transformToUrl(this.statesFromString(state), this);
+          }
           let fullViewportStates = this.rootScope.viewportStates(true);
           fullViewportStates = this.removeStateDuplicates(fullViewportStates);
-          this.activeComponents = fullViewportStates;
           fullViewportStates.unshift(this.separators.clear);
           const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
-          this.historyBrowser.replacePath(viewportStates.join(this.separators.sibling) + query, fullViewportStates.join(this.separators.sibling) + query, instruction);
+          this.historyBrowser.replacePath(state + query, fullViewportStates.join(this.separators.sibling) + query, instruction);
       }
   }
   Router.inject = [kernel.IContainer];
@@ -1464,12 +1576,24 @@ this.au.router = (function (exports, runtime, kernel) {
           this.name = 'default';
           this.scope = null;
           this.usedBy = null;
+          this.default = null;
+          this.noLink = null;
+          this.noHistory = null;
           this.viewport = null;
       }
       attached() {
           const options = { scope: this.element.hasAttribute('scope') };
           if (this.usedBy && this.usedBy.length) {
               options.usedBy = this.usedBy;
+          }
+          if (this.default && this.default.length) {
+              options.default = this.default;
+          }
+          if (this.element.hasAttribute('no-link')) {
+              options.noLink = true;
+          }
+          if (this.element.hasAttribute('no-history')) {
+              options.noHistory = true;
           }
           this.viewport = this.router.addViewport(this.name, this.element, options);
       }
@@ -1507,6 +1631,15 @@ this.au.router = (function (exports, runtime, kernel) {
   __decorate([
       runtime.bindable
   ], ViewportCustomElement.prototype, "usedBy", void 0);
+  __decorate([
+      runtime.bindable
+  ], ViewportCustomElement.prototype, "default", void 0);
+  __decorate([
+      runtime.bindable
+  ], ViewportCustomElement.prototype, "noLink", void 0);
+  __decorate([
+      runtime.bindable
+  ], ViewportCustomElement.prototype, "noHistory", void 0);
   // tslint:disable-next-line:no-invalid-template-strings
   runtime.CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' }, ViewportCustomElement);
 

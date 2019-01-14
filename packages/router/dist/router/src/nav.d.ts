@@ -3,9 +3,10 @@ import { NavRoute } from './nav-route';
 import { Router } from './router';
 export interface INavRoute {
     components: string | ICustomElementType | Object;
+    consideredActive?: string | ICustomElementType | Object;
     link?: string;
     title: string;
-    children?: NavRoute[];
+    children?: INavRoute[];
     meta?: Object;
 }
 export declare class Nav {

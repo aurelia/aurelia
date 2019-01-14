@@ -31,8 +31,8 @@ describe('CheckedObserver', () => {
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
 
-      const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      ctx.observerLocator.getObserver(el, 'value');
+      const sut = ctx.observerLocator.getObserver(0, el, 'checked') as CheckedObserver;
+      ctx.observerLocator.getObserver(0, el, 'value');
 
       const subscriber: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {
@@ -98,7 +98,7 @@ describe('CheckedObserver', () => {
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
 
-      const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
+      const sut = ctx.observerLocator.getObserver(0, el, 'checked') as CheckedObserver;
 
       const subscriber: IPropertySubscriber = { handleChange: spy() };
       sut.subscribe(subscriber);
@@ -153,12 +153,12 @@ describe('CheckedObserver', () => {
       ctx.doc.body.appendChild(elA);
       ctx.doc.body.appendChild(elB);
       ctx.doc.body.appendChild(elC);
-      const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
-      const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
-      const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
-      observerLocator.getObserver(elA, 'value');
-      observerLocator.getObserver(elB, 'value');
-      observerLocator.getObserver(elC, 'value');
+      const sutA = observerLocator.getObserver(0, elA, 'checked') as CheckedObserver;
+      const sutB = observerLocator.getObserver(0, elB, 'checked') as CheckedObserver;
+      const sutC = observerLocator.getObserver(0, elC, 'checked') as CheckedObserver;
+      observerLocator.getObserver(0, elA, 'value');
+      observerLocator.getObserver(0, elB, 'value');
+      observerLocator.getObserver(0, elC, 'value');
 
       const subscriberA: IPropertySubscriber = { handleChange: spy() };
       const subscriberB: IPropertySubscriber = { handleChange: spy() };
@@ -248,9 +248,9 @@ describe('CheckedObserver', () => {
       ctx.doc.body.appendChild(elA);
       ctx.doc.body.appendChild(elB);
       ctx.doc.body.appendChild(elC);
-      const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
-      const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
-      const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
+      const sutA = observerLocator.getObserver(0, elA, 'checked') as CheckedObserver;
+      const sutB = observerLocator.getObserver(0, elB, 'checked') as CheckedObserver;
+      const sutC = observerLocator.getObserver(0, elC, 'checked') as CheckedObserver;
       const subscriberA: IPropertySubscriber = { handleChange: spy() };
       const subscriberB: IPropertySubscriber = { handleChange: spy() };
       const subscriberC: IPropertySubscriber = { handleChange: spy() };
@@ -323,8 +323,8 @@ describe('CheckedObserver', () => {
       el[prop] = value;
       ctx.doc.body.appendChild(el);
 
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      observerLocator.getObserver(el, prop);
+      const sut = observerLocator.getObserver(0, el, 'checked') as CheckedObserver;
+      observerLocator.getObserver(0, el, prop);
 
       const subscriber: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {
@@ -396,8 +396,8 @@ describe('CheckedObserver', () => {
       el[prop] = value;
       ctx.doc.body.appendChild(el);
 
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      observerLocator.getObserver(el, prop);
+      const sut = observerLocator.getObserver(0, el, 'checked') as CheckedObserver;
+      observerLocator.getObserver(0, el, prop);
 
       const subscriber: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {
@@ -460,7 +460,7 @@ describe('CheckedObserver', () => {
       el[prop] = value;
       ctx.doc.body.appendChild(el);
 
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+      const sut = observerLocator.getObserver(0, el, 'checked') as CheckedObserver;
 
       const subscriber: IPropertySubscriber = { handleChange: spy() };
       sut.subscribe(subscriber);
@@ -523,8 +523,8 @@ describe('CheckedObserver', () => {
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       ctx.doc.body.appendChild(el);
 
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      const valueOrModelObserver = observerLocator.getObserver(el, prop) as IBindingTargetObserver;
+      const sut = observerLocator.getObserver(0, el, 'checked') as CheckedObserver;
+      const valueOrModelObserver = observerLocator.getObserver(0, el, prop) as IBindingTargetObserver;
 
       const subscriber: IPropertySubscriber = { handleChange: spy() };
       if (hasSubscriber) {

@@ -1,6 +1,7 @@
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
+import { ProxyObserver, raw } from './proxy-observer';
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {
@@ -152,30 +153,38 @@ const methods = ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort']
 const observe = {
   // https://tc39.github.io/ecma262/#sec-array.prototype.push
   push: function(this: IObservedArray): ReturnType<typeof Array.prototype.push> {
-    const o = this.$observer;
-    if (o === undefined) {
-      return $push.apply(this, arguments);
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
     }
-    const len = this.length;
+    const o = $this.$observer;
+    if (o === undefined) {
+      return $push.apply($this, arguments);
+    }
+    const len = $this.length;
     const argCount = arguments.length;
     if (argCount === 0) {
       return len;
     }
-    this.length = o.indexMap.length = len + argCount;
+    $this.length = o.indexMap.length = len + argCount;
     let i = len;
-    while (i < this.length) {
-      this[i] = arguments[i - len];
+    while (i < $this.length) {
+      $this[i] = arguments[i - len];
       o.indexMap[i] = - 2;
       i++;
     }
-    o.callSubscribers('push', arguments, LifecycleFlags.isCollectionMutation);
-    return this.length;
+    o.callSubscribers('push', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    return $this.length;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
   unshift: function(this: IObservedArray): ReturnType<typeof Array.prototype.unshift>  {
-    const o = this.$observer;
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
+    }
+    const o = $this.$observer;
     if (o === undefined) {
-      return $unshift.apply(this, arguments);
+      return $unshift.apply($this, arguments);
     }
     const argCount = arguments.length;
     const inserts = new Array(argCount);
@@ -184,48 +193,60 @@ const observe = {
       inserts[i++] = - 2;
     }
     $unshift.apply(o.indexMap, inserts);
-    const len = $unshift.apply(this, arguments);
-    o.callSubscribers('unshift', arguments, LifecycleFlags.isCollectionMutation);
+    const len = $unshift.apply($this, arguments);
+    o.callSubscribers('unshift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return len;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.pop
   pop: function(this: IObservedArray): ReturnType<typeof Array.prototype.pop> {
-    const o = this.$observer;
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
+    }
+    const o = $this.$observer;
     if (o === undefined) {
-      return $pop.call(this);
+      return $pop.call($this);
     }
     const indexMap = o.indexMap;
-    const element = $pop.call(this);
+    const element = $pop.call($this);
     // only mark indices as deleted if they actually existed in the original array
     const index = indexMap.length - 1;
     if (indexMap[index] > -1) {
       $pop.call(indexMap.deletedItems, element);
     }
     $pop.call(indexMap);
-    o.callSubscribers('pop', arguments, LifecycleFlags.isCollectionMutation);
+    o.callSubscribers('pop', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.shift
   shift: function(this: IObservedArray): ReturnType<typeof Array.prototype.shift> {
-    const o = this.$observer;
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
+    }
+    const o = $this.$observer;
     if (o === undefined) {
-      return $shift.call(this);
+      return $shift.call($this);
     }
     const indexMap = o.indexMap;
-    const element = $shift.call(this);
+    const element = $shift.call($this);
     // only mark indices as deleted if they actually existed in the original array
     if (indexMap[0] > -1) {
       $shift.call(indexMap.deletedItems, element);
     }
     $shift.call(indexMap);
-    o.callSubscribers('shift', arguments, LifecycleFlags.isCollectionMutation);
+    o.callSubscribers('shift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.splice
   splice: function(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof Array.prototype.splice> {
-    const o = this.$observer;
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
+    }
+    const o = $this.$observer;
     if (o === undefined) {
-      return $splice.apply(this, arguments);
+      return $splice.apply($this, arguments);
     }
     const indexMap = o.indexMap;
     if (deleteCount > 0) {
@@ -233,7 +254,7 @@ const observe = {
       const to = i + deleteCount;
       while (i < to) {
         if (indexMap[i] > -1) {
-          $splice.call(indexMap.deletedItems, this[i]);
+          $splice.call(indexMap.deletedItems, $this[i]);
         }
         i++;
       }
@@ -250,47 +271,57 @@ const observe = {
     } else if (argCount === 2) {
       $splice.call(indexMap, start, deleteCount);
     }
-    const deleted = $splice.apply(this, arguments);
-    o.callSubscribers('splice', arguments, LifecycleFlags.isCollectionMutation);
+    const deleted = $splice.apply($this, arguments);
+    o.callSubscribers('splice', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return deleted;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
   reverse: function(this: IObservedArray): ReturnType<typeof Array.prototype.reverse> {
-    const o = this.$observer;
-    if (o === undefined) {
-      return $reverse.call(this);
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
     }
-    const len = this.length;
+    const o = $this.$observer;
+    if (o === undefined) {
+      $reverse.call($this);
+      return this;
+    }
+    const len = $this.length;
     const middle = (len / 2) | 0;
     let lower = 0;
     // tslint:disable:no-statements-same-line
     while (lower !== middle) {
       const upper = len - lower - 1;
-      const lowerValue = this[lower];  const lowerIndex = o.indexMap[lower];
-      const upperValue = this[upper];  const upperIndex = o.indexMap[upper];
-      this[lower] = upperValue;        o.indexMap[lower] = upperIndex;
-      this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
+      const lowerValue = $this[lower];  const lowerIndex = o.indexMap[lower];
+      const upperValue = $this[upper];  const upperIndex = o.indexMap[upper];
+      $this[lower] = upperValue;        o.indexMap[lower] = upperIndex;
+      $this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
       lower++;
     }
     // tslint:enable:no-statements-same-line
-    o.callSubscribers('reverse', arguments, LifecycleFlags.isCollectionMutation);
+    o.callSubscribers('reverse', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.sort
   // https://github.com/v8/v8/blob/master/src/js/array.js
   sort: function(this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
-    const o = this.$observer;
-    if (o === undefined) {
-      return $sort.call(this, compareFn);
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
     }
-    const len = this.length;
+    const o = $this.$observer;
+    if (o === undefined) {
+      $sort.call($this, compareFn);
+      return this;
+    }
+    const len = $this.length;
     if (len < 2) {
       return this;
     }
-    quickSort(this, o.indexMap, 0, len, preSortCompare);
+    quickSort($this, o.indexMap, 0, len, preSortCompare);
     let i = 0;
     while (i < len) {
-      if (this[i] === undefined) {
+      if ($this[i] === undefined) {
         break;
       }
       i++;
@@ -298,8 +329,8 @@ const observe = {
     if (compareFn === undefined || typeof compareFn !== 'function'/*spec says throw a TypeError, should we do that too?*/) {
       compareFn = sortCompare;
     }
-    quickSort(this, o.indexMap, 0, i, compareFn);
-    o.callSubscribers('sort', arguments, LifecycleFlags.isCollectionMutation);
+    quickSort($this, o.indexMap, 0, i, compareFn);
+    o.callSubscribers('sort', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return this;
   }
 };
@@ -341,15 +372,17 @@ export class ArrayObserver implements ArrayObserver {
   public resetIndexMap: () => void;
 
   public collection: IObservedArray;
+  public readonly flags: LifecycleFlags;
 
-  constructor(lifecycle: ILifecycle, array: IObservedArray) {
+  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
     this.lifecycle = lifecycle;
     array.$observer = this;
     this.collection = array;
+    this.flags = flags & LifecycleFlags.persistentBindingFlags;
     this.resetIndexMap();
   }
 }
 
-export function getArrayObserver(lifecycle: ILifecycle, array: IObservedArray): ArrayObserver {
-  return (array.$observer as ArrayObserver) || new ArrayObserver(lifecycle, array);
+export function getArrayObserver(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray): ArrayObserver {
+  return (array.$observer as ArrayObserver) || new ArrayObserver(flags, lifecycle, array);
 }

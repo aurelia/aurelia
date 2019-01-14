@@ -18,7 +18,7 @@ describe('@customAttribute', () => {
           sut.$state |= State.isBound;
           sut.$scope = null;
         },
-        getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
+        getScope(sut: CustomAttribute) { return Scope.create(0, sut, null); }
       },
       {
         description: '$isBound: true, $scope: null, same scope',
@@ -38,9 +38,9 @@ describe('@customAttribute', () => {
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
           sut.$state |= State.isBound;
-          sut.$scope = Scope.create(sut, null);
+          sut.$scope = Scope.create(0, sut, null);
         },
-        getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
+        getScope(sut: CustomAttribute) { return Scope.create(0, sut, null); }
       },
       {
         description: '$isBound: true, $scope !== null, same scope',
@@ -49,7 +49,7 @@ describe('@customAttribute', () => {
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
           sut.$state |= State.isBound;
-          sut.$scope = Scope.create(sut, null);
+          sut.$scope = Scope.create(0, sut, null);
         },
         getScope(sut: CustomAttribute) { return sut.$scope; }
       },
@@ -62,7 +62,7 @@ describe('@customAttribute', () => {
         setProps(sut: CustomAttribute) {
           sut.$scope = null;
         },
-        getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
+        getScope(sut: CustomAttribute) { return Scope.create(0, sut, null); }
       },
       {
         description: '$isBound: false, $scope: null, same scope',
@@ -80,9 +80,9 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$scope = Scope.create(sut, null);
+          sut.$scope = Scope.create(0, sut, null);
         },
-        getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
+        getScope(sut: CustomAttribute) { return Scope.create(0, sut, null); }
       },
       {
         description: '$isBound: false, $scope !== null, same scope',
@@ -90,7 +90,7 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$scope = Scope.create(sut, null);
+          sut.$scope = Scope.create(0, sut, null);
         },
         getScope(sut: CustomAttribute) { return sut.$scope; }
       }

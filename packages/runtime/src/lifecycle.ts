@@ -103,7 +103,7 @@ export const IRenderable = DI.createInterface<IRenderable>('IRenderable').noDefa
 
 export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
   createChild(): IRenderContext<T>;
-  render(renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
+  render(flags: LifecycleFlags, renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
   beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 
@@ -167,7 +167,7 @@ export interface ILifecycleCreated extends IHooks, IState {
    * This hook is called right before the `$bind` lifecycle starts, making this the last opportunity
    * for any high-level post processing on initialized properties.
    */
-  created?(): void;
+  created?(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleBinding extends IHooks, IState {

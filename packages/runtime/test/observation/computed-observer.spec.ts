@@ -169,7 +169,7 @@ describe('ComputedObserver', function() {
       if (propInitialValue) {
         enableTracing();
       }
-      const sut = createComputedObserver(locator, dirtyChecker, lifecycle, instance, 'prop', propDescriptor);
+      const sut = createComputedObserver(0, locator, dirtyChecker, lifecycle, instance, 'prop', propDescriptor);
       sut.subscribe(subscriber1);
       sut.subscribe(subscriber2);
 
@@ -362,7 +362,7 @@ describe('ComputedObserver', function() {
       enableTracing();
       Tracer.enableLiveLogging(BindingTraceWriter);
 
-      const sut = createComputedObserver(locator, dirtyChecker, lifecycle, parent, 'getter', pd);
+      const sut = createComputedObserver(0, locator, dirtyChecker, lifecycle, parent, 'getter', pd);
       sut.subscribe(subscriber1);
 
       let verifiedCount = 0;
@@ -442,7 +442,7 @@ describe('ComputedObserver', function() {
 
     const foo = new Foo();
 
-    const sut = createComputedObserver(locator, dirtyChecker, lifecycle, foo, 'bar', pd);
+    const sut = createComputedObserver(0, locator, dirtyChecker, lifecycle, foo, 'bar', pd);
 
     expect(sut).to.be.instanceof(DirtyCheckProperty);
   });
@@ -458,9 +458,9 @@ describe('ComputedObserver', function() {
     const pd = Reflect.getOwnPropertyDescriptor(Foo.prototype, 'bar');
 
     const foo = new Foo();
-    let err;
+    let err: Error;
     try {
-      createComputedObserver(locator, dirtyChecker, lifecycle, foo, 'bar', pd);
+      createComputedObserver(0, locator, dirtyChecker, lifecycle, foo, 'bar', pd);
     } catch (e) {
       err = e;
     }

@@ -103,9 +103,9 @@ export const checkDelay = 20;
 
 export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any): IScope {
   if (parentBindingContext) {
-    return Scope.create(bindingContext, OverrideContext.create(bindingContext, OverrideContext.create(parentBindingContext, null)));
+    return Scope.create(0, bindingContext, OverrideContext.create(0, bindingContext, OverrideContext.create(0, parentBindingContext, null)));
   }
-  return Scope.create(bindingContext, OverrideContext.create(bindingContext, null));
+  return Scope.create(0, bindingContext, OverrideContext.create(0, bindingContext, null));
 }
 
 function countSubscribers(observer: any): number {

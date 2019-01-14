@@ -41,6 +41,7 @@ export interface SelectValueObserver extends
 @targetObserver()
 export class SelectValueObserver implements SelectValueObserver {
   public readonly isDOMObserver: true;
+  public readonly persistentFlags: LifecycleFlags;
   public lifecycle: ILifecycle;
   public obj: ISelectElement;
   public handler: IEventSubscriber;
@@ -57,12 +58,14 @@ export class SelectValueObserver implements SelectValueObserver {
   private nodeObserver: MutationObserver;
 
   constructor(
+    flags: LifecycleFlags,
     lifecycle: ILifecycle,
     obj: ISelectElement,
     handler: IEventSubscriber,
     observerLocator: IObserverLocator,
     dom: IDOM
   ) {
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.isDOMObserver = true;
     this.lifecycle = lifecycle;
     this.obj = obj;
@@ -85,7 +88,7 @@ export class SelectValueObserver implements SelectValueObserver {
       this.arrayObserver = null;
     }
     if (isArray) {
-      this.arrayObserver = this.observerLocator.getArrayObserver(newValue as unknown[]);
+      this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue as unknown[]);
       this.arrayObserver.subscribeBatched(this);
     }
     this.synchronizeOptions();
@@ -101,7 +104,7 @@ export class SelectValueObserver implements SelectValueObserver {
 
   // called when a different value was assigned
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    this.setValue(newValue, flags);
+    this.setValue(newValue, this.persistentFlags | flags);
   }
 
   public notify(flags: LifecycleFlags): void {
@@ -113,7 +116,7 @@ export class SelectValueObserver implements SelectValueObserver {
     if (newValue === oldValue) {
       return;
     }
-    this.callSubscribers(newValue, oldValue, flags);
+    this.callSubscribers(newValue, oldValue, this.persistentFlags | flags);
   }
 
   public handleEvent(): void {

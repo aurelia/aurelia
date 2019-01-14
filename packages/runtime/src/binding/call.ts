@@ -25,7 +25,7 @@ export class Call {
 
     this.locator = locator;
     this.sourceExpression = sourceExpression;
-    this.targetObserver = observerLocator.getObserver(target, targetProperty);
+    this.targetObserver = observerLocator.getObserver(LifecycleFlags.none, target, targetProperty);
   }
 
   public callSource(args: object): unknown {
@@ -93,7 +93,7 @@ export class Call {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public observeProperty(obj: object, propertyName: string): void {
+  public observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void {
     return;
   }
 

@@ -48,7 +48,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   public binding(flags: LifecycleFlags): void {
-    this.checkCollectionObserver();
+    this.checkCollectionObserver(flags);
   }
 
   public bound(flags: LifecycleFlags): void {
@@ -84,7 +84,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   public unbound(flags: LifecycleFlags): void {
-    this.checkCollectionObserver();
+    this.checkCollectionObserver(flags);
 
     const { views } = this;
     for (let i = 0, ii = views.length; i < ii; ++i) {
@@ -95,13 +95,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   // called by SetterObserver (sync)
   public itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void {
-    this.checkCollectionObserver();
+    this.checkCollectionObserver(flags);
     this.processViews(null, flags | LifecycleFlags.updateTargetInstance);
   }
 
   // called by a CollectionObserver (async)
-  public handleBatchedChange(indexMap: number[] | null): void {
-    this.processViews(indexMap, LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+  public handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void {
+    this.processViews(indexMap, flags | LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
   }
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
@@ -142,18 +142,18 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           const view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
-            view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
+            view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
           } else {
-            view.$bind(flags, Scope.fromParent($scope, BindingContext.create(local, item)));
+            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
           }
         });
       } else {
         forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           const view = views[i];
           if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
-            view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
+            view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
           } else {
-            view.$bind(flags, Scope.fromParent($scope, BindingContext.create(local, item)));
+            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
           }
         });
       }
@@ -182,10 +182,10 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 
-  private checkCollectionObserver(): void {
+  private checkCollectionObserver(flags: LifecycleFlags): void {
     const oldObserver = this.observer;
     if (this.$state & (State.isBound | State.isBinding)) {
-      const newObserver = this.observer = getCollectionObserver(this.$lifecycle, this.items);
+      const newObserver = this.observer = getCollectionObserver(flags, this.$lifecycle, this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribeBatched(this);
       }

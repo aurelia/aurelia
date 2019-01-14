@@ -1,6 +1,7 @@
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedSet, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
+import { ProxyObserver, raw } from './proxy-observer';
 
 const proto = Set.prototype;
 
@@ -17,65 +18,78 @@ const methods = ['add', 'clear', 'delete'];
 const observe = {
   // https://tc39.github.io/ecma262/#sec-set.prototype.add
   add: function(this: IObservedSet, value: unknown): ReturnType<typeof $add> {
-    const o = this.$observer;
-    if (o === undefined) {
-      return $add.call(this, value);
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
     }
-    const oldSize = this.size;
-    $add.call(this, value);
-    const newSize = this.size;
+    const o = $this.$observer;
+    if (o === undefined) {
+      $add.call($this, value);
+      return this;
+    }
+    const oldSize = $this.size;
+    $add.call($this, value);
+    const newSize = $this.size;
     if (newSize === oldSize) {
       return this;
     }
     o.indexMap[oldSize] = -2;
-    o.callSubscribers('add', arguments, LifecycleFlags.isCollectionMutation);
+    o.callSubscribers('add', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-set.prototype.clear
   clear: function(this: IObservedSet): ReturnType<typeof $clear>  {
-    const o = this.$observer;
-    if (o === undefined) {
-      return $clear.call(this);
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
     }
-    const size = this.size;
+    const o = $this.$observer;
+    if (o === undefined) {
+      return $clear.call($this);
+    }
+    const size = $this.size;
     if (size > 0) {
       const indexMap = o.indexMap;
       let i = 0;
-      for (const entry of this.keys()) {
+      for (const entry of $this.keys()) {
         if (indexMap[i] > -1) {
         indexMap.deletedItems.push(entry);
         }
         i++;
       }
-      $clear.call(this);
+      $clear.call($this);
       indexMap.length = 0;
-      o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
+      o.callSubscribers('clear', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     }
     return undefined;
   },
   // https://tc39.github.io/ecma262/#sec-set.prototype.delete
   delete: function(this: IObservedSet, value: unknown): ReturnType<typeof $delete> {
-    const o = this.$observer;
-    if (o === undefined) {
-      return $delete.call(this, value);
+    let $this = this;
+    if (ProxyObserver.isProxy($this)) {
+      $this = $this[raw];
     }
-    const size = this.size;
+    const o = $this.$observer;
+    if (o === undefined) {
+      return $delete.call($this, value);
+    }
+    const size = $this.size;
     if (size === 0) {
       return false;
     }
     let i = 0;
     const indexMap = o.indexMap;
-    for (const entry of this.keys()) {
+    for (const entry of $this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(entry);
         }
         indexMap.splice(i, 1);
-        return $delete.call(this, value);
+        return $delete.call($this, value);
       }
       i++;
     }
-    o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
+    o.callSubscribers('delete', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return false;
   }
 };
@@ -117,15 +131,17 @@ export class SetObserver implements SetObserver {
   public resetIndexMap: () => void;
 
   public collection: IObservedSet;
+  public readonly flags: LifecycleFlags;
 
-  constructor(lifecycle: ILifecycle, observedSet: IObservedSet) {
+  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
     this.lifecycle = lifecycle;
     observedSet.$observer = this;
     this.collection = observedSet;
+    this.flags = flags & LifecycleFlags.persistentBindingFlags;
     this.resetIndexMap();
   }
 }
 
-export function getSetObserver(lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver {
-  return (observedSet.$observer as SetObserver) || new SetObserver(lifecycle, observedSet);
+export function getSetObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver {
+  return (observedSet.$observer as SetObserver) || new SetObserver(flags, lifecycle, observedSet);
 }

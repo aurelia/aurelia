@@ -8,10 +8,12 @@ export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 export class SetterObserver implements SetterObserver {
   public subscribe: (subscriber: IPropertySubscriber) => void;
   public unsubscribe: (subscriber: IPropertySubscriber) => void;
+  public readonly persistentFlags: LifecycleFlags;
   public obj: IIndexable;
   public propertyKey: string;
 
-  constructor(obj: IIndexable, propertyKey: string) {
+  constructor(flags: LifecycleFlags, obj: IIndexable, propertyKey: string) {
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.obj = obj;
     this.propertyKey = propertyKey;
   }
@@ -24,7 +26,7 @@ export class SetterObserver implements SetterObserver {
     if (currentValue !== newValue) {
       this.currentValue = newValue;
       if (!(flags & LifecycleFlags.fromBind)) {
-        this.callSubscribers(newValue, currentValue, flags);
+        this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
       }
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.currentValue.

@@ -51,7 +51,7 @@ describe(`MapObserver`, () => {
     it('set', () => {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(new Lifecycle(), map);
+      sut = new MapObserver(0, new Lifecycle(), map);
       sut.subscribe(s);
       map.set(1, 1);
       expect(s.handleChange).to.have.been.calledWith('set', match(x => x[0] === 1));
@@ -62,7 +62,7 @@ describe(`MapObserver`, () => {
     it('set', () => {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(new Lifecycle(), map);
+      sut = new MapObserver(0, new Lifecycle(), map);
       sut.subscribe(s);
       sut.unsubscribe(s);
       map.set(1, 1);
@@ -74,7 +74,7 @@ describe(`MapObserver`, () => {
     it('set', () => {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(new Lifecycle(), map);
+      sut = new MapObserver(0, new Lifecycle(), map);
       sut.subscribeBatched(s);
       map.set(1, 1);
       const indexMap: IndexMap = sut.indexMap.slice();
@@ -88,7 +88,7 @@ describe(`MapObserver`, () => {
     it('set', () => {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(new Lifecycle(), map);
+      sut = new MapObserver(0, new Lifecycle(), map);
       sut.subscribeBatched(s);
       sut.unsubscribeBatched(s);
       map.set(1, 1);
@@ -103,7 +103,7 @@ describe(`MapObserver`, () => {
     it('set', () => {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(new Lifecycle(), map);
+      sut = new MapObserver(0, new Lifecycle(), map);
       sut.subscribeBatched(s);
       sut.flush(LifecycleFlags.none);
       expect(s.handleBatchedChange).to.have.been.called;
@@ -121,7 +121,7 @@ describe(`MapObserver`, () => {
             const map = new Map(Array.from(init));
             const expectedMap = new Map(Array.from(init));
             const newItems = items && items.slice();
-            sut = new MapObserver(new Lifecycle(), map);
+            sut = new MapObserver(0, new Lifecycle(), map);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -149,7 +149,7 @@ describe(`MapObserver`, () => {
             const map = new Map(Array.from(init));
             const copy = new Map(Array.from(init));
             const newItems = items && items.slice();
-            sut = new MapObserver(new Lifecycle(), map);
+            sut = new MapObserver(0, new Lifecycle(), map);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -182,7 +182,7 @@ describe(`MapObserver`, () => {
             const map = new Map(Array.from(init));
             const expectedMap = new Map(Array.from(init));
             const newItems = items && items.slice();
-            sut = new MapObserver(new Lifecycle(), map);
+            sut = new MapObserver(0, new Lifecycle(), map);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -210,7 +210,7 @@ describe(`MapObserver`, () => {
             const map = new Map(Array.from(init));
             const copy = new Map(Array.from(init));
             const newItems = items && items.slice();
-            sut = new MapObserver(new Lifecycle(), map);
+            sut = new MapObserver(0, new Lifecycle(), map);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -240,7 +240,7 @@ describe(`MapObserver`, () => {
         it(`size=${padRight(init.size, 2)} repeat=${repeat} - behaves as native`, () => {
           const map = new Map(Array.from(init));
           const expectedMap = new Map(Array.from(init));
-          sut = new MapObserver(new Lifecycle(), map);
+          sut = new MapObserver(0, new Lifecycle(), map);
           let i = 0;
           while (i < repeat) {
             const expectedResult = expectedMap.clear();
@@ -254,7 +254,7 @@ describe(`MapObserver`, () => {
         it(`size=${padRight(init.size, 2)} repeat=${repeat} - tracks changes`, () => {
           const map = new Map(Array.from(init));
           const copy = new Map(Array.from(init));
-          sut = new MapObserver(new Lifecycle(), map);
+          sut = new MapObserver(0, new Lifecycle(), map);
           let i = 0;
           while (i < repeat) {
             map.clear();

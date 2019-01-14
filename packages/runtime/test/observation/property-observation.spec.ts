@@ -77,7 +77,7 @@ describe('SetterObserver', () => {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, () => {
-          sut = new SetterObserver(object, propertyName as any);
+          sut = new SetterObserver(0, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
           // note: we're deliberately using explicit strict equality here (and in various other places) instead of expect(actual).to.equal(expected)
@@ -98,7 +98,7 @@ describe('SetterObserver', () => {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
-            sut = new SetterObserver(object, propertyName as any);
+            sut = new SetterObserver(0, object, propertyName as any);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
             expect(object[propertyName] === value).to.equal(true);
@@ -115,7 +115,7 @@ describe('SetterObserver', () => {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, () => {
-          sut = new SetterObserver(object, propertyName as any);
+          sut = new SetterObserver(0, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
         });
       }
@@ -134,7 +134,7 @@ describe('SetterObserver', () => {
           for (const subscribers of subscribersArr) {
             const object = {};
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
-              sut = new SetterObserver(object, propertyName as any);
+              sut = new SetterObserver(0, object, propertyName as any);
               for (const subscriber of subscribers) {
                 sut.subscribe(subscriber);
               }
@@ -168,7 +168,7 @@ describe('Observer', () => {
   it('use noop function as default callback', () => {
     const values = createObjectArr();
     values.forEach(value => {
-      const observer = new SelfObserver({}, 'a', 'aChanged');
+      const observer = new SelfObserver(0, {}, 'a', 'aChanged');
       expect(observer['callback'](value, undefined)).to.equal(undefined);
     });
   });

@@ -57,6 +57,7 @@ export class Binding implements IPartialConnectableBinding {
     this.sourceExpression = sourceExpression;
     this.target = target;
     this.targetProperty = targetProperty;
+    this.persistentFlags = LifecycleFlags.none;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -145,9 +146,9 @@ export class Binding implements IPartialConnectableBinding {
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       if (mode & fromView) {
-        targetObserver = this.targetObserver = this.observerLocator.getObserver(this.target, this.targetProperty) as IBindingTargetObserver;
+        targetObserver = this.targetObserver = this.observerLocator.getObserver(flags, this.target, this.targetProperty) as IBindingTargetObserver;
       } else {
-        targetObserver = this.targetObserver = this.observerLocator.getAccessor(this.target, this.targetProperty) as IBindingTargetObserver;
+        targetObserver = this.targetObserver = this.observerLocator.getAccessor(flags, this.target, this.targetProperty) as IBindingTargetObserver;
       }
     }
     if (targetObserver.bind) {

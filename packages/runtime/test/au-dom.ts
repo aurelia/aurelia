@@ -51,7 +51,8 @@ import {
   LetBindingInstruction,
   LetElementInstruction,
   TemplateDefinition,
-  ToViewBindingInstruction
+  ToViewBindingInstruction,
+  LifecycleFlags
 } from '../src/index';
 
 const slice = Array.prototype.slice;
@@ -555,13 +556,13 @@ export class AuTemplateFactory implements ITemplateFactory<AuNode> {
 }
 
 export class AuObserverLocator implements ITargetAccessorLocator, ITargetObserverLocator {
-  public getObserver(lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver {
+  public getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver {
     return null;
   }
   public overridesAccessor(obj: unknown, propertyName: string): boolean {
     return false;
   }
-  public getAccessor(lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor {
+  public getAccessor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor {
     return null;
   }
   public handles(obj: unknown): boolean {
@@ -589,7 +590,7 @@ export class AuTextRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(dom: IDOM, context: IRenderContext<AuNode>, renderable: IRenderable<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext<AuNode>, renderable: IRenderable<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
     if (Tracer.enabled) { Tracer.enter('AuTextRenderer.render', slice.call(arguments)); }
     let realTarget: AuNode;
     if (target.isRenderLocation) {

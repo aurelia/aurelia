@@ -9,18 +9,18 @@ export class ProxySubscriberCollection implements ProxySubscriberCollection {}
 const lookup = new WeakMap<object, ProxyObserver>();
 const proxies = new WeakSet<object>();
 
+export const raw = Symbol.for('raw');
+
 export interface ProxyObserver<T extends object = object> extends ISubscriberCollection<MutationKind.proxy> {}
 
 @subscriberCollection(MutationKind.proxy)
 export class ProxyObserver<T extends object = object> implements ProxyObserver<T> {
   public readonly proxy: T;
-  public readonly obj: T;
   private readonly subscribers: Record<PropertyKey, ProxySubscriberCollection>;
 
   constructor(obj: T) {
     this.proxy = new Proxy(obj, this);
     proxies.add(this.proxy);
-    this.obj = obj;
     this.subscribers = {};
   }
 
@@ -33,43 +33,26 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
     return observer as ProxyObserver<T>;
   }
 
-  public static isProxy<T extends object>(obj: T): boolean {
+  public static isProxy<T extends object>(obj: T): obj is T & { [raw]: T } {
     return proxies.has(obj);
   }
 
   public get(target: T, p: PropertyKey, receiver?: unknown): unknown {
-    let value: unknown;
-    if (typeof receiver === 'object' && !proxies.has(receiver)) {
-      value = Reflect.get(target, p, receiver);
-      if (typeof value === 'function') {
-        return value.bind(receiver);
-      }
-      return value;
+    if (p === raw) {
+      return target;
     }
-    value = Reflect.get(target, p, target);
-    if (typeof value === 'function') {
-      return value.bind(target);
+    if (p === '$observer') {
+      return this;
     }
-    return value;
+    return Reflect.get(target, p, target);
   }
 
   public set(target: T, p: PropertyKey, value: unknown, receiver?: unknown): boolean {
-    const oldValue = target[p];
-    if (typeof receiver === 'object' && !proxies.has(receiver)) {
-      if (Reflect.set(target, p, value, receiver)) {
-        if (oldValue !== value) {
-          this.callPropertySubscribers(value, oldValue, p);
-          this.callSubscribers(p, value, oldValue, LifecycleFlags.updateTargetInstance);
-        }
-        return true;
-      } else {
-        return false;
-      }
-    }
+    const oldValue = Reflect.get(target, p, target);
     if (Reflect.set(target, p, value, target)) {
       if (oldValue !== value) {
         this.callPropertySubscribers(value, oldValue, p);
-        this.callSubscribers(p, value, oldValue, LifecycleFlags.updateTargetInstance);
+        this.callSubscribers(p, value, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
       }
       return true;
     } else {
@@ -82,7 +65,7 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
     if (Reflect.deleteProperty(target, p)) {
       if (oldValue !== undefined) {
         this.callPropertySubscribers(undefined, oldValue, p);
-        this.callSubscribers(p, undefined, oldValue, LifecycleFlags.updateTargetInstance);
+        this.callSubscribers(p, undefined, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
       }
       return true;
     }
@@ -94,7 +77,7 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
     if (Reflect.defineProperty(target, p, attributes)) {
       if (attributes.value !== oldValue) {
         this.callPropertySubscribers(attributes.value, oldValue, p);
-        this.callSubscribers(p, attributes.value, oldValue, LifecycleFlags.updateTargetInstance);
+        this.callSubscribers(p, attributes.value, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
       }
       return true;
     }
@@ -138,7 +121,7 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
   private callPropertySubscribers(newValue: unknown, oldValue: unknown, key: PropertyKey): void {
     const subscribers = this.subscribers[key as string | number];
     if (subscribers !== undefined) {
-      subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance);
+      subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
     }
   }
 }

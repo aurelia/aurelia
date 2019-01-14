@@ -64,7 +64,7 @@ describe('@customElement', () => {
         const { sut } = createCustomElement('foo');
         const initState = sut.$state;
         sut.$state |= State.isBound;
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(0, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         propsSpec.setProps(sut);
@@ -155,7 +155,7 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         sut.$state |= State.isBound;
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(0, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         propsSpec.setProps(sut);
@@ -210,7 +210,7 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         sut.$state |= State.isBound;
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(0, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         const hooks = hooksSpec.getHooks();

@@ -71,7 +71,7 @@ describe('Call', () => {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
           const flags = LifecycleFlags.none;
-          const targetObserver = observerLocator.getObserver(target, prop);
+          const targetObserver = observerLocator.getObserver(0, target, prop);
 
           massSpy(scope.bindingContext, 'theFunc');
           massSpy(sut, 'callSource');
@@ -155,7 +155,7 @@ describe('Call', () => {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
           const flags = LifecycleFlags.none;
-          const targetObserver = observerLocator.getObserver(target, prop);
+          const targetObserver = observerLocator.getObserver(0, target, prop);
 
           massSpy(scope.bindingContext, 'theFunc');
           massSpy(sut, 'callSource');
@@ -253,7 +253,7 @@ describe('Call', () => {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
           const flags = LifecycleFlags.none;
-          const targetObserver = observerLocator.getObserver(target, prop);
+          const targetObserver = observerLocator.getObserver(0, target, prop);
 
           massSpy(scope.bindingContext, 'theFunc');
           massSpy(sut, 'callSource');

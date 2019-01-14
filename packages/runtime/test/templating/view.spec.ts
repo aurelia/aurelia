@@ -423,7 +423,7 @@ describe('View', () => {
       const rootTemplate: ITemplate<AuNode> = {
         renderContext: null as any,
         dom: null as any,
-        render(renderable) {
+        render( renderable) {
           const text = AuNode.createText();
           const wrapper = AuNode.createTemplate().appendChild(text).appendChild(childWrapper);
           const nodes = new AuNodeSequence(dom, wrapper);
@@ -447,7 +447,7 @@ describe('View', () => {
 
       // - Round 1 - bind
 
-      const scope1 = Scope.create(BindingContext.create(propName, propValue1));
+      const scope1 = Scope.create(0, BindingContext.create(0, propName, propValue1));
       if (lockScope1) {
         sut.lockScope(scope1);
       }
@@ -460,7 +460,7 @@ describe('View', () => {
       if (bindTwice) {
         let newScope: Scope;
         if (newScopeForSecondBind) {
-          newScope = Scope.create(BindingContext.create(propName, duplicateBindValue));
+          newScope = Scope.create(0, BindingContext.create(0, propName, duplicateBindValue));
         } else {
           scope1.bindingContext[propName] = duplicateBindValue;
           newScope = scope1;
@@ -531,7 +531,7 @@ describe('View', () => {
 
       let scope2: Scope;
       if (newScopeForSecondBind) {
-        scope2 = Scope.create(BindingContext.create(propName, propValue2));
+        scope2 = Scope.create(0, BindingContext.create(0, propName, propValue2));
       } else {
         scope1.bindingContext[propName] = propValue2;
         scope2 = scope1;
@@ -548,7 +548,7 @@ describe('View', () => {
       if (bindTwice) {
         let newScope: Scope;
         if (newScopeForSecondBind) {
-          newScope = Scope.create(BindingContext.create(propName, duplicateBindValue));
+          newScope = Scope.create(0, BindingContext.create(0, propName, duplicateBindValue));
         } else {
           scope2.bindingContext[propName] = duplicateBindValue;
           newScope = scope2;

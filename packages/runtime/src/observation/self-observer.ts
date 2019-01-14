@@ -8,6 +8,7 @@ export interface SelfObserver extends IPropertyObserver<IIndexable, string> {}
 
 @propertyObserver()
 export class SelfObserver implements SelfObserver {
+  public readonly persistentFlags: LifecycleFlags;
   public obj: IIndexable;
   public propertyKey: string;
   public currentValue: unknown;
@@ -15,10 +16,12 @@ export class SelfObserver implements SelfObserver {
   private readonly callback: (newValue: unknown, oldValue: unknown) => unknown;
 
   constructor(
+    flags: LifecycleFlags,
     instance: object,
     propertyName: string,
     callbackName: string
   ) {
+      this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
       this.obj = instance;
       this.propertyKey = propertyName;
       this.currentValue = instance[propertyName];

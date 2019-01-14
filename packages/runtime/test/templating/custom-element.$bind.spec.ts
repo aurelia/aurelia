@@ -112,7 +112,7 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(0, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         sut.$hooks = hooksSpec.getHooks();
@@ -220,7 +220,7 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(0, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         sut.$hooks = hooksSpec.getHooks();

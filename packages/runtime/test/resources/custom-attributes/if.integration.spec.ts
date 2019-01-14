@@ -210,10 +210,10 @@ describe(`If/Else`, () => {
       (elseSut as Writable<Else>).$scope = null;
 
       const ifBehavior = RuntimeBehavior.create(If);
-      ifBehavior.applyTo(sut, lifecycle);
+      ifBehavior.applyTo(0, sut, lifecycle);
 
       const elseBehavior = RuntimeBehavior.create(Else);
-      elseBehavior.applyTo(elseSut, lifecycle);
+      elseBehavior.applyTo(0, elseSut, lifecycle);
 
       let firstBindInitialNodesText: string;
       let firstBindFinalNodesText: string;
@@ -262,11 +262,11 @@ describe(`If/Else`, () => {
 
       // -- Round 1 --
 
-      const ctx = BindingContext.create({
+      const ctx = BindingContext.create(0, {
         [ifPropName]: ifText,
         [elsePropName]: elseText
       });
-      let scope = Scope.create(ctx);
+      let scope = Scope.create(0, ctx);
 
       sut.value = value1;
 
@@ -276,7 +276,7 @@ describe(`If/Else`, () => {
       // after binding the nodes should be present and already updated with the correct values
       if (bindTwice) {
         if (newScopeForDuplicateBind) {
-          scope = Scope.create(ctx);
+          scope = Scope.create(0, ctx);
         }
         sut.value = newValueForDuplicateBind;
         runBindLifecycle(lifecycle, sut, bindFlags1, scope);
@@ -321,7 +321,7 @@ describe(`If/Else`, () => {
       expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(secondBindInitialNodesText, '$nodes.textContent #3');
       if (bindTwice) {
         if (newScopeForDuplicateBind) {
-          scope = Scope.create(ctx);
+          scope = Scope.create(0, ctx);
         }
         sut.value = newValueForDuplicateBind;
         runBindLifecycle(lifecycle, sut, bindFlags2, scope);

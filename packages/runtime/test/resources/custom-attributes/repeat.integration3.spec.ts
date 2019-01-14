@@ -314,10 +314,10 @@ describe(`Repeat`, () => {
       (sut as Writable<Repeat>).$scope = null;
 
       const repeatBehavior = RuntimeBehavior.create(Repeat);
-      repeatBehavior.applyTo(sut, lifecycle);
+      repeatBehavior.applyTo(0, sut, lifecycle);
 
       // -- Round 1 --
-      let scope = Scope.create(BindingContext.create());
+      let scope = Scope.create(0, BindingContext.create(0));
 
       sut.items = items;
       const expectedText1 = sut.items ? sut.items.join('') : '';
@@ -326,7 +326,7 @@ describe(`Repeat`, () => {
 
       if (bindTwice) {
         if (newScopeForDuplicateBind) {
-          scope = Scope.create(scope.bindingContext);
+          scope = Scope.create(0, scope.bindingContext);
         }
         runBindLifecycle(lifecycle, sut, bindFlags1, scope);
       }
@@ -373,7 +373,7 @@ describe(`Repeat`, () => {
       runBindLifecycle(lifecycle, sut, bindFlags2, scope);
       if (bindTwice) {
         if (newScopeForDuplicateBind) {
-          scope = Scope.create(scope.bindingContext);
+          scope = Scope.create(0, scope.bindingContext);
         }
         runBindLifecycle(lifecycle, sut, bindFlags2, scope);
       }

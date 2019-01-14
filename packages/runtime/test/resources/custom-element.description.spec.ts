@@ -27,7 +27,8 @@ describe('@customElement', () => {
     'surrogates',
     'containerless',
     'shadowOptions',
-    'hasSlots'
+    'hasSlots',
+    'useProxies'
   ];
 
   it('creates the default template description', () => {
@@ -44,6 +45,7 @@ describe('@customElement', () => {
     expect(Type.description.containerless).to.equal(false, 'containerless');
     expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
     expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+    expect(Type.description.useProxies).to.equal(false, 'useProxies');
     expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
   });
 
@@ -89,6 +91,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -135,6 +138,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -193,6 +197,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -238,6 +243,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -315,6 +321,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -370,6 +377,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -425,6 +433,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -480,6 +489,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -550,6 +560,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(containerlessSpec.getExpectedContainerless(), 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -613,6 +624,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.deep.equal(shadowOptionsSpec.getExpectedShadowOptions(), 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -659,6 +671,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(hasSlotsSpec.getExpectedHasSlots(), 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });

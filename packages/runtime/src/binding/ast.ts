@@ -479,7 +479,7 @@ export class AccessScope implements IExpression {
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     const name = this.name;
     const context = BindingContext.get(scope, name, this.ancestor, flags);
-    binding.observeProperty(context, name);
+    binding.observeProperty(flags, context, name);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -517,7 +517,7 @@ export class AccessMember implements IExpression {
     const obj = this.object.evaluate(flags, scope, null) as IIndexable;
     this.object.connect(flags, scope, binding);
     if (obj) {
-      binding.observeProperty(obj, this.name);
+      binding.observeProperty(flags, obj, this.name);
     }
   }
 
@@ -563,7 +563,7 @@ export class AccessKeyed implements IExpression {
       // observe the property represented by the key as long as it's not an array indexer
       // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
       if (!(Array.isArray(obj) && isNumeric(key))) {
-        binding.observeProperty(obj, key as string);
+        binding.observeProperty(flags, obj, key as string);
       }
     }
   }

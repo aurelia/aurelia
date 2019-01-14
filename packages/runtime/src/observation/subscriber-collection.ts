@@ -301,7 +301,7 @@ function removeBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind
   return false;
 }
 
-function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<MutationKind.collection>, indexMap: IndexMap): void {
+function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<MutationKind.collection>, indexMap: IndexMap, flags: LifecycleFlags): void {
   const subscriber0 = this._batchedSubscriber0;
   const subscriber1 = this._batchedSubscriber1;
   const subscriber2 = this._batchedSubscriber2;
@@ -310,20 +310,20 @@ function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<Mut
     subscribers = subscribers.slice();
   }
   if (subscriber0 !== null) {
-    subscriber0.handleBatchedChange(indexMap);
+    subscriber0.handleBatchedChange(indexMap, flags);
   }
   if (subscriber1 !== null) {
-    subscriber1.handleBatchedChange(indexMap);
+    subscriber1.handleBatchedChange(indexMap, flags);
   }
   if (subscriber2 !== null) {
-    subscriber2.handleBatchedChange(indexMap);
+    subscriber2.handleBatchedChange(indexMap, flags);
   }
   const length = subscribers && subscribers.length;
   if (length !== undefined && length > 0) {
     for (let i = 0; i < length; ++i) {
       const subscriber = subscribers[i];
       if (subscriber !== null) {
-        subscriber.handleBatchedChange(indexMap);
+        subscriber.handleBatchedChange(indexMap, flags);
       }
     }
   }

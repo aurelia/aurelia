@@ -9,6 +9,7 @@ import {
   ObserversLookup,
   PropertyObserver
 } from '../observation';
+import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
 
 const slice = Array.prototype.slice;
@@ -22,11 +23,11 @@ const enum RuntimeError {
 
 /** @internal */
 export class InternalObserversLookup {
-  public getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver {
+  public getOrCreate(flags: LifecycleFlags, obj: IBindingContext | IOverrideContext, key: string): PropertyObserver {
     if (Tracer.enabled) { Tracer.enter('InternalObserversLookup.getOrCreate', slice.call(arguments)); }
     let observer = this[key];
     if (observer === undefined) {
-      observer = this[key] = new SetterObserver(obj, key);
+      observer = this[key] = new SetterObserver(flags, obj, key);
     }
     if (Tracer.enabled) { Tracer.leave(); }
     return observer;
@@ -64,22 +65,26 @@ export class BindingContext implements IBindingContext {
    * Create a new synthetic `BindingContext` for use in a `Scope`.
    * @param obj Optional. An existing object or `BindingContext` to (shallow) clone (own) properties from.
    */
-  public static create(obj?: IIndexable): BindingContext;
+  public static create(flags: LifecycleFlags, obj?: IIndexable): BindingContext;
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
    * @param key The name of the only property to initialize this `BindingContext` with.
    * @param value The value of the only property to initialize this `BindingContext` with.
    */
-  public static create(key: string, value: BindingContextValue): BindingContext;
+  public static create(flags: LifecycleFlags, key: string, value: BindingContextValue): BindingContext;
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
    *
    * This overload signature is simply the combined signatures of the other two, and can be used
    * to keep strong typing in situations where the arguments are dynamic.
    */
-  public static create(keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext;
-  public static create(keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext {
-    return new BindingContext(keyOrObj, value);
+  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext;
+  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext {
+    const bc = new BindingContext(keyOrObj, value);
+    if (flags & LifecycleFlags.useProxies) {
+      return ProxyObserver.getOrCreate(bc).proxy;
+    }
+    return bc;
   }
 
   public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBindScope {
@@ -142,7 +147,7 @@ export class BindingContext implements IBindingContext {
     return scope.bindingContext || scope.overrideContext;
   }
 
-  public getObservers(): ObserversLookup<IOverrideContext> {
+  public getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext> {
     if (Tracer.enabled) { Tracer.enter('BindingContext.getObservers', slice.call(arguments)); }
     let observers = this.$observers;
     if (observers === undefined) {
@@ -173,7 +178,7 @@ export class Scope implements IScope {
    * or when you simply want to prevent binding expressions from traversing up the scope.
    * @param bc The `BindingContext` to back the `Scope` with.
    */
-  public static create(bc: IBindingContext | IBindScope): Scope;
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -183,7 +188,7 @@ export class Scope implements IScope {
    * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
    * it finds the property.
    */
-  public static create(bc: IBindingContext | IBindScope, oc: IOverrideContext): Scope;
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, oc: IOverrideContext): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -193,29 +198,41 @@ export class Scope implements IScope {
    * @param bc The `BindingContext` to back the `Scope` with.
    * @param oc null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(bc: IBindingContext | IBindScope, oc: null): Scope;
-  public static create(bc: IBindingContext | IBindScope, oc?: IOverrideContext | null): Scope {
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, oc: null): Scope;
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, oc?: IOverrideContext | null): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope.create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc) : oc);
+    const scope = new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(flags, bc, oc) : oc);
+    if (flags & LifecycleFlags.useProxies) {
+      return ProxyObserver.getOrCreate(scope).proxy;
+    }
+    return scope;
   }
 
-  public static fromOverride(oc: IOverrideContext): Scope {
+  public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope.fromOverride', slice.call(arguments)); }
     if (oc === null || oc === undefined) {
       throw Reporter.error(RuntimeError.NilOverrideContext);
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(oc.bindingContext, oc);
+    const scope = new Scope(oc.bindingContext, oc);
+    if (flags & LifecycleFlags.useProxies) {
+      return ProxyObserver.getOrCreate(scope).proxy;
+    }
+    return scope;
   }
 
-  public static fromParent(ps: IScope | null, bc: IBindingContext | IBindScope): Scope {
+  public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: IBindingContext | IBindScope): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope.fromParent', slice.call(arguments)); }
     if (ps === null || ps === undefined) {
       throw Reporter.error(RuntimeError.NilParentScope);
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(bc, OverrideContext.create(bc, ps.overrideContext));
+    const scope = new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext));
+    if (flags & LifecycleFlags.useProxies) {
+      return ProxyObserver.getOrCreate(scope).proxy;
+    }
+    return scope;
   }
 }
 
@@ -232,10 +249,14 @@ export class OverrideContext implements IOverrideContext {
     this.parentOverrideContext = parentOverrideContext;
   }
 
-  public static create(bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext {
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext {
     if (Tracer.enabled) { Tracer.enter('OverrideContext.create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new OverrideContext(bc, poc === undefined ? null : poc);
+    const oc = new OverrideContext(bc, poc === undefined ? null : poc);
+    if (flags & LifecycleFlags.useProxies) {
+      return ProxyObserver.getOrCreate(oc).proxy;
+    }
+    return oc;
   }
 
   public getObservers(): ObserversLookup<IOverrideContext> {

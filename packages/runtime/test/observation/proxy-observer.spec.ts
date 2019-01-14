@@ -71,6 +71,7 @@ describe('ProxyObserver', function() {
       const expectedKey = typeof name === 'symbol' ? name : String(name);
 
       const observer = ProxyObserver.getOrCreate(obj as object);
+      const expectedFlags = LifecycleFlags.updateTargetInstance | LifecycleFlags.useProxies;
 
       let callCount = 0;
       let newValue: unknown;
@@ -106,55 +107,55 @@ describe('ProxyObserver', function() {
 
       let prevCallCount = 0;
       if (value !== undefined) {
-        expect(callCount).to.equal(++prevCallCount);
+        expect(callCount).to.equal(++prevCallCount, 'callCount #1');
         expect(newValue).to.equal(value);
         expect(oldValue).to.equal(undefined);
-        expect(flags).to.equal(LifecycleFlags.updateTargetInstance);
+        expect(flags).to.equal(expectedFlags);
 
-        expect(proxyCallCount).to.equal(prevCallCount);
+        expect(proxyCallCount).to.equal(prevCallCount, 'callCount #2');
         expect(proxyKey).to.equal(expectedKey);
         expect(proxyNewValue).to.equal(value);
         expect(proxyOldValue).to.equal(undefined);
-        expect(proxyFlags).to.equal(LifecycleFlags.updateTargetInstance);
+        expect(proxyFlags).to.equal(expectedFlags);
       } else {
-        expect(callCount).to.equal(prevCallCount);
-        expect(proxyCallCount).to.equal(prevCallCount);
+        expect(callCount).to.equal(prevCallCount, 'callCount #3');
+        expect(proxyCallCount).to.equal(prevCallCount, 'callCount #4');
       }
 
       delete observer.proxy[name];
 
       if (value !== undefined) {
-        expect(callCount).to.equal(++prevCallCount);
+        expect(callCount).to.equal(++prevCallCount, 'callCount #5');
         expect(newValue).to.equal(undefined);
         expect(oldValue).to.equal(value);
-        expect(flags).to.equal(LifecycleFlags.updateTargetInstance);
+        expect(flags).to.equal(expectedFlags);
 
-        expect(proxyCallCount).to.equal(prevCallCount);
+        expect(proxyCallCount).to.equal(prevCallCount, 'callCount #6');
         expect(proxyKey).to.equal(expectedKey);
         expect(proxyNewValue).to.equal(undefined);
         expect(proxyOldValue).to.equal(value);
-        expect(proxyFlags).to.equal(LifecycleFlags.updateTargetInstance);
+        expect(proxyFlags).to.equal(expectedFlags);
       } else {
-        expect(callCount).to.equal(prevCallCount);
-        expect(proxyCallCount).to.equal(prevCallCount);
+        expect(callCount).to.equal(prevCallCount, 'callCount #7');
+        expect(proxyCallCount).to.equal(prevCallCount, 'callCount #8');
       }
 
       Reflect.defineProperty(observer.proxy, name, { value });
 
       if (value !== undefined) {
-        expect(callCount).to.equal(++prevCallCount);
+        expect(callCount).to.equal(++prevCallCount, 'callCount #9');
         expect(newValue).to.equal(value);
         expect(oldValue).to.equal(undefined);
-        expect(flags).to.equal(LifecycleFlags.updateTargetInstance);
+        expect(flags).to.equal(expectedFlags);
 
-        expect(proxyCallCount).to.equal(prevCallCount);
+        expect(proxyCallCount).to.equal(prevCallCount, 'callCount #10');
         expect(proxyKey).to.equal(expectedKey);
         expect(proxyNewValue).to.equal(value);
         expect(proxyOldValue).to.equal(undefined);
-        expect(proxyFlags).to.equal(LifecycleFlags.updateTargetInstance);
+        expect(proxyFlags).to.equal(expectedFlags);
       } else {
-        expect(callCount).to.equal(prevCallCount);
-        expect(proxyCallCount).to.equal(prevCallCount);
+        expect(callCount).to.equal(prevCallCount, 'callCount #11');
+        expect(proxyCallCount).to.equal(prevCallCount, 'callCount #12');
       }
 
       let $value = value;

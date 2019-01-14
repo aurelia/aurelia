@@ -49,7 +49,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new Lifecycle(), arr);
+      sut = new ArrayObserver(0, new Lifecycle(), arr);
       sut.subscribe(s);
       arr.push(1);
       expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1));
@@ -58,7 +58,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new Lifecycle(), arr);
+      sut = new ArrayObserver(0, new Lifecycle(), arr);
       sut.subscribe(s);
       arr.push(1, 2);
       expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1 && x[1] === 2));
@@ -69,7 +69,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new Lifecycle(), arr);
+      sut = new ArrayObserver(0, new Lifecycle(), arr);
       sut.subscribe(s);
       sut.unsubscribe(s);
       arr.push(1);
@@ -81,7 +81,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new Lifecycle(), arr);
+      sut = new ArrayObserver(0, new Lifecycle(), arr);
       sut.subscribeBatched(s);
       arr.push(1);
       const indexMap: IndexMap = sut.indexMap.slice();
@@ -93,7 +93,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new Lifecycle(), arr);
+      sut = new ArrayObserver(0, new Lifecycle(), arr);
       sut.subscribeBatched(s);
       arr.push(1, 2);
       const indexMap: IndexMap = sut.indexMap.slice();
@@ -107,7 +107,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new Lifecycle(), arr);
+      sut = new ArrayObserver(0, new Lifecycle(), arr);
       sut.subscribeBatched(s);
       sut.unsubscribeBatched(s);
       arr.push(1);
@@ -122,7 +122,7 @@ describe(`ArrayObserver`, () => {
     it('push', () => {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(new Lifecycle(), arr);
+      sut = new ArrayObserver(0, new Lifecycle(), arr);
       sut.subscribeBatched(s);
       sut.flush(LifecycleFlags.none);
       expect(s.handleBatchedChange).to.have.been.called;
@@ -140,7 +140,7 @@ describe(`ArrayObserver`, () => {
             const arr = init.slice();
             const expectedArr = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(new Lifecycle(), arr);
+            sut = new ArrayObserver(0, new Lifecycle(), arr);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -163,7 +163,7 @@ describe(`ArrayObserver`, () => {
             const arr = init.slice();
             const copy = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(new Lifecycle(), arr);
+            sut = new ArrayObserver(0, new Lifecycle(), arr);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -194,7 +194,7 @@ describe(`ArrayObserver`, () => {
             const arr = init.slice();
             const expectedArr = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(new Lifecycle(), arr);
+            sut = new ArrayObserver(0, new Lifecycle(), arr);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -217,7 +217,7 @@ describe(`ArrayObserver`, () => {
             const arr = init.slice();
             const copy = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(new Lifecycle(), arr);
+            sut = new ArrayObserver(0, new Lifecycle(), arr);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -245,7 +245,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
           const arr = init.slice();
           const expectedArr = init.slice();
-          sut = new ArrayObserver(new Lifecycle(), arr);
+          sut = new ArrayObserver(0, new Lifecycle(), arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -261,7 +261,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(new Lifecycle(), arr);
+          sut = new ArrayObserver(0, new Lifecycle(), arr);
           let i = 0;
           while (i < repeat) {
             arr.pop();
@@ -283,7 +283,7 @@ describe(`ArrayObserver`, () => {
         const arr = init.slice();
         const expectedArr = init.slice();
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
-          sut = new ArrayObserver(new Lifecycle(), arr);
+          sut = new ArrayObserver(0, new Lifecycle(), arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -299,7 +299,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
           const arr2 = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(new Lifecycle(), arr2);
+          sut = new ArrayObserver(0, new Lifecycle(), arr2);
           let i = 0;
           while (i < repeat) {
             arr2.shift();
@@ -328,7 +328,7 @@ describe(`ArrayObserver`, () => {
                 const arr = init.slice();
                 const expectedArr = init.slice();
                 const newItems = items && items.slice();
-                sut = new ArrayObserver(new Lifecycle(), arr);
+                sut = new ArrayObserver(0, new Lifecycle(), arr);
                 let expectedResult;
                 let actualResult;
                 let i = 0;
@@ -361,7 +361,7 @@ describe(`ArrayObserver`, () => {
                 const arr = init.slice();
                 const copy = init.slice();
                 const newItems = items && items.slice();
-                sut = new ArrayObserver(new Lifecycle(), arr);
+                sut = new ArrayObserver(0, new Lifecycle(), arr);
                 let i = 0;
                 while (i < repeat) {
                   incrementItems(newItems, i);
@@ -395,7 +395,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
           const arr = init.slice();
           const expectedArr = init.slice();
-          sut = new ArrayObserver(new Lifecycle(), arr);
+          sut = new ArrayObserver(0, new Lifecycle(), arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -411,7 +411,7 @@ describe(`ArrayObserver`, () => {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(new Lifecycle(), arr);
+          sut = new ArrayObserver(0, new Lifecycle(), arr);
           let i = 0;
           while (i < repeat) {
             arr.reverse();
@@ -455,7 +455,7 @@ describe(`ArrayObserver`, () => {
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - behaves as native`, () => {
               const arr = init.slice();
               const expectedArr = init.slice();
-              sut = new ArrayObserver(new Lifecycle(), arr);
+              sut = new ArrayObserver(0, new Lifecycle(), arr);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
               expect(expectedResult).to.equal(expectedArr);
@@ -484,7 +484,7 @@ describe(`ArrayObserver`, () => {
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - tracks changes`, () => {
               const arr = init.slice();
               const copy = init.slice();
-              sut = new ArrayObserver(new Lifecycle(), arr);
+              sut = new ArrayObserver(0, new Lifecycle(), arr);
               arr.sort(compareFn);
               synchronize(copy, sut.indexMap, arr);
               assertArrayEqual(copy, arr);

@@ -24,7 +24,7 @@ describe('The "compose" custom element', () => {
     {
       description: 'View',
       create(ctx: HTMLTestContext) {
-        return createViewFactory(ctx).create();
+        return createViewFactory(ctx).create(0);
       }
     },
     {
@@ -184,8 +184,8 @@ describe('The "compose" custom element', () => {
     it(`can swap between views ${producer.description}`, done => {
       const ctx = TestContext.createHTMLTestContext();
       const { element } = hydrateCustomElement(Compose, ctx);
-      const view1 = createViewFactory(ctx).create();
-      const view2 = createViewFactory(ctx).create();
+      const view1 = createViewFactory(ctx).create(0);
+      const view2 = createViewFactory(ctx).create(0);
 
       waitForCompositionEnd(
         element,
@@ -223,7 +223,7 @@ describe('The "compose" custom element', () => {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
 
-        const view1 = createViewFactory(ctx).create();
+        const view1 = createViewFactory(ctx).create(0);
         const location = element.$projector.host;
 
         waitForCompositionEnd(element, () => {

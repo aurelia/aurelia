@@ -2,40 +2,41 @@ import { IDisposable, IIndexable } from '@aurelia/kernel';
 import { ILifecycle } from './lifecycle';
 
 export enum LifecycleFlags {
-  none                      = 0b0_0000_00000000000000_000_00,
-  mustEvaluate              = 0b0_0001_00000000000000_000_00,
-  mutation                  = 0b0_0000_00000000000000_000_11,
-  isCollectionMutation      = 0b0_0000_00000000000000_000_01,
-  isInstanceMutation        = 0b0_0000_00000000000000_000_10,
-  update                    = 0b0_0000_00000000000000_111_00,
-  updateTargetObserver      = 0b0_0000_00000000000000_001_00,
-  updateTargetInstance      = 0b0_0000_00000000000000_010_00,
-  updateSourceExpression    = 0b0_0000_00000000000000_100_00,
-  from                      = 0b0_0000_11111111111111_000_00,
-  fromFlush                 = 0b0_0000_00000000000111_000_00,
-  fromAsyncFlush            = 0b0_0000_00000000000001_000_00,
-  fromSyncFlush             = 0b0_0000_00000000000010_000_00,
-  fromTick                  = 0b0_0000_00000000000100_000_00,
-  fromStartTask             = 0b0_0000_00000000001000_000_00,
-  fromStopTask              = 0b0_0000_00000000010000_000_00,
-  fromBind                  = 0b0_0000_00000000100000_000_00,
-  fromUnbind                = 0b0_0000_00000001000000_000_00,
-  fromAttach                = 0b0_0000_00000010000000_000_00,
-  fromDetach                = 0b0_0000_00000100000000_000_00,
-  fromCache                 = 0b0_0000_00001000000000_000_00,
-  fromDOMEvent              = 0b0_0000_00010000000000_000_00,
-  fromObserverSetter        = 0b0_0000_00100000000000_000_00,
-  fromBindableHandler       = 0b0_0000_01000000000000_000_00,
-  fromLifecycleTask         = 0b0_0000_10000000000000_000_00,
-  parentUnmountQueued       = 0b0_0010_00000000000000_000_00,
+  none                      = 0b00_0000_00000000000000_000_00,
+  mustEvaluate              = 0b00_0001_00000000000000_000_00,
+  mutation                  = 0b00_0000_00000000000000_000_11,
+  isCollectionMutation      = 0b00_0000_00000000000000_000_01,
+  isInstanceMutation        = 0b00_0000_00000000000000_000_10,
+  update                    = 0b00_0000_00000000000000_111_00,
+  updateTargetObserver      = 0b00_0000_00000000000000_001_00,
+  updateTargetInstance      = 0b00_0000_00000000000000_010_00,
+  updateSourceExpression    = 0b00_0000_00000000000000_100_00,
+  from                      = 0b00_0000_11111111111111_000_00,
+  fromFlush                 = 0b00_0000_00000000000111_000_00,
+  fromAsyncFlush            = 0b00_0000_00000000000001_000_00,
+  fromSyncFlush             = 0b00_0000_00000000000010_000_00,
+  fromTick                  = 0b00_0000_00000000000100_000_00,
+  fromStartTask             = 0b00_0000_00000000001000_000_00,
+  fromStopTask              = 0b00_0000_00000000010000_000_00,
+  fromBind                  = 0b00_0000_00000000100000_000_00,
+  fromUnbind                = 0b00_0000_00000001000000_000_00,
+  fromAttach                = 0b00_0000_00000010000000_000_00,
+  fromDetach                = 0b00_0000_00000100000000_000_00,
+  fromCache                 = 0b00_0000_00001000000000_000_00,
+  fromDOMEvent              = 0b00_0000_00010000000000_000_00,
+  fromObserverSetter        = 0b00_0000_00100000000000_000_00,
+  fromBindableHandler       = 0b00_0000_01000000000000_000_00,
+  fromLifecycleTask         = 0b00_0000_10000000000000_000_00,
+  parentUnmountQueued       = 0b00_0010_00000000000000_000_00,
   // this flag is for the synchronous flush before detach (no point in updating the
   // DOM if it's about to be detached)
-  doNotUpdateDOM            = 0b0_0100_00000000000000_000_00,
-  isTraversingParentScope   = 0b0_1000_00000000000000_000_00,
+  doNotUpdateDOM            = 0b00_0100_00000000000000_000_00,
+  isTraversingParentScope   = 0b00_1000_00000000000000_000_00,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation
   // callbacks outside of $bind
-  persistentBindingFlags    = 0b1_0000_00000000000000_000_00,
-  allowParentScopeTraversal = 0b1_0000_00000000000000_000_00,
+  persistentBindingFlags    = 0b11_0000_00000000000000_000_00,
+  allowParentScopeTraversal = 0b01_0000_00000000000000_000_00,
+  useProxies                = 0b10_0000_00000000000000_000_00,
 }
 
 export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
@@ -198,7 +199,7 @@ export interface IProxySubscriber<TValue = unknown> { handleChange(key: Property
 /**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
  */
-export type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags?: LifecycleFlags) => void;
+export type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations in a collection
  */
@@ -207,7 +208,7 @@ export interface ICollectionChangeNotifier extends ICollectionChangeHandler {}
 /**
  * Represents a (subscriber) function that can be called by a BatchedCollectionChangeNotifier
  */
-export type IBatchedCollectionChangeHandler = (indexMap: number[]) => void;
+export type IBatchedCollectionChangeHandler = (indexMap: number[], flags: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of batched mutations in a collection
  */
@@ -220,7 +221,7 @@ export interface ICollectionSubscriber { handleChange(origin: string, args: IArg
 /**
  * Describes a (subscriber) type that has a function conforming to the IBatchedCollectionChangeNotifier interface
  */
-export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: number[]): void; }
+export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: number[], flags: LifecycleFlags): void; }
 
 /**
  * Either a property or collection subscriber
@@ -401,11 +402,12 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ISubscriberCollection<MutationKind.collection>,
   IBatchedSubscriberCollection<MutationKind.collection> {
+    persistentFlags: LifecycleFlags;
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
     lengthObserver: IBindingTargetObserver & IPatch;
-    getLengthObserver(): IBindingTargetObserver;
+    getLengthObserver(flags: LifecycleFlags): IBindingTargetObserver;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
@@ -414,7 +416,7 @@ export interface IBindingContext {
 
   readonly $synthetic?: true;
   readonly $observers?: ObserversLookup<IOverrideContext>;
-  getObservers?(): ObserversLookup<IOverrideContext>;
+  getObservers?(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
 }
 
 export interface IOverrideContext {
@@ -424,7 +426,7 @@ export interface IOverrideContext {
   readonly $observers?: ObserversLookup<IOverrideContext>;
   readonly bindingContext: IBindingContext;
   readonly parentOverrideContext: IOverrideContext | null;
-  getObservers(): ObserversLookup<IOverrideContext>;
+  getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
 }
 
 export interface IScope {
@@ -441,7 +443,7 @@ export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey ext
 
 export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
   Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> =
-  { [P in TKey]: PropertyObserver; } & { getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver };
+  { [P in TKey]: PropertyObserver; } & { getOrCreate(flags: LifecycleFlags, obj: IBindingContext | IOverrideContext, key: string): PropertyObserver };
 
 export type IObservable = IIndexable & {
   readonly $synthetic?: false;

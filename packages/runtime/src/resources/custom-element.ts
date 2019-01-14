@@ -29,7 +29,7 @@ import {
   IRenderable,
   IRenderContext
 } from '../lifecycle';
-import { IChangeTracker } from '../observation';
+import { IChangeTracker, LifecycleFlags } from '../observation';
 import { IRenderingEngine } from '../rendering-engine';
 import {
   $attachElement,
@@ -76,6 +76,7 @@ export interface ICustomElementStaticProperties {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
+  useProxies?: TemplateDefinition['useProxies'];
 }
 
 export interface ICustomElement<T extends INode = INode> extends
@@ -92,6 +93,7 @@ export interface ICustomElement<T extends INode = INode> extends
   readonly $host: CustomElementHost;
 
   $hydrate(
+    flags: LifecycleFlags,
     dom: IDOM,
     projectorLocator: IProjectorLocator,
     renderingEngine: IRenderingEngine,

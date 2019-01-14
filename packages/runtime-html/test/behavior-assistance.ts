@@ -48,7 +48,7 @@ export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestCon
 
   const renderingEngine = container.get(IRenderingEngine);
   const projectorLocator = container.get(IProjectorLocator);
-  element.$hydrate(dom, projectorLocator, renderingEngine, host);
+  element.$hydrate(0, dom, projectorLocator, renderingEngine, host);
 
   return { element, parent };
 }

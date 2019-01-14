@@ -11,7 +11,8 @@ import {
   IObservable,
   IObservedArray,
   IObservedMap,
-  IObservedSet
+  IObservedSet,
+  LifecycleFlags
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
@@ -25,30 +26,30 @@ import { SetterObserver } from './setter-observer';
 const toStringTag = Object.prototype.toString;
 
 export interface IObjectObservationAdapter {
-  getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
+  getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }
 
 export interface IObserverLocator {
-  getObserver(obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver;
-  getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
+  getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver;
+  getAccessor(flags: LifecycleFlags, obj: IObservable, propertyName: string): IBindingTargetAccessor;
   addAdapter(adapter: IObjectObservationAdapter): void;
-  getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
-  getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
-  getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
+  getArrayObserver(flags: LifecycleFlags, observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
+  getMapObserver(flags: LifecycleFlags, observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
+  getSetObserver(flags: LifecycleFlags, observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
 }
 
 export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').noDefault();
 
 export interface ITargetObserverLocator {
-  getObserver(lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
-  overridesAccessor(obj: unknown, propertyName: string): boolean;
-  handles(obj: unknown): boolean;
+  getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
+  overridesAccessor(flags: LifecycleFlags, obj: unknown, propertyName: string): boolean;
+  handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export const ITargetObserverLocator = DI.createInterface<ITargetObserverLocator>('ITargetObserverLocator').noDefault();
 
 export interface ITargetAccessorLocator {
-  getAccessor(lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor;
-  handles(obj: unknown): boolean;
+  getAccessor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor;
+  handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export const ITargetAccessorLocator = DI.createInterface<ITargetAccessorLocator>('ITargetAccessorLocator').noDefault();
 
@@ -91,9 +92,9 @@ export class ObserverLocator implements IObserverLocator {
     return Registration.singleton(IObserverLocator, this).register(container);
   }
 
-  public getObserver(obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver {
+  public getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver {
     if (isBindingContext(obj)) {
-      return obj.getObservers().getOrCreate(obj, propertyName);
+      return obj.getObservers(flags).getOrCreate(flags, obj, propertyName);
     }
     let observersLookup = obj.$observers;
     let observer: AccessorOrObserver & { doNotCache?: boolean };
@@ -102,7 +103,7 @@ export class ObserverLocator implements IObserverLocator {
       return observersLookup[propertyName];
     }
 
-    observer = this.createPropertyObserver(obj, propertyName);
+    observer = this.createPropertyObserver(flags, obj, propertyName);
 
     if (!observer.doNotCache) {
       if (observersLookup === undefined) {
@@ -119,27 +120,27 @@ export class ObserverLocator implements IObserverLocator {
     this.adapters.push(adapter);
   }
 
-  public getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor {
-    if (this.targetAccessorLocator.handles(obj)) {
-      if (this.targetObserverLocator.overridesAccessor(obj, propertyName)) {
-        return this.getObserver(obj, propertyName);
+  public getAccessor(flags: LifecycleFlags, obj: IObservable, propertyName: string): IBindingTargetAccessor {
+    if (this.targetAccessorLocator.handles(flags, obj)) {
+      if (this.targetObserverLocator.overridesAccessor(flags, obj, propertyName)) {
+        return this.getObserver(flags, obj, propertyName);
       }
-      return this.targetAccessorLocator.getAccessor(this.lifecycle, obj, propertyName);
+      return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
     }
 
     return new PropertyAccessor(obj, propertyName);
   }
 
-  public getArrayObserver(observedArray: IObservedArray): ICollectionObserver<CollectionKind.array> {
-    return getArrayObserver(this.lifecycle, observedArray);
+  public getArrayObserver(flags: LifecycleFlags, observedArray: IObservedArray): ICollectionObserver<CollectionKind.array> {
+    return getArrayObserver(flags, this.lifecycle, observedArray);
   }
 
-  public getMapObserver(observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>  {
-    return getMapObserver(this.lifecycle, observedMap);
+  public getMapObserver(flags: LifecycleFlags, observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>  {
+    return getMapObserver(flags, this.lifecycle, observedMap);
   }
 
-  public getSetObserver(observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>  {
-    return getSetObserver(this.lifecycle, observedSet);
+  public getSetObserver(flags: LifecycleFlags, observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>  {
+    return getSetObserver(flags, this.lifecycle, observedSet);
   }
 
   private getOrCreateObserversLookup(obj: IObservable): Record<string, AccessorOrObserver | IBindingTargetObserver> {
@@ -159,10 +160,10 @@ export class ObserverLocator implements IObserverLocator {
     return value;
   }
 
-  private getAdapterObserver(obj: IObservable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null {
+  private getAdapterObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null {
     for (let i = 0, ii = this.adapters.length; i < ii; i++) {
       const adapter = this.adapters[i];
-      const observer = adapter.getObserver(obj, propertyName, descriptor);
+      const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
       if (observer) {
         return observer;
       }
@@ -170,14 +171,14 @@ export class ObserverLocator implements IObserverLocator {
     return null;
   }
 
-  private createPropertyObserver(obj: IObservable, propertyName: string): AccessorOrObserver {
+  private createPropertyObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
       return new PrimitiveObserver(obj as unknown as Primitive, propertyName) as IBindingTargetAccessor;
     }
 
     let isNode = false;
-    if (this.targetObserverLocator.handles(obj)) {
-      const observer = this.targetObserverLocator.getObserver(this.lifecycle, this, obj, propertyName);
+    if (this.targetObserverLocator.handles(flags, obj)) {
+      const observer = this.targetObserverLocator.getObserver(flags, this.lifecycle, this, obj, propertyName);
       if (observer !== null) {
         return observer;
       }
@@ -191,17 +192,17 @@ export class ObserverLocator implements IObserverLocator {
     switch (tag) {
       case '[object Array]':
         if (propertyName === 'length') {
-          return this.getArrayObserver(obj as IObservedArray).getLengthObserver();
+          return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver(flags);
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Map]':
         if (propertyName === 'size') {
-          return this.getMapObserver(obj as IObservedMap).getLengthObserver();
+          return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver(flags);
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Set]':
         if (propertyName === 'size') {
-          return this.getSetObserver(obj as IObservedSet).getLengthObserver();
+          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver(flags);
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
     }
@@ -216,7 +217,7 @@ export class ObserverLocator implements IObserverLocator {
       }
 
       // attempt to use an adapter before resorting to dirty checking.
-      const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
+      const adapterObserver = this.getAdapterObserver(flags, obj, propertyName, descriptor);
       if (adapterObserver) {
         return adapterObserver;
       }
@@ -225,20 +226,20 @@ export class ObserverLocator implements IObserverLocator {
         return this.dirtyChecker.createProperty(obj, propertyName);
       }
 
-      return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
+      return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
     }
-    return new SetterObserver(obj, propertyName);
+    return new SetterObserver(flags, obj, propertyName);
   }
 }
 
-export function getCollectionObserver(lifecycle: ILifecycle, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
+export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
   switch (toStringTag.call(collection)) {
     case '[object Array]':
-      return getArrayObserver(lifecycle, collection as IObservedArray);
+      return getArrayObserver(flags, lifecycle, collection as IObservedArray);
     case '[object Map]':
-      return getMapObserver(lifecycle, collection as IObservedMap);
+      return getMapObserver(flags, lifecycle, collection as IObservedMap);
     case '[object Set]':
-      return getSetObserver(lifecycle, collection as IObservedSet);
+      return getSetObserver(flags, lifecycle, collection as IObservedSet);
   }
   return null;
 }

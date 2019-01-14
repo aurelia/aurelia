@@ -39,6 +39,7 @@ export interface CheckedObserver extends
 @targetObserver()
 export class CheckedObserver implements CheckedObserver {
   public readonly isDOMObserver: true;
+  public readonly persistentFlags: LifecycleFlags;
   public currentFlags: LifecycleFlags;
   public currentValue: unknown;
   public defaultValue: unknown;
@@ -52,7 +53,14 @@ export class CheckedObserver implements CheckedObserver {
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver | SetterObserver;
 
-  constructor(lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator) {
+  constructor(
+    flags: LifecycleFlags,
+    lifecycle: ILifecycle,
+    obj: IInputElement,
+    handler: IEventSubscriber,
+    observerLocator: IObserverLocator
+  ) {
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.isDOMObserver = true;
     this.handler = handler;
     this.lifecycle = lifecycle;
@@ -76,7 +84,7 @@ export class CheckedObserver implements CheckedObserver {
       this.arrayObserver = null;
     }
     if (this.obj.type === 'checkbox' && Array.isArray(newValue)) {
-      this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+      this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue);
       this.arrayObserver.subscribeBatched(this);
     }
     this.synchronizeElement();
@@ -121,7 +129,7 @@ export class CheckedObserver implements CheckedObserver {
     if (newValue === oldValue) {
       return;
     }
-    this.callSubscribers(this.currentValue, this.oldValue, flags);
+    this.callSubscribers(this.currentValue, this.oldValue, this.persistentFlags | flags);
   }
 
   public handleEvent(): void {

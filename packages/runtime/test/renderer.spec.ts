@@ -68,7 +68,7 @@ describe('Renderer', () => {
           it(_`instruction=${instruction}`, () => {
             const { sut, dom, renderable, target, renderContext } = setup();
 
-            sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
+            sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
 
             expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
             expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
@@ -90,7 +90,7 @@ describe('Renderer', () => {
         it(_`instruction=${instruction}`, () => {
           const { sut, dom, renderable, target, renderContext } = setup();
 
-          sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
+          sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
 
           expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
           expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
@@ -109,7 +109,7 @@ describe('Renderer', () => {
       it(_`instruction=${instruction}`, () => {
         const { sut, dom, renderable, target, renderContext } = setup();
 
-        sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
+        sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
 
         expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
         expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
@@ -127,7 +127,7 @@ describe('Renderer', () => {
         it(_`instruction=${instruction}`, () => {
           const { sut, dom, renderable, target, renderContext } = setup();
 
-          sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
+          sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
 
           expect(renderable.$bindableHead).to.equal(null, 'renderable.$bindableHead');
           expect(target[to]).to.equal(value);
@@ -143,7 +143,7 @@ describe('Renderer', () => {
         it(_`instruction=${instruction}`, () => {
           const { sut, dom, renderable, target, renderContext } = setup();
 
-          sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
+          sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
 
           expect(renderContext.beginComponentOperation).to.have.been.calledWith(renderable, target, instruction, null, null, target, true);
           expect(renderContext.get).to.have.been.calledWith(`custom-element:${res}`);
@@ -161,12 +161,12 @@ describe('Renderer', () => {
         it(_`instruction=${instruction}`, () => {
           const { sut, dom, renderable, target, renderContext, renderingEngine } = setup();
 
-          sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
+          sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
 
           expect(renderContext.beginComponentOperation).to.have.been.calledWith(renderable, target, instruction);
           expect(renderContext.get).to.have.been.calledWith(`custom-attribute:${res}`);
           const component = (renderContext.get as SinonSpy).getCalls()[0].returnValue;
-          expect(component.$hydrate).to.have.been.calledWith(renderingEngine);
+          expect(component.$hydrate).to.have.been.calledWith(0, renderingEngine);
           if (instructions.length) {
             expect(component.foo).to.equal('bar');
           }
@@ -192,7 +192,7 @@ describe('Renderer', () => {
           it(_`instruction=${instruction}`, () => {
             const { sut, dom, renderable, target, renderContext } = setup();
 
-            sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
+            sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
 
             expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
             expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);

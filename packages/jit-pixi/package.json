@@ -28,7 +28,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "cross-env tslint --project tsconfig-test.json -e \"test/**\" -t stylish",
+    "lint": "npm run lint:src && npm run lint:test",
+    "lint:src": "tslint --project tsconfig.json -t stylish",
+    "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
     "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit-pixi --browsers=ChromeHeadlessOpt --single-run --coverage",
     "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit-pixi --browsers=FirefoxHeadless --single-run --coverage",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit-pixi --browsers=ChromeHeadlessOpt --coverage",

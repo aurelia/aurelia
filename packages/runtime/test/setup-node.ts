@@ -1,9 +1,7 @@
 import * as chai from 'chai';
-import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { State } from '../src/index';
 
-chai.should();
 chai.use(sinonChai);
 chai.use(function(_chai, utils) {
   const Assertion = _chai['Assertion'];
@@ -60,8 +58,6 @@ chai.use(function(_chai, utils) {
       }
     );
   }
-})
+});
 
 Error.stackTraceLimit = Infinity;
-
-

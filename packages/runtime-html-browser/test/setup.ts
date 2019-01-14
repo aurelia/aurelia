@@ -23,7 +23,6 @@ TestContext.Element = Element;
 TestContext.HTMLElement = HTMLElement;
 TestContext.HTMLDivElement = HTMLDivElement;
 
-chai.should();
 chai.use(sinonChai);
 chai.use(addChaiAsserts_$state);
 

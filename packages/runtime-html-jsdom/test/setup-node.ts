@@ -26,6 +26,5 @@ TestContext.Element = jsdom.window.Element;
 TestContext.HTMLElement = jsdom.window.HTMLElement;
 TestContext.HTMLDivElement = jsdom.window.HTMLDivElement;
 
-chai.should();
 chai.use(sinonChai);
 chai.use(addChaiAsserts_$state);

@@ -102,7 +102,12 @@ export default function(config: IKarmaConfig): void {
             transpileOnly: true
           }
         }]
-      }
+      },
+      plugins: [
+        new webpack.DefinePlugin({
+          'BROWSER': browsers.some(b => b.toLowerCase().includes('chrome')) ? '"CHROME"' : browsers.some(b => b.toLowerCase().includes('firefox')) ? '"FIREFOX"' : '"OTHER"'
+        })
+      ]
     },
     mime: {
       'text/x-typescript': ['ts']

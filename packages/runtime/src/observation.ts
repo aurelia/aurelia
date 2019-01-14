@@ -333,6 +333,7 @@ export type PropertyObserver = IPropertyObserver<IIndexable, string>;
 export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 interface IObservedCollection {
   $observer?: CollectionObserver;
+  $raw?: this;
 }
 
 /**

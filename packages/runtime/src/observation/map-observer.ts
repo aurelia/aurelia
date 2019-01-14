@@ -1,7 +1,6 @@
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
-import { ProxyObserver } from './proxy-observer';
 
 const proto = Map.prototype;
 
@@ -19,7 +18,7 @@ const observe = {
   // https://tc39.github.io/ecma262/#sec-map.prototype.map
   set: function(this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
     let $this = this;
-    if (ProxyObserver.isProxy($this)) {
+    if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
@@ -50,7 +49,7 @@ const observe = {
   // https://tc39.github.io/ecma262/#sec-map.prototype.clear
   clear: function(this: IObservedMap): ReturnType<typeof $clear>  {
     let $this = this;
-    if (ProxyObserver.isProxy($this)) {
+    if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
@@ -76,7 +75,7 @@ const observe = {
   // https://tc39.github.io/ecma262/#sec-map.prototype.delete
   delete: function(this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
     let $this = this;
-    if (ProxyObserver.isProxy($this)) {
+    if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
     const o = $this.$observer;

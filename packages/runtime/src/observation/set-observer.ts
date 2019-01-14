@@ -1,7 +1,6 @@
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedSet, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
-import { ProxyObserver } from './proxy-observer';
 
 const proto = Set.prototype;
 
@@ -19,7 +18,7 @@ const observe = {
   // https://tc39.github.io/ecma262/#sec-set.prototype.add
   add: function(this: IObservedSet, value: unknown): ReturnType<typeof $add> {
     let $this = this;
-    if (ProxyObserver.isProxy($this)) {
+    if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
@@ -40,7 +39,7 @@ const observe = {
   // https://tc39.github.io/ecma262/#sec-set.prototype.clear
   clear: function(this: IObservedSet): ReturnType<typeof $clear>  {
     let $this = this;
-    if (ProxyObserver.isProxy($this)) {
+    if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
@@ -66,7 +65,7 @@ const observe = {
   // https://tc39.github.io/ecma262/#sec-set.prototype.delete
   delete: function(this: IObservedSet, value: unknown): ReturnType<typeof $delete> {
     let $this = this;
-    if (ProxyObserver.isProxy($this)) {
+    if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
     const o = $this.$observer;

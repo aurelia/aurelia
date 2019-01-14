@@ -6,6 +6,7 @@ import { App } from './app';
 
 import { About } from './components/about';
 import { Board } from './components/board';
+import { Cancel } from './components/cancel';
 import { Contact } from './components/contact';
 import { Contacts } from './components/contacts';
 import { Delayed } from './components/delayed';
@@ -32,6 +33,7 @@ container.register(
   Board as any,
   Inventory as any,
   Delayed as any,
+  Cancel as any,
 );
 const component = container.get(CustomElementResource.keyFrom('app'));
 

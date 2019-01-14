@@ -1,18 +1,51 @@
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { expect } from 'chai';
+import { DebugConfiguration } from '../../../debug/src/index';
 import { BasicConfiguration } from '../../../jit-html-browser/src/index';
-import { Router, ViewportCustomElement } from '../../src/index';
+import { Aurelia, CustomElementResource, IDOM } from '../../../runtime/src/index';
+import { IComponentViewportParameters, Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
 
 describe('Router', () => {
-  it('can be created', function () {
+  it('can be created', async function () {
     this.timeout(30000);
-    const sut = new Router(null);
+    const { host, router } = await setup();
+    await waitForNavigation(router);
+
+    await teardown(host, router, 1);
+  });
+
+  it('handles state strings', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+    await waitForNavigation(router);
+
+    let states: IComponentViewportParameters[] = [
+      { component: 'foo', viewport: 'left', parameters: { id: '123' } },
+      { component: 'bar', viewport: 'right', parameters: { id: '456' } },
+    ];
+    let stateString = router.statesToString(states);
+    expect(stateString).to.equal('foo@left=123+bar@right=456');
+    let stringStates = router.statesFromString(stateString);
+    expect(stringStates).to.deep.equal(states);
+
+    states = [
+      { component: 'foo', parameters: { id: '123' } },
+      { component: 'bar', viewport: 'right' },
+      { component: 'baz' },
+    ];
+
+    stateString = router.statesToString(states);
+    expect(stateString).to.equal('foo=123+bar@right+baz');
+    stringStates = router.statesFromString(stateString);
+    expect(stringStates).to.deep.equal(states);
+
+    await teardown(host, router, 1);
   });
 
   it('loads viewports left and right', async function () {
     this.timeout(30000);
     const { host, router } = await setup();
+    await waitForNavigation(router);
     expect(host.textContent).to.contain('left');
     expect(host.textContent).to.contain('right');
     await teardown(host, router, -1);
@@ -458,6 +491,7 @@ let quxCantLeave = 2;
 
 const setup = async (): Promise<{ au; container; host; router }> => {
   const container = BasicConfiguration.createContainer();
+
   const App = (CustomElementResource as any).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
   const Foo = (CustomElementResource as any).define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
   const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {
@@ -479,21 +513,25 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   });
   const Quux = (CustomElementResource as any).define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
   const Corge = (CustomElementResource as any).define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport></template>' });
-  container.register(ViewportCustomElement as any);
-  container.register(Foo, Bar, Baz, Qux, Quux, Corge);
-  const au = new Aurelia(container as any);
-  const host = document.createElement('div');
-  document.body.appendChild(host as any);
-  const component = new App();
-  au.app({ component, host });
-  au.start();
 
   container.register(Router as any);
+  container.register(ViewportCustomElement as any);
+  container.register(Foo, Bar, Baz, Qux, Quux, Corge);
+
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
   mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
   router.historyBrowser.history = mockBrowserHistoryLocation as any;
   router.historyBrowser.location = mockBrowserHistoryLocation as any;
+
+  const host = document.createElement('div');
+  document.body.appendChild(host as any);
+
+  const au = window['au'] = new Aurelia(container)
+  .register(DebugConfiguration)
+  .app({ host: host, component: App })
+  .start();
+
   router.activate();
   await Promise.resolve();
   return { au, container, host, router };

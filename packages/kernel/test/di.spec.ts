@@ -14,6 +14,7 @@ import {
   ResolverStrategy
 } from '../src/di';
 import {
+  Constructable,
   DI,
   IContainer,
   IDefaultableInterfaceSymbol,
@@ -1128,25 +1129,25 @@ describe(`The classInvokers object`, () => {
   class Dep6 {}
 
   it(`invoke() handles 0 deps`, () => {
-    const actual = classInvokers[0].invoke(container, Foo, []);
+    const actual: InstanceType<Constructable<Foo>> = classInvokers[0].invoke(container, Foo, []);
     expect(actual.args.length).to.equal(0);
   });
 
   it(`invoke() handles 1 dep`, () => {
-    const actual = classInvokers[1].invoke(container, Foo, [Dep1]);
+    const actual: InstanceType<Constructable<Foo>> = classInvokers[1].invoke(container, Foo, [Dep1]);
     expect(actual.args.length).to.equal(1);
     expect(actual.args[0]).to.be.instanceof(Dep1);
   });
 
   it(`invoke() handles 2 deps`, () => {
-    const actual = classInvokers[2].invoke(container, Foo, [Dep1, Dep2]);
+    const actual: InstanceType<Constructable<Foo>> = classInvokers[2].invoke(container, Foo, [Dep1, Dep2]);
     expect(actual.args.length).to.equal(2);
     expect(actual.args[0]).to.be.instanceof(Dep1);
     expect(actual.args[1]).to.be.instanceof(Dep2);
   });
 
   it(`invoke() handles 3 deps`, () => {
-    const actual = classInvokers[3].invoke(container, Foo, [Dep1, Dep2, Dep3]);
+    const actual: InstanceType<Constructable<Foo>> = classInvokers[3].invoke(container, Foo, [Dep1, Dep2, Dep3]);
     expect(actual.args.length).to.equal(3);
     expect(actual.args[0]).to.be.instanceof(Dep1);
     expect(actual.args[1]).to.be.instanceof(Dep2);
@@ -1154,7 +1155,7 @@ describe(`The classInvokers object`, () => {
   });
 
   it(`invoke() handles 4 deps`, () => {
-    const actual = classInvokers[4].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4]);
+    const actual: InstanceType<Constructable<Foo>> = classInvokers[4].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4]);
     expect(actual.args.length).to.equal(4);
     expect(actual.args[0]).to.be.instanceof(Dep1);
     expect(actual.args[1]).to.be.instanceof(Dep2);
@@ -1163,7 +1164,7 @@ describe(`The classInvokers object`, () => {
   });
 
   it(`invoke() handles 5 deps`, () => {
-    const actual = classInvokers[5].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5]);
+    const actual: InstanceType<Constructable<Foo>> = classInvokers[5].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5]);
     expect(actual.args.length).to.equal(5);
     expect(actual.args[0]).to.be.instanceof(Dep1);
     expect(actual.args[1]).to.be.instanceof(Dep2);

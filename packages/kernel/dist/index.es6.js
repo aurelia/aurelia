@@ -1,3 +1,5 @@
+// tslint:disable-next-line:no-redundant-jump
+function $noop() { return; }
 const $global = (function () {
     // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
     // tslint:disable:no-typeof-undefined
@@ -165,7 +167,7 @@ const { $mark, $measure, $getEntriesByName, $getEntriesByType, $clearMarks, $cle
     }
 })();
 // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js
-const $raf = (function () {
+const { $raf, $caf } = (function () {
     const vendors = ['moz', 'webkit'];
     const suffix = 'AnimationFrame';
     let raf = $global[`request${suffix}`];
@@ -226,15 +228,185 @@ const $raf = (function () {
     };
     $global.requestAnimationFrame = raf;
     $global.cancelAnimationFrame = caf;
-    return $$raf;
+    return { $raf: $$raf, $caf: caf };
 })();
+class Notifier {
+    constructor(fn, context = null) {
+        this.fn = fn;
+        this.context = context;
+        this.next = null;
+        this.prev = null;
+        this.disconnected = false;
+    }
+    equals(fn, context) {
+        return this.fn === fn && this.context === (context || null);
+    }
+    notify(frameDelta) {
+        if (this.fn !== null) {
+            if (this.context !== null) {
+                this.fn.call(this.context, frameDelta);
+            }
+            else {
+                this.fn(frameDelta);
+            }
+        }
+        const next = this.next;
+        if (this.disconnected) {
+            this.next = null;
+        }
+        return next;
+    }
+    connect(prev) {
+        this.prev = prev;
+        if (prev.next !== null) {
+            prev.next.prev = this;
+        }
+        this.next = prev.next;
+        prev.next = this;
+    }
+    disconnect(hard = false) {
+        this.disconnected = true;
+        this.fn = null;
+        this.context = null;
+        if (this.prev !== null) {
+            this.prev.next = this.next;
+        }
+        if (this.next !== null) {
+            this.next.prev = this.prev;
+        }
+        const next = this.next;
+        this.next = hard ? null : next;
+        this.prev = null;
+        return next;
+    }
+}
+class Ticker {
+    constructor() {
+        this.head = new Notifier(null, null);
+        this.requestId = -1;
+        this.frameDelta = 1;
+        this.lastTime = -1;
+        this.started = false;
+        this.promise = null;
+        this.resolve = $noop;
+        this.tick = (deltaTime) => {
+            this.requestId = -1;
+            if (this.started) {
+                this.update(deltaTime);
+                if (this.started && this.requestId === -1 && this.head.next !== null) {
+                    this.requestId = $raf(this.tick);
+                }
+            }
+            this.resolve(deltaTime);
+            this.resolve = $noop;
+            this.promise = null;
+        };
+    }
+    add(fn, context) {
+        const notifier = new Notifier(fn, context);
+        let cur = this.head.next;
+        let prev = this.head;
+        if (cur === null) {
+            notifier.connect(prev);
+        }
+        else {
+            while (cur !== null) {
+                prev = cur;
+                cur = cur.next;
+            }
+            if (notifier.prev === null) {
+                notifier.connect(prev);
+            }
+        }
+        if (this.started) {
+            this.tryRequest();
+        }
+        else {
+            this.start();
+        }
+        return this;
+    }
+    remove(fn, context) {
+        let notifier = this.head.next;
+        while (notifier !== null) {
+            if (notifier.equals(fn, context)) {
+                notifier = notifier.disconnect();
+            }
+            else {
+                notifier = notifier.next;
+            }
+        }
+        if (this.head.next === null) {
+            this.tryCancel();
+        }
+        return this;
+    }
+    start() {
+        if (!this.started) {
+            this.started = true;
+            this.tryRequest();
+        }
+    }
+    stop() {
+        if (this.started) {
+            this.started = false;
+            this.tryCancel();
+        }
+    }
+    update(currentTime = $now()) {
+        let elapsedMS;
+        if (currentTime > this.lastTime) {
+            elapsedMS = currentTime - this.lastTime;
+            // ElapsedMS * 60 / 1000 is to get the frame delta as calculated based on the elapsed time.
+            // Adding half a rounding margin to that and performing a double bitwise negate rounds it to the rounding margin which is the nearest
+            // 1/1000th of a frame (this algorithm is about twice as fast as Math.round - every CPU cycle counts :)).
+            // The rounding is to account for floating point imprecisions in performance.now caused by the browser, and accounts for frame counting mismatch
+            // caused by frame delta's like 0.999238239.
+            this.frameDelta = (~~(elapsedMS * 60 + 0.5)) / 1000;
+            const head = this.head;
+            let notifier = head.next;
+            while (notifier !== null) {
+                notifier = notifier.notify(this.frameDelta);
+            }
+            if (head.next === null) {
+                this.tryCancel();
+            }
+        }
+        else {
+            this.frameDelta = 0;
+        }
+        this.lastTime = currentTime;
+    }
+    waitForNextTick() {
+        if (this.promise === null) {
+            // tslint:disable-next-line:promise-must-complete
+            this.promise = new Promise(resolve => {
+                this.resolve = resolve;
+            });
+        }
+        return this.promise;
+    }
+    tryRequest() {
+        if (this.requestId === -1 && this.head.next !== null) {
+            this.lastTime = $now();
+            this.requestId = $raf(this.tick);
+        }
+    }
+    tryCancel() {
+        if (this.requestId !== -1) {
+            $caf(this.requestId);
+            this.requestId = -1;
+        }
+    }
+}
 const camelCaseLookup = {};
 const kebabCaseLookup = {};
 const PLATFORM = {
     global: $global,
+    ticker: new Ticker(),
     emptyArray: Object.freeze([]),
     emptyObject: Object.freeze({}),
-    noop() { return; },
+    noop: $noop,
     now: $now,
     mark: $mark,
     measure: $measure,

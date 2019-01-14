@@ -75,7 +75,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       var LifecycleFlags;
       (function (LifecycleFlags) {
           LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
-          LifecycleFlags[LifecycleFlags["mustEvaluate"] = 262144] = "mustEvaluate";
+          LifecycleFlags[LifecycleFlags["mustEvaluate"] = 524288] = "mustEvaluate";
           LifecycleFlags[LifecycleFlags["mutation"] = 3] = "mutation";
           LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 1] = "isCollectionMutation";
           LifecycleFlags[LifecycleFlags["isInstanceMutation"] = 2] = "isInstanceMutation";
@@ -83,30 +83,31 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           LifecycleFlags[LifecycleFlags["updateTargetObserver"] = 4] = "updateTargetObserver";
           LifecycleFlags[LifecycleFlags["updateTargetInstance"] = 8] = "updateTargetInstance";
           LifecycleFlags[LifecycleFlags["updateSourceExpression"] = 16] = "updateSourceExpression";
-          LifecycleFlags[LifecycleFlags["from"] = 262112] = "from";
-          LifecycleFlags[LifecycleFlags["fromFlush"] = 96] = "fromFlush";
+          LifecycleFlags[LifecycleFlags["from"] = 524256] = "from";
+          LifecycleFlags[LifecycleFlags["fromFlush"] = 224] = "fromFlush";
           LifecycleFlags[LifecycleFlags["fromAsyncFlush"] = 32] = "fromAsyncFlush";
           LifecycleFlags[LifecycleFlags["fromSyncFlush"] = 64] = "fromSyncFlush";
-          LifecycleFlags[LifecycleFlags["fromStartTask"] = 128] = "fromStartTask";
-          LifecycleFlags[LifecycleFlags["fromStopTask"] = 256] = "fromStopTask";
-          LifecycleFlags[LifecycleFlags["fromBind"] = 512] = "fromBind";
-          LifecycleFlags[LifecycleFlags["fromUnbind"] = 1024] = "fromUnbind";
-          LifecycleFlags[LifecycleFlags["fromAttach"] = 2048] = "fromAttach";
-          LifecycleFlags[LifecycleFlags["fromDetach"] = 4096] = "fromDetach";
-          LifecycleFlags[LifecycleFlags["fromCache"] = 8192] = "fromCache";
-          LifecycleFlags[LifecycleFlags["fromDOMEvent"] = 16384] = "fromDOMEvent";
-          LifecycleFlags[LifecycleFlags["fromObserverSetter"] = 32768] = "fromObserverSetter";
-          LifecycleFlags[LifecycleFlags["fromBindableHandler"] = 65536] = "fromBindableHandler";
-          LifecycleFlags[LifecycleFlags["fromLifecycleTask"] = 131072] = "fromLifecycleTask";
-          LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 524288] = "parentUnmountQueued";
+          LifecycleFlags[LifecycleFlags["fromTick"] = 128] = "fromTick";
+          LifecycleFlags[LifecycleFlags["fromStartTask"] = 256] = "fromStartTask";
+          LifecycleFlags[LifecycleFlags["fromStopTask"] = 512] = "fromStopTask";
+          LifecycleFlags[LifecycleFlags["fromBind"] = 1024] = "fromBind";
+          LifecycleFlags[LifecycleFlags["fromUnbind"] = 2048] = "fromUnbind";
+          LifecycleFlags[LifecycleFlags["fromAttach"] = 4096] = "fromAttach";
+          LifecycleFlags[LifecycleFlags["fromDetach"] = 8192] = "fromDetach";
+          LifecycleFlags[LifecycleFlags["fromCache"] = 16384] = "fromCache";
+          LifecycleFlags[LifecycleFlags["fromDOMEvent"] = 32768] = "fromDOMEvent";
+          LifecycleFlags[LifecycleFlags["fromObserverSetter"] = 65536] = "fromObserverSetter";
+          LifecycleFlags[LifecycleFlags["fromBindableHandler"] = 131072] = "fromBindableHandler";
+          LifecycleFlags[LifecycleFlags["fromLifecycleTask"] = 262144] = "fromLifecycleTask";
+          LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 1048576] = "parentUnmountQueued";
           // this flag is for the synchronous flush before detach (no point in updating the
           // DOM if it's about to be detached)
-          LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 1048576] = "doNotUpdateDOM";
-          LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 2097152] = "isTraversingParentScope";
+          LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 2097152] = "doNotUpdateDOM";
+          LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 4194304] = "isTraversingParentScope";
           // Bitmask for flags that need to be stored on a binding during $bind for mutation
           // callbacks outside of $bind
-          LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 4194304] = "persistentBindingFlags";
-          LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 4194304] = "allowParentScopeTraversal";
+          LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 8388608] = "persistentBindingFlags";
+          LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 8388608] = "allowParentScopeTraversal";
       })(LifecycleFlags || (LifecycleFlags = exports('LifecycleFlags', {})));
       function stringifyLifecycleFlags(flags) {
           const flagNames = [];
@@ -4287,40 +4288,89 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       }
 
       const IDirtyChecker = exports('IDirtyChecker', DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker)));
+      const DirtyCheckSettings = exports('DirtyCheckSettings', {
+          /**
+           * Default: `6`
+           *
+           * Adjust the global dirty check frequency.
+           * Measures in "frames per check", such that (given an FPS of 60):
+           * - A value of 1 will result in 60 dirty checks per second
+           * - A value of 6 will result in 10 dirty checks per second
+           */
+          framesPerCheck: 6,
+          /**
+           * Default: `false`
+           *
+           * Disable dirty-checking entirely. Properties that cannot be observed without dirty checking
+           * or an adapter, will simply not be observed.
+           */
+          disabled: false,
+          /**
+           * Default: `true`
+           *
+           * Log a warning message to the console if a property is being dirty-checked.
+           */
+          warn: true,
+          /**
+           * Default: `false`
+           *
+           * Throw an error if a property is being dirty-checked.
+           */
+          throw: false,
+          /**
+           * Resets all dirty checking settings to the framework's defaults.
+           */
+          resetToDefault() {
+              this.framesPerCheck = 6;
+              this.disabled = false;
+              this.warn = true;
+              this.throw = false;
+          }
+      });
       /** @internal */
       class DirtyChecker {
           constructor() {
-              this.checkDelay = 120;
+              this.elapsedFrames = 0;
               this.tracked = [];
           }
           createProperty(obj, propertyName) {
+              if (DirtyCheckSettings.throw) {
+                  throw Reporter.error(800); // TODO: create/organize error code
+              }
+              if (DirtyCheckSettings.warn) {
+                  Reporter.write(801);
+              }
               return new DirtyCheckProperty(this, obj, propertyName);
           }
           addProperty(property) {
-              const tracked = this.tracked;
-              tracked.push(property);
-              if (tracked.length === 1) {
-                  this.scheduleDirtyCheck();
+              this.tracked.push(property);
+              if (this.tracked.length === 1) {
+                  PLATFORM.ticker.add(this.check, this);
               }
           }
           removeProperty(property) {
-              const tracked = this.tracked;
-              tracked.splice(tracked.indexOf(property), 1);
-          }
-          scheduleDirtyCheck() {
-              PLATFORM.global.setTimeout(() => { this.check(); }, this.checkDelay);
-          }
-          check() {
-              const tracked = this.tracked;
-              let i = tracked.length;
-              while (i--) {
-                  const current = tracked[i];
-                  if (current.isDirty()) {
-                      current.flush(LifecycleFlags.fromFlush);
-                  }
+              this.tracked.splice(this.tracked.indexOf(property), 1);
+              if (this.tracked.length === 0) {
+                  PLATFORM.ticker.remove(this.check, this);
               }
-              if (tracked.length) {
-                  this.scheduleDirtyCheck();
+          }
+          check(delta) {
+              if (DirtyCheckSettings.disabled) {
+                  return;
+              }
+              if (++this.elapsedFrames < DirtyCheckSettings.framesPerCheck) {
+                  return;
+              }
+              this.elapsedFrames = 0;
+              const tracked = this.tracked;
+              const len = tracked.length;
+              let current;
+              let i = 0;
+              for (; i < len; ++i) {
+                  current = tracked[i];
+                  if (current.isDirty()) {
+                      current.flush(LifecycleFlags.fromTick);
+                  }
               }
           }
       }
@@ -4333,21 +4383,15 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           isDirty() {
               return this.oldValue !== this.obj[this.propertyKey];
           }
-          getValue() {
-              return this.obj[this.propertyKey];
-          }
-          setValue(newValue) {
-              this.obj[this.propertyKey] = newValue;
-          }
           flush(flags) {
               const oldValue = this.oldValue;
-              const newValue = this.getValue();
+              const newValue = this.obj[this.propertyKey];
               this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
               this.oldValue = newValue;
           }
           subscribe(subscriber) {
               if (!this.hasSubscribers()) {
-                  this.oldValue = this.getValue();
+                  this.oldValue = this.obj[this.propertyKey];
                   this.dirtyChecker.addProperty(this);
               }
               this.addSubscriber(subscriber);

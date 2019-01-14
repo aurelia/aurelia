@@ -13,7 +13,7 @@ export { SetObserver, enableSetObservation, disableSetObservation } from './obse
 export { BindingContext, Scope, OverrideContext } from './observation/binding-context';
 export { collectionObserver, CollectionLengthObserver } from './observation/collection-observer';
 export { ComputedOverrides, ComputedLookup, computed, CustomSetterObserver, GetterObserver } from './observation/computed-observer';
-export { IDirtyChecker, DirtyCheckProperty } from './observation/dirty-checker';
+export { IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings } from './observation/dirty-checker';
 export { IObjectObservationAdapter, IObserverLocator, ITargetObserverLocator, ITargetAccessorLocator, getCollectionObserver } from './observation/observer-locator';
 export { PrimitiveObserver } from './observation/primitive-observer';
 export { PropertyAccessor } from './observation/property-accessor';

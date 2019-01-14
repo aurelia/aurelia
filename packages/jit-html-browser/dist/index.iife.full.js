@@ -10,6 +10,8 @@ var au = (function (exports) {
         }
     }
 
+    // tslint:disable-next-line:no-redundant-jump
+    function $noop() { return; }
     const $global = (function () {
         // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
         // tslint:disable:no-typeof-undefined
@@ -177,7 +179,7 @@ var au = (function (exports) {
         }
     })();
     // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js
-    const $raf = (function () {
+    const { $raf, $caf } = (function () {
         const vendors = ['moz', 'webkit'];
         const suffix = 'AnimationFrame';
         let raf = $global[`request${suffix}`];
@@ -238,15 +240,185 @@ var au = (function (exports) {
         };
         $global.requestAnimationFrame = raf;
         $global.cancelAnimationFrame = caf;
-        return $$raf;
+        return { $raf: $$raf, $caf: caf };
     })();
+    class Notifier {
+        constructor(fn, context = null) {
+            this.fn = fn;
+            this.context = context;
+            this.next = null;
+            this.prev = null;
+            this.disconnected = false;
+        }
+        equals(fn, context) {
+            return this.fn === fn && this.context === (context || null);
+        }
+        notify(frameDelta) {
+            if (this.fn !== null) {
+                if (this.context !== null) {
+                    this.fn.call(this.context, frameDelta);
+                }
+                else {
+                    this.fn(frameDelta);
+                }
+            }
+            const next = this.next;
+            if (this.disconnected) {
+                this.next = null;
+            }
+            return next;
+        }
+        connect(prev) {
+            this.prev = prev;
+            if (prev.next !== null) {
+                prev.next.prev = this;
+            }
+            this.next = prev.next;
+            prev.next = this;
+        }
+        disconnect(hard = false) {
+            this.disconnected = true;
+            this.fn = null;
+            this.context = null;
+            if (this.prev !== null) {
+                this.prev.next = this.next;
+            }
+            if (this.next !== null) {
+                this.next.prev = this.prev;
+            }
+            const next = this.next;
+            this.next = hard ? null : next;
+            this.prev = null;
+            return next;
+        }
+    }
+    class Ticker {
+        constructor() {
+            this.head = new Notifier(null, null);
+            this.requestId = -1;
+            this.frameDelta = 1;
+            this.lastTime = -1;
+            this.started = false;
+            this.promise = null;
+            this.resolve = $noop;
+            this.tick = (deltaTime) => {
+                this.requestId = -1;
+                if (this.started) {
+                    this.update(deltaTime);
+                    if (this.started && this.requestId === -1 && this.head.next !== null) {
+                        this.requestId = $raf(this.tick);
+                    }
+                }
+                this.resolve(deltaTime);
+                this.resolve = $noop;
+                this.promise = null;
+            };
+        }
+        add(fn, context) {
+            const notifier = new Notifier(fn, context);
+            let cur = this.head.next;
+            let prev = this.head;
+            if (cur === null) {
+                notifier.connect(prev);
+            }
+            else {
+                while (cur !== null) {
+                    prev = cur;
+                    cur = cur.next;
+                }
+                if (notifier.prev === null) {
+                    notifier.connect(prev);
+                }
+            }
+            if (this.started) {
+                this.tryRequest();
+            }
+            else {
+                this.start();
+            }
+            return this;
+        }
+        remove(fn, context) {
+            let notifier = this.head.next;
+            while (notifier !== null) {
+                if (notifier.equals(fn, context)) {
+                    notifier = notifier.disconnect();
+                }
+                else {
+                    notifier = notifier.next;
+                }
+            }
+            if (this.head.next === null) {
+                this.tryCancel();
+            }
+            return this;
+        }
+        start() {
+            if (!this.started) {
+                this.started = true;
+                this.tryRequest();
+            }
+        }
+        stop() {
+            if (this.started) {
+                this.started = false;
+                this.tryCancel();
+            }
+        }
+        update(currentTime = $now()) {
+            let elapsedMS;
+            if (currentTime > this.lastTime) {
+                elapsedMS = currentTime - this.lastTime;
+                // ElapsedMS * 60 / 1000 is to get the frame delta as calculated based on the elapsed time.
+                // Adding half a rounding margin to that and performing a double bitwise negate rounds it to the rounding margin which is the nearest
+                // 1/1000th of a frame (this algorithm is about twice as fast as Math.round - every CPU cycle counts :)).
+                // The rounding is to account for floating point imprecisions in performance.now caused by the browser, and accounts for frame counting mismatch
+                // caused by frame delta's like 0.999238239.
+                this.frameDelta = (~~(elapsedMS * 60 + 0.5)) / 1000;
+                const head = this.head;
+                let notifier = head.next;
+                while (notifier !== null) {
+                    notifier = notifier.notify(this.frameDelta);
+                }
+                if (head.next === null) {
+                    this.tryCancel();
+                }
+            }
+            else {
+                this.frameDelta = 0;
+            }
+            this.lastTime = currentTime;
+        }
+        waitForNextTick() {
+            if (this.promise === null) {
+                // tslint:disable-next-line:promise-must-complete
+                this.promise = new Promise(resolve => {
+                    this.resolve = resolve;
+                });
+            }
+            return this.promise;
+        }
+        tryRequest() {
+            if (this.requestId === -1 && this.head.next !== null) {
+                this.lastTime = $now();
+                this.requestId = $raf(this.tick);
+            }
+        }
+        tryCancel() {
+            if (this.requestId !== -1) {
+                $caf(this.requestId);
+                this.requestId = -1;
+            }
+        }
+    }
     const camelCaseLookup = {};
     const kebabCaseLookup = {};
     const PLATFORM = {
         global: $global,
+        ticker: new Ticker(),
         emptyArray: Object.freeze([]),
         emptyObject: Object.freeze({}),
-        noop() { return; },
+        noop: $noop,
         now: $now,
         mark: $mark,
         measure: $measure,
@@ -1509,7 +1681,7 @@ var au = (function (exports) {
     var LifecycleFlags;
     (function (LifecycleFlags) {
         LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
-        LifecycleFlags[LifecycleFlags["mustEvaluate"] = 262144] = "mustEvaluate";
+        LifecycleFlags[LifecycleFlags["mustEvaluate"] = 524288] = "mustEvaluate";
         LifecycleFlags[LifecycleFlags["mutation"] = 3] = "mutation";
         LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 1] = "isCollectionMutation";
         LifecycleFlags[LifecycleFlags["isInstanceMutation"] = 2] = "isInstanceMutation";
@@ -1517,30 +1689,31 @@ var au = (function (exports) {
         LifecycleFlags[LifecycleFlags["updateTargetObserver"] = 4] = "updateTargetObserver";
         LifecycleFlags[LifecycleFlags["updateTargetInstance"] = 8] = "updateTargetInstance";
         LifecycleFlags[LifecycleFlags["updateSourceExpression"] = 16] = "updateSourceExpression";
-        LifecycleFlags[LifecycleFlags["from"] = 262112] = "from";
-        LifecycleFlags[LifecycleFlags["fromFlush"] = 96] = "fromFlush";
+        LifecycleFlags[LifecycleFlags["from"] = 524256] = "from";
+        LifecycleFlags[LifecycleFlags["fromFlush"] = 224] = "fromFlush";
         LifecycleFlags[LifecycleFlags["fromAsyncFlush"] = 32] = "fromAsyncFlush";
         LifecycleFlags[LifecycleFlags["fromSyncFlush"] = 64] = "fromSyncFlush";
-        LifecycleFlags[LifecycleFlags["fromStartTask"] = 128] = "fromStartTask";
-        LifecycleFlags[LifecycleFlags["fromStopTask"] = 256] = "fromStopTask";
-        LifecycleFlags[LifecycleFlags["fromBind"] = 512] = "fromBind";
-        LifecycleFlags[LifecycleFlags["fromUnbind"] = 1024] = "fromUnbind";
-        LifecycleFlags[LifecycleFlags["fromAttach"] = 2048] = "fromAttach";
-        LifecycleFlags[LifecycleFlags["fromDetach"] = 4096] = "fromDetach";
-        LifecycleFlags[LifecycleFlags["fromCache"] = 8192] = "fromCache";
-        LifecycleFlags[LifecycleFlags["fromDOMEvent"] = 16384] = "fromDOMEvent";
-        LifecycleFlags[LifecycleFlags["fromObserverSetter"] = 32768] = "fromObserverSetter";
-        LifecycleFlags[LifecycleFlags["fromBindableHandler"] = 65536] = "fromBindableHandler";
-        LifecycleFlags[LifecycleFlags["fromLifecycleTask"] = 131072] = "fromLifecycleTask";
-        LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 524288] = "parentUnmountQueued";
+        LifecycleFlags[LifecycleFlags["fromTick"] = 128] = "fromTick";
+        LifecycleFlags[LifecycleFlags["fromStartTask"] = 256] = "fromStartTask";
+        LifecycleFlags[LifecycleFlags["fromStopTask"] = 512] = "fromStopTask";
+        LifecycleFlags[LifecycleFlags["fromBind"] = 1024] = "fromBind";
+        LifecycleFlags[LifecycleFlags["fromUnbind"] = 2048] = "fromUnbind";
+        LifecycleFlags[LifecycleFlags["fromAttach"] = 4096] = "fromAttach";
+        LifecycleFlags[LifecycleFlags["fromDetach"] = 8192] = "fromDetach";
+        LifecycleFlags[LifecycleFlags["fromCache"] = 16384] = "fromCache";
+        LifecycleFlags[LifecycleFlags["fromDOMEvent"] = 32768] = "fromDOMEvent";
+        LifecycleFlags[LifecycleFlags["fromObserverSetter"] = 65536] = "fromObserverSetter";
+        LifecycleFlags[LifecycleFlags["fromBindableHandler"] = 131072] = "fromBindableHandler";
+        LifecycleFlags[LifecycleFlags["fromLifecycleTask"] = 262144] = "fromLifecycleTask";
+        LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 1048576] = "parentUnmountQueued";
         // this flag is for the synchronous flush before detach (no point in updating the
         // DOM if it's about to be detached)
-        LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 1048576] = "doNotUpdateDOM";
-        LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 2097152] = "isTraversingParentScope";
+        LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 2097152] = "doNotUpdateDOM";
+        LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 4194304] = "isTraversingParentScope";
         // Bitmask for flags that need to be stored on a binding during $bind for mutation
         // callbacks outside of $bind
-        LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 4194304] = "persistentBindingFlags";
-        LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 4194304] = "allowParentScopeTraversal";
+        LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 8388608] = "persistentBindingFlags";
+        LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 8388608] = "allowParentScopeTraversal";
     })(LifecycleFlags || (LifecycleFlags = {}));
     function stringifyLifecycleFlags(flags) {
         const flagNames = [];
@@ -5721,40 +5894,89 @@ var au = (function (exports) {
     }
 
     const IDirtyChecker = DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
+    const DirtyCheckSettings = {
+        /**
+         * Default: `6`
+         *
+         * Adjust the global dirty check frequency.
+         * Measures in "frames per check", such that (given an FPS of 60):
+         * - A value of 1 will result in 60 dirty checks per second
+         * - A value of 6 will result in 10 dirty checks per second
+         */
+        framesPerCheck: 6,
+        /**
+         * Default: `false`
+         *
+         * Disable dirty-checking entirely. Properties that cannot be observed without dirty checking
+         * or an adapter, will simply not be observed.
+         */
+        disabled: false,
+        /**
+         * Default: `true`
+         *
+         * Log a warning message to the console if a property is being dirty-checked.
+         */
+        warn: true,
+        /**
+         * Default: `false`
+         *
+         * Throw an error if a property is being dirty-checked.
+         */
+        throw: false,
+        /**
+         * Resets all dirty checking settings to the framework's defaults.
+         */
+        resetToDefault() {
+            this.framesPerCheck = 6;
+            this.disabled = false;
+            this.warn = true;
+            this.throw = false;
+        }
+    };
     /** @internal */
     class DirtyChecker {
         constructor() {
-            this.checkDelay = 120;
+            this.elapsedFrames = 0;
             this.tracked = [];
         }
         createProperty(obj, propertyName) {
+            if (DirtyCheckSettings.throw) {
+                throw Reporter.error(800); // TODO: create/organize error code
+            }
+            if (DirtyCheckSettings.warn) {
+                Reporter.write(801);
+            }
             return new DirtyCheckProperty(this, obj, propertyName);
         }
         addProperty(property) {
-            const tracked = this.tracked;
-            tracked.push(property);
-            if (tracked.length === 1) {
-                this.scheduleDirtyCheck();
+            this.tracked.push(property);
+            if (this.tracked.length === 1) {
+                PLATFORM.ticker.add(this.check, this);
             }
         }
         removeProperty(property) {
-            const tracked = this.tracked;
-            tracked.splice(tracked.indexOf(property), 1);
-        }
-        scheduleDirtyCheck() {
-            PLATFORM.global.setTimeout(() => { this.check(); }, this.checkDelay);
-        }
-        check() {
-            const tracked = this.tracked;
-            let i = tracked.length;
-            while (i--) {
-                const current = tracked[i];
-                if (current.isDirty()) {
-                    current.flush(LifecycleFlags.fromFlush);
-                }
+            this.tracked.splice(this.tracked.indexOf(property), 1);
+            if (this.tracked.length === 0) {
+                PLATFORM.ticker.remove(this.check, this);
             }
-            if (tracked.length) {
-                this.scheduleDirtyCheck();
+        }
+        check(delta) {
+            if (DirtyCheckSettings.disabled) {
+                return;
+            }
+            if (++this.elapsedFrames < DirtyCheckSettings.framesPerCheck) {
+                return;
+            }
+            this.elapsedFrames = 0;
+            const tracked = this.tracked;
+            const len = tracked.length;
+            let current;
+            let i = 0;
+            for (; i < len; ++i) {
+                current = tracked[i];
+                if (current.isDirty()) {
+                    current.flush(LifecycleFlags.fromTick);
+                }
             }
         }
     }
@@ -5767,21 +5989,15 @@ var au = (function (exports) {
         isDirty() {
             return this.oldValue !== this.obj[this.propertyKey];
         }
-        getValue() {
-            return this.obj[this.propertyKey];
-        }
-        setValue(newValue) {
-            this.obj[this.propertyKey] = newValue;
-        }
         flush(flags) {
             const oldValue = this.oldValue;
-            const newValue = this.getValue();
+            const newValue = this.obj[this.propertyKey];
             this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
             this.oldValue = newValue;
         }
         subscribe(subscriber) {
             if (!this.hasSubscribers()) {
-                this.oldValue = this.getValue();
+                this.oldValue = this.obj[this.propertyKey];
                 this.dirtyChecker.addProperty(this);
             }
             this.addSubscriber(subscriber);
@@ -8505,6 +8721,7 @@ var au = (function (exports) {
         get GetterObserver () { return GetterObserver; },
         IDirtyChecker: IDirtyChecker,
         get DirtyCheckProperty () { return DirtyCheckProperty; },
+        DirtyCheckSettings: DirtyCheckSettings,
         IObserverLocator: IObserverLocator,
         ITargetObserverLocator: ITargetObserverLocator,
         ITargetAccessorLocator: ITargetAccessorLocator,

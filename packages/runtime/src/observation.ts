@@ -144,8 +144,9 @@ export type IndexMap = number[] & {
  * Mostly just a marker enum to help with typings (specifically to reduce duplication)
  */
 export enum MutationKind {
-  instance   = 0b01,
-  collection = 0b10
+  instance   = 0b001,
+  collection = 0b010,
+  proxy      = 0b100
 }
 
 /**
@@ -181,6 +182,20 @@ export interface IPropertyChangeNotifier extends IPropertyChangeHandler {}
 export interface IPropertySubscriber<TValue = unknown> { handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void; }
 
 /**
+ * Represents a (subscriber) function that can be called by a ProxyChangeNotifier
+ */
+export type IProxyChangeHandler<TValue = unknown> = (key: PropertyKey, newValue: TValue, previousValue: TValue, flags: LifecycleFlags) => void;
+/**
+ * Represents a (observer) function that can notify subscribers of mutations on a proxy
+ */
+export interface IProxyChangeNotifier extends IProxyChangeHandler {}
+
+/**
+ * Describes a (subscriber) type that has a function conforming to the IProxyChangeHandler interface
+ */
+export interface IProxySubscriber<TValue = unknown> { handleChange(key: PropertyKey, newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void; }
+
+/**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
  */
 export type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags?: LifecycleFlags) => void;
@@ -210,7 +225,7 @@ export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: nu
 /**
  * Either a property or collection subscriber
  */
-export type Subscriber = ICollectionSubscriber | IPropertySubscriber;
+export type Subscriber = ICollectionSubscriber | IPropertySubscriber | IProxySubscriber;
 /**
  * Either a batched property or batched collection subscriber
  */
@@ -222,6 +237,7 @@ export type BatchedSubscriber = IBatchedCollectionSubscriber;
 export type MutationKindToSubscriber<T> =
   T extends MutationKind.instance ? IPropertySubscriber :
   T extends MutationKind.collection ? ICollectionSubscriber :
+  T extends MutationKind.proxy ? IProxySubscriber :
   never;
 
 /**
@@ -237,6 +253,7 @@ export type MutationKindToBatchedSubscriber<T> =
 export type MutationKindToNotifier<T> =
   T extends MutationKind.instance ? IPropertyChangeNotifier :
   T extends MutationKind.collection ? ICollectionChangeNotifier :
+  T extends MutationKind.proxy ? IProxyChangeNotifier :
   never;
 
 /**

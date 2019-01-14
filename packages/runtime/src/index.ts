@@ -145,6 +145,9 @@ export {
   propertyObserver
 } from './observation/property-observer';
 export {
+  ProxyObserver
+} from './observation/proxy-observer';
+export {
   SelfObserver
 } from './observation/self-observer';
 export {

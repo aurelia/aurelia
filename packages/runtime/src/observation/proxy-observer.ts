@@ -9,8 +9,6 @@ export class ProxySubscriberCollection implements ProxySubscriberCollection {}
 const lookup = new WeakMap<object, ProxyObserver>();
 const proxies = new WeakSet<object>();
 
-export const raw = Symbol.for('raw');
-
 export interface ProxyObserver<T extends object = object> extends ISubscriberCollection<MutationKind.proxy> {}
 
 @subscriberCollection(MutationKind.proxy)
@@ -33,12 +31,12 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
     return observer as ProxyObserver<T>;
   }
 
-  public static isProxy<T extends object>(obj: T): obj is T & { [raw]: T } {
+  public static isProxy<T extends object>(obj: T): obj is T & { '$raw': T } {
     return proxies.has(obj);
   }
 
   public get(target: T, p: PropertyKey, receiver?: unknown): unknown {
-    if (p === raw) {
+    if (p === '$raw') {
       return target;
     }
     if (p === '$observer') {

@@ -1,7 +1,7 @@
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
-import { ProxyObserver, raw } from './proxy-observer';
+import { ProxyObserver } from './proxy-observer';
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {
@@ -155,7 +155,7 @@ const observe = {
   push: function(this: IObservedArray): ReturnType<typeof Array.prototype.push> {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -180,7 +180,7 @@ const observe = {
   unshift: function(this: IObservedArray): ReturnType<typeof Array.prototype.unshift>  {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -201,7 +201,7 @@ const observe = {
   pop: function(this: IObservedArray): ReturnType<typeof Array.prototype.pop> {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -222,7 +222,7 @@ const observe = {
   shift: function(this: IObservedArray): ReturnType<typeof Array.prototype.shift> {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -242,7 +242,7 @@ const observe = {
   splice: function(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof Array.prototype.splice> {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -279,7 +279,7 @@ const observe = {
   reverse: function(this: IObservedArray): ReturnType<typeof Array.prototype.reverse> {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -307,7 +307,7 @@ const observe = {
   sort: function(this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {

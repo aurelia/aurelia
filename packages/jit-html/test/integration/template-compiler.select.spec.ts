@@ -58,7 +58,7 @@ describe('template-compiler.select', () => {
       // vCurrent does not attempt to correct <select/> value
       // vNext shouldn't for compat
       expect(select3.value).to.equal('3');
-      const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
+      const observer3 = observerLocator.getObserver(0, select3, 'value') as SelectValueObserver;
       expect(observer3.currentValue).to.equal('2');
 
       // expect no state changes after flushing
@@ -106,7 +106,7 @@ describe('template-compiler.select', () => {
       expect(component.selectedValue).to.equal('2');
 
       // Verify observer 3 will take the view model value, regardless valid value from view model
-      const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
+      const observer3 = observerLocator.getObserver(0, select3, 'value') as SelectValueObserver;
       expect(observer3.currentValue).to.equal('2');
 
       // simulate change from under input
@@ -114,7 +114,7 @@ describe('template-compiler.select', () => {
       select2.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
 
       expect(component.selectedValue).to.equal('1');
-      const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
+      const observer1 = observerLocator.getObserver(0, select1, 'value') as SelectValueObserver;
       expect(observer1.currentValue).to.equal('1');
       // verify observer 3 will take the view model value from changes, regardless valid value from view model
       expect(observer3.currentValue).to.equal('1');
@@ -164,9 +164,9 @@ describe('template-compiler.select', () => {
       const select1 = host.querySelector('#select1');
       const select2 = host.querySelector('#select2');
       const select3 = host.querySelector('#select3');
-      const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
-      const observer2 = observerLocator.getObserver(select2, 'value') as SelectValueObserver;
-      const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
+      const observer1 = observerLocator.getObserver(0, select1, 'value') as SelectValueObserver;
+      const observer2 = observerLocator.getObserver(0, select2, 'value') as SelectValueObserver;
+      const observer3 = observerLocator.getObserver(0, select3, 'value') as SelectValueObserver;
       expect(observer1.currentValue).to.equal(component.selectedValues);
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);
@@ -222,9 +222,9 @@ describe('template-compiler.select', () => {
       const select1 = host.querySelector('#select1') as HTMLSelectElement;
       const select2 = host.querySelector('#select2') as HTMLSelectElement;
       const select3 = host.querySelector('#select3') as HTMLSelectElement;
-      const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
-      const observer2 = observerLocator.getObserver(select2, 'value') as SelectValueObserver;
-      const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
+      const observer1 = observerLocator.getObserver(0, select1, 'value') as SelectValueObserver;
+      const observer2 = observerLocator.getObserver(0, select2, 'value') as SelectValueObserver;
+      const observer3 = observerLocator.getObserver(0, select3, 'value') as SelectValueObserver;
       expect(observer1.currentValue).to.equal(component.selectedValues);
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);

@@ -1,7 +1,7 @@
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
-import { ProxyObserver, raw } from './proxy-observer';
+import { ProxyObserver } from './proxy-observer';
 
 const proto = Map.prototype;
 
@@ -20,7 +20,7 @@ const observe = {
   set: function(this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -51,7 +51,7 @@ const observe = {
   clear: function(this: IObservedMap): ReturnType<typeof $clear>  {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -77,7 +77,7 @@ const observe = {
   delete: function(this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {

@@ -1,7 +1,7 @@
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedSet, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
-import { ProxyObserver, raw } from './proxy-observer';
+import { ProxyObserver } from './proxy-observer';
 
 const proto = Set.prototype;
 
@@ -20,7 +20,7 @@ const observe = {
   add: function(this: IObservedSet, value: unknown): ReturnType<typeof $add> {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -41,7 +41,7 @@ const observe = {
   clear: function(this: IObservedSet): ReturnType<typeof $clear>  {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {
@@ -67,7 +67,7 @@ const observe = {
   delete: function(this: IObservedSet, value: unknown): ReturnType<typeof $delete> {
     let $this = this;
     if (ProxyObserver.isProxy($this)) {
-      $this = $this[raw];
+      $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === undefined) {

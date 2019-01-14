@@ -25,5 +25,4 @@ export function createHTMLTestContext(): HTMLTestContext {
 
 TestContext.createHTMLTestContext = createHTMLTestContext;
 
-chai.should();
 chai.use(sinonChai);

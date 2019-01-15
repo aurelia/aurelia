@@ -205,7 +205,7 @@ describe('@customElement', () => {
       {
         description: 'Hooks.hasUnbound',
         expectation: 'does NOT call unbinding(), calls unbound()',
-        getHooks() { return Hooks.hasUnbound;},
+        getHooks() { return Hooks.hasUnbound; },
         verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
           sut.verifyUnboundCalled(flags);
           sut.verifyNoFurtherCalls();

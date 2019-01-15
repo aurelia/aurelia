@@ -308,7 +308,7 @@ describe('The "compose" custom element', () => {
     return new FakeViewFactory(ctx);
   }
 
-  function createPotentialRenderable(ctx: HTMLTestContext): RenderPlan<Node> {
+  function createPotentialRenderable(ctx: HTMLTestContext): RenderPlan {
     return new RenderPlan<Node>(ctx.dom, ctx.createElement('div'), [], []);
   }
 

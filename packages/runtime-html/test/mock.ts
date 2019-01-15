@@ -41,7 +41,7 @@ import {
   TemplatePartDefinitions
 } from '@aurelia/runtime';
 import { spy } from 'sinon';
-import {Lifecycle } from '../../runtime/src/lifecycle';
+import { Lifecycle } from '../../runtime/src/lifecycle';
 import { ObserverLocator } from '../../runtime/src/observation/observer-locator';
 import { RuntimeBehavior } from '../../runtime/src/rendering-engine';
 import { ViewFactory } from '../../runtime/src/templating/view';
@@ -167,7 +167,7 @@ export class MockTextNodeTemplate {
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (renderable as Writable<IRenderable>).$nodes = new MockTextNodeSequence();
+    const nodes = (renderable as Writable<IRenderable>).$nodes = new MockTextNodeSequence(undefined);
     addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
   }
 }
@@ -187,7 +187,7 @@ export class MockIfTextNodeTemplate {
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (renderable as Writable<IRenderable>).$nodes = MockNodeSequence.createRenderLocation();
+    const nodes = (renderable as Writable<IRenderable>).$nodes = MockNodeSequence.createRenderLocation(undefined);
 
     const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
     const factory = new ViewFactory(null, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
@@ -217,7 +217,7 @@ export class MockIfElseTextNodeTemplate {
   ) {}
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const ifNodes = (renderable as Writable<IRenderable>).$nodes = MockNodeSequence.createRenderLocation();
+    const ifNodes = (renderable as Writable<IRenderable>).$nodes = MockNodeSequence.createRenderLocation(undefined);
 
     const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
     const ifFactory = new ViewFactory(null, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);

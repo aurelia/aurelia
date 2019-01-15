@@ -21,7 +21,7 @@ describe('@customElement', () => {
         description: '$isAttached: false',
         expectation: 'calls behaviors',
         callsBehaviors: true,
-        setProps(sut: CustomElement) { }
+        setProps(sut: CustomElement) { return; }
       },
       {
         description: '$isAttached: true',
@@ -75,9 +75,9 @@ describe('@customElement', () => {
         let projectCalled = false;
         let projectNodes;
         sut.$projector = {
-          project(nodes) {
+          project(nodes2) {
             projectCalled = true;
-            projectNodes = nodes;
+            projectNodes = nodes2;
           },
           provideEncapsulationSource(parentEncapsulationSource) {
             return parentEncapsulationSource;
@@ -113,7 +113,7 @@ describe('@customElement', () => {
         description: '$isAttached: false',
         expectation: 'does NOT call behaviors',
         callsBehaviors: false,
-        setProps(sut: CustomElement) { }
+        setProps(sut: CustomElement) { return; }
       },
       {
         description: '$isAttached: true',
@@ -236,9 +236,9 @@ describe('@customElement', () => {
       let projectCalled = false;
       let projectNodes;
       sut.$projector = {
-        project(nodes) {
+        project(nodes2) {
           projectCalled = true;
-          projectNodes = nodes;
+          projectNodes = nodes2;
         }
       } as any;
 
@@ -257,9 +257,9 @@ describe('@customElement', () => {
       let takeCalled = false;
       let takeNodes;
       sut.$projector = {
-        take(nodes) {
+        take(nodes2) {
           takeCalled = true;
-          takeNodes = nodes;
+          takeNodes = nodes2;
         }
       } as any;
       sut.$state |= State.isMounted;

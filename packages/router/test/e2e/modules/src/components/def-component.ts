@@ -1,37 +1,37 @@
-import { AppState } from './../app-state';
-import { customElement } from '../../../../../../runtime';
-import * as template from './def-component.html';
 import { inject } from '../../../../../../kernel';
+import { customElement } from '../../../../../../runtime';
+import { AppState } from './../app-state';
+import * as template from './def-component.html';
 
 @inject(AppState)
 @customElement({ name: 'def-component', template })
 export class DefComponent {
-  name = 'def-component';
-  blockLeave = false;
+  public name = 'def-component';
+  public blockLeave = false;
 
-  counter = 0;
+  public counter = 0;
 
-  constructor(private appState: AppState) { }
+  constructor(private readonly appState: AppState) { }
 
-  bound(...rest) {
+  public bound(...rest) {
     console.log(this.name, 'bound', this.appState, rest);
   }
-  attached(...rest) {
+  public attached(...rest) {
     console.log(this.name, 'attached', rest);
   }
-  canEnter(instruction, previousInstruction) {
+  public canEnter(instruction, previousInstruction) {
     console.log(this.name, 'canEnter', ++this.counter, instruction, previousInstruction);
     return !this.appState.blockEnterAbc;
   }
-  enter(instruction, previousInstruction) {
+  public enter(instruction, previousInstruction) {
     console.log(this.name, 'enter', ++this.counter, instruction, previousInstruction);
     return true;
   }
-  canLeave(previousInstruction, instruction) {
+  public canLeave(previousInstruction, instruction) {
     console.log(this.name, 'canLeave', ++this.counter, previousInstruction, instruction);
     return !this.blockLeave;
   }
-  leave(previousInstruction, instruction) {
+  public leave(previousInstruction, instruction) {
     console.log(this.name, 'leave', ++this.counter, previousInstruction, instruction);
     return true;
   }

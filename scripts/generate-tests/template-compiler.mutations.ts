@@ -230,8 +230,8 @@ function generateAndEmit(): void {
   for (const suffix in testsRecord) {
     const tests = testsRecord[suffix];
     const nodes = [
+      $$import('@aurelia/runtime', 'Aurelia', 'CustomElementResource', 'INode'),
       $$import('chai', 'expect'),
-      $$import('@aurelia/runtime', 'CustomElementResource', 'Aurelia', 'INode'),
       $$import('../util', 'TestContext'),
       null,
       $$functionExpr('describe', [

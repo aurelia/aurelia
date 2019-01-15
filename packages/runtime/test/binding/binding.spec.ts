@@ -7,6 +7,7 @@ import {
 import {
   AccessMember,
   AccessScope,
+  BasicConfiguration,
   Binary,
   Binding,
   BindingMode,
@@ -21,7 +22,6 @@ import {
   ObjectLiteral,
   PrimitiveLiteral,
   PropertyAccessor,
-  BasicConfiguration,
   Scope,
   SetterObserver,
   State
@@ -44,7 +44,7 @@ import {
  * pad a string with spaces on the right-hand side until it's the specified length
  */
 export function padRight(str: any, len: number): string {
-  str = str + '';
+  str = `${str}`;
   const strLen = str.length;
   if (strLen >= len) {
     return str;

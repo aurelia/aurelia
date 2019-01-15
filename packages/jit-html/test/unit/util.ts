@@ -50,7 +50,7 @@ export const SymbolTraceWriter = {
           if (p === null) {
             output += 'null';
           } else {
-            if ((p as ISymbol).flags) {
+            if ((p as ISymbol).flags !== undefined) {
               const symbol = p as INodeSymbol | IAttributeSymbol;
               if ('target' in symbol) {
                 //@ts-ignore
@@ -187,7 +187,7 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
     }
   }
   if (path === 'instruction' && errors.some(e => e[0] === 'W')) {
-    throw new Error('Failed assertion: binding instruction mismatch\n  - ' + errors.join('\n  - '));
+    throw new Error(`Failed assertion: binding instruction mismatch\n  - ${errors.join('\n  - ')}`);
   }
 }
 

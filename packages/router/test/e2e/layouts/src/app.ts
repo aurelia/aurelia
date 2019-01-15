@@ -1,6 +1,6 @@
 import { inject } from '../../../../../kernel';
-import { customElement } from '../../../../../runtime';
 import { Router } from '../../../../../router';
+import { customElement } from '../../../../../runtime';
 
 @inject(Router)
 @customElement({
@@ -16,7 +16,7 @@ import { Router } from '../../../../../router';
 </template>
 ` })
 export class App {
-  constructor(private router: Router) {
+  constructor(private readonly router: Router) {
     this.router.activate();
   }
 }

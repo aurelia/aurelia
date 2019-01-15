@@ -161,9 +161,9 @@ describe('template-compiler.select', () => {
           public selectedValues: Primitive[] = ['1', 2, '2', 3, '3'];
         }
       );
-      const select1 = host.querySelector('#select1') as HTMLSelectElement;
-      const select2 = host.querySelector('#select2') as HTMLSelectElement;
-      const select3 = host.querySelector('#select3') as HTMLSelectElement;
+      const select1 = host.querySelector('#select1');
+      const select2 = host.querySelector('#select2');
+      const select3 = host.querySelector('#select3');
       const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
       const observer2 = observerLocator.getObserver(select2, 'value') as SelectValueObserver;
       const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
@@ -172,19 +172,19 @@ describe('template-compiler.select', () => {
       expect(observer3.currentValue).to.equal(component.selectedValues);
       lifecycle.processFlushQueue(LifecycleFlags.none);
       const options = host.querySelectorAll('option');
-      options.forEach(option => {
-        expect(option.selected).to.be[component.selectedValues.includes(option.value) ? 'true' : 'false'];
+      options.forEach(optionA => {
+        expect(optionA.selected).to.be[component.selectedValues.includes(optionA.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
       lifecycle.processFlushQueue(LifecycleFlags.none);
-      options.forEach(option => {
-        expect(option.selected).to.equal(false);
+      options.forEach(optionB => {
+        expect(optionB.selected).to.equal(false);
       });
 
       // expect no state changes after flushing
       lifecycle.processFlushQueue(LifecycleFlags.none);
-      options.forEach(option => {
-        expect(option.selected).to.equal(false);
+      options.forEach(optionC => {
+        expect(optionC.selected).to.equal(false);
       });
 
       tearDown(au, lifecycle, host);
@@ -230,29 +230,29 @@ describe('template-compiler.select', () => {
       expect(observer3.currentValue).to.equal(component.selectedValues);
       lifecycle.processFlushQueue(LifecycleFlags.none);
       const options = host.querySelectorAll('option');
-      options.forEach(option => {
-        expect(option.selected).to.be[component.selectedValues.includes(option.value) ? 'true' : 'false'];
+      options.forEach(option1 => {
+        expect(option1.selected).to.be[component.selectedValues.includes(option1.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
       lifecycle.processFlushQueue(LifecycleFlags.none);
-      options.forEach(option => {
-        expect(option.selected).to.equal(false);
+      options.forEach(option2 => {
+        expect(option2.selected).to.equal(false);
       });
 
-      [].forEach.call(select3.options, (option: HTMLOptionElement) => {
-        option.selected = true;
+      [].forEach.call(select3.options, (option3: HTMLOptionElement) => {
+        option3.selected = true;
       });
       select3.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
       expect(component.selectedValues.toString()).to.equal(['8', '9', '10', '11', '12'].toString());
-      [].forEach.call(select2.options, (option: HTMLOptionElement) => {
-        option.selected = true;
+      [].forEach.call(select2.options, (option4: HTMLOptionElement) => {
+        option4.selected = true;
       });
 
       // expect no state changes after flushing
       lifecycle.processFlushQueue(LifecycleFlags.none);
       expect(component.selectedValues.toString()).to.equal(['8', '9', '10', '11', '12'].toString());
-      [].forEach.call(select2.options, (option: HTMLOptionElement) => {
-        option.selected = true;
+      [].forEach.call(select2.options, (option5: HTMLOptionElement) => {
+        option5.selected = true;
       });
 
       tearDown(au, lifecycle, host);
@@ -268,7 +268,8 @@ describe('template-compiler.select', () => {
                       { 'value.to-view': 'selectedValue' },
                       ...[1, 2].map(v => option(ctx.doc, { value: v }))
         )
-      ), null
+      ),
+      null
     );
     expect(host.firstElementChild['value']).to.equal('1');
     component.selectedValue = '2';

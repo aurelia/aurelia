@@ -39,11 +39,11 @@ describe('@customElement', () => {
         let renderHost;
         let renderParts;
         const template: ITemplate = {
-          renderContext: {} as ITemplate['renderContext'],
-          render: ((renderable, host, parts) => {
+          renderContext: {},
+          render: ((renderable, host2, parts) => {
             renderCalled = true;
             renderRenderable = renderable;
-            renderHost = host;
+            renderHost = host2;
             renderParts = parts;
           }) as ITemplate['render']
         } as any;

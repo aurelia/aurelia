@@ -1,6 +1,7 @@
-import { expect } from "chai";
-import { CustomElementResource, Aurelia } from "@aurelia/runtime";
+// tslint:disable:quotemark member-access
 import { Profiler } from "@aurelia/kernel";
+import { Aurelia, CustomElementResource } from "@aurelia/runtime";
+import { expect } from "chai";
 import { getVisibleText, TestContext, writeProfilerReport } from "../util";
 
 describe("generated.template-compiler.static.if-else.repeat", function () {

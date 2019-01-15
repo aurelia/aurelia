@@ -60,9 +60,9 @@ describe(`The PLATFORM object`, () => {
         Promise.resolve().then(() => {
           expect(rafResolved).to.equal(false);
           promiseResolved = true;
-        });
-      });
-    });
+        }).catch(error => { throw error; });
+      }).catch(error => { throw error; });
+    }).catch(error => { throw error; });
   });
 
   describe(`camelCase()`, () => {
@@ -72,11 +72,11 @@ describe(`The PLATFORM object`, () => {
           const f = prepend ? 'F' : 'f';
           for (const append of [true, false]) {
             for (const [[foo, bar, baz], expected] of [
-              [['foo', 'bar', 'baz'], f + 'ooBarBaz'],
-              [['Foo', 'Bar', 'Baz'], f + 'ooBarBaz'],
-              [['FOO', 'BAR', 'BAZ'], f + 'OOBARBAZ'],
-              [['fOO', 'bAR', 'bAZ'], f + 'OOBARBAZ'],
-              [['foo', 'bar42', '42baz'], f + 'ooBar4242baz']
+              [['foo', 'bar', 'baz'], `${f}ooBarBaz`],
+              [['Foo', 'Bar', 'Baz'], `${f}ooBarBaz`],
+              [['FOO', 'BAR', 'BAZ'], `${f}OOBARBAZ`],
+              [['fOO', 'bAR', 'bAZ'], `${f}OOBARBAZ`],
+              [['foo', 'bar42', '42baz'], `${f}ooBar4242baz`]
             ]) {
               const actualSep = count === 1 ? sep : sep + sep;
               let input = [foo, bar, baz].join(actualSep);

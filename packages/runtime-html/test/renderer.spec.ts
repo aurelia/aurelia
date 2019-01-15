@@ -32,12 +32,12 @@ describe('Renderer', () => {
     IExpressionParserRegistration.register(container);
     const renderable: IRenderable = { $bindableHead: null, $bindableTail: null, $attachableHead: null, $attachableTail: null, $context: null, $nodes: null, $scope: null };
     container.register(Registration.instance(IRenderable, renderable));
-    const wrapper = ctx.createElementFromMarkup('<div><au-target class="au"></au-target> </div>') as HTMLElement;
+    const wrapper = ctx.createElementFromMarkup('<div><au-target class="au"></au-target> </div>');
     dom.appendChild(ctx.doc.body, wrapper);
     const target = wrapper.firstElementChild as HTMLElement;
     const placeholder = target.nextSibling as HTMLElement;
 
-    const renderingEngine = container.get(IRenderingEngine) as IRenderingEngine;
+    const renderingEngine = container.get(IRenderingEngine);
     const sut = container.get(IRenderer);
 
     const renderContext: IRenderContext = {
@@ -91,7 +91,7 @@ describe('Renderer', () => {
     for (const Instruction of [TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction] as any[]) {
       for (const to of ['foo', 'bar']) {
         for (const from of ['foo', new AccessScope('foo')]) {
-          const instruction = new (Instruction as any)(from, to) as IListenerBindingInstruction;
+          const instruction = new (Instruction)(from, to) as IListenerBindingInstruction;
           it(_`instruction=${instruction}`, () => {
             const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
@@ -146,7 +146,7 @@ describe('Renderer', () => {
           sut.instructionRenderers[instruction.type].render(dom, renderContext, renderable, target, instruction);
 
           expect(renderable.$bindableHead).to.equal(null, 'renderable.$bindableHead');
-          expect(target.getAttribute(to)).to.equal(value + '');
+          expect(target.getAttribute(to)).to.equal(`${value}`);
 
           tearDown({ ctx, wrapper });
         });

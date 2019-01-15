@@ -21,7 +21,7 @@ export class Author {
 
   public author: { id: number };
 
-  constructor(private router: Router, private authorsRepository: AuthorsRepository) { }
+  constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository) { }
 
   public enter(parameters) {
     if (parameters.id) {

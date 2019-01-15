@@ -297,14 +297,14 @@ describe(`ArrayObserver`, () => {
         });
 
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
-          const arr = init.slice();
+          const arr2 = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(new Lifecycle(), arr);
+          sut = new ArrayObserver(new Lifecycle(), arr2);
           let i = 0;
           while (i < repeat) {
-            arr.shift();
-            synchronize(copy, sut.indexMap, arr);
-            assertArrayEqual(copy, arr);
+            arr2.shift();
+            synchronize(copy, sut.indexMap, arr2);
+            assertArrayEqual(copy, arr2);
             sut.resetIndexMap();
             i++;
           }
@@ -467,12 +467,12 @@ describe(`ArrayObserver`, () => {
                   // a browser may wrap a custom sort function to normalize the results
                   // so don't consider this a failed test, but just warn so we know about it
                   let differences = 0;
-                  let i = 0;
-                  while (i < arraySize) {
-                    if (arr[i] !== expectedArr[i]) {
+                  let i2 = 0;
+                  while (i2 < arraySize) {
+                    if (arr[i2] !== expectedArr[i2]) {
                       differences++;
                     }
-                    i++;
+                    i2++;
                   }
                   console.warn(`${differences} of the ${arraySize} '${type}' items had a different position after sorting with ${compareFn}`);
                 } else {
@@ -498,12 +498,12 @@ describe(`ArrayObserver`, () => {
 });
 
 function padLeft(str: any, len: number): string {
-  str = str + '';
+  str = `${str}`;
   return new Array(len - str.length + 1).join(' ') + str;
 }
 
 function padRight(str: any, len: number): string {
-  str = str + '';
+  str = `${str}`;
   return str + new Array(len - str.length + 1).join(' ');
 }
 

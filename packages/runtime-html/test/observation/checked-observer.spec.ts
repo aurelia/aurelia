@@ -12,8 +12,8 @@ import { _, TestContext } from '../util';
 type ObservedInputElement = HTMLInputElement & {
   $observers: Record<string, IBindingTargetObserver>;
   model: any;
-  matcher: (a: any, b: any) => boolean;
   children: HTMLCollectionOf<ObservedInputElement>;
+  matcher(a: any, b: any): boolean;
 };
 
 const eventDefaults = { bubbles: true };
@@ -22,7 +22,7 @@ describe('CheckedObserver', () => {
 
   before(() => {
     enableArrayObservation();
-  })
+  });
 
   describe('setValue() - primitive - type="checkbox"', () => {
     function setup(hasSubscriber: boolean) {
@@ -486,12 +486,12 @@ describe('CheckedObserver', () => {
                 const { ctx, sut, el, subscriber } = setup(value, prop);
 
                 const array = [];
-                await sut.setValue(array, LifecycleFlags.none);
+                sut.setValue(array, LifecycleFlags.none);
                 el.checked = checkedBefore;
                 el.dispatchEvent(new ctx.Event(event, eventDefaults));
                 let actual = sut.getValue() as IInputElement[];
                 if (checkedBefore) {
-                  expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value + '' : '') : value); // TODO: maybe we should coerce value in the observer
+                  expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? `${value}` : '') : value); // TODO: maybe we should coerce value in the observer
                 } else {
                   expect(actual).to.equal(array);
                 }
@@ -500,7 +500,7 @@ describe('CheckedObserver', () => {
                 el.dispatchEvent(new ctx.Event(event, eventDefaults));
                 actual = sut.getValue() as IInputElement[];
                 if (checkedAfter) {
-                  expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? value + '' : '') : value); // TODO: maybe we should coerce value in the observer
+                  expect(actual[0]).to.equal(prop === 'value' ? (value !== null ? `${value}` : '') : value); // TODO: maybe we should coerce value in the observer
                 } else {
                   expect(actual).to.equal(array);
                 }

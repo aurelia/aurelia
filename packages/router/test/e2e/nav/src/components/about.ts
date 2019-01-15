@@ -6,7 +6,7 @@ export class About {
 
   public id: string = 'no id provided';
 
-  enter(parameters, instruction) {
+  public enter(parameters, instruction) {
     console.log('enter', parameters, instruction);
     if (parameters.id) {
       this.id = parameters.id;

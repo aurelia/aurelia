@@ -72,7 +72,7 @@ describe(`CompiledTemplate`, () => {
   describe(`constructor`, () => {
     it(`creates a new createNodeSequence function`, () => {
       class Foo {}
-      class Bar {public static register(container: IContainer) { container.register(Registration.singleton(Bar, Bar)); }}
+      class Bar {public static register(container2: IContainer) { container2.register(Registration.singleton(Bar, Bar)); }}
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
       const templateNode = AuNode.createTemplate().appendChild(AuNode.createText('foo'));

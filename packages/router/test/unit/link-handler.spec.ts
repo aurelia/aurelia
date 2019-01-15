@@ -4,10 +4,10 @@ import { LinkHandler } from './../../src/index';
 
 describe('LinkHandler', () => {
   let linkHandler;
-  const callback = ((info) => { });
+  const callback = ((info) => { return; });
   class MockDocument {
-    public addEventListener(event, handler, preventDefault) {}
-    public removeEventListener(handler) {}
+    public addEventListener(event, handler, preventDefault) { return; }
+    public removeEventListener(handler) { return; }
   }
 
   beforeEach(() => {

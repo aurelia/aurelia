@@ -1,6 +1,7 @@
 const emptyArray = [];
+export type H = string | number | boolean | null | undefined | Node;
 
-export function h<T extends keyof HTMLElementTagNameMap, TChildren extends (string | number | boolean | null | undefined | Node)[]>(
+export function h<T extends keyof HTMLElementTagNameMap, TChildren extends H[]>(
   doc: Document,
   name: T,
   attrs: Record<string, any> = null,

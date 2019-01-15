@@ -61,6 +61,10 @@ export function $bindElement(this: Writable<ICustomElement>, flags: LifecycleFla
   const scope = this.$scope;
   (scope as Writable<IScope>).parentScope = parentScope;
 
+  // --------
+  // TODO: refactor this: bind the non-component bindables before `binding` hook, so repeat.for can use `binding` instead of `bound`, etc
+  // --------
+
   const lifecycle = this.$lifecycle;
   lifecycle.beginBind();
   // add isBinding flag

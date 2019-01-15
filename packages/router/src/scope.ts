@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { Router } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
@@ -20,6 +20,7 @@ export interface IFindViewportsResult {
 
 export class Scope {
   public element: Element;
+  public container: IRenderContext;
   public parent: Scope;
 
   public viewport: Viewport;
@@ -32,9 +33,10 @@ export class Scope {
   private scopeViewportParts: Record<string, string[][]>;
   private availableViewports: Record<string, Viewport>;
 
-  constructor(router: Router, element: Element, parent: Scope) {
+  constructor(router: Router, element: Element, container: IRenderContext, parent: Scope) {
     this.router = router;
     this.element = element;
+    this.container = container;
     this.parent = parent;
 
     this.viewport = null;
@@ -219,12 +221,12 @@ export class Scope {
   //   return null;
   // }
 
-  public addViewport(name: string, element: Element, container: IContainer, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, container: IRenderContext, options?: IViewportOptions): Viewport {
     let viewport = this.viewports[name];
     if (!viewport) {
       let scope: Scope;
       if (options.scope) {
-        scope = new Scope(this.router, element, this);
+        scope = new Scope(this.router, element, container, this);
         this.router.scopes.push(scope);
       }
 
@@ -300,10 +302,12 @@ export class Scope {
     if (this.viewport) {
       parents.unshift(this.viewport.description(full));
     }
-    let viewport: Viewport = this.parent.closestViewport(this.element.parentElement);
+    let viewport: Viewport = this.parent.closestViewport((this.container as any).parent);
+    // let viewport: Viewport = this.parent.closestViewport(this.element.parentElement);
     while (viewport && viewport.owningScope === this.parent) {
       parents.unshift(viewport.description(full));
-      viewport = this.closestViewport(viewport.element.parentElement);
+      viewport = this.closestViewport((viewport.container as any).parent);
+      // viewport = this.closestViewport(viewport.element.parentElement);
     }
     parents.unshift(this.parent.context(full));
 
@@ -320,26 +324,38 @@ export class Scope {
     return component as ICustomElementType;
   }
 
-  // This is not an optimal way of doing this
-  private closestViewport(element: Element): Viewport {
-    let closest: number = Number.MAX_SAFE_INTEGER;
-    let viewport: Viewport;
-    for (const vp in this.viewports) {
-      const viewportElement = this.viewports[vp].element;
-      let el = element;
-      let i = 0;
-      while (el) {
-        if (el === viewportElement) {
-          break;
-        }
-        i++;
-        el = el.parentElement;
+  private closestViewport(container: IRenderContext): Viewport {
+    const viewports = Object.values(this.viewports);
+    while (container) {
+      const viewport = viewports.find((value) => value.container === container);
+      if (viewport) {
+        return viewport;
       }
-      if (i < closest) {
-        closest = i;
-        viewport = this.viewports[vp];
-      }
+      container = (container as any).parent;
     }
-    return viewport;
+    return null;
   }
+
+  // This is not an optimal way of doing this
+  private closestViewportOld(element: Element): Viewport {
+  let closest: number = Number.MAX_SAFE_INTEGER;
+  let viewport: Viewport;
+  for (const vp in this.viewports) {
+    const viewportElement = this.viewports[vp].element;
+    let el = element;
+    let i = 0;
+    while (el) {
+      if (el === viewportElement) {
+        break;
+      }
+      i++;
+      el = el.parentElement;
+    }
+    if (i < closest) {
+      closest = i;
+      viewport = this.viewports[vp];
+    }
+  }
+  return viewport;
+}
 }

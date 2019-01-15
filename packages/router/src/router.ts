@@ -1,10 +1,11 @@
 import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
-import { Aurelia, ICustomElementType } from '@aurelia/runtime';
+import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
 import { IComponentViewport, Scope } from './scope';
+import { closestCustomElement } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 
 export interface IRouterOptions extends IHistoryOptions {
@@ -46,7 +47,7 @@ export interface IRouteSeparators {
 }
 
 export class Router {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IContainer];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IContainer];
 
   public viewports: Record<string, Viewport> = {};
 
@@ -210,7 +211,7 @@ export class Router {
     while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
       // Guard against endless loop
       if (!guard--) {
-        break;
+        throw new Error('Failed to resolve all viewports');
       }
       const changedViewports: Viewport[] = [];
       for (const componentViewport of componentViewports) {
@@ -403,7 +404,7 @@ export class Router {
   }
 
   // Called from the viewport custom element in attached()
-  public addViewport(name: string, element: Element, container: IContainer, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, container: IRenderContext, options?: IViewportOptions): Viewport {
     // tslint:disable-next-line:no-console
     console.log('Viewport added', name, element);
     const parentScope = this.findScope(element);
@@ -519,12 +520,24 @@ export class Router {
   private ensureRootScope(): void {
     if (!this.rootScope) {
       const aureliaRootElement = this.container.get(Aurelia).root().$host;
-      this.rootScope = new Scope(this, aureliaRootElement as Element, null);
+      this.rootScope = new Scope(this, aureliaRootElement as Element, aureliaRootElement.$customElement.$context, null);
       this.scopes.push(this.rootScope);
     }
   }
 
   private closestScope(element: Element): Scope {
+    const el = closestCustomElement(element);
+    let container = (el as any).$customElement.$context.get(IContainer);
+    while (container) {
+      const scope = this.scopes.find((value) => value.container === container);
+      if (scope) {
+        return scope;
+      }
+      container = container.parent;
+    }
+  }
+
+  private closestScopeOld(element: Element): Scope {
     let closest: number = Number.MAX_SAFE_INTEGER;
     let scope: Scope;
     for (const sc of this.scopes) {

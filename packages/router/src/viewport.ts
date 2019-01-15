@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags, IRenderContext } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { Router } from './router';
@@ -29,6 +29,7 @@ export interface IViewportOptions {
 export class Viewport {
   public name: string;
   public element: Element;
+  public container: IRenderContext;
   public owningScope: Scope;
   public scope: Scope;
   public options?: IViewportOptions;
@@ -45,12 +46,11 @@ export class Viewport {
   public nextComponent: IRouteableCustomElement;
 
   private readonly router: Router;
-  private container: IContainer;
 
   private clear: boolean;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
 
-  constructor(router: Router, name: string, element: Element, container: IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
+  constructor(router: Router, name: string, element: Element, container: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
     this.name = name;
     this.element = element;
@@ -106,7 +106,7 @@ export class Viewport {
     return false;
   }
 
-  public setElement(element: Element, container: IContainer, options: IViewportOptions): void {
+  public setElement(element: Element, container: IRenderContext, options: IViewportOptions): void {
     // First added viewport with element is always scope viewport (except for root scope)
     if (this.scope && this.scope.parent && !this.scope.viewport) {
       this.scope.viewport = this;
@@ -317,30 +317,38 @@ export class Viewport {
   }
 
   public componentName(component: IRouteableCustomElementType | string): string {
-    if (typeof component === 'string') {
+    if (component === null) {
+      return null;
+    } else if (typeof component === 'string') {
       return component;
     } else {
       return component.description.name;
     }
   }
   public componentType(component: IRouteableCustomElementType | string): IRouteableCustomElementType {
-    if (typeof component !== 'string') {
+    if (component === null) {
+      return null;
+    } else if (typeof component !== 'string') {
       return component as IRouteableCustomElementType;
     } else {
       const container = this.container || this.router.container;
-      const resolver = container.getResolver(CustomElementResource.keyFrom(component));
+      const resolver = container.get(IContainer).getResolver(CustomElementResource.keyFrom(component));
       if (resolver !== null) {
-        return resolver.getFactory(container).Type as IRouteableCustomElementType;
+        return resolver.getFactory(container.get(IContainer)).Type as IRouteableCustomElementType;
       }
       return null;
     }
   }
   public componentInstance(component: IRouteableCustomElementType | string): IRouteableCustomElement {
+    if (component === null) {
+      return null;
+    }
+    component = this.componentName(component);
     const container = this.container || this.router.container;
     if (typeof component !== 'string') {
-      return container.get<IRouteableCustomElement>(component);
+      return container.get(IContainer).get<IRouteableCustomElement>(component);
     } else {
-      return container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component));
+      return container.get(IContainer).get<IRouteableCustomElement>(CustomElementResource.keyFrom(component));
     }
   }
 
@@ -350,14 +358,15 @@ export class Viewport {
     this.nextComponent = this.componentInstance(component);
     // const container = this.container || this.router.container;
     // this.nextComponent = container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
-  }
 
-  private addComponent(component: ICustomElement): void {
     const host: INode = this.element as INode;
     const container = this.container || this.router.container;
 
     // TODO: get useProxies settings from the template definition
-    component.$hydrate(LifecycleFlags.none, container, host);
+    this.nextComponent.$hydrate(LifecycleFlags.none, container, host);
+  }
+
+  private addComponent(component: ICustomElement): void {
     component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     component.$attach(LifecycleFlags.fromStartTask);
   }

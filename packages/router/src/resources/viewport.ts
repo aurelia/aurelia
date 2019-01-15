@@ -1,10 +1,10 @@
-import { Constructable, InterfaceSymbol } from '@aurelia/kernel';
+import { Constructable, IContainer, InterfaceSymbol } from '@aurelia/kernel';
 import { bindable, CustomElementResource, INode, LifecycleFlags } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
 export class ViewportCustomElement {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [Router, INode];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>|Constructable> = [Router, INode];
 
   @bindable public name: string;
   @bindable public scope: boolean;
@@ -31,23 +31,54 @@ export class ViewportCustomElement {
     this.viewport = null;
   }
 
-  public attached(): void {
-    const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };
-    if (this.usedBy && this.usedBy.length) {
-      options.usedBy = this.usedBy;
+  public created(...rest) {
+    console.log('Created', rest);
+    const booleanAttributes = {
+      'scope': 'scope',
+      'no-link': 'noLink',
+      'no-history': 'noHistory',
+    };
+    const valueAttributes = {
+      'used-by': 'usedBy',
+      'default': 'default',
+    };
+
+    const name = this.element.hasAttribute('name') ? this.element.getAttribute('name') : 'default';
+    const options: IViewportOptions = {};
+
+    for (const attribute in booleanAttributes) {
+      if (this.element.hasAttribute[attribute]) {
+        options[booleanAttributes[attribute]] = true;
+      }
     }
-    if (this.default && this.default.length) {
-      options.default = this.default;
+    for (const attribute in valueAttributes) {
+      if (this.element.hasAttribute(attribute)) {
+        const value = this.element.getAttribute(attribute);
+        if (value && value.length) {
+          options[valueAttributes[attribute]] = value;
+        }
+      }
     }
-    if (this.element.hasAttribute('no-link')) {
-      options.noLink = true;
-    }
-    if (this.element.hasAttribute('no-history')) {
-      options.noHistory = true;
-    }
-    this.viewport = this.router.addViewport(this.name, this.element, (this as any).$context, options);
+    this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
   }
-  public detached(): void {
+
+  public bound(): void {
+    // const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };
+    // if (this.usedBy && this.usedBy.length) {
+    //   options.usedBy = this.usedBy;
+    // }
+    // if (this.default && this.default.length) {
+    //   options.default = this.default;
+    // }
+    // if (this.element.hasAttribute('no-link')) {
+    //   options.noLink = true;
+    // }
+    // if (this.element.hasAttribute('no-history')) {
+    //   options.noHistory = true;
+    // }
+    // this.viewport = this.router.addViewport(this.name, this.element, (this as any).$context.get(IContainer), options);
+  }
+  public unbound(): void {
     this.router.removeViewport(this.viewport);
   }
 

@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderContext, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { Router } from './router';
@@ -46,7 +46,6 @@ export class Viewport {
   public nextComponent: IRouteableCustomElement;
 
   private readonly router: Router;
-  private container: IContainer;
 
   private clear: boolean;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
@@ -238,7 +237,7 @@ export class Viewport {
       if (!this.nextComponent) {
         this.removeComponent(this.component);
         this.terminateComponent(this.component);
-        this.unloadComponent(this.component);
+        this.unloadComponent();
       }
     }
 
@@ -247,7 +246,7 @@ export class Viewport {
       if (this.component) {
         this.removeComponent(this.component);
         this.terminateComponent(this.component);
-        this.unloadComponent(this.component);
+        this.unloadComponent();
       }
       this.addComponent(this.nextComponent);
 
@@ -413,7 +412,7 @@ export class Viewport {
     // TODO: get useProxies settings from the template definition
     this.nextComponent.$hydrate(LifecycleFlags.none, container, host);
   }
-  private unloadComponent(component: ICustomElement): void {
+  private unloadComponent(): void {
     // TODO: We might want to do something here eventually, who knows?
   }
 

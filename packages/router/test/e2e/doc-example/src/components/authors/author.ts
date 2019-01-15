@@ -45,4 +45,8 @@ export class Author {
       },
     ]);
   }
+
+  public created(...rest) {
+    console.log('Created', rest);
+  }
 }

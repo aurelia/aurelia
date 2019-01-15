@@ -47,7 +47,7 @@ export interface IRouteSeparators {
 }
 
 export class Router {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IContainer];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IContainer];
 
   public viewports: Record<string, Viewport> = {};
 

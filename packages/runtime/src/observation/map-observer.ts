@@ -1,3 +1,4 @@
+import { Tracer } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
@@ -133,6 +134,8 @@ export function disableMapObservation(): void {
   }
 }
 
+const slice = Array.prototype.slice;
+
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
 @collectionObserver(CollectionKind.map)
@@ -144,11 +147,13 @@ export class MapObserver implements MapObserver {
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
+    if (Tracer.enabled) { Tracer.enter('MapObserver.constructor', slice.call(arguments)); }
     this.lifecycle = lifecycle;
     map.$observer = this;
     this.collection = map;
     this.flags = flags & LifecycleFlags.persistentBindingFlags;
     this.resetIndexMap();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 

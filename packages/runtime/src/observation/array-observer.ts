@@ -1,3 +1,4 @@
+import { Tracer } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
@@ -364,6 +365,8 @@ export function disableArrayObservation(): void {
   }
 }
 
+const slice = Array.prototype.slice;
+
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
 
 @collectionObserver(CollectionKind.array)
@@ -374,11 +377,13 @@ export class ArrayObserver implements ArrayObserver {
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
+    if (Tracer.enabled) { Tracer.enter('ArrayObserver.constructor', slice.call(arguments)); }
     this.lifecycle = lifecycle;
     array.$observer = this;
     this.collection = array;
     this.flags = flags & LifecycleFlags.persistentBindingFlags;
     this.resetIndexMap();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 

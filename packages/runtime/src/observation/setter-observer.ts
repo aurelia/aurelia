@@ -1,6 +1,8 @@
-import { IIndexable } from '@aurelia/kernel';
+import { IIndexable, Tracer } from '@aurelia/kernel';
 import { IPropertyObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { propertyObserver } from './property-observer';
+
+const slice = Array.prototype.slice;
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
@@ -13,9 +15,11 @@ export class SetterObserver implements SetterObserver {
   public propertyKey: string;
 
   constructor(flags: LifecycleFlags, obj: IIndexable, propertyKey: string) {
+    if (Tracer.enabled) { Tracer.enter('SetterObserver.constructor', slice.call(arguments)); }
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.obj = obj;
     this.propertyKey = propertyKey;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public getValue(): unknown {

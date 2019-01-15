@@ -1,7 +1,8 @@
-import { IIndexable, PLATFORM } from '@aurelia/kernel';
+import { IIndexable, PLATFORM, Tracer } from '@aurelia/kernel';
 import { IPropertyObserver, LifecycleFlags } from '../observation';
 import { propertyObserver } from './property-observer';
 
+const slice = Array.prototype.slice;
 const noop = PLATFORM.noop;
 
 export interface SelfObserver extends IPropertyObserver<IIndexable, string> {}
@@ -21,13 +22,15 @@ export class SelfObserver implements SelfObserver {
     propertyName: string,
     callbackName: string
   ) {
-      this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-      this.obj = instance;
-      this.propertyKey = propertyName;
-      this.currentValue = instance[propertyName];
-      this.callback = callbackName in instance
-        ? instance[callbackName].bind(instance)
-        : noop;
+    if (Tracer.enabled) { Tracer.enter('SelfObserver.constructor', slice.call(arguments)); }
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.obj = instance;
+    this.propertyKey = propertyName;
+    this.currentValue = instance[propertyName];
+    this.callback = callbackName in instance
+      ? instance[callbackName].bind(instance)
+      : noop;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public getValue(): unknown {

@@ -1,10 +1,18 @@
+import { Tracer } from '@aurelia/kernel';
 import { IPropertySubscriber, IProxySubscriber, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
+
+const slice = Array.prototype.slice;
 
 export interface ProxySubscriberCollection extends ISubscriberCollection<MutationKind.instance> {}
 
 @subscriberCollection(MutationKind.instance)
-export class ProxySubscriberCollection implements ProxySubscriberCollection {}
+export class ProxySubscriberCollection implements ProxySubscriberCollection {
+  constructor() {
+    if (Tracer.enabled) { Tracer.enter('ProxySubscriberCollection.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+}
 
 export interface ProxyObserver<T extends object = object> extends ISubscriberCollection<MutationKind.proxy> {}
 
@@ -14,8 +22,10 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
   private readonly subscribers: Record<PropertyKey, ProxySubscriberCollection>;
 
   constructor(obj: T) {
+    if (Tracer.enabled) { Tracer.enter('ProxyObserver.constructor', slice.call(arguments)); }
     this.proxy = new Proxy(obj, this);
     this.subscribers = {};
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }): ProxyObserver<T> {

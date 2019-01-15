@@ -1,3 +1,4 @@
+import { Tracer } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedSet, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
@@ -123,6 +124,8 @@ export function disableSetObservation(): void {
   }
 }
 
+const slice = Array.prototype.slice;
+
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
 @collectionObserver(CollectionKind.set)
@@ -133,11 +136,13 @@ export class SetObserver implements SetObserver {
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
+    if (Tracer.enabled) { Tracer.enter('SetObserver.constructor', slice.call(arguments)); }
     this.lifecycle = lifecycle;
     observedSet.$observer = this;
     this.collection = observedSet;
     this.flags = flags & LifecycleFlags.persistentBindingFlags;
     this.resetIndexMap();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 

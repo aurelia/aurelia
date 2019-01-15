@@ -116,8 +116,8 @@ describe('AST', () => {
   const NumberLiteralList: [string, PrimitiveLiteral][] = [
     [`1`,                 new PrimitiveLiteral(1)],
     [`1.1`,               new PrimitiveLiteral(1.1)],
-    [`.1`,                new PrimitiveLiteral(.1)],
-    [`0.1`,               new PrimitiveLiteral(.1)]
+    [`.1`,                new PrimitiveLiteral(0.1)],
+    [`0.1`,               new PrimitiveLiteral(0.1)]
   ];
   const KeywordLiteralList: [string, PrimitiveLiteral][] = [
     [`undefined`,         $undefined],
@@ -293,18 +293,10 @@ describe('AST', () => {
   const SimpleConditionalList: [string, Conditional][] = [
     [`a?b:c`, new Conditional(new AccessScope('a'), new AccessScope('b'), new AccessScope('c'))]
   ];
-  const SimpleIsConditionalList: [string, IsConditional][] = [
-    ...SimpleIsLogicalORList,
-    ...SimpleConditionalList
-  ];
 
   // This forms the group Precedence.Assign
   const SimpleAssignList: [string, Assign][] = [
     [`a=b`, new Assign(new AccessScope('a'), new AccessScope('b'))]
-  ];
-  const SimpleIsAssignList: [string, IsAssign][] = [
-    ...SimpleIsConditionalList,
-    ...SimpleAssignList
   ];
 
   // This forms the group Precedence.Variadic
@@ -313,20 +305,11 @@ describe('AST', () => {
     [`a|b:c`, new ValueConverter(new AccessScope('a'), 'b', [new AccessScope('c')])],
     [`a|b:c:d`, new ValueConverter(new AccessScope('a'), 'b', [new AccessScope('c'), new AccessScope('d')])]
   ];
-  const SimpleIsValueConverterList: [string, IsValueConverter][] = [
-    ...SimpleIsAssignList,
-    ...SimpleValueConverterList
-  ];
 
   const SimpleBindingBehaviorList: [string, BindingBehavior][] = [
     [`a&b`, new BindingBehavior(new AccessScope('a'), 'b', [])],
     [`a&b:c`, new BindingBehavior(new AccessScope('a'), 'b', [new AccessScope('c')])],
     [`a&b:c:d`, new BindingBehavior(new AccessScope('a'), 'b', [new AccessScope('c'), new AccessScope('d')])]
-  ];
-
-  const SimpleIsBindingBehaviorList: [string, IsBindingBehavior][] = [
-    ...SimpleIsValueConverterList,
-    ...SimpleBindingBehaviorList
   ];
 
   describe('Literals', () => {
@@ -726,7 +709,9 @@ describe('AST', () => {
       }
     });
     describe('evaluate() throws when returned converter is nil', () => {
-      const locator = { get() { return null; } };
+      const locator = { get() {
+        return null;
+      } };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, () => {
           throwsOn(expr, 'evaluate', 'Code 205', null, null, locator);
@@ -745,7 +730,9 @@ describe('AST', () => {
       }
     });
     describe('assign() throws when returned converter is null', () => {
-      const locator = { get() { return null; } };
+      const locator = { get() {
+        return null;
+      } };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, null`, () => {
           throwsOn(expr, 'assign', 'Code 205', null, null, locator);
@@ -781,10 +768,12 @@ describe('AST', () => {
     });
 
     describe('connect() throws when returned converter is null', () => {
-      const locator = { get() { return null; } };
+      const locator = { get() {
+        return null;
+      } };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'connect', 'Code 205', null, {}, { locator, observeProperty: () => {} });
+          throwsOn(expr, 'connect', 'Code 205', null, {}, { locator, observeProperty: () => { return; } });
         });
       }
     });
@@ -852,20 +841,24 @@ describe('AST', () => {
     });
 
     describe('bind() throws when returned behavior is null', () => {
-      const locator = { get() { return null; } };
+      const locator = { get() {
+        return null;
+      } };
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'bind', 'Code 203', null, {}, { locator, observeProperty: () => {} });
+          throwsOn(expr, 'bind', 'Code 203', null, {}, { locator, observeProperty: () => { return; } });
         });
       }
     });
 
     describe('bind() throws when returned behavior is already present', () => {
       const behavior = {};
-      const locator = { get() { return behavior; } };
+      const locator = { get() {
+        return behavior;
+      } };
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'bind', 'Code 204', null, {}, { [expr.behaviorKey]: behavior, locator, observeProperty: () => {} });
+          throwsOn(expr, 'bind', 'Code 204', null, {}, { [expr.behaviorKey]: behavior, locator, observeProperty: () => { return; } });
         });
       }
     });
@@ -916,10 +909,10 @@ describe('AccessKeyed', () => {
 
   it('does not observes property in keyed object access when key is number', () => {
     const scope = createScopeForTest({ foo: { '0': 'hello world' } });
-    const expression = new AccessKeyed(new AccessScope('foo', 0), new PrimitiveLiteral(0));
-    expect(expression.evaluate(0, scope, null)).to.equal('hello world');
+    const expression2 = new AccessKeyed(new AccessScope('foo', 0), new PrimitiveLiteral(0));
+    expect(expression2.evaluate(0, scope, null)).to.equal('hello world');
     const binding = { observeProperty: spy() };
-    expression.connect(0, scope, binding as any);
+    expression2.connect(0, scope, binding as any);
     expect(binding.observeProperty.getCalls()[0]).to.have.been.calledWith(scope.bindingContext, 'foo');
     expect(binding.observeProperty.getCalls()[1]).to.have.been.calledWith(scope.bindingContext.foo, 0);
     expect(binding.observeProperty.callCount).to.equal(2);
@@ -927,10 +920,10 @@ describe('AccessKeyed', () => {
 
   it('does not observe property in keyed array access when key is number', () => {
     const scope = createScopeForTest({ foo: ['hello world'] });
-    const expression = new AccessKeyed(new AccessScope('foo', 0), new PrimitiveLiteral(0));
-    expect(expression.evaluate(0, scope, null)).to.equal('hello world');
+    const expression3 = new AccessKeyed(new AccessScope('foo', 0), new PrimitiveLiteral(0));
+    expect(expression3.evaluate(0, scope, null)).to.equal('hello world');
     const binding = { observeProperty: spy() };
-    expression.connect(0, scope, binding as any);
+    expression3.connect(0, scope, binding as any);
     expect(binding.observeProperty).to.have.been.calledWith(scope.bindingContext, 'foo');
     expect(binding.observeProperty).not.to.have.been.calledWith(scope.bindingContext.foo, 0);
     expect(binding.observeProperty.callCount).to.equal(1);
@@ -1123,19 +1116,19 @@ describe('AccessMember', () => {
   });
 
   describe('does not attempt to observe property when object is falsey', () => {
-    const objects: [string, any][] = [
+    const objects2: [string, any][] = [
         [`     null`, null],
         [`undefined`, undefined],
         [`       ''`, ''],
         [`    false`, false]
       ];
-    const props: [string, any][] = [
+    const props2: [string, any][] = [
       [`.0`, 0],
       [`.a`, 'a']
     ];
-    const inputs: [typeof objects, typeof props] = [objects, props];
+    const inputs2: [typeof objects2, typeof props2] = [objects2, props2];
 
-    eachCartesianJoin(inputs, (([t1, obj], [t2, prop]) => {
+    eachCartesianJoin(inputs2, (([t1, obj], [t2, prop]) => {
         it(`${t1}${t2}`, () => {
           const scope = createScopeForTest({ foo: obj });
           const sut = new AccessMember(new AccessScope('foo', 0), prop);
@@ -1148,25 +1141,25 @@ describe('AccessMember', () => {
   });
 
   describe('observes even if object does not / cannot have the property', () => {
-    const objects: [string, any][] = [
+    const objects3: [string, any][] = [
       [`        1`, 1],
       [`     true`, true],
       [` Symbol()`, Symbol()]
     ];
 
-    const props: [string, any][] = [
+    const props3: [string, any][] = [
       [`.0`, 0],
       [`.a`, 'a']
     ];
 
-    const inputs: [typeof objects, typeof props] = [objects, props];
+    const inputs3: [typeof objects3, typeof props3] = [objects3, props3];
 
-    eachCartesianJoin(inputs, (([t1, obj], [t2, prop]) => {
+    eachCartesianJoin(inputs3, (([t1, obj], [t2, prop]) => {
         it(`${t1}${t2}`, () => {
           const scope = createScopeForTest({ foo: obj });
-          const expression = new AccessMember(new AccessScope('foo', 0), prop);
+          const expression2 = new AccessMember(new AccessScope('foo', 0), prop);
           const binding = { observeProperty: spy() };
-          expression.connect(0, scope, binding as any);
+          expression2.connect(0, scope, binding as any);
           expect(binding.observeProperty.callCount).to.equal(2);
         });
       })
@@ -1329,7 +1322,7 @@ describe('AccessScope', () => {
 });
 
 describe('AccessThis', () => {
-  const $parent = new AccessThis(1);
+  const $parent2 = new AccessThis(1);
   const $parent$parent = new AccessThis(2);
   const $parent$parent$parent = new AccessThis(3);
 
@@ -1337,22 +1330,22 @@ describe('AccessThis', () => {
     const coc = OverrideContext.create;
 
     let scope = { overrideContext: coc(undefined, null) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    expect($parent2.evaluate(0, scope as any, null)).to.equal(undefined);
     expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
     expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
 
     scope = { overrideContext: coc(undefined, coc(undefined, null)) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    expect($parent2.evaluate(0, scope as any, null)).to.equal(undefined);
     expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
     expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
 
     scope = { overrideContext: coc(undefined, coc(undefined, coc(undefined, null))) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    expect($parent2.evaluate(0, scope as any, null)).to.equal(undefined);
     expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
     expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
 
     scope = { overrideContext: coc(undefined, coc(undefined, coc(undefined, coc(undefined, null)))) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    expect($parent2.evaluate(0, scope as any, null)).to.equal(undefined);
     expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
     expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
   });
@@ -1927,7 +1920,7 @@ describe('BindingBehavior', () => {
   const inputVariations: (($1: $1, $2: $2) => $3)[] = // [/*title*/string, /*scope*/IScope, /*sut*/BindingBehavior, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]],
   [
     // test without arguments
-    ($1, [t2, $kind]) => {
+    (_$1, [_t2, $kind]) => {
       const value = {};
       const expr = new MockTracingExpression(new AccessScope('foo', 0));
       expr.$kind = $kind;
@@ -1943,7 +1936,7 @@ describe('BindingBehavior', () => {
       return [`foo&mock`, scope, sut, mock, locator, binding, value, []];
     },
     // test with 1 argument
-    ($1, [t2, $kind]) => {
+    (_$1, [_t2, $kind]) => {
       const value = {};
       const arg1 = {};
       const expr = new MockTracingExpression(new AccessScope('foo', 0));
@@ -1960,7 +1953,7 @@ describe('BindingBehavior', () => {
       return [`foo&mock:a`, scope, sut, mock, locator, binding, value, [arg1]];
     },
     // test with 3 arguments
-    ($1, [t2, $kind]) => {
+    (_$1, [_t2, $kind]) => {
       const value = {};
       const arg1 = {};
       const arg2 = {};
@@ -2192,7 +2185,7 @@ describe('ValueConverter', () => {
 
   const inputVariations: (($1: $1, $2: $2) => $3)[] = [
     // test without arguments, no toView, no fromView
-    ($1, [t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler]) => {
       const value = {};
       const expr = new MockTracingExpression(new AccessScope('foo', 0));
       const args = [];
@@ -2209,7 +2202,7 @@ describe('ValueConverter', () => {
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test without arguments, no fromView
-    ($1, [t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler]) => {
       const value = {};
       const expr = new MockTracingExpression(new AccessScope('foo', 0));
       const args = [];
@@ -2226,7 +2219,7 @@ describe('ValueConverter', () => {
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test without arguments, no toView
-    ($1, [t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler]) => {
       const value = {};
       const expr = new MockTracingExpression(new AccessScope('foo', 0));
       const args = [];
@@ -2243,7 +2236,7 @@ describe('ValueConverter', () => {
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test without arguments
-    ($1, [t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler]) => {
       const value = {};
       const expr = new MockTracingExpression(new AccessScope('foo', 0));
       const args = [];
@@ -2260,7 +2253,7 @@ describe('ValueConverter', () => {
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test with 1 argument
-    ($1, [t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler]) => {
       const value = {};
       const arg1 = {};
       const expr = new MockTracingExpression(new AccessScope('foo', 0));
@@ -2278,7 +2271,7 @@ describe('ValueConverter', () => {
       return [`foo|mock:a`, scope, sut, mock, locator, binding, value, [arg1], methods];
     },
     // test with 3 arguments
-    ($1, [t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler]) => {
       const value = {};
       const arg1 = {};
       const arg2 = {};
@@ -2497,11 +2490,10 @@ describe('ValueConverter', () => {
       sut.unbind(flags, scope, binding);
 
       // assert
-      const offset = methods.length;
-      //expect(mock.calls.length).to.equal(offset + 1);
+      // const offset = methods.length;
+      // expect(mock.calls.length).to.equal(offset + 1);
 
-      const expr = sut.expression as any as MockTracingExpression;
-
+      // const expr = sut.expression as any as MockTracingExpression;
       // expect(expr.calls.length).to.equal(4);
 
       if (signals) {

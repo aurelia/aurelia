@@ -92,18 +92,18 @@ describe('Lifecycle', () => {
       const flags = LifecycleFlags.none;
 
       let callbackCalled = false;
-      let callbackValue = undefined;
+      let callbackValue;
       const value = {};
       const promise = new Promise(resolve => {
         setTimeout(() => {
           resolve(value);
-        }, 50);
+        },         50);
       });
 
       let boundCalled = false;
       const subject1: ILifecycleBound = {
         $nextBound: null,
-        bound(flags: LifecycleFlags): void {
+        bound(_flags: LifecycleFlags): void {
           expect(callbackCalled).to.equal(true, 'callbackCalled');
           expect(callbackValue).to.equal(callbackValue, 'callbackValue');
           boundCalled = true;
@@ -130,6 +130,5 @@ describe('Lifecycle', () => {
 
     });
   });
-
 
 });

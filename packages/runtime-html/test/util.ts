@@ -342,7 +342,7 @@ export function addChaiAsserts_$state(_chai, utils) {
     Assertion.addChainableMethod(
       flagName,
       function(msg) {
-        msg = msg === undefined ? '' : msg + ' - ';
+        msg = msg === undefined ? '' : `${msg} - `;
         const state = this._obj['$state'];
         let currentFlag = stateFlag;
         if (utils.flag(this, 'isBinding')) currentFlag |= State.isBinding;

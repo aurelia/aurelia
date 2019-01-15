@@ -4,10 +4,10 @@ import {
 } from '@aurelia/kernel';
 import {
   Aurelia,
+  CustomElementResource,
   ICustomElementType,
   ILifecycle,
-  LifecycleFlags,
-  CustomElementResource
+  LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { HTMLTestContext, TestContext } from '../util';

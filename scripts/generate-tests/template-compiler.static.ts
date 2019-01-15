@@ -873,9 +873,9 @@ function generateAndEmit(): void {
   for (const suffix in testsRecord) {
     const tests = testsRecord[suffix];
     const nodes = [
-      $$import('chai', 'expect'),
-      $$import('@aurelia/runtime', 'CustomElementResource', 'Aurelia'),
       $$import('@aurelia/kernel', 'Profiler'),
+      $$import('@aurelia/runtime', 'Aurelia', 'CustomElementResource'),
+      $$import('chai', 'expect'),
       $$import('../util', 'getVisibleText', 'TestContext', 'writeProfilerReport'),
       null,
       $$functionExpr('describe', [

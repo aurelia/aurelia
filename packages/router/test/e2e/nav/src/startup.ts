@@ -4,6 +4,7 @@ import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { NavCustomElement, ViewportCustomElement } from '../../../../../router/src/index';
 import { App } from './app';
 
+import { Tracer } from '@aurelia/kernel';
 import { About } from './components/about';
 import { Board } from './components/board';
 import { Cancel } from './components/cancel';
@@ -13,8 +14,7 @@ import { Delayed } from './components/delayed';
 import { Game } from './components/game';
 import { Inventory } from './components/inventory';
 import { Lobby } from './components/lobby';
-import { enableTracing, disableTracing, TraceWriter } from './tracing';
-import { Tracer } from '@aurelia/kernel';
+import { enableTracing, TraceWriter } from './tracing';
 
 enableTracing();
 Tracer.enableLiveLogging(TraceWriter);
@@ -41,4 +41,3 @@ window['au'] = new Aurelia(container)
   .register(DebugConfiguration)
   .app({ host: document.querySelector('app'), component: component })
   .start();
-

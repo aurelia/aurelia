@@ -271,7 +271,7 @@ describe(`MapObserver`, () => {
 });
 
 function padRight(str: any, len: number): string {
-  str = str + '';
+  str = `${str}`;
   return str + new Array(len - str.length + 1).join(' ');
 }
 function synchronize(oldMap: Map<any, any>, indexMap: IndexMap, newMap: Map<any, any>): void {

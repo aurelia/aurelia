@@ -313,7 +313,7 @@ describe('DirtyChecker', function() {
       if (code === 801) {
         warnCalled = true;
       }
-    }
+    };
     const { dirtyChecker } = setup();
 
     const obj = { foo: '0' };
@@ -330,7 +330,7 @@ describe('DirtyChecker', function() {
       if (code === 801) {
         warnCalled = true;
       }
-    }
+    };
     const { dirtyChecker } = setup();
 
     const obj = { foo: '0' };

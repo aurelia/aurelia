@@ -15,6 +15,7 @@ import { TargetedInstruction } from '../dist';
 import {
   addBindable,
   Aurelia,
+  BasicConfiguration,
   Binding,
   BindingMode,
   BindingType,
@@ -49,7 +50,6 @@ import {
   IteratorBindingInstruction,
   LetBindingInstruction,
   LetElementInstruction,
-  BasicConfiguration,
   TemplateDefinition,
   ToViewBindingInstruction
 } from '../src/index';

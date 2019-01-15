@@ -31,7 +31,6 @@ import { parseExpression } from '../../jit/src/index';
 import { HTMLTargetedInstruction, TextBindingInstruction } from '../src/index';
 import { ExposedContext } from './mock';
 
-
 export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
 export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;
 export type DefinitionCb = (builder: DefinitionBuilder) => DefinitionBuilder;
@@ -47,6 +46,10 @@ export class TemplateBuilder {
     return new TemplateBuilder().interpolation();
   }
 
+  public static behavior(): TemplateBuilder {
+    return new TemplateBuilder().behavior();
+  }
+
   public interpolation(): TemplateBuilder {
     const marker = document.createElement('au-m');
     marker['classList'].add('au');
@@ -54,10 +57,6 @@ export class TemplateBuilder {
     this.template.content['appendChild'](marker);
     this.template.content['appendChild'](text);
     return this;
-  }
-
-  public static behavior(): TemplateBuilder {
-    return new TemplateBuilder().behavior();
   }
 
   public behavior(): TemplateBuilder {
@@ -109,12 +108,12 @@ export class InstructionBuilder {
       expressions = [];
       if (Array.isArray(sources)) {
         for (const source of sources) {
-          expressions.push(<any>parseExpression(<string>source, <any>BindingType.None));
+          expressions.push(parseExpression(source as string, BindingType.None as any) as any);
         }
       }
     } else {
       parts = ['', ''];
-      expressions = [<any>parseExpression(<string>partsOrSource, <any>BindingType.None)];
+      expressions = [parseExpression(partsOrSource as string, BindingType.None as any) as any];
     }
     const instruction = new TextBindingInstruction(
       new Interpolation(parts, expressions)
@@ -123,16 +122,15 @@ export class InstructionBuilder {
     return this;
   }
 
-
   public iterator(source: string, target: string): InstructionBuilder {
-    const statement = <any>parseExpression(source, <any>BindingType.ForCommand);
+    const statement = parseExpression(source, BindingType.ForCommand as any) as any;
     const instruction = new IteratorBindingInstruction(statement, target);
     this.instructions.push(instruction);
     return this;
   }
 
   public toView(source: string, target?: string): InstructionBuilder {
-    const statement = <any>parseExpression(source, <any>BindingType.ToViewCommand);
+    const statement = parseExpression(source, BindingType.ToViewCommand as any) as any;
     const instruction = new ToViewBindingInstruction(statement, target || 'value');
     this.instructions.push(instruction);
     return this;
@@ -189,6 +187,7 @@ export class DefinitionBuilder {
   private instructions: HTMLTargetedInstruction[][];
 
   constructor(name?: string) {
+    // tslint:disable-next-line:prefer-template
     this.name = name || ('$' + ++DefinitionBuilder.lastId);
     this.templateBuilder = new TemplateBuilder();
     this.instructionBuilder = new InstructionBuilder();
@@ -294,12 +293,6 @@ export class DefinitionBuilder {
     return this.next();
   }
 
-  private next(): DefinitionBuilder {
-    this.instructions.push(this.instructionBuilder.build());
-    this.instructionBuilder = new InstructionBuilder();
-    return this;
-  }
-
   public build(): ITemplateDefinition {
     const { name, templateBuilder, instructions } = this;
     const definition = { name, template: templateBuilder.build(), instructions };
@@ -309,15 +302,21 @@ export class DefinitionBuilder {
     this.instructions = null;
     return definition;
   }
+
+  private next(): DefinitionBuilder {
+    this.instructions.push(this.instructionBuilder.build());
+    this.instructionBuilder = new InstructionBuilder();
+    return this;
+  }
 }
 
 export class TestBuilder<T extends Constructable> {
-  private container: IContainer;
-  private Type: T;
+  private readonly container: IContainer;
+  private readonly Type: T;
 
   constructor(Type: T) {
     this.container = BasicConfiguration.createContainer();
-    this.container.register(<any>Type);
+    this.container.register(Type as any);
     this.Type = Type;
   }
 
@@ -333,7 +332,7 @@ export class TestBuilder<T extends Constructable> {
     const Type = obj['prototype'] ? obj : function() {
       Object.assign(this, obj);
     };
-    const App = CustomElementResource.define(definition, <any>Type);
+    const App = CustomElementResource.define(definition, Type as any);
     return new TestBuilder(App) as any;
   }
 
@@ -342,8 +341,8 @@ export class TestBuilder<T extends Constructable> {
     const Type = obj['prototype'] ? obj : function() {
       Object.assign(this, obj);
     };
-    const Resource = CustomElementResource.define(definition, <any>Type);
-    this.container.register(<any>Resource);
+    const Resource = CustomElementResource.define(definition, Type as any);
+    this.container.register(Resource);
     return this;
   }
 

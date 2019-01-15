@@ -3,7 +3,7 @@ import * as template from './calendar.html';
 
 @customElement({ name: 'calendar', template })
 export class Calendar {
-  clickDates(event) {
+  public clickDates(event) {
     console.log('LINK', event);
   }
 }

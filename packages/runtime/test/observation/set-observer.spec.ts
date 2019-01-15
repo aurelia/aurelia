@@ -270,7 +270,7 @@ describe(`SetObserver`, () => {
 });
 
 function padRight(str: any, len: number): string {
-  str = str + '';
+  str = `${str}`;
   return str + new Array(len - str.length + 1).join(' ');
 }
 

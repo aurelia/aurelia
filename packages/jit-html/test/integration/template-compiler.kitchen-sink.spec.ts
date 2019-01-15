@@ -7,12 +7,12 @@ import {
   ILifecycle,
   INodeSequence,
   ISignaler,
-  LifecycleFlags} from '@aurelia/runtime';
+  LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { NodeSequenceFactory } from '../../../runtime-html/src/dom';
-import { TemplateBinder, stringifyTemplateDefinition } from '../../src/index';
-import { TestContext, getVisibleText } from '../util';
-import { enableTracing, SymbolTraceWriter, disableTracing } from '../unit/util';
+import { stringifyTemplateDefinition, TemplateBinder } from '../../src/index';
+import { disableTracing, enableTracing, SymbolTraceWriter } from '../unit/util';
+import { getVisibleText, TestContext } from '../util';
 
 const spec = 'template-compiler.kitchen-sink';
 
@@ -114,31 +114,31 @@ describe(spec, () => {
       public row: any;
       public col: any;
       public created() {
-
+        return;
       }
       public binding() {
-
+        return;
       }
       public bound() {
-
+        return;
       }
       public attaching() {
-
+        return;
       }
       public attached() {
-
+        return;
       }
       public detaching() {
-
+        return;
       }
       public detached() {
-
+        return;
       }
       public unbinding() {
-
+        return;
       }
       public unbound() {
-
+        return;
       }
     });
 
@@ -150,31 +150,31 @@ describe(spec, () => {
       public row: any;
       public cols: any[];
       public created() {
-
+        return;
       }
       public binding() {
-
+        return;
       }
       public bound() {
-
+        return;
       }
       public attaching() {
-
+        return;
       }
       public attached() {
-
+        return;
       }
       public detaching() {
-
+        return;
       }
       public detached() {
-
+        return;
       }
       public unbinding() {
-
+        return;
       }
       public unbound() {
-
+        return;
       }
     });
 
@@ -186,31 +186,31 @@ describe(spec, () => {
       public rows: any[];
       public cols: any[];
       public created() {
-
+        return;
       }
       public binding() {
-
+        return;
       }
       public bound() {
-
+        return;
       }
       public attaching() {
-
+        return;
       }
       public attached() {
-
+        return;
       }
       public detaching() {
-
+        return;
       }
       public detached() {
-
+        return;
       }
       public unbinding() {
-
+        return;
       }
       public unbound() {
-
+        return;
       }
     });
 
@@ -221,31 +221,31 @@ describe(spec, () => {
       public rows = rows;
       public cols = cols;
       public created() {
-
+        return;
       }
       public binding() {
-
+        return;
       }
       public bound() {
-
+        return;
       }
       public attaching() {
-
+        return;
       }
       public attached() {
-
+        return;
       }
       public detaching() {
-
+        return;
       }
       public detached() {
-
+        return;
       }
       public unbinding() {
-
+        return;
       }
       public unbound() {
-
+        return;
       }
     });
 
@@ -308,7 +308,7 @@ describe(spec, () => {
         this.$lifecycle.registerTask({
           done: false,
           canCancel() {return false; },
-          cancel() {},
+          cancel() { return; },
           wait() {
             this.done = true;
             return Promise.resolve();
@@ -367,7 +367,7 @@ describe(spec, () => {
         this.$lifecycle.registerTask({
           done: false,
           canCancel() {return false; },
-          cancel() {},
+          cancel() { return; },
           wait() {
             this.done = true;
             return Promise.resolve();
@@ -431,7 +431,7 @@ describe(spec, () => {
         this.$lifecycle.registerTask({
           done: false,
           canCancel() {return false; },
-          cancel() {},
+          cancel() { return; },
           wait() {
             this.done = true;
             return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
@@ -498,7 +498,7 @@ describe(spec, () => {
         this.$lifecycle.registerTask({
           done: false,
           canCancel() {return false; },
-          cancel() {},
+          cancel() { return; },
           wait() {
             this.done = true;
             return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
@@ -562,7 +562,7 @@ describe(spec, () => {
         this.$lifecycle.registerTask({
           done: false,
           canCancel() {return false; },
-          cancel() {},
+          cancel() { return; },
           wait() {
             this.done = true;
             return Promise.resolve();
@@ -623,7 +623,7 @@ describe(spec, () => {
         this.$lifecycle.registerTask({
           done: false,
           canCancel() {return false; },
-          cancel() {},
+          cancel() { return; },
           wait() {
             this.done = true;
             return Promise.resolve();
@@ -684,7 +684,7 @@ describe(spec, () => {
         this.$lifecycle.registerTask({
           done: false,
           canCancel() {return false; },
-          cancel() {},
+          cancel() {return},
           wait() {
             this.done = true;
             return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
@@ -748,7 +748,7 @@ describe(spec, () => {
         this.$lifecycle.registerTask({
           done: false,
           canCancel() {return false; },
-          cancel() {},
+          cancel() {return},
           wait() {
             this.done = true;
             return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
@@ -882,7 +882,6 @@ describe(spec, () => {
       }
     });
 
-
     const au = new Aurelia(ctx.container);
 
     const host = ctx.createElement('div');
@@ -896,7 +895,7 @@ describe(spec, () => {
 
   });
 
-  for (const [title, appMarkup, ceMarkup,,,,,, expected] of [
+  for (const [title, appMarkup, ceMarkup, , , , , , expected] of [
     [
       `single, static`,
       `<div replace-part="bar">43</div>`,
@@ -1248,7 +1247,7 @@ describe('generated.template-compiler.static (with tracing)', function () {
       expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, 'outerHTML after start #1 / #2');
       expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, 'outerHTML after stop #1 / #2');
 
-      console.log('\n' + stringifyTemplateDefinition(description, 0));
+      console.log(`\n${stringifyTemplateDefinition(description, 0)}`);
       disableTracing();
   }
   it('tag$01 text$01 _', function () {
@@ -1532,7 +1531,6 @@ describe('generated.template-compiler.static (with tracing)', function () {
 //     const elseBehavior = RuntimeBehavior.create(Else);
 //     //@ts-ignore
 //     elseBehavior.applyTo(elseSut, lifecycle);
-
 
 //     let firstBindInitialNodesText: string;
 //     let firstBindFinalNodesText: string;

@@ -3,12 +3,12 @@ import {
   bindable,
   Binding,
   customElement,
+  CustomElementResource,
   InterpolationBinding,
   LifecycleFlags,
   PropertyAccessor,
   SelfObserver,
-  SetterObserver,
-  CustomElementResource
+  SetterObserver
 } from '@aurelia/runtime';
 import { ElementPropertyAccessor } from '@aurelia/runtime-html';
 import { expect } from 'chai';
@@ -102,7 +102,7 @@ describe('template-compiler.custom-elements', () => {
         boundCalls++;
       }
       public valueChanged(newValue: any): void {
-        this.value1 = newValue + '1';
+        this.value1 = `${newValue}1`;
       }
     }
 
@@ -120,7 +120,7 @@ describe('template-compiler.custom-elements', () => {
         boundCalls++;
       }
       public valueChanged(newValue: any): void {
-        this.value1 = newValue + '1';
+        this.value1 = `${newValue}1`;
       }
     }
 
@@ -138,7 +138,7 @@ describe('template-compiler.custom-elements', () => {
         boundCalls++;
       }
       public valueChanged(newValue: any): void {
-        this.value1 = newValue + '1';
+        this.value1 = `${newValue}1`;
       }
     }
 
@@ -156,7 +156,7 @@ describe('template-compiler.custom-elements', () => {
         boundCalls++;
       }
       public valueChanged(newValue: any): void {
-        this.value1 = newValue + '1';
+        this.value1 = `${newValue}1`;
       }
     }
 
@@ -174,7 +174,7 @@ describe('template-compiler.custom-elements', () => {
         boundCalls++;
       }
       public valueChanged(newValue: any): void {
-        this.value1 = newValue + '1';
+        this.value1 = `${newValue}1`;
       }
     }
 

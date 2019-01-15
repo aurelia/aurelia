@@ -9,7 +9,7 @@ export class AuthorDetails {
   public static parameters = ['id'];
 
   public author = {};
-  constructor(private authorsRepository: AuthorsRepository) { }
+  constructor(private readonly authorsRepository: AuthorsRepository) { }
 
   public enter(parameters) {
     if (parameters.id) {

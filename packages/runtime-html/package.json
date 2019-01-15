@@ -28,7 +28,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "cross-env tslint --project tsconfig-test.json -e \"test/**\" -t stylish",
+    "lint": "npm run lint:src && npm run lint:test",
+    "lint:src": "tslint --project tsconfig.json -t stylish",
+    "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
     "build": "tsc -b",
     "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system runtime-html",
     "dev": "tsc -b -w",

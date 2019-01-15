@@ -14,23 +14,16 @@ import {
 } from '../../src/index';
 
 describe('DebounceBindingBehavior', () => {
-  let sourceExpression: IsBindingBehavior;
-  let target: any;
-  let targetProperty: string;
-  let mode: BindingMode;
-  let observerLocator: IObserverLocator;
   const container: IContainer = DI.createContainer();
   let sut: DebounceBindingBehavior;
   let binding: Binding;
-  let flags: LifecycleFlags;
-  let scope: IScope;
   let originalFn: Function;
 
   beforeEach(() => {
     sut = new DebounceBindingBehavior();
-    binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container as any);
+    binding = new Binding(undefined, undefined, undefined, undefined, undefined, container);
     originalFn = binding.handleChange;
-    sut.bind(flags, scope, binding as any);
+    sut.bind(undefined, undefined, binding as any);
   });
 
   // TODO: test properly (whether debouncing works etc)
@@ -44,7 +37,7 @@ describe('DebounceBindingBehavior', () => {
   });
 
   it('unbind() should revert the original behavior', () => {
-    sut.unbind(flags, scope, binding as any);
+    sut.unbind(undefined, undefined, binding as any);
     expect(binding['debouncedMethod']).to.equal(null);
     expect(binding.handleChange === originalFn).to.equal(true);
     expect(typeof binding.handleChange).to.equal('function');

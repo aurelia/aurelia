@@ -1,5 +1,6 @@
+// tslint:disable:quotemark member-access
+import { Aurelia, CustomElementResource, INode } from "@aurelia/runtime";
 import { expect } from "chai";
-import { CustomElementResource, Aurelia, INode } from "@aurelia/runtime";
 import { TestContext } from "../util";
 
 describe("generated.template-compiler.mutations.basic", function () {

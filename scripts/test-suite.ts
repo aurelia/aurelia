@@ -1,6 +1,5 @@
 // tslint:disable:whitespace
 
-type a = any;
 export class TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   public title: string;
   constructor(
@@ -50,7 +49,7 @@ export class TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     return this.slot;
   }
 
-  public setFactory(factory: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => a): this['slot'] {
+  public setFactory(factory: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => any): this['slot'] {
     const $prop = this.slot.prop;
     const $factory = factory;
 
@@ -286,7 +285,7 @@ function runAsyncFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B
     const ctx = fixture.ctx;
     let action = fixture.head;
     while (action !== null) {
-      await action.execute(ctx);
+      action.execute(ctx);
       action = action.next;
     }
   }).bind(undefined);
@@ -295,7 +294,7 @@ function runAsyncFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B
 const createTitle = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): string { return ctx.suite.name; };
 const appendDataName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): string { return data.name && data.name.length ? ` [${data.slot.prop} ${data.name}]` : ` [${data.slot.prop}]`; };
 const appendActionName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(action: TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>): string { return action.name && action.name.length ? ` [${action.slot.name} ${action.name}]` : ` [${action.slot.name}]`; };
-export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O=a> {
+export class TestSuite<A=any,B=any,C=any,D=any,E=any,F=any,G=any,H=any,I=any,J=any,K=any,L=any,M=any,N=any,O=any> {
   public asHead: TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>;
   public asTail: this['asHead'];
   public asCurrent: this['asHead'];
@@ -385,7 +384,8 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
     return propOrSlot;
   }
 
-  public clone<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O=a>(name?: string): TestSuite<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
+  // tslint:disable-next-line:no-shadowed-variable
+  public clone<A=any,B=any,C=any,D=any,E=any,F=any,G=any,H=any,I=any,J=any,K=any,L=any,M=any,N=any,O=any>(name?: string): TestSuite<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     const clone = new TestSuite<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(name === undefined ? this.name : name);
 
     let action = this.asHead;

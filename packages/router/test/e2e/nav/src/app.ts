@@ -21,9 +21,9 @@ import { Router } from '../../../../../router/src/index';
 </template>
 ` })
 export class App {
-  constructor(private router: Router) { }
+  constructor(private readonly router: Router) { }
 
   public attached() {
-    this.router.activate();
+    this.router.activate().catch(error => { throw error; });
   }
 }

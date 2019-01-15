@@ -20,7 +20,6 @@ import {
   TestContext
 } from './util';
 
-
 describe(`createElement() creates element based on tag`, () => {
   eachCartesianJoin([['div', 'template']], (tag: string) => {
     describe(`tag=${tag}`, () => {

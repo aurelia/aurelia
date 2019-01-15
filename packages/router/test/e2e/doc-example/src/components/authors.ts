@@ -14,7 +14,7 @@ import { AuthorsRepository } from '../repositories/authors';
 </template>` })
 @inject(AuthorsRepository)
 export class Authors {
-  constructor(private authorsRepository: AuthorsRepository) { }
+  constructor(private readonly authorsRepository: AuthorsRepository) { }
 
   get authors() { return this.authorsRepository.authors(); }
 }
